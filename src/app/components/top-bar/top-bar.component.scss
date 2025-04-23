@@ -1,0 +1,22 @@
+.top-bar {
+    height: 60px;
+    background: gray;
+        .avatar-wrapper {
+   
+            img {
+                margin-top: 5px;
+                margin-left: 10px;
+                width: 40px;
+                height: 40px;
+                border-radius: 50px;
+                border: solid 3px black;
+            }
+            .name {
+                font-size: 10px;
+                width: 60px;
+                text-align: center;
+                margin-top: -2px;
+            }
+        }
+}
+

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import Phaser from 'phaser';
+import { FakeApiService } from '../services/fakeapi';
 
 class GameScene extends Phaser.Scene {
     constructor(config: any) {
@@ -35,22 +36,32 @@ class GameScene extends Phaser.Scene {
 })
 export class HomePage implements OnInit {
     phaserGame: Phaser.Game | undefined;
-    config: Phaser.Types.Core.GameConfig;
+    config: Phaser.Types.Core.GameConfig | undefined;
 
-    constructor() {
-        this.config = {
-            type: Phaser.AUTO,
-            width: 300,
-            height: 300,
-            physics: {
-                default: 'arcade'
-            },
-            parent: 'game',
-            scene: GameScene
-        };
+    constructor(
+     public service: FakeApiService,
+    ) {
+      this.loadScene();
     }
 
     ngOnInit(): void {
         this.phaserGame = new Phaser.Game(this.config);
+        this.service.getUserData().subscribe((data) => {
+          console.log('soy la data', data)
+        })
     }
+
+    loadScene() {
+      this.config = {
+        type: Phaser.AUTO,
+        width: window.innerWidth,
+        height: 200,
+        physics: {
+            default: 'arcade'
+        },
+        parent: 'game',
+        scene: GameScene
+     };
+    }
+
 }
