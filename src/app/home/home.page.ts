@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import Phaser from 'phaser';
 import { FakeApiService } from '../services/fakeapi';
+import { ProfileService } from '../services/profile';
 
 class GameScene extends Phaser.Scene {
     constructor(config: any) {
@@ -40,6 +41,7 @@ export class HomePage implements OnInit {
 
     constructor(
      public service: FakeApiService,
+     public profile: ProfileService,
     ) {
       this.loadScene();
     }
@@ -62,6 +64,10 @@ export class HomePage implements OnInit {
         parent: 'game',
         scene: GameScene
      };
+    }
+
+    test() {
+      this.profile.setStatus(10);
     }
 
 }
