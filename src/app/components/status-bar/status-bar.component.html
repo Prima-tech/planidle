@@ -1,9 +1,9 @@
-<ng-container *ngIf="service$">
+<div class="status-bar-wrapper" *ngIf="service$">
   <ng-container *ngIf="service$ | async as status">
     <ion-progress-bar 
-      class="status-bar health"
+      class="status-bar"
       [value]="status?.value ? status.value : 100"
       [color]="status?.color ? status.color : primary">
     </ion-progress-bar>
   </ng-container>
-</ng-container>
+</div>

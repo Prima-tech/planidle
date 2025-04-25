@@ -20,14 +20,22 @@
         }
 }
 
-.status-bar {
- &.health {
-    --background: red;
-    float: left;
-    width: 50%;
- }
-}
 
+.health {
+    ::ng-deep {
+        .status-bar-wrapper {
+            width: 50%;
+            float: left;
+            margin-top: 10px;
+            ion-progress-bar {
+                height: 10px;
+                --progress-background: red;
+                --background: white;
+            }
+        }
+    }
+
+}
 
 
 
