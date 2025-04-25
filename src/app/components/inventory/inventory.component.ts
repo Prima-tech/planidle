@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
   selector: 'app-inventory',
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.scss'],
+  standalone: false,
 })
 export class InventoryComponent  implements OnInit {
 
@@ -11,4 +12,8 @@ export class InventoryComponent  implements OnInit {
 
   ngOnInit() {}
 
+
+    
+
 }
+
