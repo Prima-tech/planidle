@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { TopBarComponent } from './top-bar/top-bar.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
+import { IconComponent } from './icon/icon.component';
 
 @NgModule({
   declarations: [
     TopBarComponent,
-    StatusBarComponent
+    StatusBarComponent,
+    IconComponent
   ],
   imports: [
     CommonModule,
@@ -16,6 +18,7 @@ import { StatusBarComponent } from './status-bar/status-bar.component';
   exports: [
     TopBarComponent,
     StatusBarComponent,
+    IconComponent
   ]
 })
 export class ComponentModule {}
