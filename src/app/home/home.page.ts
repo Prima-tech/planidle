@@ -106,6 +106,16 @@ export class HomePage implements OnInit {
         name: 'sword8',
         type: 'item',
         icon: 'sword8'
+      }, {
+        id: 9,
+        name: 'sword9',
+        type: 'item',
+        icon: 'sword9'
+      }, {
+        id: 10,
+        name: 'sword10',
+        type: 'item',
+        icon: 'sword10'
       }]
 
     
