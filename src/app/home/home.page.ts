@@ -2,40 +2,55 @@ import { Component, OnInit } from '@angular/core';
 import Phaser from 'phaser';
 import { FakeApiService } from '../services/fakeapi';
 import { ProfileService } from '../services/profile';
+import { Player } from '../pnj/player/player';
+import { GridControls } from '../physics/gridcontrols';
+import { GridPhysics } from '../physics/gridphisics';
 
-class GameScene extends Phaser.Scene {
+export class GameScene extends Phaser.Scene {
     constructor(config: any) {
         super(config);
     }
 
     static readonly TILE_SIZE = 48;
 
+    private gridControls: GridControls;
+    private gridPhysics: GridPhysics;
+    private player: Player;
+
     preload() {
-      this.load.spritesheet('idle', 'assets/sprites/player1/idle.png', { frameWidth: 64, frameHeight: 64, endFrame: 40 });
-      this.load.image("repeating-background", "assets/delete/default-back.png");
+      this.load.spritesheet('player', 'assets/sprites/player1/idle.png', { frameWidth: 64, frameHeight: 64, endFrame: 40 });
+
+
     }
 
     create() {
-      const config = {
-        key: 'explodeAnimation',
-        frames: this.anims.generateFrameNumbers('idle', { start: 0, end: 40, first: 0 }),
-        frameRate: 20,
-        repeat: -1
-    };
-
-      // You can access the game's config to read the width & height
-      const { width, height } = this.sys.game.config;
-      // Creating a repeating background sprite
-      const bg = this.add.tileSprite(0, 0, <any>width, <any>height, "repeating-background");
-      bg.setOrigin(0, 0);
-
-
-      this.anims.create(config);
-      this.add.sprite(100, 100, 'idle').play('explodeAnimation');
-
+      //this.createMap();
+      this.initPlayer();
+      this.createPhysics();
     }
 
     override update() {
+    }
+
+    createMap() {
+
+    }
+
+    initPlayer() {
+      const playerSprite = this.add.sprite(0, 0, "player");
+      playerSprite.setDepth(2);
+      playerSprite.scale = 3;
+      this.cameras.main.startFollow(playerSprite);
+      this.cameras.main.roundPixels = true;
+      this.player = new Player(playerSprite, new Phaser.Math.Vector2(0, 0));
+    }
+
+    createPhysics() {
+      this.gridPhysics = new GridPhysics(this.player);
+      this.gridControls = new GridControls(
+        this.input,
+        this.gridPhysics
+      );
     }
 }
 
@@ -63,17 +78,22 @@ export class HomePage implements OnInit {
         })
     }
 
+    
     loadScene() {
       this.config = {
-        type: Phaser.AUTO,
-        width: window.innerWidth,
-        height: 200,
-        backgroundColor: "#222222",
-        physics: {
-            default: 'arcade'
+        title: "Sample",
+        render: {
+          antialias: false,
         },
-        parent: 'game',
-        scene: GameScene
+        type: Phaser.AUTO,
+        scene: GameScene,
+        scale: {
+          width: window.innerWidth,
+          height: 200,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+        },
+        parent: "game",
+        backgroundColor: "#48C4F8",
      };
     }
 
