@@ -1,5 +1,5 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-inventory',
@@ -9,7 +9,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class InventoryComponent  implements OnInit {
 
-    items = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+   @Input() items = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
   
     drop(event: CdkDragDrop<string[]>) {
       moveItemInArray(this.items, event.previousIndex, event.currentIndex);

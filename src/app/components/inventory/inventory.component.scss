@@ -39,6 +39,13 @@
   .example-box:nth-child(-n+5) {
     margin-top: 0;
   }
+  .example-list .cdk-drag-placeholder {
+    background: red;
+  
+  }
+
+
+
 
   .cdk-drag-preview {
     box-sizing: border-box;
