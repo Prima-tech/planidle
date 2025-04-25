@@ -1,3 +1,21 @@
+:host {
+  ion-content {
+   --background: rgb(78, 77, 77);
+
+   .test {
+      background: rgba(132, 80, 80, 0.796);
+      margin-top: 30px;
+      margin-left: 30px;
+      width: 25%;
+      height: 50px;
+      text-align: center;
+      padding-top: 15px;
+      color: white;
+    }
+  }
+
+}
+
 #container {
   text-align: center;
 
@@ -26,8 +44,3 @@
   text-decoration: none;
 }
 
-.test {
-  background: gray;
-  margin-top: 30px;
-  margin-left: 30px;
-}

@@ -8,8 +8,11 @@ class GameScene extends Phaser.Scene {
         super(config);
     }
 
+    static readonly TILE_SIZE = 48;
+
     preload() {
       this.load.spritesheet('idle', 'assets/sprites/player1/idle.png', { frameWidth: 64, frameHeight: 64, endFrame: 40 });
+      this.load.image("repeating-background", "assets/delete/default-back.png");
     }
 
     create() {
@@ -19,6 +22,13 @@ class GameScene extends Phaser.Scene {
         frameRate: 20,
         repeat: -1
     };
+
+      // You can access the game's config to read the width & height
+      const { width, height } = this.sys.game.config;
+      // Creating a repeating background sprite
+      const bg = this.add.tileSprite(0, 0, <any>width, <any>height, "repeating-background");
+      bg.setOrigin(0, 0);
+
 
       this.anims.create(config);
       this.add.sprite(100, 100, 'idle').play('explodeAnimation');
@@ -58,6 +68,7 @@ export class HomePage implements OnInit {
         type: Phaser.AUTO,
         width: window.innerWidth,
         height: 200,
+        backgroundColor: "#222222",
         physics: {
             default: 'arcade'
         },
