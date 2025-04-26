@@ -1,4 +1,4 @@
-import { GameScene } from "src/app/home/home.page";
+import { GameScene } from "src/app/scenes/gamescene/gamescene";
 
 export class Player {
   constructor(
