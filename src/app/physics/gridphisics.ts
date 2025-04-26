@@ -8,7 +8,7 @@ type Vector2 = Phaser.Math.Vector2;
 export class GridPhysics {
 	private movementDirection: Direction = Direction.NONE;
 	private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 4;
-
+  private tileSizePixelsWalked: number = 0;
   private movementDirectionVectors: {
     [key in Direction]?: Vector2;
   } = {
@@ -40,17 +40,25 @@ export class GridPhysics {
     }
   }
 
-	private updatePlayerPosition(delta: number) {
+  private updatePlayerPosition(delta: number) {
     const pixelsToWalkThisUpdate = this.getPixelsToWalkThisUpdate(delta);
-		const directionVec = this.movementDirectionVectors[
+    if (this.willCrossTileBorderThisUpdate(pixelsToWalkThisUpdate)) {
+      this.movePlayerSprite(GameScene.TILE_SIZE - this.tileSizePixelsWalked);
+      this.stopMoving();
+    } else {
+      this.movePlayerSprite(pixelsToWalkThisUpdate);
+    }
+  }
+
+  private movePlayerSprite(pixelsToMove: number) {
+    const directionVec = this.movementDirectionVectors[
       this.movementDirection
     ].clone();
-    const movementDistance = directionVec.multiply(
-      new Vector2(pixelsToWalkThisUpdate)
-    );
+    const movementDistance = directionVec.multiply(new Vector2(pixelsToMove));
     const newPlayerPos = this.player.getPosition().add(movementDistance);
     this.player.setPosition(newPlayerPos);
-		this.stopMoving();
+    this.tileSizePixelsWalked += pixelsToMove;
+    this.tileSizePixelsWalked %= GameScene.TILE_SIZE;
   }
 
 	private stopMoving(): void {
@@ -61,4 +69,12 @@ export class GridPhysics {
 		const deltaInSeconds = delta / 1000;
 		return this.speedPixelsPerSecond * deltaInSeconds;
 	}
+
+  private willCrossTileBorderThisUpdate(
+    pixelsToWalkThisUpdate: number
+  ): boolean {
+    return (
+      this.tileSizePixelsWalked + pixelsToWalkThisUpdate >= GameScene.TILE_SIZE
+    );
+  }
 }
