@@ -1,6 +1,6 @@
-<!-- Contenedor general: se cierra el menú split al hacer clic en cualquier parte fuera de él -->
-<div class="inventory-container" (click)="closeSplitMenu()">
-  <!-- Inventario en forma de cuadrícula -->
+<!-- Contenedor principal: al hacer clic aquí se cierran los overlays -->
+<div class="inventory-container" (click)="closeOverlays()">
+  <!-- Inventario (cuadrícula 4x5) -->
   <div class="inventory-grid">
     <div *ngFor="let row of grid; let rowIndex = index" class="inventory-row">
       <div
@@ -19,12 +19,7 @@
             cdkDrag
             [cdkDragData]="{ row: rowIndex, col: colIndex, item: cell }"
             (click)="selectItem(rowIndex, colIndex, $event)"
-            [ngClass]="{
-              selected:
-                selectedItem &&
-                selectedItem.row === rowIndex &&
-                selectedItem.col === colIndex
-            }"
+            [ngClass]="{ selected: selectedItem && selectedItem.row === rowIndex && selectedItem.col === colIndex }"
           >
             <div class="item-name">{{ cell.name }}</div>
             <div class="item-sum" *ngIf="cell.sum !== undefined">
@@ -38,17 +33,28 @@
 
   <!-- Barra de botones inferior -->
   <div class="button-bar" (click)="$event.stopPropagation()">
-    <!-- Botón Split: al pulsarlo se abre el menú split si se cumplen las condiciones -->
     <button (click)="openSplitMenu($event)">Split</button>
-    <!-- Puedes agregar más botones aquí -->
+    <button (click)="openDeleteModal($event)">Borrar</button>
+    <button (click)="sortInventory()">Ordenar</button>
   </div>
 
-  <!-- Menú de Split: se muestra solo cuando splitMenuOpen es true -->
+  <!-- Menú Split (solo se muestra si splitMenuOpen es true) -->
   <div class="split-menu" *ngIf="splitMenuOpen" (click)="$event.stopPropagation()">
     <span>Cantidad:</span>
     <button (click)="decreaseSplitValue()">−</button>
     <input type="number" [value]="splitValue" readonly />
     <button (click)="increaseSplitValue()">+</button>
     <button (click)="executeSplit($event)">OK</button>
+  </div>
+
+  <!-- Modal de confirmación para borrar -->
+  <div class="modal-overlay" *ngIf="deleteModalOpen" (click)="cancelDelete($event)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <p>¿Quieres borrar el objeto? No se puede revertir.</p>
+      <div class="modal-buttons">
+        <button (click)="confirmDelete($event)">Aceptar</button>
+        <button (click)="cancelDelete($event)">Cancelar</button>
+      </div>
+    </div>
   </div>
 </div>

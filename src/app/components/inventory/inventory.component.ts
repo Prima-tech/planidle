@@ -6,6 +6,7 @@ interface InventoryItem {
   name: string;
   mergeable?: boolean;
   sum?: number;
+  order?: number;  // Nuevo campo para indicar el orden del item
 }
 
 @Component({
@@ -13,25 +14,25 @@ interface InventoryItem {
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.scss'],
   standalone: false
-  // NOTA: Este componente NO es standalone (standalone: false)
+  // Por defecto, standalone es false (se declara de la forma tradicional)
 })
 export class InventoryComponent implements OnInit {
   rows = 4;
   columns = 5;
   grid: (InventoryItem | null)[][] = [];
   dropListIds: string[] = [];
-
-  // Para manejar la selección del item en la cuadrícula
   selectedItem: { row: number; col: number } | null = null;
 
-  // Variables para la funcionalidad "Split"
+  // Para el menú de Split
   splitMenuOpen: boolean = false;
   splitValue: number = 1;
-  // Contador para asignar nuevos IDs (ya hay items con id 1 al 5)
   nextId: number = 6;
 
+  // Para el modal de confirmación de borrado
+  deleteModalOpen: boolean = false;
+
   ngOnInit() {
-    // Inicializa la cuadrícula y los identificadores de cada celda
+    // Inicialización de la cuadrícula y de los identificadores
     for (let i = 0; i < this.rows; i++) {
       const row: (InventoryItem | null)[] = [];
       for (let j = 0; j < this.columns; j++) {
@@ -41,53 +42,93 @@ export class InventoryComponent implements OnInit {
       this.grid.push(row);
     }
 
-    // Items no mergeables
-    this.grid[0][0] = { id: 1, name: 'Espada', mergeable: false };
-    this.grid[0][1] = { id: 2, name: 'Escudo', mergeable: false };
-    this.grid[1][0] = { id: 3, name: 'Poción', mergeable: false };
+    // Items de ejemplo (se les puede asignar un order manualmente)
+    this.grid[0][0] = { id: 1, name: 'Espada', mergeable: false, order: 5 };
+    this.grid[0][1] = { id: 2, name: 'Escudo', mergeable: false, order: 5 };
+    this.grid[1][0] = { id: 3, name: 'Poción', mergeable: false, order: 3 };
 
-    // Dos items mergeables llamados "Hierro" con atributo sum (2 y 3)
-    this.grid[2][2] = { id: 4, name: 'Hierro', mergeable: true, sum: 2 };
-    this.grid[2][3] = { id: 5, name: 'Hierro', mergeable: true, sum: 3 };
+    // Dos items mergeables llamados "Hierro" con atributo sum (y opcionalmente un order)
+    this.grid[2][2] = { id: 4, name: 'Hierro', mergeable: true, sum: 2, order: 4 };
+    this.grid[2][3] = { id: 5, name: 'Hierro', mergeable: true, sum: 3, order: 1 };
   }
 
-  /**
-   * Al hacer clic en un item, se selecciona (o se deselecciona si ya estaba seleccionado).
-   * Se usa event.stopPropagation() para evitar que otros listeners (por ejemplo, para cerrar el menú split) interfieran.
-   */
+  // Método para ordenar el inventario:
+  sortInventory() {
+    // Extraemos todos los items no nulos
+    let items: InventoryItem[] = [];
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.columns; j++) {
+        if (this.grid[i][j] !== null) {
+          items.push(this.grid[i][j]!);
+        }
+      }
+    }
+
+    // Ordenamos los items de la siguiente forma:
+    // - Si ambos items tienen el campo 'order' definido, se usa ese valor.
+    // - Si solo uno tiene 'order' definido, ese item se ordena primero.
+    // - Si ninguno lo tiene, se ordena por nombre (y en caso de empate, por id).
+    items.sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      } else if (a.order !== undefined) {
+        return -1;
+      } else if (b.order !== undefined) {
+        return 1;
+      } else {
+        return a.name.localeCompare(b.name) || a.id - b.id;
+      }
+    });
+
+    // Rellenamos la cuadrícula en orden row-major con el array ordenado
+    let index = 0;
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.columns; j++) {
+        if (index < items.length) {
+          this.grid[i][j] = items[index++];
+        } else {
+          this.grid[i][j] = null;
+        }
+      }
+    }
+    // Se cierran overlays y se deselecciona después de ordenar
+    this.selectedItem = null;
+    this.splitMenuOpen = false;
+    this.deleteModalOpen = false;
+  }
+
+  // Al hacer clic en un item se selecciona y se cierran overlays abiertos
   selectItem(row: number, col: number, event: MouseEvent) {
     event.stopPropagation();
     if (this.grid[row][col]) {
-      // Si se hace clic en el mismo item, se deselecciona y se cierra el menú.
-      if (this.selectedItem && this.selectedItem.row === row && this.selectedItem.col === col) {
+      if (
+        this.selectedItem &&
+        this.selectedItem.row === row &&
+        this.selectedItem.col === col
+      ) {
         this.selectedItem = null;
         this.splitMenuOpen = false;
       } else {
-        // Al seleccionar otro item, se actualiza la selección y se oculta el menú de split.
         this.selectedItem = { row, col };
         this.splitMenuOpen = false;
+        this.deleteModalOpen = false;
       }
     }
   }
-  
 
-  /**
-   * Evento del drop de un item en una celda.  
-   * Realiza movimiento, swap o merge según convenga.
-   */
+  // Maneja el drop de un item: mueve, intercambia o funde (merge) según corresponda
   onDrop(event: CdkDragDrop<any>, targetRow: number, targetCol: number) {
     const draggedData = event.item.data; // { row, col, item }
     const sourceRow = draggedData.row;
     const sourceCol = draggedData.col;
     const draggedItem = draggedData.item;
 
-    // Evitar acción si se suelta en la misma celda
+    // Evita que se haga drop en la misma celda
     if (sourceRow === targetRow && sourceCol === targetCol) {
       return;
     }
 
     const targetItem = this.grid[targetRow][targetCol];
-
     if (targetItem) {
       if (
         targetItem.mergeable &&
@@ -99,12 +140,15 @@ export class InventoryComponent implements OnInit {
         // Merge: suma los valores y elimina el item arrastrado
         targetItem.sum! += draggedItem.sum!;
         this.grid[sourceRow][sourceCol] = null;
-        // Actualiza la selección si fuese necesaria
-        if (this.selectedItem && this.selectedItem.row === sourceRow && this.selectedItem.col === sourceCol) {
+        if (
+          this.selectedItem &&
+          this.selectedItem.row === sourceRow &&
+          this.selectedItem.col === sourceCol
+        ) {
           this.selectedItem = { row: targetRow, col: targetCol };
         }
       } else {
-        // Intercambio
+        // Intercambiamos los items
         this.grid[targetRow][targetCol] = draggedItem;
         this.grid[sourceRow][sourceCol] = targetItem;
         if (
@@ -122,7 +166,7 @@ export class InventoryComponent implements OnInit {
         }
       }
     } else {
-      // Movimiento a celda vacía
+      // Mueve el item a una celda vacía
       this.grid[targetRow][targetCol] = draggedItem;
       this.grid[sourceRow][sourceCol] = null;
       if (
@@ -133,32 +177,69 @@ export class InventoryComponent implements OnInit {
         this.selectedItem = { row: targetRow, col: targetCol };
       }
     }
-    // Al mover o interactuar con el inventario se cierra el menú de split (si estuviera abierto)
     this.splitMenuOpen = false;
+    this.deleteModalOpen = false;
   }
 
-  /**
-   * Abre el menú split si se tiene un item seleccionado
-   * que sea mergeable y tenga sum > 1.
-   */
+  // --- Funcionalidad Split ---
   openSplitMenu(event: MouseEvent) {
     event.stopPropagation();
     if (this.selectedItem) {
       const { row, col } = this.selectedItem;
       const item = this.grid[row][col];
       if (item && item.mergeable && item.sum! > 1) {
-        this.splitValue = 1; // valor inicial
+        this.splitValue = 1;
         this.splitMenuOpen = true;
       } else {
         this.splitMenuOpen = false;
       }
     }
   }
-
-  /**
-   * Busca la primera celda vacía (null) en la cuadrícula.
-   * Devuelve un objeto con las coordenadas si se encuentra, o null de lo contrario.
-   */
+  increaseSplitValue() {
+    if (this.selectedItem) {
+      const { row, col } = this.selectedItem;
+      const item = this.grid[row][col];
+      if (item && typeof item.sum === 'number' && this.splitValue < item.sum - 1) {
+        this.splitValue++;
+      }
+    }
+  }
+  decreaseSplitValue() {
+    if (this.splitValue > 1) {
+      this.splitValue--;
+    }
+  }
+  executeSplit(event: MouseEvent) {
+    event.stopPropagation();
+    if (!this.selectedItem) {
+      return;
+    }
+    const { row, col } = this.selectedItem;
+    const item = this.grid[row][col];
+    if (
+      item &&
+      item.mergeable &&
+      typeof item.sum === 'number' &&
+      item.sum > 1 &&
+      this.splitValue < item.sum
+    ) {
+      const emptyCell = this.findFirstEmptyCell();
+      if (!emptyCell) {
+        // Inventario lleno: no se puede dividir
+        return;
+      }
+      item.sum -= this.splitValue;
+      // Crea un nuevo item con un nuevo ID y con sum = splitValue
+      const newItem: InventoryItem = {
+        id: this.nextId++,
+        name: item.name,
+        mergeable: item.mergeable,
+        sum: this.splitValue
+      };
+      this.grid[emptyCell.row][emptyCell.col] = newItem;
+      this.splitMenuOpen = false;
+    }
+  }
   private findFirstEmptyCell(): { row: number; col: number } | null {
     for (let i = 0; i < this.rows; i++) {
       for (let j = 0; j < this.columns; j++) {
@@ -170,67 +251,33 @@ export class InventoryComponent implements OnInit {
     return null;
   }
 
-  /**
-   * Aumenta el valor a dividir (máximo: sum del item - 1).
-   */
-  increaseSplitValue() {
-    if (this.selectedItem) {
-      const { row, col } = this.selectedItem;
-      const item = this.grid[row][col];
-      if (item && typeof item.sum === 'number' && this.splitValue < item.sum - 1) {
-        this.splitValue++;
-      }
-    }
-  }
-
-  /**
-   * Disminuye el valor a dividir (mínimo: 1).
-   */
-  decreaseSplitValue() {
-    if (this.splitValue > 1) {
-      this.splitValue--;
-    }
-  }
-
-  /**
-   * Ejecuta la acción de "split":  
-   * - Se verifica que exista una celda vacía en el inventario.  
-   * - Se crea un nuevo item (con nuevo id y con sum = splitValue) en la primera celda vacía
-   * - Al item original se le resta splitValue.
-   */
-  executeSplit(event: MouseEvent) {
+  // --- Funcionalidad Borrar ---
+  openDeleteModal(event: MouseEvent) {
     event.stopPropagation();
-    if (!this.selectedItem) {
-      return;
-    }
-    const { row, col } = this.selectedItem;
-    const item = this.grid[row][col];
-    if (item && item.mergeable && typeof item.sum === 'number' && item.sum > 1 && this.splitValue < item.sum) {
-      const emptyCell = this.findFirstEmptyCell();
-      if (!emptyCell) {
-        // Inventario completo: no se puede dividir
-        return;
-      }
-      // Resta al item original el valor de split
-      item.sum -= this.splitValue;
-      // Crea el nuevo item copiando las propiedades (puedes modificar si deseas copiar o no otras propiedades)
-      const newItem: InventoryItem = {
-        id: this.nextId++,
-        name: item.name,
-        mergeable: item.mergeable,
-        sum: this.splitValue
-      };
-      // Coloca el nuevo item en la primera posición vacía
-      this.grid[emptyCell.row][emptyCell.col] = newItem;
-      // Cierra el menú split
+    if (this.selectedItem) {
+      this.deleteModalOpen = true;
+      // Se cierra el menú split si está abierto
       this.splitMenuOpen = false;
     }
   }
+  confirmDelete(event: MouseEvent) {
+    event.stopPropagation();
+    if (this.selectedItem) {
+      const { row, col } = this.selectedItem;
+      this.grid[row][col] = null;
+      this.selectedItem = null;
+      this.deleteModalOpen = false;
+    }
+  }
+  cancelDelete(event: MouseEvent) {
+    event.stopPropagation();
+    this.deleteModalOpen = false;
+  }
 
-  /**
-   * Cierra el menú split (por ejemplo, al hacer clic fuera de él).
-   */
-  closeSplitMenu() {
+
+  // Al hacer clic de fondo se cierran ambos overlays
+  closeOverlays() {
     this.splitMenuOpen = false;
+    this.deleteModalOpen = false;
   }
 }
