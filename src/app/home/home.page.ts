@@ -30,7 +30,9 @@ export class GameScene extends Phaser.Scene {
       this.createPhysics();
     }
 
-    override update() {
+    override update(_time: number, delta: number) {
+      this.gridControls.update();
+      this.gridPhysics.update(delta);
     }
 
     createMap() {
@@ -43,7 +45,7 @@ export class GameScene extends Phaser.Scene {
       playerSprite.scale = 3;
       this.cameras.main.startFollow(playerSprite);
       this.cameras.main.roundPixels = true;
-      this.player = new Player(playerSprite, new Phaser.Math.Vector2(0, 0));
+      this.player = new Player(playerSprite, new Phaser.Math.Vector2(6, 6));
     }
 
     initMap() {
