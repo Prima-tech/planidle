@@ -30,9 +30,8 @@ export class GameScene extends Phaser.Scene {
       this.initMap();
       this.initPlayer();
       this.createPhysics();
-     
-
       this.initPlayerAnimation();
+      this.cameras.main.setZoom(0.5);
     }
 
     initPlayerAnimation()  {

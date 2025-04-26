@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { StatusService } from 'src/app/services/status';
 
 @Component({
   selector: 'app-main',
@@ -8,9 +9,14 @@ import { Component, OnInit } from '@angular/core';
 })
 export class MainPage implements OnInit {
 
-  constructor() { }
+  constructor(
+    private status: StatusService
+  ) { }
 
   ngOnInit() {
   }
 
+  test() {
+    this.status.setStatus(10);
+  }
 }

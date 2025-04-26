@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { map, startWith } from 'rxjs';
-import { ProfileService } from 'src/app/services/profile';
+import { StatusService } from 'src/app/services/status';
 
 @Component({
   selector: 'app-top-bar',
@@ -10,7 +10,7 @@ import { ProfileService } from 'src/app/services/profile';
 })
 export class TopBarComponent implements OnInit {
 
-  valueHP$ = this.profile.status$.pipe(
+  valueHP$ = this.status.status$.pipe(
     startWith({ HP: 100, HPmax: 100 }), // emitir un valor base
     map(status => {
       const value = Math.max(0, Math.min(1, status.HP / status.HPmax));
@@ -22,7 +22,7 @@ export class TopBarComponent implements OnInit {
   );
 
   constructor(
-    public profile: ProfileService
+    public status: StatusService
   ) { }
 
   ngOnInit() {
