@@ -18,24 +18,16 @@ export class GameScene extends Phaser.Scene {
     private player: Player;
 
     preload() {
-      this.load.spritesheet('player', 'assets/sprites/player1/idle.png', { frameWidth: 64, frameHeight: 64, endFrame: 40 });
+      this.load.spritesheet('player', 'assets/sprites/player1/characters.png', { frameWidth: 26, frameHeight: 36});
 
       this.load.image("tiles", "assets/tilemaps/test/cloud_tileset.png");
       this.load.tilemapTiledJSON("cloud-city-map", "assets/tilemaps/test/cloud_city.json");
     }
 
     create() {
-      //this.createMap();
+      this.initMap();
       this.initPlayer();
       this.createPhysics();
-      const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
-      cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
-      for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-        const layer = cloudCityTilemap
-          .createLayer(i, "Cloud City", 0, 0)
-        layer.setDepth(i);
-        layer.scale = 3;
-      }
     }
 
     override update() {
@@ -52,6 +44,17 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.startFollow(playerSprite);
       this.cameras.main.roundPixels = true;
       this.player = new Player(playerSprite, new Phaser.Math.Vector2(0, 0));
+    }
+
+    initMap() {
+      const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
+      cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
+      for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
+        const layer = cloudCityTilemap
+          .createLayer(i, "Cloud City", 0, 0)
+        layer.setDepth(i);
+        layer.scale = 3;
+      }
     }
 
     createPhysics() {
