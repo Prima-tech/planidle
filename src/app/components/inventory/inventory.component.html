@@ -1,25 +1,54 @@
-<div class="inventory-grid">
-  <!-- Itera por cada fila -->
-  <div *ngFor="let row of grid; let rowIndex = index" class="inventory-row">
-    <!-- Itera por cada celda de la fila -->
-    <div
-      *ngFor="let cell of row; let colIndex = index"
-      class="inventory-cell"
-      [id]="'cell-' + rowIndex + '-' + colIndex"
-      cdkDropList
-      [cdkDropListData]="{ row: rowIndex, col: colIndex, item: cell }"
-      [cdkDropListConnectedTo]="dropListIds"
-      (cdkDropListDropped)="onDrop($event, rowIndex, colIndex)"
-    >
-      <ng-container *ngIf="cell">
-        <div
-          class="inventory-item"
-          cdkDrag
-          [cdkDragData]="{ row: rowIndex, col: colIndex, item: cell }"
-        >
-          {{ cell.name }}
-        </div>
-      </ng-container>
+<!-- Contenedor general: se cierra el menú split al hacer clic en cualquier parte fuera de él -->
+<div class="inventory-container" (click)="closeSplitMenu()">
+  <!-- Inventario en forma de cuadrícula -->
+  <div class="inventory-grid">
+    <div *ngFor="let row of grid; let rowIndex = index" class="inventory-row">
+      <div
+        *ngFor="let cell of row; let colIndex = index"
+        class="inventory-cell"
+        [id]="'cell-' + rowIndex + '-' + colIndex"
+        cdkDropList
+        [cdkDropListData]="{ row: rowIndex, col: colIndex, item: cell }"
+        [cdkDropListConnectedTo]="dropListIds"
+        (cdkDropListDropped)="onDrop($event, rowIndex, colIndex)"
+        (click)="$event.stopPropagation()"
+      >
+        <ng-container *ngIf="cell">
+          <div
+            class="inventory-item"
+            cdkDrag
+            [cdkDragData]="{ row: rowIndex, col: colIndex, item: cell }"
+            (click)="selectItem(rowIndex, colIndex, $event)"
+            [ngClass]="{
+              selected:
+                selectedItem &&
+                selectedItem.row === rowIndex &&
+                selectedItem.col === colIndex
+            }"
+          >
+            <div class="item-name">{{ cell.name }}</div>
+            <div class="item-sum" *ngIf="cell.sum !== undefined">
+              {{ cell.sum }}
+            </div>
+          </div>
+        </ng-container>
+      </div>
     </div>
+  </div>
+
+  <!-- Barra de botones inferior -->
+  <div class="button-bar" (click)="$event.stopPropagation()">
+    <!-- Botón Split: al pulsarlo se abre el menú split si se cumplen las condiciones -->
+    <button (click)="openSplitMenu($event)">Split</button>
+    <!-- Puedes agregar más botones aquí -->
+  </div>
+
+  <!-- Menú de Split: se muestra solo cuando splitMenuOpen es true -->
+  <div class="split-menu" *ngIf="splitMenuOpen" (click)="$event.stopPropagation()">
+    <span>Cantidad:</span>
+    <button (click)="decreaseSplitValue()">−</button>
+    <input type="number" [value]="splitValue" readonly />
+    <button (click)="increaseSplitValue()">+</button>
+    <button (click)="executeSplit($event)">OK</button>
   </div>
 </div>
