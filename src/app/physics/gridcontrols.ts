@@ -10,7 +10,6 @@ export class GridControls {
 
   update() {
     const cursors = this.input.keyboard.createCursorKeys();
-    console.log('me updateo')
     if (cursors.left.isDown) {
       this.gridPhysics.movePlayer(Direction.LEFT);
     } else if (cursors.right.isDown) {

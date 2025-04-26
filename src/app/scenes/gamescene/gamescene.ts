@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridPhysics } from "src/app/physics/gridphisics";
+import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
 
 @Injectable({
@@ -16,6 +17,7 @@ export class GameScene extends Phaser.Scene {
     private gridControls: GridControls;
     private gridPhysics: GridPhysics;
     private player: Player;
+    currentMap: any;
 
     preload() {
       this.load.spritesheet('player', 'assets/sprites/player1/characters.png', { frameWidth: 26, frameHeight: 36});
@@ -28,7 +30,34 @@ export class GameScene extends Phaser.Scene {
       this.initMap();
       this.initPlayer();
       this.createPhysics();
+     
+
+      this.initPlayerAnimation();
     }
+
+    initPlayerAnimation()  {
+      this.createPlayerAnimation(Direction.UP, 90, 92);
+      this.createPlayerAnimation(Direction.RIGHT, 78, 80);
+      this.createPlayerAnimation(Direction.DOWN, 54, 56);
+      this.createPlayerAnimation(Direction.LEFT, 66, 68);
+    }
+
+    private createPlayerAnimation(
+        name: string,
+        startFrame: number,
+        endFrame: number
+      ) {
+        this.anims.create({
+          key: name,
+          frames: this.anims.generateFrameNumbers("player", {
+            start: startFrame,
+            end: endFrame,
+          }),
+          frameRate: 10,
+          repeat: -1,
+          yoyo: true,
+        });
+      }
 
     override update(_time: number, delta: number) {
       this.gridControls.update();
@@ -49,10 +78,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     initMap() {
-      const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
-      cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
-      for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-        const layer = cloudCityTilemap
+      this.currentMap = this.make.tilemap({ key: "cloud-city-map" });
+      this.currentMap.addTilesetImage("Cloud City", "tiles");
+      for (let i = 0; i < this.currentMap.layers.length; i++) {
+        const layer = this.currentMap
           .createLayer(i, "Cloud City", 0, 0)
         layer.setDepth(i);
         layer.scale = 3;
@@ -60,10 +89,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     createPhysics() {
-      this.gridPhysics = new GridPhysics(this.player);
+      this.gridPhysics = new GridPhysics(this.player, this.currentMap);
       this.gridControls = new GridControls(
         this.input,
         this.gridPhysics
       );
     }
+    
 }

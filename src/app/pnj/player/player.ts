@@ -1,4 +1,5 @@
 import { GameScene } from "src/app/scenes/gamescene/gamescene";
+import { Direction } from "../interfaces/Direction";
 
 export class Player {
   constructor(
@@ -22,5 +23,24 @@ export class Player {
 
   setPosition(position: Phaser.Math.Vector2): void {
     this.sprite.setPosition(position.x, position.y);
+  }
+
+  stopAnimation(direction: Direction) {
+    const animationManager = this.sprite.anims.animationManager;
+    const standingFrame = animationManager.get(direction).frames[1].frame.name;
+    this.sprite.anims.stop();
+    this.sprite.setFrame(standingFrame);
+  }
+
+  startAnimation(direction: Direction) {
+    this.sprite.anims.play(direction);
+  }
+
+  getTilePos(): Phaser.Math.Vector2 {
+    return this.tilePos.clone();
+  }
+
+  setTilePos(tilePosition: Phaser.Math.Vector2): void {
+    this.tilePos = tilePosition.clone();
   }
 }
