@@ -1,21 +1,25 @@
-<div
-  cdkDropList
-  class="inventory-grid"
-  [cdkDropListData]="inventory"
-  (cdkDropListDropped)="drop($event)"
->
-@for (item of inventory; let i = $index; track i) {
-
+<div class="inventory-grid">
+  <!-- Itera por cada fila -->
+  <div *ngFor="let row of grid; let rowIndex = index" class="inventory-row">
+    <!-- Itera por cada celda de la fila -->
     <div
-      cdkDrag
-      class="slot"
-      [style.width.px]="boxSize"
-      [style.height.px]="boxSize"
-      [class.empty]="!item"
+      *ngFor="let cell of row; let colIndex = index"
+      class="inventory-cell"
+      [id]="'cell-' + rowIndex + '-' + colIndex"
+      cdkDropList
+      [cdkDropListData]="{ row: rowIndex, col: colIndex, item: cell }"
+      [cdkDropListConnectedTo]="dropListIds"
+      (cdkDropListDropped)="onDrop($event, rowIndex, colIndex)"
     >
-      <ng-container *ngIf="item">
-        <app-icon [name]="item.icon"></app-icon>
+      <ng-container *ngIf="cell">
+        <div
+          class="inventory-item"
+          cdkDrag
+          [cdkDragData]="{ row: rowIndex, col: colIndex, item: cell }"
+        >
+          {{ cell.name }}
+        </div>
       </ng-container>
     </div>
-  }
+  </div>
 </div>
