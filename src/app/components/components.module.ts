@@ -6,13 +6,15 @@ import { StatusBarComponent } from './status-bar/status-bar.component';
 import { IconComponent } from './icon/icon.component';
 import { InventoryComponent } from './inventory/inventory.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { FooterBarComponent } from './footer-bar/footer-bar.component';
 
 @NgModule({
   declarations: [
     TopBarComponent,
     StatusBarComponent,
     IconComponent,
-    InventoryComponent
+    InventoryComponent,
+    FooterBarComponent
   ],
   imports: [
     CommonModule,
@@ -23,7 +25,8 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     TopBarComponent,
     StatusBarComponent,
     IconComponent,
-    InventoryComponent
+    InventoryComponent,
+    FooterBarComponent
   ]
 })
 export class ComponentModule {}
