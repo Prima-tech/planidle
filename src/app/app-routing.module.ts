@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { LayoutComponent } from './components/layout/layout.component';
 
 const routes: Routes = [
   {
@@ -7,17 +8,30 @@ const routes: Routes = [
     loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
   },
   {
-    path: 'inventory',
-    loadChildren: () => import('./pages/inventory/inventory.module').then(m => m.InventoryPageModule)
+    path: '',
+    component: LayoutComponent, // layout base
+    children: [
+      {
+        path: 'inventory',
+        loadChildren: () => import('./pages/inventory/inventory.module').then(m => m.InventoryPageModule)
+      },
+      {
+        path: 'main',
+        loadChildren: () => import('./pages/main/main.module').then(m => m.MainPageModule)
+      },
+      {
+        path: 'map',
+        loadChildren: () => import('./pages/map/map.module').then(m => m.MapPageModule)
+      },
+      {
+        path: '',
+        redirectTo: 'main',
+        pathMatch: 'full'
+      }
+    ]
   },
-  {
-    path: 'main',
-    loadChildren: () => import('./pages/main/main.module').then(m => m.MainPageModule)
-  },
-  {
-    path: 'map',
-    loadChildren: () => import('./pages/map/map.module').then(m => m.MapPageModule)
-  },
+
+
   {
     path: '',
     redirectTo: 'home',

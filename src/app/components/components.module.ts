@@ -7,6 +7,8 @@ import { IconComponent } from './icon/icon.component';
 import { InventoryComponent } from './inventory/inventory.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FooterBarComponent } from './footer-bar/footer-bar.component';
+import { LayoutComponent } from './layout/layout.component';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
@@ -14,19 +16,22 @@ import { FooterBarComponent } from './footer-bar/footer-bar.component';
     StatusBarComponent,
     IconComponent,
     InventoryComponent,
-    FooterBarComponent
+    FooterBarComponent,
+    LayoutComponent
   ],
   imports: [
     CommonModule,
     IonicModule,
-    DragDropModule
+    DragDropModule,
+    RouterModule, //
   ],
   exports: [
     TopBarComponent,
     StatusBarComponent,
     IconComponent,
     InventoryComponent,
-    FooterBarComponent
+    FooterBarComponent,
+    LayoutComponent
   ]
 })
 export class ComponentModule {}
