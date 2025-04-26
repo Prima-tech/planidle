@@ -1,5 +1,15 @@
 <ion-footer>
   <ion-toolbar>
-    <ion-title>Footer</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="goTo('inventory')">
+        <ion-icon name="home-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="goTo('map')">
+        <ion-icon name="book-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="goTo('main')">
+        <ion-icon name="settings-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-footer>
