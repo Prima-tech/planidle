@@ -1,60 +1,79 @@
-<!-- Contenedor principal: al hacer clic aquí se cierran los overlays -->
-<div class="inventory-container" (click)="closeOverlays()">
-  <!-- Inventario (cuadrícula 4x5) -->
-  <div class="inventory-grid">
-    <div *ngFor="let row of grid; let rowIndex = index" class="inventory-row">
+<!-- Cabecera de pestañas -->
+<div class="tabs" (click)="$event.stopPropagation()">
+  <div
+    *ngFor="let tab of tabs; let index = index"
+    class="tab"
+    cdkDropList
+    [cdkDropListData]="{ tabIndex: index }"
+    (cdkDropListEntered)="onTabEntered($event, index)"
+    [attr.data-tab-index]="index"
+    [ngClass]="{ active: index === activeTabIndex }"
+    (click)="selectTab(index); $event.stopPropagation()"
+  >
+    {{ tab }}
+  </div>
+</div>
+
+<!-- Inventarios: se renderizan todos los grids, pero se ocultan (con [hidden]) los no activos -->
+<div class="inventory-grid">
+  <div *ngFor="let inventory of inventories; let tabIndex = index" [hidden]="activeTabIndex !== tabIndex">
+    <div *ngFor="let row of inventory; let rowIndex = index" class="inventory-row">
       <div
         *ngFor="let cell of row; let colIndex = index"
         class="inventory-cell"
-        [id]="'cell-' + rowIndex + '-' + colIndex"
+        [id]="'tab-' + tabIndex + '-cell-' + rowIndex + '-' + colIndex"
         cdkDropList
-        [cdkDropListData]="{ row: rowIndex, col: colIndex, item: cell }"
-        [cdkDropListConnectedTo]="dropListIds"
-        (cdkDropListDropped)="onDrop($event, rowIndex, colIndex)"
+        [cdkDropListData]="{ tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
+        [cdkDropListConnectedTo]="globalDropListIds"
+        (cdkDropListDropped)="onDrop($event, tabIndex, rowIndex, colIndex)"
         (click)="$event.stopPropagation()"
       >
         <ng-container *ngIf="cell">
           <div
             class="inventory-item"
             cdkDrag
-            [cdkDragData]="{ row: rowIndex, col: colIndex, item: cell }"
-            (click)="selectItem(rowIndex, colIndex, $event)"
-            [ngClass]="{ selected: selectedItem && selectedItem.row === rowIndex && selectedItem.col === colIndex }"
+            [cdkDragData]="{ tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
+            (click)="selectItem(tabIndex, rowIndex, colIndex, $event)"
+            [ngClass]="{
+              selected:
+                selectedItem &&
+                selectedItem.tabIndex === tabIndex &&
+                selectedItem.row === rowIndex &&
+                selectedItem.col === colIndex
+            }"
           >
             <div class="item-name">{{ cell.name }}</div>
-            <div class="item-sum" *ngIf="cell.sum !== undefined">
-              {{ cell.sum }}
-            </div>
+            <div class="item-sum" *ngIf="cell.sum !== undefined">{{ cell.sum }}</div>
           </div>
         </ng-container>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Barra de botones inferior -->
-  <div class="button-bar" (click)="$event.stopPropagation()">
-    <button (click)="openSplitMenu($event)">Split</button>
-    <button (click)="openDeleteModal($event)">Borrar</button>
-    <button (click)="sortInventory()">Ordenar</button>
-  </div>
+<!-- Barra de botones inferior y demás overlays (split, modal) se mantienen igual -->
+<div class="button-bar" (click)="$event.stopPropagation()">
+  <button (click)="openSplitMenu($event)">Split</button>
+  <button (click)="openDeleteModal($event)">Borrar</button>
+  <button (click)="sortInventory()">Ordenar</button>
+</div>
 
-  <!-- Menú Split (solo se muestra si splitMenuOpen es true) -->
-  <div class="split-menu" *ngIf="splitMenuOpen" (click)="$event.stopPropagation()">
-    <span>Cantidad:</span>
-    <button (click)="decreaseSplitValue()">−</button>
-    <input type="number" [value]="splitValue" readonly />
-    <button (click)="increaseSplitValue()">+</button>
-    <button (click)="executeSplit($event)">OK</button>
-  </div>
+<!-- Menú Split -->
+<div class="split-menu" *ngIf="splitMenuOpen" (click)="$event.stopPropagation()">
+  <span>Cantidad:</span>
+  <button (click)="decreaseSplitValue()">−</button>
+  <input type="number" [value]="splitValue" readonly />
+  <button (click)="increaseSplitValue()">+</button>
+  <button (click)="executeSplit($event)">OK</button>
+</div>
 
-  <!-- Modal de confirmación para borrar -->
-  <div class="modal-overlay" *ngIf="deleteModalOpen" (click)="cancelDelete($event)">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <p>¿Quieres borrar el objeto? No se puede revertir.</p>
-      <div class="modal-buttons">
-        <button (click)="confirmDelete($event)">Aceptar</button>
-        <button (click)="cancelDelete($event)">Cancelar</button>
-      </div>
+<!-- Modal Borrar -->
+<div class="modal-overlay" *ngIf="deleteModalOpen" (click)="cancelDelete($event)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <p>¿Quieres borrar el objeto? No se puede revertir.</p>
+    <div class="modal-buttons">
+      <button (click)="confirmDelete($event)">Aceptar</button>
+      <button (click)="cancelDelete($event)">Cancelar</button>
     </div>
   </div>
 </div>

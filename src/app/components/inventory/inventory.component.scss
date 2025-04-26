@@ -3,15 +3,40 @@
     padding: 20px;
   }
   
+  /* Estilos para las pestañas */
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+  }
+  
+  .tab {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    border-radius: 4px;
+    user-select: none;
+    transition: background-color 0.2s;
+  }
+  
+  .tab.active,
+  .tab:hover {
+    background-color: #3498db;
+    color: #fff;
+  }
+  
   /* Cuadrícula del inventario */
   .inventory-grid {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
+  
   .inventory-row {
     display: flex;
   }
+  
   .inventory-cell {
     width: 70px;
     height: 70px;
@@ -38,12 +63,15 @@
     user-select: none;
     transition: border 0.2s ease;
   }
+  
   .inventory-item.selected {
     border: 2px solid #3498db;
   }
+  
   .item-name {
     flex: 1;
   }
+  
   .item-sum {
     position: absolute;
     bottom: 2px;
@@ -54,13 +82,14 @@
     border-radius: 4px;
   }
   
-  /* Barra de botones */
+  /* Barra de botones inferior */
   .button-bar {
     display: flex;
     justify-content: center;
     margin-top: 20px;
     gap: 10px;
   }
+  
   .button-bar button {
     padding: 6px 12px;
     font-size: 1em;
@@ -78,9 +107,11 @@
     background-color: #fff;
     border-radius: 4px;
   }
+  
   .split-menu button {
     padding: 4px 8px;
   }
+  
   .split-menu input {
     width: 50px;
     text-align: center;
@@ -98,17 +129,20 @@
     align-items: center;
     justify-content: center;
   }
+  
   .modal {
     background: #fff;
     padding: 20px;
     border-radius: 5px;
     text-align: center;
   }
+  
   .modal-buttons {
     margin-top: 15px;
     display: flex;
     justify-content: space-around;
   }
+  
   .modal-buttons button {
     padding: 6px 12px;
   }
