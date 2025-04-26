@@ -1,7 +1,21 @@
-<div cdkDropList cdkDropListOrientation="mixed" class="example-list" (cdkDropListDropped)="drop($event)">
-  @for (item of items; track item) {
-    <div class="example-box" cdkDrag [style.width.px]="boxSize" [style.height.px]="boxSize">  
-      <app-icon [name]="item.icon"></app-icon>
+<div
+  cdkDropList
+  class="inventory-grid"
+  [cdkDropListData]="inventory"
+  (cdkDropListDropped)="drop($event)"
+>
+@for (item of inventory; let i = $index; track i) {
+
+    <div
+      cdkDrag
+      class="slot"
+      [style.width.px]="boxSize"
+      [style.height.px]="boxSize"
+      [class.empty]="!item"
+    >
+      <ng-container *ngIf="item">
+        <app-icon [name]="item.icon"></app-icon>
+      </ng-container>
     </div>
   }
 </div>

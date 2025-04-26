@@ -5,26 +5,32 @@ import { Component, Input, OnInit } from '@angular/core';
   selector: 'app-inventory',
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.scss'],
-  standalone: false,
+  standalone: false
 })
-export class InventoryComponent  implements OnInit {
+export class InventoryComponent implements OnInit {
+  @Input() initialItems: any[] = [];
 
-   @Input() items = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-  
-    drop(event: CdkDragDrop<string[]>) {
-      moveItemInArray(this.items, event.previousIndex, event.currentIndex);
+  inventorySize = 20;
+  inventory: (any | null)[] = [];
+
+  boxSize = 0;
+
+  ngOnInit() {
+    // Rellenamos el inventario con nulls si hay huecos
+    this.inventory = Array(this.inventorySize).fill(null);
+    for (let i = 0; i < this.initialItems.length; i++) {
+      this.inventory[i] = this.initialItems[i];
     }
 
-    boxSize = 0;
+    this.boxSize = ((window.innerWidth - 70) / 5);
+  }
 
-  constructor() {
-    this.boxSize = ((window.innerWidth - 70)  / 5);
-   }
+  drop(event: CdkDragDrop<(any | null)[]>) {
+    const from = event.previousIndex;
+    const to = event.currentIndex;
 
-  ngOnInit() {}
-
-
-    
-
+    const temp = this.inventory[to];
+    this.inventory[to] = this.inventory[from];
+    this.inventory[from] = temp;
+  }
 }
-
