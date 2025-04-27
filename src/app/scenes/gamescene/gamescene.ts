@@ -32,6 +32,14 @@ export class GameScene extends Phaser.Scene {
       this.createPhysics();
       this.initPlayerAnimation();
       this.cameras.main.setZoom(0.5);
+      this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        this.onGameClick(pointer);
+      });
+      
+    }
+    onGameClick(pointer: Phaser.Input.Pointer) {
+      console.log('Clic en:', pointer.worldX, pointer.worldY);
+      // Aquí va tu lógica
     }
 
     initPlayerAnimation()  {
