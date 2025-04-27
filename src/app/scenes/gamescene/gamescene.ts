@@ -20,7 +20,9 @@ export class GameScene extends Phaser.Scene {
     currentMap: any;
 
     preload() {
-      this.load.spritesheet('player', 'assets/sprites/player1/characters.png', { frameWidth: 26, frameHeight: 36});
+      //this.load.spritesheet('player', 'assets/sprites/player1/characters.png', { frameWidth: 26, frameHeight: 36});
+
+      this.load.spritesheet('player', 'assets/sprites/player/character/body/tanned.png', { frameWidth: 64, frameHeight: 64});
 
       this.load.image("tiles", "assets/tilemaps/test/cloud_tileset.png");
       this.load.tilemapTiledJSON("cloud-city-map", "assets/tilemaps/test/cloud_city.json");
@@ -31,7 +33,7 @@ export class GameScene extends Phaser.Scene {
       this.initPlayer();
       this.createPhysics();
       this.initPlayerAnimation();
-      this.cameras.main.setZoom(0.5);
+      this.cameras.main.setZoom(0.4);
       this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
         this.onGameClick(pointer);
       });
@@ -43,10 +45,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     initPlayerAnimation()  {
-      this.createPlayerAnimation(Direction.UP, 90, 92);
-      this.createPlayerAnimation(Direction.RIGHT, 78, 80);
-      this.createPlayerAnimation(Direction.DOWN, 54, 56);
-      this.createPlayerAnimation(Direction.LEFT, 66, 68);
+      this.createPlayerAnimation(Direction.UP, 104, 112);
+      this.createPlayerAnimation(Direction.RIGHT, 143, 150);
+      this.createPlayerAnimation(Direction.DOWN, 130, 138);
+      this.createPlayerAnimation(Direction.LEFT, 117, 125);
     }
 
     private createPlayerAnimation(
@@ -61,8 +63,7 @@ export class GameScene extends Phaser.Scene {
             end: endFrame,
           }),
           frameRate: 10,
-          repeat: -1,
-          yoyo: true,
+          repeat: -1
         });
       }
 
