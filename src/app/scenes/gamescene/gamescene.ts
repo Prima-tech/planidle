@@ -8,15 +8,13 @@ import { Player } from "src/app/pnj/player/player";
     providedIn: 'root'
   })
 export class GameScene extends Phaser.Scene {
-    constructor(config: any) {
-        super(config);
-    }
 
     static readonly TILE_SIZE = 48;
 
     private gridControls: GridControls;
     private gridPhysics: GridPhysics;
     private player: Player;
+    private spaceKey: Phaser.Input.Keyboard.Key;
     currentMap: any;
 
     preload() {
@@ -37,7 +35,10 @@ export class GameScene extends Phaser.Scene {
       this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
         this.onGameClick(pointer);
       });
-      
+      this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+      this.spaceKey.on('down', () => {
+        this.playerAttack();
+      });
     }
     onGameClick(pointer: Phaser.Input.Pointer) {
       console.log('Clic en:', pointer.worldX, pointer.worldY);
@@ -102,6 +103,11 @@ export class GameScene extends Phaser.Scene {
         this.input,
         this.gridPhysics
       );
+    }
+
+    private playerAttack() {
+      console.log('Player attacked!');
+      // Aquí puedes agregar la lógica del ataque, como animaciones o daño.
     }
     
 }
