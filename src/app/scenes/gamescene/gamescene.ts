@@ -47,9 +47,17 @@ export class GameScene extends Phaser.Scene {
 
     initPlayerAnimation()  {
       this.createPlayerAnimation(Direction.UP, 104, 112);
-      this.createPlayerAnimation(Direction.RIGHT, 143, 150);
-      this.createPlayerAnimation(Direction.DOWN, 130, 138);
       this.createPlayerAnimation(Direction.LEFT, 117, 125);
+      this.createPlayerAnimation(Direction.DOWN, 130, 138);
+      this.createPlayerAnimation(Direction.RIGHT, 143, 150);
+      
+      // Animaciones de ataque
+      this.createPlayerAttackAnimation("ATTACK_" + Direction.UP, 156, 161);
+      this.createPlayerAttackAnimation("ATTACK_" + Direction.LEFT, 169, 174);
+      this.createPlayerAttackAnimation("ATTACK_" + Direction.DOWN, 182, 187);
+      this.createPlayerAttackAnimation("ATTACK_" + Direction.RIGHT, 195, 200);
+      
+     
     }
 
     private createPlayerAnimation(
@@ -65,6 +73,22 @@ export class GameScene extends Phaser.Scene {
           }),
           frameRate: 10,
           repeat: -1
+        });
+      }
+
+    private createPlayerAttackAnimation(
+        name: string,
+        startFrame: number,
+        endFrame: number
+      ) {
+        this.anims.create({
+          key: name,
+          frames: this.anims.generateFrameNumbers("player", {
+            start: startFrame,
+            end: endFrame,
+          }),
+          frameRate: 10,
+          repeat: 0 // Solo se reproduce una vez
         });
       }
 
@@ -107,7 +131,13 @@ export class GameScene extends Phaser.Scene {
 
     private playerAttack() {
       console.log('Player attacked!');
-      // Aquí puedes agregar la lógica del ataque, como animaciones o daño.
+      const direction = this.player.getDirection();
+      const attackAnimationKey = "ATTACK_" + direction;
+      this.player.sprite.play(attackAnimationKey);
+
+      this.player.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        this.player.sprite.play(direction); // Vuelve a la animación de la dirección actual
+      }, this);
     }
     
 }

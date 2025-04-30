@@ -2,8 +2,10 @@ import { GameScene } from "src/app/scenes/gamescene/gamescene";
 import { Direction } from "../interfaces/Direction";
 
 export class Player {
+
+  currentDirection: Direction = Direction.DOWN;
   constructor(
-    private sprite: Phaser.GameObjects.Sprite,
+    public sprite: Phaser.GameObjects.Sprite,
     private tilePos: Phaser.Math.Vector2
   ) {
     const offsetX = GameScene.TILE_SIZE / 2;
@@ -29,10 +31,12 @@ export class Player {
     const animationManager = this.sprite.anims.animationManager;
     const standingFrame = animationManager.get(direction).frames[1].frame.name;
     this.sprite.anims.stop();
+    this.currentDirection = direction;
     this.sprite.setFrame(standingFrame);
   }
 
   startAnimation(direction: Direction) {
+    this.currentDirection = direction;
     this.sprite.anims.play(direction);
   }
 
@@ -42,5 +46,9 @@ export class Player {
 
   setTilePos(tilePosition: Phaser.Math.Vector2): void {
     this.tilePos = tilePosition.clone();
+  }
+
+  getDirection() {
+    return this.currentDirection;
   }
 }
