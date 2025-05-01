@@ -82,11 +82,6 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-
-
-
-
-
     createPhysics() {
       this.gridPhysics = new GridPhysics(this.player, this.currentMap);
       this.gridControls = new GridControls(

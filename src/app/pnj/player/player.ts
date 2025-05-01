@@ -17,10 +17,11 @@ export class Player {
   }
 
 
-  initPlayerAnimation()  {
-    this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK)
-    this.animationService.createTopDownRightLeftAnim('ATTACK', playerTags.ATTACK, 'player', playerAnimations.ATTACK)
-
+  initPlayerAnimation() {
+    this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK);
+    this.animationService.createTopDownRightLeftAnim('ATTACK', playerTags.ATTACK, 'player', playerAnimations.ATTACK);
+    this.animationService.createTopDownRightLeftAnim('IDLE', playerTags.IDLE, 'player', playerAnimations.IDLE);
+    this.sprite.play(playerTags.IDLE + Direction.DOWN); // Animación por defecto
   }
 
   public playerAttack() {
@@ -56,10 +57,10 @@ export class Player {
 
   stopAnimation(direction: Direction) {
     const animationManager = this.sprite.anims.animationManager;
-    const standingFrame = animationManager.get(playerTags.WALK + direction).frames[1].frame.name;
+    const idleAnimationKey = playerTags.IDLE + direction;
     this.sprite.anims.stop();
     this.currentDirection = direction;
-    this.sprite.setFrame(standingFrame);
+    this.sprite.play(idleAnimationKey); // Cambia a la animación idle
   }
 
   startAnimation(direction: Direction) {
