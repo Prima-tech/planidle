@@ -20,10 +20,8 @@ export class GameScene extends Phaser.Scene {
 
     preload() {
       //this.load.spritesheet('player', 'assets/sprites/player1/characters.png', { frameWidth: 26, frameHeight: 36});
-
       this.load.spritesheet('player', 'assets/sprites/player/character/body/tanned.png', { frameWidth: 64, frameHeight: 64});
       this.load.spritesheet('enemyTexture', 'assets/sprites/enemy/orc1/orc1_idle_full.png', { frameWidth: 64, frameHeight: 64 }); 
-      
       this.load.image("tiles", "assets/tilemaps/test/cloud_tileset.png");
       this.load.tilemapTiledJSON("cloud-city-map", "assets/tilemaps/test/cloud_city.json");
     }
@@ -32,7 +30,6 @@ export class GameScene extends Phaser.Scene {
       this.initMap();
       this.initPlayer();
       this.createPhysics();
-      this.initPlayerAnimation();
       this.initEnemies();
       this.cameras.main.setZoom(0.4);
       this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -56,7 +53,7 @@ export class GameScene extends Phaser.Scene {
         [Direction.DOWN]: { start: 8, end: 11 },
         [Direction.RIGHT]: { start: 12, end: 15 },      
       }
-      this.createTopDownRightLeftAnim('IDLE', 'enemy_idle_', 'enemyTexture', frames)
+    //  this.createTopDownRightLeftAnim('IDLE', 'enemy_idle_', 'enemyTexture', frames)
       
       const enemySprite = this.add.sprite(0, 0, "enemyTexture");
       enemySprite.setDepth(2);
@@ -65,46 +62,6 @@ export class GameScene extends Phaser.Scene {
     }
 
 
-    initPlayerAnimation()  {
-      console.log('soy los frames', frames)
-   //   this.createTopDownRightLeftAnim('IDLE', 'player_run_', 'player')
-
-      this.createPlayerAnimation(Direction.UP, 104, 112);
-      this.createPlayerAnimation(Direction.LEFT, 117, 125);
-      this.createPlayerAnimation(Direction.DOWN, 130, 138);
-      this.createPlayerAnimation(Direction.RIGHT, 143, 150);
-      
-      // Animaciones de ataque
-      this.createPlayerAttackAnimation("ATTACK_" + Direction.UP, 156, 161);
-      this.createPlayerAttackAnimation("ATTACK_" + Direction.LEFT, 169, 174);
-      this.createPlayerAttackAnimation("ATTACK_" + Direction.DOWN, 182, 187);
-      this.createPlayerAttackAnimation("ATTACK_" + Direction.RIGHT, 195, 200);
-     
-    }
-
-    private createPlayerAnimation(name: string, startFrame: number, endFrame: number) {
-        this.anims.create({
-          key: name,
-          frames: this.anims.generateFrameNumbers("player", {
-            start: startFrame,
-            end: endFrame,
-          }),
-          frameRate: 10,
-          repeat: -1
-        });
-      }
-
-    private createPlayerAttackAnimation(name: string, startFrame: number, endFrame: number) {
-        this.anims.create({
-          key: name,
-          frames: this.anims.generateFrameNumbers("player", {
-            start: startFrame,
-            end: endFrame,
-          }),
-          frameRate: 10,
-          repeat: 0 // Solo se reproduce una vez
-        });
-      }
 
     override update(_time: number, delta: number) {
       this.gridControls.update();
@@ -121,7 +78,7 @@ export class GameScene extends Phaser.Scene {
       playerSprite.scale = 3;
       this.cameras.main.startFollow(playerSprite);
       this.cameras.main.roundPixels = true;
-      this.player = new Player(playerSprite, new Phaser.Math.Vector2(6, 6));
+      this.player = new Player(this, playerSprite, new Phaser.Math.Vector2(6, 6));
     }
 
     initMap() {
@@ -154,24 +111,5 @@ export class GameScene extends Phaser.Scene {
       }, this);
     }
 
-
-    createTopDownRightLeftAnim(status: string, name: string, texture: string, frames: { [key: string]: { start: number; end: number } }) {
-      this.createAnimation(name + Direction.UP, texture, frames[Direction.UP].start, frames[Direction.UP].end);
-      this.createAnimation(name + Direction.LEFT, texture, frames[Direction.LEFT].start, frames[Direction.LEFT].end);
-      this.createAnimation(name + Direction.DOWN, texture, frames[Direction.DOWN].start, frames[Direction.DOWN].end);
-      this.createAnimation(name + Direction.RIGHT, texture, frames[Direction.RIGHT].start, frames[Direction.RIGHT].end);
-    }
-  
-    private createAnimation(name: string, texture: string, startFrame: number, endFrame: number) {
-      this.anims.create({
-        key: name,
-        frames: this.anims.generateFrameNumbers(texture, {
-          start: startFrame,
-          end: endFrame,
-        }),
-        frameRate: 10,
-        repeat: -1
-      });
-    }
     
 }
