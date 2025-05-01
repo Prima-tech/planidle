@@ -3,10 +3,10 @@ import { Direction } from "src/app/pnj/interfaces/Direction";
 
 export const playerAnimations = {
   IDLE :{
-    [Direction.UP]: { start: 104, end: 106 },
-    [Direction.LEFT]: { start: 169, end: 174 },
-    [Direction.DOWN]: { start: 0, end: 1 },
-    [Direction.RIGHT]: { start: 195, end: 200 },
+    [Direction.UP]: { start: 0, end: 1 },
+    [Direction.LEFT]: { start: 13, end: 14 },
+    [Direction.DOWN]: { start: 26, end: 27 },
+    [Direction.RIGHT]: { start: 39, end: 40 },
   },
   WALK: {
     [Direction.UP]: { start: 104, end: 112 },
