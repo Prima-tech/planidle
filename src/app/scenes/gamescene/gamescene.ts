@@ -21,7 +21,8 @@ export class GameScene extends Phaser.Scene {
       //this.load.spritesheet('player', 'assets/sprites/player1/characters.png', { frameWidth: 26, frameHeight: 36});
 
       this.load.spritesheet('player', 'assets/sprites/player/character/body/tanned.png', { frameWidth: 64, frameHeight: 64});
-
+      this.load.spritesheet('enemyTexture', 'assets/sprites/enemy/orc1/orc1_idle_full.png', { frameWidth: 64, frameHeight: 64 }); 
+      
       this.load.image("tiles", "assets/tilemaps/test/cloud_tileset.png");
       this.load.tilemapTiledJSON("cloud-city-map", "assets/tilemaps/test/cloud_city.json");
     }
