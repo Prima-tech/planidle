@@ -33,34 +33,6 @@ export class Enemy {
     this.animationService = new AnimationService(this.mainScene);
   }
 
-  addMovementAnimations(scene: Phaser.Scene, directions: { [key: string]: { start: number; end: number } }) {
-    for (const [direction, frames] of Object.entries(directions)) {
-      scene.anims.create({
-        key: direction,
-        frames: scene.anims.generateFrameNumbers(this.sprite.texture.key, {
-          start: frames.start,
-          end: frames.end,
-        }),
-        frameRate: 10,
-        repeat: -1,
-      });
-    }
-  }
-
-  addAttackAnimations(scene: Phaser.Scene, attacks: { [key: string]: { start: number; end: number } }) {
-    for (const [attack, frames] of Object.entries(attacks)) {
-      scene.anims.create({
-        key: attack,
-        frames: scene.anims.generateFrameNumbers(this.sprite.texture.key, {
-          start: frames.start,
-          end: frames.end,
-        }),
-        frameRate: 10,
-        repeat: 0,
-      });
-    }
-  }
-
   takeDamage(amount: number) {
     this.HP -= amount;
     if (this.HP <= 0) {
