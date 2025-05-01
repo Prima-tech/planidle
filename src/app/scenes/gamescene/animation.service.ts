@@ -1,13 +1,12 @@
 import { Injectable } from "@angular/core";
 import { Direction } from "src/app/pnj/interfaces/Direction";
-
+import Phaser from 'phaser';
 
 @Injectable({
     providedIn: 'root'
   })
 export class AnimationService extends Phaser.Scene {
   private mainScene: Phaser.Scene;
-
   constructor(scene: Phaser.Scene) {
     super();
     this.mainScene = scene;

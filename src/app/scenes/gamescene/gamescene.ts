@@ -32,44 +32,21 @@ export class GameScene extends Phaser.Scene {
       this.initEnemies();
       this.createGameControls();
       this.initCamera();
-
     }
-
-    initCamera() {
-      this.cameras.main.setZoom(0.4);
-    }
-
-    createGameControls() {
-      //CLICK MAP
-      this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-        this.onGameClick(pointer);
-      });
-      
-      // ESPACIO
-      this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-      this.spaceKey.on('down', () => {
-        this.player.playerAttack();
-      });
-    }
-
-    initEnemies() {
-      let frames = {
-        [Direction.UP]: { start: 0, end: 3 },
-        [Direction.LEFT]: { start: 4, end: 7 },
-        [Direction.DOWN]: { start: 8, end: 11 },
-        [Direction.RIGHT]: { start: 12, end: 15 },      
-      }
-    //  this.createTopDownRightLeftAnim('IDLE', 'enemy_idle_', 'enemyTexture', frames)
-      
-      const enemySprite = this.add.sprite(0, 0, "enemyTexture");
-      enemySprite.setDepth(2);
-      enemySprite.scale = 3;
-      this.enemy = new Enemy(enemySprite, new Phaser.Math.Vector2(8, 8));
-    }
-
+    
     override update(_time: number, delta: number) {
       this.gridControls.update();
       this.gridPhysics.update(delta);
+    }
+
+    initMap() {
+      this.currentMap = this.make.tilemap({ key: "cloud-city-map" });
+      this.currentMap.addTilesetImage("Cloud City", "tiles");
+      for (let i = 0; i < this.currentMap.layers.length; i++) {
+        const layer = this.currentMap.createLayer(i, "Cloud City", 0, 0)
+        layer.setDepth(i);
+        layer.scale = 3;
+      }
     }
 
     initPlayer() {
@@ -81,16 +58,34 @@ export class GameScene extends Phaser.Scene {
       this.player = new Player(this, playerSprite, new Phaser.Math.Vector2(6, 6));
     }
 
-    initMap() {
-      this.currentMap = this.make.tilemap({ key: "cloud-city-map" });
-      this.currentMap.addTilesetImage("Cloud City", "tiles");
-      for (let i = 0; i < this.currentMap.layers.length; i++) {
-        const layer = this.currentMap
-          .createLayer(i, "Cloud City", 0, 0)
-        layer.setDepth(i);
-        layer.scale = 3;
-      }
+    initEnemies() {
+      const enemySprite = this.add.sprite(0, 0, "enemyTexture");
+      enemySprite.setDepth(2);
+      enemySprite.scale = 3;
+      this.enemy = new Enemy(this, enemySprite, new Phaser.Math.Vector2(8, 8));
     }
+
+    initCamera() {
+      this.cameras.main.setZoom(0.4);
+    }
+
+    createGameControls() {
+      //CLICK MAP
+      this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        this.onGameClick(pointer);
+      });
+
+      // ESPACIO
+      this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+      this.spaceKey.on('down', () => {
+        this.player.playerAttack();
+      });
+    }
+
+
+
+
+
 
     createPhysics() {
       this.gridPhysics = new GridPhysics(this.player, this.currentMap);
