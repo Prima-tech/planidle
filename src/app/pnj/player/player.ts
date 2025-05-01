@@ -17,7 +17,6 @@ export class Player {
   }
 
 
-
     initPlayerAnimation()  {
       
    //   this.createTopDownRightLeftAnim('IDLE', 'player_run_', 'player')
@@ -45,7 +44,16 @@ export class Player {
 
 
 
+    public playerAttack() {
+      console.log('Player attacked!');
+      const direction = this.getDirection();
+      const attackAnimationKey = "player_attack_" + direction;
+      this.sprite.play(attackAnimationKey);
 
+      this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        this.sprite.play(direction); // Vuelve a la animación de la dirección actual
+      }, this);
+    }
 
 
 

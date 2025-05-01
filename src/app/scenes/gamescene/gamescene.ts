@@ -19,7 +19,6 @@ export class GameScene extends Phaser.Scene {
     currentMap: any;
 
     preload() {
-      //this.load.spritesheet('player', 'assets/sprites/player1/characters.png', { frameWidth: 26, frameHeight: 36});
       this.load.spritesheet('player', 'assets/sprites/player/character/body/tanned.png', { frameWidth: 64, frameHeight: 64});
       this.load.spritesheet('enemyTexture', 'assets/sprites/enemy/orc1/orc1_idle_full.png', { frameWidth: 64, frameHeight: 64 }); 
       this.load.image("tiles", "assets/tilemaps/test/cloud_tileset.png");
@@ -31,19 +30,26 @@ export class GameScene extends Phaser.Scene {
       this.initPlayer();
       this.createPhysics();
       this.initEnemies();
+      this.createGameControls();
+      this.initCamera();
+
+    }
+
+    initCamera() {
       this.cameras.main.setZoom(0.4);
+    }
+
+    createGameControls() {
+      //CLICK MAP
       this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
         this.onGameClick(pointer);
       });
+      
+      // ESPACIO
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
-        this.playerAttack();
+        this.player.playerAttack();
       });
-
-    }
-    onGameClick(pointer: Phaser.Input.Pointer) {
-      console.log('Clic en:', pointer.worldX, pointer.worldY);
-      // Aquí va tu lógica
     }
 
     initEnemies() {
@@ -61,15 +67,9 @@ export class GameScene extends Phaser.Scene {
       this.enemy = new Enemy(enemySprite, new Phaser.Math.Vector2(8, 8));
     }
 
-
-
     override update(_time: number, delta: number) {
       this.gridControls.update();
       this.gridPhysics.update(delta);
-    }
-
-    createMap() {
-
     }
 
     initPlayer() {
@@ -100,16 +100,11 @@ export class GameScene extends Phaser.Scene {
       );
     }
 
-    private playerAttack() {
-      console.log('Player attacked!');
-      const direction = this.player.getDirection();
-      const attackAnimationKey = "ATTACK_" + direction;
-      this.player.sprite.play(attackAnimationKey);
-
-      this.player.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-        this.player.sprite.play(direction); // Vuelve a la animación de la dirección actual
-      }, this);
+    onGameClick(pointer: Phaser.Input.Pointer) {
+      console.log('Clic en:', pointer.worldX, pointer.worldY);
+      // Aquí va tu lógica
     }
+
 
     
 }
