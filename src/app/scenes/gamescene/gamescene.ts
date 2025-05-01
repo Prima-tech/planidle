@@ -40,6 +40,32 @@ export class GameScene extends Phaser.Scene {
       this.spaceKey.on('down', () => {
         this.playerAttack();
       });
+
+      // Crear animaciones para el enemigo
+      this.anims.create({
+        key: 'enemy_up',
+        frames: this.anims.generateFrameNumbers('enemyTexture', { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: -1
+      });
+      this.anims.create({
+        key: 'enemy_left',
+        frames: this.anims.generateFrameNumbers('enemyTexture', { start: 4, end: 7 }),
+        frameRate: 10,
+        repeat: -1
+      });
+      this.anims.create({
+        key: 'enemy_down',
+        frames: this.anims.generateFrameNumbers('enemyTexture', { start: 8, end: 11 }),
+        frameRate: 10,
+        repeat: -1
+      });
+      this.anims.create({
+        key: 'enemy_right',
+        frames: this.anims.generateFrameNumbers('enemyTexture', { start: 12, end: 15 }),
+        frameRate: 10,
+        repeat: -1
+      });
     }
     onGameClick(pointer: Phaser.Input.Pointer) {
       console.log('Clic en:', pointer.worldX, pointer.worldY);
