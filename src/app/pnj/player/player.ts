@@ -1,6 +1,7 @@
 import { GameScene } from "src/app/scenes/gamescene/gamescene";
 import { Direction } from "../interfaces/Direction";
 import { AnimationService } from "src/app/scenes/gamescene/animation.service";
+import { playerAnimations, playerTags } from "src/app/scenes/gamescene/constants";
 
 export class Player {
 
@@ -13,50 +14,25 @@ export class Player {
   ) {
     this.initSpriteProperties();
     this.initPlayerAnimation();
-
   }
 
 
-    initPlayerAnimation()  {
-      
-   //   this.createTopDownRightLeftAnim('IDLE', 'player_run_', 'player')
+  initPlayerAnimation()  {
+    this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK)
+    this.animationService.createTopDownRightLeftAnim('ATTACK', playerTags.ATTACK, 'player', playerAnimations.ATTACK)
 
-      let frames = {
-        [Direction.UP]: { start: 104, end: 112 },
-        [Direction.LEFT]: { start: 117, end: 125 },
-        [Direction.DOWN]: { start: 130, end: 138 },
-        [Direction.RIGHT]: { start: 143, end: 150 },      
-      }
-      this.animationService.createTopDownRightLeftAnim('WALK', 'player_walk_', 'player', frames)
+  }
 
-      let framesAttack = {
-        [Direction.UP]: { start: 156, end: 161 },
-        [Direction.LEFT]: { start: 169, end: 174 },
-        [Direction.DOWN]: { start: 182, end: 187 },
-        [Direction.RIGHT]: { start: 195, end: 200},      
-      }
-      this.animationService.createTopDownRightLeftAnim('ATTACK', 'player_attack_', 'player', framesAttack)
+  public playerAttack() {
+    console.log('Player attacked!');
+    const direction = this.getDirection();
+    const attackAnimationKey = playerTags.ATTACK + direction;
+    this.sprite.play(attackAnimationKey);
 
-     
-    }
-
-
-
-
-
-    public playerAttack() {
-      console.log('Player attacked!');
-      const direction = this.getDirection();
-      const attackAnimationKey = "player_attack_" + direction;
-      this.sprite.play(attackAnimationKey);
-
-      this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-        this.sprite.play(direction); // Vuelve a la animación de la dirección actual
-      }, this);
-    }
-
-
-
+    this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      this.sprite.play(direction); // Vuelve a la animación de la dirección actual
+    }, this);
+  }
 
   initSpriteProperties() {
     const offsetX = GameScene.TILE_SIZE / 2;
@@ -80,7 +56,7 @@ export class Player {
 
   stopAnimation(direction: Direction) {
     const animationManager = this.sprite.anims.animationManager;
-    const standingFrame = animationManager.get('player_walk_' + direction).frames[1].frame.name;
+    const standingFrame = animationManager.get(playerTags.WALK + direction).frames[1].frame.name;
     this.sprite.anims.stop();
     this.currentDirection = direction;
     this.sprite.setFrame(standingFrame);
@@ -88,7 +64,7 @@ export class Player {
 
   startAnimation(direction: Direction) {
     this.currentDirection = direction;
-    this.sprite.anims.play('player_walk_' + direction);
+    this.sprite.anims.play(playerTags.WALK + direction);
   }
 
   getTilePos(): Phaser.Math.Vector2 {
