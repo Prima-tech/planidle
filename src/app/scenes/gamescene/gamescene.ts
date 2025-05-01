@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { Enemy } from "src/app/enemy/enemy";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridPhysics } from "src/app/physics/gridphisics";
 import { Direction } from "src/app/pnj/interfaces/Direction";
@@ -14,6 +15,7 @@ export class GameScene extends Phaser.Scene {
     private gridControls: GridControls;
     private gridPhysics: GridPhysics;
     private player: Player;
+    private enemy: Enemy;
     private spaceKey: Phaser.Input.Keyboard.Key;
     currentMap: any;
 
@@ -66,6 +68,10 @@ export class GameScene extends Phaser.Scene {
         frameRate: 10,
         repeat: -1
       });
+      const enemySprite = this.add.sprite(0, 0, "enemyTexture");
+      enemySprite.setDepth(2);
+      enemySprite.scale = 3;
+      this.enemy = new Enemy(enemySprite, new Phaser.Math.Vector2(8, 8));
     }
     onGameClick(pointer: Phaser.Input.Pointer) {
       console.log('Clic en:', pointer.worldX, pointer.worldY);
@@ -83,15 +89,10 @@ export class GameScene extends Phaser.Scene {
       this.createPlayerAttackAnimation("ATTACK_" + Direction.LEFT, 169, 174);
       this.createPlayerAttackAnimation("ATTACK_" + Direction.DOWN, 182, 187);
       this.createPlayerAttackAnimation("ATTACK_" + Direction.RIGHT, 195, 200);
-      
      
     }
 
-    private createPlayerAnimation(
-        name: string,
-        startFrame: number,
-        endFrame: number
-      ) {
+    private createPlayerAnimation(name: string, startFrame: number, endFrame: number) {
         this.anims.create({
           key: name,
           frames: this.anims.generateFrameNumbers("player", {
@@ -103,11 +104,7 @@ export class GameScene extends Phaser.Scene {
         });
       }
 
-    private createPlayerAttackAnimation(
-        name: string,
-        startFrame: number,
-        endFrame: number
-      ) {
+    private createPlayerAttackAnimation(name: string, startFrame: number, endFrame: number) {
         this.anims.create({
           key: name,
           frames: this.anims.generateFrameNumbers("player", {
