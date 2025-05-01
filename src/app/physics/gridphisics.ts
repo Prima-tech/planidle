@@ -1,3 +1,4 @@
+import { Enemy } from "../enemy/enemy";
 import { Direction } from "../pnj/interfaces/Direction";
 import { Player } from "../pnj/player/player";
 import { GameScene } from "../scenes/gamescene/gamescene";
@@ -22,7 +23,8 @@ export class GridPhysics {
 
   constructor(
     private player: Player,
-    private tileMap: Phaser.Tilemaps.Tilemap
+    private tileMap: Phaser.Tilemaps.Tilemap,
+    private enemies: Enemy[]
   ) {}
 
   movePlayer(direction: Direction): void {

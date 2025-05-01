@@ -34,6 +34,7 @@ export class Enemy {
   }
 
   takeDamage(amount: number) {
+    console.log(`Enemy received ${amount} damage`);
     this.HP -= amount;
     if (this.HP <= 0) {
       this.die();

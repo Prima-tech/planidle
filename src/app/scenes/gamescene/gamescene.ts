@@ -14,7 +14,7 @@ export class GameScene extends Phaser.Scene {
     private gridControls: GridControls;
     private gridPhysics: GridPhysics;
     private player: Player;
-    private enemy: Enemy;
+    private enemies: Enemy[] = [];
     private spaceKey: Phaser.Input.Keyboard.Key;
     currentMap: any;
 
@@ -62,7 +62,7 @@ export class GameScene extends Phaser.Scene {
       const enemySprite = this.add.sprite(0, 0, "enemyTexture");
       enemySprite.setDepth(2);
       enemySprite.scale = 3;
-      this.enemy = new Enemy(this, enemySprite, new Phaser.Math.Vector2(8, 8));
+      this.enemies.push(new Enemy(this, enemySprite, new Phaser.Math.Vector2(8, 8)));
     }
 
     initCamera() {
@@ -83,7 +83,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     createPhysics() {
-      this.gridPhysics = new GridPhysics(this.player, this.currentMap);
+      this.gridPhysics = new GridPhysics(this.player, this.currentMap, this.enemies);
       this.gridControls = new GridControls(
         this.input,
         this.gridPhysics
