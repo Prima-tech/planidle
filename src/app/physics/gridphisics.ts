@@ -113,7 +113,33 @@ export class GridPhysics {
   }
 
   private isBlockingDirection(direction: Direction): boolean {
-    return this.hasBlockingTile(this.tilePosInDirection(direction));
+    const nextTilePos = this.tilePosInDirection(direction);
+
+    // Check if the position is blocked by a tile
+    if (this.hasBlockingTile(nextTilePos)) return true;
+
+    // Check if the position is occupied by an enemy
+    const enemyAtPosition = this.enemies.find(enemy => {
+      const enemyTilePos = enemy.getTilePos();
+      return enemyTilePos.x === nextTilePos.x && enemyTilePos.y === nextTilePos.y;
+    });
+
+    return !!enemyAtPosition;
+  }
+
+  attackEnemy(): void {
+    const playerTilePos = this.player.getTilePos();
+
+    this.enemies.forEach(enemy => {
+      const enemyTilePos = enemy.getTilePos();
+      if (
+        enemyTilePos.x === playerTilePos.x &&
+        enemyTilePos.y === playerTilePos.y
+      ) {
+        enemy.takeDamage(10); // Example damage value
+        console.log('attack done');
+      }
+    });
   }
 
   private hasBlockingTile(pos: Vector2): boolean {

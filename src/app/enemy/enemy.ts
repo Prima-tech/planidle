@@ -49,4 +49,8 @@ export class Enemy {
   addCollider(scene: Phaser.Scene, target: Phaser.GameObjects.GameObject) {
     scene.physics.add.collider(this.sprite, target);
   }
+  getTilePos(): Phaser.Math.Vector2 {
+    return this.tilePos.clone();
+  }
+
 }
