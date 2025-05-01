@@ -11,7 +11,6 @@ import { Player } from "src/app/pnj/player/player";
 export class GameScene extends Phaser.Scene {
 
     static readonly TILE_SIZE = 48;
-
     private gridControls: GridControls;
     private gridPhysics: GridPhysics;
     private player: Player;
@@ -34,6 +33,7 @@ export class GameScene extends Phaser.Scene {
       this.initPlayer();
       this.createPhysics();
       this.initPlayerAnimation();
+      this.initEnemies();
       this.cameras.main.setZoom(0.4);
       this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
         this.onGameClick(pointer);
@@ -43,42 +43,32 @@ export class GameScene extends Phaser.Scene {
         this.playerAttack();
       });
 
-      // Crear animaciones para el enemigo
-      this.anims.create({
-        key: 'enemy_up',
-        frames: this.anims.generateFrameNumbers('enemyTexture', { start: 0, end: 3 }),
-        frameRate: 10,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'enemy_left',
-        frames: this.anims.generateFrameNumbers('enemyTexture', { start: 4, end: 7 }),
-        frameRate: 10,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'enemy_down',
-        frames: this.anims.generateFrameNumbers('enemyTexture', { start: 8, end: 11 }),
-        frameRate: 10,
-        repeat: -1
-      });
-      this.anims.create({
-        key: 'enemy_right',
-        frames: this.anims.generateFrameNumbers('enemyTexture', { start: 12, end: 15 }),
-        frameRate: 10,
-        repeat: -1
-      });
-      const enemySprite = this.add.sprite(0, 0, "enemyTexture");
-      enemySprite.setDepth(2);
-      enemySprite.scale = 3;
-      this.enemy = new Enemy(enemySprite, new Phaser.Math.Vector2(8, 8));
     }
     onGameClick(pointer: Phaser.Input.Pointer) {
       console.log('Clic en:', pointer.worldX, pointer.worldY);
       // Aquí va tu lógica
     }
 
+    initEnemies() {
+      let frames = {
+        [Direction.UP]: { start: 0, end: 3 },
+        [Direction.LEFT]: { start: 4, end: 7 },
+        [Direction.DOWN]: { start: 8, end: 11 },
+        [Direction.RIGHT]: { start: 12, end: 15 },      
+      }
+      this.createTopDownRightLeftAnim('IDLE', 'enemy_idle_', 'enemyTexture', frames)
+      
+      const enemySprite = this.add.sprite(0, 0, "enemyTexture");
+      enemySprite.setDepth(2);
+      enemySprite.scale = 3;
+      this.enemy = new Enemy(enemySprite, new Phaser.Math.Vector2(8, 8));
+    }
+
+
     initPlayerAnimation()  {
+      console.log('soy los frames', frames)
+   //   this.createTopDownRightLeftAnim('IDLE', 'player_run_', 'player')
+
       this.createPlayerAnimation(Direction.UP, 104, 112);
       this.createPlayerAnimation(Direction.LEFT, 117, 125);
       this.createPlayerAnimation(Direction.DOWN, 130, 138);
@@ -162,6 +152,26 @@ export class GameScene extends Phaser.Scene {
       this.player.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
         this.player.sprite.play(direction); // Vuelve a la animación de la dirección actual
       }, this);
+    }
+
+
+    createTopDownRightLeftAnim(status: string, name: string, texture: string, frames: { [key: string]: { start: number; end: number } }) {
+      this.createAnimation(name + Direction.UP, texture, frames[Direction.UP].start, frames[Direction.UP].end);
+      this.createAnimation(name + Direction.LEFT, texture, frames[Direction.LEFT].start, frames[Direction.LEFT].end);
+      this.createAnimation(name + Direction.DOWN, texture, frames[Direction.DOWN].start, frames[Direction.DOWN].end);
+      this.createAnimation(name + Direction.RIGHT, texture, frames[Direction.RIGHT].start, frames[Direction.RIGHT].end);
+    }
+  
+    private createAnimation(name: string, texture: string, startFrame: number, endFrame: number) {
+      this.anims.create({
+        key: name,
+        frames: this.anims.generateFrameNumbers(texture, {
+          start: startFrame,
+          end: endFrame,
+        }),
+        frameRate: 10,
+        repeat: -1
+      });
     }
     
 }
