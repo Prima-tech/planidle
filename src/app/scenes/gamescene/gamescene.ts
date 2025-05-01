@@ -78,7 +78,8 @@ export class GameScene extends Phaser.Scene {
       // ESPACIO
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
-        this.player.playerAttack();
+       this.player.playerAttack();
+       this.gridPhysics.attackEnemy();
       });
     }
 

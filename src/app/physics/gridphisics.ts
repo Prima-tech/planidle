@@ -7,7 +7,7 @@ import Phaser from 'phaser';
 const Vector2 = Phaser.Math.Vector2;
 type Vector2 = Phaser.Math.Vector2;
 
-export class GridPhysics {
+export class GridPhysics extends Phaser.Events.EventEmitter {
 	private movementDirection: Direction = Direction.NONE;
 	private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 4;
   private tileSizePixelsWalked: number = 0;
@@ -25,7 +25,9 @@ export class GridPhysics {
     private player: Player,
     private tileMap: Phaser.Tilemaps.Tilemap,
     private enemies: Enemy[]
-  ) {}
+  ) {
+    super();
+  }
 
   movePlayer(direction: Direction): void {
     this.lastMovementIntent = direction;
@@ -132,11 +134,13 @@ export class GridPhysics {
 
     this.enemies.forEach(enemy => {
       const enemyTilePos = enemy.getTilePos();
-      if (
-        enemyTilePos.x === playerTilePos.x &&
-        enemyTilePos.y === playerTilePos.y
-      ) {
+      const isAdjacent =
+        Math.abs(enemyTilePos.x - playerTilePos.x) +
+        Math.abs(enemyTilePos.y - playerTilePos.y) === 1; // Check adjacency
+
+      if (isAdjacent) {
         enemy.takeDamage(10); // Example damage value
+        this.emit('enemyAttacked', enemy); // Emit event when an enemy is attacked
         console.log('attack done');
       }
     });
