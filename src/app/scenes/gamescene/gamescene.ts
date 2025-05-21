@@ -54,7 +54,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     initPlayer() {
-      const playerSprite = this.add.sprite(0, 0, "player");
+      const playerSprite = this.physics.add.sprite(0, 0, "player");
       playerSprite.setDepth(2);
       playerSprite.scale = 3;
       this.cameras.main.startFollow(playerSprite);

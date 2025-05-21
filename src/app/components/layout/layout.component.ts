@@ -36,6 +36,9 @@ export class LayoutComponent {
       render: {
         antialias: false,
       },
+      physics: {
+        default: 'arcade',
+      },
       type: Phaser.AUTO,
       scene: GameScene,
       scale: {

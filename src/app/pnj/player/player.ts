@@ -79,4 +79,8 @@ export class Player {
   getDirection() {
     return this.currentDirection;
   }
+
+  getSprite() {
+    return this.sprite;
+  }
 }
