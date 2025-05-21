@@ -43,8 +43,7 @@ export class Enemy {
   }
 
   private die() {
-    // this.sprite.destroy();
-    this.animationService.createDieAnimation();
+    this.animationService.createDieAnimation(this.sprite);
     console.log("Enemy died");
   }
 

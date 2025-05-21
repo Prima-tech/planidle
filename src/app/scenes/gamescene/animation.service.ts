@@ -19,7 +19,8 @@ export class AnimationService extends Phaser.Scene {
     this.createAnimation(name + Direction.RIGHT, texture, frames[Direction.RIGHT].start, frames[Direction.RIGHT].end, repeat, frameRate);        
   }
 
-  createDieAnimation() {
+  createDieAnimation(sprite: Phaser.GameObjects.Sprite) { 
+    sprite.destroy();
     console.log('he palmao bro')
   }
 
