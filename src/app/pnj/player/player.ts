@@ -31,7 +31,7 @@ export class Player {
     this.sprite.play(attackAnimationKey);
 
     this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-      this.sprite.play(direction); // Vuelve a la animación de la dirección actual
+      this.sprite.play( playerTags.IDLE + direction); // Vuelve a la animación de la dirección actual
     }, this);
   }
 

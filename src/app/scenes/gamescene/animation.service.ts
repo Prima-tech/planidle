@@ -19,10 +19,17 @@ export class AnimationService extends Phaser.Scene {
     this.createAnimation(name + Direction.RIGHT, texture, frames[Direction.RIGHT].start, frames[Direction.RIGHT].end, repeat, frameRate);        
   }
 
-  createDieAnimation(sprite: Phaser.GameObjects.Sprite) { 
-    sprite.destroy();
-    console.log('he palmao bro')
-  }
+  createDieAnimation(sprite: Phaser.GameObjects.Sprite, onComplete: () => void): void {
+    onComplete()
+    /*
+    sprite.play('dieAnimation'); // Reproducir la animación
+    sprite.on('animationcomplete', (animation: Phaser.Animations.Animation) => {
+        if (animation.key === 'dieAnimation') {
+            onComplete(); // Llamar al callback cuando termine la animación
+        }
+    });
+    */
+  } 
 
   private createAnimation(name: string, texture: string, startFrame: number, endFrame: number, repeat: number = -1, frameRate: number = 10) {
     this.mainScene.anims.create({
