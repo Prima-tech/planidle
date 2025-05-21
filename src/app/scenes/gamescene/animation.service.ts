@@ -19,6 +19,10 @@ export class AnimationService extends Phaser.Scene {
     this.createAnimation(name + Direction.RIGHT, texture, frames[Direction.RIGHT].start, frames[Direction.RIGHT].end, repeat, frameRate);        
   }
 
+  createDieAnimation() {
+    console.log('he palmao bro')
+  }
+
   private createAnimation(name: string, texture: string, startFrame: number, endFrame: number, repeat: number = -1, frameRate: number = 10) {
     this.mainScene.anims.create({
       key: name,

@@ -52,5 +52,6 @@ export const enemyAnimations = {
 export const enemyTags = {
   WALK:'_walk_',
   IDLE: '_idle_',
-  ATTACK:'_attack_'
+  ATTACK:'_attack_',
+  DIE: '_die_',
 }

@@ -140,6 +140,7 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
 
       if (isAdjacent) {
         enemy.takeDamage(10); // Example damage value
+        console.log('soy el enemy', enemy)
         this.emit('enemyAttacked', enemy); // Emit event when an enemy is attacked
         console.log('attack done');
       }

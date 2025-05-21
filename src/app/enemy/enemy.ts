@@ -4,7 +4,7 @@ import { GameScene } from "../scenes/gamescene/gamescene";
 
 export class Enemy {
   name: string;
-  HP: number;
+  HP: number = 100;
   private animationService: AnimationService;
   
   constructor( 
@@ -16,7 +16,7 @@ export class Enemy {
   }
 
   initAnimation()  {
-    this.animationService.createTopDownRightLeftAnim('WALK', enemyTags.WALK, 'enemyTexture', enemyAnimations.WALK)
+   // this.animationService.createTopDownRightLeftAnim('IDLE', enemyTags.IDLE, 'enemyTexture', enemyAnimations.IDLE)
    // this.animationService.createTopDownRightLeftAnim('ATTACK', enemyTags.ATTACK, 'player', enemyAnimations.ATTACK)
 
   }
@@ -35,6 +35,7 @@ export class Enemy {
 
   takeDamage(amount: number) {
     console.log(`Enemy received ${amount} damage`);
+    console.log('me queda esta vida', this.HP)
     this.HP -= amount;
     if (this.HP <= 0) {
       this.die();
@@ -42,15 +43,23 @@ export class Enemy {
   }
 
   private die() {
-    this.sprite.destroy();
+    // this.sprite.destroy();
+    this.animationService.createDieAnimation();
     console.log("Enemy died");
   }
 
   addCollider(scene: Phaser.Scene, target: Phaser.GameObjects.GameObject) {
     scene.physics.add.collider(this.sprite, target);
   }
+
   getTilePos(): Phaser.Math.Vector2 {
     return this.tilePos.clone();
+  }
+
+  dieAnimation()  {
+    this.animationService.createTopDownRightLeftAnim('WALK', enemyTags.WALK, 'enemyTexture', enemyAnimations.WALK)
+   // this.animationService.createTopDownRightLeftAnim('ATTACK', enemyTags.ATTACK, 'player', enemyAnimations.ATTACK)
+
   }
 
 }
