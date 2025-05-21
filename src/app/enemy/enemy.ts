@@ -44,15 +44,10 @@ export class Enemy {
   }
 
   private die() {
-    // this.animationService.createDieAnimation(this.sprite);
-    
-   // const animationFinished$ = new Subject<void>();
     this.animationService.createDieAnimation(this.sprite, () => {
       console.log("Die animation finished");
-    //  animationFinished$.next(); // Emitir el evento cuando termine la animación
-     // animationFinished$.complete(); // Completar el Subject
      this.sprite.destroy(); // Destruir el sprite después de la animación
-     this.dropItem();
+     this.mainScene.events.emit('enemyDied', this.sprite.getCenter()); // Emitir evento con la posición del enemigo
   });
     console.log("Enemy died");
   }
@@ -70,12 +65,5 @@ export class Enemy {
    // this.animationService.createTopDownRightLeftAnim('ATTACK', enemyTags.ATTACK, 'player', enemyAnimations.ATTACK)
   }
 
-  private dropItem() {
-    const dropPosition = this.sprite.getCenter(); // Obtener la posición del enemigo
-    const droppedItem = this.mainScene.add.image(dropPosition.x + Phaser.Math.Between(50, 50), dropPosition.y +  Phaser.Math.Between(20, 20), 'sword'); // Crear el objeto
-    droppedItem.setScale(3);
-    droppedItem.setOrigin(0.5, 0.5);
-    console.log("Item dropped at", dropPosition);
-  }
 
 }

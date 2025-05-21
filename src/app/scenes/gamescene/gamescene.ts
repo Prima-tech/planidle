@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Enemy } from "src/app/enemy/enemy";
 import { GridControls } from "src/app/physics/gridcontrols";
+import { GridDrops } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
@@ -13,6 +14,7 @@ export class GameScene extends Phaser.Scene {
     static readonly TILE_SIZE = 48;
     private gridControls: GridControls;
     private gridPhysics: GridPhysics;
+    private gridDrops: GridDrops; 
     private player: Player;
     private enemies: Enemy[] = [];
     private spaceKey: Phaser.Input.Keyboard.Key;
@@ -33,6 +35,7 @@ export class GameScene extends Phaser.Scene {
       this.initEnemies();
       this.createGameControls();
       this.initCamera();
+      this.createDrops();
     }
     
     override update(_time: number, delta: number) {
@@ -92,11 +95,22 @@ export class GameScene extends Phaser.Scene {
       );
     }
 
+    createDrops() {
+      this.gridDrops = new GridDrops(this.player, this);
+    }
+
+
     onGameClick(pointer: Phaser.Input.Pointer) {
       console.log('Clic en:', pointer.worldX, pointer.worldY);
       // Aquí va tu lógica
     }
 
 
+
+  private onItemCollected(item: Phaser.GameObjects.Image) {
+    console.log("Item collected!");
+    item.destroy(); // Destruir el objeto
+    this.events.emit('itemCollected', item); // Emitir un evento si es necesario
+  }
     
 }
