@@ -4,6 +4,7 @@ import { GameScene } from 'src/app/scenes/gamescene/gamescene';
 import { FakeApiService } from 'src/app/services/fakeapi';
 import { ProfileService } from 'src/app/services/profile';
 import Phaser from 'phaser';
+import { MapScene } from 'src/app/scenes/mapscene/mapscene';
 
 @Component({
   selector: 'app-layout',
@@ -40,7 +41,7 @@ export class LayoutComponent {
         default: 'arcade',
       },
       type: Phaser.AUTO,
-      scene: GameScene,
+      scene: [MapScene, GameScene],
       scale: {
         width: window.innerWidth,
         height: 200,
