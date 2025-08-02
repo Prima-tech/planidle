@@ -27,5 +27,18 @@ export class MapSelectedCellComponent implements OnInit {
     });
   }
 
+  onMarkExploredClick() {
+    console.log('map selected');
+    this.mapService.markExplored(this.selectedCell);
+    /*
+    if (this.mapService.cellSelected) {
+      const { row, col } = this.mapService.selectedCell;
+  
+      this.mapService.markExplored(row, col);
+  
+    
+    }
+      */
+  }
 
 }

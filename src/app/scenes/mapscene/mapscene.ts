@@ -8,6 +8,7 @@ export class MapScene extends Phaser.Scene {
   mapConfig: any[][] = [];
   cellsVisuals: Phaser.GameObjects.Sprite[][] = [];
   private mapService: MapService;
+  private cellSelected:any = null;
 
   private dragStartX = 0;
   private dragStartY = 0;
@@ -27,12 +28,12 @@ export class MapScene extends Phaser.Scene {
           this.mapConfig[row][col] = {
             type: 'city',
             playersActivesOnTile: [],
-            explored: false,
+            explored: true,
             resource: null
           };
         } else {
           this.mapConfig[row][col] = {
-            type: 'covered',
+            type: 'mine',
             playersActivesOnTile: [],
             explored: false,
             resource: null
@@ -55,7 +56,11 @@ export class MapScene extends Phaser.Scene {
 
   preload() {
     this.load.image('city', 'assets/sprites/map/city.png');
-    this.load.image('covered', 'assets/sprites/map/covered.png');
+    this.load.image('explored', 'assets/sprites/map/explored.png');
+    this.load.image('mine', 'assets/sprites/map/mine.png');
+    this.load.image('forest', 'assets/sprites/map/forest.png');
+    this.load.image('sea', 'assets/sprites/map/sea.png');
+    this.load.image('crop', 'assets/sprites/map/crop.png');
   }
 
   create() {
@@ -67,7 +72,7 @@ export class MapScene extends Phaser.Scene {
         const sprite = this.add.sprite(
           col * this.CELL_SIZE,
           row * this.CELL_SIZE,
-          cellData.type
+          cellData.explored ? cellData.type : 'explored'
         )
           .setOrigin(0, 0)
           .setInteractive();
@@ -100,7 +105,10 @@ export class MapScene extends Phaser.Scene {
         this.cellsVisuals[row][col] = sprite;
       }
     }
-
+    this.mapService.cellExplored$.subscribe(cell => {
+      console.log('oye bro si soy yo', cell)
+      this.cellSelected = cell;
+    });
     // Configurar límites para cámara
     this.cameras.main.setBounds(0, 0, this.MAP_COLS * this.CELL_SIZE, this.MAP_ROWS * this.CELL_SIZE);
 
@@ -172,6 +180,22 @@ export class MapScene extends Phaser.Scene {
         this.cellsVisuals[row][col].displayWidth = this.CELL_SIZE;
         this.cellsVisuals[row][col].displayHeight = this.CELL_SIZE;
       }
+    }
+  }
+
+  markCellExplored(row: number, col: number) {
+    const cell = this.mapConfig[row][col];
+    const sprite = this.cellsVisuals[row][col];
+  
+    // Actualizar la lógica visual para mostrar que está explorado.
+    // Por ejemplo, cambiar textura o añadir un overlay, o aplicar tint
+    cell.explored = true;
+  
+    if (cell.explored) {
+      // Ejemplo: aplicar un filtro o tint para celda explorada
+      sprite.setTint(0x88ff88);  // verde claro como ejemplo
+    } else {
+      sprite.clearTint();
     }
   }
 }
