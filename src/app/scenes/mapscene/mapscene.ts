@@ -1,3 +1,5 @@
+import { MapService } from "src/app/services/map.service";
+
 export class MapScene extends Phaser.Scene {
   CELL_SIZE = 64;
   MAP_ROWS = 11;
@@ -5,14 +7,17 @@ export class MapScene extends Phaser.Scene {
 
   mapConfig: any[][] = [];
   cellsVisuals: Phaser.GameObjects.Sprite[][] = [];
+  private mapService: MapService;
 
   private dragStartX = 0;
   private dragStartY = 0;
   private isDragging = false;
 
-  constructor() {
+  constructor(
+    mapService: MapService
+   ) {
     super({ key: 'MapScene' });
-
+    this.mapService = mapService;
     const centerRow = Math.floor(this.MAP_ROWS / 2);
     const centerCol = Math.floor(this.MAP_COLS / 2);
     for (let row = 0; row < this.MAP_ROWS; row++) {
@@ -20,7 +25,7 @@ export class MapScene extends Phaser.Scene {
       for (let col = 0; col < this.MAP_COLS; col++) {
         if (row === centerRow && col === centerCol) {
           this.mapConfig[row][col] = {
-            type: 'city',            // nuevo tipo city para la celda central
+            type: 'city',
             playersActivesOnTile: [],
             explored: false,
             resource: null
@@ -59,7 +64,6 @@ export class MapScene extends Phaser.Scene {
       this.cellsVisuals[row] = [];
       for (let col = 0; col < this.MAP_COLS; col++) {
         const cellData = this.mapConfig[row][col];
-
         const sprite = this.add.sprite(
           col * this.CELL_SIZE,
           row * this.CELL_SIZE,
@@ -67,10 +71,8 @@ export class MapScene extends Phaser.Scene {
         )
           .setOrigin(0, 0)
           .setInteractive();
-
         sprite.displayWidth = this.CELL_SIZE;
         sprite.displayHeight = this.CELL_SIZE;
-
         (sprite as any).gridPos = { row, col };
 
         // Controlar click solo si no hubo drag
@@ -92,10 +94,9 @@ export class MapScene extends Phaser.Scene {
         sprite.on('pointerup', () => {
           if (!this.isDragging) {
             this.events.emit('cellClicked', { row, col, ...cellData });
-            this.toggleCellType(row, col);
+         //   this.toggleCellType(row, col);
           }
         });
-
         this.cellsVisuals[row][col] = sprite;
       }
     }
@@ -138,6 +139,7 @@ export class MapScene extends Phaser.Scene {
 
     this.events.on('cellClicked', (data) => {
       console.log('Clicked cell:', data);
+      this.mapService.selectCell(data);
       // Aquí lógica adicional si quieres
     });
     const centerX = (this.MAP_COLS * this.CELL_SIZE) / 2 - this.cameras.main.width / 2;

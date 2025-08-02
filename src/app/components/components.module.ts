@@ -9,6 +9,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FooterBarComponent } from './footer-bar/footer-bar.component';
 import { LayoutComponent } from './layout/layout.component';
 import { RouterModule } from '@angular/router';
+import { MapSelectedCellComponent } from './map-selected-cell/map-selected-cell.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { RouterModule } from '@angular/router';
     IconComponent,
     InventoryComponent,
     FooterBarComponent,
-    LayoutComponent
+    LayoutComponent,
+    MapSelectedCellComponent
   ],
   imports: [
     CommonModule,
@@ -31,7 +33,8 @@ import { RouterModule } from '@angular/router';
     IconComponent,
     InventoryComponent,
     FooterBarComponent,
-    LayoutComponent
+    LayoutComponent,
+    MapSelectedCellComponent
   ]
 })
 export class ComponentModule {}

@@ -5,6 +5,7 @@ import { FakeApiService } from 'src/app/services/fakeapi';
 import { ProfileService } from 'src/app/services/profile';
 import Phaser from 'phaser';
 import { MapScene } from 'src/app/scenes/mapscene/mapscene';
+import { MapService } from 'src/app/services/map.service';
 
 @Component({
   selector: 'app-layout',
@@ -20,6 +21,7 @@ export class LayoutComponent {
     private router: Router,
     public service: FakeApiService,
     public profile: ProfileService,
+    public mapService: MapService
   ) {
     this.loadScene();
   }
@@ -41,7 +43,7 @@ export class LayoutComponent {
         default: 'arcade',
       },
       type: Phaser.AUTO,
-      scene: [MapScene, GameScene],
+      scene: [new MapScene(this.mapService), GameScene],
       scale: {
         width: window.innerWidth,
         height: 200,
