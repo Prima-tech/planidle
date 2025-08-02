@@ -1,7 +1,7 @@
 export class MapScene extends Phaser.Scene {
   CELL_SIZE = 64;
-  MAP_ROWS = 50;
-  MAP_COLS = 50;
+  MAP_ROWS = 11;
+  MAP_COLS = 11;
 
   mapConfig: any[][] = [];
   cellsVisuals: Phaser.GameObjects.Sprite[][] = [];
@@ -13,30 +13,44 @@ export class MapScene extends Phaser.Scene {
   constructor() {
     super({ key: 'MapScene' });
 
+    const centerRow = Math.floor(this.MAP_ROWS / 2);
+    const centerCol = Math.floor(this.MAP_COLS / 2);
     for (let row = 0; row < this.MAP_ROWS; row++) {
       this.mapConfig[row] = [];
       for (let col = 0; col < this.MAP_COLS; col++) {
-        this.mapConfig[row][col] = {
-          type: 'agua',
-          playersActivesOnTile: [],
-          explored: false,
-          resource: null
-        };
+        if (row === centerRow && col === centerCol) {
+          this.mapConfig[row][col] = {
+            type: 'city',            // nuevo tipo city para la celda central
+            playersActivesOnTile: [],
+            explored: false,
+            resource: null
+          };
+        } else {
+          this.mapConfig[row][col] = {
+            type: 'covered',
+            playersActivesOnTile: [],
+            explored: false,
+            resource: null
+          };
+        }
       }
     }
+    
 
     // Ejemplo celda diferente
+    /*
     this.mapConfig[0][1] = {
       type: 'tierra',
       playersActivesOnTile: [3],
       explored: true,
       resource: 'oro'
     };
+    */
   }
 
   preload() {
-    this.load.image('agua', 'assets/sprites/map/blue.png');
-    this.load.image('tierra', 'assets/sprites/map/red.png');
+    this.load.image('city', 'assets/sprites/map/city.png');
+    this.load.image('covered', 'assets/sprites/map/covered.png');
   }
 
   create() {
@@ -126,6 +140,11 @@ export class MapScene extends Phaser.Scene {
       console.log('Clicked cell:', data);
       // Aquí lógica adicional si quieres
     });
+    const centerX = (this.MAP_COLS * this.CELL_SIZE) / 2 - this.cameras.main.width / 2;
+    const centerY = (this.MAP_ROWS * this.CELL_SIZE) / 2 - this.cameras.main.height / 2;
+    this.cameras.main.scrollX = Phaser.Math.Clamp(centerX, 0, this.MAP_COLS * this.CELL_SIZE - this.cameras.main.width);
+    this.cameras.main.scrollY = Phaser.Math.Clamp(centerY, 0, this.MAP_ROWS * this.CELL_SIZE - this.cameras.main.height);
+
   }
 
   toggleCellType(row: number, col: number) {
