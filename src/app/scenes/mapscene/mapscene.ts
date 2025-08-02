@@ -9,7 +9,6 @@ export class MapScene extends Phaser.Scene {
   cellsVisuals: Phaser.GameObjects.Sprite[][] = [];
   private mapService: MapService;
   private cellSelected:any = null;
-
   private dragStartX = 0;
   private dragStartY = 0;
   private isDragging = false;
@@ -42,7 +41,6 @@ export class MapScene extends Phaser.Scene {
       }
     }
     
-
     // Ejemplo celda diferente
     /*
     this.mapConfig[0][1] = {
@@ -74,8 +72,8 @@ export class MapScene extends Phaser.Scene {
           row * this.CELL_SIZE,
           cellData.explored ? cellData.type : 'explored'
         )
-          .setOrigin(0, 0)
-          .setInteractive();
+        .setOrigin(0, 0)
+        .setInteractive();
         sprite.displayWidth = this.CELL_SIZE;
         sprite.displayHeight = this.CELL_SIZE;
         (sprite as any).gridPos = { row, col };
@@ -99,15 +97,17 @@ export class MapScene extends Phaser.Scene {
         sprite.on('pointerup', () => {
           if (!this.isDragging) {
             this.events.emit('cellClicked', { row, col, ...cellData });
-         //   this.toggleCellType(row, col);
           }
         });
         this.cellsVisuals[row][col] = sprite;
       }
     }
     this.mapService.cellExplored$.subscribe(cell => {
-      console.log('oye bro si soy yo', cell)
-      this.cellSelected = cell;
+      if (cell) {
+        console.log('oye bro si soy yo', cell)
+        this.cellSelected = cell;
+        this.markCellExplored(cell);
+      }
     });
     // Configurar límites para cámara
     this.cameras.main.setBounds(0, 0, this.MAP_COLS * this.CELL_SIZE, this.MAP_ROWS * this.CELL_SIZE);
@@ -148,23 +148,12 @@ export class MapScene extends Phaser.Scene {
     this.events.on('cellClicked', (data) => {
       console.log('Clicked cell:', data);
       this.mapService.selectCell(data);
-      // Aquí lógica adicional si quieres
     });
+
     const centerX = (this.MAP_COLS * this.CELL_SIZE) / 2 - this.cameras.main.width / 2;
     const centerY = (this.MAP_ROWS * this.CELL_SIZE) / 2 - this.cameras.main.height / 2;
     this.cameras.main.scrollX = Phaser.Math.Clamp(centerX, 0, this.MAP_COLS * this.CELL_SIZE - this.cameras.main.width);
     this.cameras.main.scrollY = Phaser.Math.Clamp(centerY, 0, this.MAP_ROWS * this.CELL_SIZE - this.cameras.main.height);
-
-  }
-
-  toggleCellType(row: number, col: number) {
-    const cell = this.mapConfig[row][col];
-    cell.type = cell.type === 'agua' ? 'tierra' : 'agua';
-
-    const sprite = this.cellsVisuals[row][col];
-    sprite.setTexture(cell.type);
-    sprite.displayWidth = this.CELL_SIZE;
-    sprite.displayHeight = this.CELL_SIZE;
   }
 
   exportMapConfig() {
@@ -183,19 +172,12 @@ export class MapScene extends Phaser.Scene {
     }
   }
 
-  markCellExplored(row: number, col: number) {
-    const cell = this.mapConfig[row][col];
-    const sprite = this.cellsVisuals[row][col];
-  
-    // Actualizar la lógica visual para mostrar que está explorado.
-    // Por ejemplo, cambiar textura o añadir un overlay, o aplicar tint
+  markCellExplored(data: any) {
+    const cell = this.mapConfig[data.row][data.col];
     cell.explored = true;
-  
-    if (cell.explored) {
-      // Ejemplo: aplicar un filtro o tint para celda explorada
-      sprite.setTint(0x88ff88);  // verde claro como ejemplo
-    } else {
-      sprite.clearTint();
-    }
+    const sprite = this.cellsVisuals[data.row][data.col];
+    sprite.setTexture(cell.type);
+    sprite.displayWidth = this.CELL_SIZE;
+    sprite.displayHeight = this.CELL_SIZE;
   }
 }

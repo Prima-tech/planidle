@@ -20,25 +20,15 @@ export class MapSelectedCellComponent implements OnInit {
   ngOnInit() {
     this.mapService.cellSelected$.subscribe(cell => {
       if(cell) {
-        console.log('soy la cell', cell)
         this.selectedCell = cell;
-        // abrir modal o cambiar vista con los datos de la celda
       }
     });
   }
 
   onMarkExploredClick() {
-    console.log('map selected');
-    this.mapService.markExplored(this.selectedCell);
-    /*
-    if (this.mapService.cellSelected) {
-      const { row, col } = this.mapService.selectedCell;
-  
-      this.mapService.markExplored(row, col);
-  
-    
+    if (this.selectedCell) {
+      this.mapService.markExplored(this.selectedCell);
     }
-      */
   }
 
 }
