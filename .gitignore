@@ -64,6 +64,8 @@ yarn-error.log
 /libpeerconnection.log
 testem.log
 /typings
+/android
+/resources
 
 # System files
 .DS_Store
