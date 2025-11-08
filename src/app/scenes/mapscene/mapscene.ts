@@ -1,4 +1,4 @@
-import { MapService } from "src/app/services/map.service";
+import { inject } from "@angular/core";
 
 export class MapScene extends Phaser.Scene {
   CELL_SIZE = 64;
@@ -6,18 +6,16 @@ export class MapScene extends Phaser.Scene {
   MAP_COLS = 11;
 
   mapConfig: any[][] = [];
+  mapService: any;
   cellsVisuals: Phaser.GameObjects.Sprite[][] = [];
-  private mapService: MapService;
   private cellSelected:any = null;
   private dragStartX = 0;
   private dragStartY = 0;
   private isDragging = false;
 
   constructor(
-    mapService: MapService
    ) {
     super({ key: 'MapScene' });
-    this.mapService = mapService;
     const centerRow = Math.floor(this.MAP_ROWS / 2);
     const centerCol = Math.floor(this.MAP_COLS / 2);
     for (let row = 0; row < this.MAP_ROWS; row++) {
@@ -59,6 +57,7 @@ export class MapScene extends Phaser.Scene {
     this.load.image('forest', 'assets/sprites/map/forest.png');
     this.load.image('sea', 'assets/sprites/map/sea.png');
     this.load.image('crop', 'assets/sprites/map/crop.png');
+    this.mapService = this.game.registry.get('mapService');
   }
 
   create() {

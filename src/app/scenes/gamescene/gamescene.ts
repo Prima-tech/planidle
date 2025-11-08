@@ -20,6 +20,11 @@ export class GameScene extends Phaser.Scene {
     private spaceKey: Phaser.Input.Keyboard.Key;
     currentMap: any;
 
+      constructor(
+       ) {
+        super({ key: 'GameScene' });
+      }
+
     preload() {
       this.load.spritesheet('player', 'assets/sprites/player/character/body/tanned.png', { frameWidth: 64, frameHeight: 64});
       this.load.spritesheet('enemyTexture', 'assets/sprites/enemy/orc1/orc1_idle_full.png', { frameWidth: 64, frameHeight: 64 });

@@ -6,6 +6,7 @@ import { ProfileService } from 'src/app/services/profile';
 import Phaser from 'phaser';
 import { MapScene } from 'src/app/scenes/mapscene/mapscene';
 import { MapService } from 'src/app/services/map.service';
+import { SceneManager } from 'src/app/scenes/scene-manager';
 
 @Component({
   selector: 'app-layout',
@@ -21,13 +22,16 @@ export class LayoutComponent {
     private router: Router,
     public service: FakeApiService,
     public profile: ProfileService,
-    public mapService: MapService
+    public mapService: MapService,
+    public sceneManager: SceneManager
   ) {
     this.loadScene();
   }
 
   ngOnInit(): void {
     this.phaserGame = new Phaser.Game(this.config);
+    this.phaserGame.registry.set('mapService', this.mapService);
+    this.sceneManager.setGame(this.phaserGame);
     this.service.getUserData().subscribe((data) => {
       console.log('soy la data', data)
     })
@@ -43,7 +47,7 @@ export class LayoutComponent {
         default: 'arcade',
       },
       type: Phaser.AUTO,
-      scene: [new MapScene(this.mapService), GameScene],
+      scene: [MapScene, GameScene],
       scale: {
         width: window.innerWidth,
         height: 200,

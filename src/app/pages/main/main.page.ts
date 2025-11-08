@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { SceneManager } from 'src/app/scenes/scene-manager';
 import { StatusService } from 'src/app/services/status';
 
 @Component({
@@ -9,6 +10,8 @@ import { StatusService } from 'src/app/services/status';
 })
 export class MainPage implements OnInit {
 
+  private sceneManager = inject(SceneManager);
+
   constructor(
     private status: StatusService
   ) { }
@@ -18,5 +21,9 @@ export class MainPage implements OnInit {
 
   test() {
     this.status.setStatus(10);
+  }
+
+  changeScene(scene: string) {
+    this.sceneManager.changeScene(scene);
   }
 }
