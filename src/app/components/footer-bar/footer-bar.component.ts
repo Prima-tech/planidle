@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalContainerComponent } from '../modal-container/modal-container.component';
 import { testPageComponent } from 'src/app/pages/test/test.page';
+import { CharacterPageComponent } from 'src/app/pages/character/character.page';
 
 @Component({
   selector: 'app-footer-bar',
@@ -10,7 +11,8 @@ import { testPageComponent } from 'src/app/pages/test/test.page';
   standalone: false
 })
 export class FooterBarComponent  implements OnInit {
-  @ViewChild('modal') modal!: ModalContainerComponent;
+  @ViewChild('menuModal') menuModal!: ModalContainerComponent;
+  @ViewChild('characterModal') characterModal!: ModalContainerComponent;
   constructor(private router: Router) {}
 
   ngOnInit() {}
@@ -20,10 +22,20 @@ export class FooterBarComponent  implements OnInit {
   }
 
   openMenu() {
-    if (this.modal.isOpenModal()) {
-      this.modal.close()
+    if (this.menuModal.isOpenModal()) {
+      this.menuModal.close()
     } else {
-      this.modal.open(testPageComponent, 'menu');
+      this.menuModal.open(testPageComponent, 'menu');
+    }
+  }
+
+  openStatus() {
+    console.log('entro aqui')
+    if (this.characterModal.isOpenModal()) {
+      this.characterModal.close()
+    } else {
+      console.log('abro')
+      this.characterModal.open(CharacterPageComponent, 'character');
     }
   }
 

@@ -1,4 +1,6 @@
-<app-modal-container #modal></app-modal-container>
+<app-modal-container #menuModal></app-modal-container>
+<app-modal-container #characterModal></app-modal-container>
+
 <ion-footer>
   <ion-toolbar>
 
@@ -7,7 +9,7 @@
       <app-icon [name]="'world'" [type]="'menu'"></app-icon>
     </div>
 
-    <div class="icon-menu-wrapper" (click)="openMenu()">
+    <div class="icon-menu-wrapper" (click)="openStatus()">
       <app-icon [name]="'overlord-helm'" [type]="'menu'"></app-icon>
     </div>
 

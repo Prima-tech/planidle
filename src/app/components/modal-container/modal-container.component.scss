@@ -11,6 +11,16 @@
     background: #a19695;
     z-index: 51;
   }
+  &.character {
+    top: 15px; 
+    left: 10px;
+    background: #fff;
+    border-radius: 8px;
+    min-width: 300px;
+    height: calc(100% - 70px);
+    background: #a19695;
+    z-index: 51;
+  }
 }
 
 .close-btn {
