@@ -1,20 +1,16 @@
-/* modal-container.component.css */
-.modal-backdrop {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 1000;
-}
 
 .modal-window {
   position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  z-index: 1001;
-  padding: 1rem;
-  border-radius: 8px;
-  min-width: 300px;
+  &.menu {
+    top: 15px; 
+    right: 10px;
+    background: #fff;
+    border-radius: 8px;
+    min-width: 300px;
+    height: calc(100% - 70px);
+    background: #a19695;
+    z-index: 51;
+  }
 }
 
 .close-btn {

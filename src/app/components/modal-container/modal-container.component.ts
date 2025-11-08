@@ -1,5 +1,5 @@
 // modal-container.component.ts
-import { Component, ComponentRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ComponentRef, Input, ViewChild, ViewContainerRef } from '@angular/core';
 
 @Component({
   selector: 'app-modal-container',
@@ -9,9 +9,13 @@ import { Component, ComponentRef, ViewChild, ViewContainerRef } from '@angular/c
 })
 export class ModalContainerComponent {
   @ViewChild('modalContent', { read: ViewContainerRef }) modalContent!: ViewContainerRef;
+  
   isOpen = false;
 
-  open(component: any) {
+  type: string;
+
+  open(component: any, type: string) {
+    this.type = type;
     this.isOpen = true;
     setTimeout(() => {
       this.modalContent.clear();
@@ -22,5 +26,9 @@ export class ModalContainerComponent {
   close() {
     this.modalContent.clear();
     this.isOpen = false;
+  }
+
+  isOpenModal() {
+    return this.isOpen;
   }
 }

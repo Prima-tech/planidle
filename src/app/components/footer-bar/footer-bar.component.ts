@@ -20,7 +20,11 @@ export class FooterBarComponent  implements OnInit {
   }
 
   openMenu() {
-    this.modal.open(testPageComponent);
+    if (this.modal.isOpenModal()) {
+      this.modal.close()
+    } else {
+      this.modal.open(testPageComponent, 'menu');
+    }
   }
 
 }
