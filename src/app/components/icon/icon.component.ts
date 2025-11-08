@@ -9,13 +9,19 @@ import { Component, Input, OnInit } from '@angular/core';
 export class IconComponent implements OnInit {
 
   @Input() name: any;
+  @Input() type: any = 'weapons';
 
   url = '';
   
   constructor() { }
 
   ngOnInit() {
-    this.url = 'assets/icon/weapons/' + this.name + '.png';
+    if (this.type === 'weapons') {
+      this.url = 'assets/icon/' + this.type + '/' + this.name + '.png';
+    } else if (this.type === 'menu') {
+      this.url = 'assets/icon/' + this.type + '/' + this.name + '.svg';
+    }
+   
   }
 
 }

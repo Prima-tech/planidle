@@ -1,3 +1,25 @@
 :host {
-    background: gray;
+  ion-toolbar {
+
+  }
+    .toolbar-background {
+      background: #916D69;
+    }
+    .icon-menu-wrapper {
+      border: solid 1px white;
+      width: 48px;
+      height: 40px;
+      padding-left: 4px;
+      padding-right: 4px;
+      border-radius: 6px;
+      text-align: center;
+      padding-top: 2px;
+      float: left;
+      &.right {
+        float: right;
+      }
+    }
+    .icon-menu-wrapper:not(:last-child) {
+      margin-right: 5px; /* el margen que quieras */
+    }
 }

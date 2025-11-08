@@ -1,16 +1,24 @@
 <app-modal-container #modal></app-modal-container>
 <ion-footer>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="goTo('main')">
-        <ion-icon name="home-outline"></ion-icon>
-      </ion-button>
-      <ion-button (click)="goTo('map')">
-        <ion-icon name="book-outline"></ion-icon>
-      </ion-button>
-      <ion-button (click)="openMenu()">
-        <ion-icon name="settings-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+
+
+    <div class="icon-menu-wrapper" (click)="goTo('map')">
+      <app-icon [name]="'world'" [type]="'menu'"></app-icon>
+    </div>
+
+    <div class="icon-menu-wrapper" (click)="openMenu()">
+      <app-icon [name]="'overlord-helm'" [type]="'menu'"></app-icon>
+    </div>
+
+    <div class="icon-menu-wrapper" (click)="openMenu()">
+      <app-icon [name]="'knapsack'" [type]="'menu'"></app-icon>
+    </div>
+
+
+    <div class="icon-menu-wrapper right" (click)="openMenu()">
+      <app-icon [name]="'cog'" [type]="'menu'"></app-icon>
+    </div>
+   
   </ion-toolbar>
 </ion-footer>
