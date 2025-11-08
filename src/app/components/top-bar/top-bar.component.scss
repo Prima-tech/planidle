@@ -1,12 +1,40 @@
 .top-bar {
-  display: flex;
-  align-items: center;
-  background-color: #8a5e3b;
-  border: 4px solid #919191;
-  padding: 8px 12px;
-  box-shadow: inset 0 0 6px #000;
-  font-family: 'MedievalSharp', cursive;
   height: 60px;
+  background: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+    .avatar-wrapper {
+        float: left;
+        img {
+            margin-top: 5px;
+            margin-left: 10px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50px;
+            border: solid 3px gold;
+            -webkit-box-shadow: 4px 3px 15px -6px #000000; 
+            box-shadow: 4px 3px 15px -6px #000000;
+        }
+        .name {
+          font-size: 13px;
+          width: 60px;
+          text-align: center;
+          margin-top: -2px;
+          background: gray;
+          border-radius: 10px;
+          padding-top: 2px;
+          padding-bottom: 2px;
+          padding-left: 10px;
+          padding-right: 10px;
+          margin-left: 10px;
+          margin-top: -7px;
+          width: 80px;
+          border: solid 2px gray;
+        }
+    }
 }
 
 .avatar-wrapper {
@@ -25,31 +53,19 @@
   border-radius: 50%;
 }
 
-.name {
-  margin-top: -25px;
-  font-size: 15px;
-  color: #2e1b0f;
-  background-color: #d7a868;
-  border: 2px solid #5a4a3a;
-  padding: 2px 10px;
-  box-shadow: inset 0 0 4px #000;
-  text-align: center;
-  width: 100%;
-}
-
-/* Simulación de app-status-bar */
-app-status-bar.health {
-  flex-grow: 1;
-  height: 16px;
-  background-color: #2e1b0f;
-  border: 2px solid #5a4a3a;
-  position: relative;
-}
-
-app-status-bar.health::before {
-  content: '';
-  position: absolute;
-  height: 100%;
-  width: 70%; /* Cambia este valor para simular HP */
-  background-color: #65a30d;
+.health {
+    ::ng-deep {
+        .status-bar-wrapper {
+            width: 120px;
+            float: left;
+            margin-top: 10px;
+           
+            ion-progress-bar {
+                height: 10px;
+                --progress-background: red;
+                --background: white;
+                 border: solid 1px gray;
+            }
+        }
+    }
 }
