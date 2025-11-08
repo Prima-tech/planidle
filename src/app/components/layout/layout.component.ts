@@ -47,10 +47,10 @@ export class LayoutComponent {
         default: 'arcade',
       },
       type: Phaser.AUTO,
-      scene: [MapScene, GameScene],
+      scene: [GameScene, MapScene],
       scale: {
         width: window.innerWidth,
-        height: 200,
+        height: window.innerHeight,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       parent: "game",

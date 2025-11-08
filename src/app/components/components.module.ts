@@ -10,6 +10,7 @@ import { FooterBarComponent } from './footer-bar/footer-bar.component';
 import { LayoutComponent } from './layout/layout.component';
 import { RouterModule } from '@angular/router';
 import { MapSelectedCellComponent } from './map-selected-cell/map-selected-cell.component';
+import { ModalContainerComponent } from './modal-container/modal-container.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { MapSelectedCellComponent } from './map-selected-cell/map-selected-cell.
     InventoryComponent,
     FooterBarComponent,
     LayoutComponent,
-    MapSelectedCellComponent
+    MapSelectedCellComponent,
+    ModalContainerComponent
   ],
   imports: [
     CommonModule,
@@ -34,7 +36,8 @@ import { MapSelectedCellComponent } from './map-selected-cell/map-selected-cell.
     InventoryComponent,
     FooterBarComponent,
     LayoutComponent,
-    MapSelectedCellComponent
+    MapSelectedCellComponent,
+    ModalContainerComponent
   ]
 })
 export class ComponentModule {}
