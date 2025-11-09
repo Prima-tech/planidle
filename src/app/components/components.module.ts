@@ -11,6 +11,7 @@ import { LayoutComponent } from './layout/layout.component';
 import { RouterModule } from '@angular/router';
 import { MapSelectedCellComponent } from './map-selected-cell/map-selected-cell.component';
 import { ModalContainerComponent } from './modal-container/modal-container.component';
+import { testPageComponent } from '../pages/test/test.page';
 
 @NgModule({
   declarations: [
@@ -22,6 +23,7 @@ import { ModalContainerComponent } from './modal-container/modal-container.compo
     LayoutComponent,
     MapSelectedCellComponent,
     ModalContainerComponent,
+    testPageComponent
   ],
   imports: [
     CommonModule,
@@ -37,7 +39,8 @@ import { ModalContainerComponent } from './modal-container/modal-container.compo
     FooterBarComponent,
     LayoutComponent,
     MapSelectedCellComponent,
-    ModalContainerComponent
+    ModalContainerComponent,
+    testPageComponent
 
   ]
 })
