@@ -21,7 +21,7 @@ import { ModalContainerComponent } from './modal-container/modal-container.compo
     FooterBarComponent,
     LayoutComponent,
     MapSelectedCellComponent,
-    ModalContainerComponent
+    ModalContainerComponent,
   ],
   imports: [
     CommonModule,
@@ -38,6 +38,7 @@ import { ModalContainerComponent } from './modal-container/modal-container.compo
     LayoutComponent,
     MapSelectedCellComponent,
     ModalContainerComponent
+
   ]
 })
 export class ComponentModule {}

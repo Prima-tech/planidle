@@ -30,11 +30,9 @@ export class FooterBarComponent  implements OnInit {
   }
 
   openStatus() {
-    console.log('entro aqui')
     if (this.characterModal.isOpenModal()) {
       this.characterModal.close()
     } else {
-      console.log('abro')
       this.characterModal.open(CharacterPageComponent, 'character');
     }
   }
