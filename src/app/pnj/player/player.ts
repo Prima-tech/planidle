@@ -2,20 +2,64 @@ import { GameScene } from "src/app/scenes/gamescene/gamescene";
 import { Direction } from "../interfaces/Direction";
 import { AnimationService } from "src/app/scenes/gamescene/animation.service";
 import { playerAnimations, playerTags } from "src/app/scenes/gamescene/constants";
+import { Subject } from "rxjs";
+
+export interface IAttack {
+  HP: number;
+  
+}
 
 export class Player {
 
+  public status$ = new Subject<any>();
+  public mainScene: Phaser.Scene;
+  public sprite: Phaser.GameObjects.Sprite;
+  private tilePos: Phaser.Math.Vector2;
+
+  status = {
+    HP: 10,
+    HPMax :10,
+  }
+
+
+
   currentDirection: Direction = Direction.DOWN;
   private animationService: AnimationService;
+
   constructor(
-    public mainScene: Phaser.Scene,
-    public sprite: Phaser.GameObjects.Sprite,
-    private tilePos: Phaser.Math.Vector2
+
   ) {
+  
+  }
+
+  getStatus() {
+    return this.status;
+  }
+
+  setStatus(v: any) {
+    if (!v) return;
+    this.status = v;
+  }
+
+
+  receiveAttack(attack: IAttack) {
+    this.setHP(attack.HP)
+  }
+
+  setHP(HP: number) {
+    this.status.HP = this.status.HP + HP;
+    this.status$.next(this.status);
+  }
+
+  /* animations */
+
+  setInitialSprites(sprites: any){
+    this.mainScene = sprites.mainScene;
+    this.sprite = sprites.sprite;
+    this.tilePos = sprites.tilePos;
     this.initSpriteProperties();
     this.initPlayerAnimation();
   }
-
 
   initPlayerAnimation() {
     this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK, );
@@ -83,4 +127,5 @@ export class Player {
   getSprite() {
     return this.sprite;
   }
+
 }

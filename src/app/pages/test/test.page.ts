@@ -1,5 +1,7 @@
 import { Component, inject } from "@angular/core";
+import { IAttack } from "src/app/pnj/player/player";
 import { SceneManager } from "src/app/scenes/scene-manager";
+import { AsgardService } from "src/app/services/asgard";
 
 @Component({
   selector: 'test-page',
@@ -11,15 +13,18 @@ import { SceneManager } from "src/app/scenes/scene-manager";
 })
 
 export class testPageComponent {
+  private sceneManager = inject(SceneManager);
+  private asgardService = inject(AsgardService);
   
-private sceneManager = inject(SceneManager);
-
   changeScene(scene: string) {
     this.sceneManager.changeScene(scene);
   } 
 
   test() {
-   // this.status.setStatus(10);
+    let attack: IAttack = {
+      HP: 10
+    }
+    this.asgardService.setAttackToPlayer(attack)
   }
 
 }

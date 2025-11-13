@@ -18,6 +18,7 @@ export class GameScene extends Phaser.Scene {
     private player: Player;
     private enemies: Enemy[] = [];
     private spaceKey: Phaser.Input.Keyboard.Key;
+    asgardService: any;
     currentMap: any;
 
       constructor(
@@ -26,6 +27,7 @@ export class GameScene extends Phaser.Scene {
       }
 
     preload() {
+      this.asgardService = this.game.registry.get('asgardService');
       this.load.spritesheet('player', 'assets/sprites/player/character/body/tanned.png', { frameWidth: 64, frameHeight: 64});
       this.load.spritesheet('enemyTexture', 'assets/sprites/enemy/orc1/orc1_idle_full.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png'); 
@@ -64,7 +66,13 @@ export class GameScene extends Phaser.Scene {
       playerSprite.scale = 3;
       this.cameras.main.startFollow(playerSprite);
       this.cameras.main.roundPixels = true;
-      this.player = new Player(this, playerSprite, new Phaser.Math.Vector2(6, 6));
+      let sprites = {
+        mainScene: this,
+        sprite: playerSprite,
+        tilePos: new Phaser.Math.Vector2(6, 6)
+      }
+      this.asgardService.setInitialSprites(sprites);
+      this.player = this.asgardService.getPlayer();
     }
 
     initEnemies() {

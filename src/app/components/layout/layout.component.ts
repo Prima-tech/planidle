@@ -7,6 +7,7 @@ import Phaser from 'phaser';
 import { MapScene } from 'src/app/scenes/mapscene/mapscene';
 import { MapService } from 'src/app/services/map.service';
 import { SceneManager } from 'src/app/scenes/scene-manager';
+import { AsgardService } from 'src/app/services/asgard';
 
 @Component({
   selector: 'app-layout',
@@ -23,21 +24,23 @@ export class LayoutComponent {
     public service: FakeApiService,
     public profile: ProfileService,
     public mapService: MapService,
-    public sceneManager: SceneManager
+    public sceneManager: SceneManager,
+    public asgardService: AsgardService
   ) {
-    this.loadScene();
+    this.loadGame();
   }
 
   ngOnInit(): void {
-    this.phaserGame = new Phaser.Game(this.config);
-    this.phaserGame.registry.set('mapService', this.mapService);
-    this.sceneManager.setGame(this.phaserGame);
+   
+  
     this.service.getUserData().subscribe((data) => {
+      this.asgardService.createPlayer(data)
       console.log('soy la data', data)
+      this.registerServices();
     })
   }
 
-  loadScene() {
+  loadGame() {
     this.config = {
       title: "Sample",
       render: {
@@ -56,6 +59,13 @@ export class LayoutComponent {
       parent: "game",
       backgroundColor: "#48C4F8",
     };
+  }
+
+  registerServices() {
+    this.phaserGame = new Phaser.Game(this.config);
+    this.phaserGame.registry.set('mapService', this.mapService);
+    this.phaserGame.registry.set('asgardService', this.asgardService);
+    this.sceneManager.setGame(this.phaserGame);
   }
 
   test() {

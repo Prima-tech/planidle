@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { MapService } from 'src/app/services/map.service';
-import { StatusService } from 'src/app/services/status';
 
 @Component({
   selector: 'app-map-selected-cell',
@@ -13,7 +12,6 @@ export class MapSelectedCellComponent implements OnInit {
   selectedCell: any = null;
 
   constructor(
-    public status: StatusService,
     public mapService: MapService
   ) { }
 
