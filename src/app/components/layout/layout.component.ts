@@ -19,6 +19,7 @@ export class LayoutComponent {
 
   config: Phaser.Types.Core.GameConfig | undefined;
   phaserGame: Phaser.Game | undefined;
+  dataLoaded = false;
   constructor(
     private router: Router,
     public service: FakeApiService,
@@ -31,12 +32,10 @@ export class LayoutComponent {
   }
 
   ngOnInit(): void {
-   
-  
     this.service.getUserData().subscribe((data) => {
       this.asgardService.createPlayer(data)
-      console.log('soy la data', data)
       this.registerServices();
+      this.dataLoaded = true;
     })
   }
 

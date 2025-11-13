@@ -17,11 +17,9 @@ export class Player {
   private tilePos: Phaser.Math.Vector2;
 
   status = {
-    HP: 10,
-    HPMax :10,
+    HP: 100,
+    HPMax :100,
   }
-
-
 
   currentDirection: Direction = Direction.DOWN;
   private animationService: AnimationService;
@@ -41,13 +39,13 @@ export class Player {
     this.status = v;
   }
 
-
   receiveAttack(attack: IAttack) {
     this.setHP(attack.HP)
   }
 
   setHP(HP: number) {
     this.status.HP = this.status.HP + HP;
+    console.log('tiro le next', this.status)
     this.status$.next(this.status);
   }
 

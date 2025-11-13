@@ -22,7 +22,7 @@ export class testPageComponent {
 
   test() {
     let attack: IAttack = {
-      HP: 10
+      HP: -10
     }
     this.asgardService.setAttackToPlayer(attack)
   }
