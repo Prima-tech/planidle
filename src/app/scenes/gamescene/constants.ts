@@ -3,10 +3,10 @@ import { Direction } from "src/app/pnj/interfaces/Direction";
 
 export const playerAnimations = {
   IDLE :{
-    [Direction.UP]: { start: 0, end: 1 },
-    [Direction.LEFT]: { start: 13, end: 14 },
-    [Direction.DOWN]: { start: 26, end: 27 },
-    [Direction.RIGHT]: { start: 39, end: 40 },
+    [Direction.UP]: { start: 286, end: 287 },
+    [Direction.LEFT]: { start: 299, end: 300 },
+    [Direction.DOWN]: { start: 312, end: 313 },
+    [Direction.RIGHT]: { start: 325, end: 326 },
   },
   WALK: {
     [Direction.UP]: { start: 104, end: 112 },
@@ -19,13 +19,20 @@ export const playerAnimations = {
     [Direction.LEFT]: { start: 169, end: 174 },
     [Direction.DOWN]: { start: 182, end: 187 },
     [Direction.RIGHT]: { start: 195, end: 200 },
+  },
+  DEATH: {
+    [Direction.UP]: { start: 260, end: 265 },
+    [Direction.LEFT]: { start: 260, end: 265 },
+    [Direction.DOWN]: { start: 260, end: 265 },
+    [Direction.RIGHT]: { start: 260, end: 265 },
   }
 }
 
 export const playerTags = {
   WALK:'player_walk_',
   IDLE: 'player_idle_',
-  ATTACK:'player_attack_'
+  ATTACK:'player_attack_',
+  DEATH:'player_death_'
 }
 
 export const enemyAnimations = {

@@ -1,6 +1,8 @@
-<h2>Página Uno</h2><p>Contenido de la página uno.</p>
   <div class="basic-item" (click)="test()">
     <app-icon [name]="'sword1'"></app-icon>
+  </div>
+    <div class="basic-item" (click)="setPlayerDeath()">
+    <app-icon [name]="'sword2'"></app-icon>
   </div>
   <ion-button (click)="changeScene('GameScene')">GameScene</ion-button>
   <ion-button (click)="changeScene('MapScene')">MapScene</ion-button>

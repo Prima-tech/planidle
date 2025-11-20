@@ -49,6 +49,10 @@ export class Player {
     this.status$.next(this.status);
   }
 
+  death() {
+    this.sprite.play(playerTags.DEATH +  this.getDirection());
+  }
+
   /* animations */
 
   setInitialSprites(sprites: any){
@@ -60,9 +64,10 @@ export class Player {
   }
 
   initPlayerAnimation() {
-    this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK, );
+    this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK );
     this.animationService.createTopDownRightLeftAnim('ATTACK', playerTags.ATTACK, 'player', playerAnimations.ATTACK, 0);
     this.animationService.createTopDownRightLeftAnim('IDLE', playerTags.IDLE, 'player', playerAnimations.IDLE, -1, 2);
+    this.animationService.createTopDownRightLeftAnim('DEATH', playerTags.DEATH, 'player', playerAnimations.DEATH, 0);
     this.sprite.play(playerTags.IDLE + Direction.DOWN); // Animación por defecto
   }
 

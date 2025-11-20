@@ -27,4 +27,8 @@ export class testPageComponent {
     this.asgardService.setAttackToPlayer(attack)
   }
 
+  setPlayerDeath() {
+    this.asgardService.player.death();
+  }
+
 }
