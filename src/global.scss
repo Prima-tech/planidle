@@ -41,7 +41,6 @@ ion-content {
   /* Firefox */
   -ms-overflow-style: none;
   /* IE 10+ */
-  --padding-top: 30px;
 }
 
 ion-content::-webkit-scrollbar {
@@ -72,4 +71,10 @@ ion-content::part(scroll)::-webkit-scrollbar {
   padding-top: 10px;
   padding-left: 10px;
   border: solid 1px gray;
+}
+
+.main-container {
+  margin-top: 90px;
+  height: 100%;
+  background-color: gray;
 }
