@@ -29,6 +29,10 @@ const routes: Routes = [
         loadChildren: () => import('./pages/map/map.module').then(m => m.MapPageModule)
       },
       {
+        path: 'main',
+        loadChildren: () => import('./pages/main/main.module').then(m => m.MainPageModule)
+      },
+      {
         path: '',
         redirectTo: 'main',
         pathMatch: 'full'
