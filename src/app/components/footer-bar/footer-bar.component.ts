@@ -10,12 +10,12 @@ import { CharacterPageComponent } from 'src/app/pages/character/character.page';
   styleUrls: ['./footer-bar.component.scss'],
   standalone: false
 })
-export class FooterBarComponent  implements OnInit {
+export class FooterBarComponent implements OnInit {
   @ViewChild('menuModal') menuModal!: ModalContainerComponent;
   @ViewChild('characterModal') characterModal!: ModalContainerComponent;
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   goTo(tab: string) {
     this.router.navigate([`/${tab}`]);
@@ -27,6 +27,10 @@ export class FooterBarComponent  implements OnInit {
     } else {
       this.menuModal.open(testPageComponent, 'menu');
     }
+  }
+
+  openMain() {
+    this.router.navigate(['/main']);
   }
 
   openStatus() {
