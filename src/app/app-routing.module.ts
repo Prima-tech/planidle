@@ -4,8 +4,17 @@ import { LayoutComponent } from './components/layout/layout.component';
 
 const routes: Routes = [
   {
+    path: 'login',
+    loadChildren: () => import('./pages/login/login.module').then(m => m.LoginPageModule)
+  },
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+  {
     path: 'home',
-    loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
+    loadChildren: () => import('./home/home.module').then(m => m.HomePageModule)
   },
   {
     path: '',
@@ -25,13 +34,6 @@ const routes: Routes = [
         pathMatch: 'full'
       }
     ]
-  },
-
-
-  {
-    path: '',
-    redirectTo: 'home',
-    pathMatch: 'full'
   },
 ];
 

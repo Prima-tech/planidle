@@ -1,0 +1,23 @@
+
+<ion-content [fullscreen]="true">
+  <div class="login-container">
+    <div class="login-box">
+      <h1>Bienvenido</h1>
+      <p>Ingresa a tu cuenta</p>
+
+      <ion-item class="custom-input">
+        <ion-icon name="person-outline" slot="start"></ion-icon>
+        <ion-input [(ngModel)]="email" placeholder="Email"></ion-input>
+      </ion-item>
+
+      <ion-item class="custom-input">
+        <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+        <ion-input type="password" [(ngModel)]="password" placeholder="Contraseña"></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" class="login-btn" (click)="login()">
+        INGRESAR
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
