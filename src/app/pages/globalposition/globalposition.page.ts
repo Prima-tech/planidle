@@ -1,4 +1,3 @@
-
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AsgardService } from 'src/app/services/asgard';
@@ -12,7 +11,9 @@ import { SupabaseService } from 'src/app/services/supabase.service';
   standalone: false,
 })
 export class GlobalpositionPage implements OnInit {
-  characters: any = null;
+  // Súper importante: inicializar como array vacío []
+  characters: any[] = [];
+  isChecking: boolean = true;
 
   constructor(
     private router: Router,
@@ -21,36 +22,43 @@ export class GlobalpositionPage implements OnInit {
     private supabaseService: SupabaseService
   ) { }
 
-  ngOnInit() {
-    this.getCharacters();
+  async ngOnInit() {
+    await this.refreshData();
   }
 
-  async getCharacters() {
-    this.characters = await this.asgardService.getCharacters();
-    console.log('soy los characters', this.characters)
-  }
-
-  continuar() {
-    console.log('Navegando desde globalposition');
-    this.router.navigate(['/map']);
+  async refreshData() {
+    this.isChecking = true;
+    try {
+      const data = await this.asgardService.getCharacters();
+      // Si el servicio devuelve null o undefined, le asignamos []
+      this.characters = data || [];
+    } catch (error) {
+      console.error('Error:', error);
+      this.characters = [];
+    } finally {
+      this.isChecking = false;
+    }
   }
 
   async createPlayer() {
     try {
-      const newHero = {
-        name: 'Warrior',
-        character_class: 'Warrior'
-      };
+      const newHero = { name: 'Warrior', character_class: 'Warrior' };
       const { data, error } = await this.supabaseService.createCharacter(newHero);
+
       if (error) throw error;
-      const currentChars = await this.storageService.get('user_characters') || [];
-      currentChars.push(data[0]);
-      await this.storageService.set('user_characters', currentChars);
-      this.characters = currentChars;
-      console.log('Character created and stored!', data[0]);
+
+      if (data && data[0]) {
+        // Usamos spread para actualizar la referencia del array
+        this.characters = [...this.characters, data[0]];
+        this.asgardService.setCharacters(this.characters);
+        await this.storageService.set('user_characters', this.characters);
+      }
     } catch (err) {
-      console.error('Error in programmatic creation:', err);
+      console.error('Error creando player:', err);
     }
   }
 
+  continuar() {
+    this.router.navigate(['/map']);
+  }
 }

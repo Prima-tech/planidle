@@ -5,15 +5,36 @@
       <p>Resumen de tu posición</p>
 
       <div class="content-area">
-        <p class="info-text">Aquí se mostrará tu posición global en el juego</p>
+        <div class="info-text">
+
+          <div *ngIf="isChecking" class="ion-text-center">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+
+          <ng-container *ngIf="!isChecking">
+            <div class="player-wrapper" *ngFor="let character of characters">
+              <div><strong>{{ character?.name }}</strong></div>
+              <div>{{ character?.character_class }}</div>
+            </div>
+
+            <div *ngIf="characters?.length === 0" class="ion-text-center">
+              <p>No tienes héroes creados.</p>
+            </div>
+          </ng-container>
+
+        </div>
       </div>
 
-      <ion-button *ngIf="characters?.length > 0" expand="block" class="continue-btn" (click)="continuar()">
-        CONTINUAR
-      </ion-button>
-      <ion-button *ngIf="characters?.length === 0" expand="block" class="continue-btn" (click)="createPlayer()">
-        CREAR PLAYER
-      </ion-button>
+      <div *ngIf="!isChecking">
+        <ion-button *ngIf="characters?.length > 0" expand="block" class="continue-btn" (click)="continuar()">
+          CONTINUAR
+        </ion-button>
+
+        <ion-button *ngIf="characters?.length === 0" expand="block" class="continue-btn" (click)="createPlayer()">
+          CREAR PLAYER
+        </ion-button>
+      </div>
+
     </div>
   </div>
 </ion-content>
