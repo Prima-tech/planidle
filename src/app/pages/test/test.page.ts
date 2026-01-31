@@ -1,4 +1,5 @@
 import { Component, inject } from "@angular/core";
+import { ModalController } from "@ionic/angular";
 import { IAttack } from "src/app/pnj/player/player";
 import { SceneManager } from "src/app/scenes/scene-manager";
 import { AsgardService } from "src/app/services/asgard";
@@ -8,13 +9,12 @@ import { AsgardService } from "src/app/services/asgard";
   templateUrl: './test.page.html',
   styleUrls: ['./test.page.scss'],
   standalone: false
-
-
 })
 
 export class testPageComponent {
   private sceneManager = inject(SceneManager);
   private asgardService = inject(AsgardService);
+  private modalCtrl = inject(ModalController);
 
   changeScene(scene: string) {
     this.sceneManager.changeScene(scene);
@@ -31,8 +31,9 @@ export class testPageComponent {
     this.asgardService.player.death();
   }
 
-  changePlayer() {
+  async changePlayer() {
     this.asgardService.changePlayer();
+    this.asgardService.triggerCloseMenu();
   }
 
 }

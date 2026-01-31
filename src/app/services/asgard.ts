@@ -3,6 +3,7 @@ import { IAttack, Player } from '../pnj/player/player';
 import { StorageService } from './storage.service'; // Asegúrate de que la ruta es correcta
 import { Character } from '../classes/character.class';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,8 @@ export class AsgardService {
   _characters: any = null;
   player: Player;
   selectedPlayer: Character;
+  private closeMenuSource = new Subject<void>();
+  closeMenu$ = this.closeMenuSource.asObservable();
 
   constructor(
     private storageService: StorageService,
@@ -66,5 +69,9 @@ export class AsgardService {
     this.selectedPlayer = null;
     this.storageService.set('selected_player', null);
     this.router.navigate(['/globalposition']);
+  }
+
+  triggerCloseMenu() {
+    this.closeMenuSource.next();
   }
 }
