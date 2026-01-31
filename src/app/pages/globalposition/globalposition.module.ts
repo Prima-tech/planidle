@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { GlobalpositionPageRoutingModule } from './globalposition-routing.module';
 import { GlobalpositionPage } from './globalposition.page';
@@ -12,7 +13,8 @@ import { GlobalpositionPage } from './globalposition.page';
         CommonModule,
         FormsModule,
         IonicModule,
-        GlobalpositionPageRoutingModule
+        GlobalpositionPageRoutingModule,
+        TranslateModule
     ],
     declarations: [GlobalpositionPage]
 })

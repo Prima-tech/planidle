@@ -1,8 +1,8 @@
 <ion-content [fullscreen]="true">
   <div class="globalposition-container">
     <div class="globalposition-box">
-      <h1>Posición Global</h1>
-      <p>Resumen de tu posición</p>
+      <h1>{{ 'GLOBAL_POSITION.TITLE' | translate }}</h1>
+      <p>{{ 'GLOBAL_POSITION.SUBTITLE' | translate }}</p>
 
       <div class="content-area">
         <div class="info-text">
@@ -18,7 +18,7 @@
             </div>
 
             <div *ngIf="characters?.length === 0" class="ion-text-center">
-              <p>No tienes héroes creados.</p>
+              <p>{{ 'GLOBAL_POSITION.NO_HEROES' | translate }}</p>
             </div>
           </ng-container>
 
@@ -27,11 +27,11 @@
 
       <div *ngIf="!isChecking">
         <ion-button *ngIf="characters?.length > 0" expand="block" class="continue-btn" (click)="continuar()">
-          CONTINUAR
+          {{ 'GLOBAL_POSITION.CONTINUE_BUTTON' | translate }}
         </ion-button>
 
         <ion-button *ngIf="characters?.length === 0" expand="block" class="continue-btn" (click)="createPlayer()">
-          CREAR PLAYER
+          {{ 'GLOBAL_POSITION.CREATE_PLAYER_BUTTON' | translate }}
         </ion-button>
       </div>
 
