@@ -1,0 +1,18 @@
+{
+    "player": {
+        "id": 1,
+        "level": 10,
+        "gold": 500,
+        "inventory": [
+            "espada",
+            "poción"
+        ]
+    },
+    "scores": [
+        {
+            "id": 1,
+            "name": "vlodos",
+            "points": 1000
+        }
+    ]
+}
