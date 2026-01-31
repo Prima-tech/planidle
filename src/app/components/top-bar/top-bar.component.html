@@ -1,8 +1,7 @@
 <div class="top-bar">
   <div class="avatar-wrapper">
     <img src="assets/delete/guts.jpg" alt="fail">
-    <div class="name">Vlod</div>
+    <div class="name">{{asgardService.selectedPlayer.name}}</div>
   </div>
   <app-status-bar *ngIf="initStatusBar" [class]="'health'" [service$]="valueHP$"></app-status-bar>
 </div>
-

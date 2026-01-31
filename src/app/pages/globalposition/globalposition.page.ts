@@ -14,6 +14,7 @@ export class GlobalpositionPage implements OnInit {
   // Súper importante: inicializar como array vacío []
   characters: any[] = [];
   isChecking: boolean = true;
+  isSelected: boolean = false;
 
   constructor(
     private router: Router,
@@ -42,7 +43,7 @@ export class GlobalpositionPage implements OnInit {
 
   async createPlayer() {
     try {
-      const newHero = { name: 'Warrior', character_class: 'Warrior' };
+      const newHero = { name: 'Merlin', character_class: 'Mage' };
       const { data, error } = await this.supabaseService.createCharacter(newHero);
 
       if (error) throw error;
@@ -58,7 +59,13 @@ export class GlobalpositionPage implements OnInit {
     }
   }
 
-  continuar() {
-    this.router.navigate(['/map']);
+  continue() {
+    this.asgardService.setSelectedPlayer(this.isSelected);
+    this.router.navigate(['/main']);
+  }
+
+  selectPlayer(player: any) {
+    console.log('soy el player', player)
+    this.isSelected = player;
   }
 }

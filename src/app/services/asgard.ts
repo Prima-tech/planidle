@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { IAttack, Player } from '../pnj/player/player';
 import { StorageService } from './storage.service'; // Asegúrate de que la ruta es correcta
+import { Character } from '../classes/character.class';
 
 @Injectable({
   providedIn: 'root'
@@ -8,6 +9,7 @@ import { StorageService } from './storage.service'; // Asegúrate de que la ruta
 export class AsgardService {
   _characters: any = null;
   player: Player;
+  selectedPlayer: Character;
 
   constructor(private storageService: StorageService) { }
 
@@ -15,10 +17,8 @@ export class AsgardService {
     this._characters = v;
   }
 
-  // Ahora es asíncrono para poder mirar el Storage si hace falta
   async getCharacters() {
     if (!this._characters) {
-      console.log('AsgardService: No hay RAM, mirando en Storage...');
       this._characters = await this.storageService.get('user_characters');
     }
     return this._characters;
@@ -39,5 +39,9 @@ export class AsgardService {
 
   setAttackToPlayer(attack: IAttack) {
     this.player.receiveAttack(attack);
+  }
+
+  setSelectedPlayer(player: any) {
+    this.selectedPlayer = new Character(player);
   }
 }

@@ -6,7 +6,7 @@ import { Subject } from "rxjs";
 
 export interface IAttack {
   HP: number;
-  
+
 }
 
 export class Player {
@@ -18,7 +18,7 @@ export class Player {
 
   status = {
     HP: 100,
-    HPMax :100,
+    HPMax: 100,
   }
 
   currentDirection: Direction = Direction.DOWN;
@@ -27,7 +27,7 @@ export class Player {
   constructor(
 
   ) {
-  
+
   }
 
   getStatus() {
@@ -50,12 +50,12 @@ export class Player {
   }
 
   death() {
-    this.sprite.play(playerTags.DEATH +  this.getDirection());
+    this.sprite.play(playerTags.DEATH + this.getDirection());
   }
 
   /* animations */
 
-  setInitialSprites(sprites: any){
+  setInitialSprites(sprites: any) {
     this.mainScene = sprites.mainScene;
     this.sprite = sprites.sprite;
     this.tilePos = sprites.tilePos;
@@ -64,7 +64,7 @@ export class Player {
   }
 
   initPlayerAnimation() {
-    this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK );
+    this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK);
     this.animationService.createTopDownRightLeftAnim('ATTACK', playerTags.ATTACK, 'player', playerAnimations.ATTACK, 0);
     this.animationService.createTopDownRightLeftAnim('IDLE', playerTags.IDLE, 'player', playerAnimations.IDLE, -1, 2);
     this.animationService.createTopDownRightLeftAnim('DEATH', playerTags.DEATH, 'player', playerAnimations.DEATH, 0);
@@ -78,7 +78,7 @@ export class Player {
     this.sprite.play(attackAnimationKey);
 
     this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-      this.sprite.play( playerTags.IDLE + direction); // Vuelve a la animación de la dirección actual
+      this.sprite.play(playerTags.IDLE + direction); // Vuelve a la animación de la dirección actual
     }, this);
   }
 

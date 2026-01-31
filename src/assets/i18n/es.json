@@ -7,8 +7,7 @@
         "BUTTON": "INGRESAR"
     },
     "GLOBAL_POSITION": {
-        "TITLE": "Posición Global",
-        "SUBTITLE": "Resumen de tu posición",
+        "TITLE": "Selecciona Personaje",
         "NO_HEROES": "No tienes héroes creados.",
         "CONTINUE_BUTTON": "CONTINUAR",
         "CREATE_PLAYER_BUTTON": "CREAR PLAYER"
