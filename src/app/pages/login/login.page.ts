@@ -19,7 +19,7 @@ export class LoginPage implements OnInit {
 
     login() {
         console.log('Login attempt', this.email, this.password);
-        this.router.navigate(['/map']);
+        this.router.navigate(['/globalposition']);
     }
 
 }

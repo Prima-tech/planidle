@@ -8,6 +8,10 @@ const routes: Routes = [
     loadChildren: () => import('./pages/login/login.module').then(m => m.LoginPageModule)
   },
   {
+    path: 'globalposition',
+    loadChildren: () => import('./pages/globalposition/globalposition.module').then(m => m.GlobalpositionPageModule)
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full'
