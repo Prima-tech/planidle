@@ -1,0 +1,9 @@
+{
+    "LOGIN": {
+        "TITLE": "Bienvenido",
+        "SUBTITLE": "Ingresa a tu cuenta",
+        "EMAIL_PLACEHOLDER": "Email",
+        "PASSWORD_PLACEHOLDER": "Contraseña",
+        "BUTTON": "INGRESAR"
+    }
+}

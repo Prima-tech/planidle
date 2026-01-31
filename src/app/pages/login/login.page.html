@@ -1,22 +1,22 @@
-
 <ion-content [fullscreen]="true">
   <div class="login-container">
     <div class="login-box">
-      <h1>Bienvenido</h1>
-      <p>Ingresa a tu cuenta</p>
+      <h1>{{ 'LOGIN.TITLE' | translate }}</h1>
+      <p>{{ 'LOGIN.SUBTITLE' | translate }}</p>
 
       <ion-item class="custom-input">
         <ion-icon name="person-outline" slot="start"></ion-icon>
-        <ion-input [(ngModel)]="email" placeholder="Email"></ion-input>
+        <ion-input [(ngModel)]="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate"></ion-input>
       </ion-item>
 
       <ion-item class="custom-input">
         <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
-        <ion-input type="password" [(ngModel)]="password" placeholder="Contraseña"></ion-input>
+        <ion-input type="password" [(ngModel)]="password"
+          [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate"></ion-input>
       </ion-item>
 
       <ion-button expand="block" class="login-btn" (click)="login()">
-        INGRESAR
+        {{ 'LOGIN.BUTTON' | translate }}
       </ion-button>
     </div>
   </div>
