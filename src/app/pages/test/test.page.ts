@@ -9,16 +9,16 @@ import { AsgardService } from "src/app/services/asgard";
   styleUrls: ['./test.page.scss'],
   standalone: false
 
-  
+
 })
 
 export class testPageComponent {
   private sceneManager = inject(SceneManager);
   private asgardService = inject(AsgardService);
-  
+
   changeScene(scene: string) {
     this.sceneManager.changeScene(scene);
-  } 
+  }
 
   test() {
     let attack: IAttack = {
@@ -29,6 +29,10 @@ export class testPageComponent {
 
   setPlayerDeath() {
     this.asgardService.player.death();
+  }
+
+  changePlayer() {
+    this.asgardService.changePlayer();
   }
 
 }

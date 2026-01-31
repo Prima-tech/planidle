@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { IAttack, Player } from '../pnj/player/player';
 import { StorageService } from './storage.service'; // Asegúrate de que la ruta es correcta
 import { Character } from '../classes/character.class';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,10 @@ export class AsgardService {
   player: Player;
   selectedPlayer: Character;
 
-  constructor(private storageService: StorageService) { }
+  constructor(
+    private storageService: StorageService,
+    private router: Router
+  ) { }
 
   setCharacters(v: any) {
     this._characters = v;
@@ -56,5 +60,11 @@ export class AsgardService {
       this.selectedPlayer = new Character(data);
     }
     return this.selectedPlayer;
+  }
+
+  changePlayer() {
+    this.selectedPlayer = null;
+    this.storageService.set('selected_player', null);
+    this.router.navigate(['/globalposition']);
   }
 }
