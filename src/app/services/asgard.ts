@@ -6,13 +6,26 @@ import { IAttack, Player } from '../pnj/player/player';
   providedIn: 'root'
 })
 export class AsgardService {
-
-  //change player
-    //top bar component
-
+  _characters: any;
   player: Player;
 
   constructor() { }
+
+  setCharacters(v: any) {
+    this._characters = v;
+  }
+
+  getCharacters() {
+    return this._characters
+  }
+
+
+
+
+
+
+
+
 
   createPlayer(data: Player) {
     if (!data) return;
@@ -24,10 +37,10 @@ export class AsgardService {
   }
 
   setInitialSprites(sprites: any) {
-   
- //   setTimeout(() => {
-   this.player.setInitialSprites(sprites)
-//}, 3000);
+
+    //   setTimeout(() => {
+    this.player.setInitialSprites(sprites)
+    //}, 3000);
   }
 
   setAttackToPlayer(attack: IAttack) {

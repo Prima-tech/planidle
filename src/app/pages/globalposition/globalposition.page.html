@@ -1,16 +1,19 @@
 <ion-content [fullscreen]="true">
-    <div class="globalposition-container">
-        <div class="globalposition-box">
-            <h1>Posición Global</h1>
-            <p>Resumen de tu posición</p>
+  <div class="globalposition-container">
+    <div class="globalposition-box">
+      <h1>Posición Global</h1>
+      <p>Resumen de tu posición</p>
 
-            <div class="content-area">
-                <p class="info-text">Aquí se mostrará tu posición global en el juego</p>
-            </div>
+      <div class="content-area">
+        <p class="info-text">Aquí se mostrará tu posición global en el juego</p>
+      </div>
 
-            <ion-button expand="block" class="continue-btn" (click)="continuar()">
-                CONTINUAR
-            </ion-button>
-        </div>
+      <ion-button *ngIf="characters?.length > 0" expand="block" class="continue-btn" (click)="continuar()">
+        CONTINUAR
+      </ion-button>
+      <ion-button *ngIf="characters?.length === 0" expand="block" class="continue-btn" (click)="createPlayer()">
+        CREAR PLAYER
+      </ion-button>
     </div>
+  </div>
 </ion-content>
