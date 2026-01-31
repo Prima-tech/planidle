@@ -3,18 +3,15 @@
     <div class="login-box">
       <h1>{{ 'LOGIN.TITLE' | translate }}</h1>
       <p>{{ 'LOGIN.SUBTITLE' | translate }}</p>
-
       <ion-item class="custom-input">
         <ion-icon name="person-outline" slot="start"></ion-icon>
         <ion-input [(ngModel)]="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate"></ion-input>
       </ion-item>
-
       <ion-item class="custom-input">
         <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
         <ion-input type="password" [(ngModel)]="password"
           [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate"></ion-input>
       </ion-item>
-
       <ion-button expand="block" class="login-btn" (click)="login()">
         {{ 'LOGIN.BUTTON' | translate }}
       </ion-button>

@@ -1,6 +1,5 @@
-
 ion-content {
-  --background: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop') no-repeat center center / cover;
+  --background: url('../../../assets/images/wallpaper2.jpg') no-repeat center center / cover;
   --ion-background-color: transparent;
 }
 
@@ -9,14 +8,13 @@ ion-content {
   justify-content: center;
   align-items: center;
   height: 100%;
-  backdrop-filter: blur(5px);
-  background: rgba(0, 0, 0, 0.4); 
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .login-box {
   width: 90%;
   max-width: 400px;
-  background: rgba(255, 255, 255, 0.1); 
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 40px 30px;
   text-align: center;
@@ -45,11 +43,11 @@ ion-content {
   --padding-start: 15px;
   margin-bottom: 15px;
   --border-color: transparent;
-  --highlight-color-focused: #00d4ff; 
+  --highlight-color-focused: #00d4ff;
   color: white;
 
   ion-icon {
-    color: #00d4ff; 
+    color: #00d4ff;
   }
 
   ion-input {
