@@ -32,6 +32,8 @@ export class LayoutComponent {
   }
 
   ngOnInit(): void {
+    console.log('oyistis ?')
+    this.asgardService.getSelectedPlayer();
     this.service.getUserData().subscribe((data) => {
       this.asgardService.createPlayer(data)
       this.registerServices();

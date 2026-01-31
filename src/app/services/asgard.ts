@@ -41,7 +41,20 @@ export class AsgardService {
     this.player.receiveAttack(attack);
   }
 
-  setSelectedPlayer(player: any) {
+  async setSelectedPlayer(player: any) {
     this.selectedPlayer = new Character(player);
+    await this.storageService.set('selected_player', player);
+  }
+
+  async getSelectedPlayer() {
+    if (this.selectedPlayer) {
+      return this.selectedPlayer;
+    }
+
+    const data = await this.storageService.get('selected_player');
+    if (data) {
+      this.selectedPlayer = new Character(data);
+    }
+    return this.selectedPlayer;
   }
 }
