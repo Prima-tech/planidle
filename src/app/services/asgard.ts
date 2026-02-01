@@ -12,6 +12,8 @@ export class AsgardService {
   _characters: any = null;
   player: Player;
   selectedPlayer: Character;
+  profile: any;
+
   private closeMenuSource = new Subject<void>();
   closeMenu$ = this.closeMenuSource.asObservable();
 

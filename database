@@ -1,0 +1,41 @@
+-- 1. TABLA GLOBAL DATA (Perfil del usuario)
+CREATE TABLE IF NOT EXISTS global_data (
+  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  username TEXT,
+  coins INTEGER DEFAULT 0,
+  special_coins INTEGER DEFAULT 0,
+  last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. TABLA DE PERSONAJES
+CREATE TABLE IF NOT EXISTS characters (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  profile_id UUID REFERENCES global_data(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  character_class TEXT,
+  level INTEGER DEFAULT 1,
+  current_hp INTEGER DEFAULT 100,
+  max_hp INTEGER DEFAULT 100,
+  experience_points INTEGER DEFAULT 0,
+  last_modified TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. TABLA DE LOGROS (Achievements)
+CREATE TABLE IF NOT EXISTS achievements (
+  id TEXT PRIMARY KEY, -- Usamos un ID de texto como 'FIRST_KILL', 'RICH_GUY'
+  profile_id UUID REFERENCES global_data(id) ON DELETE CASCADE,
+  unlocked_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  progress INTEGER DEFAULT 0
+);
+
+-- 4. TRIGGER PARA LAST_MODIFIED (Si lo borraste, vuelve a crearlo)
+CREATE OR REPLACE FUNCTION update_last_modified()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.last_modified = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_global_data_modified BEFORE UPDATE ON global_data FOR EACH ROW EXECUTE FUNCTION update_last_modified();
+CREATE TRIGGER tr_characters_modified BEFORE UPDATE ON characters FOR EACH ROW EXECUTE FUNCTION update_last_modified();

@@ -39,42 +39,124 @@ export class SupabaseService {
   }
 
   // --- GAME DATA MANAGEMENT ---
+  /*
   async fetchAndSaveLocalData(userId: string) {
-    this.asgardService.setCharacters(this.getCharacters(userId));
-
-    // Parallel requests for better performance
-    /*
-    const [profile, characters, inventory] = await Promise.all([
-        this.supabase.from('profiles').select('*').eq('id', userId).single(),
-        this.supabase.from('characters').select('*').eq('profile_id', userId),
-        this.supabase.from('inventory').select('*').eq('profile_id', userId)
-    ]);
-
-    const gameState = {
-        profile: profile.data,
-        characters: characters.data,
-        inventory: inventory.data,
-        lastSync: new Date().getTime()
-    };
-
-    // Save the global state in Ionic Storage
-    await this.storageService.set('game_state', gameState);
-    return gameState;
-    */
+    //this.asgardService.setCharacters(this.getCharacters(userId));
   }
+  */
 
-  async getCharacters(userId: string) {
-    const { data: characters, error } = await this.supabase
-      .from('characters')
-      .select('*')
-      .eq('profile_id', userId);
+  async fetchAndSaveLocalData(userId: string) {
+    const { data, error } = await this.supabase
+      .from('global_data')
+      .select(`
+      *,
+      characters (*),
+      achievements (*)
+    `)
+      .eq('id', userId)
+      .single();
 
-    if (!error) {
-      // We save the array of characters in local storage
-      await this.storageService.set('user_characters', characters);
+    if (data) {
+      // Transformamos los arrays en mapas hash antes de guardar en local
+      debugger;
+      const userData = {
+        ...data,
+        // characters: this.arrayToHash(data.characters),
+        // achievements: this.arrayToHash(data.achievements)
+      };
+
+      await this.storageService.set('user_data', userData);
+      await this.storageService.set('characters', data.characters);
+      this.asgardService.setCharacters(data.characters);
+      return userData;
+    } else if (error.code === 'PGRST116') {
+      this.createFullAccount(userId, 'vlodos');
     }
-    return characters;
+    return null;
   }
+
+  // Función auxiliar genérica para crear el Mapa Hash
+  private arrayToHash(array: any[]) {
+    return array.reduce((acc, item) => {
+      acc[item.id] = item;
+      return acc;
+    }, {});
+  }
+
+
+  // supabase.service.ts
+
+  async createFullAccount(userId: string, username: string) {
+    try {
+      // 1. Crear Global Data
+      const { data: profile, error: pError } = await this.supabase
+        .from('global_data')
+        .insert([{
+          id: userId,
+          username: username,
+          coins: 0,
+          special_coins: 0,
+          exp: 0,
+          lvl: 1,
+          last_modified: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (pError) throw pError;
+
+      // 2. Crear los dos personajes vinculados
+      const initialCharacters = [
+        {
+          profile_id: userId,
+          name: `Gutts`,
+          character_class: 'Warrior',
+          current_hp: 80,
+          max_hp: 80,
+          lvl: 1,
+          exp: 0,
+          last_modified: new Date().toISOString()
+        },
+        {
+          profile_id: userId,
+          name: `Merlin`,
+          character_class: 'Mage',
+          current_hp: 80,
+          max_hp: 80,
+          lvl: 1,
+          exp: 0,
+          last_modified: new Date().toISOString()
+        }
+      ];
+
+      const { data: chars, error: cError } = await this.supabase
+        .from('characters')
+        .insert(initialCharacters)
+        .select();
+
+      if (cError) throw cError;
+
+      // 3. Mapear todo a tu estado local (Mapa Hash)
+      const fullState = {
+        ...profile,
+        characters: this.arrayToHash(chars),
+        last_modified_local: new Date().toISOString()
+      };
+
+      // Guardar en Storage Local inmediatamente
+      await this.storageService.set('user_data', profile);
+      await this.storageService.set('characters', fullState.characters);
+      await this.storageService.set('last_modified_local', fullState.last_modified_local);
+
+      console.log('soy el fullstate', fullState)
+      return fullState;
+
+    } catch (error) {
+      console.error('Error creando cuenta completa:', error);
+      return null;
+    }
+  }
+
 
   // --- AUTO-SAVE LOGIC (To be called every 5 mins) ---
   async syncChanges(userId: string, updatedData: any) {
