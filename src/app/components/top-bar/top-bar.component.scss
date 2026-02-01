@@ -6,35 +6,75 @@
   left: 0;
   width: 100%;
   z-index: 50;
-    .avatar-wrapper {
-        float: left;
-        img {
-            margin-top: 5px;
-            margin-left: 10px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50px;
-            border: solid 3px gold;
-            -webkit-box-shadow: 4px 3px 15px -6px #000000; 
-            box-shadow: 4px 3px 15px -6px #000000;
-        }
-        .name {
-          font-size: 13px;
-          width: 60px;
-          text-align: center;
-          margin-top: -2px;
-          background: gray;
-          border-radius: 10px;
-          padding-top: 2px;
-          padding-bottom: 2px;
-          padding-left: 10px;
-          padding-right: 10px;
-          margin-left: 10px;
-          margin-top: -7px;
-          width: 80px;
-          border: solid 2px gray;
-        }
+
+  .avatar-wrapper {
+    float: left;
+
+    img {
+      margin-top: 5px;
+      margin-left: 10px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50px;
+      border: solid 3px gold;
+      -webkit-box-shadow: 4px 3px 15px -6px #000000;
+      box-shadow: 4px 3px 15px -6px #000000;
     }
+
+    .name {
+      font-size: 13px;
+      width: 60px;
+      text-align: center;
+      margin-top: -2px;
+      background: gray;
+      border-radius: 10px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+      padding-left: 10px;
+      padding-right: 10px;
+      margin-left: 10px;
+      margin-top: -7px;
+      width: 80px;
+      border: solid 2px gray;
+    }
+  }
+
+  .coins-wrapper {
+    float: right;
+    margin-top: 10px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    height: 25px;
+    background-color: gray;
+    border-radius: 8px;
+    padding-left: 15px;
+
+  }
+
+  .coin-placeholder {
+    text-align: right;
+  }
+
+  .coin-spinner {
+    width: 50px;
+    height: 50px;
+    background-image: url('../../../assets/sprites/resources/coin.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    animation: spin-coin 0.6s steps(5) infinite;
+    transform: scale(0.4);
+  }
+
+  @keyframes spin-coin {
+    from {
+      background-position: 0px;
+    }
+
+    to {
+      background-position: -250px;
+    }
+  }
 }
 
 .avatar-wrapper {
@@ -54,18 +94,18 @@
 }
 
 .health {
-    ::ng-deep {
-        .status-bar-wrapper {
-            width: 120px;
-            float: left;
-            margin-top: 10px;
-           
-            ion-progress-bar {
-                height: 10px;
-                --progress-background: red;
-                --background: white;
-                 border: solid 1px gray;
-            }
-        }
+  ::ng-deep {
+    .status-bar-wrapper {
+      width: 120px;
+      float: left;
+      margin-top: 10px;
+
+      ion-progress-bar {
+        height: 10px;
+        --progress-background: red;
+        --background: white;
+        border: solid 1px gray;
+      }
     }
+  }
 }

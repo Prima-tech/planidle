@@ -32,12 +32,12 @@ export class TopBarComponent implements OnInit {
         const value = Math.max(0, Math.min(1, status.HP / status.HPMax));
         const color =
           value < 0.25 ? 'danger' :
-          value < 0.5  ? 'warning' : 'success';
+            value < 0.5 ? 'warning' : 'success';
         return { value, color };
       })
     );
     this.initStatusBar = true;
-   
+
   }
 
 
