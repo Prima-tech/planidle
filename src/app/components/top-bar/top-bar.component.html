@@ -4,7 +4,7 @@
     <div class="name">{{asgardService?.selectedPlayer?.name}}</div>
   </div>
   <app-status-bar *ngIf="initStatusBar" [class]="'health'" [service$]="valueHP$"></app-status-bar>
-  <div class="coins-wrapper" (click)="test()">
+  <div class="coins-wrapper">
     <div class="coin-placeholder">
       {{asgardService?._profile?.coins}}
     </div>
