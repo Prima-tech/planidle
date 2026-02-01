@@ -10,10 +10,11 @@ import { Subject } from 'rxjs';
 })
 export class AsgardService {
   _characters: any = null;
+  _profile: any = null;
   player: Player;
   selectedPlayer: Character;
   profile: any;
-
+  isChecking: boolean = true;
   private closeMenuSource = new Subject<void>();
   closeMenu$ = this.closeMenuSource.asObservable();
 
@@ -22,15 +23,39 @@ export class AsgardService {
     private router: Router
   ) { }
 
+
+  async refreshData() {
+    this.isChecking = true;
+    try {
+      await this.getCharacters();
+      await this.getProfile();
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      this.isChecking = false;
+    }
+  }
+
   setCharacters(v: any) {
     this._characters = v;
   }
 
   async getCharacters() {
     if (!this._characters) {
-      this._characters = await this.storageService.get('user_characters');
+      this._characters = await this.storageService.get('characters');
     }
     return this._characters;
+  }
+
+  setProfile(v: any) {
+    this._profile = v;
+  }
+
+  async getProfile() {
+    if (!this._profile) {
+      this._profile = await this.storageService.get('user_data');
+    }
+    return this._profile;
   }
 
   createPlayer(data: Player) {
