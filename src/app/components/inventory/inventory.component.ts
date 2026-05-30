@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 
 @Component({
@@ -47,21 +47,25 @@ export class InventoryComponent implements OnInit, OnDestroy {
     document.addEventListener('dragover', (event) => event.preventDefault());
   }
 
+  // --- Drag moved: activa tab si el puntero pasa por encima ---
+
+  onDragMoved(event: CdkDragMove): void {
+    const { x, y } = event.pointerPosition;
+    const el = document.elementFromPoint(x, y) as HTMLElement;
+    const tabEl = el?.closest('[data-tab-index]') as HTMLElement;
+    if (!tabEl) return;
+    const index = parseInt(tabEl.dataset['tabIndex']);
+    if (!isNaN(index) && index !== this.activeTabIndex) {
+      this.selectTab(index);
+    }
+  }
+
   // --- Tabs ---
 
   selectTab(index: number): void {
     this.activeTabIndex = index;
     this.splitMenuOpen = false;
     this.deleteModalOpen = false;
-  }
-
-  onTabEntered(event: any, index: number): void {
-    if (this.activeTabIndex !== index) this.selectTab(index);
-  }
-
-  onTabDragEnter(index: number, event: DragEvent): void {
-    event.preventDefault();
-    this.selectTab(index);
   }
 
   // --- Selección ---

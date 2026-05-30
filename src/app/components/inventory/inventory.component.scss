@@ -33,9 +33,28 @@
 
 /* Grid */
 .inventory-grid {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* Tab activa: en el flujo normal, define la altura del contenedor */
+.tab-active {
+  position: relative;
+  z-index: 2;
+}
+
+/* Tabs inactivas: superpuestas encima pero invisibles.
+   opacity:0 preserva getBoundingClientRect() para CDK.
+   z-index:1 hace que elementFromPoint devuelva los elementos del tab activo. */
+.tab-inactive {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .inventory-row {

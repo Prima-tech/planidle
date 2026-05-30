@@ -1,11 +1,8 @@
-<!-- Cabecera de pestañas -->
+<!-- Tabs -->
 <div class="tabs" (click)="$event.stopPropagation()">
   <div
     *ngFor="let tab of tabs; let index = index"
     class="tab"
-    cdkDropList
-    [cdkDropListData]="{ tabIndex: index }"
-    (cdkDropListEntered)="onTabEntered($event, index)"
     [attr.data-tab-index]="index"
     [ngClass]="{ active: index === activeTabIndex }"
     (click)="selectTab(index); $event.stopPropagation()"
@@ -14,9 +11,13 @@
   </div>
 </div>
 
-<!-- Inventarios: se renderizan todos los grids, pero se ocultan (con [hidden]) los no activos -->
+<!-- Los 4 grids siempre en el DOM. CDK los ve todos desde el inicio del drag. -->
 <div class="inventory-grid" cdkDropListGroup>
-  <div *ngFor="let inventory of inventories; let tabIndex = index" [hidden]="activeTabIndex !== tabIndex">
+  <div
+    *ngFor="let inventory of inventories; let tabIndex = index"
+    [class.tab-active]="activeTabIndex === tabIndex"
+    [class.tab-inactive]="activeTabIndex !== tabIndex"
+  >
     <div *ngFor="let row of inventory; let rowIndex = index" class="inventory-row">
       <div
         *ngFor="let cell of row; let colIndex = index"
@@ -32,6 +33,7 @@
             class="inventory-item"
             cdkDrag
             [cdkDragData]="{ tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
+            (cdkDragMoved)="onDragMoved($event)"
             (click)="selectItem(tabIndex, rowIndex, colIndex, $event)"
             [ngClass]="{
               selected:
@@ -50,7 +52,7 @@
   </div>
 </div>
 
-<!-- Barra de botones inferior y demás overlays (split, modal) se mantienen igual -->
+<!-- Botones -->
 <div class="button-bar" (click)="$event.stopPropagation()">
   <button (click)="openSplitMenu($event)">Split</button>
   <button (click)="openDeleteModal($event)">Borrar</button>
