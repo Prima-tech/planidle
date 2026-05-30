@@ -26,6 +26,8 @@ export class LoginPage implements OnInit {
     }
 
     async login() {
+        this.router.navigate(['/globalposition']);
+        /*
         let email = 'test@gmail.com';
         let password = '1234'
         const { data, error } = await this.supabaseService.signIn(email, password);
@@ -35,6 +37,7 @@ export class LoginPage implements OnInit {
             console.log('Login successful! Data synced and saved locally.');
             this.router.navigate(['/globalposition']);
         }
+        */
     }
 
 }

@@ -12,16 +12,18 @@ export class SupabaseService {
   constructor(
     private storageService: StorageService,
     private asgardService: AsgardService) {
-    const supabaseOptions: any = {
-      auth: {
-        navigatorLock: false,
-        persistSession: true,
-        autoRefreshToken: true
-      }
-    };
+    const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
+      fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
+
     this.supabase = createClient('https://ycadrkbdmdwjtkslpbpp.supabase.co',
       'sb_publishable_5Hs1VoKmBEEpK0dsAYpJ7g_CNAf0WGG',
-      supabaseOptions
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true
+        },
+        global: { fetch: offlineFetch }
+      }
     );
   }
 
