@@ -1,0 +1,10 @@
+<div class="log-panel">
+  <div
+    *ngFor="let entry of entries"
+    class="log-entry"
+    [class.drop]="entry.type === 'drop'"
+    [class.fading]="entry.fading"
+  >
+    {{ entry.text }}
+  </div>
+</div>

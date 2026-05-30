@@ -12,6 +12,7 @@ import { RouterModule } from '@angular/router';
 import { MapSelectedCellComponent } from './map-selected-cell/map-selected-cell.component';
 import { ModalContainerComponent } from './modal-container/modal-container.component';
 import { testPageComponent } from '../pages/test/test.page';
+import { GameLogComponent } from './game-log/game-log.component';
 
 @NgModule({
   declarations: [
@@ -23,13 +24,14 @@ import { testPageComponent } from '../pages/test/test.page';
     LayoutComponent,
     MapSelectedCellComponent,
     ModalContainerComponent,
-    testPageComponent
+    testPageComponent,
+    GameLogComponent
   ],
   imports: [
     CommonModule,
     IonicModule,
     DragDropModule,
-    RouterModule, //
+    RouterModule,
   ],
   exports: [
     TopBarComponent,
@@ -40,8 +42,8 @@ import { testPageComponent } from '../pages/test/test.page';
     LayoutComponent,
     MapSelectedCellComponent,
     ModalContainerComponent,
-    testPageComponent
-
+    testPageComponent,
+    GameLogComponent
   ]
 })
 export class ComponentModule {}
