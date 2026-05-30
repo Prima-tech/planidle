@@ -15,16 +15,15 @@
 </div>
 
 <!-- Inventarios: se renderizan todos los grids, pero se ocultan (con [hidden]) los no activos -->
-<div class="inventory-grid">
+<div class="inventory-grid" cdkDropListGroup>
   <div *ngFor="let inventory of inventories; let tabIndex = index" [hidden]="activeTabIndex !== tabIndex">
     <div *ngFor="let row of inventory; let rowIndex = index" class="inventory-row">
       <div
         *ngFor="let cell of row; let colIndex = index"
         class="inventory-cell"
-        [id]="'tab-' + tabIndex + '-cell-' + rowIndex + '-' + colIndex"
         cdkDropList
+        cdkDropListSortingDisabled
         [cdkDropListData]="{ tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
-        [cdkDropListConnectedTo]="globalDropListIds"
         (cdkDropListDropped)="onDrop($event, tabIndex, rowIndex, colIndex)"
         (click)="$event.stopPropagation()"
       >

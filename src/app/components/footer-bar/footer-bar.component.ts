@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ModalContainerComponent } from '../modal-container/modal-container.component';
 import { testPageComponent } from 'src/app/pages/test/test.page';
 import { CharacterPageComponent } from 'src/app/pages/character/character.page';
+import { InventoryComponent } from '../inventory/inventory.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -13,6 +14,8 @@ import { CharacterPageComponent } from 'src/app/pages/character/character.page';
 export class FooterBarComponent implements OnInit {
   @ViewChild('menuModal') menuModal!: ModalContainerComponent;
   @ViewChild('characterModal') characterModal!: ModalContainerComponent;
+  @ViewChild('inventoryModal') inventoryModal!: ModalContainerComponent;
+
   constructor(private router: Router) { }
 
   ngOnInit() { }
@@ -23,19 +26,23 @@ export class FooterBarComponent implements OnInit {
 
   openMenu() {
     if (this.menuModal.isOpenModal()) {
-      this.menuModal.close()
+      this.menuModal.close();
     } else {
       this.menuModal.open(testPageComponent, 'menu');
     }
   }
 
-  openMain() {
-    this.router.navigate(['/inventory']);
+  openInventory() {
+    if (this.inventoryModal.isOpenModal()) {
+      this.inventoryModal.close();
+    } else {
+      this.inventoryModal.open(InventoryComponent, 'inventory');
+    }
   }
 
   openStatus() {
     if (this.characterModal.isOpenModal()) {
-      this.characterModal.close()
+      this.characterModal.close();
     } else {
       this.characterModal.open(CharacterPageComponent, 'character');
     }
