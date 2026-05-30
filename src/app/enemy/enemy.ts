@@ -119,9 +119,34 @@ export class Enemy {
 
   takeDamage(amount: number) {
     this.HP -= amount;
+    this.showDamageNumber(amount);
     if (this.HP <= 0) {
       this.die();
     }
+  }
+
+  private showDamageNumber(amount: number): void {
+    const x = this.sprite.x;
+    const y = this.sprite.y - this.sprite.displayHeight;
+
+    const text = this.mainScene.add.text(x, y, `${amount}`, {
+      fontSize: '64px',
+      color: '#ffff00',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 6,
+    });
+    text.setOrigin(0.5, 1);
+    text.setDepth(10);
+
+    this.mainScene.tweens.add({
+      targets: text,
+      y: y - 80,
+      alpha: 0,
+      duration: 900,
+      ease: 'Power2',
+      onComplete: () => text.destroy(),
+    });
   }
 
   getTilePos(): Vector2 {
