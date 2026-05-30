@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
 // ← Cambia a false cuando Supabase esté listo
 const USE_MOCK = true;
@@ -18,6 +19,8 @@ const COLS = 5;
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
 
+  readonly itemDropped$ = new Subject<InventoryItem>();
+
   private mockGrid: (InventoryItem | null)[][][] = this.buildGrid();
 
   constructor() {
@@ -35,6 +38,39 @@ export class InventoryService {
       return;
     }
     await this.saveToSupabase(grid, inventoryType);
+  }
+
+  addDroppedItem(item: InventoryItem): void {
+    // Añade al mockGrid para persistencia
+    this.addToGrid(this.mockGrid, item);
+    // Notifica al componente en tiempo real si está abierto
+    this.itemDropped$.next(item);
+  }
+
+  private addToGrid(grid: (InventoryItem | null)[][][], item: InventoryItem): void {
+    if (item.mergeable) {
+      for (let t = 0; t < TABS; t++) {
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            const existing = grid[t][r][c];
+            if (existing?.mergeable && existing.name === item.name) {
+              existing.sum = (existing.sum ?? 0) + (item.sum ?? 1);
+              return;
+            }
+          }
+        }
+      }
+    }
+    for (let t = 0; t < TABS; t++) {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (!grid[t][r][c]) {
+            grid[t][r][c] = item;
+            return;
+          }
+        }
+      }
+    }
   }
 
   generateId(): string {

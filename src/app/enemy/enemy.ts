@@ -22,7 +22,8 @@ export class Enemy {
     public mainScene: Phaser.Scene,
     public sprite: Phaser.GameObjects.Sprite,
     private tilePos: Vector2,
-    private tileMap: Phaser.Tilemaps.Tilemap
+    private tileMap: Phaser.Tilemaps.Tilemap,
+    public enemyType: string = 'orc'
   ) {
     this.initSpriteProperties();
     this.initAnimation();
@@ -181,9 +182,10 @@ export class Enemy {
     this.isDead = true;
     this.isChasing = false;
     const center = this.sprite.getCenter();
+    const type = this.enemyType;
     this.animationService.createDieAnimation(this.sprite, () => {
       this.sprite.destroy();
-      this.mainScene.events.emit('enemyDied', center);
+      this.mainScene.events.emit('enemyDied', { position: center, type });
     });
   }
 }

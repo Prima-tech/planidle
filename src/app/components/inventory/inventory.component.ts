@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-inventory',
@@ -22,6 +23,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   deleteModalOpen: boolean = false;
 
   private saveTimer: any;
+  private dropSub: Subscription;
 
   constructor(private inventoryService: InventoryService) {}
 
@@ -35,12 +37,17 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.inventoryService.load().then(grid => {
       this.inventories = grid;
     });
+
+    // Recibir items recogidos del suelo en tiempo real
+    this.dropSub = this.inventoryService.itemDropped$.subscribe(item => {
+      this.addItemToInventory(item);
+    });
   }
 
   ngOnDestroy() {
-    // Guarda cualquier cambio pendiente al salir
     clearTimeout(this.saveTimer);
     this.inventoryService.save(this.inventories);
+    this.dropSub?.unsubscribe();
   }
 
   ngAfterViewInit() {

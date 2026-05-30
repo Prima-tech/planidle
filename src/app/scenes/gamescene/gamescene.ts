@@ -111,7 +111,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     createDrops() {
-      this.gridDrops = new GridDrops(this.player, this);
+      const inventoryService = this.game.registry.get('inventoryService');
+      this.gridDrops = new GridDrops(this.player, this, inventoryService);
     }
 
 
