@@ -30,7 +30,7 @@ export class FooterBarComponent implements OnInit {
   }
 
   openMain() {
-    this.router.navigate(['/main']);
+    this.router.navigate(['/inventory']);
   }
 
   openStatus() {

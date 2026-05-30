@@ -1,0 +1,88 @@
+Guía paso a paso: crear un mapa en Tiled para tu juego
+
+  1. Descarga Tiled
+
+  mapeditor.org (https://www.mapeditor.org/) — gratuito.
+
+  ---
+  2. Nuevo mapa — ajustes críticos
+
+  File → New Map
+
+  ┌───────────────────┬────────────────────────────────────────────────────────────────────────────────────┐
+  │      Ajuste       │                                       Valor                                        │
+  ├───────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Orientation       │ Orthogonal                                                                         │
+  ├───────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Tile layer format │ CSV                                                                                │
+  ├───────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Tile render order │ Right Down                                                                         │
+  ├───────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Map size          │ Fixed, p.ej. 30 × 20 tiles                                                         │
+  ├───────────────────┼────────────────────────────────────────────────────────────────────────────────────┤
+  │ Tile size         │ el tamaño de tu tileset (mira el README del pack — suele ser 16×16, 32×32 o 48×48) │
+  └───────────────────┴────────────────────────────────────────────────────────────────────────────────────┘
+
+  Guárdalo como .tmx dentro de src/assets/tilemaps/.
+
+  ---
+  3. Importar tu tileset
+
+  Map → Add Tileset → Based on Tileset Image
+
+  - Selecciona la imagen del tileset (.png)
+  - Ponle un nombre sin espacios, p.ej. Forest
+  - Confirma que el tile width/height coincide con el del mapa
+
+  ---
+  4. Crear las layers (esto es lo más importante)
+
+  En el panel Layers crea exactamente estas 3, en este orden de abajo a arriba:
+
+  [ ] collision    ← Tile Layer
+  [ ] objects      ← Tile Layer
+  [ ] ground       ← Tile Layer
+
+  Pinta el suelo en ground, decoración/árboles/rocas en objects.
+
+  ---
+  5. Configurar la capa de colisión
+
+  La capa collision no se ve en el juego — solo define dónde choca el personaje.
+
+  Primero marca qué tiles bloquean el paso:
+
+  1. Ve a Map → Tilesets → selecciona tu tileset
+  2. Haz clic derecho en un tile (p.ej. un árbol) → Tile Properties
+  3. Añade propiedad: collides → tipo bool → valor true
+  4. Repite para cada tile sólido
+
+  Luego pinta esos tiles en la capa collision donde haya paredes/árboles. Tu código ya lee tile.properties.collides así
+  que funcionará sin tocar nada.
+
+  ---
+  6. Exportar para Phaser
+
+  File → Export As → elige JSON → guarda en src/assets/tilemaps/world1_forest/forest_01.json
+
+  ▎ Ojo: usa Export As, no Save As. El .tmx es para Tiled, el .json es para Phaser.
+
+  ---
+  7. Ajustar el scale en Phaser
+
+  Cuando cargues el mapa nuevo en gamescene.ts, el layer.scale = 3 debe hacer que los tiles visualmente coincidan con el
+  movimiento. Si tus tiles son de 16px en Tiled → scale 3 = 48px por tile en el mundo (coincide con TILE_SIZE = 48). Si
+  son de 32px → scale = 1.5. Si son de 48px → scale = 1.
+
+  La fórmula: scale = 48 / tamaño_tile_tiled
+
+  ---
+  Flujo de trabajo habitual
+
+  Tiled (.tmx)
+    → Export As JSON → src/assets/tilemaps/
+    → npm start → ves el resultado en el juego
+    → vuelves a Tiled, retocar → Export → F5
+
+  Cuando tengas el primer mapa exportado dime y monto el sistema de carga dinámica para que cualquier JSON nuevo cargue
+  automáticamente sin tocar código.
