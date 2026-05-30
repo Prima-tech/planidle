@@ -48,6 +48,8 @@ export class GameScene extends Phaser.Scene {
     override update(_time: number, delta: number) {
       this.gridControls.update();
       this.gridPhysics.update(delta);
+      const playerPos = this.player.getPosition();
+      this.enemies.forEach(enemy => enemy.update(delta, playerPos));
     }
 
     initMap() {
@@ -79,7 +81,7 @@ export class GameScene extends Phaser.Scene {
       const enemySprite = this.add.sprite(0, 0, "enemyTexture");
       enemySprite.setDepth(2);
       enemySprite.scale = 3;
-      this.enemies.push(new Enemy(this, enemySprite, new Phaser.Math.Vector2(8, 8)));
+      this.enemies.push(new Enemy(this, enemySprite, new Phaser.Math.Vector2(8, 8), this.currentMap));
     }
 
     initCamera() {

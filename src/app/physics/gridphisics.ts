@@ -102,6 +102,7 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
 
       if (isAdjacent) {
         enemy.takeDamage(10);
+        enemy.startChasing();
         this.emit('enemyAttacked', enemy);
       }
     });
