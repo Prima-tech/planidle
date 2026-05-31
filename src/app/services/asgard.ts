@@ -1,23 +1,20 @@
 import { Injectable } from '@angular/core';
-import { IAttack, Player } from '../pnj/player/player';
 import { StorageService } from './storage.service';
 import { Character } from '../classes/character.class';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { PlayerStateService } from './player-state.service';
 import { SaveService } from './save.service';
-import { SceneManager } from '../scenes/scene-manager';
+import { PlayerBridgeService } from './player-bridge.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AsgardService {
+
   _characters: any = null;
-  _profile: any = null;
-  player: Player;
+  _profile:    any = null;
   selectedPlayer: Character;
-  profile: any;
-  isChecking: boolean = true;
+  isChecking = true;
+
   private closeMenuSource = new Subject<void>();
   closeMenu$ = this.closeMenuSource.asObservable();
 
@@ -26,24 +23,12 @@ export class AsgardService {
     private router: Router,
     private playerState: PlayerStateService,
     private saveService: SaveService,
-    private sceneManager: SceneManager,
-  ) { }
+    private playerBridge: PlayerBridgeService,
+  ) {}
 
-  async refreshData() {
-    this.isChecking = true;
-    try {
-      await this.getCharacters();
-      await this.getProfile();
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      this.isChecking = false;
-    }
-  }
+  // ── Roster ────────────────────────────────────────────────────────────────
 
-  setCharacters(v: any) {
-    this._characters = v;
-  }
+  setCharacters(v: any)  { this._characters = v; }
 
   async getCharacters() {
     if (!this._characters) {
@@ -51,6 +36,8 @@ export class AsgardService {
     }
     return this._characters;
   }
+
+  // ── Profile ───────────────────────────────────────────────────────────────
 
   setProfile(v: any) {
     this._profile = v;
@@ -65,67 +52,48 @@ export class AsgardService {
     return this._profile;
   }
 
-  createPlayer(data: Player) {
-    if (!data) return;
-    this.player = new Player();
+  async refreshData() {
+    this.isChecking = true;
+    try {
+      await this.getCharacters();
+      await this.getProfile();
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      this.isChecking = false;
+    }
   }
 
-  getPlayer() {
-    return this.player;
-  }
+  // ── Session ───────────────────────────────────────────────────────────────
 
-  setInitialSprites(sprites: any) {
-    this.player.setInitialSprites(sprites);
-  }
-
-  setAttackToPlayer(attack: IAttack) {
-    this.player.receiveAttack(attack);
-  }
-
-  async setSelectedPlayer(player: any) {
+  async setSelectedPlayer(player: any): Promise<void> {
     this.selectedPlayer = new Character(player);
     await this.storageService.set('selected_player', player);
     await this.saveService.loadCharacter(String(player.id));
-    if (this.player) {
-      this.player.resetStatus(
-        this.selectedPlayer.current_hp ?? this.selectedPlayer.max_hp,
-        this.selectedPlayer.max_hp,
-      );
-    }
-    this.restartGameScene();
+    this.playerBridge.resetPlayerStatus(
+      this.selectedPlayer.current_hp ?? this.selectedPlayer.max_hp,
+      this.selectedPlayer.max_hp,
+    );
+    this.playerBridge.restartGameScene();
   }
 
-  private restartGameScene() {
-    const game = this.sceneManager.game;
-    if (!game) return;
-    const gameScene = game.scene.getScene('GameScene');
-    if (gameScene?.scene.isActive()) {
-      gameScene.scene.restart();
-    } else {
-      game.scene.start('GameScene');
-    }
-  }
-
-  async getSelectedPlayer() {
-    if (this.selectedPlayer) {
-      return this.selectedPlayer;
-    }
+  async getSelectedPlayer(): Promise<Character> {
+    if (this.selectedPlayer) return this.selectedPlayer;
     const data = await this.storageService.get('selected_player');
-    if (data) {
-      this.selectedPlayer = new Character(data);
-    }
+    if (data) this.selectedPlayer = new Character(data);
     return this.selectedPlayer;
   }
 
-  async changePlayer() {
-    // Guarda el estado del personaje actual antes de salir
+  async changePlayer(): Promise<void> {
     await this.saveService.saveCurrentCharacter();
     this.selectedPlayer = null;
     this.storageService.set('selected_player', null);
     this.router.navigate(['/globalposition']);
   }
 
-  triggerCloseMenu() {
+  // ── UI events ─────────────────────────────────────────────────────────────
+
+  triggerCloseMenu(): void {
     this.closeMenuSource.next();
   }
 }

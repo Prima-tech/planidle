@@ -2,6 +2,7 @@ import { Component, inject } from "@angular/core";
 import { map } from "rxjs";
 import { SceneManager } from "src/app/scenes/scene-manager";
 import { AsgardService } from "src/app/services/asgard";
+import { PlayerBridgeService } from "src/app/services/player-bridge.service";
 import { InventoryService } from "src/app/services/inventory.service";
 import { IAttack } from "src/app/pnj/player/player";
 import { SaveService, SaveStatus, LocalInfo, ChangeDelta, SupabasePayload } from "src/app/services/save.service";
@@ -15,6 +16,7 @@ import { SaveService, SaveStatus, LocalInfo, ChangeDelta, SupabasePayload } from
 export class SettingsPageComponent {
   private sceneManager     = inject(SceneManager);
   private asgardService    = inject(AsgardService);
+  private playerBridge     = inject(PlayerBridgeService);
   private inventoryService = inject(InventoryService);
   private saveService      = inject(SaveService);
 
@@ -98,11 +100,11 @@ export class SettingsPageComponent {
 
   debugAttack() {
     const attack: IAttack = { HP: -10 };
-    this.asgardService.setAttackToPlayer(attack);
+    this.playerBridge.setAttackToPlayer(attack);
   }
 
   debugDeath() {
-    this.asgardService.player.death();
+    this.playerBridge.player.death();
   }
 
   printInventory() {

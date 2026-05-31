@@ -3,6 +3,7 @@ import { ModalController } from "@ionic/angular";
 import { IAttack } from "src/app/pnj/player/player";
 import { SceneManager } from "src/app/scenes/scene-manager";
 import { AsgardService } from "src/app/services/asgard";
+import { PlayerBridgeService } from "src/app/services/player-bridge.service";
 import { InventoryService } from "src/app/services/inventory.service";
 
 @Component({
@@ -13,9 +14,10 @@ import { InventoryService } from "src/app/services/inventory.service";
 })
 
 export class testPageComponent {
-  private sceneManager = inject(SceneManager);
-  private asgardService = inject(AsgardService);
-  private modalCtrl = inject(ModalController);
+  private sceneManager   = inject(SceneManager);
+  private asgardService  = inject(AsgardService);
+  private playerBridge   = inject(PlayerBridgeService);
+  private modalCtrl      = inject(ModalController);
   private inventoryService = inject(InventoryService);
 
   changeScene(scene: string) {
@@ -23,14 +25,12 @@ export class testPageComponent {
   }
 
   test() {
-    let attack: IAttack = {
-      HP: -10
-    }
-    this.asgardService.setAttackToPlayer(attack)
+    const attack: IAttack = { HP: -10 };
+    this.playerBridge.setAttackToPlayer(attack);
   }
 
   setPlayerDeath() {
-    this.asgardService.player.death();
+    this.playerBridge.player.death();
   }
 
   async changePlayer() {

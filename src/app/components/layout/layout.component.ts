@@ -10,6 +10,7 @@ import { MapScene } from 'src/app/scenes/mapscene/mapscene';
 import { MapService } from 'src/app/services/map.service';
 import { SceneManager } from 'src/app/scenes/scene-manager';
 import { AsgardService } from 'src/app/services/asgard';
+import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
@@ -40,6 +41,7 @@ export class LayoutComponent implements OnDestroy {
     public mapService: MapService,
     public sceneManager: SceneManager,
     public asgardService: AsgardService,
+    public playerBridgeService: PlayerBridgeService,
     public inventoryService: InventoryService,
     public worldService: WorldService,
     public playerStateService: PlayerStateService,
@@ -51,8 +53,6 @@ export class LayoutComponent implements OnDestroy {
   }
 
   ngOnInit(): void {
-    // Suscripción reactiva: cualquier emisión de gains (desde loadCharacter,
-    // sea del primer arranque o de un cambio de personaje) actualiza el modal.
     this.gainsSub = this.saveService.pendingGains$
       .pipe(filter(g => g !== null))
       .subscribe(gains => {
@@ -62,11 +62,8 @@ export class LayoutComponent implements OnDestroy {
 
     this.asgardService.refreshData();
     this.service.getUserData().subscribe(async (data) => {
-      this.asgardService.createPlayer(data);
+      this.playerBridgeService.createPlayer();
 
-      // Solo en el primer arranque: Phaser no existe aún, hay que cargar
-      // el personaje antes de crear el juego para que preload() vea el mapa correcto.
-      // En cambios de personaje, setSelectedPlayer() ya llamó a loadCharacter().
       if (!this.phaserGame) {
         const player = await this.asgardService.getSelectedPlayer();
         if (player?.id) {
@@ -89,12 +86,8 @@ export class LayoutComponent implements OnDestroy {
   loadGame() {
     this.config = {
       title: "Sample",
-      render: {
-        antialias: false,
-      },
-      physics: {
-        default: 'arcade',
-      },
+      render: { antialias: false },
+      physics: { default: 'arcade' },
       type: Phaser.AUTO,
       scene: [GameScene, MapScene],
       scale: {
@@ -109,13 +102,13 @@ export class LayoutComponent implements OnDestroy {
 
   registerServices() {
     this.phaserGame = new Phaser.Game(this.config);
-    this.phaserGame.registry.set(REGISTRY_KEYS.MAP,          this.mapService);
-    this.phaserGame.registry.set(REGISTRY_KEYS.ASGARD,       this.asgardService);
-    this.phaserGame.registry.set(REGISTRY_KEYS.INVENTORY,    this.inventoryService);
-    this.phaserGame.registry.set(REGISTRY_KEYS.WORLD,        this.worldService);
-    this.phaserGame.registry.set(REGISTRY_KEYS.PLAYER_STATE, this.playerStateService);
-    this.phaserGame.registry.set(REGISTRY_KEYS.KILL,         this.killService);
-    this.phaserGame.registry.set(REGISTRY_KEYS.MAP_STATS,    this.mapStatsService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.PLAYER_BRIDGE, this.playerBridgeService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.MAP,           this.mapService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.INVENTORY,     this.inventoryService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.WORLD,         this.worldService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.PLAYER_STATE,  this.playerStateService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.KILL,          this.killService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.MAP_STATS,     this.mapStatsService);
     this.sceneManager.setGame(this.phaserGame);
   }
 
@@ -128,5 +121,4 @@ export class LayoutComponent implements OnDestroy {
   test() {
     this.profile.setStatus(10);
   }
-
 }

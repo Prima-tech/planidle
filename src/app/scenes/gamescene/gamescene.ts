@@ -114,8 +114,8 @@ export class GameScene extends Phaser.Scene {
         sprite: playerSprite,
         tilePos: new Phaser.Math.Vector2(6, 6)
       };
-      this.reg.asgard.setInitialSprites(sprites);
-      this.player = this.reg.asgard.getPlayer();
+      this.reg.playerBridge.setInitialSprites(sprites);
+      this.player = this.reg.playerBridge.getPlayer();
     }
 
     initSpawns() {
@@ -283,7 +283,7 @@ export class GameScene extends Phaser.Scene {
 
     initEnemyAttackListener() {
       this.events.on('enemyAttackPlayer', ({ damage }: { damage: number }) => {
-        this.reg.asgard.setAttackToPlayer({ HP: -damage });
+        this.reg.playerBridge.setAttackToPlayer({ HP: -damage });
         this.flashPlayer();
       });
 
