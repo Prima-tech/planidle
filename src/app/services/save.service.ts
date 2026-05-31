@@ -6,6 +6,7 @@ import { InventoryService, InventoryItem } from './inventory.service';
 import { SupabaseService } from './supabase.service';
 import { WorldService } from './world.service';
 import { KillService, KillMap } from './kill.service';
+import { OfflineGainsService, OfflineGains } from './offline-gains.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -81,7 +82,8 @@ const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, exp: 0, lvl: 1 };
 @Injectable({ providedIn: 'root' })
 export class SaveService {
 
-  readonly status$ = new BehaviorSubject<SaveStatus>('idle');
+  readonly status$       = new BehaviorSubject<SaveStatus>('idle');
+  readonly pendingGains$ = new BehaviorSubject<OfflineGains | null>(null);
   private charId: string | null = null;
 
   constructor(
@@ -91,6 +93,7 @@ export class SaveService {
     private supabase: SupabaseService,
     private world: WorldService,
     private kills: KillService,
+    private offlineGains: OfflineGainsService,
   ) {
     // Auto-guarda en local tras 2s de inactividad, usando la clave del personaje activo
     merge(this.playerState.state$, this.inventory.changes$)
@@ -117,6 +120,10 @@ export class SaveService {
   async loadCharacter(charId: string): Promise<void> {
     this.charId = charId;
     const snapshot: GameSnapshot | null = await this.storage.get(this.snapshotKey());
+
+    // Calcular ganancias offline ANTES de restaurar el estado
+    const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
+
     if (snapshot) {
       this.playerState.setFromProfile(snapshot.playerState);
       this.inventory.restoreFromSnapshot(snapshot.inventory);
@@ -129,6 +136,7 @@ export class SaveService {
       this.kills.restoreCharKills({});
     }
     await this.kills.loadGlobalKills();
+    this.pendingGains$.next(gains);
   }
 
   /**

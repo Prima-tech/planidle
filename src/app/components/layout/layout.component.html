@@ -18,3 +18,9 @@
   <app-map-label></app-map-label>
 </div>
 <app-footer-bar></app-footer-bar>
+
+<app-offline-gains-modal
+  *ngIf="dataLoaded && pendingGains"
+  [gains]="pendingGains"
+  (collected)="collectGains($event)">
+</app-offline-gains-modal>

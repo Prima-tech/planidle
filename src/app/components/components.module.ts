@@ -18,6 +18,7 @@ import { SettingsPageComponent } from '../pages/settings/settings.page';
 import { MapLabelComponent } from './map-label/map-label.component';
 import { CharacterPageComponent } from '../pages/character/character.page';
 import { MapStatsComponent } from './map-stats/map-stats.component';
+import { OfflineGainsModalComponent } from './offline-gains-modal/offline-gains-modal.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { MapStatsComponent } from './map-stats/map-stats.component';
     MapLabelComponent,
     CharacterPageComponent,
     MapStatsComponent,
+    OfflineGainsModalComponent,
   ],
   imports: [
     CommonModule,
@@ -59,6 +61,7 @@ import { MapStatsComponent } from './map-stats/map-stats.component';
     MapLabelComponent,
     CharacterPageComponent,
     MapStatsComponent,
+    OfflineGainsModalComponent,
   ]
 })
 export class ComponentModule {}

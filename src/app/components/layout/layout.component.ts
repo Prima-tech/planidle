@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { GameScene } from 'src/app/scenes/gamescene/gamescene';
 import { FakeApiService } from 'src/app/services/fakeapi';
@@ -14,6 +16,7 @@ import { PlayerStateService } from 'src/app/services/player-state.service';
 import { SaveService } from 'src/app/services/save.service';
 import { KillService } from 'src/app/services/kill.service';
 import { MapStatsService } from 'src/app/services/map-stats.service';
+import { OfflineGains } from 'src/app/services/offline-gains.service';
 
 @Component({
   selector: 'app-layout',
@@ -21,11 +24,14 @@ import { MapStatsService } from 'src/app/services/map-stats.service';
   styleUrls: ['./layout.component.scss'],
   standalone: false
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnDestroy {
 
   config: Phaser.Types.Core.GameConfig | undefined;
   phaserGame: Phaser.Game | undefined;
   dataLoaded = false;
+  pendingGains: OfflineGains | null = null;
+  private gainsSub: Subscription;
+
   constructor(
     private router: Router,
     public service: FakeApiService,
@@ -44,19 +50,30 @@ export class LayoutComponent {
   }
 
   ngOnInit(): void {
-    console.log('oyistis ?')
-    this.asgardService.getSelectedPlayer();
+    // Suscripción reactiva: cualquier emisión de gains (desde loadCharacter,
+    // sea del primer arranque o de un cambio de personaje) actualiza el modal.
+    this.gainsSub = this.saveService.pendingGains$
+      .pipe(filter(g => g !== null))
+      .subscribe(gains => {
+        console.log('[OfflineGains] ganancias recibidas:', gains);
+        this.pendingGains = gains;
+      });
+
     this.asgardService.refreshData();
     this.service.getUserData().subscribe(async (data) => {
       this.asgardService.createPlayer(data);
-      // Carga el snapshot ANTES de crear Phaser para que preload() vea el mapa correcto
       const player = await this.asgardService.getSelectedPlayer();
+      console.log('[Layout] personaje seleccionado:', player?.id, player?.name);
       if (player?.id) {
         await this.saveService.loadCharacter(String(player.id));
       }
       this.registerServices();
       this.dataLoaded = true;
-    })
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.gainsSub?.unsubscribe();
   }
 
   loadGame() {
@@ -90,6 +107,12 @@ export class LayoutComponent {
     this.phaserGame.registry.set('killService', this.killService);
     this.phaserGame.registry.set('mapStatsService', this.mapStatsService);
     this.sceneManager.setGame(this.phaserGame);
+  }
+
+  collectGains(gains: OfflineGains) {
+    this.playerStateService.collectCoins(gains.coins);
+    this.pendingGains = null;
+    this.saveService.pendingGains$.next(null);
   }
 
   test() {
