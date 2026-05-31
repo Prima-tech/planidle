@@ -1,6 +1,8 @@
 <div class="top-bar">
   <div class="avatar-wrapper">
-    <img src="assets/delete/guts.jpg" alt="fail">
+    <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
+      <ion-icon [name]="classIcon"></ion-icon>
+    </div>
     <div class="name">{{asgardService?.selectedPlayer?.name}}</div>
   </div>
   <app-status-bar *ngIf="initStatusBar" [class]="'health'" [service$]="valueHP$"></app-status-bar>

@@ -6,6 +6,8 @@ export interface PlayerState {
   specialCoins: number;
   exp: number;
   lvl: number;
+  hp: number;
+  hpMax: number;
 }
 
 const INITIAL_STATE: PlayerState = {
@@ -13,6 +15,8 @@ const INITIAL_STATE: PlayerState = {
   specialCoins: 0,
   exp: 0,
   lvl: 1,
+  hp: 100,
+  hpMax: 100,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -33,6 +37,8 @@ export class PlayerStateService {
       specialCoins: profile.special_coins ?? 0,
       exp:          profile.exp           ?? 0,
       lvl:          profile.lvl           ?? 1,
+      hp:           profile.hp            ?? profile.current_hp ?? 100,
+      hpMax:        profile.hpMax         ?? profile.max_hp     ?? 100,
     });
   }
 

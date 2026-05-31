@@ -77,7 +77,7 @@ export interface LocalInfo {
   lastSynced: string | null;
 }
 
-const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, exp: 0, lvl: 1 };
+const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100 };
 
 @Injectable({ providedIn: 'root' })
 export class SaveService {
