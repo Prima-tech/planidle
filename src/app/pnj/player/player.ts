@@ -72,14 +72,12 @@ export class Player {
   }
 
   public playerAttack() {
-    console.log('Player attacked!');
     const direction = this.getDirection();
-    const attackAnimationKey = playerTags.ATTACK + direction;
-    this.sprite.play(attackAnimationKey);
+    this.sprite.play(playerTags.ATTACK + direction);
 
-    this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-      this.sprite.play(playerTags.IDLE + direction); // Vuelve a la animación de la dirección actual
-    }, this);
+    this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      this.sprite.play(playerTags.IDLE + direction);
+    });
   }
 
   initSpriteProperties() {
