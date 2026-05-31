@@ -77,7 +77,7 @@ export interface LocalInfo {
   lastSynced: string | null;
 }
 
-const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100 };
+const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, lifetimeCoins: 0, totalDeaths: 0 };
 
 @Injectable({ providedIn: 'root' })
 export class SaveService {
@@ -174,6 +174,16 @@ export class SaveService {
   }
 
   // --- Inspección ---
+
+  async getGlobalCoins(): Promise<number> {
+    const chars: any[] = (await this.storage.get('characters')) ?? [];
+    let total = 0;
+    for (const char of chars) {
+      const snap: GameSnapshot | null = await this.storage.get(`snapshot_char_${char.id}`);
+      if (snap?.playerState) total += snap.playerState.coins ?? 0;
+    }
+    return total;
+  }
 
   async getLocalInfo(): Promise<LocalInfo> {
     const snap: GameSnapshot | null   = await this.storage.get(this.snapshotKey());

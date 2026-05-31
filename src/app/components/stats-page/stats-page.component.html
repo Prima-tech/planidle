@@ -1,0 +1,46 @@
+<div class="panel">
+
+  <!-- Global -->
+  <div class="section-title">
+    <span class="section-icon">🌍</span>
+    Cuenta global
+  </div>
+
+  <div class="stat-row">
+    <span class="stat-label">Oro total en cuenta</span>
+    <span class="stat-value coins">{{ globalCoins | number }}</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Jugador -->
+  <div class="section-title">
+    <span class="section-icon">⚔️</span>
+    {{ playerName }}
+  </div>
+
+  <div class="stat-row">
+    <span class="stat-label">Oro ganado (vida)</span>
+    <span class="stat-value coins">{{ lifetimeCoins | number }}</span>
+  </div>
+
+  <div class="stat-row">
+    <span class="stat-label">Muertes totales</span>
+    <span class="stat-value deaths">{{ totalDeaths | number }}</span>
+  </div>
+
+  <!-- Kills de enemigos -->
+  <ng-container *ngIf="killRows.length > 0">
+    <div class="kills-header">Enemigos eliminados</div>
+
+    <div class="kill-row" *ngFor="let row of killRows">
+      <span class="kill-label">{{ row.label }}</span>
+      <span class="kill-count">× {{ row.count | number }}</span>
+    </div>
+  </ng-container>
+
+  <div class="empty" *ngIf="killRows.length === 0">
+    Ningún enemigo eliminado aún
+  </div>
+
+</div>

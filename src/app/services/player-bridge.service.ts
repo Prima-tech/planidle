@@ -36,6 +36,7 @@ export class PlayerBridgeService {
     if (HP <= 0) {
       this.isDead = true;
       this.player.death();
+      this.playerState.recordDeath();
       this.death$.next();
     }
   }

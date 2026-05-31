@@ -3,6 +3,7 @@
 <app-modal-container #inventoryModal></app-modal-container>
 <app-modal-container #mapStatsModal></app-modal-container>
 <app-modal-container #mapKillsModal></app-modal-container>
+<app-modal-container #statsModal></app-modal-container>
 
 <ion-footer>
   <ion-toolbar>
@@ -31,6 +32,10 @@
 
     <div class="icon-menu-wrapper right" (click)="openMapKills()">
       <ion-icon name="skull-outline" class="footer-ion-icon"></ion-icon>
+    </div>
+
+    <div class="icon-menu-wrapper right" (click)="openStats()">
+      <ion-icon name="podium-outline" class="footer-ion-icon"></ion-icon>
     </div>
 
   </ion-toolbar>

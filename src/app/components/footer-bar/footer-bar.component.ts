@@ -7,6 +7,7 @@ import { CharacterPageComponent } from 'src/app/pages/character/character.page';
 import { InventoryComponent } from '../inventory/inventory.component';
 import { MapStatsComponent } from '../map-stats/map-stats.component';
 import { MapKillsComponent } from '../map-kills/map-kills.component';
+import { StatsPageComponent } from '../stats-page/stats-page.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -15,11 +16,12 @@ import { MapKillsComponent } from '../map-kills/map-kills.component';
   standalone: false
 })
 export class FooterBarComponent implements OnInit {
-  @ViewChild('menuModal') menuModal!: ModalContainerComponent;
+  @ViewChild('menuModal')      menuModal!:      ModalContainerComponent;
   @ViewChild('characterModal') characterModal!: ModalContainerComponent;
   @ViewChild('inventoryModal') inventoryModal!: ModalContainerComponent;
-  @ViewChild('mapStatsModal') mapStatsModal!: ModalContainerComponent;
-  @ViewChild('mapKillsModal') mapKillsModal!: ModalContainerComponent;
+  @ViewChild('mapStatsModal')  mapStatsModal!:  ModalContainerComponent;
+  @ViewChild('mapKillsModal')  mapKillsModal!:  ModalContainerComponent;
+  @ViewChild('statsModal')     statsModal!:     ModalContainerComponent;
 
   constructor(private router: Router) { }
 
@@ -32,7 +34,7 @@ export class FooterBarComponent implements OnInit {
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
       left: [this.characterModal],
-      right: [this.menuModal, this.mapStatsModal, this.mapKillsModal],
+      right: [this.menuModal, this.mapStatsModal, this.mapKillsModal, this.statsModal],
     };
     groups[side].forEach(m => { if (m !== except && m.isOpenModal()) m.close(); });
   }
@@ -78,6 +80,15 @@ export class FooterBarComponent implements OnInit {
     } else {
       this.closeOtherOnSide('right', this.mapKillsModal);
       this.mapKillsModal.open(MapKillsComponent, 'map-kills');
+    }
+  }
+
+  openStats() {
+    if (this.statsModal.isOpenModal()) {
+      this.statsModal.close();
+    } else {
+      this.closeOtherOnSide('right', this.statsModal);
+      this.statsModal.open(StatsPageComponent, 'stats');
     }
   }
 

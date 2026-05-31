@@ -8,6 +8,8 @@ export interface PlayerState {
   lvl: number;
   hp: number;
   hpMax: number;
+  lifetimeCoins: number;
+  totalDeaths: number;
 }
 
 export const MAX_LEVEL = 100;
@@ -24,6 +26,8 @@ const INITIAL_STATE: PlayerState = {
   lvl: 1,
   hp: 100,
   hpMax: 100,
+  lifetimeCoins: 0,
+  totalDeaths: 0,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -45,12 +49,14 @@ export class PlayerStateService {
   setFromProfile(profile: any): void {
     if (!profile) return;
     this._state$.next({
-      coins:        profile.coins         ?? 0,
-      specialCoins: profile.special_coins ?? 0,
-      exp:          profile.exp           ?? 0,
-      lvl:          profile.lvl           ?? 1,
-      hp:           profile.hp            ?? profile.current_hp ?? 100,
-      hpMax:        profile.hpMax         ?? profile.max_hp     ?? 100,
+      coins:         profile.coins          ?? 0,
+      specialCoins:  profile.special_coins  ?? 0,
+      exp:           profile.exp            ?? 0,
+      lvl:           profile.lvl            ?? 1,
+      hp:            profile.hp             ?? profile.current_hp ?? 100,
+      hpMax:         profile.hpMax          ?? profile.max_hp     ?? 100,
+      lifetimeCoins: profile.lifetimeCoins  ?? 0,
+      totalDeaths:   profile.totalDeaths    ?? 0,
     });
   }
 
@@ -59,8 +65,14 @@ export class PlayerStateService {
   }
 
   collectCoins(amount: number): void {
-    this.addCoins(amount);
+    const s = this._state$.getValue();
+    this._patch({ coins: s.coins + amount, lifetimeCoins: (s.lifetimeCoins ?? 0) + amount });
     this.coinDropped$.next(amount);
+  }
+
+  recordDeath(): void {
+    const s = this._state$.getValue();
+    this._patch({ totalDeaths: (s.totalDeaths ?? 0) + 1 });
   }
 
   addExp(amount: number): void {
