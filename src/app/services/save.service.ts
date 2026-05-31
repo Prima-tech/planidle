@@ -4,6 +4,7 @@ import { StorageService } from './storage.service';
 import { PlayerStateService, PlayerState } from './player-state.service';
 import { InventoryService, InventoryItem } from './inventory.service';
 import { SupabaseService } from './supabase.service';
+import { WorldService } from './world.service';
 
 /** true → nunca llama a Supabase, solo guarda en local (desarrollo sin backend) */
 const OFFLINE_MODE = false;
@@ -13,6 +14,7 @@ export type SaveStatus = 'idle' | 'local' | 'remote' | 'saved' | 'error';
 export interface GameSnapshot {
   playerState: PlayerState;
   inventory: (InventoryItem | null)[][][];
+  mapId: string;
   lastModified: string;
 }
 
@@ -80,6 +82,7 @@ export class SaveService {
     private playerState: PlayerStateService,
     private inventory: InventoryService,
     private supabase: SupabaseService,
+    private world: WorldService,
   ) {
     // Auto-guarda en local tras 2s de inactividad, usando la clave del personaje activo
     merge(this.playerState.state$, this.inventory.changes$)
@@ -109,10 +112,12 @@ export class SaveService {
     if (snapshot) {
       this.playerState.setFromProfile(snapshot.playerState);
       this.inventory.restoreFromSnapshot(snapshot.inventory);
+      this.world.setCurrentMap(snapshot.mapId ?? 'hogar');
     } else {
       // Primer acceso a este personaje — estado vacío
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
+      this.world.setCurrentMap('hogar');
     }
   }
 
@@ -206,6 +211,7 @@ export class SaveService {
     return {
       playerState:  this.playerState.snapshot(),
       inventory:    this.inventory.getSnapshot(),
+      mapId:        this.world.getCurrentMap().id,
       lastModified: new Date().toISOString(),
     };
   }
