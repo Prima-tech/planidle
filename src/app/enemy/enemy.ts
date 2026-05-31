@@ -122,18 +122,20 @@ export class Enemy {
     this.playAnim(next);
   }
 
-  /** Reproduce la animación correcta para el estado y dirección actuales. */
-  private playAnim(action: string, dir?: Direction): void {
+  /** Reproduce la animación correcta para el estado y dirección actuales.
+   *  Devuelve true si la animación arrancó (o ya estaba jugando). */
+  private playAnim(action: string, dir?: Direction): boolean {
     const d    = dir ?? this.currentDir;
     const safe = (d === Direction.NONE || !d) ? Direction.DOWN : d;
     const cfg  = this.config.actions[action];
-    if (!cfg) return;
+    if (!cfg) return false;
     const key  = this.animService.enemyAnimKey(this.config.type, action, cfg.directional ? safe : undefined);
-    if (!this.mainScene.anims.exists(key)) return;
+    if (!this.mainScene.anims.exists(key)) return false;
     const anim = this.mainScene.anims.get(key);
-    if (!anim || anim.frames.length === 0) return;   // frames fuera de rango → skip
-    if (this.sprite.anims.currentAnim?.key === key) return;
+    if (!anim || anim.frames.length === 0) return false;
+    if (this.sprite.anims.currentAnim?.key === key) return true;
     this.sprite.play(key);
+    return true;
   }
 
   private move(pos: Vector2, dx: number, dy: number, dist: number, delta: number) {
@@ -164,24 +166,47 @@ export class Enemy {
       Math.floor(this.sprite.x / GameScene.TILE_SIZE),
       Math.floor(this.sprite.y / GameScene.TILE_SIZE),
     );
+
+    // Actualizar dirección ANTES de setState para que la primera animación sea correcta
+    const dir        = this.cardinalDir(dx, dy);
+    const dirChanged = dir !== this.currentDir;
+    if (dirChanged) this.currentDir = dir;
+
+    const wasWalk = this.state === 'walk';
     this.setState('walk');
 
-    const dir = this.cardinalDir(dx, dy);
-    if (dir !== this.currentDir) {
-      this.currentDir = dir;
-      this.playAnim('walk', dir);
-    }
+    // Si ya estaba en walk y cambió dirección, setState fue no-op → actualizar animación
+    if (wasWalk && dirChanged) this.playAnim('walk');
   }
 
   private performAttack(): void {
     this.state = 'attack';
     this.mainScene.events.emit('enemyAttackPlayer', { damage: this.damage });
-    this.playAnim('attack');
+
+    const animName = this.resolveAttackAnim();
+    const played   = this.playAnim(animName);
+
+    if (!played) {
+      // Animación no disponible → salir de estado attack para no quedarse atascado
+      this.state = 'idle';
+      this.playAnim('idle');
+      return;
+    }
+
     this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       if (this.isDead) return;
       this.state = 'idle';
       this.playAnim('idle');
     });
+  }
+
+  /** Elige la animación de ataque según si el enemigo estaba moviéndose. */
+  private resolveAttackAnim(): string {
+    if (this.isChasing) {
+      if (this.config.actions.runAttackFront)  return 'runAttackFront';
+      if (this.config.actions.walkAttackFront) return 'walkAttackFront';
+    }
+    return 'attack';
   }
 
   private playHurt(): void {
