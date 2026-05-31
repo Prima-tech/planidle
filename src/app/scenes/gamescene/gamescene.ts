@@ -6,7 +6,7 @@ import { GridDrops } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
-import { MapConfig, SpawnConfig, SpawnTracker } from "./map-config";
+import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
 import { MapStatsService } from "src/app/services/map-stats.service";
 
 export class GameScene extends Phaser.Scene {
@@ -20,6 +20,8 @@ export class GameScene extends Phaser.Scene {
     private spawnTrackers: SpawnTracker[] = [];
     private spaceKey: Phaser.Input.Keyboard.Key;
     private portalCooldown = false;
+    private sessionKills: Record<string, number> = {};
+    private eliteKills = 0;
     private currentMapConfig: MapConfig;
     asgardService: any;
     worldService: any;
@@ -68,6 +70,8 @@ export class GameScene extends Phaser.Scene {
       this.enemies = [];
       this.spawnTrackers = [];
       this.portalCooldown = false;
+      this.sessionKills = {};
+      this.eliteKills = 0;
       this.currentMapConfig = this.worldService.getCurrentMap();
       this.mapStatsService?.reset();
       this.initMap();
@@ -183,6 +187,12 @@ export class GameScene extends Phaser.Scene {
       for (const type of usedTypes) {
         const cfg = ENEMY_REGISTRY[type];
         if (cfg) animService.registerEnemyAnimations(cfg);
+
+        const elite = ENEMY_REGISTRY[`${type}_elite`];
+        if (elite) animService.registerEnemyAnimations(elite);
+
+        const oblivion = ENEMY_REGISTRY[`${type}_oblivion`];
+        if (oblivion) animService.registerEnemyAnimations(oblivion);
       }
     }
 
@@ -290,10 +300,57 @@ export class GameScene extends Phaser.Scene {
         this.flashPlayer();
       });
 
-      this.events.on('enemyDied', ({ type }: { type: string }) => {
+      this.events.on('enemyDied', ({ type, position }: { type: string, position: Phaser.Math.Vector2 }) => {
         const mapId = this.worldService.getCurrentMap().id;
         this.killService?.recordKill(mapId, type);
+
+        if (type.endsWith('_oblivion')) return;
+
+        if (type.endsWith('_elite')) {
+          this.eliteKills++;
+          const threshold = MAP_OBLIVION_THRESHOLD[mapId] ?? 5;
+          if (this.eliteKills % threshold === 0) {
+            const baseType = type.replace('_elite', '');
+            this.spawnSpecial(`${baseType}_oblivion`, position);
+          }
+          return;
+        }
+
+        this.sessionKills[type] = (this.sessionKills[type] ?? 0) + 1;
+        const threshold = MAP_ELITE_THRESHOLD[mapId] ?? 20;
+        if (this.sessionKills[type] % threshold === 0) {
+          this.spawnSpecial(`${type}_elite`, position);
+        }
       });
+    }
+
+    private spawnSpecial(enemyType: string, nearPosition: Phaser.Math.Vector2): void {
+      const cfg = ENEMY_REGISTRY[enemyType];
+      if (!cfg) { console.warn(`spawnSpecial: "${enemyType}" no está en ENEMY_REGISTRY`); return; }
+
+      const baseTileX = Math.floor(nearPosition.x / GameScene.TILE_SIZE);
+      const baseTileY = Math.floor(nearPosition.y / GameScene.TILE_SIZE);
+      const tileX     = baseTileX + Phaser.Math.Between(-2, 2);
+      const tileY     = baseTileY + Phaser.Math.Between(-2, 2);
+
+      const idleKey = `${cfg.spriteType ?? cfg.type}_idle`;
+      const sprite  = this.add.sprite(0, 0, idleKey);
+      sprite.setDepth(2);
+
+      const enemy = new Enemy(
+        this, sprite,
+        new Phaser.Math.Vector2(tileX, tileY),
+        this.currentMap,
+        cfg,
+        'aggressive',
+        8,
+        () => {
+          const idx = this.enemies.indexOf(enemy);
+          if (idx !== -1) this.enemies.splice(idx, 1);
+        },
+      );
+
+      this.enemies.push(enemy);
     }
 
     private flashPlayer() {

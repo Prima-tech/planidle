@@ -35,7 +35,7 @@ export class AnimationService extends Phaser.Scene {
     const DIRS: Direction[] = [Direction.DOWN, Direction.LEFT, Direction.UP, Direction.RIGHT];
 
     for (const [actionName, action] of Object.entries(config.actions) as [string, ActionConfig][]) {
-      const textureKey = this.enemyTextureKey(config.type, actionName);
+      const textureKey = this.enemyTextureKey(config.spriteType ?? config.type, actionName);
 
       if (action.directional) {
         const dirFrames = action.frames as DirectionFrames;

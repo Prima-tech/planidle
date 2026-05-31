@@ -35,6 +35,8 @@ export interface EnemyTypeConfig {
   speed: number;           // px/s
   damage: number;
   attackCooldown: number;  // ms
+  tint?: number;           // tint visual (0xRRGGBB) — usado para elite/oblivion
+  spriteType?: string;     // tipo base cuyos sprites se reusan (omite carga propia)
   actions: {
     idle?:             ActionConfig;
     walk?:             ActionConfig;
@@ -138,9 +140,38 @@ const orc1: EnemyTypeConfig = {
   },
 };
 
+// ── Variantes Elite y Oblivion del Orc1 ─────────────────────────────────────
+// Reusan los sprites de orc1 (spriteType: 'orc1') — no requieren assets propios.
+
+const orc1_elite: EnemyTypeConfig = {
+  ...orc1,
+  type: 'orc1_elite',
+  hp: 150,
+  scale: 3.5,
+  speed: 110,
+  damage: 15,
+  attackCooldown: 1200,
+  tint: 0xffcc00,
+  spriteType: 'orc1',
+};
+
+const orc1_oblivion: EnemyTypeConfig = {
+  ...orc1,
+  type: 'orc1_oblivion',
+  hp: 400,
+  scale: 4,
+  speed: 130,
+  damage: 25,
+  attackCooldown: 1000,
+  tint: 0xcc00ff,
+  spriteType: 'orc1',
+};
+
 // ── Registro global de tipos de enemigo ──────────────────────────────────────
 // Para añadir un enemigo nuevo: agregar su config aquí.
 
 export const ENEMY_REGISTRY: Record<string, EnemyTypeConfig> = {
   orc1,
+  orc1_elite,
+  orc1_oblivion,
 };

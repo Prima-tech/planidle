@@ -116,6 +116,7 @@ export class Enemy {
       this.tilePos.x * GameScene.TILE_SIZE + offsetX,
       this.tilePos.y * GameScene.TILE_SIZE + offsetY,
     );
+    if (this.config.tint) this.sprite.setTint(this.config.tint);
   }
 
   private setState(next: EnemyState) {
