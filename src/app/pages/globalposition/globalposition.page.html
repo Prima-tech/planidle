@@ -45,6 +45,10 @@
                      [style.width.%]="(character.current_hp / character.max_hp) * 100">
                 </div>
               </div>
+              <div class="hero-map">
+                <ion-icon name="location-outline"></ion-icon>
+                <span>{{ charMapNames[character.id] || 'Hogar' }}</span>
+              </div>
               <div class="selected-check" *ngIf="isSelected?.id === character.id">
                 <ion-icon name="checkmark-circle"></ion-icon>
               </div>
@@ -68,6 +72,10 @@
                      [style.width.%]="(character.current_hp / character.max_hp) * 100">
                 </div>
               </div>
+              <div class="hero-map">
+                <ion-icon name="location-outline"></ion-icon>
+                <span>{{ charMapNames[character.id] || 'Hogar' }}</span>
+              </div>
               <div class="selected-check" *ngIf="isSelected?.id === character.id">
                 <ion-icon name="checkmark-circle"></ion-icon>
               </div>
@@ -90,6 +98,10 @@
                 <div class="hp-bar-fill"
                      [style.width.%]="(character.current_hp / character.max_hp) * 100">
                 </div>
+              </div>
+              <div class="hero-map">
+                <ion-icon name="location-outline"></ion-icon>
+                <span>{{ charMapNames[character.id] || 'Hogar' }}</span>
               </div>
               <div class="selected-check" *ngIf="isSelected?.id === character.id">
                 <ion-icon name="checkmark-circle"></ion-icon>

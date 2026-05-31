@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AsgardService } from 'src/app/services/asgard';
 import { StorageService } from 'src/app/services/storage.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
+import { MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
 
 @Component({
   selector: 'app-globalposition',
@@ -12,6 +13,7 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 })
 export class GlobalpositionPage implements OnInit {
   isSelected: any = null;
+  charMapNames: Record<string, string> = {};
 
   private readonly CLASS_ICONS: Record<string, string> = {
     Warrior:   'shield-outline',
@@ -48,6 +50,17 @@ export class GlobalpositionPage implements OnInit {
   async ngOnInit() {
     await this.asgardService.refreshData();
     await this.fillLocalRosterIfIncomplete();
+    await this.loadCharacterMaps();
+  }
+
+  private async loadCharacterMaps(): Promise<void> {
+    const chars = this.asgardService._characters;
+    if (!Array.isArray(chars)) return;
+    for (const char of chars) {
+      const snapshot = await this.storageService.get(`snapshot_char_${char.id}`);
+      const mapId = snapshot?.mapId ?? 'hogar';
+      this.charMapNames[char.id] = MAP_REGISTRY[mapId]?.name ?? mapId;
+    }
   }
 
   private async fillLocalRosterIfIncomplete() {
