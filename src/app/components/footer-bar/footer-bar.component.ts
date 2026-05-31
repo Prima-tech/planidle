@@ -6,6 +6,7 @@ import { SettingsPageComponent } from 'src/app/pages/settings/settings.page';
 import { CharacterPageComponent } from 'src/app/pages/character/character.page';
 import { InventoryComponent } from '../inventory/inventory.component';
 import { MapStatsComponent } from '../map-stats/map-stats.component';
+import { MapKillsComponent } from '../map-kills/map-kills.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -18,6 +19,7 @@ export class FooterBarComponent implements OnInit {
   @ViewChild('characterModal') characterModal!: ModalContainerComponent;
   @ViewChild('inventoryModal') inventoryModal!: ModalContainerComponent;
   @ViewChild('mapStatsModal') mapStatsModal!: ModalContainerComponent;
+  @ViewChild('mapKillsModal') mapKillsModal!: ModalContainerComponent;
 
   constructor(private router: Router) { }
 
@@ -29,7 +31,7 @@ export class FooterBarComponent implements OnInit {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left: [this.characterModal],
+      left: [this.characterModal, this.mapKillsModal],
       right: [this.menuModal, this.mapStatsModal],
     };
     groups[side].forEach(m => { if (m !== except && m.isOpenModal()) m.close(); });
@@ -67,6 +69,15 @@ export class FooterBarComponent implements OnInit {
     } else {
       this.closeOtherOnSide('right', this.mapStatsModal);
       this.mapStatsModal.open(MapStatsComponent, 'map-stats');
+    }
+  }
+
+  openMapKills() {
+    if (this.mapKillsModal.isOpenModal()) {
+      this.mapKillsModal.close();
+    } else {
+      this.closeOtherOnSide('left', this.mapKillsModal);
+      this.mapKillsModal.open(MapKillsComponent, 'character');
     }
   }
 

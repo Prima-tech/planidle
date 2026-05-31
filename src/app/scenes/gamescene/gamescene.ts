@@ -7,7 +7,7 @@ import { GridPhysics } from "src/app/physics/gridphisics";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
 import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
-import { MapStatsService } from "src/app/services/map-stats.service";
+import { GameRegistry } from "../game-registry";
 
 export class GameScene extends Phaser.Scene {
 
@@ -23,10 +23,7 @@ export class GameScene extends Phaser.Scene {
     private sessionKills: Record<string, number> = {};
     private eliteKills = 0;
     private currentMapConfig: MapConfig;
-    asgardService: any;
-    worldService: any;
-    killService: any;
-    mapStatsService: MapStatsService;
+    private reg: GameRegistry;
     currentMap: any;
 
       constructor(
@@ -35,16 +32,13 @@ export class GameScene extends Phaser.Scene {
       }
 
     preload() {
-      this.asgardService    = this.game.registry.get('asgardService');
-      this.worldService     = this.game.registry.get('worldService');
-      this.killService      = this.game.registry.get('killService');
-      this.mapStatsService  = this.game.registry.get('mapStatsService');
+      this.reg = new GameRegistry(this.game);
 
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png');
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
 
-      const mapCfg = this.worldService.getCurrentMap();
+      const mapCfg = this.reg.world.getCurrentMap();
       this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
       this.load.tilemapTiledJSON(mapCfg.tilemapKey, mapCfg.tilemapJson);
 
@@ -72,15 +66,15 @@ export class GameScene extends Phaser.Scene {
       this.portalCooldown = false;
       this.sessionKills = {};
       this.eliteKills = 0;
-      this.currentMapConfig = this.worldService.getCurrentMap();
-      this.mapStatsService?.reset();
+      this.currentMapConfig = this.reg.world.getCurrentMap();
+      this.reg.mapStats?.reset();
       this.initMap();
       this.initPlayer();
       this.registerEnemyAnimations();
       this.registerDropTextures();
       this.createPhysics();
       this.initSpawns();
-      this.mapStatsService?.setTrackers(this.spawnTrackers);
+      this.reg.mapStats?.setTrackers(this.spawnTrackers);
       this.initEnemyAttackListener();
       this.createGameControls();
       this.initCamera();
@@ -120,8 +114,8 @@ export class GameScene extends Phaser.Scene {
         sprite: playerSprite,
         tilePos: new Phaser.Math.Vector2(6, 6)
       };
-      this.asgardService.setInitialSprites(sprites);
-      this.player = this.asgardService.getPlayer();
+      this.reg.asgard.setInitialSprites(sprites);
+      this.player = this.reg.asgard.getPlayer();
     }
 
     initSpawns() {
@@ -246,7 +240,7 @@ export class GameScene extends Phaser.Scene {
           this.portalCooldown = true;
           this.cameras.main.fadeOut(500, 0, 0, 0);
           this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-            this.worldService.setCurrentMap(portal.targetMapId);
+            this.reg.world.setCurrentMap(portal.targetMapId);
             this.scene.restart();
           });
           break;
@@ -279,9 +273,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     createDrops() {
-      const inventoryService = this.game.registry.get('inventoryService');
-      const playerStateService = this.game.registry.get('playerStateService');
-      this.gridDrops = new GridDrops(this.player, this, inventoryService, playerStateService);
+      this.gridDrops = new GridDrops(this.player, this, this.reg.inventory, this.reg.playerState);
     }
 
     onGameClick(pointer: Phaser.Input.Pointer) {
@@ -291,13 +283,13 @@ export class GameScene extends Phaser.Scene {
 
     initEnemyAttackListener() {
       this.events.on('enemyAttackPlayer', ({ damage }: { damage: number }) => {
-        this.asgardService.setAttackToPlayer({ HP: -damage });
+        this.reg.asgard.setAttackToPlayer({ HP: -damage });
         this.flashPlayer();
       });
 
       this.events.on('enemyDied', ({ type, position }: { type: string, position: Phaser.Math.Vector2 }) => {
-        const mapId = this.worldService.getCurrentMap().id;
-        this.killService?.recordKill(mapId, type);
+        const mapId = this.reg.world.getCurrentMap().id;
+        this.reg.kill?.recordKill(mapId, type);
 
         if (type.endsWith('_oblivion')) return;
 
@@ -312,6 +304,7 @@ export class GameScene extends Phaser.Scene {
         }
 
         this.sessionKills[type] = (this.sessionKills[type] ?? 0) + 1;
+        this.reg.mapStats?.updateSessionKills(this.sessionKills);
         const threshold = MAP_ELITE_THRESHOLD[mapId] ?? 20;
         if (this.sessionKills[type] % threshold === 0) {
           this.spawnSpecial(`${type}_elite`, position);
@@ -359,7 +352,7 @@ export class GameScene extends Phaser.Scene {
       this.time.addEvent({
         delay: 500,
         loop: true,
-        callback: () => this.mapStatsService?.updateActive(this.enemies.map(e => e.type)),
+        callback: () => this.reg.mapStats?.updateActive(this.enemies.map(e => e.type)),
       });
 
       // Comprueba si hay que spawnear más enemigos (cuando el max sube)

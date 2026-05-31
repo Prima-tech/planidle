@@ -17,6 +17,7 @@ import { SaveService } from 'src/app/services/save.service';
 import { KillService } from 'src/app/services/kill.service';
 import { MapStatsService } from 'src/app/services/map-stats.service';
 import { OfflineGains } from 'src/app/services/offline-gains.service';
+import { REGISTRY_KEYS } from 'src/app/scenes/game-registry';
 
 @Component({
   selector: 'app-layout',
@@ -108,13 +109,13 @@ export class LayoutComponent implements OnDestroy {
 
   registerServices() {
     this.phaserGame = new Phaser.Game(this.config);
-    this.phaserGame.registry.set('mapService', this.mapService);
-    this.phaserGame.registry.set('asgardService', this.asgardService);
-    this.phaserGame.registry.set('inventoryService', this.inventoryService);
-    this.phaserGame.registry.set('worldService', this.worldService);
-    this.phaserGame.registry.set('playerStateService', this.playerStateService);
-    this.phaserGame.registry.set('killService', this.killService);
-    this.phaserGame.registry.set('mapStatsService', this.mapStatsService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.MAP,          this.mapService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.ASGARD,       this.asgardService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.INVENTORY,    this.inventoryService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.WORLD,        this.worldService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.PLAYER_STATE, this.playerStateService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.KILL,         this.killService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.MAP_STATS,    this.mapStatsService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

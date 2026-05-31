@@ -1,0 +1,96 @@
+:host {
+  display: block;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 12px 10px;
+  font-size: 0.85em;
+  min-width: 230px;
+}
+
+.section-title {
+  font-size: 1em;
+  font-weight: bold;
+  color: #e57373;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .sub {
+    font-size: 0.78em;
+    color: #888;
+    font-weight: normal;
+    margin-left: auto;
+  }
+}
+
+.section-icon { font-size: 1.1em; }
+
+.kill-entry {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: #16162a;
+  border: 1px solid #2a2a4e;
+  border-radius: 6px;
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.type-name {
+  color: #ddd;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+
+.total-badge {
+  font-size: 0.8em;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.elite-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bar-track {
+  height: 6px;
+  background: #2a2a4e;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e57373, #ffcc00);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.bar-label {
+  font-size: 0.72em;
+  color: #aaa;
+
+  &.elite-ready {
+    color: #ffcc00;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+  }
+
+  &.muted { color: #555; }
+}
+
+.empty {
+  color: #555;
+  font-size: 0.8em;
+  padding: 8px 0;
+  text-align: center;
+}

@@ -21,10 +21,18 @@ export class MapStatsService {
     return this._activeGroups.value.reduce((s, g) => s + g.count, 0);
   }
 
+  private _sessionKills = new BehaviorSubject<Record<string, number>>({});
+  readonly sessionKills$ = this._sessionKills.asObservable();
+
   reset(): void {
     this.trackers = [];
     this._activeGroups.next([]);
     this._totalMax.next(0);
+    this._sessionKills.next({});
+  }
+
+  updateSessionKills(kills: Record<string, number>): void {
+    this._sessionKills.next({ ...kills });
   }
 
   setTrackers(trackers: SpawnTracker[]): void {

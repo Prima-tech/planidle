@@ -1,4 +1,4 @@
-import { inject } from "@angular/core";
+import { GameRegistry } from "../game-registry";
 
 export class MapScene extends Phaser.Scene {
   CELL_SIZE = 64;
@@ -6,7 +6,7 @@ export class MapScene extends Phaser.Scene {
   MAP_COLS = 11;
 
   mapConfig: any[][] = [];
-  mapService: any;
+  private reg: GameRegistry;
   cellsVisuals: Phaser.GameObjects.Sprite[][] = [];
   private cellSelected:any = null;
   private dragStartX = 0;
@@ -57,7 +57,7 @@ export class MapScene extends Phaser.Scene {
     this.load.image('forest', 'assets/sprites/map/forest.png');
     this.load.image('sea', 'assets/sprites/map/sea.png');
     this.load.image('crop', 'assets/sprites/map/crop.png');
-    this.mapService = this.game.registry.get('mapService');
+    this.reg = new GameRegistry(this.game);
   }
 
   create() {
@@ -101,7 +101,7 @@ export class MapScene extends Phaser.Scene {
         this.cellsVisuals[row][col] = sprite;
       }
     }
-    this.mapService.cellExplored$.subscribe(cell => {
+    this.reg.map.cellExplored$.subscribe(cell => {
       if (cell) {
         console.log('oye bro si soy yo', cell)
         this.cellSelected = cell;
@@ -146,7 +146,7 @@ export class MapScene extends Phaser.Scene {
 
     this.events.on('cellClicked', (data) => {
       console.log('Clicked cell:', data);
-      this.mapService.selectCell(data);
+      this.reg.map.selectCell(data);
     });
 
     const centerX = (this.MAP_COLS * this.CELL_SIZE) / 2 - this.cameras.main.width / 2;

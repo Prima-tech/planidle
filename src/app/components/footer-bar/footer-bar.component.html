@@ -2,6 +2,7 @@
 <app-modal-container #characterModal></app-modal-container>
 <app-modal-container #inventoryModal></app-modal-container>
 <app-modal-container #mapStatsModal></app-modal-container>
+<app-modal-container #mapKillsModal></app-modal-container>
 
 <ion-footer>
   <ion-toolbar>
@@ -9,6 +10,10 @@
 
     <div class="icon-menu-wrapper" (click)="goTo('map')">
       <app-icon [name]="'world'" [type]="'menu'"></app-icon>
+    </div>
+
+    <div class="icon-menu-wrapper" (click)="openMapKills()">
+      <ion-icon name="skull-outline" class="footer-ion-icon"></ion-icon>
     </div>
 
     <div class="icon-menu-wrapper" (click)="openStatus()">
