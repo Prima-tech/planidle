@@ -26,42 +26,81 @@
       </div>
 
       <ng-container *ngIf="!asgardService.isChecking">
-        <div class="characters-row">
-          <div class="hero-card"
-               *ngFor="let character of asgardService._characters"
-               [ngClass]="{
-                 'hero-card--selected': isSelected?.id === character.id,
-                 'hero-card--warrior': character.character_class === 'Warrior',
-                 'hero-card--mage': character.character_class === 'Mage'
-               }"
-               (click)="selectPlayer(character)">
+        <div class="characters-grid">
 
-            <div class="hero-avatar">
-              <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
-            </div>
-
-            <div class="hero-details">
-              <h2 class="hero-name">{{ character.name }}</h2>
+          <!-- Row 1 -->
+          <div class="char-row">
+            <div class="hero-card"
+                 *ngFor="let character of row1"
+                 [ngClass]="['hero-card--' + classKey(character.character_class),
+                              isSelected?.id === character.id ? 'hero-card--selected' : '']"
+                 (click)="selectPlayer(character)">
+              <div class="hero-avatar">
+                <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
+              </div>
+              <div class="hero-name">{{ character.name }}</div>
               <span class="hero-class-badge">{{ character.character_class }}</span>
-
-              <div class="hero-hp">
-                <div class="hp-bar-track">
-                  <div class="hp-bar-fill"
-                       [style.width.%]="(character.current_hp / character.max_hp) * 100">
-                  </div>
+              <div class="hp-bar-track">
+                <div class="hp-bar-fill"
+                     [style.width.%]="(character.current_hp / character.max_hp) * 100">
                 </div>
-                <span class="hp-label">{{ character.current_hp }} / {{ character.max_hp }} HP</span>
+              </div>
+              <div class="selected-check" *ngIf="isSelected?.id === character.id">
+                <ion-icon name="checkmark-circle"></ion-icon>
               </div>
             </div>
+          </div>
 
-            <div class="selected-check" *ngIf="isSelected?.id === character.id">
-              <ion-icon name="checkmark-circle"></ion-icon>
+          <!-- Row 2 -->
+          <div class="char-row">
+            <div class="hero-card"
+                 *ngFor="let character of row2"
+                 [ngClass]="['hero-card--' + classKey(character.character_class),
+                              isSelected?.id === character.id ? 'hero-card--selected' : '']"
+                 (click)="selectPlayer(character)">
+              <div class="hero-avatar">
+                <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
+              </div>
+              <div class="hero-name">{{ character.name }}</div>
+              <span class="hero-class-badge">{{ character.character_class }}</span>
+              <div class="hp-bar-track">
+                <div class="hp-bar-fill"
+                     [style.width.%]="(character.current_hp / character.max_hp) * 100">
+                </div>
+              </div>
+              <div class="selected-check" *ngIf="isSelected?.id === character.id">
+                <ion-icon name="checkmark-circle"></ion-icon>
+              </div>
             </div>
           </div>
 
-          <div class="no-heroes" *ngIf="asgardService._characters?.length === 0">
-            <p>{{ 'GLOBAL_POSITION.NO_HEROES' | translate }}</p>
+          <!-- Row 3: Ancestral centered -->
+          <div class="char-row char-row--centered">
+            <div class="hero-card hero-card--ancestral-special"
+                 *ngFor="let character of row3"
+                 [ngClass]="['hero-card--' + classKey(character.character_class),
+                              isSelected?.id === character.id ? 'hero-card--selected' : '']"
+                 (click)="selectPlayer(character)">
+              <div class="hero-avatar">
+                <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
+              </div>
+              <div class="hero-name">{{ character.name }}</div>
+              <span class="hero-class-badge">{{ character.character_class }}</span>
+              <div class="hp-bar-track">
+                <div class="hp-bar-fill"
+                     [style.width.%]="(character.current_hp / character.max_hp) * 100">
+                </div>
+              </div>
+              <div class="selected-check" *ngIf="isSelected?.id === character.id">
+                <ion-icon name="checkmark-circle"></ion-icon>
+              </div>
+            </div>
           </div>
+
+        </div>
+
+        <div class="no-heroes" *ngIf="asgardService._characters?.length === 0">
+          <p>{{ 'GLOBAL_POSITION.NO_HEROES' | translate }}</p>
         </div>
 
         <div class="action-row">
@@ -71,11 +110,6 @@
                       [disabled]="!isSelected">
             {{ 'GLOBAL_POSITION.CONTINUE_BUTTON' | translate }}
             <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
-          </ion-button>
-          <ion-button class="create-btn"
-                      *ngIf="asgardService._characters?.length === 0"
-                      (click)="createPlayer()">
-            {{ 'GLOBAL_POSITION.CREATE_PLAYER_BUTTON' | translate }}
           </ion-button>
         </div>
       </ng-container>

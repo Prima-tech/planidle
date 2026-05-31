@@ -3,98 +3,99 @@ ion-content {
   --ion-background-color: transparent;
 }
 
+// ── SCREEN LAYOUT ────────────────────────────────────────────────────────────
 .char-select-screen {
   display: flex;
   flex-direction: row;
   height: 100%;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.58);
 }
 
-// ── LEFT PANEL ──────────────────────────────────────────────────────────────
+// ── LEFT PANEL ───────────────────────────────────────────────────────────────
 .left-panel {
-  flex: 0 0 30%;
+  flex: 0 0 26%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 24px;
-  gap: 32px;
+  padding: 20px;
+  gap: 24px;
 
   .game-logo {
     text-align: center;
 
     .logo-icon {
-      font-size: 48px;
+      font-size: 40px;
       line-height: 1;
       filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.8));
     }
 
     .game-title {
-      margin: 8px 0 4px;
-      font-size: 36px;
+      margin: 6px 0 3px;
+      font-size: 30px;
       font-weight: 900;
-      letter-spacing: 6px;
+      letter-spacing: 5px;
       color: #ffffff;
       text-shadow: 0 0 20px rgba(0, 210, 255, 0.7);
     }
 
     .game-tagline {
       margin: 0;
-      font-size: 11px;
+      font-size: 9px;
       letter-spacing: 3px;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(255, 255, 255, 0.4);
     }
   }
 
   .profile-badge {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
+    gap: 7px;
+    padding: 8px 16px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 50px;
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
 
     ion-icon {
-      font-size: 20px;
+      font-size: 18px;
       color: #00d2ff;
     }
   }
 }
 
-// ── DIVIDER ─────────────────────────────────────────────────────────────────
+// ── PANEL DIVIDER ─────────────────────────────────────────────────────────────
 .panel-divider {
   flex: 0 0 1px;
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(255, 255, 255, 0.2) 20%,
-    rgba(0, 210, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0.2) 80%,
+    rgba(255, 255, 255, 0.15) 20%,
+    rgba(0, 210, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0.15) 80%,
     transparent 100%
   );
   align-self: stretch;
-  margin: 24px 0;
+  margin: 20px 0;
 }
 
-// ── RIGHT PANEL ─────────────────────────────────────────────────────────────
+// ── RIGHT PANEL ───────────────────────────────────────────────────────────────
 .right-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 24px 32px;
-  gap: 20px;
+  padding: 16px 20px;
+  gap: 10px;
 
   .choose-label {
     margin: 0;
-    font-size: 11px;
+    font-size: 9px;
     letter-spacing: 3px;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.35);
   }
 
   .loading-state {
@@ -105,178 +106,206 @@ ion-content {
 
     ion-spinner {
       color: #00d2ff;
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
     }
   }
 }
 
-// ── CHARACTER CARDS ROW ──────────────────────────────────────────────────────
-.characters-row {
+// ── CHARACTER GRID (3 rows: 5 / 5 / 1) ───────────────────────────────────────
+.characters-grid {
   display: flex;
-  flex-direction: row;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 8px;
 }
 
+.char-row {
+  display: flex;
+  gap: 7px;
+
+  &--centered {
+    justify-content: center;
+  }
+}
+
+// ── HERO CARD (compact) ───────────────────────────────────────────────────────
 .hero-card {
   position: relative;
-  flex: 1 1 180px;
-  max-width: 260px;
+  flex: 1 1 0;
+  max-width: 140px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 20px 16px;
+  gap: 5px;
+  padding: 10px 8px 8px;
   background: rgba(255, 255, 255, 0.06);
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   backdrop-filter: blur(6px);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
-    transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.28);
   }
 
-  // Warrior theme: orange/red
-  &--warrior {
-    .hero-avatar {
-      background: rgba(255, 100, 40, 0.2);
-      border-color: rgba(255, 100, 40, 0.5);
-      ion-icon { color: #ff7a38; }
-    }
-    .hero-class-badge {
-      background: rgba(255, 100, 40, 0.25);
-      color: #ff9a68;
-    }
-    .hp-bar-fill { background: linear-gradient(90deg, #ff4500, #ff7a38); }
-  }
-
-  // Mage theme: blue/purple
-  &--mage {
-    .hero-avatar {
-      background: rgba(100, 80, 255, 0.2);
-      border-color: rgba(130, 100, 255, 0.5);
-      ion-icon { color: #a47aff; }
-    }
-    .hero-class-badge {
-      background: rgba(100, 80, 255, 0.25);
-      color: #c0aaff;
-    }
-    .hp-bar-fill { background: linear-gradient(90deg, #6040ff, #a47aff); }
-  }
-
-  // Selected state
   &--selected {
     border-color: #00d2ff;
-    box-shadow: 0 0 20px rgba(0, 210, 255, 0.35), inset 0 0 20px rgba(0, 210, 255, 0.06);
-    transform: translateY(-3px);
+    box-shadow: 0 0 14px rgba(0, 210, 255, 0.35), inset 0 0 14px rgba(0, 210, 255, 0.06);
+    transform: translateY(-2px);
   }
 
+  // Ancestral: wider card in row 3
+  &--ancestral-special {
+    flex: 0 0 140px;
+  }
+
+  // ── CLASS THEMES ────────────────────────────────────────
+  &--warrior {
+    .hero-avatar {
+      background: rgba(255, 100, 40, 0.18);
+      border-color: rgba(255, 100, 40, 0.45);
+      ion-icon { color: #ff8040; }
+    }
+    .hero-class-badge { background: rgba(255, 100, 40, 0.2); color: #ffa070; }
+    .hp-bar-fill { background: linear-gradient(90deg, #cc3300, #ff8040); }
+  }
+
+  &--mage {
+    .hero-avatar {
+      background: rgba(100, 80, 255, 0.18);
+      border-color: rgba(130, 100, 255, 0.45);
+      ion-icon { color: #a47aff; }
+    }
+    .hero-class-badge { background: rgba(100, 80, 255, 0.2); color: #c0aaff; }
+    .hp-bar-fill { background: linear-gradient(90deg, #5030cc, #a47aff); }
+  }
+
+  &--hunter {
+    .hero-avatar {
+      background: rgba(60, 200, 100, 0.18);
+      border-color: rgba(60, 200, 100, 0.45);
+      ion-icon { color: #4ecf7a; }
+    }
+    .hero-class-badge { background: rgba(60, 200, 100, 0.2); color: #80e8a0; }
+    .hp-bar-fill { background: linear-gradient(90deg, #1a8040, #4ecf7a); }
+  }
+
+  &--priest {
+    .hero-avatar {
+      background: rgba(240, 200, 60, 0.18);
+      border-color: rgba(240, 200, 60, 0.45);
+      ion-icon { color: #f0d060; }
+    }
+    .hero-class-badge { background: rgba(240, 200, 60, 0.2); color: #f8e898; }
+    .hp-bar-fill { background: linear-gradient(90deg, #b07800, #f0d060); }
+  }
+
+  &--necron {
+    .hero-avatar {
+      background: rgba(130, 60, 180, 0.18);
+      border-color: rgba(130, 60, 180, 0.45);
+      ion-icon { color: #b06ae0; }
+    }
+    .hero-class-badge { background: rgba(130, 60, 180, 0.2); color: #cc99f0; }
+    .hp-bar-fill { background: linear-gradient(90deg, #5a1a8a, #b06ae0); }
+  }
+
+  &--ancestral {
+    .hero-avatar {
+      background: rgba(0, 210, 255, 0.18);
+      border-color: rgba(0, 210, 255, 0.55);
+      ion-icon { color: #00d2ff; }
+    }
+    .hero-class-badge { background: rgba(0, 210, 255, 0.2); color: #80eaff; }
+    .hp-bar-fill { background: linear-gradient(90deg, #0080cc, #00d2ff); }
+
+    // special glow for the unique class
+    border-color: rgba(0, 210, 255, 0.25);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+  }
+
+  // ── CARD INTERNALS ───────────────────────────────────────
   .hero-avatar {
-    width: 72px;
-    height: 72px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
 
-    ion-icon {
-      font-size: 34px;
-    }
-  }
-
-  .hero-details {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
+    ion-icon { font-size: 18px; }
   }
 
   .hero-name {
-    margin: 0;
-    font-size: 18px;
+    font-size: 12px;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    text-align: center;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .hero-class-badge {
-    padding: 2px 12px;
+    padding: 1px 8px;
     border-radius: 50px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 2px;
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
   }
 
-  .hero-hp {
+  .hp-bar-track {
     width: 100%;
-    margin-top: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 2px;
 
-    .hp-bar-track {
-      width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      overflow: hidden;
-
-      .hp-bar-fill {
-        height: 100%;
-        border-radius: 3px;
-        transition: width 0.4s ease;
-      }
-    }
-
-    .hp-label {
-      display: block;
-      margin-top: 4px;
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.45);
-      text-align: center;
+    .hp-bar-fill {
+      height: 100%;
+      border-radius: 2px;
     }
   }
 
   .selected-check {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 6px;
+    right: 6px;
     ion-icon {
-      font-size: 20px;
+      font-size: 14px;
       color: #00d2ff;
     }
   }
 }
 
+// ── NO HEROES ─────────────────────────────────────────────────────────────────
 .no-heroes {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
+  font-size: 13px;
 }
 
-// ── ACTION ROW ───────────────────────────────────────────────────────────────
+// ── ACTION ROW ────────────────────────────────────────────────────────────────
 .action-row {
   display: flex;
   justify-content: flex-end;
+  margin-top: 2px;
 
   .continue-btn {
     --background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
     --border-radius: 10px;
-    --box-shadow: 0 4px 20px rgba(0, 210, 255, 0.4);
-    --padding-start: 28px;
-    --padding-end: 28px;
+    --box-shadow: 0 4px 18px rgba(0, 210, 255, 0.35);
+    --padding-start: 24px;
+    --padding-end: 24px;
     font-weight: 700;
     letter-spacing: 2px;
-    font-size: 13px;
-  }
-
-  .create-btn {
-    --background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
-    --border-radius: 10px;
-    font-weight: 700;
-    letter-spacing: 2px;
+    font-size: 12px;
   }
 }

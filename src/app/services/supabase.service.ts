@@ -44,29 +44,59 @@ export class SupabaseService {
   }
   */
 
+  static readonly ROSTER_TEMPLATE: { name: string; character_class: string; max_hp: number }[] = [
+    { name: 'Gutts',    character_class: 'Warrior',   max_hp: 120 },
+    { name: 'Merlin',   character_class: 'Mage',       max_hp: 65  },
+    { name: 'Aldric',   character_class: 'Hunter',     max_hp: 90  },
+    { name: 'Seraphel', character_class: 'Priest',     max_hp: 80  },
+    { name: 'Malachar', character_class: 'Necron',     max_hp: 70  },
+    { name: 'Bryndor',  character_class: 'Warrior',   max_hp: 120 },
+    { name: 'Lysara',   character_class: 'Mage',       max_hp: 65  },
+    { name: 'Faolan',   character_class: 'Hunter',     max_hp: 90  },
+    { name: 'Theron',   character_class: 'Priest',     max_hp: 80  },
+    { name: 'Vexaris',  character_class: 'Necron',     max_hp: 70  },
+    { name: 'Solmara',  character_class: 'Ancestral',  max_hp: 100 },
+  ];
+
   async fetchAndSaveLocalData(userId: string) {
     const { data, error } = await this.supabase
       .from('global_data')
-      .select(`
-      *,
-      characters (*),
-      achievements (*)
-    `)
+      .select(`*, characters (*), achievements (*)`)
       .eq('id', userId)
       .single();
 
     if (data) {
-      const userData = {
-        ...data,
-        // characters: this.arrayToHash(data.characters),
-        // achievements: this.arrayToHash(data.achievements)
-      };
+      let chars: any[] = data.characters ?? [];
 
-      await this.storageService.set('user_data', userData);
-      await this.storageService.set('characters', data.characters);
-      // characters ya guardados en StorageService — AsgardService los carga desde ahí
-      return userData;
-    } else if (error.code === 'PGRST116') {
+      // Migration: insert any missing character slots for existing accounts
+      if (chars.length < SupabaseService.ROSTER_TEMPLATE.length) {
+        const existingNames = new Set(chars.map((c: any) => c.name));
+        const missing = SupabaseService.ROSTER_TEMPLATE
+          .filter(t => !existingNames.has(t.name))
+          .map(t => ({
+            profile_id: userId,
+            name: t.name,
+            character_class: t.character_class,
+            current_hp: t.max_hp,
+            max_hp: t.max_hp,
+            lvl: 1,
+            exp: 0,
+            last_modified: new Date().toISOString(),
+          }));
+
+        if (missing.length > 0) {
+          const { data: newChars } = await this.supabase
+            .from('characters')
+            .insert(missing)
+            .select();
+          if (newChars) chars = [...chars, ...newChars];
+        }
+      }
+
+      await this.storageService.set('user_data', data);
+      await this.storageService.set('characters', chars);
+      return data;
+    } else if (error?.code === 'PGRST116') {
       this.createFullAccount(userId, 'vlodos');
     }
     return null;
@@ -102,29 +132,18 @@ export class SupabaseService {
 
       if (pError) throw pError;
 
-      // 2. Crear los dos personajes vinculados
-      const initialCharacters = [
-        {
-          profile_id: userId,
-          name: `Gutts`,
-          character_class: 'Warrior',
-          current_hp: 80,
-          max_hp: 80,
-          lvl: 1,
-          exp: 0,
-          last_modified: new Date().toISOString()
-        },
-        {
-          profile_id: userId,
-          name: `Merlin`,
-          character_class: 'Mage',
-          current_hp: 80,
-          max_hp: 80,
-          lvl: 1,
-          exp: 0,
-          last_modified: new Date().toISOString()
-        }
-      ];
+      // 2. Crear los 11 personajes desde el roster canónico
+      const now = new Date().toISOString();
+      const initialCharacters = SupabaseService.ROSTER_TEMPLATE.map(t => ({
+        profile_id: userId,
+        name: t.name,
+        character_class: t.character_class,
+        current_hp: t.max_hp,
+        max_hp: t.max_hp,
+        lvl: 1,
+        exp: 0,
+        last_modified: now,
+      }));
 
       const { data: chars, error: cError } = await this.supabase
         .from('characters')
@@ -133,19 +152,13 @@ export class SupabaseService {
 
       if (cError) throw cError;
 
-      // 3. Mapear todo a tu estado local (Mapa Hash)
-      const fullState = {
-        ...profile,
-        characters: this.arrayToHash(chars),
-        last_modified_local: new Date().toISOString()
-      };
-
-      // Guardar en Storage Local inmediatamente
+      // 3. Guardar en Storage Local inmediatamente (array, no hash — ngFor lo necesita)
+      const last_modified_local = new Date().toISOString();
       await this.storageService.set('user_data', profile);
-      await this.storageService.set('characters', fullState.characters);
-      await this.storageService.set('last_modified_local', fullState.last_modified_local);
+      await this.storageService.set('characters', chars);
+      await this.storageService.set('last_modified_local', last_modified_local);
+      const fullState = { ...profile, characters: chars, last_modified_local };
 
-      console.log('soy el fullstate', fullState)
       return fullState;
 
     } catch (error) {
