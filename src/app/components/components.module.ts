@@ -20,6 +20,7 @@ import { CharacterPageComponent } from '../pages/character/character.page';
 import { MapStatsComponent } from './map-stats/map-stats.component';
 import { OfflineGainsModalComponent } from './offline-gains-modal/offline-gains-modal.component';
 import { MapKillsComponent } from './map-kills/map-kills.component';
+import { DeathModalComponent } from './death-modal/death-modal.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { MapKillsComponent } from './map-kills/map-kills.component';
     MapStatsComponent,
     OfflineGainsModalComponent,
     MapKillsComponent,
+    DeathModalComponent,
   ],
   imports: [
     CommonModule,
@@ -65,6 +67,7 @@ import { MapKillsComponent } from './map-kills/map-kills.component';
     MapStatsComponent,
     OfflineGainsModalComponent,
     MapKillsComponent,
+    DeathModalComponent,
   ]
 })
 export class ComponentModule {}

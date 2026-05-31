@@ -32,7 +32,9 @@ export class LayoutComponent implements OnDestroy {
   phaserGame: Phaser.Game | undefined;
   dataLoaded = false;
   pendingGains: OfflineGains | null = null;
+  playerDead = false;
   private gainsSub: Subscription;
+  private deathSub: Subscription;
 
   constructor(
     private router: Router,
@@ -60,6 +62,10 @@ export class LayoutComponent implements OnDestroy {
         this.pendingGains = gains;
       });
 
+    this.deathSub = this.playerBridgeService.death$.subscribe(() => {
+      this.playerDead = true;
+    });
+
     this.asgardService.refreshData();
     this.service.getUserData().subscribe(async (data) => {
       this.playerBridgeService.createPlayer();
@@ -78,6 +84,7 @@ export class LayoutComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.gainsSub?.unsubscribe();
+    this.deathSub?.unsubscribe();
     this.phaserGame?.destroy(true);
     this.phaserGame = undefined;
     this.sceneManager.setGame(null);
@@ -110,6 +117,17 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.KILL,          this.killService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_STATS,     this.mapStatsService);
     this.sceneManager.setGame(this.phaserGame);
+  }
+
+  onRevive(): void {
+    const state = this.playerStateService.snapshot();
+    this.playerStateService.resetExpCurrentLevel();
+    this.playerStateService.setHp(state.hpMax, state.hpMax);
+    this.playerBridgeService.resetPlayerStatus(state.hpMax, state.hpMax);
+    this.worldService.setCurrentMap('hogar');
+    this.playerBridgeService.isDead = false;
+    this.playerBridgeService.restartGameScene();
+    this.playerDead = false;
   }
 
   collectGains(gains: OfflineGains) {

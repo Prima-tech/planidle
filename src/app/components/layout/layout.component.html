@@ -24,3 +24,8 @@
   [gains]="pendingGains"
   (collected)="collectGains($event)">
 </app-offline-gains-modal>
+
+<app-death-modal
+  *ngIf="playerDead"
+  (revived)="onRevive()">
+</app-death-modal>

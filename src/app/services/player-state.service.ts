@@ -77,6 +77,10 @@ export class PlayerStateService {
     this._patch({ exp, lvl });
   }
 
+  resetExpCurrentLevel(): void {
+    this._patch({ exp: 0 });
+  }
+
   setHp(hp: number, hpMax?: number): void {
     const patch: Partial<PlayerState> = { hp: Math.max(0, hp) };
     if (hpMax !== undefined) patch.hpMax = hpMax;
