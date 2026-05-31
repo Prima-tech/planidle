@@ -19,7 +19,6 @@ export class GameScene extends Phaser.Scene {
     private player: Player;
     private enemies: Enemy[] = [];
     private spaceKey: Phaser.Input.Keyboard.Key;
-    private mapNameText: Phaser.GameObjects.Text;
     private portalCooldown = false;
     private currentMapConfig: MapConfig;
     asgardService: any;
@@ -54,7 +53,6 @@ export class GameScene extends Phaser.Scene {
       this.initCamera();
       this.createDrops();
       this.initPortals();
-      this.initMapNameText();
       this.cameras.main.fadeIn(500, 0, 0, 0);
     }
 
@@ -114,20 +112,6 @@ export class GameScene extends Phaser.Scene {
         gfx.lineStyle(2, 0xffffff, 0.9);
         gfx.strokeRect(px, py, GameScene.TILE_SIZE, GameScene.TILE_SIZE);
       });
-    }
-
-    initMapNameText() {
-      const { width, height } = this.scale;
-      this.mapNameText = this.add.text(width - 16, height - 16, this.currentMapConfig.name, {
-        fontSize: '28px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 5,
-        fontFamily: 'monospace'
-      })
-        .setOrigin(1, 1)
-        .setScrollFactor(0)
-        .setDepth(10);
     }
 
     checkPortals(playerPos: Phaser.Math.Vector2) {

@@ -14,6 +14,7 @@ import { ModalContainerComponent } from './modal-container/modal-container.compo
 import { testPageComponent } from '../pages/test/test.page';
 import { GameLogComponent } from './game-log/game-log.component';
 import { SettingsPageComponent } from '../pages/settings/settings.page';
+import { MapLabelComponent } from './map-label/map-label.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { SettingsPageComponent } from '../pages/settings/settings.page';
     ModalContainerComponent,
     testPageComponent,
     GameLogComponent,
-    SettingsPageComponent
+    SettingsPageComponent,
+    MapLabelComponent
   ],
   imports: [
     CommonModule,
@@ -46,7 +48,8 @@ import { SettingsPageComponent } from '../pages/settings/settings.page';
     ModalContainerComponent,
     testPageComponent,
     GameLogComponent,
-    SettingsPageComponent
+    SettingsPageComponent,
+    MapLabelComponent
   ]
 })
 export class ComponentModule {}
