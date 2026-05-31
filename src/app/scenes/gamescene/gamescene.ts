@@ -1,5 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Enemy } from "src/app/enemy/enemy";
+import { ActionConfig, ENEMY_REGISTRY } from "src/app/enemy/enemy-config";
+import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridDrops } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
@@ -41,12 +43,30 @@ export class GameScene extends Phaser.Scene {
       this.asgardService = this.game.registry.get('asgardService');
       this.worldService  = this.game.registry.get('worldService');
       this.killService   = this.game.registry.get('killService');
-      this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64});
-      this.load.spritesheet('enemyTexture', 'assets/sprites/enemy/orc1/orc1_idle_full.png', { frameWidth: 64, frameHeight: 64 });
+
+      this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png');
+
       const mapCfg = this.worldService.getCurrentMap();
       this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
       this.load.tilemapTiledJSON(mapCfg.tilemapKey, mapCfg.tilemapJson);
+
+      // Carga todos los spritesheets de los tipos de enemigo del mapa actual
+      const usedTypes = [...new Set<string>(mapCfg.spawns.map((s: SpawnConfig) => s.enemyType))];
+      for (const type of usedTypes) {
+        const cfg = ENEMY_REGISTRY[type];
+        if (!cfg) { console.warn(`Enemy type "${type}" not found in ENEMY_REGISTRY`); continue; }
+        for (const [action, actionCfg] of Object.entries(cfg.actions) as [string, ActionConfig][]) {
+          const key = `${type}_${action}`;
+          if (!this.textures.exists(key)) {
+            this.load.spritesheet(
+              key,
+              `assets/sprites/enemy/${type}/${actionCfg.filename}.png`,
+              { frameWidth: actionCfg.frameWidth, frameHeight: actionCfg.frameHeight },
+            );
+          }
+        }
+      }
     }
 
     create() {
@@ -56,6 +76,7 @@ export class GameScene extends Phaser.Scene {
       this.currentMapConfig = this.worldService.getCurrentMap();
       this.initMap();
       this.initPlayer();
+      this.registerEnemyAnimations();
       this.createPhysics();
       this.initSpawns();
       this.initEnemyAttackListener();
@@ -125,18 +146,22 @@ export class GameScene extends Phaser.Scene {
     private spawnEnemy(cfg: SpawnConfig, tracker: SpawnTracker) {
       if (tracker.count >= cfg.maxCount) return;
 
+      const enemyCfg = ENEMY_REGISTRY[cfg.enemyType];
+      if (!enemyCfg) { console.warn(`Enemy type "${cfg.enemyType}" not in ENEMY_REGISTRY`); return; }
+
       const tileX = Phaser.Math.Between(cfg.zone.tileX, cfg.zone.tileX + cfg.zone.width  - 1);
       const tileY = Phaser.Math.Between(cfg.zone.tileY, cfg.zone.tileY + cfg.zone.height - 1);
 
-      const sprite = this.add.sprite(0, 0, 'enemyTexture');
+      // Sprite inicial con la textura idle del tipo de enemigo
+      const idleKey = `${cfg.enemyType}_idle`;
+      const sprite  = this.add.sprite(0, 0, idleKey);
       sprite.setDepth(2);
-      sprite.scale = 3;
 
       const enemy = new Enemy(
         this, sprite,
         new Phaser.Math.Vector2(tileX, tileY),
         this.currentMap,
-        cfg.enemyType,
+        enemyCfg,
         cfg.behavior,
         cfg.visionRadius,
         () => {
@@ -151,6 +176,15 @@ export class GameScene extends Phaser.Scene {
 
       this.enemies.push(enemy);
       tracker.count++;
+    }
+
+    private registerEnemyAnimations(): void {
+      const animService = new AnimationService(this);
+      const usedTypes = [...new Set(this.currentMapConfig.spawns.map(s => s.enemyType))];
+      for (const type of usedTypes) {
+        const cfg = ENEMY_REGISTRY[type];
+        if (cfg) animService.registerEnemyAnimations(cfg);
+      }
     }
 
     initPortals() {
