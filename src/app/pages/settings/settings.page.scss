@@ -1,21 +1,21 @@
-$bg: #12111a;
-$bg-section: #1e1c2a;
-$gold: #c9a84c;
-$gold-dim: #8a6f2e;
-$text: #e8e0d0;
-$text-muted: #7a7080;
-$accent: #916d69;
+$bg: #1a1a2e;
+$bg-section: #2a2a3e;
+$gold: #3498db;
+$gold-dim: #1e5a8a;
+$text: #ffffff;
+$text-muted: #888;
+$accent: #3498db;
 $danger: #7a2c2c;
 $danger-hover: #9e3535;
-$primary-hover: #2d2b3d;
-$radius: 8px;
+$primary-hover: #333355;
+$radius: 4px;
 
 .settings-panel {
   display: flex;
   flex-direction: column;
   height: 100%;
   background: $bg;
-  font-family: 'Georgia', serif;
+  font-family: inherit;
   color: $text;
   overflow: hidden;
 }
@@ -74,11 +74,11 @@ $radius: 8px;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: none;
   border-radius: $radius;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
   text-align: left;
@@ -110,7 +110,7 @@ $radius: 8px;
   }
 
   &.save-btn {
-    background: rgba($gold-dim, 0.2);
+    background: rgba($gold, 0.15);
     border: 1px solid $gold-dim;
     color: $gold;
     font-weight: bold;

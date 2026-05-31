@@ -139,6 +139,7 @@ export class Enemy {
   }
 
   takeDamage(amount: number) {
+    if (this.isDead) return;
     this.HP -= amount;
     this.showDamageNumber(amount);
     this.ensureHPBar();
@@ -207,6 +208,7 @@ export class Enemy {
   }
 
   private die() {
+    if (this.isDead) return;
     this.isDead = true;
     this.isChasing = false;
     this.hpBar?.destroy();
