@@ -1,5 +1,5 @@
 ion-content {
-  --background: url('../../../assets/images/wallpaper2.jpg') no-repeat center center / cover;
+  --background: url('../../../assets/images/wallpapi.jpeg') no-repeat center center / cover;
   --ion-background-color: transparent;
 }
 
@@ -174,12 +174,12 @@ ion-content {
 
   &--mage {
     .hero-avatar {
-      background: rgba(100, 80, 255, 0.18);
-      border-color: rgba(130, 100, 255, 0.45);
-      ion-icon { color: #a47aff; }
+      background: rgba(30, 100, 220, 0.2);
+      border-color: rgba(60, 140, 255, 0.5);
+      ion-icon { color: #5aadff; }
     }
-    .hero-class-badge { background: rgba(100, 80, 255, 0.2); color: #c0aaff; }
-    .hp-bar-fill { background: linear-gradient(90deg, #5030cc, #a47aff); }
+    .hero-class-badge { background: rgba(30, 100, 220, 0.2); color: #90ccff; }
+    .hp-bar-fill { background: linear-gradient(90deg, #1040a0, #5aadff); }
   }
 
   &--hunter {
@@ -194,22 +194,22 @@ ion-content {
 
   &--priest {
     .hero-avatar {
-      background: rgba(240, 200, 60, 0.18);
-      border-color: rgba(240, 200, 60, 0.45);
-      ion-icon { color: #f0d060; }
+      background: rgba(210, 180, 120, 0.2);
+      border-color: rgba(220, 195, 140, 0.5);
+      ion-icon { color: #e8d5a3; }
     }
-    .hero-class-badge { background: rgba(240, 200, 60, 0.2); color: #f8e898; }
-    .hp-bar-fill { background: linear-gradient(90deg, #b07800, #f0d060); }
+    .hero-class-badge { background: rgba(210, 180, 120, 0.2); color: #f0e4c0; }
+    .hp-bar-fill { background: linear-gradient(90deg, #9a7a3a, #e8d5a3); }
   }
 
   &--necron {
     .hero-avatar {
-      background: rgba(130, 60, 180, 0.18);
-      border-color: rgba(130, 60, 180, 0.45);
-      ion-icon { color: #b06ae0; }
+      background: rgba(40, 40, 40, 0.5);
+      border-color: rgba(120, 120, 120, 0.45);
+      ion-icon { color: #9e9e9e; }
     }
-    .hero-class-badge { background: rgba(130, 60, 180, 0.2); color: #cc99f0; }
-    .hp-bar-fill { background: linear-gradient(90deg, #5a1a8a, #b06ae0); }
+    .hero-class-badge { background: rgba(40, 40, 40, 0.5); color: #bdbdbd; }
+    .hp-bar-fill { background: linear-gradient(90deg, #1a1a1a, #757575); }
   }
 
   &--ancestral {
@@ -296,16 +296,27 @@ ion-content {
 .action-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: 2px;
+  margin-top: -24px;
 
   .continue-btn {
-    --background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
-    --border-radius: 10px;
-    --box-shadow: 0 4px 18px rgba(0, 210, 255, 0.35);
-    --padding-start: 24px;
-    --padding-end: 24px;
+    --background: linear-gradient(180deg, #6b4a1e 0%, #3a2208 100%);
+    --border-radius: 4px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 200, 100, 0.2);
+    --padding-start: 28px;
+    --padding-end: 28px;
+    --color: #f0d080;
+    font-family: serif;
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     font-size: 12px;
+    text-transform: uppercase;
+    border: 1px solid #8b6020;
+    position: relative;
+
+    &::part(native) {
+      border: 1.5px solid #8b6020;
+      border-bottom-color: #3a2208;
+      border-right-color: #5a3a10;
+    }
   }
 }
