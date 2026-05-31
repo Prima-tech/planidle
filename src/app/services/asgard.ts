@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { IAttack, Player } from '../pnj/player/player';
-import { StorageService } from './storage.service'; // Asegúrate de que la ruta es correcta
+import { StorageService } from './storage.service';
 import { Character } from '../classes/character.class';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
+import { PlayerStateService } from './player-state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +21,8 @@ export class AsgardService {
 
   constructor(
     private storageService: StorageService,
-    private router: Router
+    private router: Router,
+    private playerState: PlayerStateService
   ) { }
 
 
@@ -49,11 +51,13 @@ export class AsgardService {
 
   setProfile(v: any) {
     this._profile = v;
+    this.playerState.setFromProfile(v);
   }
 
   async getProfile() {
     if (!this._profile) {
       this._profile = await this.storageService.get('user_data');
+      this.playerState.setFromProfile(this._profile);
     }
     return this._profile;
   }

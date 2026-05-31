@@ -1,8 +1,10 @@
 import { InventoryItem, InventoryService } from '../services/inventory.service';
+import { PlayerStateService } from '../services/player-state.service';
 import { Player } from '../pnj/player/player';
 
 interface LootEntry {
   name: string;
+  type: 'currency' | 'item';
   chance: number;
   minQty: number;
   maxQty: number;
@@ -13,12 +15,12 @@ interface LootEntry {
 
 const LOOT_TABLES: Record<string, LootEntry[]> = {
   orc: [
-    { name: 'Oro',      chance: 0.5, minQty: 1, maxQty: 3, mergeable: true,  texture: 'sword', order: 10 },
-    { name: 'Espada',   chance: 0.2, minQty: 1, maxQty: 1, mergeable: false, texture: 'sword', order: 1  },
-    { name: 'Poción',   chance: 1, minQty: 1, maxQty: 2, mergeable: true,  texture: 'sword', order: 5  },
+    { name: 'Oro',    type: 'currency', chance: 0.5, minQty: 1, maxQty: 3, mergeable: true,  texture: 'sword', order: 10 },
+    { name: 'Espada', type: 'item',     chance: 0.2, minQty: 1, maxQty: 1, mergeable: false, texture: 'sword', order: 1  },
+    { name: 'Poción', type: 'item',     chance: 1,   minQty: 1, maxQty: 2, mergeable: true,  texture: 'sword', order: 5  },
   ],
   default: [
-    { name: 'Oro',      chance: 0.4, minQty: 1, maxQty: 2, mergeable: true,  texture: 'sword', order: 10 },
+    { name: 'Oro',    type: 'currency', chance: 0.4, minQty: 1, maxQty: 2, mergeable: true,  texture: 'sword', order: 10 },
   ]
 };
 
@@ -27,7 +29,8 @@ export class GridDrops {
   constructor(
     private player: Player,
     private mainScene: Phaser.Scene,
-    private inventoryService: InventoryService
+    private inventoryService: InventoryService,
+    private playerState: PlayerStateService
   ) {
     this.mainScene.events.on('enemyDied', ({ position, type }: { position: Phaser.Math.Vector2, type: string }) => {
       const drops = this.rollDrops(type);
@@ -66,8 +69,14 @@ export class GridDrops {
 
   private collectDrop(sprite: Phaser.GameObjects.Image, loot: LootEntry): void {
     sprite.destroy();
-
     const qty = Phaser.Math.Between(loot.minQty, loot.maxQty);
+
+    if (loot.type === 'currency') {
+      this.playerState.addCoins(qty);
+      console.log(`[Drop] +${qty} monedas`);
+      return;
+    }
+
     const item: InventoryItem = {
       id: `drop-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name: loot.name,
@@ -75,7 +84,6 @@ export class GridDrops {
       sum: loot.mergeable ? qty : undefined,
       order: loot.order,
     };
-
     this.inventoryService.addDroppedItem(item);
     console.log(`[Drop] Recogido: ${item.name}${item.sum ? ` x${item.sum}` : ''}`);
   }

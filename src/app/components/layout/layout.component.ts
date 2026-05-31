@@ -10,6 +10,7 @@ import { SceneManager } from 'src/app/scenes/scene-manager';
 import { AsgardService } from 'src/app/services/asgard';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { WorldService } from 'src/app/services/world.service';
+import { PlayerStateService } from 'src/app/services/player-state.service';
 
 @Component({
   selector: 'app-layout',
@@ -30,7 +31,8 @@ export class LayoutComponent {
     public sceneManager: SceneManager,
     public asgardService: AsgardService,
     public inventoryService: InventoryService,
-    public worldService: WorldService
+    public worldService: WorldService,
+    public playerStateService: PlayerStateService
   ) {
     this.loadGame();
   }
@@ -73,6 +75,7 @@ export class LayoutComponent {
     this.phaserGame.registry.set('asgardService', this.asgardService);
     this.phaserGame.registry.set('inventoryService', this.inventoryService);
     this.phaserGame.registry.set('worldService', this.worldService);
+    this.phaserGame.registry.set('playerStateService', this.playerStateService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

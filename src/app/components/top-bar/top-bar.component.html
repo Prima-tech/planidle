@@ -6,7 +6,7 @@
   <app-status-bar *ngIf="initStatusBar" [class]="'health'" [service$]="valueHP$"></app-status-bar>
   <div class="coins-wrapper">
     <div class="coin-placeholder">
-      {{asgardService?._profile?.coins}}
+      {{ coins$ | async }}
     </div>
     <div class="coin-spinner"></div>
   </div>

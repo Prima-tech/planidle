@@ -158,7 +158,8 @@ export class GameScene extends Phaser.Scene {
 
     createDrops() {
       const inventoryService = this.game.registry.get('inventoryService');
-      this.gridDrops = new GridDrops(this.player, this, inventoryService);
+      const playerStateService = this.game.registry.get('playerStateService');
+      this.gridDrops = new GridDrops(this.player, this, inventoryService, playerStateService);
     }
 
     onGameClick(pointer: Phaser.Input.Pointer) {
