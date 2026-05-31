@@ -71,7 +71,7 @@ export function dirFrames(
 // ── Definición del Orc1 ───────────────────────────────────────────────────────
 // Ajusta framesPerDir si los sprites tienen más o menos frames por dirección.
 
-const ORC1_DIR = DEFAULT_DIR_ORDER;
+const ORC1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
 
 const orc1: EnemyTypeConfig = {
   type: 'orc1',
