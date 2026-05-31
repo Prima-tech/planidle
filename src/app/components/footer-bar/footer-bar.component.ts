@@ -27,10 +27,19 @@ export class FooterBarComponent implements OnInit {
     this.router.navigate([`/${tab}`]);
   }
 
+  private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
+    const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
+      left: [this.characterModal],
+      right: [this.menuModal, this.mapStatsModal],
+    };
+    groups[side].forEach(m => { if (m !== except && m.isOpenModal()) m.close(); });
+  }
+
   openMenu() {
     if (this.menuModal.isOpenModal()) {
       this.menuModal.close();
     } else {
+      this.closeOtherOnSide('right', this.menuModal);
       this.menuModal.open(SettingsPageComponent, 'menu');
     }
   }
@@ -47,6 +56,7 @@ export class FooterBarComponent implements OnInit {
     if (this.characterModal.isOpenModal()) {
       this.characterModal.close();
     } else {
+      this.closeOtherOnSide('left', this.characterModal);
       this.characterModal.open(CharacterPageComponent, 'character');
     }
   }
@@ -55,6 +65,7 @@ export class FooterBarComponent implements OnInit {
     if (this.mapStatsModal.isOpenModal()) {
       this.mapStatsModal.close();
     } else {
+      this.closeOtherOnSide('right', this.mapStatsModal);
       this.mapStatsModal.open(MapStatsComponent, 'map-stats');
     }
   }
