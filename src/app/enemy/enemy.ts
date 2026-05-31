@@ -24,6 +24,7 @@ export class Enemy {
   private state: EnemyState = 'idle';
   private isChasing = false;
   private currentDir: Direction = Direction.DOWN;
+  private lastPlayerPos: Vector2 | null = null;
   private hpBar: Phaser.GameObjects.Graphics | null = null;
   private attackTimer: number;
   private readonly speed: number;
@@ -63,6 +64,7 @@ export class Enemy {
 
   update(delta: number, playerPos: Vector2): void {
     if (this.isDead) return;
+    this.lastPlayerPos = playerPos;
 
     if (this.behavior === 'aggressive' && !this.isChasing) {
       const dist = Phaser.Math.Distance.Between(
@@ -80,6 +82,11 @@ export class Enemy {
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < GameScene.TILE_SIZE * 2) {
+      const dirToPlayer = this.cardinalDir(dx, dy);
+      if (dirToPlayer !== this.currentDir) {
+        this.currentDir = dirToPlayer;
+        if (this.state === 'idle') this.playAnim('idle');
+      }
       this.setState('idle');
       this.attackTimer -= delta;
       if (this.attackTimer <= 0) {
@@ -184,6 +191,7 @@ export class Enemy {
   }
 
   private performAttack(): void {
+    this.facePlayer();
     this.state = 'attack';
     this.mainScene.events.emit('enemyAttackPlayer', { damage: this.damage });
 
@@ -204,17 +212,13 @@ export class Enemy {
     });
   }
 
-  /** Elige la animación de ataque según si el enemigo estaba moviéndose. */
   private resolveAttackAnim(): string {
-    if (this.isChasing) {
-      if (this.config.actions.runAttackFront)  return 'runAttackFront';
-      if (this.config.actions.walkAttackFront) return 'walkAttackFront';
-    }
     return 'attack';
   }
 
   private playHurt(): void {
     if (!this.config.actions.hurt) return;
+    this.facePlayer();
     const prevState = this.state;
     this.state = 'hurt';
     this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
@@ -292,6 +296,13 @@ export class Enemy {
     this.hpBar.fillRoundedRect(x - 1, y - 1, BAR_W + 2, BAR_H + 2, 3);
     this.hpBar.fillStyle(color, 1);
     this.hpBar.fillRoundedRect(x, y, BAR_W * pct, BAR_H, 2);
+  }
+
+  private facePlayer(): void {
+    if (!this.lastPlayerPos) return;
+    const dx = this.lastPlayerPos.x - this.sprite.x;
+    const dy = this.lastPlayerPos.y - this.sprite.y;
+    this.currentDir = this.cardinalDir(dx, dy);
   }
 
   private cardinalDir(dx: number, dy: number): Direction {
