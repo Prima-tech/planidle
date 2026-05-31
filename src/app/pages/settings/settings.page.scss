@@ -248,6 +248,89 @@ $radius: 8px;
   &.muted-text { color: $text-muted; font-style: italic; }
 }
 
+// Botón de payload con ancho completo
+.settings-btn.payload-btn {
+  &.active { border-color: #4a8fc9; color: #7bb8e8; }
+}
+
+// Panel del payload Supabase
+.payload-panel {
+  border-color: #1e3a5a;
+  background: rgba(0, 10, 30, 0.5);
+}
+
+.payload-skip {
+  color: $text-muted;
+  font-style: italic;
+  font-size: 11px;
+  padding: 4px 0;
+}
+
+.payload-table {
+  margin-bottom: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+
+  &.skip { opacity: 0.4; }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0 4px;
+    border-bottom: 1px solid #1e3a5a;
+    margin-bottom: 4px;
+  }
+
+  &__name {
+    font-size: 11px;
+    font-weight: bold;
+    color: #7bb8e8;
+    font-family: monospace;
+  }
+}
+
+.payload-badge {
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+
+  &.update { background: rgba(#2a7a3a, 0.4); color: #6dcc84; }
+  &.skip   { background: rgba(#444, 0.4);     color: $text-muted; }
+}
+
+.payload-field {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.payload-key {
+  color: #7bb8e8;
+}
+
+.payload-val {
+  color: $text;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.payload-note {
+  font-size: 10px;
+  color: $text-muted;
+  font-style: italic;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed #2e2c3e;
+}
+
 .item-type-badge {
   display: inline-flex;
   align-items: center;

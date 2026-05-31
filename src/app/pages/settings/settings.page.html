@@ -56,7 +56,6 @@
       </button>
 
       <div class="btn-row">
-
         <!-- Info local -->
         <button class="settings-btn info-btn" [class.active]="localInfo" (click)="toggleLocalInfo()">
           <span class="btn-icon">📦</span>
@@ -68,7 +67,14 @@
           <span class="btn-icon">📊</span>
           <span>{{ loadingDelta ? '...' : (delta ? 'Cerrar' : 'Ver cambios') }}</span>
         </button>
+      </div>
 
+      <div class="btn-row">
+        <!-- Payload Supabase -->
+        <button class="settings-btn info-btn payload-btn" [class.active]="payload" (click)="togglePayload()">
+          <span class="btn-icon">☁</span>
+          <span>{{ loadingPayload ? '...' : (payload ? 'Cerrar' : 'Payload Supabase') }}</span>
+        </button>
       </div>
 
       <!-- Panel: datos locales -->
@@ -171,6 +177,37 @@
         <ng-container *ngIf="delta.isFirstSync">
           <div class="info-row muted">
             <span class="info-val">Nunca se ha sincronizado con Supabase</span>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Panel: payload Supabase -->
+      <div class="info-panel payload-panel" *ngIf="payload">
+        <p class="info-panel__title">
+          {{ payload.willSync ? 'Se enviará a Supabase' : 'Sin cambios — no se enviará nada' }}
+        </p>
+
+        <div class="payload-skip" *ngIf="!payload.willSync">
+          <span>{{ payload.skipReason }}</span>
+        </div>
+
+        <ng-container *ngFor="let table of payload.tables">
+          <div class="payload-table" [class.skip]="table.operation === 'SKIP'">
+            <div class="payload-table__header">
+              <span class="payload-table__name">{{ table.table }}</span>
+              <span class="payload-badge" [class.update]="table.operation === 'UPDATE'" [class.skip]="table.operation === 'SKIP'">
+                {{ table.operation }}
+              </span>
+            </div>
+
+            <ng-container *ngIf="table.operation === 'UPDATE'">
+              <div class="payload-field" *ngFor="let f of payloadFields(table.fields)">
+                <span class="payload-key">{{ f.key }}</span>
+                <span class="payload-val">{{ f.val }}</span>
+              </div>
+            </ng-container>
+
+            <div class="payload-note" *ngIf="table.note">{{ table.note }}</div>
           </div>
         </ng-container>
       </div>

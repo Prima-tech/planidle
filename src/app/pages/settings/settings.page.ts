@@ -4,7 +4,7 @@ import { SceneManager } from "src/app/scenes/scene-manager";
 import { AsgardService } from "src/app/services/asgard";
 import { InventoryService } from "src/app/services/inventory.service";
 import { IAttack } from "src/app/pnj/player/player";
-import { SaveService, SaveStatus, LocalInfo, ChangeDelta } from "src/app/services/save.service";
+import { SaveService, SaveStatus, LocalInfo, ChangeDelta, SupabasePayload } from "src/app/services/save.service";
 
 @Component({
   selector: 'app-settings-page',
@@ -24,8 +24,10 @@ export class SettingsPageComponent {
 
   localInfo: LocalInfo | null = null;
   delta: ChangeDelta | null = null;
-  loadingInfo  = false;
-  loadingDelta = false;
+  payload: SupabasePayload | null = null;
+  loadingInfo    = false;
+  loadingDelta   = false;
+  loadingPayload = false;
 
   readonly FIELD_LABELS: Record<string, string> = {
     coins:        'Monedas',
@@ -50,6 +52,20 @@ export class SettingsPageComponent {
     this.loadingDelta = true;
     this.delta = await this.saveService.getDelta();
     this.loadingDelta = false;
+  }
+
+  async togglePayload() {
+    if (this.payload) { this.payload = null; return; }
+    this.loadingPayload = true;
+    this.payload = await this.saveService.getSupabasePayload();
+    this.loadingPayload = false;
+  }
+
+  payloadFields(fields: Record<string, any>): { key: string; val: string }[] {
+    return Object.entries(fields).map(([key, val]) => ({
+      key,
+      val: typeof val === 'object' ? JSON.stringify(val) : String(val),
+    }));
   }
 
   deltaKeys(delta: ChangeDelta): (keyof ChangeDelta['playerState'])[] {

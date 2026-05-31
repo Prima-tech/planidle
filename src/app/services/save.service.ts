@@ -48,6 +48,19 @@ export interface ChangeDelta {
   inventoryDelta: InventoryItemDelta[];
 }
 
+export interface SupabaseTablePayload {
+  table: string;
+  operation: 'UPDATE' | 'SKIP';
+  fields: Record<string, any>;
+  note?: string;
+}
+
+export interface SupabasePayload {
+  willSync: boolean;
+  skipReason?: string;
+  tables: SupabaseTablePayload[];
+}
+
 export interface LocalInfo {
   playerState: PlayerState;
   itemCount: number;
@@ -206,6 +219,16 @@ export class SaveService {
     setTimeout(() => this.status$.next('idle'), 2000);
   }
 
+  /** Devuelve exactamente lo que se enviaría a Supabase si se pulsara "Guardar" ahora */
+  async getSupabasePayload(): Promise<SupabasePayload> {
+    if (OFFLINE_MODE) {
+      return { willSync: false, skipReason: 'OFFLINE_MODE activo', tables: [] };
+    }
+    const current = this.buildSnapshot();
+    const synced: GameSnapshot | null = await this.storage.get(SYNCED_KEY);
+    return this.buildSupabasePayload(current, synced);
+  }
+
   private async saveRemote(): Promise<void> {
     if (OFFLINE_MODE) {
       console.log('[Save] Modo offline — guardado remoto omitido');
@@ -215,31 +238,22 @@ export class SaveService {
       this.status$.next('remote');
       const current = this.buildSnapshot();
       const synced: GameSnapshot | null = await this.storage.get(SYNCED_KEY);
+      const payload = this.buildSupabasePayload(current, synced);
 
-      // Solo envía los campos de playerState que hayan cambiado
-      const partialPS: Partial<PlayerState> = {};
-      const keys: (keyof PlayerState)[] = ['coins', 'specialCoins', 'exp', 'lvl'];
-      for (const key of keys) {
-        if (!synced || current.playerState[key] !== synced.playerState[key]) {
-          partialPS[key] = current.playerState[key];
-        }
-      }
-      const inventoryChanged =
-        !synced || JSON.stringify(current.inventory) !== JSON.stringify(synced.inventory);
-
-      if (Object.keys(partialPS).length === 0 && !inventoryChanged) {
+      if (!payload.willSync) {
         console.log('[Save] Sin cambios — sync omitida');
         this.status$.next('saved');
         setTimeout(() => this.status$.next('idle'), 2000);
         return;
       }
 
-      await this.supabase.saveGameData(
-        partialPS,
-        inventoryChanged ? current.inventory : null
-      );
+      const globalDataTable = payload.tables.find(t => t.table === 'global_data');
+      const inventoryTable  = payload.tables.find(t => t.table === 'inventory');
 
-      // Marca como sincronizado
+      const partialPS: Partial<PlayerState> = globalDataTable?.fields ?? {};
+      const inventoryPayload = inventoryTable ? current.inventory : null;
+
+      await this.supabase.saveGameData(partialPS, inventoryPayload);
       await this.storage.set(SYNCED_KEY, current);
       this.status$.next('saved');
       setTimeout(() => this.status$.next('idle'), 2000);
@@ -248,5 +262,48 @@ export class SaveService {
       this.status$.next('error');
       setTimeout(() => this.status$.next('idle'), 3000);
     }
+  }
+
+  private buildSupabasePayload(current: GameSnapshot, synced: GameSnapshot | null): SupabasePayload {
+    const tables: SupabaseTablePayload[] = [];
+
+    // --- global_data ---
+    const psFields: Record<string, any> = {};
+    const psKeys: (keyof PlayerState)[] = ['coins', 'specialCoins', 'exp', 'lvl'];
+    for (const key of psKeys) {
+      if (!synced || current.playerState[key] !== synced.playerState[key]) {
+        psFields[key] = current.playerState[key];
+      }
+    }
+
+    if (Object.keys(psFields).length > 0) {
+      psFields['last_modified'] = current.lastModified;
+      tables.push({ table: 'global_data', operation: 'UPDATE', fields: psFields });
+    } else {
+      tables.push({ table: 'global_data', operation: 'SKIP', fields: {}, note: 'Sin cambios' });
+    }
+
+    // --- inventory (pendiente de tabla propia) ---
+    const inventoryChanged = !synced ||
+      JSON.stringify(current.inventory) !== JSON.stringify(synced.inventory);
+
+    if (inventoryChanged) {
+      const itemCount = current.inventory.flat(2).filter(Boolean).length;
+      tables.push({
+        table: 'inventory',
+        operation: 'UPDATE',
+        fields: { slots: itemCount },
+        note: `${itemCount} items (grid completo — tabla pendiente de normalizar)`,
+      });
+    } else {
+      tables.push({ table: 'inventory', operation: 'SKIP', fields: {}, note: 'Sin cambios' });
+    }
+
+    const willSync = tables.some(t => t.operation === 'UPDATE');
+    return {
+      willSync,
+      skipReason: willSync ? undefined : 'Todo sincronizado',
+      tables,
+    };
   }
 }
