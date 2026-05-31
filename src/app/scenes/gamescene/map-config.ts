@@ -1,6 +1,18 @@
-export interface EnemySpawn {
-  tilePos: { x: number; y: number };
-  type: string;
+export type EnemyBehavior = 'passive' | 'aggressive';
+
+export interface SpawnZone {
+  tileX: number;
+  tileY: number;
+  width: number;   // en tiles
+  height: number;  // en tiles
+}
+
+export interface SpawnConfig {
+  enemyType: string;
+  zone: SpawnZone;
+  maxCount: number;
+  behavior: EnemyBehavior;
+  visionRadius: number; // tiles — solo activo en modo aggressive
 }
 
 export interface PortalConfig {
@@ -16,7 +28,7 @@ export interface MapConfig {
   tilesetKey: string;
   tilesetImage: string;
   tilesetName: string;
-  enemies: EnemySpawn[];
+  spawns: SpawnConfig[];
   portals: PortalConfig[];
 }
 
@@ -29,7 +41,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     tilesetKey: 'tiles',
     tilesetImage: 'assets/tilemaps/test/cloud_tileset.png',
     tilesetName: 'Cloud City',
-    enemies: [],
+    spawns: [],
     portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1' }]
   },
   '1-1': {
@@ -40,7 +52,15 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     tilesetKey: 'tiles',
     tilesetImage: 'assets/tilemaps/test/cloud_tileset.png',
     tilesetName: 'Cloud City',
-    enemies: [{ tilePos: { x: 8, y: 8 }, type: 'orc' }],
+    spawns: [
+      {
+        enemyType: 'orc',
+        zone: { tileX: 7, tileY: 7, width: 4, height: 4 },
+        maxCount: 3,
+        behavior: 'passive',
+        visionRadius: 5,
+      }
+    ],
     portals: [{ tilePos: { x: 2, y: 2 }, targetMapId: 'hogar' }]
   }
 };

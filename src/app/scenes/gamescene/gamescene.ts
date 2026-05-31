@@ -5,7 +5,12 @@ import { GridDrops } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
-import { MapConfig } from "./map-config";
+import { MapConfig, SpawnConfig } from "./map-config";
+
+interface SpawnTracker {
+  config: SpawnConfig;
+  count: number;
+}
 
 @Injectable({
     providedIn: 'root'
@@ -18,6 +23,7 @@ export class GameScene extends Phaser.Scene {
     private gridDrops: GridDrops;
     private player: Player;
     private enemies: Enemy[] = [];
+    private spawnTrackers: SpawnTracker[] = [];
     private spaceKey: Phaser.Input.Keyboard.Key;
     private portalCooldown = false;
     private currentMapConfig: MapConfig;
@@ -43,12 +49,13 @@ export class GameScene extends Phaser.Scene {
 
     create() {
       this.enemies = [];
+      this.spawnTrackers = [];
       this.portalCooldown = false;
       this.currentMapConfig = this.worldService.getCurrentMap();
       this.initMap();
       this.initPlayer();
       this.createPhysics();
-      this.initEnemies();
+      this.initSpawns();
       this.createGameControls();
       this.initCamera();
       this.createDrops();
@@ -90,15 +97,56 @@ export class GameScene extends Phaser.Scene {
       this.player = this.asgardService.getPlayer();
     }
 
-    initEnemies() {
-      this.currentMapConfig.enemies.forEach(spawn => {
-        const enemySprite = this.add.sprite(0, 0, "enemyTexture");
-        enemySprite.setDepth(2);
-        enemySprite.scale = 3;
-        this.enemies.push(
-          new Enemy(this, enemySprite, new Phaser.Math.Vector2(spawn.tilePos.x, spawn.tilePos.y), this.currentMap)
-        );
-      });
+    initSpawns() {
+      const gfx = this.add.graphics().setDepth(3);
+
+      for (const cfg of this.currentMapConfig.spawns) {
+        // Dibuja el área de spawn (cuadrado pequeño, solo borde)
+        const px = cfg.zone.tileX * GameScene.TILE_SIZE;
+        const py = cfg.zone.tileY * GameScene.TILE_SIZE;
+        const pw = cfg.zone.width  * GameScene.TILE_SIZE;
+        const ph = cfg.zone.height * GameScene.TILE_SIZE;
+        gfx.lineStyle(2, 0xff4444, 0.5);
+        gfx.strokeRect(px, py, pw, ph);
+
+        const tracker: SpawnTracker = { config: cfg, count: 0 };
+        this.spawnTrackers.push(tracker);
+
+        for (let i = 0; i < cfg.maxCount; i++) {
+          this.spawnEnemy(cfg, tracker);
+        }
+      }
+    }
+
+    private spawnEnemy(cfg: SpawnConfig, tracker: SpawnTracker) {
+      if (tracker.count >= cfg.maxCount) return;
+
+      const tileX = Phaser.Math.Between(cfg.zone.tileX, cfg.zone.tileX + cfg.zone.width  - 1);
+      const tileY = Phaser.Math.Between(cfg.zone.tileY, cfg.zone.tileY + cfg.zone.height - 1);
+
+      const sprite = this.add.sprite(0, 0, 'enemyTexture');
+      sprite.setDepth(2);
+      sprite.scale = 3;
+
+      const enemy = new Enemy(
+        this, sprite,
+        new Phaser.Math.Vector2(tileX, tileY),
+        this.currentMap,
+        cfg.enemyType,
+        cfg.behavior,
+        cfg.visionRadius,
+        () => {
+          // Elimina del array sin reasignar (GridPhysics mantiene la referencia)
+          const idx = this.enemies.indexOf(enemy);
+          if (idx !== -1) this.enemies.splice(idx, 1);
+          tracker.count--;
+          // Respawn tras 3 segundos
+          this.time.delayedCall(3000, () => this.spawnEnemy(cfg, tracker));
+        }
+      );
+
+      this.enemies.push(enemy);
+      tracker.count++;
     }
 
     initPortals() {

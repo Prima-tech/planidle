@@ -1,5 +1,6 @@
 import { AnimationService } from "../scenes/gamescene/animation.service";
 import { enemyAnimations, enemyTags } from "../scenes/gamescene/constants";
+import { EnemyBehavior } from "../scenes/gamescene/map-config";
 import { GameScene } from "../scenes/gamescene/gamescene";
 import { Direction } from "../pnj/interfaces/Direction";
 import Phaser from 'phaser';
@@ -23,7 +24,10 @@ export class Enemy {
     public sprite: Phaser.GameObjects.Sprite,
     private tilePos: Vector2,
     private tileMap: Phaser.Tilemaps.Tilemap,
-    public enemyType: string = 'orc'
+    public enemyType: string = 'orc',
+    private behavior: EnemyBehavior = 'passive',
+    private visionRadius: number = 5,
+    private onDeath?: () => void
   ) {
     this.initSpriteProperties();
     this.initAnimation();
@@ -42,19 +46,30 @@ export class Enemy {
 
   initAnimation() {
     this.animationService.createTopDownRightLeftAnim('WALK', enemyTags.WALK, 'enemyTexture', enemyAnimations.WALK);
-    // Idle reusa los mismos frames que WALK pero a framerate bajo (los frames de IDLE en constants.ts son incorrectos)
     this.animationService.createTopDownRightLeftAnim('IDLE', enemyTags.IDLE, 'enemyTexture', enemyAnimations.WALK, -1, 3);
     this.sprite.play(enemyTags.IDLE + this.currentAnimDir);
   }
 
   startChasing() {
-    if (this.isDead) return;
+    if (this.isDead || this.isChasing) return;
     this.isChasing = true;
     this.sprite.play(enemyTags.WALK + this.currentAnimDir);
   }
 
   update(delta: number, playerPos: Vector2): void {
-    if (this.isDead || !this.isChasing) return;
+    if (this.isDead) return;
+
+    // Aggressive: entra en persecución si el jugador entra en rango de visión
+    if (this.behavior === 'aggressive' && !this.isChasing) {
+      const dist = Phaser.Math.Distance.Between(
+        this.sprite.x, this.sprite.y, playerPos.x, playerPos.y
+      );
+      if (dist < this.visionRadius * GameScene.TILE_SIZE) {
+        this.startChasing();
+      }
+    }
+
+    if (!this.isChasing) return;
 
     const pos = new Vector2(this.sprite.x, this.sprite.y);
     const dx = playerPos.x - pos.x;
@@ -93,13 +108,10 @@ export class Enemy {
     this.setMoving(moved);
 
     if (moved) {
-      // Mantener tilePos sincronizado con posición pixel (lo usa el sistema de ataque)
       this.tilePos = new Vector2(
         Math.floor(this.sprite.x / GameScene.TILE_SIZE),
         Math.floor(this.sprite.y / GameScene.TILE_SIZE)
       );
-
-      // Animación según dirección dominante
       const dir = this.getCardinalDir(dx, dy);
       if (dir !== this.currentAnimDir) {
         this.sprite.play(enemyTags.WALK + dir);
@@ -121,51 +133,34 @@ export class Enemy {
   takeDamage(amount: number) {
     this.HP -= amount;
     this.showDamageNumber(amount);
-    if (this.HP <= 0) {
-      this.die();
-    }
+    if (this.HP <= 0) this.die();
   }
 
   private showDamageNumber(amount: number): void {
     const x = this.sprite.x;
     const y = this.sprite.y - this.sprite.displayHeight;
-
     const text = this.mainScene.add.text(x, y, `${amount}`, {
-      fontSize: '64px',
-      color: '#ffff00',
-      fontStyle: 'bold',
-      stroke: '#000000',
-      strokeThickness: 6,
+      fontSize: '64px', color: '#ffff00', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 6,
     });
-    text.setOrigin(0.5, 1);
-    text.setDepth(10);
-
+    text.setOrigin(0.5, 1).setDepth(10);
     this.mainScene.tweens.add({
-      targets: text,
-      y: y - 80,
-      alpha: 0,
-      duration: 900,
-      ease: 'Power2',
+      targets: text, y: y - 80, alpha: 0, duration: 900, ease: 'Power2',
       onComplete: () => text.destroy(),
     });
   }
 
-  getTilePos(): Vector2 {
-    return this.tilePos.clone();
-  }
+  getTilePos(): Vector2 { return this.tilePos.clone(); }
 
   private getCardinalDir(dx: number, dy: number): Direction {
-    if (Math.abs(dx) > Math.abs(dy)) {
-      return dx > 0 ? Direction.RIGHT : Direction.LEFT;
-    }
+    if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? Direction.RIGHT : Direction.LEFT;
     return dy > 0 ? Direction.DOWN : Direction.UP;
   }
 
   private isTileBlocked(pixelPos: Vector2): boolean {
     const tileX = Math.floor(pixelPos.x / GameScene.TILE_SIZE);
     const tileY = Math.floor(pixelPos.y / GameScene.TILE_SIZE);
-    const tileVec = new Vector2(tileX, tileY);
-    if (this.hasNoTile(tileVec)) return true;
+    if (this.hasNoTile(new Vector2(tileX, tileY))) return true;
     return this.tileMap.layers.some((layer) => {
       const tile = this.tileMap.getTileAt(tileX, tileY, false, layer.name);
       return tile && tile.properties.collides;
@@ -186,6 +181,7 @@ export class Enemy {
     this.animationService.createDieAnimation(this.sprite, () => {
       this.sprite.destroy();
       this.mainScene.events.emit('enemyDied', { position: center, type });
+      this.onDeath?.();
     });
   }
 }
