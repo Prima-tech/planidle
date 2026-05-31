@@ -288,11 +288,6 @@ export class GameScene extends Phaser.Scene {
       console.log('Clic en:', pointer.worldX, pointer.worldY);
     }
 
-    private onItemCollected(item: Phaser.GameObjects.Image) {
-      console.log("Item collected!");
-      item.destroy();
-      this.events.emit('itemCollected', item);
-    }
 
     initEnemyAttackListener() {
       this.events.on('enemyAttackPlayer', ({ damage }: { damage: number }) => {
