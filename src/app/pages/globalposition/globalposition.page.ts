@@ -77,8 +77,8 @@ export class GlobalpositionPage implements OnInit {
     await this.storageService.set('characters', full);
   }
 
-  continue() {
-    this.asgardService.setSelectedPlayer(this.isSelected);
+  async continue() {
+    await this.asgardService.setSelectedPlayer(this.isSelected);
     this.router.navigate(['/main']);
   }
 

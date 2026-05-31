@@ -49,12 +49,12 @@ export class LayoutComponent {
     this.asgardService.refreshData();
     this.service.getUserData().subscribe(async (data) => {
       this.asgardService.createPlayer(data);
-      this.registerServices();
-      // Si hay un personaje ya seleccionado (sesión previa), carga su snapshot local
+      // Carga el snapshot ANTES de crear Phaser para que preload() vea el mapa correcto
       const player = await this.asgardService.getSelectedPlayer();
       if (player?.id) {
         await this.saveService.loadCharacter(String(player.id));
       }
+      this.registerServices();
       this.dataLoaded = true;
     })
   }

@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { PlayerStateService } from './player-state.service';
 import { SaveService } from './save.service';
+import { SceneManager } from '../scenes/scene-manager';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +25,8 @@ export class AsgardService {
     private storageService: StorageService,
     private router: Router,
     private playerState: PlayerStateService,
-    private saveService: SaveService
+    private saveService: SaveService,
+    private sceneManager: SceneManager,
   ) { }
 
   async refreshData() {
@@ -83,8 +85,19 @@ export class AsgardService {
   async setSelectedPlayer(player: any) {
     this.selectedPlayer = new Character(player);
     await this.storageService.set('selected_player', player);
-    // Carga el snapshot local de este personaje (monedas, inventario)
     await this.saveService.loadCharacter(String(player.id));
+    this.restartGameScene();
+  }
+
+  private restartGameScene() {
+    const game = this.sceneManager.game;
+    if (!game) return;
+    const gameScene = game.scene.getScene('GameScene');
+    if (gameScene?.scene.isActive()) {
+      gameScene.scene.restart();
+    } else {
+      game.scene.start('GameScene');
+    }
   }
 
   async getSelectedPlayer() {
