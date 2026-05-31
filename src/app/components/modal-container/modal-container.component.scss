@@ -11,12 +11,13 @@
     background: #a19695;
   }
   &.character {
-    top: 15px;
-    left: 10px;
-    border-radius: 8px;
-    min-width: 300px;
-    height: calc(100% - 70px);
-    background: #a19695;
+    top: 10px;
+    bottom: 61px;
+    left: 15px;
+    width: fit-content;
+    border-radius: 12px;
+    background: #1a1a2e;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   }
   &.inventory {
     top: 0;

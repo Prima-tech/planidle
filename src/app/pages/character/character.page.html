@@ -1,1 +1,128 @@
-<h2>Página dos</h2><p>Contenido de la página uno.</p>
+<div class="char-layout" (click)="$event.stopPropagation()">
+
+<!-- Tabs lateral izquierdo -->
+<div class="char-tabs">
+  <div class="char-tab" [class.active]="activeTab === 0" (click)="activeTab = 0">
+    <ion-icon name="person-outline"></ion-icon>
+  </div>
+  <div class="char-tab" [class.active]="activeTab === 1" (click)="activeTab = 1">
+    <ion-icon name="flash-outline"></ion-icon>
+  </div>
+  <div class="char-tab" [class.active]="activeTab === 2" (click)="activeTab = 2">
+    <ion-icon name="book-outline"></ion-icon>
+  </div>
+  <div class="char-tab" [class.active]="activeTab === 3" (click)="activeTab = 3">
+    <ion-icon name="stats-chart-outline"></ion-icon>
+  </div>
+</div>
+
+<div class="char-content">
+
+<!-- TAB 0: Equipamiento + Stats -->
+<div *ngIf="activeTab === 0" class="char-body" (click)="$event.stopPropagation()">
+
+  <!-- Header del personaje -->
+  <div class="char-header">
+    <div class="char-avatar">
+      <ion-icon [name]="classIcon"></ion-icon>
+    </div>
+    <div class="char-info">
+      <div class="char-name">{{ character?.name ?? '—' }}</div>
+      <div class="char-class-badge">{{ character?.character_class ?? '' }}</div>
+      <div class="char-level">Nivel {{ character?.lvl ?? 1 }}</div>
+    </div>
+  </div>
+
+  <!-- Slots de equipamiento -->
+  <div class="equip-grid">
+    <div class="equip-slot slot-head">
+      <ion-icon name="skull-outline"></ion-icon>
+      <span>Casco</span>
+    </div>
+    <div class="equip-slot slot-offhand">
+      <ion-icon name="shield-outline"></ion-icon>
+      <span>Escudo</span>
+    </div>
+    <div class="equip-slot slot-body">
+      <ion-icon name="body-outline"></ion-icon>
+      <span>Pecho</span>
+    </div>
+    <div class="equip-slot slot-mainhand">
+      <ion-icon name="hammer-outline"></ion-icon>
+      <span>Arma</span>
+    </div>
+    <div class="equip-slot slot-legs">
+      <ion-icon name="git-branch-outline"></ion-icon>
+      <span>Piernas</span>
+    </div>
+    <div class="equip-slot slot-ring1">
+      <ion-icon name="ellipse-outline"></ion-icon>
+      <span>Anillo</span>
+    </div>
+    <div class="equip-slot slot-boots">
+      <ion-icon name="footsteps-outline"></ion-icon>
+      <span>Botas</span>
+    </div>
+    <div class="equip-slot slot-ring2">
+      <ion-icon name="ellipse-outline"></ion-icon>
+      <span>Anillo</span>
+    </div>
+    <div class="equip-slot slot-amulet">
+      <ion-icon name="diamond-outline"></ion-icon>
+      <span>Amuleto</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- TAB 1: Stats -->
+<div *ngIf="activeTab === 1" class="char-body" (click)="$event.stopPropagation()">
+  <div class="stats-section">
+    <div class="stat-row">
+      <span class="stat-label">Vida</span>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill stat-hp"
+             [style.width.%]="character?.max_hp ? (character.current_hp / character.max_hp) * 100 : 100">
+        </div>
+      </div>
+      <span class="stat-value">{{ character?.current_hp ?? 0 }}/{{ character?.max_hp ?? 0 }}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Ataque</span>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill stat-atk" style="width: 40%"></div>
+      </div>
+      <span class="stat-value">10</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Defensa</span>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill stat-def" style="width: 25%"></div>
+      </div>
+      <span class="stat-value">5</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Magia</span>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill stat-int" style="width: 20%"></div>
+      </div>
+      <span class="stat-value">3</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Agilidad</span>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill stat-agi" style="width: 35%"></div>
+      </div>
+      <span class="stat-value">8</span>
+    </div>
+  </div>
+</div>
+
+<!-- TABS 2-3: Próximamente -->
+<div *ngIf="activeTab === 2 || activeTab === 3" class="tab-empty" (click)="$event.stopPropagation()">
+  <ion-icon name="construct-outline"></ion-icon>
+  <p>Próximamente</p>
+</div>
+
+</div><!-- /char-content -->
+</div><!-- /char-layout -->
