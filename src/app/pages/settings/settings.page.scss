@@ -181,3 +181,102 @@ $radius: 8px;
   background: linear-gradient(to right, transparent, #2e2c3e, transparent);
   margin: 4px 0;
 }
+
+// Botón de info (datos locales / ver cambios)
+.settings-btn.info-btn {
+  background: $bg-section;
+  border: 1px solid #2e2c3e;
+  font-size: 12px;
+  margin-bottom: 8px;
+
+  &:hover { background: $primary-hover; border-color: $gold-dim; }
+  &.active { border-color: $gold-dim; background: $primary-hover; color: $gold; }
+}
+
+// Panel expandible de información
+.info-panel {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #2e2c3e;
+  border-radius: $radius;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+
+  &__title {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: $gold-dim;
+    margin: 0 0 8px;
+  }
+
+  &__sub {
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: $text-muted;
+    margin: 10px 0 4px;
+    opacity: 0.7;
+    &:first-of-type { margin-top: 0; }
+  }
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+
+  &:last-child { border-bottom: none; }
+  &.muted { opacity: 0.55; }
+  &.delta-row { padding: 5px 0; }
+}
+
+.info-key {
+  color: $text-muted;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.info-val {
+  color: $text;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+
+  &.pending { color: $gold; }
+  &.muted-text { color: $text-muted; font-style: italic; }
+}
+
+.item-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  margin-right: 4px;
+  flex-shrink: 0;
+
+  &.added   { background: rgba(#2a7a3a, 0.4); color: #6dcc84; }
+  &.removed { background: rgba($danger, 0.4);  color: #e07070; }
+  &.changed { background: rgba($gold-dim, 0.3); color: $gold;  }
+}
+
+.delta-val {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .from  { color: $text-muted; }
+  .arrow { color: $text-muted; font-size: 10px; }
+  .to    { color: $text; }
+
+  .diff {
+    font-size: 11px;
+    &.pos { color: #6dcc84; }
+    &.neg { color: #e07070; }
+  }
+}

@@ -175,19 +175,22 @@ export class SupabaseService {
 
   // --- SAVE / LOAD GAME DATA ---
 
-  async saveGameData(playerState: any, _inventory: any): Promise<void> {
+  async saveGameData(playerState: Partial<{ coins: number; specialCoins: number; exp: number; lvl: number }>, _inventory: any): Promise<void> {
     const { data: { user } } = await this.supabase.auth.getUser();
     if (!user) throw new Error('No hay sesión activa');
 
+    if (Object.keys(playerState).length === 0) return;
+
+    // Mapea los nombres del modelo al esquema de la tabla
+    const row: Record<string, any> = { last_modified: new Date().toISOString() };
+    if (playerState.coins         !== undefined) row['coins']         = playerState.coins;
+    if (playerState.specialCoins  !== undefined) row['special_coins'] = playerState.specialCoins;
+    if (playerState.exp           !== undefined) row['exp']           = playerState.exp;
+    if (playerState.lvl           !== undefined) row['lvl']           = playerState.lvl;
+
     const { error } = await this.supabase
       .from('global_data')
-      .update({
-        coins:         playerState.coins,
-        special_coins: playerState.specialCoins,
-        exp:           playerState.exp,
-        lvl:           playerState.lvl,
-        last_modified: new Date().toISOString(),
-      })
+      .update(row)
       .eq('id', user.id);
 
     if (error) throw error;

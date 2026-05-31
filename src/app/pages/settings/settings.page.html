@@ -37,6 +37,7 @@
     <!-- GUARDAR -->
     <div class="settings-section">
       <p class="section-label">Partida</p>
+
       <button
         class="settings-btn save-btn"
         [class.saving]="isSaving$ | async"
@@ -53,6 +54,127 @@
         </span>
         <span>{{ saveLabel$ | async }}</span>
       </button>
+
+      <div class="btn-row">
+
+        <!-- Info local -->
+        <button class="settings-btn info-btn" [class.active]="localInfo" (click)="toggleLocalInfo()">
+          <span class="btn-icon">📦</span>
+          <span>{{ loadingInfo ? '...' : (localInfo ? 'Cerrar' : 'Datos locales') }}</span>
+        </button>
+
+        <!-- Delta -->
+        <button class="settings-btn info-btn" [class.active]="delta" (click)="toggleDelta()">
+          <span class="btn-icon">📊</span>
+          <span>{{ loadingDelta ? '...' : (delta ? 'Cerrar' : 'Ver cambios') }}</span>
+        </button>
+
+      </div>
+
+      <!-- Panel: datos locales -->
+      <div class="info-panel" *ngIf="localInfo">
+        <p class="info-panel__title">Estado local actual</p>
+
+        <p class="info-panel__sub">Estadísticas</p>
+        <div class="info-row">
+          <span class="info-key">Monedas</span>
+          <span class="info-val">{{ localInfo.playerState.coins }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Monedas esp.</span>
+          <span class="info-val">{{ localInfo.playerState.specialCoins }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">EXP</span>
+          <span class="info-val">{{ localInfo.playerState.exp }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Nivel</span>
+          <span class="info-val">{{ localInfo.playerState.lvl }}</span>
+        </div>
+
+        <p class="info-panel__sub">Inventario ({{ localInfo.itemCount }} items, {{ localInfo.tabsUsed }} tabs)</p>
+        <ng-container *ngIf="localInfo.inventorySummary.length > 0; else emptyInv">
+          <div class="info-row" *ngFor="let entry of localInfo.inventorySummary">
+            <span class="info-key">{{ entry.name }}</span>
+            <span class="info-val">×{{ entry.total }}</span>
+          </div>
+        </ng-container>
+        <ng-template #emptyInv>
+          <div class="info-row"><span class="info-val muted-text">Vacío</span></div>
+        </ng-template>
+
+        <p class="info-panel__sub">Timestamps</p>
+        <div class="info-row muted">
+          <span class="info-key">Guardado local</span>
+          <span class="info-val">{{ formatDate(localInfo.lastModified) }}</span>
+        </div>
+        <div class="info-row muted">
+          <span class="info-key">Sync remota</span>
+          <span class="info-val">{{ formatDate(localInfo.lastSynced) }}</span>
+        </div>
+      </div>
+
+      <!-- Panel: cambios pendientes -->
+      <div class="info-panel" *ngIf="delta">
+        <p class="info-panel__title">
+          {{ delta.isFirstSync ? 'Primera sync — todo pendiente' : (delta.hasChanges ? 'Cambios pendientes' : 'Todo sincronizado ✓') }}
+        </p>
+
+        <ng-container *ngIf="!delta.isFirstSync">
+          <div class="info-row muted">
+            <span class="info-key">Última sync</span>
+            <span class="info-val">{{ formatDate(delta.lastSyncedAt) }}</span>
+          </div>
+          <div class="info-row muted">
+            <span class="info-key">Local actual</span>
+            <span class="info-val">{{ formatDate(delta.currentLocalAt) }}</span>
+          </div>
+
+          <ng-container *ngFor="let key of deltaKeys(delta)">
+            <div class="info-row delta-row">
+              <span class="info-key">{{ FIELD_LABELS[key] || key }}</span>
+              <span class="info-val delta-val">
+                <span class="from">{{ delta.playerState[key].from }}</span>
+                <span class="arrow">→</span>
+                <span class="to">{{ delta.playerState[key].to }}</span>
+                <span class="diff" [class.pos]="delta.playerState[key].diff > 0" [class.neg]="delta.playerState[key].diff < 0">
+                  ({{ delta.playerState[key].diff > 0 ? '+' : '' }}{{ delta.playerState[key].diff }})
+                </span>
+              </span>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="delta.inventoryDelta.length > 0">
+            <p class="info-panel__sub">Inventario</p>
+            <div class="info-row delta-row" *ngFor="let item of delta.inventoryDelta">
+              <span class="info-key">
+                <span class="item-type-badge" [class]="item.type">{{ item.type === 'added' ? '+' : item.type === 'removed' ? '−' : '~' }}</span>
+                {{ item.name }}
+              </span>
+              <span class="info-val delta-val">
+                <span class="from">{{ item.from }}</span>
+                <span class="arrow">→</span>
+                <span class="to">{{ item.to }}</span>
+                <span class="diff" [class.pos]="item.diff > 0" [class.neg]="item.diff < 0">
+                  ({{ item.diff > 0 ? '+' : '' }}{{ item.diff }})
+                </span>
+              </span>
+            </div>
+          </ng-container>
+
+          <div class="info-row" *ngIf="!delta.inventoryChanged && deltaKeys(delta).length === 0">
+            <span class="info-val muted-text">Sin cambios en datos</span>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="delta.isFirstSync">
+          <div class="info-row muted">
+            <span class="info-val">Nunca se ha sincronizado con Supabase</span>
+          </div>
+        </ng-container>
+      </div>
+
     </div>
 
     <div class="divider"></div>
