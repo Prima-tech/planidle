@@ -1,4 +1,3 @@
-import { Injectable } from "@angular/core";
 import { Enemy } from "src/app/enemy/enemy";
 import { ActionConfig, ENEMY_REGISTRY } from "src/app/enemy/enemy-config";
 import { AnimationService } from "./animation.service";
@@ -10,9 +9,6 @@ import { Player } from "src/app/pnj/player/player";
 import { MapConfig, SpawnConfig, SpawnTracker } from "./map-config";
 import { MapStatsService } from "src/app/services/map-stats.service";
 
-@Injectable({
-    providedIn: 'root'
-  })
 export class GameScene extends Phaser.Scene {
 
     static readonly TILE_SIZE = 48;
