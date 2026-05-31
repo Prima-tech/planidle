@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AsgardService } from 'src/app/services/asgard';
 import { StorageService } from 'src/app/services/storage.service';
@@ -11,10 +11,12 @@ import { MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
   styleUrls: ['./globalposition.page.scss'],
   standalone: false,
 })
-export class GlobalpositionPage implements OnInit {
+export class GlobalpositionPage implements OnInit, OnDestroy {
   isSelected: any = null;
   charMapNames: Record<string, string> = {};
   charLastSeen: Record<string, string> = {};
+  now = Date.now();
+  private ticker: any;
 
   private readonly CLASS_ICONS: Record<string, string> = {
     Warrior:   'shield-outline',
@@ -52,6 +54,11 @@ export class GlobalpositionPage implements OnInit {
     await this.asgardService.refreshData();
     await this.fillLocalRosterIfIncomplete();
     await this.loadCharacterMaps();
+    this.ticker = setInterval(() => this.now = Date.now(), 1000);
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.ticker);
   }
 
   private async loadCharacterMaps(): Promise<void> {
@@ -61,23 +68,35 @@ export class GlobalpositionPage implements OnInit {
       const snapshot = await this.storageService.get(`snapshot_char_${char.id}`);
       const mapId = snapshot?.mapId ?? 'hogar';
       this.charMapNames[char.id] = MAP_REGISTRY[mapId]?.name ?? mapId;
+
       if (snapshot?.lastSeen) {
         this.charLastSeen[char.id] = snapshot.lastSeen;
+      } else {
+        // Personaje nunca jugado: guardar la primera vez que se ve en selección
+        const firstSeenKey = `first_seen_char_${char.id}`;
+        let firstSeen: string = await this.storageService.get(firstSeenKey);
+        if (!firstSeen) {
+          firstSeen = new Date().toISOString();
+          await this.storageService.set(firstSeenKey, firstSeen);
+        }
+        this.charLastSeen[char.id] = firstSeen;
       }
     }
   }
 
   timeSince(charId: string): string {
     const iso = this.charLastSeen[charId];
-    if (!iso) return 'Sin conexión';
-    const diff = Date.now() - new Date(iso).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1)   return 'Ahora mismo';
-    if (mins < 60)  return `Hace ${mins} min`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `Hace ${hours} h`;
-    const days = Math.floor(hours / 24);
-    return `Hace ${days} día${days !== 1 ? 's' : ''}`;
+    if (!iso) return '...';
+    const diff = this.now - new Date(iso).getTime();
+    const totalSecs = Math.floor(diff / 1000);
+    const d = Math.floor(totalSecs / 86400);
+    const h = Math.floor((totalSecs % 86400) / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    if (d > 0) return `${d}d ${h}h ${m}m`;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
   }
 
   private async fillLocalRosterIfIncomplete() {
