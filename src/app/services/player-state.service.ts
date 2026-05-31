@@ -10,6 +10,13 @@ export interface PlayerState {
   hpMax: number;
 }
 
+export const MAX_LEVEL = 100;
+
+/** Exp requerida para pasar del nivel `lvl` al siguiente */
+export function expNeeded(lvl: number): number {
+  return lvl * 100;
+}
+
 const INITIAL_STATE: PlayerState = {
   coins: 0,
   specialCoins: 0,
@@ -24,11 +31,16 @@ export class PlayerStateService {
   private readonly _state$ = new BehaviorSubject<PlayerState>(INITIAL_STATE);
 
   readonly coinDropped$  = new Subject<number>();
+  readonly levelUp$      = new Subject<number>();
   readonly state$        = this._state$.asObservable();
   readonly coins$        = this.state$.pipe(map(s => s.coins),        distinctUntilChanged());
   readonly specialCoins$ = this.state$.pipe(map(s => s.specialCoins), distinctUntilChanged());
   readonly exp$          = this.state$.pipe(map(s => s.exp),          distinctUntilChanged());
   readonly lvl$          = this.state$.pipe(map(s => s.lvl),          distinctUntilChanged());
+  readonly expProgress$  = this.state$.pipe(
+    map(s => s.lvl >= MAX_LEVEL ? 1 : s.exp / expNeeded(s.lvl)),
+    distinctUntilChanged()
+  );
 
   setFromProfile(profile: any): void {
     if (!profile) return;
@@ -52,7 +64,17 @@ export class PlayerStateService {
   }
 
   addExp(amount: number): void {
-    this._patch({ exp: this._state$.getValue().exp + amount });
+    const s = this._state$.getValue();
+    if (s.lvl >= MAX_LEVEL) return;
+    let { exp, lvl } = s;
+    exp += amount;
+    while (lvl < MAX_LEVEL && exp >= expNeeded(lvl)) {
+      exp -= expNeeded(lvl);
+      lvl++;
+      this.levelUp$.next(lvl);
+    }
+    if (lvl >= MAX_LEVEL) exp = 0;
+    this._patch({ exp, lvl });
   }
 
   setHp(hp: number, hpMax?: number): void {

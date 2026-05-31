@@ -16,6 +16,12 @@ interface LootEntry {
   order: number;
 }
 
+const EXP_REWARDS: Record<string, number> = {
+  orc1:          15,
+  orc1_elite:    75,
+  orc1_oblivion: 200,
+};
+
 const LOOT_TABLES: Record<string, LootEntry[]> = {
   orc1: [
     { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5,  mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
@@ -46,6 +52,7 @@ export class GridDrops {
     private playerState: PlayerStateService
   ) {
     this.mainScene.events.on('enemyDied', ({ position, type }: { position: Phaser.Math.Vector2, type: string }) => {
+      this.playerState.addExp(EXP_REWARDS[type] ?? 10);
       const drops = this.rollDrops(type);
       drops.forEach(loot => this.spawnDrop(position, loot));
     });

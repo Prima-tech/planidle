@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { map, startWith } from 'rxjs';
 import { AsgardService } from 'src/app/services/asgard';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
-import { PlayerStateService } from 'src/app/services/player-state.service';
+import { expNeeded, MAX_LEVEL, PlayerStateService } from 'src/app/services/player-state.service';
 
 @Component({
   selector: 'app-top-bar',
@@ -16,8 +16,10 @@ export class TopBarComponent implements OnInit {
   asgardService        = inject(AsgardService);
 
   valueHP$: any = null;
+  valueXP$: any = null;
   initStatusBar = false;
   coins$ = this.playerState.coins$;
+  lvl$   = this.playerState.lvl$;
 
   private readonly CLASS_ICONS: Record<string, string> = {
     Warrior:   'shield-outline',
@@ -46,6 +48,13 @@ export class TopBarComponent implements OnInit {
         return { value, color };
       })
     );
+    this.valueXP$ = this.playerState.state$.pipe(
+      map(s => ({
+        value: s.lvl >= MAX_LEVEL ? 1 : s.exp / expNeeded(s.lvl),
+        color: 'warning',
+      }))
+    );
+
     this.initStatusBar = true;
   }
 }
