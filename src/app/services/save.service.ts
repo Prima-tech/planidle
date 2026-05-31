@@ -6,8 +6,12 @@ import { InventoryService, InventoryItem } from './inventory.service';
 import { SupabaseService } from './supabase.service';
 import { WorldService } from './world.service';
 
-/** true → nunca llama a Supabase, solo guarda en local (desarrollo sin backend) */
-const OFFLINE_MODE = false;
+/**
+ * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
+ * false → el botón "Guardar" escribe en local Y sincroniza con Supabase.
+ * El auto-guardado (debounce) NUNCA llama a Supabase independientemente de este flag.
+ */
+const OFFLINE_MODE = true;
 
 export type SaveStatus = 'idle' | 'local' | 'remote' | 'saved' | 'error';
 

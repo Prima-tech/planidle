@@ -15,8 +15,9 @@ export class SupabaseService {
       'sb_publishable_5Hs1VoKmBEEpK0dsAYpJ7g_CNAf0WGG',
       {
         auth: {
-          persistSession: true,
-          autoRefreshToken: true
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
         },
         global: { fetch: offlineFetch }
       }
@@ -55,8 +56,6 @@ export class SupabaseService {
       .single();
 
     if (data) {
-      // Transformamos los arrays en mapas hash antes de guardar en local
-      debugger;
       const userData = {
         ...data,
         // characters: this.arrayToHash(data.characters),
