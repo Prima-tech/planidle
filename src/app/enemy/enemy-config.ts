@@ -93,7 +93,7 @@ const orc1: EnemyTypeConfig = {
       frameWidth: 64, frameHeight: 64,
       frameRate: 8, repeat: -1,
       directional: true,
-      frames: dirFrames(8, ORC1_DIR),
+      frames: dirFrames(6, ORC1_DIR),
     },
     run: {
       filename: 'orc1_run_full',
@@ -107,21 +107,21 @@ const orc1: EnemyTypeConfig = {
       frameWidth: 64, frameHeight: 64,
       frameRate: 8, repeat: 0,
       directional: true,
-      frames: dirFrames(6, ORC1_DIR),
+      frames: dirFrames(8, ORC1_DIR),
     },
     hurt: {
       filename: 'orc1_hurt_full',
       frameWidth: 64, frameHeight: 64,
       frameRate: 10, repeat: 0,
       directional: true,
-      frames: dirFrames(3, ORC1_DIR),
+      frames: dirFrames(6, ORC1_DIR),
     },
     death: {
       filename: 'orc1_death_full',
       frameWidth: 64, frameHeight: 64,
       frameRate: 6, repeat: 0,
       directional: false,
-      frames: { start: 0, end: 5 },
+      frames: { start: 0, end: 7 },
     },
     walkAttackFront: {
       filename: 'orc1_walk_attack_front_full',
@@ -135,7 +135,7 @@ const orc1: EnemyTypeConfig = {
       frameWidth: 64, frameHeight: 64,
       frameRate: 8, repeat: 0,
       directional: false,
-      frames: { start: 0, end: 5 },
+      frames: { start: 0, end: 7 },
     },
   },
 };
