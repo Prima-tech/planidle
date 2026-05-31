@@ -55,6 +55,12 @@ export class PlayerStateService {
     this._patch({ exp: this._state$.getValue().exp + amount });
   }
 
+  setHp(hp: number, hpMax?: number): void {
+    const patch: Partial<PlayerState> = { hp: Math.max(0, hp) };
+    if (hpMax !== undefined) patch.hpMax = hpMax;
+    this._patch(patch);
+  }
+
   /** Devuelve una copia plana lista para persistir en Supabase */
   snapshot(): PlayerState {
     return { ...this._state$.getValue() };

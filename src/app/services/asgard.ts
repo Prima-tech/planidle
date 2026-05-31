@@ -70,9 +70,10 @@ export class AsgardService {
     this.selectedPlayer = new Character(player);
     await this.storageService.set('selected_player', player);
     await this.saveService.loadCharacter(String(player.id));
+    const state = this.playerState.snapshot();
     this.playerBridge.resetPlayerStatus(
-      this.selectedPlayer.current_hp ?? this.selectedPlayer.max_hp,
-      this.selectedPlayer.max_hp,
+      state.hp   ?? this.selectedPlayer.current_hp ?? this.selectedPlayer.max_hp,
+      state.hpMax ?? this.selectedPlayer.max_hp,
     );
     this.playerBridge.restartGameScene();
   }
