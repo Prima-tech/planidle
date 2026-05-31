@@ -40,12 +40,16 @@ export class Player {
   }
 
   receiveAttack(attack: IAttack) {
-    this.setHP(attack.HP)
+    this.setHP(attack.HP);
   }
 
   setHP(HP: number) {
-    this.status.HP = this.status.HP + HP;
-    console.log('tiro le next', this.status)
+    this.status.HP = Math.max(0, this.status.HP + HP);
+    this.status$.next(this.status);
+  }
+
+  resetStatus(currentHp: number, maxHp: number) {
+    this.status = { HP: currentHp, HPMax: maxHp };
     this.status$.next(this.status);
   }
 

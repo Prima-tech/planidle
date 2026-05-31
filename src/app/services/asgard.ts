@@ -86,6 +86,12 @@ export class AsgardService {
     this.selectedPlayer = new Character(player);
     await this.storageService.set('selected_player', player);
     await this.saveService.loadCharacter(String(player.id));
+    if (this.player) {
+      this.player.resetStatus(
+        this.selectedPlayer.current_hp ?? this.selectedPlayer.max_hp,
+        this.selectedPlayer.max_hp,
+      );
+    }
     this.restartGameScene();
   }
 
