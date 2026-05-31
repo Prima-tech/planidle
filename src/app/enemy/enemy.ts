@@ -8,9 +8,14 @@ import Phaser from 'phaser';
 const Vector2 = Phaser.Math.Vector2;
 type Vector2 = Phaser.Math.Vector2;
 
+const BAR_W      = 104;  // ancho en world units
+const BAR_H      = 11;   // alto en world units
+const BAR_OFFSET = 18;   // distancia sobre la cabeza
+
 export class Enemy {
   name: string;
-  HP: number = 50;
+  HP: number    = 50;
+  maxHP: number = 50;
   isDead: boolean = false;
 
   private animationService: AnimationService;
@@ -18,6 +23,7 @@ export class Enemy {
   private isMoving: boolean = false;
   private speed: number = GameScene.TILE_SIZE * 2;
   private currentAnimDir: Direction = Direction.DOWN;
+  private hpBar: Phaser.GameObjects.Graphics | null = null;
 
   constructor(
     public mainScene: Phaser.Scene,
@@ -68,6 +74,8 @@ export class Enemy {
         this.startChasing();
       }
     }
+
+    if (this.hpBar) this.drawHPBar();
 
     if (!this.isChasing) return;
 
@@ -133,6 +141,8 @@ export class Enemy {
   takeDamage(amount: number) {
     this.HP -= amount;
     this.showDamageNumber(amount);
+    this.ensureHPBar();
+    this.drawHPBar();
     if (this.HP <= 0) this.die();
   }
 
@@ -151,6 +161,28 @@ export class Enemy {
   }
 
   getTilePos(): Vector2 { return this.tilePos.clone(); }
+
+  private ensureHPBar(): void {
+    if (this.hpBar) return;
+    this.hpBar = this.mainScene.add.graphics();
+    this.hpBar.setDepth(15);
+  }
+
+  private drawHPBar(): void {
+    if (!this.hpBar) return;
+    const pct    = Math.max(0, this.HP / this.maxHP);
+    const color  = pct > 0.5 ? 0x44cc44 : pct > 0.25 ? 0xffcc00 : 0xff3333;
+    const x      = this.sprite.x - BAR_W / 2;
+    const y      = this.sprite.y - this.sprite.displayHeight - BAR_OFFSET;
+
+    this.hpBar.clear();
+    // Fondo oscuro
+    this.hpBar.fillStyle(0x000000, 0.55);
+    this.hpBar.fillRoundedRect(x - 1, y - 1, BAR_W + 2, BAR_H + 2, 3);
+    // Relleno coloreado
+    this.hpBar.fillStyle(color, 1);
+    this.hpBar.fillRoundedRect(x, y, BAR_W * pct, BAR_H, 2);
+  }
 
   private getCardinalDir(dx: number, dy: number): Direction {
     if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? Direction.RIGHT : Direction.LEFT;
@@ -176,6 +208,8 @@ export class Enemy {
   private die() {
     this.isDead = true;
     this.isChasing = false;
+    this.hpBar?.destroy();
+    this.hpBar = null;
     const center = this.sprite.getCenter();
     const type = this.enemyType;
     this.animationService.createDieAnimation(this.sprite, () => {
