@@ -15,6 +15,11 @@ export interface SpawnConfig {
   visionRadius: number;
 }
 
+export interface SpawnTracker {
+  config: SpawnConfig;
+  count: number;
+}
+
 export interface PortalConfig {
   tilePos: { x: number; y: number };
   targetMapId: string;

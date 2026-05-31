@@ -18,6 +18,7 @@ export class Enemy {
   HP: number;
   maxHP: number;
   isDead = false;
+  readonly type: string;
 
   private animService: AnimationService;
   private state: EnemyState = 'idle';
@@ -39,6 +40,7 @@ export class Enemy {
     private visionRadius: number = 5,
     private onDeath?: () => void,
   ) {
+    this.type           = config.type;
     this.HP             = config.hp;
     this.maxHP          = config.hp;
     this.speed          = config.speed;

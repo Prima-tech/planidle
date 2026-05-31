@@ -46,6 +46,7 @@ export class GameScene extends Phaser.Scene {
 
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png');
+      this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
 
       const mapCfg = this.worldService.getCurrentMap();
       this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
@@ -77,6 +78,7 @@ export class GameScene extends Phaser.Scene {
       this.initMap();
       this.initPlayer();
       this.registerEnemyAnimations();
+      this.registerDropTextures();
       this.createPhysics();
       this.initSpawns();
       this.initEnemyAttackListener();
@@ -184,6 +186,33 @@ export class GameScene extends Phaser.Scene {
       for (const type of usedTypes) {
         const cfg = ENEMY_REGISTRY[type];
         if (cfg) animService.registerEnemyAnimations(cfg);
+      }
+    }
+
+    private registerDropTextures(): void {
+      if (!this.anims.exists('coin_spin')) {
+        this.anims.create({
+          key: 'coin_spin',
+          frames: this.anims.generateFrameNumbers('drop_coin', { start: 0, end: 3 }),
+          frameRate: 8,
+          repeat: -1,
+        });
+      }
+
+      if (!this.textures.exists('drop_potion')) {
+        const g = this.add.graphics();
+        g.fillStyle(0x7a3b00);
+        g.fillRect(5, 0, 6, 4);          // corcho
+        g.fillStyle(0xcc55ff);
+        g.fillRect(6, 4, 4, 6);          // cuello
+        g.fillStyle(0xaa33ff);
+        g.fillCircle(8, 17, 7);          // cuerpo base
+        g.fillStyle(0xcc55ff, 0.7);
+        g.fillCircle(8, 16, 5);          // cuerpo claro
+        g.fillStyle(0xffffff, 0.35);
+        g.fillCircle(5, 14, 2);          // reflejo
+        g.generateTexture('drop_potion', 16, 24);
+        g.destroy();
       }
     }
 

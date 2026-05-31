@@ -10,18 +10,20 @@ interface LootEntry {
   maxQty: number;
   mergeable: boolean;
   texture: string;
+  animKey?: string;
+  scale: number;
   order: number;
 }
 
 const LOOT_TABLES: Record<string, LootEntry[]> = {
-  orc: [
-    { name: 'Oro',    type: 'currency', chance: 0.5, minQty: 1, maxQty: 3, mergeable: true,  texture: 'sword', order: 10 },
-    { name: 'Espada', type: 'item',     chance: 0.2, minQty: 1, maxQty: 1, mergeable: false, texture: 'sword', order: 1  },
-    { name: 'Poción', type: 'item',     chance: 1,   minQty: 1, maxQty: 2, mergeable: true,  texture: 'sword', order: 5  },
+  orc1: [
+    { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5, mergeable: true,  texture: 'drop_coin',   animKey: 'coin_spin', scale: 3, order: 10 },
+    { name: 'Espada', type: 'item',     chance: 0.15, minQty: 1, maxQty: 1, mergeable: false, texture: 'sword',                             scale: 3, order: 1  },
+    { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 2, mergeable: true,  texture: 'drop_potion',                       scale: 4, order: 5  },
   ],
   default: [
-    { name: 'Oro',    type: 'currency', chance: 0.4, minQty: 1, maxQty: 2, mergeable: true,  texture: 'sword', order: 10 },
-  ]
+    { name: 'Oro',    type: 'currency', chance: 0.4,  minQty: 1, maxQty: 2, mergeable: true,  texture: 'drop_coin',   animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
 };
 
 export class GridDrops {
@@ -47,13 +49,27 @@ export class GridDrops {
     const offsetX = Phaser.Math.Between(-40, 40);
     const offsetY = Phaser.Math.Between(-20, 20);
 
-    const sprite = this.mainScene.physics.add.image(
+    const sprite = this.mainScene.physics.add.sprite(
       position.x + offsetX,
       position.y + offsetY,
-      loot.texture
+      loot.texture,
+      0,
     );
-    sprite.setScale(3);
     sprite.setDepth(1);
+    sprite.setAlpha(0);
+    sprite.setScale(0);
+
+    if (loot.animKey) sprite.play(loot.animKey);
+
+    // Animación de aparición
+    this.mainScene.tweens.add({
+      targets: sprite,
+      alpha: 1,
+      scaleX: loot.scale,
+      scaleY: loot.scale,
+      duration: 250,
+      ease: 'Back.Out',
+    });
 
     let collected = false;
     this.mainScene.physics.add.overlap(
@@ -67,8 +83,20 @@ export class GridDrops {
     );
   }
 
-  private collectDrop(sprite: Phaser.GameObjects.Image, loot: LootEntry): void {
-    sprite.destroy();
+  private collectDrop(sprite: Phaser.Physics.Arcade.Sprite, loot: LootEntry): void {
+    sprite.disableBody(false, false);
+
+    this.mainScene.tweens.add({
+      targets: sprite,
+      alpha: 0,
+      y: sprite.y - 30,
+      scaleX: sprite.scaleX * 0.4,
+      scaleY: sprite.scaleY * 0.4,
+      duration: 200,
+      ease: 'Power2',
+      onComplete: () => sprite.destroy(),
+    });
+
     const qty = Phaser.Math.Between(loot.minQty, loot.maxQty);
 
     if (loot.type === 'currency') {
@@ -84,6 +112,5 @@ export class GridDrops {
       order: loot.order,
     };
     this.inventoryService.addDroppedItem(item);
-    console.log(`[Drop] Recogido: ${item.name}${item.sum ? ` x${item.sum}` : ''}`);
   }
 }
