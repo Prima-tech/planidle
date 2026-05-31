@@ -62,12 +62,18 @@ export class LayoutComponent implements OnDestroy {
     this.asgardService.refreshData();
     this.service.getUserData().subscribe(async (data) => {
       this.asgardService.createPlayer(data);
-      const player = await this.asgardService.getSelectedPlayer();
-      console.log('[Layout] personaje seleccionado:', player?.id, player?.name);
-      if (player?.id) {
-        await this.saveService.loadCharacter(String(player.id));
+
+      // Solo en el primer arranque: Phaser no existe aún, hay que cargar
+      // el personaje antes de crear el juego para que preload() vea el mapa correcto.
+      // En cambios de personaje, setSelectedPlayer() ya llamó a loadCharacter().
+      if (!this.phaserGame) {
+        const player = await this.asgardService.getSelectedPlayer();
+        if (player?.id) {
+          await this.saveService.loadCharacter(String(player.id));
+        }
+        this.registerServices();
       }
-      this.registerServices();
+
       this.dataLoaded = true;
     });
   }
