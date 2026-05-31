@@ -37,8 +37,9 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64});
       this.load.spritesheet('enemyTexture', 'assets/sprites/enemy/orc1/orc1_idle_full.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png');
-      this.load.image("tiles", "assets/tilemaps/test/cloud_tileset.png");
-      this.load.tilemapTiledJSON("cloud-city-map", "assets/tilemaps/test/cloud_city.json");
+      const mapCfg = this.worldService.getCurrentMap();
+      this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
+      this.load.tilemapTiledJSON(mapCfg.tilemapKey, mapCfg.tilemapJson);
     }
 
     create() {
@@ -66,10 +67,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     initMap() {
-      this.currentMap = this.make.tilemap({ key: "cloud-city-map" });
-      this.currentMap.addTilesetImage("Cloud City", "tiles");
+      const cfg = this.currentMapConfig;
+      this.currentMap = this.make.tilemap({ key: cfg.tilemapKey });
+      this.currentMap.addTilesetImage(cfg.tilesetName, cfg.tilesetKey);
       for (let i = 0; i < this.currentMap.layers.length; i++) {
-        const layer = this.currentMap.createLayer(i, "Cloud City", 0, 0);
+        const layer = this.currentMap.createLayer(i, cfg.tilesetName, 0, 0);
         layer.setDepth(i);
         layer.scale = 3;
       }
