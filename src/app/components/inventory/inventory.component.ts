@@ -172,6 +172,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.inventories[emptyCell.tabIndex][emptyCell.row][emptyCell.col] = {
       id: this.inventoryService.generateId(),
       name: item.name,
+      icon: item.icon,
       mergeable: item.mergeable,
       sum: this.splitValue,
       order: item.order

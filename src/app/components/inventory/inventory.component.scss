@@ -94,13 +94,19 @@
   border: 2px solid #3498db;
 }
 
-.item-name {
-  font-size: 0.55em;
-  text-align: center;
-  line-height: 1.1;
-  padding: 2px;
-  color: #eee;
-  word-break: break-word;
+.item-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.item-fallback {
+  font-size: 1em;
+  font-weight: bold;
+  color: #aaa;
+  pointer-events: none;
 }
 
 .item-sum {

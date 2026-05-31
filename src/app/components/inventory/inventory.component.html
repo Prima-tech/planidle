@@ -35,6 +35,7 @@
             [cdkDragData]="{ tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
             (cdkDragMoved)="onDragMoved($event)"
             (click)="selectItem(tabIndex, rowIndex, colIndex, $event)"
+            [title]="cell.name"
             [ngClass]="{
               selected:
                 selectedItem &&
@@ -43,7 +44,8 @@
                 selectedItem.col === colIndex
             }"
           >
-            <div class="item-name">{{ cell.name }}</div>
+            <img *ngIf="cell.icon" [src]="cell.icon" class="item-icon">
+            <span *ngIf="!cell.icon" class="item-fallback">{{ cell.name.charAt(0) }}</span>
             <div class="item-sum" *ngIf="cell.sum !== undefined">{{ cell.sum }}</div>
           </div>
         </ng-container>
