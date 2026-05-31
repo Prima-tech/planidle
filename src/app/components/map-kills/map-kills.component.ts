@@ -3,15 +3,17 @@ import { combineLatest, Subscription } from 'rxjs';
 import { KillService } from 'src/app/services/kill.service';
 import { MapStatsService } from 'src/app/services/map-stats.service';
 import { WorldService } from 'src/app/services/world.service';
-import { MAP_ELITE_THRESHOLD } from 'src/app/scenes/gamescene/map-config';
+import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from 'src/app/scenes/gamescene/map-config';
 
 export interface KillRow {
   type: string;
+  label: string;
   total: number;
-  sessionKills: number;
+  session: number;
   threshold: number;
-  progress: number;   // 0–1 para la barra
+  progress: number;
   remaining: number;
+  nextLabel: string;
 }
 
 @Component({
@@ -22,7 +24,9 @@ export interface KillRow {
 })
 export class MapKillsComponent implements OnInit, OnDestroy {
   mapName = '';
-  rows: KillRow[] = [];
+  baseRows: KillRow[]    = [];
+  eliteRows: KillRow[]   = [];
+  oblivionKills: { type: string; total: number }[] = [];
 
   private sub: Subscription;
 
@@ -38,34 +42,44 @@ export class MapKillsComponent implements OnInit, OnDestroy {
       this.killService.charKills$,
       this.mapStats.sessionKills$,
     ]).subscribe(([map, kills, sessionKills]) => {
-      const mapId = map?.id ?? '';
-      this.mapName = map?.name ?? mapId;
-      const mapKills = kills[mapId] ?? {};
-      const threshold = MAP_ELITE_THRESHOLD[mapId] ?? 20;
+      const mapId       = map?.id ?? '';
+      this.mapName      = map?.name ?? mapId;
+      const mapKills    = kills[mapId] ?? {};
+      const eliteThr    = MAP_ELITE_THRESHOLD[mapId]    ?? 20;
+      const oblivionThr = MAP_OBLIVION_THRESHOLD[mapId] ?? 5;
 
-      const types = new Set([
-        ...Object.keys(mapKills),
-        ...Object.keys(sessionKills),
-      ]);
+      const allTypes = new Set([...Object.keys(mapKills), ...Object.keys(sessionKills)]);
 
-      this.rows = [...types]
+      this.baseRows = [...allTypes]
         .filter(t => !t.endsWith('_elite') && !t.endsWith('_oblivion'))
-        .map(type => {
-          const total    = mapKills[type] ?? 0;
-          const session  = sessionKills[type] ?? 0;
-          const mod      = session % threshold;
-          const remaining = mod === 0 && session > 0 ? 0 : threshold - mod;
-          return {
-            type,
-            total,
-            sessionKills: session,
-            threshold,
-            progress: mod / threshold,
-            remaining,
-          };
-        })
+        .map(type => this.buildRow(type, type, mapKills, sessionKills, eliteThr, 'Elite'))
         .sort((a, b) => b.total - a.total);
+
+      this.eliteRows = [...allTypes]
+        .filter(t => t.endsWith('_elite'))
+        .map(type => this.buildRow(type, 'Elite', mapKills, sessionKills, oblivionThr, 'Oblivion'))
+        .sort((a, b) => b.total - a.total);
+
+      this.oblivionKills = [...allTypes]
+        .filter(t => t.endsWith('_oblivion'))
+        .map(type => ({ type, total: mapKills[type] ?? 0 }))
+        .filter(r => r.total > 0);
     });
+  }
+
+  private buildRow(
+    type: string,
+    label: string,
+    mapKills: Record<string, number>,
+    sessionKills: Record<string, number>,
+    threshold: number,
+    nextLabel: string,
+  ): KillRow {
+    const total   = mapKills[type] ?? 0;
+    const session = sessionKills[type] ?? 0;
+    const mod     = session % threshold;
+    const remaining = mod === 0 && session > 0 ? 0 : threshold - mod;
+    return { type, label, total, session, threshold, progress: mod / threshold, remaining, nextLabel };
   }
 
   ngOnDestroy() {

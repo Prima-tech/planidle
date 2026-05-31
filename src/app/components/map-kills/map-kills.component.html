@@ -6,29 +6,63 @@
     <span class="sub">Bajas del mapa</span>
   </div>
 
-  <ng-container *ngIf="rows.length > 0; else noKills">
-    <div class="kill-entry" *ngFor="let row of rows">
-
+  <!-- Enemigos base -->
+  <ng-container *ngIf="baseRows.length > 0; else noKills">
+    <div class="kill-entry" *ngFor="let row of baseRows">
       <div class="entry-header">
         <span class="type-name">{{ row.type }}</span>
         <span class="total-badge">{{ row.total }} bajas</span>
       </div>
-
       <div class="elite-progress">
         <div class="bar-track">
-          <div class="bar-fill" [style.width.%]="row.progress * 100"></div>
+          <div class="bar-fill base" [style.width.%]="row.progress * 100"></div>
         </div>
         <span class="bar-label" *ngIf="row.remaining > 0">
-          {{ row.sessionKills % row.threshold }}/{{ row.threshold }} — faltan {{ row.remaining }}
+          {{ row.session % row.threshold }}/{{ row.threshold }} — faltan {{ row.remaining }} para {{ row.nextLabel }}
         </span>
-        <span class="bar-label elite-ready" *ngIf="row.remaining === 0 && row.sessionKills > 0">
-          ¡ELITE SPAWNEADO!
+        <span class="bar-label ready" *ngIf="row.remaining === 0 && row.session > 0">
+          ¡{{ row.nextLabel | uppercase }} SPAWNEADO!
         </span>
-        <span class="bar-label muted" *ngIf="row.sessionKills === 0">
-          Sin bajas en esta sesión
-        </span>
+        <span class="bar-label muted" *ngIf="row.session === 0">Sin bajas en esta sesión</span>
       </div>
+    </div>
+  </ng-container>
 
+  <!-- Elites -->
+  <ng-container *ngIf="eliteRows.length > 0">
+    <div class="separator">
+      <span class="sep-label">⭐ Elites</span>
+    </div>
+    <div class="kill-entry elite" *ngFor="let row of eliteRows">
+      <div class="entry-header">
+        <span class="type-name">{{ row.type }}</span>
+        <span class="total-badge elite">{{ row.total }} bajas</span>
+      </div>
+      <div class="elite-progress">
+        <div class="bar-track">
+          <div class="bar-fill elite-fill" [style.width.%]="row.progress * 100"></div>
+        </div>
+        <span class="bar-label" *ngIf="row.remaining > 0">
+          {{ row.session % row.threshold }}/{{ row.threshold }} — faltan {{ row.remaining }} para {{ row.nextLabel }}
+        </span>
+        <span class="bar-label ready oblivion" *ngIf="row.remaining === 0 && row.session > 0">
+          ¡{{ row.nextLabel | uppercase }} SPAWNEADO!
+        </span>
+        <span class="bar-label muted" *ngIf="row.session === 0">Sin bajas en esta sesión</span>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Oblivion -->
+  <ng-container *ngIf="oblivionKills.length > 0">
+    <div class="separator">
+      <span class="sep-label">💀 Oblivion</span>
+    </div>
+    <div class="kill-entry oblivion" *ngFor="let r of oblivionKills">
+      <div class="entry-header">
+        <span class="type-name">{{ r.type }}</span>
+        <span class="total-badge oblivion">{{ r.total }} bajas</span>
+      </div>
     </div>
   </ng-container>
 

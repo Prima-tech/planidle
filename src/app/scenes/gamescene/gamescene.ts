@@ -295,6 +295,8 @@ export class GameScene extends Phaser.Scene {
 
         if (type.endsWith('_elite')) {
           this.eliteKills++;
+          this.sessionKills[type] = (this.sessionKills[type] ?? 0) + 1;
+          this.reg.mapStats?.updateSessionKills(this.sessionKills);
           const threshold = MAP_OBLIVION_THRESHOLD[mapId] ?? 5;
           if (this.eliteKills % threshold === 0) {
             const baseType = type.replace('_elite', '');
