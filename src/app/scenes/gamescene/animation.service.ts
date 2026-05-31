@@ -20,16 +20,20 @@ export class AnimationService extends Phaser.Scene {
   }
 
   createDieAnimation(sprite: Phaser.GameObjects.Sprite, onComplete: () => void): void {
-    onComplete()
-    /*
-    sprite.play('dieAnimation'); // Reproducir la animación
-    sprite.on('animationcomplete', (animation: Phaser.Animations.Animation) => {
-        if (animation.key === 'dieAnimation') {
-            onComplete(); // Llamar al callback cuando termine la animación
-        }
+    sprite.anims.stop();
+    sprite.setTint(0xff3333);
+    this.mainScene.tweens.add({
+      targets:  sprite,
+      alpha:    0,
+      scaleX:   sprite.scaleX * 0.2,
+      scaleY:   sprite.scaleY * 0.2,
+      angle:    Phaser.Math.Between(-25, 25),
+      delay:    60,
+      duration: 380,
+      ease:     'Power2',
+      onComplete,
     });
-    */
-  } 
+  }
 
   private createAnimation(name: string, texture: string, startFrame: number, endFrame: number, repeat: number = -1, frameRate: number = 10) {
     this.mainScene.anims.create({
