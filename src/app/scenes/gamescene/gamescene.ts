@@ -56,6 +56,7 @@ export class GameScene extends Phaser.Scene {
       this.initPlayer();
       this.createPhysics();
       this.initSpawns();
+      this.initEnemyAttackListener();
       this.createGameControls();
       this.initCamera();
       this.createDrops();
@@ -219,6 +220,19 @@ export class GameScene extends Phaser.Scene {
       console.log("Item collected!");
       item.destroy();
       this.events.emit('itemCollected', item);
+    }
+
+    initEnemyAttackListener() {
+      this.events.on('enemyAttackPlayer', ({ damage }: { damage: number }) => {
+        this.asgardService.setAttackToPlayer({ HP: -damage });
+        this.flashPlayer();
+      });
+    }
+
+    private flashPlayer() {
+      const sprite = this.player.getSprite();
+      sprite.setTint(0xff4444);
+      this.time.delayedCall(150, () => sprite.clearTint());
     }
 
 }

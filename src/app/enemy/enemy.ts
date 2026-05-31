@@ -24,6 +24,10 @@ export class Enemy {
   private speed: number = GameScene.TILE_SIZE * 2;
   private currentAnimDir: Direction = Direction.DOWN;
   private hpBar: Phaser.GameObjects.Graphics | null = null;
+  private attackTimer: number = 1500;
+  private isAttacking: boolean = false;
+  private readonly ATTACK_COOLDOWN = 1500;
+  private readonly ATTACK_DAMAGE   = 8;
 
   constructor(
     public mainScene: Phaser.Scene,
@@ -51,8 +55,9 @@ export class Enemy {
   }
 
   initAnimation() {
-    this.animationService.createTopDownRightLeftAnim('WALK', enemyTags.WALK, 'enemyTexture', enemyAnimations.WALK);
-    this.animationService.createTopDownRightLeftAnim('IDLE', enemyTags.IDLE, 'enemyTexture', enemyAnimations.WALK, -1, 3);
+    this.animationService.createTopDownRightLeftAnim('WALK',   enemyTags.WALK,   'enemyTexture', enemyAnimations.WALK, -1, 10);
+    this.animationService.createTopDownRightLeftAnim('IDLE',   enemyTags.IDLE,   'enemyTexture', enemyAnimations.WALK, -1, 3);
+    this.animationService.createTopDownRightLeftAnim('ATTACK', enemyTags.ATTACK, 'enemyTexture', enemyAnimations.WALK, 0, 22);
     this.sprite.play(enemyTags.IDLE + this.currentAnimDir);
   }
 
@@ -85,9 +90,18 @@ export class Enemy {
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < GameScene.TILE_SIZE) {
-      this.setMoving(false);
+      if (!this.isAttacking) {
+        this.setMoving(false);
+        this.attackTimer -= delta;
+        if (this.attackTimer <= 0) {
+          this.attackTimer = this.ATTACK_COOLDOWN;
+          this.performAttack();
+        }
+      }
       return;
     }
+
+    this.attackTimer = this.ATTACK_COOLDOWN;
 
     const step = this.speed * (delta / 1000);
     const nx = (dx / dist) * step;
@@ -129,6 +143,7 @@ export class Enemy {
   }
 
   private setMoving(moving: boolean): void {
+    if (this.isAttacking) return;
     if (moving === this.isMoving) return;
     this.isMoving = moving;
     if (moving) {
@@ -136,6 +151,17 @@ export class Enemy {
     } else {
       this.sprite.play(enemyTags.IDLE + this.currentAnimDir);
     }
+  }
+
+  private performAttack(): void {
+    this.isAttacking = true;
+    this.mainScene.events.emit('enemyAttackPlayer', { damage: this.ATTACK_DAMAGE });
+    this.sprite.play(enemyTags.ATTACK + this.currentAnimDir);
+    this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (this.isDead) return;
+      this.isAttacking = false;
+      this.sprite.play(enemyTags.IDLE + this.currentAnimDir);
+    });
   }
 
   takeDamage(amount: number) {
@@ -211,6 +237,10 @@ export class Enemy {
     if (this.isDead) return;
     this.isDead = true;
     this.isChasing = false;
+    this.isAttacking = false;
+    // Elimina el listener de fin de animación de ataque para evitar que se ejecute
+    // después de que el sprite esté en estado de muerte
+    this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
     this.hpBar?.destroy();
     this.hpBar = null;
     const center = this.sprite.getCenter();

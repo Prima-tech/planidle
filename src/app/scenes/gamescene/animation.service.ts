@@ -20,7 +20,8 @@ export class AnimationService extends Phaser.Scene {
   }
 
   createDieAnimation(sprite: Phaser.GameObjects.Sprite, onComplete: () => void): void {
-    sprite.anims.stop();
+    if (!sprite?.active) { onComplete(); return; }
+    try { sprite.anims.stop(); } catch { /* sprite en estado inválido */ }
     sprite.setTint(0xff3333);
     this.mainScene.tweens.add({
       targets:  sprite,
