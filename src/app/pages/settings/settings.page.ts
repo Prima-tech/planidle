@@ -30,10 +30,10 @@ export class SettingsPageComponent {
   loadingPayload = false;
 
   readonly FIELD_LABELS: Record<string, string> = {
-    coins:        'Monedas',
-    specialCoins: 'Monedas esp.',
-    exp:          'EXP',
-    lvl:          'Nivel',
+    coins:        'SETTINGS.INFO.COINS',
+    specialCoins: 'SETTINGS.INFO.SPECIAL_COINS',
+    exp:          'SETTINGS.INFO.EXP',
+    lvl:          'SETTINGS.INFO.LVL',
   };
 
   async save() {
@@ -121,9 +121,9 @@ export class SettingsPageComponent {
 }
 
 const SAVE_LABELS: Record<SaveStatus, string> = {
-  idle:   'Guardar partida',
-  local:  'Guardando local...',
-  remote: 'Sincronizando...',
-  saved:  'Guardado',
-  error:  'Error al sincronizar',
+  idle:   'SETTINGS.BTN.SAVE_IDLE',
+  local:  'SETTINGS.BTN.SAVE_LOCAL',
+  remote: 'SETTINGS.BTN.SAVE_REMOTE',
+  saved:  'SETTINGS.BTN.SAVE_SAVED',
+  error:  'SETTINGS.BTN.SAVE_ERROR',
 };

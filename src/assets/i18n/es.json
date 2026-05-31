@@ -1,15 +1,114 @@
 {
-    "LOGIN": {
-        "TITLE": "Bienvenido",
-        "SUBTITLE": "Ingresa a tu cuenta",
-        "EMAIL_PLACEHOLDER": "Email",
-        "PASSWORD_PLACEHOLDER": "Contraseña",
-        "BUTTON": "INGRESAR"
+  "LOGIN": {
+    "TITLE": "Bienvenido",
+    "SUBTITLE": "Ingresa a tu cuenta",
+    "EMAIL_PLACEHOLDER": "Email",
+    "PASSWORD_PLACEHOLDER": "Contraseña",
+    "BUTTON": "INGRESAR"
+  },
+  "GLOBAL_POSITION": {
+    "TITLE": "Selecciona Personaje",
+    "NO_HEROES": "No tienes héroes creados.",
+    "CONTINUE_BUTTON": "CONTINUAR",
+    "CREATE_PLAYER_BUTTON": "CREAR PLAYER"
+  },
+  "SETTINGS": {
+    "TITLE": "Ajustes",
+    "SECTION": {
+      "WORLD": "Mundo",
+      "CHARACTER": "Personaje",
+      "GAME": "Partida",
+      "DANGEROUS": "Peligroso",
+      "DEBUG": "Debug"
     },
-    "GLOBAL_POSITION": {
-        "TITLE": "Selecciona Personaje",
-        "NO_HEROES": "No tienes héroes creados.",
-        "CONTINUE_BUTTON": "CONTINUAR",
-        "CREATE_PLAYER_BUTTON": "CREAR PLAYER"
+    "BTN": {
+      "WORLD_MAP": "Mapa mundial",
+      "GAME_SCENE": "Escena de juego",
+      "CHANGE_PLAYER": "Cambiar personaje",
+      "SAVE_IDLE": "Guardar partida",
+      "SAVE_LOCAL": "Guardando local...",
+      "SAVE_REMOTE": "Sincronizando...",
+      "SAVE_SAVED": "Guardado",
+      "SAVE_ERROR": "Error al sincronizar",
+      "LOCAL_DATA": "Datos locales",
+      "VIEW_CHANGES": "Ver cambios",
+      "SUPABASE_PAYLOAD": "Payload Supabase",
+      "CLOSE": "Cerrar",
+      "CLEAR_ALL": "Borrar todo (monedas e inventario)",
+      "ATTACK": "Atacar PJ",
+      "KILL": "Matar PJ",
+      "LOG_INV": "Log inventario"
+    },
+    "INFO": {
+      "TITLE": "Estado local actual",
+      "STATS": "Estadísticas",
+      "COINS": "Monedas",
+      "SPECIAL_COINS": "Monedas esp.",
+      "EXP": "EXP",
+      "LVL": "Nivel",
+      "INVENTORY": "Inventario",
+      "ITEMS": "items",
+      "TABS": "tabs",
+      "EMPTY": "Vacío",
+      "TIMESTAMPS": "Timestamps",
+      "SAVED_LOCAL": "Guardado local",
+      "REMOTE_SYNC": "Sync remota"
+    },
+    "DELTA": {
+      "FIRST_SYNC": "Primera sync — todo pendiente",
+      "PENDING": "Cambios pendientes",
+      "ALL_SYNCED": "Todo sincronizado ✓",
+      "LAST_SYNC": "Última sync",
+      "CURRENT_LOCAL": "Local actual",
+      "INVENTORY": "Inventario",
+      "NO_CHANGES": "Sin cambios en datos",
+      "NEVER_SYNCED": "Nunca se ha sincronizado con Supabase"
+    },
+    "PAYLOAD": {
+      "WILL_SEND": "Se enviará a Supabase",
+      "NO_CHANGES": "Sin cambios — no se enviará nada"
     }
+  },
+  "INVENTORY": {
+    "BTN": {
+      "SPLIT": "Split",
+      "DELETE": "Borrar",
+      "SORT": "Ordenar",
+      "OK": "OK",
+      "ACCEPT": "Aceptar",
+      "CANCEL": "Cancelar"
+    },
+    "QUANTITY": "Cantidad:",
+    "CONFIRM_DELETE": "¿Quieres borrar el objeto? No se puede revertir."
+  },
+  "CHARACTER": {
+    "LEVEL": "Nivel",
+    "COMING_SOON": "Próximamente",
+    "SLOTS": {
+      "HELMET": "Casco",
+      "SHIELD": "Escudo",
+      "CHEST": "Pecho",
+      "WEAPON": "Arma",
+      "LEGS": "Piernas",
+      "RING": "Anillo",
+      "BOOTS": "Botas",
+      "AMULET": "Amuleto"
+    },
+    "STATS": {
+      "LIFE": "Vida",
+      "ATTACK": "Ataque",
+      "DEFENSE": "Defensa",
+      "MAGIC": "Magia",
+      "AGILITY": "Agilidad"
+    }
+  },
+  "MAP": {
+    "EXPLORE": "Explorar"
+  },
+  "GAME_LOG": {
+    "COINS": "Monedas"
+  },
+  "COMMON": {
+    "LOADING": "..."
+  }
 }

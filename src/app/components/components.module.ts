@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { TopBarComponent } from './top-bar/top-bar.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
 import { IconComponent } from './icon/icon.component';
@@ -38,8 +39,10 @@ import { CharacterPageComponent } from '../pages/character/character.page';
     IonicModule,
     DragDropModule,
     RouterModule,
+    TranslateModule,
   ],
   exports: [
+    TranslateModule,
     TopBarComponent,
     StatusBarComponent,
     IconComponent,

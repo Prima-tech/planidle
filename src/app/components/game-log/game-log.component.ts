@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 
@@ -33,6 +34,7 @@ export class GameLogComponent implements OnInit, OnDestroy {
   constructor(
     private inventoryService: InventoryService,
     private playerState: PlayerStateService,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit() {
@@ -49,7 +51,7 @@ export class GameLogComponent implements OnInit, OnDestroy {
       this.playerState.coinDropped$.subscribe(amount => {
         this.push({
           name:      '__coins__',
-          label:     '+ Monedas',
+          label:     `+ ${this.translate.instant('GAME_LOG.COINS')}`,
           type:      'coin',
           sum:       amount,
           mergeable: true,

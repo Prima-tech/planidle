@@ -4,15 +4,15 @@
 
     <!-- MUNDO -->
     <div class="settings-section">
-      <p class="section-label">Mundo</p>
+      <p class="section-label">{{ 'SETTINGS.SECTION.WORLD' | translate }}</p>
       <div class="btn-row">
         <button class="settings-btn primary" (click)="changeScene('MapScene')">
           <span class="btn-icon">🗺</span>
-          <span>Mapa mundial</span>
+          <span>{{ 'SETTINGS.BTN.WORLD_MAP' | translate }}</span>
         </button>
         <button class="settings-btn primary" (click)="changeScene('GameScene')">
           <span class="btn-icon">⚔</span>
-          <span>Escena de juego</span>
+          <span>{{ 'SETTINGS.BTN.GAME_SCENE' | translate }}</span>
         </button>
       </div>
     </div>
@@ -21,10 +21,10 @@
 
     <!-- PERSONAJE -->
     <div class="settings-section">
-      <p class="section-label">Personaje</p>
+      <p class="section-label">{{ 'SETTINGS.SECTION.CHARACTER' | translate }}</p>
       <button class="settings-btn wide" (click)="changePlayer()">
         <span class="btn-icon">🔄</span>
-        <span>Cambiar personaje</span>
+        <span>{{ 'SETTINGS.BTN.CHANGE_PLAYER' | translate }}</span>
       </button>
     </div>
 
@@ -32,7 +32,7 @@
 
     <!-- GUARDAR -->
     <div class="settings-section">
-      <p class="section-label">Partida</p>
+      <p class="section-label">{{ 'SETTINGS.SECTION.GAME' | translate }}</p>
 
       <button
         class="settings-btn save-btn"
@@ -48,54 +48,50 @@
           <span *ngIf="(saveStatus$ | async) === 'saved'">✓</span>
           <span *ngIf="(saveStatus$ | async) === 'error'">✕</span>
         </span>
-        <span>{{ saveLabel$ | async }}</span>
+        <span>{{ saveLabel$ | async | translate }}</span>
       </button>
 
       <div class="btn-row">
-        <!-- Info local -->
         <button class="settings-btn info-btn" [class.active]="localInfo" (click)="toggleLocalInfo()">
           <span class="btn-icon">📦</span>
-          <span>{{ loadingInfo ? '...' : (localInfo ? 'Cerrar' : 'Datos locales') }}</span>
+          <span>{{ loadingInfo ? ('COMMON.LOADING' | translate) : (localInfo ? ('SETTINGS.BTN.CLOSE' | translate) : ('SETTINGS.BTN.LOCAL_DATA' | translate)) }}</span>
         </button>
-
-        <!-- Delta -->
         <button class="settings-btn info-btn" [class.active]="delta" (click)="toggleDelta()">
           <span class="btn-icon">📊</span>
-          <span>{{ loadingDelta ? '...' : (delta ? 'Cerrar' : 'Ver cambios') }}</span>
+          <span>{{ loadingDelta ? ('COMMON.LOADING' | translate) : (delta ? ('SETTINGS.BTN.CLOSE' | translate) : ('SETTINGS.BTN.VIEW_CHANGES' | translate)) }}</span>
         </button>
       </div>
 
       <div class="btn-row">
-        <!-- Payload Supabase -->
         <button class="settings-btn info-btn payload-btn" [class.active]="payload" (click)="togglePayload()">
           <span class="btn-icon">☁</span>
-          <span>{{ loadingPayload ? '...' : (payload ? 'Cerrar' : 'Payload Supabase') }}</span>
+          <span>{{ loadingPayload ? ('COMMON.LOADING' | translate) : (payload ? ('SETTINGS.BTN.CLOSE' | translate) : ('SETTINGS.BTN.SUPABASE_PAYLOAD' | translate)) }}</span>
         </button>
       </div>
 
       <!-- Panel: datos locales -->
       <div class="info-panel" *ngIf="localInfo">
-        <p class="info-panel__title">Estado local actual</p>
+        <p class="info-panel__title">{{ 'SETTINGS.INFO.TITLE' | translate }}</p>
 
-        <p class="info-panel__sub">Estadísticas</p>
+        <p class="info-panel__sub">{{ 'SETTINGS.INFO.STATS' | translate }}</p>
         <div class="info-row">
-          <span class="info-key">Monedas</span>
+          <span class="info-key">{{ 'SETTINGS.INFO.COINS' | translate }}</span>
           <span class="info-val">{{ localInfo.playerState.coins }}</span>
         </div>
         <div class="info-row">
-          <span class="info-key">Monedas esp.</span>
+          <span class="info-key">{{ 'SETTINGS.INFO.SPECIAL_COINS' | translate }}</span>
           <span class="info-val">{{ localInfo.playerState.specialCoins }}</span>
         </div>
         <div class="info-row">
-          <span class="info-key">EXP</span>
+          <span class="info-key">{{ 'SETTINGS.INFO.EXP' | translate }}</span>
           <span class="info-val">{{ localInfo.playerState.exp }}</span>
         </div>
         <div class="info-row">
-          <span class="info-key">Nivel</span>
+          <span class="info-key">{{ 'SETTINGS.INFO.LVL' | translate }}</span>
           <span class="info-val">{{ localInfo.playerState.lvl }}</span>
         </div>
 
-        <p class="info-panel__sub">Inventario ({{ localInfo.itemCount }} items, {{ localInfo.tabsUsed }} tabs)</p>
+        <p class="info-panel__sub">{{ 'SETTINGS.INFO.INVENTORY' | translate }} ({{ localInfo.itemCount }} {{ 'SETTINGS.INFO.ITEMS' | translate }}, {{ localInfo.tabsUsed }} {{ 'SETTINGS.INFO.TABS' | translate }})</p>
         <ng-container *ngIf="localInfo.inventorySummary.length > 0; else emptyInv">
           <div class="info-row" *ngFor="let entry of localInfo.inventorySummary">
             <span class="info-key">{{ entry.name }}</span>
@@ -103,16 +99,16 @@
           </div>
         </ng-container>
         <ng-template #emptyInv>
-          <div class="info-row"><span class="info-val muted-text">Vacío</span></div>
+          <div class="info-row"><span class="info-val muted-text">{{ 'SETTINGS.INFO.EMPTY' | translate }}</span></div>
         </ng-template>
 
-        <p class="info-panel__sub">Timestamps</p>
+        <p class="info-panel__sub">{{ 'SETTINGS.INFO.TIMESTAMPS' | translate }}</p>
         <div class="info-row muted">
-          <span class="info-key">Guardado local</span>
+          <span class="info-key">{{ 'SETTINGS.INFO.SAVED_LOCAL' | translate }}</span>
           <span class="info-val">{{ formatDate(localInfo.lastModified) }}</span>
         </div>
         <div class="info-row muted">
-          <span class="info-key">Sync remota</span>
+          <span class="info-key">{{ 'SETTINGS.INFO.REMOTE_SYNC' | translate }}</span>
           <span class="info-val">{{ formatDate(localInfo.lastSynced) }}</span>
         </div>
       </div>
@@ -120,22 +116,22 @@
       <!-- Panel: cambios pendientes -->
       <div class="info-panel" *ngIf="delta">
         <p class="info-panel__title">
-          {{ delta.isFirstSync ? 'Primera sync — todo pendiente' : (delta.hasChanges ? 'Cambios pendientes' : 'Todo sincronizado ✓') }}
+          {{ (delta.isFirstSync ? 'SETTINGS.DELTA.FIRST_SYNC' : (delta.hasChanges ? 'SETTINGS.DELTA.PENDING' : 'SETTINGS.DELTA.ALL_SYNCED')) | translate }}
         </p>
 
         <ng-container *ngIf="!delta.isFirstSync">
           <div class="info-row muted">
-            <span class="info-key">Última sync</span>
+            <span class="info-key">{{ 'SETTINGS.DELTA.LAST_SYNC' | translate }}</span>
             <span class="info-val">{{ formatDate(delta.lastSyncedAt) }}</span>
           </div>
           <div class="info-row muted">
-            <span class="info-key">Local actual</span>
+            <span class="info-key">{{ 'SETTINGS.DELTA.CURRENT_LOCAL' | translate }}</span>
             <span class="info-val">{{ formatDate(delta.currentLocalAt) }}</span>
           </div>
 
           <ng-container *ngFor="let key of deltaKeys(delta)">
             <div class="info-row delta-row">
-              <span class="info-key">{{ FIELD_LABELS[key] || key }}</span>
+              <span class="info-key">{{ FIELD_LABELS[key] | translate }}</span>
               <span class="info-val delta-val">
                 <span class="from">{{ delta.playerState[key].from }}</span>
                 <span class="arrow">→</span>
@@ -148,7 +144,7 @@
           </ng-container>
 
           <ng-container *ngIf="delta.inventoryDelta.length > 0">
-            <p class="info-panel__sub">Inventario</p>
+            <p class="info-panel__sub">{{ 'SETTINGS.DELTA.INVENTORY' | translate }}</p>
             <div class="info-row delta-row" *ngFor="let item of delta.inventoryDelta">
               <span class="info-key">
                 <span class="item-type-badge" [class]="item.type">{{ item.type === 'added' ? '+' : item.type === 'removed' ? '−' : '~' }}</span>
@@ -166,13 +162,13 @@
           </ng-container>
 
           <div class="info-row" *ngIf="!delta.inventoryChanged && deltaKeys(delta).length === 0">
-            <span class="info-val muted-text">Sin cambios en datos</span>
+            <span class="info-val muted-text">{{ 'SETTINGS.DELTA.NO_CHANGES' | translate }}</span>
           </div>
         </ng-container>
 
         <ng-container *ngIf="delta.isFirstSync">
           <div class="info-row muted">
-            <span class="info-val">Nunca se ha sincronizado con Supabase</span>
+            <span class="info-val">{{ 'SETTINGS.DELTA.NEVER_SYNCED' | translate }}</span>
           </div>
         </ng-container>
       </div>
@@ -180,7 +176,7 @@
       <!-- Panel: payload Supabase -->
       <div class="info-panel payload-panel" *ngIf="payload">
         <p class="info-panel__title">
-          {{ payload.willSync ? 'Se enviará a Supabase' : 'Sin cambios — no se enviará nada' }}
+          {{ (payload.willSync ? 'SETTINGS.PAYLOAD.WILL_SEND' : 'SETTINGS.PAYLOAD.NO_CHANGES') | translate }}
         </p>
 
         <div class="payload-skip" *ngIf="!payload.willSync">
@@ -195,14 +191,12 @@
                 {{ table.operation }}
               </span>
             </div>
-
             <ng-container *ngIf="table.operation === 'UPDATE'">
               <div class="payload-field" *ngFor="let f of payloadFields(table.fields)">
                 <span class="payload-key">{{ f.key }}</span>
                 <span class="payload-val">{{ f.val }}</span>
               </div>
             </ng-container>
-
             <div class="payload-note" *ngIf="table.note">{{ table.note }}</div>
           </div>
         </ng-container>
@@ -214,10 +208,10 @@
 
     <!-- PELIGROSO -->
     <div class="settings-section">
-      <p class="section-label debug-label">Peligroso</p>
+      <p class="section-label debug-label">{{ 'SETTINGS.SECTION.DANGEROUS' | translate }}</p>
       <button class="settings-btn danger wide" (click)="clearAll()">
         <span class="btn-icon">🗑</span>
-        <span>Borrar todo (monedas e inventario)</span>
+        <span>{{ 'SETTINGS.BTN.CLEAR_ALL' | translate }}</span>
       </button>
     </div>
 
@@ -225,20 +219,20 @@
 
     <!-- DEBUG -->
     <div class="settings-section">
-      <p class="section-label debug-label">Debug</p>
+      <p class="section-label debug-label">{{ 'SETTINGS.SECTION.DEBUG' | translate }}</p>
       <div class="btn-row">
         <button class="settings-btn danger" (click)="debugAttack()">
           <span class="btn-icon">💥</span>
-          <span>Atacar PJ</span>
+          <span>{{ 'SETTINGS.BTN.ATTACK' | translate }}</span>
         </button>
         <button class="settings-btn danger" (click)="debugDeath()">
           <span class="btn-icon">💀</span>
-          <span>Matar PJ</span>
+          <span>{{ 'SETTINGS.BTN.KILL' | translate }}</span>
         </button>
       </div>
       <button class="settings-btn wide muted" (click)="printInventory()">
         <span class="btn-icon">📋</span>
-        <span>Log inventario</span>
+        <span>{{ 'SETTINGS.BTN.LOG_INV' | translate }}</span>
       </button>
     </div>
 

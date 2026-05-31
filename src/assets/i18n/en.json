@@ -1,16 +1,114 @@
 {
-    "LOGIN": {
-        "TITLE": "Welcome",
-        "SUBTITLE": "Sign in to your account",
-        "EMAIL_PLACEHOLDER": "Email",
-        "PASSWORD_PLACEHOLDER": "Password",
-        "BUTTON": "SIGN IN"
+  "LOGIN": {
+    "TITLE": "Welcome",
+    "SUBTITLE": "Sign in to your account",
+    "EMAIL_PLACEHOLDER": "Email",
+    "PASSWORD_PLACEHOLDER": "Password",
+    "BUTTON": "SIGN IN"
+  },
+  "GLOBAL_POSITION": {
+    "TITLE": "Select Character",
+    "NO_HEROES": "You have no created heroes.",
+    "CONTINUE_BUTTON": "CONTINUE",
+    "CREATE_PLAYER_BUTTON": "CREATE PLAYER"
+  },
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "SECTION": {
+      "WORLD": "World",
+      "CHARACTER": "Character",
+      "GAME": "Game",
+      "DANGEROUS": "Dangerous",
+      "DEBUG": "Debug"
     },
-    "GLOBAL_POSITION": {
-        "TITLE": "Global Position",
-        "SUBTITLE": "Position Summary",
-        "NO_HEROES": "You have no created heroes.",
-        "CONTINUE_BUTTON": "CONTINUE",
-        "CREATE_PLAYER_BUTTON": "CREATE PLAYER"
+    "BTN": {
+      "WORLD_MAP": "World map",
+      "GAME_SCENE": "Game scene",
+      "CHANGE_PLAYER": "Change character",
+      "SAVE_IDLE": "Save game",
+      "SAVE_LOCAL": "Saving locally...",
+      "SAVE_REMOTE": "Syncing...",
+      "SAVE_SAVED": "Saved",
+      "SAVE_ERROR": "Sync error",
+      "LOCAL_DATA": "Local data",
+      "VIEW_CHANGES": "View changes",
+      "SUPABASE_PAYLOAD": "Supabase payload",
+      "CLOSE": "Close",
+      "CLEAR_ALL": "Clear all (coins & inventory)",
+      "ATTACK": "Attack player",
+      "KILL": "Kill player",
+      "LOG_INV": "Log inventory"
+    },
+    "INFO": {
+      "TITLE": "Current local state",
+      "STATS": "Stats",
+      "COINS": "Coins",
+      "SPECIAL_COINS": "Special coins",
+      "EXP": "EXP",
+      "LVL": "Level",
+      "INVENTORY": "Inventory",
+      "ITEMS": "items",
+      "TABS": "tabs",
+      "EMPTY": "Empty",
+      "TIMESTAMPS": "Timestamps",
+      "SAVED_LOCAL": "Saved locally",
+      "REMOTE_SYNC": "Remote sync"
+    },
+    "DELTA": {
+      "FIRST_SYNC": "First sync — everything pending",
+      "PENDING": "Pending changes",
+      "ALL_SYNCED": "All synced ✓",
+      "LAST_SYNC": "Last sync",
+      "CURRENT_LOCAL": "Current local",
+      "INVENTORY": "Inventory",
+      "NO_CHANGES": "No data changes",
+      "NEVER_SYNCED": "Never synced with Supabase"
+    },
+    "PAYLOAD": {
+      "WILL_SEND": "Will be sent to Supabase",
+      "NO_CHANGES": "No changes — nothing will be sent"
     }
+  },
+  "INVENTORY": {
+    "BTN": {
+      "SPLIT": "Split",
+      "DELETE": "Delete",
+      "SORT": "Sort",
+      "OK": "OK",
+      "ACCEPT": "Accept",
+      "CANCEL": "Cancel"
+    },
+    "QUANTITY": "Quantity:",
+    "CONFIRM_DELETE": "Delete this item? This cannot be undone."
+  },
+  "CHARACTER": {
+    "LEVEL": "Level",
+    "COMING_SOON": "Coming soon",
+    "SLOTS": {
+      "HELMET": "Helmet",
+      "SHIELD": "Shield",
+      "CHEST": "Chest",
+      "WEAPON": "Weapon",
+      "LEGS": "Legs",
+      "RING": "Ring",
+      "BOOTS": "Boots",
+      "AMULET": "Amulet"
+    },
+    "STATS": {
+      "LIFE": "Life",
+      "ATTACK": "Attack",
+      "DEFENSE": "Defense",
+      "MAGIC": "Magic",
+      "AGILITY": "Agility"
+    }
+  },
+  "MAP": {
+    "EXPLORE": "Explore"
+  },
+  "GAME_LOG": {
+    "COINS": "Coins"
+  },
+  "COMMON": {
+    "LOADING": "..."
+  }
 }

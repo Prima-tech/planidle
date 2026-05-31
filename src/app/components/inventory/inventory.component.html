@@ -54,27 +54,27 @@
 
 <!-- Botones -->
 <div class="button-bar" (click)="$event.stopPropagation()">
-  <button (click)="openSplitMenu($event)">Split</button>
-  <button (click)="openDeleteModal($event)">Borrar</button>
-  <button (click)="sortInventory()">Ordenar</button>
+  <button (click)="openSplitMenu($event)">{{ 'INVENTORY.BTN.SPLIT' | translate }}</button>
+  <button (click)="openDeleteModal($event)">{{ 'INVENTORY.BTN.DELETE' | translate }}</button>
+  <button (click)="sortInventory()">{{ 'INVENTORY.BTN.SORT' | translate }}</button>
 </div>
 
 <!-- Menú Split -->
 <div class="split-menu" *ngIf="splitMenuOpen" (click)="$event.stopPropagation()">
-  <span>Cantidad:</span>
+  <span>{{ 'INVENTORY.QUANTITY' | translate }}</span>
   <button (click)="decreaseSplitValue()">−</button>
   <input type="number" [value]="splitValue" readonly />
   <button (click)="increaseSplitValue()">+</button>
-  <button (click)="executeSplit($event)">OK</button>
+  <button (click)="executeSplit($event)">{{ 'INVENTORY.BTN.OK' | translate }}</button>
 </div>
 
 <!-- Modal Borrar -->
 <div class="modal-overlay" *ngIf="deleteModalOpen" (click)="cancelDelete($event)">
   <div class="modal" (click)="$event.stopPropagation()">
-    <p>¿Quieres borrar el objeto? No se puede revertir.</p>
+    <p>{{ 'INVENTORY.CONFIRM_DELETE' | translate }}</p>
     <div class="modal-buttons">
-      <button (click)="confirmDelete($event)">Aceptar</button>
-      <button (click)="cancelDelete($event)">Cancelar</button>
+      <button (click)="confirmDelete($event)">{{ 'INVENTORY.BTN.ACCEPT' | translate }}</button>
+      <button (click)="cancelDelete($event)">{{ 'INVENTORY.BTN.CANCEL' | translate }}</button>
     </div>
   </div>
 </div>
