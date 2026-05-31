@@ -54,6 +54,7 @@ mocks/         # FakeApiService
 | `SceneManager` | Ciclo de vida de escenas Phaser. `setGame(null)` en `ngOnDestroy` de LayoutComponent. |
 | `MapService` | Estado del mapa global (celda seleccionada, exploración). |
 | `KillService` | Registro de bajas por mapa y tipo. `charKills` (por personaje) + `globalKills` (global). |
+| `MapStatsService` | Estado del mapa en-juego. `activeGroups$` (enemigos vivos), `totalMax$` (máximo configurable), `sessionKills$` (kills de la sesión actual por tipo, se resetea en cada `create()`). Actualizado por GameScene cada frame/kill. |
 
 ## Arquitectura de capas
 
@@ -240,6 +241,21 @@ interface SpawnConfig {
 ### Payload de sync (buildSupabasePayload)
 Incluye: `global_data` (coins, exp, lvl), `inventory` (pendiente de tabla), `characters` (last_seen).
 `OFFLINE_MODE = true` en `save.service.ts` — cambiar a `false` cuando Supabase esté listo.
+
+## Sistema de paneles del footer
+
+`FooterBarComponent` gestiona paneles laterales vía `ModalContainerComponent`. Regla: abrir un panel cierra cualquier otro del **mismo lado**.
+
+| Lado | Tipo CSS | Paneles |
+|------|----------|---------|
+| Izquierda | `character` | Personaje (character) |
+| Derecha | `menu` / `map-stats` / `map-kills` | Ajustes, Estadísticas mapa, Bajas mapa |
+| Centro | `inventory` | Inventario (no tiene exclusión por lado) |
+
+- `bottom: 56px` en paneles laterales — número exacto de la altura del `ion-toolbar` de Ionic
+- `border-radius: 12px 12px 0 0` — solo esquinas superiores, las inferiores tocan el footer
+- `closeOtherOnSide(side, except)` en FooterBarComponent — cierra el panel abierto en ese lado antes de abrir el nuevo
+- Para añadir un panel nuevo: añadir a la lista del lado correspondiente en `groups` dentro de `closeOtherOnSide()`
 
 ## Convenciones
 

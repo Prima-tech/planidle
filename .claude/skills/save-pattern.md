@@ -51,6 +51,7 @@ SaveService.forceSave()
 | Dato | Servicio correcto | Nunca hacer |
 |------|------------------|-------------|
 | Monedas, exp, lvl | `PlayerStateService` | Llamar a StorageService directamente |
+| HP del jugador | `PlayerStateService.setHp(hp, hpMax?)` — llamado por `PlayerBridgeService.setAttackToPlayer()` | Modificar `player.status.HP` sin sincronizar a `PlayerStateService` |
 | Items del inventario | `InventoryService` | Guardar items a mano |
 | Mapa actual | `WorldService` | Mutar `currentMapConfig` sin WorldService |
 | Bajas/kills | `KillService` | |
@@ -63,14 +64,16 @@ SaveService.forceSave()
 
 ```typescript
 {
-  playerState:  PlayerState,          // coins, exp, lvl, hp
+  playerState:  PlayerState,          // coins, exp, lvl, hp, hpMax
   inventory:    (InventoryItem|null)[][][],  // grid 4×4×5
   mapId:        string,               // id del mapa actual
   kills:        KillMap,              // bajas por mapa y tipo
   lastSeen:     string,               // ISO — última actividad
-  lastModified: string,               // ISO — última modificación
+  lastModified: string,               // ISO — mismo valor que lastSeen
 }
 ```
+
+`hp`/`hpMax` son campos de `PlayerState` — se guardan/restauran automáticamente con el resto del estado. Al cargar un personaje, `AsgardService.setSelectedPlayer()` lee `playerState.snapshot().hp` (ya restaurado por `loadCharacter()`) y llama `playerBridge.resetPlayerStatus(hp, hpMax)` para aplicarlo al Player de Phaser.
 
 Clave de storage por personaje: `snapshot_char_<id>`
 

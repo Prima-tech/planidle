@@ -128,73 +128,62 @@ Crear carpeta `assets/sprites/enemy/{type}/` con los spritesheets:
 
 ## Sistema de progresión: Elite y Oblivion
 
-> **No implementado aún. Este es el diseño acordado.**
+> **IMPLEMENTADO.** Ficheros: `enemy-config.ts`, `gamescene.ts`, `griddrops.ts`, `map-config.ts`, `map-stats.service.ts`
 
 ### Concepto
 ```
-Matar X monstruos normales en el mapa actual
-    → spawn de 1 Elite (stats aumentados, mejor loot)
+Matar X monstruos normales en el mapa (sesión)
+    → spawn de 1 Elite (stats ×3, tint dorado, mejor loot)
 
-Matar Y Elites (contador acumulado en la sesión del mapa)
-    → spawn de 1 Oblivion (jefe, stats muy altos, mejor loot aún)
+Matar Y Elites (contador de sesión del mapa)
+    → spawn de 1 Oblivion (stats ×8, tint morado, loot premium)
 ```
 
-### Dónde implementar
+### Campos adicionales en EnemyTypeConfig
 
-**1. Contador de kills en sesión (GameScene)**
-- Añadir `private sessionKills: Record<string, number> = {}` — se resetea en cada `create()`
-- Incrementar en el listener `'enemyDied'` existente en `initEnemyAttackListener()`
-- Añadir `private eliteKills = 0` para el contador de elites
-
-**2. Trigger de spawn (GameScene)**
 ```typescript
-// Dentro del listener 'enemyDied' en initEnemyAttackListener()
-this.events.on('enemyDied', ({ type, position }) => {
-  this.killService?.recordKill(mapId, type);
-
-  // Contador de sesión
-  this.sessionKills[type] = (this.sessionKills[type] ?? 0) + 1;
-
-  // Spawn elite
-  const threshold = MAP_ELITE_THRESHOLD[mapId] ?? 20;
-  if (this.sessionKills[type] % threshold === 0) {
-    this.spawnElite(type, position);
-  }
-
-  // Spawn oblivion
-  if (type.endsWith('_elite')) {
-    this.eliteKills++;
-    const oblivionThreshold = MAP_OBLIVION_THRESHOLD[mapId] ?? 5;
-    if (this.eliteKills % oblivionThreshold === 0) {
-      this.spawnOblivion(position);
-    }
-  }
-});
+tint?: number;       // tint visual (0xRRGGBB) — se aplica en initSprite()
+spriteType?: string; // tipo base cuyos sprites se reusan — clave para animaciones y sprite inicial
 ```
 
-**3. Definir elites y oblivion como variantes en ENEMY_REGISTRY**
-- Naming: `orc1_elite`, `orc1_oblivion`
-- Se definen igual que un enemigo normal pero con stats multiplicados
-- Loot propio en LOOT_TABLES con `chance` más alta y `maxQty` mayor
-- Los elites pueden tener `scale` mayor (ej. `4` en vez de `3`) para distinguirse visualmente
-- Los elites y oblivion NO tienen `SpawnConfig` en el mapa — solo se spawnan vía `spawnElite()`/`spawnOblivion()` 
+### Cómo definir un elite/oblivion (patrón spread)
 
-**4. Configuración de umbrales por mapa**
 ```typescript
-// en map-config.ts
-export const MAP_ELITE_THRESHOLD: Record<string, number> = {
-  '1-1': 20,    // cada 20 kills normales → 1 elite
-  '1-2': 15,
-};
-export const MAP_OBLIVION_THRESHOLD: Record<string, number> = {
-  '1-1': 5,     // cada 5 elites → 1 oblivion
+const orc1_elite: EnemyTypeConfig = {
+  ...orc1,              // hereda todas las acciones y frames
+  type: 'orc1_elite',
+  hp: 150, scale: 3.5, speed: 110, damage: 15, attackCooldown: 1200,
+  tint: 0xffcc00,
+  spriteType: 'orc1',  // usa los sprites de orc1, no carga assets nuevos
 };
 ```
 
-**5. `spawnElite()` / `spawnOblivion()` en GameScene**
-- Son variantes de `spawnEnemy()` sin tracker (no tienen maxCount ni respawn automático)
-- Se spawnan en la posición de la última muerte + offset aleatorio
-- Al morir, solo llaman a `recordKill` — no respawnean
+- `spriteType` hace que `registerEnemyAnimations()` use `orc1_idle` como textura en vez de `orc1_elite_idle` (que no existe)
+- Las animaciones se registran con key `orc1_elite_idle_down` etc. apuntando a frames de `orc1_idle`
+- Las animaciones de elite/oblivion se registran automáticamente en `registerEnemyAnimations()` para todos los tipos en spawns del mapa
+
+### Spawn (GameScene.spawnSpecial)
+
+```typescript
+private spawnSpecial(enemyType: string, nearPosition: Phaser.Math.Vector2): void
+```
+
+- NO tiene tracker ni respawn automático
+- Se spawna cerca de la posición de muerte (±2 tiles de offset)
+- Siempre `behavior: 'aggressive'`, `visionRadius: 8`
+- Se llama desde `initEnemyAttackListener()` cuando se alcanzan los umbrales
+
+### Umbrales por mapa
+
+```typescript
+// map-config.ts
+MAP_ELITE_THRESHOLD:    { '1-1': 10, '1-2': 12, ..., '1-8': 25 }
+MAP_OBLIVION_THRESHOLD: { '1-1': 3,  '1-2': 3,  ..., '1-8': 6  }
+```
+
+- Los contadores `sessionKills` y `eliteKills` se resetean en cada `create()` (cada vez que se entra al mapa)
+- `sessionKills` se publica a `MapStatsService.updateSessionKills()` tras cada baja — disponible en `MapKillsComponent`
+- Los elites y oblivion NO tienen entrada en `SpawnConfig` del mapa
 
 ---
 
