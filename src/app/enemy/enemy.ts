@@ -79,7 +79,7 @@ export class Enemy {
     const dy   = playerPos.y - pos.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist < GameScene.TILE_SIZE) {
+    if (dist < GameScene.TILE_SIZE * 2) {
       this.setState('idle');
       this.attackTimer -= delta;
       if (this.attackTimer <= 0) {
@@ -104,6 +104,7 @@ export class Enemy {
   }
 
   getTilePos(): Vector2 { return this.tilePos.clone(); }
+  getPixelPos(): Vector2 { return new Vector2(this.sprite.x, this.sprite.y); }
 
   // ── Privada ────────────────────────────────────────────────────────────────
 

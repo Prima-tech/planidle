@@ -89,23 +89,29 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
   }
 
   attackEnemy(): void {
-    const pos = this.player.getPosition();
-    const playerTileX = Math.floor(pos.x / GameScene.TILE_SIZE);
-    const playerTileY = Math.floor(pos.y / GameScene.TILE_SIZE);
+    const pos  = this.player.getPosition();
+    const dir  = this.player.getDirection();
+    const RANGE = GameScene.TILE_SIZE * 2;
 
     this.enemies.forEach(enemy => {
-      const enemyTilePos = enemy.getTilePos();
-      const isAdjacent =
-        Math.abs(enemyTilePos.x - playerTileX) <= 1 &&
-        Math.abs(enemyTilePos.y - playerTileY) <= 1 &&
-        !(enemyTilePos.x === playerTileX && enemyTilePos.y === playerTileY);
+      const ePos = enemy.getPixelPos();
+      const dx   = ePos.x - pos.x;
+      const dy   = ePos.y - pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
 
-      if (isAdjacent) {
-        enemy.takeDamage(10);
-        enemy.startChasing();
-        this.emit('enemyAttacked', enemy);
-      }
+      if (dist > RANGE || dist === 0) return;
+      if (!this.isInAttackDirection(dx, dy, dir)) return;
+
+      enemy.takeDamage(10);
+      enemy.startChasing();
+      this.emit('enemyAttacked', enemy);
     });
+  }
+
+  private isInAttackDirection(dx: number, dy: number, dir: Direction): boolean {
+    const vec = this.dirVectors[dir];
+    if (!vec) return true;
+    return (dx * vec.x + dy * vec.y) > 0;
   }
 
   private isTileBlocked(pixelPos: Vector2): boolean {
