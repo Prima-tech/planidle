@@ -1,10 +1,12 @@
 <div class="log-panel">
   <div
-    *ngFor="let entry of entries"
+    *ngFor="let entry of entries; trackBy: trackById"
     class="log-entry"
     [class.drop]="entry.type === 'drop'"
+    [class.coin]="entry.type === 'coin'"
     [class.fading]="entry.fading"
+    [class.bumped]="entry.bumped"
   >
-    {{ entry.text }}
+    {{ entry.label }}
   </div>
 </div>

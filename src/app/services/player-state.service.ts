@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, distinctUntilChanged, map } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map, Subject } from 'rxjs';
 
 export interface PlayerState {
   coins: number;
@@ -19,6 +19,7 @@ const INITIAL_STATE: PlayerState = {
 export class PlayerStateService {
   private readonly _state$ = new BehaviorSubject<PlayerState>(INITIAL_STATE);
 
+  readonly coinDropped$  = new Subject<number>();
   readonly state$        = this._state$.asObservable();
   readonly coins$        = this.state$.pipe(map(s => s.coins),        distinctUntilChanged());
   readonly specialCoins$ = this.state$.pipe(map(s => s.specialCoins), distinctUntilChanged());
@@ -37,6 +38,11 @@ export class PlayerStateService {
 
   addCoins(amount: number): void {
     this._patch({ coins: this._state$.getValue().coins + amount });
+  }
+
+  collectCoins(amount: number): void {
+    this.addCoins(amount);
+    this.coinDropped$.next(amount);
   }
 
   addExp(amount: number): void {

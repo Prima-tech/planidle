@@ -1,17 +1,24 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { InventoryService } from 'src/app/services/inventory.service';
+import { PlayerStateService } from 'src/app/services/player-state.service';
 
 interface LogEntry {
   id: number;
-  text: string;
-  type: 'drop' | 'event';
+  name: string;          // clave de agrupación
+  label: string;         // texto visible
+  type: 'drop' | 'coin';
+  sum: number;           // cantidad acumulada
+  mergeable: boolean;
   fading: boolean;
+  bumped: boolean;
+  timerId: ReturnType<typeof setTimeout>;
 }
 
 let nextId = 0;
-const VISIBLE_MS = 3000;
-const FADE_MS = 500;
+const VISIBLE_MS   = 3000;
+const EXTENDED_MS  = 1500; // tiempo extra al actualizar
+const FADE_MS      = 400;
 
 @Component({
   selector: 'app-game-log',
@@ -21,30 +28,90 @@ const FADE_MS = 500;
 })
 export class GameLogComponent implements OnInit, OnDestroy {
   entries: LogEntry[] = [];
-  private sub: Subscription;
+  private subs: Subscription[] = [];
 
-  constructor(private inventoryService: InventoryService) {}
+  constructor(
+    private inventoryService: InventoryService,
+    private playerState: PlayerStateService,
+  ) {}
 
   ngOnInit() {
-    this.sub = this.inventoryService.itemDropped$.subscribe(item => {
-      const qty = item.sum && item.sum > 1 ? ` x${item.sum}` : '';
-      this.addEntry(`+ ${item.name}${qty}`, 'drop');
-    });
+    this.subs.push(
+      this.inventoryService.itemDropped$.subscribe(item => {
+        this.push({
+          name:      item.name,
+          label:     `+ ${item.name}`,
+          type:      'drop',
+          sum:       item.sum ?? 1,
+          mergeable: item.mergeable ?? false,
+        });
+      }),
+      this.playerState.coinDropped$.subscribe(amount => {
+        this.push({
+          name:      '__coins__',
+          label:     '+ Monedas',
+          type:      'coin',
+          sum:       amount,
+          mergeable: true,
+        });
+      }),
+    );
   }
 
   ngOnDestroy() {
-    this.sub?.unsubscribe();
+    this.subs.forEach(s => s.unsubscribe());
   }
 
-  addEntry(text: string, type: LogEntry['type'] = 'event') {
-    const entry: LogEntry = { id: nextId++, text, type, fading: false };
-    this.entries.push(entry);
+  trackById(_: number, e: LogEntry) { return e.id; }
 
-    setTimeout(() => {
+  private push(data: { name: string; label: string; type: LogEntry['type']; sum: number; mergeable: boolean }) {
+    // Buscar entrada existente agrupable (mismo nombre, stackeable, no desapareciendo)
+    const existing = data.mergeable
+      ? this.entries.find(e => e.name === data.name && !e.fading)
+      : null;
+
+    if (existing) {
+      existing.sum += data.sum;
+      existing.label = this.buildLabel(data.label.split(' ').slice(1).join(' '), existing.sum, data.type);
+      this.bump(existing);
+      this.scheduleRemoval(existing, VISIBLE_MS + EXTENDED_MS);
+    } else {
+      const entry: LogEntry = {
+        id:        nextId++,
+        name:      data.name,
+        label:     this.buildLabel(data.label.split(' ').slice(1).join(' '), data.sum, data.type),
+        type:      data.type,
+        sum:       data.sum,
+        mergeable: data.mergeable,
+        fading:    false,
+        bumped:    false,
+        timerId:   null,
+      };
+      this.entries.push(entry);
+      this.scheduleRemoval(entry, VISIBLE_MS);
+    }
+  }
+
+  private buildLabel(name: string, sum: number, type: LogEntry['type']): string {
+    const prefix = type === 'coin' ? '🪙' : '+';
+    return sum > 1 ? `${prefix} ${name} ×${sum}` : `${prefix} ${name}`;
+  }
+
+  private bump(entry: LogEntry) {
+    entry.bumped = false;
+    // Fuerza el reflow para reiniciar la animación CSS
+    setTimeout(() => { entry.bumped = true; }, 10);
+    setTimeout(() => { entry.bumped = false; }, 410);
+  }
+
+  private scheduleRemoval(entry: LogEntry, delay: number) {
+    clearTimeout(entry.timerId);
+    entry.fading = false;
+    entry.timerId = setTimeout(() => {
       entry.fading = true;
       setTimeout(() => {
         this.entries = this.entries.filter(e => e.id !== entry.id);
       }, FADE_MS);
-    }, VISIBLE_MS);
+    }, delay);
   }
 }

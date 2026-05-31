@@ -72,8 +72,7 @@ export class GridDrops {
     const qty = Phaser.Math.Between(loot.minQty, loot.maxQty);
 
     if (loot.type === 'currency') {
-      this.playerState.addCoins(qty);
-      console.log(`[Drop] +${qty} monedas`);
+      this.playerState.collectCoins(qty);
       return;
     }
 
