@@ -1,0 +1,62 @@
+<div class="panel">
+
+  <div class="section-title">
+    <span class="section-icon">&#127759;</span>
+    {{ currentMap?.name || '—' }}
+    <span class="map-id">({{ currentMap?.id }})</span>
+  </div>
+
+  <!-- Enemigos activos -->
+  <div class="section">
+    <div class="label">Enemigos activos</div>
+
+    <ng-container *ngIf="activeGroups.length > 0; else noEnemies">
+      <div class="enemy-row" *ngFor="let g of activeGroups">
+        <span class="etype">{{ g.type }}</span>
+        <span class="ecount">{{ g.count }}</span>
+      </div>
+    </ng-container>
+
+    <ng-template #noEnemies>
+      <div class="empty">Sin enemigos en pantalla</div>
+    </ng-template>
+
+    <div class="total-row">
+      <span>Total activos</span>
+      <span class="ecount">{{ totalActive }}</span>
+    </div>
+  </div>
+
+  <!-- Control de máximo -->
+  <div class="section" *ngIf="totalMax > 0 || activeGroups.length === 0">
+    <div class="label">Máximo de enemigos</div>
+    <div class="max-control">
+      <button class="ctrl-btn" (click)="decrement()" [disabled]="totalMax <= 1">−</button>
+      <span class="max-value">{{ totalMax }}</span>
+      <button class="ctrl-btn" (click)="increment()">+</button>
+    </div>
+    <div class="hint" *ngIf="totalMax === 0">No hay zonas de spawn en este mapa</div>
+  </div>
+
+  <!-- Bajas por personaje -->
+  <div class="section">
+    <div class="label">Bajas por personaje</div>
+
+    <ng-container *ngIf="charKillRows.length > 0; else noKills">
+      <div class="kill-row" *ngFor="let row of charKillRows">
+        <span class="char-name">{{ row.name }}</span>
+        <span class="kill-count">{{ row.total }}</span>
+      </div>
+    </ng-container>
+
+    <ng-template #noKills>
+      <div class="empty">Sin bajas registradas</div>
+    </ng-template>
+
+    <div class="total-row global">
+      <span>Total global</span>
+      <span class="kill-count">{{ globalTotal }}</span>
+    </div>
+  </div>
+
+</div>

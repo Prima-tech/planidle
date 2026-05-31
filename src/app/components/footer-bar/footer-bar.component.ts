@@ -5,6 +5,7 @@ import { testPageComponent } from 'src/app/pages/test/test.page';
 import { SettingsPageComponent } from 'src/app/pages/settings/settings.page';
 import { CharacterPageComponent } from 'src/app/pages/character/character.page';
 import { InventoryComponent } from '../inventory/inventory.component';
+import { MapStatsComponent } from '../map-stats/map-stats.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -16,6 +17,7 @@ export class FooterBarComponent implements OnInit {
   @ViewChild('menuModal') menuModal!: ModalContainerComponent;
   @ViewChild('characterModal') characterModal!: ModalContainerComponent;
   @ViewChild('inventoryModal') inventoryModal!: ModalContainerComponent;
+  @ViewChild('mapStatsModal') mapStatsModal!: ModalContainerComponent;
 
   constructor(private router: Router) { }
 
@@ -46,6 +48,14 @@ export class FooterBarComponent implements OnInit {
       this.characterModal.close();
     } else {
       this.characterModal.open(CharacterPageComponent, 'character');
+    }
+  }
+
+  openMapStats() {
+    if (this.mapStatsModal.isOpenModal()) {
+      this.mapStatsModal.close();
+    } else {
+      this.mapStatsModal.open(MapStatsComponent, 'map-stats');
     }
   }
 

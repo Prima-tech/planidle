@@ -1,6 +1,7 @@
 <app-modal-container #menuModal></app-modal-container>
 <app-modal-container #characterModal></app-modal-container>
 <app-modal-container #inventoryModal></app-modal-container>
+<app-modal-container #mapStatsModal></app-modal-container>
 
 <ion-footer>
   <ion-toolbar>
@@ -18,6 +19,10 @@
       <app-icon [name]="'knapsack'" [type]="'menu'"></app-icon>
     </div>
 
+
+    <div class="icon-menu-wrapper" (click)="openMapStats()">
+      <app-icon [name]="'chart'" [type]="'menu'"></app-icon>
+    </div>
 
     <div class="icon-menu-wrapper right" (click)="openMenu()">
       <app-icon [name]="'cog'" [type]="'menu'"></app-icon>

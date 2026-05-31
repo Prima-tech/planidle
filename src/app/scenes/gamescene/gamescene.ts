@@ -7,12 +7,8 @@ import { GridDrops } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
-import { MapConfig, SpawnConfig } from "./map-config";
-
-interface SpawnTracker {
-  config: SpawnConfig;
-  count: number;
-}
+import { MapConfig, SpawnConfig, SpawnTracker } from "./map-config";
+import { MapStatsService } from "src/app/services/map-stats.service";
 
 @Injectable({
     providedIn: 'root'
@@ -32,6 +28,7 @@ export class GameScene extends Phaser.Scene {
     asgardService: any;
     worldService: any;
     killService: any;
+    mapStatsService: MapStatsService;
     currentMap: any;
 
       constructor(
@@ -40,9 +37,10 @@ export class GameScene extends Phaser.Scene {
       }
 
     preload() {
-      this.asgardService = this.game.registry.get('asgardService');
-      this.worldService  = this.game.registry.get('worldService');
-      this.killService   = this.game.registry.get('killService');
+      this.asgardService    = this.game.registry.get('asgardService');
+      this.worldService     = this.game.registry.get('worldService');
+      this.killService      = this.game.registry.get('killService');
+      this.mapStatsService  = this.game.registry.get('mapStatsService');
 
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png');
@@ -75,17 +73,20 @@ export class GameScene extends Phaser.Scene {
       this.spawnTrackers = [];
       this.portalCooldown = false;
       this.currentMapConfig = this.worldService.getCurrentMap();
+      this.mapStatsService?.reset();
       this.initMap();
       this.initPlayer();
       this.registerEnemyAnimations();
       this.registerDropTextures();
       this.createPhysics();
       this.initSpawns();
+      this.mapStatsService?.setTrackers(this.spawnTrackers);
       this.initEnemyAttackListener();
       this.createGameControls();
       this.initCamera();
       this.createDrops();
       this.initPortals();
+      this.initMapStatsTimers();
       this.cameras.main.fadeIn(500, 0, 0, 0);
     }
 
@@ -303,6 +304,28 @@ export class GameScene extends Phaser.Scene {
       const sprite = this.player.getSprite();
       sprite.setTint(0xff4444);
       this.time.delayedCall(150, () => sprite.clearTint());
+    }
+
+    private initMapStatsTimers() {
+      // Actualiza el conteo de enemigos activos cada 500ms
+      this.time.addEvent({
+        delay: 500,
+        loop: true,
+        callback: () => this.mapStatsService?.updateActive(this.enemies.map(e => e.type)),
+      });
+
+      // Comprueba si hay que spawnear más enemigos (cuando el max sube)
+      this.time.addEvent({
+        delay: 3000,
+        loop: true,
+        callback: () => {
+          for (const tracker of this.spawnTrackers) {
+            while (tracker.count < tracker.config.maxCount) {
+              this.spawnEnemy(tracker.config, tracker);
+            }
+          }
+        },
+      });
     }
 
 }

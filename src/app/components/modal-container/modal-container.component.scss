@@ -21,6 +21,16 @@
     background: #1a1a2e;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   }
+  &.map-stats {
+    top: 10px;
+    bottom: 61px;
+    right: 55px;
+    width: 250px;
+    border-radius: 12px;
+    background: #1a1a2e;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    overflow-y: auto;
+  }
   &.inventory {
     top: 0;
     left: 0;

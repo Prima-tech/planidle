@@ -17,6 +17,7 @@ import { GameLogComponent } from './game-log/game-log.component';
 import { SettingsPageComponent } from '../pages/settings/settings.page';
 import { MapLabelComponent } from './map-label/map-label.component';
 import { CharacterPageComponent } from '../pages/character/character.page';
+import { MapStatsComponent } from './map-stats/map-stats.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { CharacterPageComponent } from '../pages/character/character.page';
     SettingsPageComponent,
     MapLabelComponent,
     CharacterPageComponent,
+    MapStatsComponent,
   ],
   imports: [
     CommonModule,
@@ -56,6 +58,7 @@ import { CharacterPageComponent } from '../pages/character/character.page';
     SettingsPageComponent,
     MapLabelComponent,
     CharacterPageComponent,
+    MapStatsComponent,
   ]
 })
 export class ComponentModule {}

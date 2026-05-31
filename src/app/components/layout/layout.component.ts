@@ -13,6 +13,7 @@ import { WorldService } from 'src/app/services/world.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { SaveService } from 'src/app/services/save.service';
 import { KillService } from 'src/app/services/kill.service';
+import { MapStatsService } from 'src/app/services/map-stats.service';
 
 @Component({
   selector: 'app-layout',
@@ -36,7 +37,8 @@ export class LayoutComponent {
     public worldService: WorldService,
     public playerStateService: PlayerStateService,
     private saveService: SaveService,
-    private killService: KillService
+    private killService: KillService,
+    private mapStatsService: MapStatsService,
   ) {
     this.loadGame();
   }
@@ -86,6 +88,7 @@ export class LayoutComponent {
     this.phaserGame.registry.set('worldService', this.worldService);
     this.phaserGame.registry.set('playerStateService', this.playerStateService);
     this.phaserGame.registry.set('killService', this.killService);
+    this.phaserGame.registry.set('mapStatsService', this.mapStatsService);
     this.sceneManager.setGame(this.phaserGame);
   }
 
