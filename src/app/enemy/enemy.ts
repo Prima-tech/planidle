@@ -147,15 +147,16 @@ export class Enemy {
   }
 
   private showDamageNumber(amount: number): void {
-    const x = this.sprite.x;
-    const y = this.sprite.y - this.sprite.displayHeight;
+    const x = this.sprite.x + Phaser.Math.Between(-30, 30);
+    const y = this.sprite.y - this.sprite.displayHeight * 0.6;
     const text = this.mainScene.add.text(x, y, `${amount}`, {
-      fontSize: '64px', color: '#ffff00', fontStyle: 'bold',
-      stroke: '#000000', strokeThickness: 6,
+      fontSize: '28px', color: '#ffd700', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 8,
+      shadow: { offsetX: 0, offsetY: 2, color: '#000000', blur: 6, fill: true },
     });
     text.setOrigin(0.5, 1).setDepth(10);
     this.mainScene.tweens.add({
-      targets: text, y: y - 80, alpha: 0, duration: 900, ease: 'Power2',
+      targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
       onComplete: () => text.destroy(),
     });
   }
