@@ -1,17 +1,13 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { StorageService } from './storage.service';
-import { AsgardService } from './asgard';
-
 @Injectable({
   providedIn: 'root'
 })
 export class SupabaseService {
   private supabase: SupabaseClient;
 
-  constructor(
-    private storageService: StorageService,
-    private asgardService: AsgardService) {
+  constructor(private storageService: StorageService) {
     const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
       fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
 
@@ -69,7 +65,7 @@ export class SupabaseService {
 
       await this.storageService.set('user_data', userData);
       await this.storageService.set('characters', data.characters);
-      this.asgardService.setCharacters(data.characters);
+      // characters ya guardados en StorageService — AsgardService los carga desde ahí
       return userData;
     } else if (error.code === 'PGRST116') {
       this.createFullAccount(userId, 'vlodos');

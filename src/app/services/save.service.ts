@@ -8,9 +8,6 @@ import { SupabaseService } from './supabase.service';
 /** true → nunca llama a Supabase, solo guarda en local (desarrollo sin backend) */
 const OFFLINE_MODE = false;
 
-const SNAPSHOT_KEY = 'game_snapshot';
-const SYNCED_KEY   = 'game_snapshot_synced';
-
 export type SaveStatus = 'idle' | 'local' | 'remote' | 'saved' | 'error';
 
 export interface GameSnapshot {
@@ -70,10 +67,13 @@ export interface LocalInfo {
   lastSynced: string | null;
 }
 
+const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, exp: 0, lvl: 1 };
+
 @Injectable({ providedIn: 'root' })
 export class SaveService {
 
   readonly status$ = new BehaviorSubject<SaveStatus>('idle');
+  private charId: string | null = null;
 
   constructor(
     private storage: StorageService,
@@ -81,30 +81,75 @@ export class SaveService {
     private inventory: InventoryService,
     private supabase: SupabaseService,
   ) {
+    // Auto-guarda en local tras 2s de inactividad, usando la clave del personaje activo
     merge(this.playerState.state$, this.inventory.changes$)
       .pipe(skip(1), debounceTime(2000))
       .subscribe(() => this.saveLocal());
   }
 
-  async loadAll(): Promise<void> {
-    const snapshot: GameSnapshot | null = await this.storage.get(SNAPSHOT_KEY);
-    if (!snapshot) return;
-    this.playerState.setFromProfile(snapshot.playerState);
-    this.inventory.restoreFromSnapshot(snapshot.inventory);
+  // --- Claves dinámicas por personaje ---
+
+  private snapshotKey(): string {
+    return this.charId ? `snapshot_char_${this.charId}` : 'snapshot_fallback';
   }
 
+  private syncedKey(): string {
+    return this.charId ? `snapshot_char_${this.charId}_synced` : 'snapshot_fallback_synced';
+  }
+
+  // --- Ciclo de vida de personaje ---
+
+  /**
+   * Llama al seleccionar un personaje.
+   * Carga su snapshot local (si existe) o inicializa en limpio.
+   */
+  async loadCharacter(charId: string): Promise<void> {
+    this.charId = charId;
+    const snapshot: GameSnapshot | null = await this.storage.get(this.snapshotKey());
+    if (snapshot) {
+      this.playerState.setFromProfile(snapshot.playerState);
+      this.inventory.restoreFromSnapshot(snapshot.inventory);
+    } else {
+      // Primer acceso a este personaje — estado vacío
+      this.playerState.setFromProfile(EMPTY_STATE);
+      this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
+    }
+  }
+
+  /**
+   * Llama antes de cambiar de personaje.
+   * Guarda en local el estado actual del personaje activo.
+   */
+  async saveCurrentCharacter(): Promise<void> {
+    if (!this.charId) return;
+    await this.saveLocal();
+  }
+
+  /**
+   * Botón "Borrar todo": resetea monedas a 0 e inventario vacío para el personaje activo.
+   */
+  async clearCurrentCharacter(): Promise<void> {
+    if (!this.charId) return;
+    const current = this.playerState.snapshot();
+    this.playerState.setFromProfile({ ...current, coins: 0, specialCoins: 0 });
+    this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
+    await this.saveLocal();
+  }
+
+  /** Botón "Guardar": escribe local y luego intenta remoto */
   async forceSave(): Promise<void> {
     await this.saveLocal();
     await this.saveRemote();
   }
 
-  /** Datos actuales en local storage con resumen de inventario */
-  async getLocalInfo(): Promise<LocalInfo> {
-    const snap: GameSnapshot | null = await this.storage.get(SNAPSHOT_KEY);
-    const synced: GameSnapshot | null = await this.storage.get(SYNCED_KEY);
+  // --- Inspección ---
 
-    const grid = snap?.inventory ?? this.inventory.getSnapshot();
-    const flat  = grid.flat(2).filter(Boolean) as InventoryItem[];
+  async getLocalInfo(): Promise<LocalInfo> {
+    const snap: GameSnapshot | null   = await this.storage.get(this.snapshotKey());
+    const synced: GameSnapshot | null = await this.storage.get(this.syncedKey());
+
+    const grid     = snap?.inventory ?? this.inventory.getSnapshot();
+    const flat     = grid.flat(2).filter(Boolean) as InventoryItem[];
     const tabsUsed = grid.filter(tab => tab.flat().some(Boolean)).length;
 
     return {
@@ -117,27 +162,21 @@ export class SaveService {
     };
   }
 
-  /** Diferencias entre estado actual y último guardado en Supabase */
   async getDelta(): Promise<ChangeDelta> {
     const current = this.buildSnapshot();
-    const synced: GameSnapshot | null = await this.storage.get(SYNCED_KEY);
+    const synced: GameSnapshot | null = await this.storage.get(this.syncedKey());
 
     if (!synced) {
       const allItems = this.computeInventoryDelta([], current.inventory);
       return {
-        hasChanges:       true,
-        isFirstSync:      true,
-        lastSyncedAt:     null,
-        currentLocalAt:   current.lastModified,
-        playerState:      {},
-        inventoryChanged: allItems.length > 0,
-        inventoryDelta:   allItems,
+        hasChanges: true, isFirstSync: true,
+        lastSyncedAt: null, currentLocalAt: current.lastModified,
+        playerState: {}, inventoryChanged: allItems.length > 0, inventoryDelta: allItems,
       };
     }
 
     const psChanges: ChangeDelta['playerState'] = {};
-    const keys: (keyof PlayerState)[] = ['coins', 'specialCoins', 'exp', 'lvl'];
-    for (const key of keys) {
+    for (const key of (['coins', 'specialCoins', 'exp', 'lvl'] as (keyof PlayerState)[])) {
       const from = synced.playerState[key] as number;
       const to   = current.playerState[key] as number;
       if (from !== to) psChanges[key] = { from, to, diff: to - from };
@@ -147,62 +186,21 @@ export class SaveService {
     const inventoryChanged = inventoryDelta.length > 0;
 
     return {
-      hasChanges:       Object.keys(psChanges).length > 0 || inventoryChanged,
-      isFirstSync:      false,
-      lastSyncedAt:     synced.lastModified,
-      currentLocalAt:   current.lastModified,
-      playerState:      psChanges,
-      inventoryChanged,
-      inventoryDelta,
+      hasChanges: Object.keys(psChanges).length > 0 || inventoryChanged,
+      isFirstSync: false,
+      lastSyncedAt: synced.lastModified, currentLocalAt: current.lastModified,
+      playerState: psChanges, inventoryChanged, inventoryDelta,
     };
   }
 
-  // --- Utilidades de inventario ---
-
-  /** Agrupa items por nombre sumando cantidades */
-  private summarizeInventory(grid: (InventoryItem | null)[][][]): InventorySummaryEntry[] {
-    const totals: Record<string, number> = {};
-    grid.flat(2).filter(Boolean).forEach((item: InventoryItem) => {
-      totals[item.name] = (totals[item.name] ?? 0) + (item.sum ?? 1);
-    });
-    return Object.entries(totals)
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+  async getSupabasePayload(): Promise<SupabasePayload> {
+    if (OFFLINE_MODE) return { willSync: false, skipReason: 'OFFLINE_MODE activo', tables: [] };
+    const current = this.buildSnapshot();
+    const synced: GameSnapshot | null = await this.storage.get(this.syncedKey());
+    return this.buildSupabasePayload(current, synced);
   }
 
-  /** Compara dos grids y devuelve los cambios por item */
-  private computeInventoryDelta(
-    from: (InventoryItem | null)[][][],
-    to:   (InventoryItem | null)[][][],
-  ): InventoryItemDelta[] {
-    const sum = (grid: (InventoryItem | null)[][][]) => {
-      const map: Record<string, number> = {};
-      grid.flat(2).filter(Boolean).forEach((item: InventoryItem) => {
-        map[item.name] = (map[item.name] ?? 0) + (item.sum ?? 1);
-      });
-      return map;
-    };
-
-    const fromMap = sum(from);
-    const toMap   = sum(to);
-    const names   = new Set([...Object.keys(fromMap), ...Object.keys(toMap)]);
-    const delta: InventoryItemDelta[] = [];
-
-    for (const name of names) {
-      const f = fromMap[name] ?? 0;
-      const t = toMap[name]   ?? 0;
-      if (f === t) continue;
-      delta.push({
-        name,
-        type: f === 0 ? 'added' : t === 0 ? 'removed' : 'changed',
-        from: f,
-        to:   t,
-        diff: t - f,
-      });
-    }
-
-    return delta.sort((a, b) => a.name.localeCompare(b.name));
-  }
+  // --- Internos ---
 
   private buildSnapshot(): GameSnapshot {
     return {
@@ -213,20 +211,11 @@ export class SaveService {
   }
 
   private async saveLocal(): Promise<void> {
+    if (!this.charId) return;
     this.status$.next('local');
-    await this.storage.set(SNAPSHOT_KEY, this.buildSnapshot());
+    await this.storage.set(this.snapshotKey(), this.buildSnapshot());
     this.status$.next('saved');
     setTimeout(() => this.status$.next('idle'), 2000);
-  }
-
-  /** Devuelve exactamente lo que se enviaría a Supabase si se pulsara "Guardar" ahora */
-  async getSupabasePayload(): Promise<SupabasePayload> {
-    if (OFFLINE_MODE) {
-      return { willSync: false, skipReason: 'OFFLINE_MODE activo', tables: [] };
-    }
-    const current = this.buildSnapshot();
-    const synced: GameSnapshot | null = await this.storage.get(SYNCED_KEY);
-    return this.buildSupabasePayload(current, synced);
   }
 
   private async saveRemote(): Promise<void> {
@@ -237,7 +226,7 @@ export class SaveService {
     try {
       this.status$.next('remote');
       const current = this.buildSnapshot();
-      const synced: GameSnapshot | null = await this.storage.get(SYNCED_KEY);
+      const synced: GameSnapshot | null = await this.storage.get(this.syncedKey());
       const payload = this.buildSupabasePayload(current, synced);
 
       if (!payload.willSync) {
@@ -249,12 +238,11 @@ export class SaveService {
 
       const globalDataTable = payload.tables.find(t => t.table === 'global_data');
       const inventoryTable  = payload.tables.find(t => t.table === 'inventory');
-
-      const partialPS: Partial<PlayerState> = globalDataTable?.fields ?? {};
-      const inventoryPayload = inventoryTable ? current.inventory : null;
-
-      await this.supabase.saveGameData(partialPS, inventoryPayload);
-      await this.storage.set(SYNCED_KEY, current);
+      await this.supabase.saveGameData(
+        globalDataTable?.fields ?? {},
+        inventoryTable ? current.inventory : null
+      );
+      await this.storage.set(this.syncedKey(), current);
       this.status$.next('saved');
       setTimeout(() => this.status$.next('idle'), 2000);
     } catch (e) {
@@ -267,15 +255,12 @@ export class SaveService {
   private buildSupabasePayload(current: GameSnapshot, synced: GameSnapshot | null): SupabasePayload {
     const tables: SupabaseTablePayload[] = [];
 
-    // --- global_data ---
     const psFields: Record<string, any> = {};
-    const psKeys: (keyof PlayerState)[] = ['coins', 'specialCoins', 'exp', 'lvl'];
-    for (const key of psKeys) {
+    for (const key of (['coins', 'specialCoins', 'exp', 'lvl'] as (keyof PlayerState)[])) {
       if (!synced || current.playerState[key] !== synced.playerState[key]) {
         psFields[key] = current.playerState[key];
       }
     }
-
     if (Object.keys(psFields).length > 0) {
       psFields['last_modified'] = current.lastModified;
       tables.push({ table: 'global_data', operation: 'UPDATE', fields: psFields });
@@ -283,16 +268,12 @@ export class SaveService {
       tables.push({ table: 'global_data', operation: 'SKIP', fields: {}, note: 'Sin cambios' });
     }
 
-    // --- inventory (pendiente de tabla propia) ---
     const inventoryChanged = !synced ||
       JSON.stringify(current.inventory) !== JSON.stringify(synced.inventory);
-
     if (inventoryChanged) {
       const itemCount = current.inventory.flat(2).filter(Boolean).length;
       tables.push({
-        table: 'inventory',
-        operation: 'UPDATE',
-        fields: { slots: itemCount },
+        table: 'inventory', operation: 'UPDATE', fields: { slots: itemCount },
         note: `${itemCount} items (grid completo — tabla pendiente de normalizar)`,
       });
     } else {
@@ -300,10 +281,40 @@ export class SaveService {
     }
 
     const willSync = tables.some(t => t.operation === 'UPDATE');
-    return {
-      willSync,
-      skipReason: willSync ? undefined : 'Todo sincronizado',
-      tables,
+    return { willSync, skipReason: willSync ? undefined : 'Todo sincronizado', tables };
+  }
+
+  private summarizeInventory(grid: (InventoryItem | null)[][][]): InventorySummaryEntry[] {
+    const totals: Record<string, number> = {};
+    grid.flat(2).filter(Boolean).forEach((item: InventoryItem) => {
+      totals[item.name] = (totals[item.name] ?? 0) + (item.sum ?? 1);
+    });
+    return Object.entries(totals)
+      .map(([name, total]) => ({ name, total }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private computeInventoryDelta(
+    from: (InventoryItem | null)[][][],
+    to:   (InventoryItem | null)[][][],
+  ): InventoryItemDelta[] {
+    const sum = (grid: (InventoryItem | null)[][][]) => {
+      const map: Record<string, number> = {};
+      grid.flat(2).filter(Boolean).forEach((item: InventoryItem) => {
+        map[item.name] = (map[item.name] ?? 0) + (item.sum ?? 1);
+      });
+      return map;
     };
+    const fromMap = sum(from);
+    const toMap   = sum(to);
+    const names   = new Set([...Object.keys(fromMap), ...Object.keys(toMap)]);
+    const delta: InventoryItemDelta[] = [];
+    for (const name of names) {
+      const f = fromMap[name] ?? 0;
+      const t = toMap[name]   ?? 0;
+      if (f === t) continue;
+      delta.push({ name, type: f === 0 ? 'added' : t === 0 ? 'removed' : 'changed', from: f, to: t, diff: t - f });
+    }
+    return delta.sort((a, b) => a.name.localeCompare(b.name));
   }
 }

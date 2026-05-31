@@ -40,6 +40,14 @@ export class SettingsPageComponent {
     await this.saveService.forceSave();
   }
 
+  async clearAll() {
+    await this.saveService.clearCurrentCharacter();
+    // Refresca los paneles abiertos si los hay
+    if (this.localInfo) this.localInfo = await this.saveService.getLocalInfo();
+    if (this.delta)     this.delta     = await this.saveService.getDelta();
+    if (this.payload)   this.payload   = await this.saveService.getSupabasePayload();
+  }
+
   async toggleLocalInfo() {
     if (this.localInfo) { this.localInfo = null; return; }
     this.loadingInfo = true;
@@ -83,8 +91,8 @@ export class SettingsPageComponent {
     this.sceneManager.changeScene(scene);
   }
 
-  changePlayer() {
-    this.asgardService.changePlayer();
+  async changePlayer() {
+    await this.asgardService.changePlayer();
     this.asgardService.triggerCloseMenu();
   }
 

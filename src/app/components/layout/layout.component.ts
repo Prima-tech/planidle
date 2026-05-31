@@ -43,10 +43,14 @@ export class LayoutComponent {
     console.log('oyistis ?')
     this.asgardService.getSelectedPlayer();
     this.asgardService.refreshData();
-    this.service.getUserData().subscribe((data) => {
+    this.service.getUserData().subscribe(async (data) => {
       this.asgardService.createPlayer(data);
       this.registerServices();
-      this.saveService.loadAll();
+      // Si hay un personaje ya seleccionado (sesión previa), carga su snapshot local
+      const player = await this.asgardService.getSelectedPlayer();
+      if (player?.id) {
+        await this.saveService.loadCharacter(String(player.id));
+      }
       this.dataLoaded = true;
     })
   }

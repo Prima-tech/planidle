@@ -5,6 +5,7 @@ import { Character } from '../classes/character.class';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { PlayerStateService } from './player-state.service';
+import { SaveService } from './save.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,9 +23,9 @@ export class AsgardService {
   constructor(
     private storageService: StorageService,
     private router: Router,
-    private playerState: PlayerStateService
+    private playerState: PlayerStateService,
+    private saveService: SaveService
   ) { }
-
 
   async refreshData() {
     this.isChecking = true;
@@ -72,7 +73,7 @@ export class AsgardService {
   }
 
   setInitialSprites(sprites: any) {
-    this.player.setInitialSprites(sprites)
+    this.player.setInitialSprites(sprites);
   }
 
   setAttackToPlayer(attack: IAttack) {
@@ -82,13 +83,14 @@ export class AsgardService {
   async setSelectedPlayer(player: any) {
     this.selectedPlayer = new Character(player);
     await this.storageService.set('selected_player', player);
+    // Carga el snapshot local de este personaje (monedas, inventario)
+    await this.saveService.loadCharacter(String(player.id));
   }
 
   async getSelectedPlayer() {
     if (this.selectedPlayer) {
       return this.selectedPlayer;
     }
-
     const data = await this.storageService.get('selected_player');
     if (data) {
       this.selectedPlayer = new Character(data);
@@ -96,7 +98,9 @@ export class AsgardService {
     return this.selectedPlayer;
   }
 
-  changePlayer() {
+  async changePlayer() {
+    // Guarda el estado del personaje actual antes de salir
+    await this.saveService.saveCurrentCharacter();
     this.selectedPlayer = null;
     this.storageService.set('selected_player', null);
     this.router.navigate(['/globalposition']);
