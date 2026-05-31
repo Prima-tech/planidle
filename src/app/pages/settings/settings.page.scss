@@ -109,6 +109,42 @@ $radius: 8px;
     }
   }
 
+  &.save-btn {
+    background: rgba($gold-dim, 0.2);
+    border: 1px solid $gold-dim;
+    color: $gold;
+    font-weight: bold;
+    width: 100%;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+
+    &:hover:not(:disabled) {
+      background: rgba($gold-dim, 0.35);
+      border-color: $gold;
+    }
+
+    &.saving {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    &.saved {
+      background: rgba(#2a7a3a, 0.3);
+      border-color: #3fa855;
+      color: #6dcc84;
+    }
+
+    &.error {
+      background: rgba($danger, 0.3);
+      border-color: $danger;
+      color: #e07070;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
   &.danger {
     background: rgba($danger, 0.3);
     border: 1px solid rgba($danger, 0.5);

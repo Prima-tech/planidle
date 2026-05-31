@@ -173,6 +173,41 @@ export class SupabaseService {
     return error;
   }
 
+  // --- SAVE / LOAD GAME DATA ---
+
+  async saveGameData(playerState: any, _inventory: any): Promise<void> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) throw new Error('No hay sesión activa');
+
+    const { error } = await this.supabase
+      .from('global_data')
+      .update({
+        coins:         playerState.coins,
+        special_coins: playerState.specialCoins,
+        exp:           playerState.exp,
+        lvl:           playerState.lvl,
+        last_modified: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (error) throw error;
+    // Inventario: pendiente de tabla propia en Supabase
+  }
+
+  async loadGameData(): Promise<{ playerState: any } | null> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await this.supabase
+      .from('global_data')
+      .select('coins, special_coins, exp, lvl')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !data) return null;
+    return { playerState: data };
+  }
+
   async createCharacter(characterData: { name: string, character_class: string }) {
     // Obtenemos el ID del usuario logueado
     const { data: { user } } = await this.supabase.auth.getUser();

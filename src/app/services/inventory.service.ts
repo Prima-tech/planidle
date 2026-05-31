@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
-// ← Cambia a false cuando Supabase esté listo
+// Cambia a false cuando Supabase esté listo para inventario
 const USE_MOCK = true;
 
 export interface InventoryItem {
@@ -20,6 +20,7 @@ const COLS = 5;
 export class InventoryService {
 
   readonly itemDropped$ = new Subject<InventoryItem>();
+  readonly changes$     = new Subject<void>();
 
   private mockGrid: (InventoryItem | null)[][][] = this.buildGrid();
 
@@ -35,16 +36,25 @@ export class InventoryService {
   async save(grid: (InventoryItem | null)[][][], inventoryType: string = 'backpack'): Promise<void> {
     if (USE_MOCK) {
       this.mockGrid = this.clone(grid);
+      this.changes$.next();
       return;
     }
     await this.saveToSupabase(grid, inventoryType);
   }
 
   addDroppedItem(item: InventoryItem): void {
-    // Añade al mockGrid para persistencia
     this.addToGrid(this.mockGrid, item);
-    // Notifica al componente en tiempo real si está abierto
     this.itemDropped$.next(item);
+    this.changes$.next();
+  }
+
+  getSnapshot(): (InventoryItem | null)[][][] {
+    return this.clone(this.mockGrid);
+  }
+
+  restoreFromSnapshot(grid: (InventoryItem | null)[][][]): void {
+    if (!grid) return;
+    this.mockGrid = this.clone(grid);
   }
 
   private addToGrid(grid: (InventoryItem | null)[][][], item: InventoryItem): void {

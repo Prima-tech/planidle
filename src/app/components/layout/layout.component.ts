@@ -11,6 +11,7 @@ import { AsgardService } from 'src/app/services/asgard';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
+import { SaveService } from 'src/app/services/save.service';
 
 @Component({
   selector: 'app-layout',
@@ -32,7 +33,8 @@ export class LayoutComponent {
     public asgardService: AsgardService,
     public inventoryService: InventoryService,
     public worldService: WorldService,
-    public playerStateService: PlayerStateService
+    public playerStateService: PlayerStateService,
+    private saveService: SaveService
   ) {
     this.loadGame();
   }
@@ -42,8 +44,9 @@ export class LayoutComponent {
     this.asgardService.getSelectedPlayer();
     this.asgardService.refreshData();
     this.service.getUserData().subscribe((data) => {
-      this.asgardService.createPlayer(data)
+      this.asgardService.createPlayer(data);
       this.registerServices();
+      this.saveService.loadAll();
       this.dataLoaded = true;
     })
   }
