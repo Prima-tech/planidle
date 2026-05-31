@@ -29,6 +29,7 @@ export class GameScene extends Phaser.Scene {
     private currentMapConfig: MapConfig;
     asgardService: any;
     worldService: any;
+    killService: any;
     currentMap: any;
 
       constructor(
@@ -38,7 +39,8 @@ export class GameScene extends Phaser.Scene {
 
     preload() {
       this.asgardService = this.game.registry.get('asgardService');
-      this.worldService = this.game.registry.get('worldService');
+      this.worldService  = this.game.registry.get('worldService');
+      this.killService   = this.game.registry.get('killService');
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64});
       this.load.spritesheet('enemyTexture', 'assets/sprites/enemy/orc1/orc1_idle_full.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png');
@@ -226,6 +228,11 @@ export class GameScene extends Phaser.Scene {
       this.events.on('enemyAttackPlayer', ({ damage }: { damage: number }) => {
         this.asgardService.setAttackToPlayer({ HP: -damage });
         this.flashPlayer();
+      });
+
+      this.events.on('enemyDied', ({ type }: { type: string }) => {
+        const mapId = this.worldService.getCurrentMap().id;
+        this.killService?.recordKill(mapId, type);
       });
     }
 

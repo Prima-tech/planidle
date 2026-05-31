@@ -12,6 +12,7 @@ import { InventoryService } from 'src/app/services/inventory.service';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { SaveService } from 'src/app/services/save.service';
+import { KillService } from 'src/app/services/kill.service';
 
 @Component({
   selector: 'app-layout',
@@ -34,7 +35,8 @@ export class LayoutComponent {
     public inventoryService: InventoryService,
     public worldService: WorldService,
     public playerStateService: PlayerStateService,
-    private saveService: SaveService
+    private saveService: SaveService,
+    private killService: KillService
   ) {
     this.loadGame();
   }
@@ -83,6 +85,7 @@ export class LayoutComponent {
     this.phaserGame.registry.set('inventoryService', this.inventoryService);
     this.phaserGame.registry.set('worldService', this.worldService);
     this.phaserGame.registry.set('playerStateService', this.playerStateService);
+    this.phaserGame.registry.set('killService', this.killService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

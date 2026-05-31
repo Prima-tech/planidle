@@ -5,6 +5,7 @@ import { PlayerStateService, PlayerState } from './player-state.service';
 import { InventoryService, InventoryItem } from './inventory.service';
 import { SupabaseService } from './supabase.service';
 import { WorldService } from './world.service';
+import { KillService, KillMap } from './kill.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -19,6 +20,7 @@ export interface GameSnapshot {
   playerState: PlayerState;
   inventory: (InventoryItem | null)[][][];
   mapId: string;
+  kills: KillMap;
   lastModified: string;
 }
 
@@ -87,6 +89,7 @@ export class SaveService {
     private inventory: InventoryService,
     private supabase: SupabaseService,
     private world: WorldService,
+    private kills: KillService,
   ) {
     // Auto-guarda en local tras 2s de inactividad, usando la clave del personaje activo
     merge(this.playerState.state$, this.inventory.changes$)
@@ -117,12 +120,14 @@ export class SaveService {
       this.playerState.setFromProfile(snapshot.playerState);
       this.inventory.restoreFromSnapshot(snapshot.inventory);
       this.world.setCurrentMap(snapshot.mapId ?? 'hogar');
+      this.kills.restoreCharKills(snapshot.kills ?? {});
     } else {
-      // Primer acceso a este personaje — estado vacío
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
       this.world.setCurrentMap('hogar');
+      this.kills.restoreCharKills({});
     }
+    await this.kills.loadGlobalKills();
   }
 
   /**
@@ -216,6 +221,7 @@ export class SaveService {
       playerState:  this.playerState.snapshot(),
       inventory:    this.inventory.getSnapshot(),
       mapId:        this.world.getCurrentMap().id,
+      kills:        this.kills.getCharKillsSnapshot(),
       lastModified: new Date().toISOString(),
     };
   }
