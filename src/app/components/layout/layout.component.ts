@@ -74,6 +74,9 @@ export class LayoutComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.gainsSub?.unsubscribe();
+    this.phaserGame?.destroy(true);
+    this.phaserGame = undefined;
+    this.sceneManager.setGame(null);
   }
 
   loadGame() {

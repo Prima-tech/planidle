@@ -9,7 +9,7 @@ export class SceneManager {
   constructor(
    ) {}
 
-  setGame(game: Phaser.Game) {
+  setGame(game: Phaser.Game | null) {
     this.game = game;
   }
 
