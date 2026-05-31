@@ -25,9 +25,7 @@ export class InventoryService {
 
   private mockGrid: (InventoryItem | null)[][][] = this.buildGrid();
 
-  constructor() {
-    this.seedMockData();
-  }
+  constructor() { }
 
   async load(inventoryType: string = 'backpack'): Promise<(InventoryItem | null)[][][]> {
     if (USE_MOCK) return this.clone(this.mockGrid);
