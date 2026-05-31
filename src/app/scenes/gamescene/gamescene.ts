@@ -112,8 +112,9 @@ export class GameScene extends Phaser.Scene {
         const tracker: SpawnTracker = { config: cfg, count: 0 };
         this.spawnTrackers.push(tracker);
 
+        // Spawna los enemigos escalonados (uno cada 2s) para que no aparezcan todos a la vez
         for (let i = 0; i < cfg.maxCount; i++) {
-          this.spawnEnemy(cfg, tracker);
+          this.time.delayedCall(i * 2000, () => this.spawnEnemy(cfg, tracker));
         }
       }
     }

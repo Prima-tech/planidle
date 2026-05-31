@@ -3,96 +3,280 @@ ion-content {
   --ion-background-color: transparent;
 }
 
-.global-position-wrapper {
-  .globalposition-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-  }
+.char-select-screen {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+}
 
-  .globalposition-box {
-    width: 90%;
-    max-width: 400px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 40px 30px;
+// ── LEFT PANEL ──────────────────────────────────────────────────────────────
+.left-panel {
+  flex: 0 0 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  gap: 32px;
+
+  .game-logo {
     text-align: center;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
 
-    h1 {
-      color: #ffffff;
-      font-size: 25px;
-      font-weight: 700;
-      margin-bottom: 5px;
+    .logo-icon {
+      font-size: 48px;
+      line-height: 1;
+      filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.8));
     }
 
-    p {
-      color: #cccccc;
-      margin-bottom: 30px;
-      font-size: 0.9rem;
+    .game-title {
+      margin: 8px 0 4px;
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #ffffff;
+      text-shadow: 0 0 20px rgba(0, 210, 255, 0.7);
+    }
+
+    .game-tagline {
+      margin: 0;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.45);
     }
   }
 
-  .content-area {
-    margin: 30px 0;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    min-height: 150px;
+  .profile-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+
+    ion-icon {
+      font-size: 20px;
+      color: #00d2ff;
+    }
+  }
+}
+
+// ── DIVIDER ─────────────────────────────────────────────────────────────────
+.panel-divider {
+  flex: 0 0 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(0, 210, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.2) 80%,
+    transparent 100%
+  );
+  align-self: stretch;
+  margin: 24px 0;
+}
+
+// ── RIGHT PANEL ─────────────────────────────────────────────────────────────
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 32px;
+  gap: 20px;
+
+  .choose-label {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+
+    ion-spinner {
+      color: #00d2ff;
+      width: 40px;
+      height: 40px;
+    }
+  }
+}
+
+// ── CHARACTER CARDS ROW ──────────────────────────────────────────────────────
+.characters-row {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hero-card {
+  position: relative;
+  flex: 1 1 180px;
+  max-width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(6px);
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  // Warrior theme: orange/red
+  &--warrior {
+    .hero-avatar {
+      background: rgba(255, 100, 40, 0.2);
+      border-color: rgba(255, 100, 40, 0.5);
+      ion-icon { color: #ff7a38; }
+    }
+    .hero-class-badge {
+      background: rgba(255, 100, 40, 0.25);
+      color: #ff9a68;
+    }
+    .hp-bar-fill { background: linear-gradient(90deg, #ff4500, #ff7a38); }
+  }
+
+  // Mage theme: blue/purple
+  &--mage {
+    .hero-avatar {
+      background: rgba(100, 80, 255, 0.2);
+      border-color: rgba(130, 100, 255, 0.5);
+      ion-icon { color: #a47aff; }
+    }
+    .hero-class-badge {
+      background: rgba(100, 80, 255, 0.25);
+      color: #c0aaff;
+    }
+    .hp-bar-fill { background: linear-gradient(90deg, #6040ff, #a47aff); }
+  }
+
+  // Selected state
+  &--selected {
+    border-color: #00d2ff;
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.35), inset 0 0 20px rgba(0, 210, 255, 0.06);
+    transform: translateY(-3px);
+  }
+
+  .hero-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
 
-    .info-text {
-      color: #aaaaaa;
-      font-size: 0.95rem;
-      margin: 0;
+    ion-icon {
+      font-size: 34px;
     }
   }
 
-  .continue-btn {
-    margin-top: 25px;
-    --background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
-    --border-radius: 10px;
-    --box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
-    font-weight: 600;
+  .hero-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .hero-name {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
     letter-spacing: 1px;
   }
 
-  .player-wrapper {
-    width: 50%;
-    height: 100px;
-    border: solid 3px black;
-    border-radius: 5px;
+  .hero-class-badge {
+    padding: 2px 12px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
 
-    .player-name {
-      margin-top: 5px;
+  .hero-hp {
+    width: 100%;
+    margin-top: 4px;
+
+    .hp-bar-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+
+      .hp-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.4s ease;
+      }
+    }
+
+    .hp-label {
+      display: block;
+      margin-top: 4px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.45);
+      text-align: center;
+    }
+  }
+
+  .selected-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    ion-icon {
       font-size: 20px;
-    }
-
-    .player-class {
-      margin-top: 5px;
-      font-size: 12px;
-      font-style: italic;
-    }
-
-    &.selected-card {
-      border-color: #00d2ff;
+      color: #00d2ff;
     }
   }
+}
 
-  .player-wrapper:nth-child(odd) {
-    margin-right: 10px;
-    width: calc(50% - 10px);
+.no-heroes {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+// ── ACTION ROW ───────────────────────────────────────────────────────────────
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+
+  .continue-btn {
+    --background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+    --border-radius: 10px;
+    --box-shadow: 0 4px 20px rgba(0, 210, 255, 0.4);
+    --padding-start: 28px;
+    --padding-end: 28px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 13px;
   }
 
-  .player-wrapper:nth-child(even) {
-    margin-left: 10px;
-    width: calc(50% - 10px);
+  .create-btn {
+    --background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    --border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
   }
 }

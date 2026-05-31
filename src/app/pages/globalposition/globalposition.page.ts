@@ -52,7 +52,16 @@ export class GlobalpositionPage implements OnInit {
   }
 
   selectPlayer(player: any) {
-    console.log('soy el player', player)
     this.isSelected = player;
+  }
+
+  getClassIcon(characterClass: string): string {
+    const icons: Record<string, string> = {
+      Warrior: 'shield-outline',
+      Mage: 'flash-outline',
+      Rogue: 'eye-outline',
+      Archer: 'locate-outline',
+    };
+    return icons[characterClass] ?? 'person-outline';
   }
 }
