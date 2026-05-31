@@ -21,6 +21,7 @@ export interface GameSnapshot {
   inventory: (InventoryItem | null)[][][];
   mapId: string;
   kills: KillMap;
+  lastSeen: string;
   lastModified: string;
 }
 
@@ -217,12 +218,14 @@ export class SaveService {
   // --- Internos ---
 
   private buildSnapshot(): GameSnapshot {
+    const now = new Date().toISOString();
     return {
       playerState:  this.playerState.snapshot(),
       inventory:    this.inventory.getSnapshot(),
       mapId:        this.world.getCurrentMap().id,
       kills:        this.kills.getCharKillsSnapshot(),
-      lastModified: new Date().toISOString(),
+      lastSeen:     now,
+      lastModified: now,
     };
   }
 
@@ -294,6 +297,13 @@ export class SaveService {
       });
     } else {
       tables.push({ table: 'inventory', operation: 'SKIP', fields: {}, note: 'Sin cambios' });
+    }
+
+    const lastSeenChanged = !synced || current.lastSeen !== synced.lastSeen;
+    if (lastSeenChanged) {
+      tables.push({ table: 'characters', operation: 'UPDATE', fields: { last_seen: current.lastSeen } });
+    } else {
+      tables.push({ table: 'characters', operation: 'SKIP', fields: {}, note: 'Sin cambios' });
     }
 
     const willSync = tables.some(t => t.operation === 'UPDATE');

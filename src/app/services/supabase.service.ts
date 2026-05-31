@@ -50,11 +50,6 @@ export class SupabaseService {
     { name: 'Aldric',   character_class: 'Hunter',     max_hp: 90  },
     { name: 'Seraphel', character_class: 'Priest',     max_hp: 80  },
     { name: 'Malachar', character_class: 'Necron',     max_hp: 70  },
-    { name: 'Bryndor',  character_class: 'Warrior',   max_hp: 120 },
-    { name: 'Lysara',   character_class: 'Mage',       max_hp: 65  },
-    { name: 'Faolan',   character_class: 'Hunter',     max_hp: 90  },
-    { name: 'Theron',   character_class: 'Priest',     max_hp: 80  },
-    { name: 'Vexaris',  character_class: 'Necron',     max_hp: 70  },
     { name: 'Solmara',  character_class: 'Ancestral',  max_hp: 100 },
   ];
 

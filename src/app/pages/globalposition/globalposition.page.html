@@ -49,6 +49,10 @@
                 <ion-icon name="location-outline"></ion-icon>
                 <span>{{ charMapNames[character.id] || 'Hogar' }}</span>
               </div>
+              <div class="hero-offline">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>{{ timeSince(character.id) }}</span>
+              </div>
               <div class="selected-check" *ngIf="isSelected?.id === character.id">
                 <ion-icon name="checkmark-circle"></ion-icon>
               </div>
@@ -76,6 +80,10 @@
                 <ion-icon name="location-outline"></ion-icon>
                 <span>{{ charMapNames[character.id] || 'Hogar' }}</span>
               </div>
+              <div class="hero-offline">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>{{ timeSince(character.id) }}</span>
+              </div>
               <div class="selected-check" *ngIf="isSelected?.id === character.id">
                 <ion-icon name="checkmark-circle"></ion-icon>
               </div>
@@ -102,6 +110,10 @@
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
                 <span>{{ charMapNames[character.id] || 'Hogar' }}</span>
+              </div>
+              <div class="hero-offline">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>{{ timeSince(character.id) }}</span>
               </div>
               <div class="selected-check" *ngIf="isSelected?.id === character.id">
                 <ion-icon name="checkmark-circle"></ion-icon>
