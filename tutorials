@@ -86,3 +86,13 @@ Guía paso a paso: crear un mapa en Tiled para tu juego
 
   Cuando tengas el primer mapa exportado dime y monto el sistema de carga dinámica para que cualquier JSON nuevo cargue
   automáticamente sin tocar código.
+
+
+  Prompt 1
+   vale ahora quiero montar el sistema de mapas. la idea es que va a haber planetas, actualmente estoy en la tierra. cada planeta tiene un
+  numero de mundos. mundo 1 bosque, mundo 2 nieve. etc. dentro del mundo 1 habra varios mapas. 1-1 1-2 2-1 etc así se nombrarán de momento.
+  actualmente solo tengo un tile. quiero crear ahora dos con el mismo tile. que ponga abajo a la derecha el nombre del mapa. el principal
+  sera hogar, y el siguiente sera 1-1, quiero tambien un sistema que cuando el personaje pase por encima de un tile se teletransporte al
+  siguiente. en el mapa hogar no hay enemigos, pero en el mapa 1-1 respameara un orco
+
+  
