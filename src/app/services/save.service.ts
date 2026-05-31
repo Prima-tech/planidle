@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, debounceTime, merge, skip } from 'rxjs';
+import { BehaviorSubject, debounceTime, filter, merge, skip } from 'rxjs';
 import { StorageService } from './storage.service';
 import { PlayerStateService, PlayerState } from './player-state.service';
 import { InventoryService, InventoryItem } from './inventory.service';
@@ -85,6 +85,7 @@ export class SaveService {
   readonly status$       = new BehaviorSubject<SaveStatus>('idle');
   readonly pendingGains$ = new BehaviorSubject<OfflineGains | null>(null);
   private charId: string | null = null;
+  private isRestoring   = false;
 
   constructor(
     private storage: StorageService,
@@ -95,9 +96,15 @@ export class SaveService {
     private kills: KillService,
     private offlineGains: OfflineGainsService,
   ) {
-    // Auto-guarda en local tras 2s de inactividad, usando la clave del personaje activo
+    // Auto-guarda en local tras 2s de actividad real del jugador.
+    // filter(() => !this.isRestoring) evita que la restauración de estado
+    // al cargar un personaje arranque el timer y sobreescriba lastSeen.
     merge(this.playerState.state$, this.inventory.changes$)
-      .pipe(skip(1), debounceTime(2000))
+      .pipe(
+        skip(1),
+        filter(() => !this.isRestoring),
+        debounceTime(2000),
+      )
       .subscribe(() => this.saveLocal());
   }
 
@@ -118,10 +125,10 @@ export class SaveService {
    * Carga su snapshot local (si existe) o inicializa en limpio.
    */
   async loadCharacter(charId: string): Promise<void> {
+    this.isRestoring = true;
     this.charId = charId;
     const snapshot: GameSnapshot | null = await this.storage.get(this.snapshotKey());
 
-    // Calcular ganancias offline ANTES de restaurar el estado
     const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
 
     if (snapshot) {
@@ -137,6 +144,7 @@ export class SaveService {
     }
     await this.kills.loadGlobalKills();
     this.pendingGains$.next(gains);
+    this.isRestoring = false;
   }
 
   /**
