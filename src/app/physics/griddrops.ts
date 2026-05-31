@@ -20,7 +20,7 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
   orc1: [
     { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5, mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png',  animKey: 'coin_spin', scale: 3, order: 10 },
     { name: 'Espada', type: 'item',     chance: 0.15, minQty: 1, maxQty: 1, mergeable: false, texture: 'sword',       icon: 'assets/icon/weapons/sword8.png',                           scale: 3, order: 1  },
-    { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 2, mergeable: true,  texture: 'drop_potion', icon: 'assets/icon/potion.svg',                                   scale: 4, order: 5  },
+    { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1, mergeable: true,  texture: 'drop_potion', icon: 'assets/icon/potion.svg',                                   scale: 4, order: 5  },
   ],
   default: [
     { name: 'Oro',    type: 'currency', chance: 0.4,  minQty: 1, maxQty: 2, mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png',  animKey: 'coin_spin', scale: 3, order: 10 },
