@@ -1,0 +1,147 @@
+$bg: #12111a;
+$bg-section: #1e1c2a;
+$gold: #c9a84c;
+$gold-dim: #8a6f2e;
+$text: #e8e0d0;
+$text-muted: #7a7080;
+$accent: #916d69;
+$danger: #7a2c2c;
+$danger-hover: #9e3535;
+$primary-hover: #2d2b3d;
+$radius: 8px;
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: $bg;
+  font-family: 'Georgia', serif;
+  color: $text;
+  overflow: hidden;
+}
+
+.settings-header {
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid $gold-dim;
+  background: $bg-section;
+
+  .settings-title {
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: $gold;
+  }
+}
+
+.settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-section {
+  padding: 10px 0;
+}
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $gold-dim;
+  margin: 0 0 8px 2px;
+
+  &.debug-label {
+    color: $danger;
+  }
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  .settings-btn {
+    flex: 1;
+  }
+}
+
+.settings-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: $radius;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  text-align: left;
+  color: $text;
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &.primary {
+    background: $bg-section;
+    border: 1px solid #2e2c3e;
+
+    &:hover {
+      background: $primary-hover;
+      border-color: $gold-dim;
+    }
+  }
+
+  &.wide {
+    background: $bg-section;
+    border: 1px solid #2e2c3e;
+    margin-bottom: 8px;
+
+    &:hover {
+      background: $primary-hover;
+      border-color: $gold-dim;
+    }
+  }
+
+  &.danger {
+    background: rgba($danger, 0.3);
+    border: 1px solid rgba($danger, 0.5);
+
+    &:hover {
+      background: rgba($danger-hover, 0.5);
+    }
+  }
+
+  &.muted {
+    background: rgba(#2e2c3e, 0.6);
+    border: 1px dashed #3a3848;
+    color: $text-muted;
+    font-size: 12px;
+
+    &:hover {
+      color: $text;
+      border-color: $text-muted;
+    }
+  }
+
+  .btn-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  span:not(.btn-icon) {
+    line-height: 1.2;
+  }
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #2e2c3e, transparent);
+  margin: 4px 0;
+}

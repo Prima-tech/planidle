@@ -1,0 +1,58 @@
+<div class="settings-panel">
+
+  <div class="settings-header">
+    <span class="settings-title">Ajustes</span>
+  </div>
+
+  <div class="settings-body">
+
+    <!-- MUNDO -->
+    <div class="settings-section">
+      <p class="section-label">Mundo</p>
+      <div class="btn-row">
+        <button class="settings-btn primary" (click)="changeScene('MapScene')">
+          <span class="btn-icon">🗺</span>
+          <span>Mapa mundial</span>
+        </button>
+        <button class="settings-btn primary" (click)="changeScene('GameScene')">
+          <span class="btn-icon">⚔</span>
+          <span>Escena de juego</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PERSONAJE -->
+    <div class="settings-section">
+      <p class="section-label">Personaje</p>
+      <button class="settings-btn wide" (click)="changePlayer()">
+        <span class="btn-icon">🔄</span>
+        <span>Cambiar personaje</span>
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- DEBUG -->
+    <div class="settings-section">
+      <p class="section-label debug-label">Debug</p>
+      <div class="btn-row">
+        <button class="settings-btn danger" (click)="debugAttack()">
+          <span class="btn-icon">💥</span>
+          <span>Atacar PJ</span>
+        </button>
+        <button class="settings-btn danger" (click)="debugDeath()">
+          <span class="btn-icon">💀</span>
+          <span>Matar PJ</span>
+        </button>
+      </div>
+      <button class="settings-btn wide muted" (click)="printInventory()">
+        <span class="btn-icon">📋</span>
+        <span>Log inventario</span>
+      </button>
+    </div>
+
+  </div>
+
+</div>

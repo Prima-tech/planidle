@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalContainerComponent } from '../modal-container/modal-container.component';
 import { testPageComponent } from 'src/app/pages/test/test.page';
+import { SettingsPageComponent } from 'src/app/pages/settings/settings.page';
 import { CharacterPageComponent } from 'src/app/pages/character/character.page';
 import { InventoryComponent } from '../inventory/inventory.component';
 
@@ -28,7 +29,7 @@ export class FooterBarComponent implements OnInit {
     if (this.menuModal.isOpenModal()) {
       this.menuModal.close();
     } else {
-      this.menuModal.open(testPageComponent, 'menu');
+      this.menuModal.open(SettingsPageComponent, 'menu');
     }
   }
 
