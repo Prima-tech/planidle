@@ -12,10 +12,6 @@
       <app-icon [name]="'world'" [type]="'menu'"></app-icon>
     </div>
 
-    <div class="icon-menu-wrapper" (click)="openMapKills()">
-      <ion-icon name="skull-outline" class="footer-ion-icon"></ion-icon>
-    </div>
-
     <div class="icon-menu-wrapper" (click)="openStatus()">
       <app-icon [name]="'overlord-helm'" [type]="'menu'"></app-icon>
     </div>
@@ -31,6 +27,10 @@
 
     <div class="icon-menu-wrapper right" (click)="openMapStats()">
       <app-icon [name]="'chart'" [type]="'menu'"></app-icon>
+    </div>
+
+    <div class="icon-menu-wrapper right" (click)="openMapKills()">
+      <ion-icon name="skull-outline" class="footer-ion-icon"></ion-icon>
     </div>
 
   </ion-toolbar>

@@ -54,6 +54,7 @@ export class InventoryService {
   restoreFromSnapshot(grid: (InventoryItem | null)[][][]): void {
     if (!grid) return;
     this.mockGrid = this.clone(grid);
+    this.changes$.next();
   }
 
   private addToGrid(grid: (InventoryItem | null)[][][], item: InventoryItem): void {

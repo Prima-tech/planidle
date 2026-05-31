@@ -31,8 +31,8 @@ export class FooterBarComponent implements OnInit {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left: [this.characterModal, this.mapKillsModal],
-      right: [this.menuModal, this.mapStatsModal],
+      left: [this.characterModal],
+      right: [this.menuModal, this.mapStatsModal, this.mapKillsModal],
     };
     groups[side].forEach(m => { if (m !== except && m.isOpenModal()) m.close(); });
   }
@@ -76,8 +76,8 @@ export class FooterBarComponent implements OnInit {
     if (this.mapKillsModal.isOpenModal()) {
       this.mapKillsModal.close();
     } else {
-      this.closeOtherOnSide('left', this.mapKillsModal);
-      this.mapKillsModal.open(MapKillsComponent, 'character');
+      this.closeOtherOnSide('right', this.mapKillsModal);
+      this.mapKillsModal.open(MapKillsComponent, 'map-kills');
     }
   }
 
