@@ -45,6 +45,14 @@ const BASE_TILESET = {
   tilesetName:  'Cloud City',
 };
 
+const TEST_TILESET = {
+  tilemapKey:   'test-map',
+  tilemapJson:  'assets/tilemaps/test/test.tmj',
+  tilesetKey:   'ground-grasss',
+  tilesetImage: 'assets/tilemaps/test/ground_grasss.png',
+  tilesetName:  'ground_grasss',
+};
+
 /** Portal de retroceso (esquina superior-izquierda) */
 const backPortal  = (targetMapId: string): PortalConfig => ({ tilePos: { x: 2,  y: 2  }, targetMapId });
 /** Portal de avance (esquina superior-derecha) */
@@ -76,7 +84,7 @@ export const MAP_OBLIVION_THRESHOLD: Record<string, number> = {
 export const MAP_REGISTRY: Record<string, MapConfig> = {
 
   hogar: {
-    ...BASE_TILESET,
+    ...TEST_TILESET,
     id: 'hogar', name: 'Hogar',
     spawns: [],
     portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1' }],
