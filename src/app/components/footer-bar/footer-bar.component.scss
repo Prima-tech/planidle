@@ -1,9 +1,8 @@
 :host {
     .footer-ion-icon {
-      font-size: 22px;
+      font-size: 14px;
       color: white;
       display: block;
-      margin: 7px auto 0;
     }
     .toolbar-background {
       background: #916D69;
@@ -11,18 +10,35 @@
     .icon-menu-wrapper {
       border: solid 1px white;
       width: 48px;
-      height: 40px;
-      padding-left: 4px;
-      padding-right: 4px;
+      height: 52px;
+      padding: 3px 4px 2px;
       border-radius: 6px;
       text-align: center;
-      padding-top: 2px;
       float: left;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
       &.right {
         float: right;
       }
     }
     .icon-menu-wrapper:not(:last-child) {
-      margin-right: 5px; /* el margen que quieras */
+      margin-right: 5px;
+    }
+    .btn-label {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    app-icon {
+      display: block;
+      img {
+        width: 20px !important;
+      }
     }
 }

@@ -23,6 +23,8 @@ export class Player {
   }
 
   currentDirection: Direction = Direction.DOWN;
+  isAttacking = false;
+  private isMoving = false;
   private animationService: AnimationService;
 
   constructor(
@@ -77,11 +79,17 @@ export class Player {
   }
 
   public playerAttack() {
+    if (this.isAttacking) return;
+    this.isAttacking = true;
     const direction = this.getDirection();
     this.sprite.play(playerTags.ATTACK + direction);
-
     this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-      this.sprite.play(playerTags.IDLE + direction);
+      this.isAttacking = false;
+      if (this.isMoving) {
+        this.sprite.play(playerTags.WALK + this.currentDirection);
+      } else {
+        this.sprite.play(playerTags.IDLE + this.currentDirection);
+      }
     });
   }
 
@@ -106,15 +114,17 @@ export class Player {
   }
 
   stopAnimation(direction: Direction) {
-    const animationManager = this.sprite.anims.animationManager;
-    const idleAnimationKey = playerTags.IDLE + direction;
-    this.sprite.anims.stop();
+    this.isMoving = false;
     this.currentDirection = direction;
-    this.sprite.play(idleAnimationKey); // Cambia a la animación idle
+    if (this.isAttacking) return;
+    this.sprite.anims.stop();
+    this.sprite.play(playerTags.IDLE + direction);
   }
 
   startAnimation(direction: Direction) {
+    this.isMoving = true;
     this.currentDirection = direction;
+    if (this.isAttacking) return;
     this.sprite.anims.play(playerTags.WALK + direction);
   }
 

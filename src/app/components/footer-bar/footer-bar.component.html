@@ -11,34 +11,42 @@
 
     <div class="icon-menu-wrapper" (click)="goTo('map')">
       <app-icon [name]="'world'" [type]="'menu'"></app-icon>
+      <span class="btn-label">Mapa</span>
     </div>
 
     <div class="icon-menu-wrapper" (click)="openStatus()">
       <app-icon [name]="'overlord-helm'" [type]="'menu'"></app-icon>
+      <span class="btn-label">Héroe</span>
     </div>
 
     <div class="icon-menu-wrapper" (click)="openEquipment()">
       <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
+      <span class="btn-label">Equipo</span>
     </div>
 
     <div class="icon-menu-wrapper right" (click)="openMenu()">
       <app-icon [name]="'cog'" [type]="'menu'"></app-icon>
+      <span class="btn-label">Ajustes</span>
     </div>
 
     <div class="icon-menu-wrapper right" (click)="openInventory()">
       <app-icon [name]="'knapsack'" [type]="'menu'"></app-icon>
+      <span class="btn-label">Mochila</span>
     </div>
 
     <div class="icon-menu-wrapper right" (click)="openMapStats()">
       <app-icon [name]="'chart'" [type]="'menu'"></app-icon>
+      <span class="btn-label">Stats</span>
     </div>
 
     <div class="icon-menu-wrapper right" (click)="openMapKills()">
       <ion-icon name="skull-outline" class="footer-ion-icon"></ion-icon>
+      <span class="btn-label">Bajas</span>
     </div>
 
     <div class="icon-menu-wrapper right" (click)="openStats()">
       <ion-icon name="podium-outline" class="footer-ion-icon"></ion-icon>
+      <span class="btn-label">Ranking</span>
     </div>
 
   </ion-toolbar>
