@@ -16,6 +16,7 @@ export class Player {
   public sprite: Phaser.GameObjects.Sprite;
   private tilePos: Phaser.Math.Vector2;
   private layers = new Map<string, Phaser.GameObjects.Sprite>();
+  private readonly _posCache = new Phaser.Math.Vector2();
 
   status = {
     HP: 100,
@@ -106,7 +107,7 @@ export class Player {
   }
 
   getPosition(): Phaser.Math.Vector2 {
-    return this.sprite.getBottomCenter();
+    return this._posCache.set(this.sprite.x, this.sprite.y);
   }
 
   setPosition(position: Phaser.Math.Vector2): void {
@@ -181,6 +182,7 @@ export class Player {
   };
 
   syncLayers(): void {
+    if (this.layers.size === 0) return;
     if (!this.sprite?.active || !this.sprite.anims?.currentFrame) return;
     const currentAnimKey = this.sprite.anims.currentAnim?.key ?? '';
     const isIdle = currentAnimKey.startsWith(playerTags.IDLE);

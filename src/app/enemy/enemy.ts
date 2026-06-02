@@ -184,7 +184,7 @@ export class Enemy {
     if (!moved) { this.setState('idle'); return; }
 
     this.sprite.setPosition(newX, newY);
-    this.tilePos = new Vector2(
+    this.tilePos.set(
       Math.floor(newX / GameScene.TILE_SIZE),
       Math.floor(newY / GameScene.TILE_SIZE),
     );

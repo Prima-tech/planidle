@@ -389,7 +389,7 @@ const slime1: EnemyTypeConfig = {
     run:    { filename: 'Slime1_Run_with_shadow',    frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true,  frames: dirFrames(8,  SLIME1_DIR) },
     attack: { filename: 'Slime1_Attack_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true,  frames: dirFrames(10, SLIME1_DIR) },
     hurt:   { filename: 'Slime1_Hurt_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true,  frames: dirFrames(5,  SLIME1_DIR) },
-    death:  { filename: 'Slime1_Death_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true,  frames: dirFrames(10, SLIME1_DIR) },
+    death:  { filename: 'Slime1_Death_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true,  frames: dirFrames(8,  SLIME1_DIR) },
   },
 };
 
@@ -411,7 +411,7 @@ const slime2: EnemyTypeConfig = {
     idle:   { filename: 'Slime2_Idle_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true,  frames: dirFrames(6,  SLIME2_DIR) },
     walk:   { filename: 'Slime2_Walk_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true,  frames: dirFrames(8,  SLIME2_DIR) },
     run:    { filename: 'Slime2_Run_with_shadow',    frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true,  frames: dirFrames(8,  SLIME2_DIR) },
-    attack: { filename: 'Slime2_Attack_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true,  frames: dirFrames(11, SLIME2_DIR) },
+    attack: { filename: 'Slime2_Attack_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true,  frames: dirFrames(10, SLIME2_DIR) },
     hurt:   { filename: 'Slime2_Hurt_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true,  frames: dirFrames(5,  SLIME2_DIR) },
     death:  { filename: 'Slime2_Death_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true,  frames: dirFrames(10, SLIME2_DIR) },
   },
@@ -507,7 +507,7 @@ const slime9: EnemyTypeConfig = {
     idle:   { filename: 'Slime3_Idle_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true,  frames: dirFrames(6,  SLIME9_DIR) },
     walk:   { filename: 'Slime3_Walk_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true,  frames: dirFrames(8,  SLIME9_DIR) },
     run:    { filename: 'Slime3_Run_with_shadow',    frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true,  frames: dirFrames(8,  SLIME9_DIR) },
-    attack: { filename: 'Slime3_Attack_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true,  frames: dirFrames(9,  SLIME9_DIR) },
+    attack: { filename: 'Slime3_Attack_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true,  frames: dirFrames(10, SLIME9_DIR) },
     hurt:   { filename: 'Slime3_Hurt_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true,  frames: dirFrames(5,  SLIME9_DIR) },
     death:  { filename: 'Slime3_Death_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true,  frames: dirFrames(10, SLIME9_DIR) },
   },

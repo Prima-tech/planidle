@@ -90,6 +90,8 @@ export class GameScene extends Phaser.Scene {
         this.equipSub?.unsubscribe();
         this.summonSub?.unsubscribe();
         this.player?.clearLayers();
+        this.events.off('enemyAttackPlayer');
+        this.events.off('enemyDied');
       });
 
       // Diferido: trabajo pesado en el siguiente frame para no bloquear el
