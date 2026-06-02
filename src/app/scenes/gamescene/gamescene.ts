@@ -164,17 +164,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     initSpawns() {
-      const gfx = this.add.graphics().setDepth(3);
-
       for (const cfg of this.currentMapConfig.spawns) {
-        // Dibuja el área de spawn (cuadrado pequeño, solo borde)
-        const px = cfg.zone.tileX * GameScene.TILE_SIZE;
-        const py = cfg.zone.tileY * GameScene.TILE_SIZE;
-        const pw = cfg.zone.width  * GameScene.TILE_SIZE;
-        const ph = cfg.zone.height * GameScene.TILE_SIZE;
-        gfx.lineStyle(2, 0xff4444, 0.5);
-        gfx.strokeRect(px, py, pw, ph);
-
         const tracker: SpawnTracker = { config: cfg, count: 0 };
         this.spawnTrackers.push(tracker);
 
@@ -320,9 +310,7 @@ export class GameScene extends Phaser.Scene {
       this.gridDrops = new GridDrops(this.player, this, this.reg.inventory, this.reg.playerState);
     }
 
-    onGameClick(pointer: Phaser.Input.Pointer) {
-      console.log('Clic en:', pointer.worldX, pointer.worldY);
-    }
+    onGameClick(_pointer: Phaser.Input.Pointer) { }
 
 
     initEnemyAttackListener() {

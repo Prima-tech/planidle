@@ -29,8 +29,9 @@ export class Enemy {
 
   // HP bar: Rectangle objects en lugar de Graphics — setPosition/setSize es 10× más
   // barato que clear() + fillRoundedRect() cada frame.
-  private hpBarBg:   Phaser.GameObjects.Rectangle | null = null;
-  private hpBarFill: Phaser.GameObjects.Rectangle | null = null;
+  private hpBarBg:       Phaser.GameObjects.Rectangle | null = null;
+  private hpBarFill:     Phaser.GameObjects.Rectangle | null = null;
+  private hpBarLastPct = -1;
 
   private attackTimer: number;
   private readonly speed: number;
@@ -287,8 +288,7 @@ export class Enemy {
     const y    = this.sprite.y - this.sprite.displayHeight * 0.6;
     const text = this.mainScene.add.text(x, y, `${amount}`, {
       fontSize: '28px', color: '#ffd700', fontStyle: 'bold',
-      stroke: '#000000', strokeThickness: 8,
-      shadow: { offsetX: 0, offsetY: 2, color: '#000000', blur: 6, fill: true },
+      stroke: '#000000', strokeThickness: 6,
     });
     text.setOrigin(0.5, 1).setDepth(10);
     this.mainScene.tweens.add({
@@ -311,15 +311,20 @@ export class Enemy {
 
   private drawHPBar(): void {
     if (!this.hpBarBg || !this.hpBarFill) return;
-    const pct   = Math.max(0, this.HP / this.maxHP);
-    const color = pct > 0.5 ? 0x44cc44 : pct > 0.25 ? 0xffcc00 : 0xff3333;
-    const cx    = this.sprite.x;
-    const cy    = this.sprite.y - this.sprite.displayHeight - BAR_OFFSET;
+    const pct = Math.max(0, this.HP / this.maxHP);
+    const cx  = this.sprite.x;
+    const cy  = this.sprite.y - this.sprite.displayHeight - BAR_OFFSET;
 
     this.hpBarBg.setPosition(cx, cy);
     this.hpBarFill.setPosition(cx - BAR_W / 2, cy);
-    this.hpBarFill.setSize(BAR_W * pct, BAR_H);
-    this.hpBarFill.setFillStyle(color, 1);
+
+    // setSize y setFillStyle son costosos — solo actualizar cuando el HP cambia
+    if (pct !== this.hpBarLastPct) {
+      this.hpBarLastPct = pct;
+      const color = pct > 0.5 ? 0x44cc44 : pct > 0.25 ? 0xffcc00 : 0xff3333;
+      this.hpBarFill.setSize(BAR_W * pct, BAR_H);
+      this.hpBarFill.setFillStyle(color, 1);
+    }
   }
 
   private facePlayer(): void {

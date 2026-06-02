@@ -128,12 +128,13 @@ export class GridDrops {
     });
 
     let collected = false;
-    this.mainScene.physics.add.overlap(
+    const collider = this.mainScene.physics.add.overlap(
       this.player.getSprite(),
       sprite,
       () => {
         if (collected) return;
         collected = true;
+        this.mainScene.physics.world.removeCollider(collider);
         this.collectDrop(sprite, loot);
       }
     );

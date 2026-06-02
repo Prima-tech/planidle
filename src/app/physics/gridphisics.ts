@@ -16,6 +16,7 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
   private animDirection: Direction = Direction.DOWN;
   private currentAnimDirection: Direction = Direction.NONE;
   private isWalking: boolean = false;
+  private readonly layerCount: number;
 
   private readonly dirVectors: Partial<Record<Direction, Vector2>> = {
     [Direction.UP]:         new Vector2(0, -1),
@@ -34,6 +35,7 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     private enemies: Enemy[]
   ) {
     super();
+    this.layerCount = tileMap.layers.length;
   }
 
   movePlayer(direction: Direction, animDir: Direction): void {
@@ -66,26 +68,22 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     const dx = dirVec.x * pixels;
     const dy = dirVec.y * pixels;
 
+    // Usar coordenadas escalares para evitar new Vector2() en el hot path
     const pos = this.player.getPosition();
-    const newFull = new Vector2(pos.x + dx, pos.y + dy);
-    const newX    = new Vector2(pos.x + dx, pos.y);
-    const newY    = new Vector2(pos.x,      pos.y + dy);
+    const px = pos.x;
+    const py = pos.y;
 
-    const blockedFull = this.isTileBlocked(newFull);
-    const blockedX    = this.isTileBlocked(newX);
-    const blockedY    = this.isTileBlocked(newY);
+    const blockedFull = this.isTileBlockedXY(px + dx, py + dy);
+    const blockedX    = this.isTileBlockedXY(px + dx, py     );
+    const blockedY    = this.isTileBlockedXY(px,      py + dy);
 
-    // Corner blocking: prevent cutting through where both adjacent cardinal tiles are walls
-    const cornerBlocked = blockedX && blockedY;
-
-    if (!blockedFull && !cornerBlocked) {
-      this.player.setPosition(newFull);
+    if (!blockedFull && !(blockedX && blockedY)) {
+      this.player.setPositionXY(px + dx, py + dy);
     } else if (!blockedX) {
-      this.player.setPosition(newX);
+      this.player.setPositionXY(px + dx, py     );
     } else if (!blockedY) {
-      this.player.setPosition(newY);
+      this.player.setPositionXY(px,      py + dy);
     }
-    // else: fully blocked, don't move
   }
 
   attackEnemy(): void {
@@ -114,20 +112,18 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     return (dx * vec.x + dy * vec.y) > 0;
   }
 
-  private isTileBlocked(pixelPos: Vector2): boolean {
-    const tileX = Math.floor(pixelPos.x / GameScene.TILE_SIZE);
-    const tileY = Math.floor(pixelPos.y / GameScene.TILE_SIZE);
-    const tileVec = new Vector2(tileX, tileY);
-    if (this.hasNoTile(tileVec)) return true;
-    return this.tileMap.layers.some((layer) => {
-      const tile = this.tileMap.getTileAt(tileX, tileY, false, layer.name);
-      return tile && tile.properties.collides;
-    });
-  }
-
-  private hasNoTile(pos: Vector2): boolean {
-    return !this.tileMap.layers.some((layer) =>
-      this.tileMap.hasTileAt(pos.x, pos.y, layer.name)
-    );
+  // Sin allocations: usa índice numérico de capa como Enemy.isTileBlocked()
+  private isTileBlockedXY(px: number, py: number): boolean {
+    const tileX = Math.floor(px / GameScene.TILE_SIZE);
+    const tileY = Math.floor(py / GameScene.TILE_SIZE);
+    let hasAny = false;
+    for (let i = 0; i < this.layerCount; i++) {
+      const tile = this.tileMap.getTileAt(tileX, tileY, false, i);
+      if (tile) {
+        hasAny = true;
+        if (tile.properties?.collides) return true;
+      }
+    }
+    return !hasAny;
   }
 }

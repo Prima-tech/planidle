@@ -113,6 +113,10 @@ export class Player {
     this.sprite.setPosition(position.x, position.y);
   }
 
+  setPositionXY(x: number, y: number): void {
+    this.sprite.setPosition(x, y);
+  }
+
   stopAnimation(direction: Direction) {
     this.isMoving = false;
     this.currentDirection = direction;
