@@ -218,8 +218,8 @@ const slime4: EnemyTypeConfig = {
       filename: 'Slime1_Death_with_shadow',
       frameWidth: 64, frameHeight: 64,
       frameRate: 6, repeat: 0,
-      directional: false,
-      frames: { start: 0, end: 4 },
+      directional: true,
+      frames: dirFrames(5, SLIME4_DIR),
     },
   },
 };
