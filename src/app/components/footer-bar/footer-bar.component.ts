@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalContainerComponent } from '../modal-container/modal-container.component';
 import { testPageComponent } from 'src/app/pages/test/test.page';
 import { SettingsPageComponent } from 'src/app/pages/settings/settings.page';
-import { CharacterPageComponent } from 'src/app/pages/character/character.page';
 import { InventoryComponent } from '../inventory/inventory.component';
 import { EquipmentComponent } from '../equipment/equipment.component';
 import { MapStatsComponent } from '../map-stats/map-stats.component';
@@ -18,7 +17,6 @@ import { SummonComponent } from '../summon/summon.component';
 })
 export class FooterBarComponent implements OnInit {
   @ViewChild('menuModal')      menuModal!:      ModalContainerComponent;
-  @ViewChild('characterModal') characterModal!: ModalContainerComponent;
   @ViewChild('inventoryModal') inventoryModal!: ModalContainerComponent;
   @ViewChild('equipmentModal') equipmentModal!: ModalContainerComponent;
   @ViewChild('mapStatsModal')  mapStatsModal!:  ModalContainerComponent;
@@ -32,7 +30,7 @@ export class FooterBarComponent implements OnInit {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left: [this.characterModal, this.summonModal],
+      left: [this.summonModal],
       right: [this.menuModal, this.mapStatsModal, this.mapKillsModal, this.statsModal, this.inventoryModal],
     };
     groups[side].forEach(m => { if (m !== except && m.isOpenModal()) m.close(); });
@@ -64,16 +62,7 @@ export class FooterBarComponent implements OnInit {
     }
   }
 
-  openStatus() {
-    if (this.characterModal.isOpenModal()) {
-      this.characterModal.close();
-    } else {
-      this.closeOtherOnSide('left', this.characterModal);
-      this.characterModal.open(CharacterPageComponent, 'character');
-    }
-  }
-
-  openMapStats() {
+openMapStats() {
     if (this.mapStatsModal.isOpenModal()) {
       this.mapStatsModal.close();
     } else {

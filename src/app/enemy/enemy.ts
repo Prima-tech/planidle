@@ -37,7 +37,9 @@ export class Enemy {
   private readonly speed: number;
   private readonly damage: number;
   private readonly attackCooldown: number;
-  private readonly layerCount: number;  // cacheado para evitar .layers.length cada frame
+  private readonly layerCount: number;
+  private readonly visionRadiusSq: number;
+  private cachedDisplayHeight = 0;
 
   constructor(
     public mainScene: Phaser.Scene,
@@ -46,7 +48,7 @@ export class Enemy {
     private tileMap: Phaser.Tilemaps.Tilemap,
     private config: EnemyTypeConfig,
     private behavior: EnemyBehavior = 'passive',
-    private visionRadius: number = 5,
+    visionRadius: number = 5,
     private onDeath?: () => void,
   ) {
     this.type           = config.type;
@@ -58,6 +60,8 @@ export class Enemy {
     this.attackTimer    = this.attackCooldown;
     this.layerCount     = tileMap.layers.length;
     this.animService    = new AnimationService(mainScene);
+    const visionPx      = visionRadius * GameScene.TILE_SIZE;
+    this.visionRadiusSq = visionPx * visionPx;
 
     this.initSprite();
     this.playAnim('idle');
@@ -76,10 +80,9 @@ export class Enemy {
     this.lastPlayerPos = playerPos;
 
     if (this.behavior === 'aggressive' && !this.isChasing) {
-      const dist = Phaser.Math.Distance.Between(
-        this.sprite.x, this.sprite.y, playerPos.x, playerPos.y,
-      );
-      if (dist < this.visionRadius * GameScene.TILE_SIZE) this.startChasing();
+      const vdx = this.sprite.x - playerPos.x;
+      const vdy = this.sprite.y - playerPos.y;
+      if (vdx * vdx + vdy * vdy < this.visionRadiusSq) this.startChasing();
     }
 
     if (this.hpBarBg) this.drawHPBar();
@@ -136,6 +139,7 @@ export class Enemy {
       this.tilePos.y * GameScene.TILE_SIZE + offsetY,
     );
     if (this.config.tint) this.sprite.setTint(this.config.tint);
+    this.cachedDisplayHeight = this.sprite.displayHeight;
   }
 
   private setState(next: EnemyState) {
@@ -313,8 +317,7 @@ export class Enemy {
     if (!this.hpBarBg || !this.hpBarFill) return;
     const pct = Math.max(0, this.HP / this.maxHP);
     const cx  = this.sprite.x;
-    const cy  = this.sprite.y - this.sprite.displayHeight - BAR_OFFSET;
-
+    const cy  = this.sprite.y - this.cachedDisplayHeight - BAR_OFFSET;
     this.hpBarBg.setPosition(cx, cy);
     this.hpBarFill.setPosition(cx - BAR_W / 2, cy);
 

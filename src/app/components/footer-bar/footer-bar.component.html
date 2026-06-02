@@ -1,5 +1,4 @@
 <app-modal-container #menuModal></app-modal-container>
-<app-modal-container #characterModal></app-modal-container>
 <app-modal-container #inventoryModal></app-modal-container>
 <app-modal-container #equipmentModal></app-modal-container>
 <app-modal-container #mapStatsModal></app-modal-container>
@@ -10,12 +9,7 @@
 <ion-footer>
   <ion-toolbar>
 
-    <div class="icon-menu-wrapper" (click)="openStatus()">
-      <app-icon [name]="'overlord-helm'" [type]="'menu'"></app-icon>
-      <span class="btn-label">Héroe</span>
-    </div>
-
-    <div class="icon-menu-wrapper" (click)="openEquipment()">
+<div class="icon-menu-wrapper" (click)="openEquipment()">
       <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Equipo</span>
     </div>

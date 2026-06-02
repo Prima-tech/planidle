@@ -114,7 +114,9 @@ export class GameScene extends Phaser.Scene {
       this.gridControls.update();
       this.gridPhysics.update(delta);
       const playerPos = this.player.getPosition();
-      this.enemies.forEach(enemy => enemy.update(delta, playerPos));
+      for (let i = 0; i < this.enemies.length; i++) {
+        this.enemies[i].update(delta, playerPos);
+      }
       this.checkPortals(playerPos);
       this.player.syncLayers();
     }

@@ -16,7 +16,6 @@ import { testPageComponent } from '../pages/test/test.page';
 import { GameLogComponent } from './game-log/game-log.component';
 import { SettingsPageComponent } from '../pages/settings/settings.page';
 import { MapLabelComponent } from './map-label/map-label.component';
-import { CharacterPageComponent } from '../pages/character/character.page';
 import { MapStatsComponent } from './map-stats/map-stats.component';
 import { OfflineGainsModalComponent } from './offline-gains-modal/offline-gains-modal.component';
 import { MapKillsComponent } from './map-kills/map-kills.component';
@@ -41,7 +40,6 @@ import { SummonComponent } from './summon/summon.component';
     GameLogComponent,
     SettingsPageComponent,
     MapLabelComponent,
-    CharacterPageComponent,
     MapStatsComponent,
     OfflineGainsModalComponent,
     MapKillsComponent,
@@ -73,7 +71,6 @@ import { SummonComponent } from './summon/summon.component';
     GameLogComponent,
     SettingsPageComponent,
     MapLabelComponent,
-    CharacterPageComponent,
     MapStatsComponent,
     OfflineGainsModalComponent,
     MapKillsComponent,
