@@ -165,13 +165,30 @@ export class Player {
     this.layers.clear();
   }
 
+  // Spritesheets de equipo LPC parciales (ej. long_knife) solo tienen 21 filas (frames 0-272).
+  // El idle del cuerpo usa filas 22-25 (frames 286+), que no existen en esos sheets,
+  // generando un error de Phaser cada frame. En idle, usamos el frame 0 de walk de
+  // la dirección correspondiente, que sí existe y tiene la pose de reposo correcta.
+  private static readonly IDLE_HOLD_FRAME: Record<string, number> = {
+    [Direction.UP]:    104,
+    [Direction.LEFT]:  117,
+    [Direction.DOWN]:  130,
+    [Direction.RIGHT]: 143,
+  };
+
   syncLayers(): void {
     if (!this.sprite?.active || !this.sprite.anims?.currentFrame) return;
-    const frameKey = this.sprite.anims.currentFrame.frame.name;
+    const currentAnimKey = this.sprite.anims.currentAnim?.key ?? '';
+    const isIdle = currentAnimKey.startsWith(playerTags.IDLE);
     this.layers.forEach(layer => {
       if (!layer?.active) return;
       layer.setPosition(this.sprite.x, this.sprite.y);
-      layer.setFrame(frameKey);
+      if (isIdle) {
+        const dir = currentAnimKey.slice(playerTags.IDLE.length);
+        layer.setFrame(Player.IDLE_HOLD_FRAME[dir] ?? 130);
+      } else {
+        layer.setFrame(this.sprite.anims.currentFrame.frame.name);
+      }
     });
   }
 
