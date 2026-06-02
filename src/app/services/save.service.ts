@@ -3,6 +3,7 @@ import { BehaviorSubject, debounceTime, filter, merge, skip } from 'rxjs';
 import { StorageService } from './storage.service';
 import { PlayerStateService, PlayerState } from './player-state.service';
 import { InventoryService, InventoryItem } from './inventory.service';
+import { EquipmentService, EquipmentSnapshot } from './equipment.service';
 import { SupabaseService } from './supabase.service';
 import { WorldService } from './world.service';
 import { KillService, KillMap } from './kill.service';
@@ -20,6 +21,7 @@ export type SaveStatus = 'idle' | 'local' | 'remote' | 'saved' | 'error';
 export interface GameSnapshot {
   playerState: PlayerState;
   inventory: (InventoryItem | null)[][][];
+  equipment: EquipmentSnapshot;
   mapId: string;
   kills: KillMap;
   lastSeen: string;
@@ -91,15 +93,13 @@ export class SaveService {
     private storage: StorageService,
     private playerState: PlayerStateService,
     private inventory: InventoryService,
+    private equipment: EquipmentService,
     private supabase: SupabaseService,
     private world: WorldService,
     private kills: KillService,
     private offlineGains: OfflineGainsService,
   ) {
-    // Auto-guarda en local tras 2s de actividad real del jugador.
-    // filter(() => !this.isRestoring) evita que la restauración de estado
-    // al cargar un personaje arranque el timer y sobreescriba lastSeen.
-    merge(this.playerState.state$, this.inventory.changes$)
+    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$)
       .pipe(
         skip(1),
         filter(() => !this.isRestoring),
@@ -134,11 +134,13 @@ export class SaveService {
     if (snapshot) {
       this.playerState.setFromProfile(snapshot.playerState);
       this.inventory.restoreFromSnapshot(snapshot.inventory);
+      this.equipment.restoreFromSnapshot(snapshot.equipment ?? null);
       this.world.setCurrentMap(snapshot.mapId ?? 'hogar');
       this.kills.restoreCharKills(snapshot.kills ?? {});
     } else {
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
+      this.equipment.restoreFromSnapshot(null);
       this.world.setCurrentMap('hogar');
       this.kills.restoreCharKills({});
     }
@@ -164,6 +166,7 @@ export class SaveService {
     const current = this.playerState.snapshot();
     this.playerState.setFromProfile({ ...current, coins: 0, specialCoins: 0 });
     this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
+    this.equipment.clearAll();
     await this.saveLocal();
   }
 
@@ -248,6 +251,7 @@ export class SaveService {
     return {
       playerState:  this.playerState.snapshot(),
       inventory:    this.inventory.getSnapshot(),
+      equipment:    this.equipment.getSnapshot(),
       mapId:        this.world.getCurrentMap().id,
       kills:        this.kills.getCharKillsSnapshot(),
       lastSeen:     now,

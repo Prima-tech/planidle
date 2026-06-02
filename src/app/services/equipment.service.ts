@@ -9,6 +9,8 @@ export interface EquipmentSlot {
   item: InventoryItem | null;
 }
 
+export type EquipmentSnapshot = Record<string, InventoryItem | null>;
+
 const INV_TABS = 4;
 const INV_ROWS = 4;
 const INV_COLS = 5;
@@ -65,6 +67,26 @@ export class EquipmentService {
     slot.item = null;
     this.changes$.next();
     return item;
+  }
+
+  getSnapshot(): EquipmentSnapshot {
+    const snap: EquipmentSnapshot = {};
+    for (const slot of this.slots) {
+      snap[slot.id] = slot.item ? { ...slot.item } : null;
+    }
+    return snap;
+  }
+
+  restoreFromSnapshot(snap: EquipmentSnapshot | null | undefined): void {
+    for (const slot of this.slots) {
+      slot.item = snap?.[slot.id] ? { ...snap[slot.id]! } : null;
+    }
+    this.changes$.next();
+  }
+
+  clearAll(): void {
+    for (const slot of this.slots) slot.item = null;
+    this.changes$.next();
   }
 
   private findSlot(cdkSlotId: string): EquipmentSlot | undefined {
