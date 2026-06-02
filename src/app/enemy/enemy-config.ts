@@ -483,7 +483,7 @@ const slime8: EnemyTypeConfig = {
     idle:   { filename: 'Slime2_Idle_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true,  frames: dirFrames(6,  SLIME8_DIR) },
     walk:   { filename: 'Slime2_Walk_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true,  frames: dirFrames(8,  SLIME8_DIR) },
     run:    { filename: 'Slime2_Run_with_shadow',    frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true,  frames: dirFrames(8,  SLIME8_DIR) },
-    attack: { filename: 'Slime2_Attack_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true,  frames: dirFrames(11, SLIME8_DIR) },
+    attack: { filename: 'Slime2_Attack_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true,  frames: dirFrames(10, SLIME8_DIR) },
     hurt:   { filename: 'Slime2_Hurt_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true,  frames: dirFrames(5,  SLIME8_DIR) },
     death:  { filename: 'Slime2_Death_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true,  frames: dirFrames(10, SLIME8_DIR) },
   },
