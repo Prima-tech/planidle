@@ -19,12 +19,24 @@ interface LootEntry {
 }
 
 const EXP_REWARDS: Record<string, number> = {
+  slime4:          5,
+  slime4_elite:    25,
+  slime4_oblivion: 70,
   orc1:          15,
   orc1_elite:    75,
   orc1_oblivion: 200,
 };
 
 const LOOT_TABLES: Record<string, LootEntry[]> = {
+  slime4: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
+  slime4_elite: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 5, maxQty: 10, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
+  slime4_oblivion: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 15, maxQty: 30, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
   orc1: [
     { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5,  mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
     { name: 'Espada', type: 'item',     chance: 0.15, minQty: 1, maxQty: 1,  mergeable: false, texture: 'sword',       icon: 'assets/icon/weapons/sword8.png', scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.', stats: { damage: 5 } },

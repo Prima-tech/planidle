@@ -86,7 +86,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     ...BASE_TILESET,
     id: '1-1', name: '1-1',
     spawns: [{
-      enemyType: 'orc1', zone: { tileX: 7, tileY: 7, width: 4, height: 4 },
+      enemyType: 'slime4', zone: { tileX: 7, tileY: 7, width: 4, height: 4 },
       maxCount: 2, behavior: 'passive', visionRadius: 5,
     }],
     portals: [backPortal('hogar'), nextPortal('1-2')],

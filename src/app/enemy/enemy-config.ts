@@ -167,6 +167,87 @@ const orc1_oblivion: EnemyTypeConfig = {
   spriteType: 'orc1',
 };
 
+// ── Definición del Slime4 ─────────────────────────────────────────────────────
+
+const SLIME4_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
+
+const slime4: EnemyTypeConfig = {
+  type: 'slime4',
+  hp: 50,
+  scale: 3,
+  speed: 150,
+  damage: 6,
+  attackCooldown: 1500,
+  actions: {
+    idle: {
+      filename: 'Slime1_Idle_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 6, repeat: -1,
+      directional: true,
+      frames: dirFrames(6, SLIME4_DIR),
+    },
+    walk: {
+      filename: 'Slime1_Walk_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 8, repeat: -1,
+      directional: true,
+      frames: dirFrames(8, SLIME4_DIR),
+    },
+    run: {
+      filename: 'Slime1_Run_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 10, repeat: -1,
+      directional: true,
+      frames: dirFrames(8, SLIME4_DIR),
+    },
+    attack: {
+      filename: 'Slime1_Attack_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 8, repeat: 0,
+      directional: true,
+      frames: dirFrames(10, SLIME4_DIR),
+    },
+    hurt: {
+      filename: 'Slime1_Hurt_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 10, repeat: 0,
+      directional: true,
+      frames: dirFrames(5, SLIME4_DIR),
+    },
+    death: {
+      filename: 'Slime1_Death_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 6, repeat: 0,
+      directional: false,
+      frames: { start: 0, end: 4 },
+    },
+  },
+};
+
+const slime4_elite: EnemyTypeConfig = {
+  ...slime4,
+  type: 'slime4_elite',
+  hp: 150,
+  scale: 3.5,
+  speed: 165,
+  damage: 12,
+  attackCooldown: 1200,
+  tint: 0xffcc00,
+  spriteType: 'slime4',
+};
+
+const slime4_oblivion: EnemyTypeConfig = {
+  ...slime4,
+  type: 'slime4_oblivion',
+  hp: 400,
+  scale: 4,
+  speed: 180,
+  damage: 20,
+  attackCooldown: 1000,
+  tint: 0xcc00ff,
+  spriteType: 'slime4',
+};
+
 // ── Registro global de tipos de enemigo ──────────────────────────────────────
 // Para añadir un enemigo nuevo: agregar su config aquí.
 
@@ -174,4 +255,7 @@ export const ENEMY_REGISTRY: Record<string, EnemyTypeConfig> = {
   orc1,
   orc1_elite,
   orc1_oblivion,
+  slime4,
+  slime4_elite,
+  slime4_oblivion,
 };
