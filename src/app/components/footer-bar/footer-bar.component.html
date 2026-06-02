@@ -1,6 +1,7 @@
 <app-modal-container #menuModal></app-modal-container>
 <app-modal-container #characterModal></app-modal-container>
 <app-modal-container #inventoryModal></app-modal-container>
+<app-modal-container #equipmentModal></app-modal-container>
 <app-modal-container #mapStatsModal></app-modal-container>
 <app-modal-container #mapKillsModal></app-modal-container>
 <app-modal-container #statsModal></app-modal-container>
@@ -19,6 +20,10 @@
 
     <div class="icon-menu-wrapper" (click)="openInventory()">
       <app-icon [name]="'knapsack'" [type]="'menu'"></app-icon>
+    </div>
+
+    <div class="icon-menu-wrapper" (click)="openEquipment()">
+      <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
     </div>
 
 

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
+import { EquipmentService } from 'src/app/services/equipment.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -22,13 +23,20 @@ export class InventoryComponent implements OnInit, OnDestroy {
   splitValue: number = 1;
   deleteModalOpen: boolean = false;
 
+  equipmentSlotIds: string[] = [];
+
   private saveTimer: any;
   private dropSub: Subscription;
+  private removeSub: Subscription;
 
-  constructor(private inventoryService: InventoryService) {}
+  constructor(
+    private inventoryService: InventoryService,
+    public equipmentService: EquipmentService,
+  ) {}
 
   ngOnInit() {
     this.tabs = Array.from({ length: this.NUMBER_OF_TABS }, (_, i) => `Tab ${i + 1}`);
+    this.equipmentSlotIds = this.equipmentService.getEquipmentSlotIds();
 
     // Grid vacío síncrono para que CDK registre los drop lists antes de cargar datos
     this.inventories = this.inventoryService.buildGrid();
@@ -42,12 +50,19 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.dropSub = this.inventoryService.itemDropped$.subscribe(item => {
       this.addItemToInventory(item);
     });
+
+    // Recibir solicitudes de borrado desde otros sistemas (p.ej. equipamiento)
+    this.removeSub = this.inventoryService.removeRequest$.subscribe(({ tabIndex, row, col }) => {
+      this.inventories[tabIndex][row][col] = null;
+      this.triggerSave();
+    });
   }
 
   ngOnDestroy() {
     clearTimeout(this.saveTimer);
     this.inventoryService.save(this.inventories);
     this.dropSub?.unsubscribe();
+    this.removeSub?.unsubscribe();
   }
 
   ngAfterViewInit() {
@@ -99,8 +114,22 @@ export class InventoryComponent implements OnInit, OnDestroy {
   // --- Drag & Drop ---
 
   onDrop(event: CdkDragDrop<any>, targetTabIndex: number, targetRow: number, targetCol: number): void {
-    const { tabIndex: srcTab, row: srcRow, col: srcCol, item: draggedItem } = event.item.data;
+    const data = event.item.data;
 
+    // Drop desde un slot de equipamiento → inventario
+    if (data.sourceContext === 'equipment') {
+      const targetItem = this.inventories[targetTabIndex][targetRow][targetCol];
+      if (targetItem !== null) return; // celda ocupada: rechazar
+      this.inventories[targetTabIndex][targetRow][targetCol] = data.item;
+      this.equipmentService.unequip(data.slotId);
+      this.splitMenuOpen = false;
+      this.deleteModalOpen = false;
+      this.triggerSave();
+      return;
+    }
+
+    // Drop interno inventario → inventario
+    const { tabIndex: srcTab, row: srcRow, col: srcCol, item: draggedItem } = data;
     if (srcTab === targetTabIndex && srcRow === targetRow && srcCol === targetCol) return;
 
     const targetItem = this.inventories[targetTabIndex][targetRow][targetCol];

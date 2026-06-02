@@ -20,8 +20,9 @@ const COLS = 5;
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
 
-  readonly itemDropped$ = new Subject<InventoryItem>();
-  readonly changes$     = new Subject<void>();
+  readonly itemDropped$   = new Subject<InventoryItem>();
+  readonly changes$       = new Subject<void>();
+  readonly removeRequest$ = new Subject<{ tabIndex: number; row: number; col: number }>();
 
   private mockGrid: (InventoryItem | null)[][][] = this.buildGrid();
 

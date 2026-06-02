@@ -24,6 +24,8 @@
         class="inventory-cell"
         cdkDropList
         cdkDropListSortingDisabled
+        [id]="'inv-' + tabIndex + '-' + rowIndex + '-' + colIndex"
+        [cdkDropListConnectedTo]="equipmentSlotIds"
         [cdkDropListData]="{ tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
         (cdkDropListDropped)="onDrop($event, tabIndex, rowIndex, colIndex)"
         (click)="$event.stopPropagation()"
@@ -32,7 +34,7 @@
           <div
             class="inventory-item"
             cdkDrag
-            [cdkDragData]="{ tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
+            [cdkDragData]="{ sourceContext: 'inventory', tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
             (cdkDragMoved)="onDragMoved($event)"
             (click)="selectItem(tabIndex, rowIndex, colIndex, $event)"
             [title]="cell.name"

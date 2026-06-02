@@ -1,0 +1,30 @@
+<div class="equipment-header">Equipamiento</div>
+
+<div class="equipment-grid">
+  <div
+    *ngFor="let slot of equipmentService.slots"
+    class="equip-slot"
+    [class.occupied]="slot.item !== null"
+    cdkDropList
+    cdkDropListSortingDisabled
+    [id]="'equip-' + slot.id"
+    [cdkDropListConnectedTo]="equipmentService.inventoryCellIds"
+    [cdkDropListEnterPredicate]="canDropInSlot"
+    (cdkDropListDropped)="onEquipDrop($event, slot)"
+  >
+    <div class="slot-label">{{ slot.label }}</div>
+
+    <div *ngIf="slot.item; else emptySlot"
+         class="equip-item"
+         cdkDrag
+         [cdkDragData]="{ sourceContext: 'equipment', slotId: 'equip-' + slot.id, item: slot.item }"
+         [title]="slot.item.name">
+      <img *ngIf="slot.item.icon" [src]="slot.item.icon" class="item-icon">
+      <span *ngIf="!slot.item.icon" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
+    </div>
+
+    <ng-template #emptySlot>
+      <div class="slot-empty">—</div>
+    </ng-template>
+  </div>
+</div>
