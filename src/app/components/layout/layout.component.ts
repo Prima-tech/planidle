@@ -6,7 +6,6 @@ import { GameScene } from 'src/app/scenes/gamescene/gamescene';
 import { FakeApiService } from 'src/app/services/fakeapi';
 import { ProfileService } from 'src/app/services/profile';
 import Phaser from 'phaser';
-import { MapScene } from 'src/app/scenes/mapscene/mapscene';
 import { MapService } from 'src/app/services/map.service';
 import { SceneManager } from 'src/app/scenes/scene-manager';
 import { AsgardService } from 'src/app/services/asgard';
@@ -100,7 +99,7 @@ export class LayoutComponent implements OnDestroy {
       render: { antialias: false },
       physics: { default: 'arcade' },
       type: Phaser.AUTO,
-      scene: [GameScene, MapScene],
+      scene: [GameScene],
       scale: {
         width: window.innerWidth,
         height: window.innerHeight,

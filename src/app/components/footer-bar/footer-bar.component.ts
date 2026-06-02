@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
 import { ModalContainerComponent } from '../modal-container/modal-container.component';
 import { testPageComponent } from 'src/app/pages/test/test.page';
 import { SettingsPageComponent } from 'src/app/pages/settings/settings.page';
@@ -27,13 +26,9 @@ export class FooterBarComponent implements OnInit {
   @ViewChild('statsModal')     statsModal!:     ModalContainerComponent;
   @ViewChild('summonModal')    summonModal!:    ModalContainerComponent;
 
-  constructor(private router: Router) { }
+  constructor() { }
 
   ngOnInit() { }
-
-  goTo(tab: string) {
-    this.router.navigate([`/${tab}`]);
-  }
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {

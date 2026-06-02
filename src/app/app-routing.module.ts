@@ -29,10 +29,6 @@ const routes: Routes = [
         loadChildren: () => import('./pages/inventory/inventory.module').then(m => m.InventoryPageModule)
       },
       {
-        path: 'map',
-        loadChildren: () => import('./pages/map/map.module').then(m => m.MapPageModule)
-      },
-      {
         path: 'main',
         loadChildren: () => import('./pages/main/main.module').then(m => m.MainPageModule)
       },
