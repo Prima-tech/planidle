@@ -15,6 +15,7 @@ export class Player {
   public mainScene: Phaser.Scene;
   public sprite: Phaser.GameObjects.Sprite;
   private tilePos: Phaser.Math.Vector2;
+  private layers = new Map<string, Phaser.GameObjects.Sprite>();
 
   status = {
     HP: 100,
@@ -131,6 +132,37 @@ export class Player {
 
   getSprite() {
     return this.sprite;
+  }
+
+  // ── Capas de equipamiento ──────────────────────────────────────────────────
+
+  addLayer(slotId: string, key: string, depth: number): void {
+    this.removeLayer(slotId);
+    const layer = this.mainScene.add.sprite(this.sprite.x, this.sprite.y, key);
+    layer.setOrigin(this.sprite.originX, this.sprite.originY);
+    layer.setScale(this.sprite.scaleX, this.sprite.scaleY);
+    layer.setDepth(depth);
+    this.layers.set(slotId, layer);
+  }
+
+  removeLayer(slotId: string): void {
+    const layer = this.layers.get(slotId);
+    if (layer?.active) layer.destroy();
+    this.layers.delete(slotId);
+  }
+
+  clearLayers(): void {
+    this.layers.clear();
+  }
+
+  syncLayers(): void {
+    if (!this.sprite?.active || !this.sprite.anims?.currentFrame) return;
+    const frameKey = this.sprite.anims.currentFrame.frame.name;
+    this.layers.forEach(layer => {
+      if (!layer?.active) return;
+      layer.setPosition(this.sprite.x, this.sprite.y);
+      layer.setFrame(frameKey);
+    });
   }
 
 }

@@ -1,3 +1,4 @@
+import { EquipmentService } from '../services/equipment.service';
 import { InventoryService } from '../services/inventory.service';
 import { KillService } from '../services/kill.service';
 import { MapService } from '../services/map.service';
@@ -15,6 +16,7 @@ export const REGISTRY_KEYS = {
   KILL:          'killService',
   MAP:           'mapService',
   MAP_STATS:     'mapStatsService',
+  EQUIPMENT:     'equipmentService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -28,4 +30,5 @@ export class GameRegistry {
   get kill():         KillService          { return this.game.registry.get(REGISTRY_KEYS.KILL); }
   get map():          MapService           { return this.game.registry.get(REGISTRY_KEYS.MAP); }
   get mapStats():     MapStatsService      { return this.game.registry.get(REGISTRY_KEYS.MAP_STATS); }
+  get equipment():    EquipmentService     { return this.game.registry.get(REGISTRY_KEYS.EQUIPMENT); }
 }

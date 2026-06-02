@@ -8,6 +8,8 @@ import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
 import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
 import { GameRegistry } from "../game-registry";
+import { InventoryItem } from "src/app/services/inventory.service";
+import { EQUIP_LAYER_REGISTRY } from "src/app/pnj/player/equip-layer-registry";
 
 export class GameScene extends Phaser.Scene {
 
@@ -24,6 +26,7 @@ export class GameScene extends Phaser.Scene {
     private eliteKills = 0;
     private currentMapConfig: MapConfig;
     private reg: GameRegistry;
+    private equipSub: { unsubscribe(): void } | null = null;
     currentMap: any;
 
       constructor(
@@ -37,6 +40,12 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png');
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
+
+      for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
+        if (!this.textures.exists(cfg.key)) {
+          this.load.spritesheet(cfg.key, cfg.path, { frameWidth: cfg.frameWidth, frameHeight: cfg.frameHeight });
+        }
+      }
 
       const mapCfg = this.reg.world.getCurrentMap();
       this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
@@ -81,7 +90,12 @@ export class GameScene extends Phaser.Scene {
       this.createDrops();
       this.initPortals();
       this.initMapStatsTimers();
+      this.initEquipLayers();
       this.cameras.main.fadeIn(500, 0, 0, 0);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.equipSub?.unsubscribe();
+        this.player?.clearLayers();
+      });
     }
 
     override update(_time: number, delta: number) {
@@ -90,6 +104,27 @@ export class GameScene extends Phaser.Scene {
       const playerPos = this.player.getPosition();
       this.enemies.forEach(enemy => enemy.update(delta, playerPos));
       this.checkPortals(playerPos);
+      this.player.syncLayers();
+    }
+
+    private initEquipLayers(): void {
+      const equipment = this.reg.equipment;
+      if (!equipment) return;
+      for (const slot of equipment.slots) {
+        this.applyEquipLayer(slot.id, slot.item);
+      }
+      this.equipSub = equipment.changes$.subscribe(() => {
+        for (const slot of this.reg.equipment.slots) {
+          this.applyEquipLayer(slot.id, slot.item);
+        }
+      });
+    }
+
+    private applyEquipLayer(slotId: string, item: InventoryItem | null): void {
+      if (!item) { this.player.removeLayer(slotId); return; }
+      const cfg = EQUIP_LAYER_REGISTRY[item.name];
+      if (!cfg || !this.textures.exists(cfg.key)) { this.player.removeLayer(slotId); return; }
+      this.player.addLayer(slotId, cfg.key, cfg.depth);
     }
 
     initMap() {
