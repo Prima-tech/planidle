@@ -96,7 +96,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     ...BASE_TILESET,
     id: '1-2', name: '1-2',
     spawns: [{
-      enemyType: 'orc1', zone: { tileX: 6, tileY: 6, width: 5, height: 5 },
+      enemyType: 'slime5', zone: { tileX: 6, tileY: 6, width: 5, height: 5 },
       maxCount: 3, behavior: 'passive', visionRadius: 5,
     }],
     portals: [backPortal('1-1'), nextPortal('1-3')],
@@ -106,7 +106,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     ...BASE_TILESET,
     id: '1-3', name: '1-3',
     spawns: [{
-      enemyType: 'orc1', zone: { tileX: 6, tileY: 6, width: 6, height: 6 },
+      enemyType: 'slime6', zone: { tileX: 6, tileY: 6, width: 6, height: 6 },
       maxCount: 3, behavior: 'passive', visionRadius: 5,
     }],
     portals: [backPortal('1-2'), nextPortal('1-4')],

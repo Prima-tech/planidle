@@ -224,6 +224,170 @@ const slime4: EnemyTypeConfig = {
   },
 };
 
+// ── Definición del Slime5 ─────────────────────────────────────────────────────
+
+const SLIME5_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
+
+const slime5: EnemyTypeConfig = {
+  type: 'slime5',
+  hp: 50,
+  scale: 3,
+  speed: 150,
+  damage: 6,
+  attackCooldown: 1500,
+  actions: {
+    idle: {
+      filename: 'Slime2_Idle_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 6, repeat: -1,
+      directional: true,
+      frames: dirFrames(6, SLIME5_DIR),
+    },
+    walk: {
+      filename: 'Slime2_Walk_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 8, repeat: -1,
+      directional: true,
+      frames: dirFrames(8, SLIME5_DIR),
+    },
+    run: {
+      filename: 'Slime2_Run_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 10, repeat: -1,
+      directional: true,
+      frames: dirFrames(8, SLIME5_DIR),
+    },
+    attack: {
+      filename: 'Slime2_Attack_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 8, repeat: 0,
+      directional: true,
+      frames: dirFrames(10, SLIME5_DIR),
+    },
+    hurt: {
+      filename: 'Slime2_Hurt_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 10, repeat: 0,
+      directional: true,
+      frames: dirFrames(5, SLIME5_DIR),
+    },
+    death: {
+      filename: 'Slime2_Death_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 6, repeat: 0,
+      directional: true,
+      frames: dirFrames(5, SLIME5_DIR),
+    },
+  },
+};
+
+const slime5_elite: EnemyTypeConfig = {
+  ...slime5,
+  type: 'slime5_elite',
+  hp: 150,
+  scale: 3.5,
+  speed: 165,
+  damage: 12,
+  attackCooldown: 1200,
+  tint: 0xffcc00,
+  spriteType: 'slime5',
+};
+
+const slime5_oblivion: EnemyTypeConfig = {
+  ...slime5,
+  type: 'slime5_oblivion',
+  hp: 400,
+  scale: 4,
+  speed: 180,
+  damage: 20,
+  attackCooldown: 1000,
+  tint: 0xcc00ff,
+  spriteType: 'slime5',
+};
+
+// ── Definición del Slime6 ─────────────────────────────────────────────────────
+
+const SLIME6_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
+
+const slime6: EnemyTypeConfig = {
+  type: 'slime6',
+  hp: 50,
+  scale: 3,
+  speed: 150,
+  damage: 6,
+  attackCooldown: 1500,
+  actions: {
+    idle: {
+      filename: 'Slime3_Idle_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 6, repeat: -1,
+      directional: true,
+      frames: dirFrames(6, SLIME6_DIR),
+    },
+    walk: {
+      filename: 'Slime3_Walk_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 8, repeat: -1,
+      directional: true,
+      frames: dirFrames(8, SLIME6_DIR),
+    },
+    run: {
+      filename: 'Slime3_Run_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 10, repeat: -1,
+      directional: true,
+      frames: dirFrames(8, SLIME6_DIR),
+    },
+    attack: {
+      filename: 'Slime3_Attack_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 8, repeat: 0,
+      directional: true,
+      frames: dirFrames(10, SLIME6_DIR),
+    },
+    hurt: {
+      filename: 'Slime3_Hurt_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 10, repeat: 0,
+      directional: true,
+      frames: dirFrames(5, SLIME6_DIR),
+    },
+    death: {
+      filename: 'Slime3_Death_with_shadow',
+      frameWidth: 64, frameHeight: 64,
+      frameRate: 6, repeat: 0,
+      directional: true,
+      frames: dirFrames(5, SLIME6_DIR),
+    },
+  },
+};
+
+const slime6_elite: EnemyTypeConfig = {
+  ...slime6,
+  type: 'slime6_elite',
+  hp: 150,
+  scale: 3.5,
+  speed: 165,
+  damage: 12,
+  attackCooldown: 1200,
+  tint: 0xffcc00,
+  spriteType: 'slime6',
+};
+
+const slime6_oblivion: EnemyTypeConfig = {
+  ...slime6,
+  type: 'slime6_oblivion',
+  hp: 400,
+  scale: 4,
+  speed: 180,
+  damage: 20,
+  attackCooldown: 1000,
+  tint: 0xcc00ff,
+  spriteType: 'slime6',
+};
+
+// ── Variantes Elite y Oblivion del Slime4 ────────────────────────────────────
+
 const slime4_elite: EnemyTypeConfig = {
   ...slime4,
   type: 'slime4_elite',
@@ -258,4 +422,10 @@ export const ENEMY_REGISTRY: Record<string, EnemyTypeConfig> = {
   slime4,
   slime4_elite,
   slime4_oblivion,
+  slime5,
+  slime5_elite,
+  slime5_oblivion,
+  slime6,
+  slime6_elite,
+  slime6_oblivion,
 };

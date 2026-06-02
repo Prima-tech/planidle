@@ -22,6 +22,12 @@ const EXP_REWARDS: Record<string, number> = {
   slime4:          5,
   slime4_elite:    25,
   slime4_oblivion: 70,
+  slime5:          5,
+  slime5_elite:    25,
+  slime5_oblivion: 70,
+  slime6:          5,
+  slime6_elite:    25,
+  slime6_oblivion: 70,
   orc1:          15,
   orc1_elite:    75,
   orc1_oblivion: 200,
@@ -35,6 +41,24 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 5, maxQty: 10, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
   ],
   slime4_oblivion: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 15, maxQty: 30, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
+  slime5: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
+  slime5_elite: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 5, maxQty: 10, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
+  slime5_oblivion: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 15, maxQty: 30, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
+  slime6: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
+  slime6_elite: [
+    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 5, maxQty: 10, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+  ],
+  slime6_oblivion: [
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 15, maxQty: 30, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
   ],
   orc1: [
