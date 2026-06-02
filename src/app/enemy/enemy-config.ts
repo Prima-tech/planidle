@@ -219,7 +219,7 @@ const slime4: EnemyTypeConfig = {
       frameWidth: 64, frameHeight: 64,
       frameRate: 6, repeat: 0,
       directional: true,
-      frames: dirFrames(5, SLIME4_DIR),
+      frames: dirFrames(10, SLIME4_DIR),
     },
   },
 };
@@ -262,7 +262,7 @@ const slime5: EnemyTypeConfig = {
       frameWidth: 64, frameHeight: 64,
       frameRate: 8, repeat: 0,
       directional: true,
-      frames: dirFrames(10, SLIME5_DIR),
+      frames: dirFrames(11, SLIME5_DIR),
     },
     hurt: {
       filename: 'Slime2_Hurt_with_shadow',
@@ -276,7 +276,7 @@ const slime5: EnemyTypeConfig = {
       frameWidth: 64, frameHeight: 64,
       frameRate: 6, repeat: 0,
       directional: true,
-      frames: dirFrames(5, SLIME5_DIR),
+      frames: dirFrames(10, SLIME5_DIR),
     },
   },
 };
@@ -343,7 +343,7 @@ const slime6: EnemyTypeConfig = {
       frameWidth: 64, frameHeight: 64,
       frameRate: 8, repeat: 0,
       directional: true,
-      frames: dirFrames(10, SLIME6_DIR),
+      frames: dirFrames(9, SLIME6_DIR),
     },
     hurt: {
       filename: 'Slime3_Hurt_with_shadow',
@@ -357,7 +357,7 @@ const slime6: EnemyTypeConfig = {
       frameWidth: 64, frameHeight: 64,
       frameRate: 6, repeat: 0,
       directional: true,
-      frames: dirFrames(5, SLIME6_DIR),
+      frames: dirFrames(10, SLIME6_DIR),
     },
   },
 };

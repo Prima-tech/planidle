@@ -38,14 +38,6 @@ export interface MapConfig {
 }
 
 const BASE_TILESET = {
-  tilemapKey:   'cloud-city-map',
-  tilemapJson:  'assets/tilemaps/test/cloud_city.json',
-  tilesetKey:   'tiles',
-  tilesetImage: 'assets/tilemaps/test/cloud_tileset.png',
-  tilesetName:  'Cloud City',
-};
-
-const TEST_TILESET = {
   tilemapKey:   'test-map',
   tilemapJson:  'assets/tilemaps/test/test.tmj',
   tilesetKey:   'ground-grasss',
@@ -84,7 +76,7 @@ export const MAP_OBLIVION_THRESHOLD: Record<string, number> = {
 export const MAP_REGISTRY: Record<string, MapConfig> = {
 
   hogar: {
-    ...TEST_TILESET,
+    ...BASE_TILESET,
     id: 'hogar', name: 'Hogar',
     spawns: [],
     portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1' }],

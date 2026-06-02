@@ -52,17 +52,16 @@ export class GameScene extends Phaser.Scene {
       this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
       this.load.tilemapTiledJSON(mapCfg.tilemapKey, mapCfg.tilemapJson);
 
-      // Carga todos los spritesheets de los tipos de enemigo del mapa actual
-      const usedTypes = [...new Set<string>(mapCfg.spawns.map((s: SpawnConfig) => s.enemyType))];
-      for (const type of usedTypes) {
-        const cfg = ENEMY_REGISTRY[type];
-        if (!cfg) { console.warn(`Enemy type "${type}" not found in ENEMY_REGISTRY`); continue; }
+      // Precarga todos los tipos de enemigo (no solo los del mapa actual) para que
+      // summon nunca necesite cargas dinámicas que generan 'load' handler violations.
+      for (const [type, cfg] of Object.entries(ENEMY_REGISTRY)) {
+        const baseType = cfg.spriteType ?? type;
         for (const [action, actionCfg] of Object.entries(cfg.actions) as [string, ActionConfig][]) {
-          const key = `${type}_${action}`;
+          const key = `${baseType}_${action}`;
           if (!this.textures.exists(key)) {
             this.load.spritesheet(
               key,
-              `assets/sprites/enemy/${type}/${actionCfg.filename}.png`,
+              `assets/sprites/enemy/${baseType}/${actionCfg.filename}.png`,
               { frameWidth: actionCfg.frameWidth, frameHeight: actionCfg.frameHeight },
             );
           }
@@ -78,26 +77,33 @@ export class GameScene extends Phaser.Scene {
       this.eliteKills = 0;
       this.currentMapConfig = this.reg.world.getCurrentMap();
       this.reg.mapStats?.reset();
+
+      // Inmediato: lo mínimo para que el primer frame sea válido
       this.initMap();
       this.initPlayer();
-      this.registerEnemyAnimations();
-      this.registerDropTextures();
       this.createPhysics();
-      this.initSpawns();
-      this.reg.mapStats?.setTrackers(this.spawnTrackers);
-      this.initEnemyAttackListener();
       this.createGameControls();
       this.initCamera();
-      this.createDrops();
-      this.initPortals();
-      this.initMapStatsTimers();
-      this.initEquipLayers();
-      this.initSummonListener();
       this.cameras.main.fadeIn(500, 0, 0, 0);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.equipSub?.unsubscribe();
         this.summonSub?.unsubscribe();
         this.player?.clearLayers();
+      });
+
+      // Diferido: trabajo pesado en el siguiente frame para no bloquear el
+      // 'load' handler y evitar las [Violation] warnings.
+      this.time.delayedCall(0, () => {
+        this.registerEnemyAnimations();
+        this.registerDropTextures();
+        this.initSpawns();
+        this.reg.mapStats?.setTrackers(this.spawnTrackers);
+        this.initEnemyAttackListener();
+        this.createDrops();
+        this.initPortals();
+        this.initMapStatsTimers();
+        this.initEquipLayers();
+        this.initSummonListener();
       });
     }
 
@@ -215,16 +221,8 @@ export class GameScene extends Phaser.Scene {
 
     private registerEnemyAnimations(): void {
       const animService = new AnimationService(this);
-      const usedTypes = [...new Set(this.currentMapConfig.spawns.map(s => s.enemyType))];
-      for (const type of usedTypes) {
-        const cfg = ENEMY_REGISTRY[type];
-        if (cfg) animService.registerEnemyAnimations(cfg);
-
-        const elite = ENEMY_REGISTRY[`${type}_elite`];
-        if (elite) animService.registerEnemyAnimations(elite);
-
-        const oblivion = ENEMY_REGISTRY[`${type}_oblivion`];
-        if (oblivion) animService.registerEnemyAnimations(oblivion);
+      for (const cfg of Object.values(ENEMY_REGISTRY)) {
+        animService.registerEnemyAnimations(cfg);
       }
     }
 
@@ -424,32 +422,9 @@ export class GameScene extends Phaser.Scene {
 
       const baseType = cfg.spriteType ?? cfg.type;
       const idleKey  = `${baseType}_idle`;
-
-      if (this.textures.exists(idleKey)) {
-        this.doSummon(cfg, idleKey, tileX, tileY);
-        return;
-      }
-
-      // Texturas no cargadas en este mapa → cargar dinámicamente todas las acciones
-      const baseCfg = ENEMY_REGISTRY[baseType];
-      if (!baseCfg) { console.warn(`summon: base config "${baseType}" no encontrada`); return; }
-
-      for (const [action, actionCfg] of Object.entries(baseCfg.actions) as [string, ActionConfig][]) {
-        const key = `${baseType}_${action}`;
-        if (!this.textures.exists(key)) {
-          this.load.spritesheet(key, `assets/sprites/enemy/${baseType}/${actionCfg.filename}.png`, {
-            frameWidth:  actionCfg.frameWidth,
-            frameHeight: actionCfg.frameHeight,
-          });
-        }
-      }
-
-      this.load.once('complete', () => {
-        const animService = new AnimationService(this);
-        animService.registerEnemyAnimations(baseCfg);
-        this.doSummon(cfg, idleKey, tileX, tileY);
-      });
-      this.load.start();
+      // Todas las texturas y animaciones se precargan en preload() + registerEnemyAnimations(),
+      // por lo que no se necesita carga dinámica aquí.
+      this.doSummon(cfg, idleKey, tileX, tileY);
     }
 
     private doSummon(cfg: EnemyTypeConfig, idleKey: string, tileX: number, tileY: number): void {
