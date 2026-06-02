@@ -49,7 +49,7 @@ export class EquipmentComponent implements OnInit {
 
   getSheetPos(frame: number = 0): string {
     const cols = 12;
-    const size = 40;
+    const size = 32;
     const col  = frame % cols;
     const row  = Math.floor(frame / cols);
     return `-${col * size}px -${row * size}px`;
