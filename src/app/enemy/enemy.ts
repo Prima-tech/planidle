@@ -22,6 +22,7 @@ export class Enemy {
 
   private animService: AnimationService;
   private state: EnemyState = 'idle';
+  private preHurtState: EnemyState = 'idle';
   private isChasing = false;
   private currentDir: Direction = Direction.DOWN;
   private lastPlayerPos: Vector2 | null = null;
@@ -224,14 +225,26 @@ export class Enemy {
   private playHurt(): void {
     if (!this.config.actions.hurt) return;
     this.facePlayer();
-    const prevState = this.state;
+
+    // Solo actualizar preHurtState cuando entramos desde un estado no-hurt.
+    // Si ya estamos en hurt (golpe spam), conservamos el estado original para
+    // que el enemigo pueda recuperarse correctamente al terminar la animación.
+    if (this.state !== 'hurt') this.preHurtState = this.state;
+
     this.state = 'hurt';
     this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
-    this.playAnim('hurt');
+
+    // Llamar a sprite.play() directamente para forzar el reinicio aunque la
+    // animación ya estuviese corriendo (playAnim tiene un guard que lo impediría).
+    const cfg = this.config.actions['hurt'];
+    const dir = (this.currentDir === Direction.NONE || !this.currentDir) ? Direction.DOWN : this.currentDir;
+    const key = this.animService.enemyAnimKey(this.config.type, 'hurt', cfg.directional ? dir : undefined);
+    if (this.mainScene.anims.exists(key)) this.sprite.play(key);
+
     this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       if (this.isDead) return;
-      this.state = prevState;
-      this.playAnim(prevState);
+      this.state = this.preHurtState;
+      this.playAnim(this.preHurtState);
     });
   }
 
