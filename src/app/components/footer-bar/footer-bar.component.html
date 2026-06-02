@@ -9,7 +9,6 @@
 <ion-footer>
   <ion-toolbar>
 
-
     <div class="icon-menu-wrapper" (click)="goTo('map')">
       <app-icon [name]="'world'" [type]="'menu'"></app-icon>
     </div>
@@ -18,17 +17,16 @@
       <app-icon [name]="'overlord-helm'" [type]="'menu'"></app-icon>
     </div>
 
-    <div class="icon-menu-wrapper right" (click)="openInventory()">
-      <app-icon [name]="'knapsack'" [type]="'menu'"></app-icon>
-    </div>
-
     <div class="icon-menu-wrapper" (click)="openEquipment()">
       <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
     </div>
 
-
     <div class="icon-menu-wrapper right" (click)="openMenu()">
       <app-icon [name]="'cog'" [type]="'menu'"></app-icon>
+    </div>
+
+    <div class="icon-menu-wrapper right" (click)="openInventory()">
+      <app-icon [name]="'knapsack'" [type]="'menu'"></app-icon>
     </div>
 
     <div class="icon-menu-wrapper right" (click)="openMapStats()">
