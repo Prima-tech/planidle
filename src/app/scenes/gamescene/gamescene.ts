@@ -1,5 +1,5 @@
 import { Enemy } from "src/app/enemy/enemy";
-import { ActionConfig, ENEMY_REGISTRY } from "src/app/enemy/enemy-config";
+import { ActionConfig, ENEMY_REGISTRY, EnemyTypeConfig } from "src/app/enemy/enemy-config";
 import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridDrops } from "src/app/physics/griddrops";
@@ -26,7 +26,8 @@ export class GameScene extends Phaser.Scene {
     private eliteKills = 0;
     private currentMapConfig: MapConfig;
     private reg: GameRegistry;
-    private equipSub: { unsubscribe(): void } | null = null;
+    private equipSub:  { unsubscribe(): void } | null = null;
+    private summonSub: { unsubscribe(): void } | null = null;
     currentMap: any;
 
       constructor(
@@ -91,9 +92,11 @@ export class GameScene extends Phaser.Scene {
       this.initPortals();
       this.initMapStatsTimers();
       this.initEquipLayers();
+      this.initSummonListener();
       this.cameras.main.fadeIn(500, 0, 0, 0);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.equipSub?.unsubscribe();
+        this.summonSub?.unsubscribe();
         this.player?.clearLayers();
       });
     }
@@ -404,6 +407,68 @@ export class GameScene extends Phaser.Scene {
           }
         },
       });
+    }
+
+    private initSummonListener(): void {
+      this.summonSub = this.reg.summon.request$.subscribe(enemyType => {
+        const playerPos = this.player.getPosition();
+        const tileX = Math.floor(playerPos.x / GameScene.TILE_SIZE) + 3;
+        const tileY = Math.floor(playerPos.y / GameScene.TILE_SIZE);
+        this.summonEnemyAt(enemyType, tileX, tileY);
+      });
+    }
+
+    private summonEnemyAt(enemyType: string, tileX: number, tileY: number): void {
+      const cfg = ENEMY_REGISTRY[enemyType];
+      if (!cfg) { console.warn(`summon: "${enemyType}" no está en ENEMY_REGISTRY`); return; }
+
+      const baseType = cfg.spriteType ?? cfg.type;
+      const idleKey  = `${baseType}_idle`;
+
+      if (this.textures.exists(idleKey)) {
+        this.doSummon(cfg, idleKey, tileX, tileY);
+        return;
+      }
+
+      // Texturas no cargadas en este mapa → cargar dinámicamente todas las acciones
+      const baseCfg = ENEMY_REGISTRY[baseType];
+      if (!baseCfg) { console.warn(`summon: base config "${baseType}" no encontrada`); return; }
+
+      for (const [action, actionCfg] of Object.entries(baseCfg.actions) as [string, ActionConfig][]) {
+        const key = `${baseType}_${action}`;
+        if (!this.textures.exists(key)) {
+          this.load.spritesheet(key, `assets/sprites/enemy/${baseType}/${actionCfg.filename}.png`, {
+            frameWidth:  actionCfg.frameWidth,
+            frameHeight: actionCfg.frameHeight,
+          });
+        }
+      }
+
+      this.load.once('complete', () => {
+        const animService = new AnimationService(this);
+        animService.registerEnemyAnimations(baseCfg);
+        this.doSummon(cfg, idleKey, tileX, tileY);
+      });
+      this.load.start();
+    }
+
+    private doSummon(cfg: EnemyTypeConfig, idleKey: string, tileX: number, tileY: number): void {
+      const sprite = this.add.sprite(0, 0, idleKey);
+      sprite.setDepth(2);
+
+      const enemy = new Enemy(
+        this, sprite,
+        new Phaser.Math.Vector2(tileX, tileY),
+        this.currentMap,
+        cfg,
+        'aggressive',
+        12,
+        () => {
+          const idx = this.enemies.indexOf(enemy);
+          if (idx !== -1) this.enemies.splice(idx, 1);
+        },
+      );
+      this.enemies.push(enemy);
     }
 
 }

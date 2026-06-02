@@ -1,0 +1,28 @@
+<div class="summon-header">Invocar</div>
+
+<div class="summon-tabs">
+  <div
+    *ngFor="let tab of tabs; let i = index"
+    class="summon-tab"
+    [class.active]="i === activeTab"
+    (click)="activeTab = i"
+  >
+    {{ tab }}
+  </div>
+</div>
+
+<div class="summon-grid" *ngIf="activeTab === 0">
+  <button
+    *ngFor="let enemy of enemies"
+    class="enemy-card"
+    [class.elite]="enemy.tier === 'elite'"
+    [class.oblivion]="enemy.tier === 'oblivion'"
+    (click)="summon(enemy.type)"
+  >
+    <div class="enemy-frame" [ngStyle]="enemy.frameStyle">
+      <span *ngIf="!enemy.frameStyle['background-image']" class="enemy-frame-fallback">?</span>
+    </div>
+    <span class="enemy-name">{{ enemy.label }}</span>
+    <span class="enemy-hp">{{ enemy.hp }} HP</span>
+  </button>
+</div>

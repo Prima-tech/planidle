@@ -20,6 +20,7 @@ import { MapStatsService } from 'src/app/services/map-stats.service';
 import { OfflineGains } from 'src/app/services/offline-gains.service';
 import { REGISTRY_KEYS } from 'src/app/scenes/game-registry';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { SummonService } from 'src/app/services/summon.service';
 
 @Component({
   selector: 'app-layout',
@@ -52,6 +53,7 @@ export class LayoutComponent implements OnDestroy {
     private killService: KillService,
     private mapStatsService: MapStatsService,
     private equipmentService: EquipmentService,
+    private summonService: SummonService,
   ) {
     this.loadGame();
   }
@@ -119,6 +121,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.KILL,          this.killService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_STATS,     this.mapStatsService);
     this.phaserGame.registry.set(REGISTRY_KEYS.EQUIPMENT,    this.equipmentService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.SUMMON,       this.summonService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

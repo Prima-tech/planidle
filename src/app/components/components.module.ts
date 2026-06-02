@@ -25,6 +25,7 @@ import { StatsPageComponent } from './stats-page/stats-page.component';
 import { EquipmentComponent } from './equipment/equipment.component';
 import { ItemDetailComponent } from './item-detail/item-detail.component';
 import { CharStatsComponent } from './char-stats/char-stats.component';
+import { SummonComponent } from './summon/summon.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import { CharStatsComponent } from './char-stats/char-stats.component';
     EquipmentComponent,
     ItemDetailComponent,
     CharStatsComponent,
+    SummonComponent,
   ],
   imports: [
     CommonModule,
@@ -80,6 +82,7 @@ import { CharStatsComponent } from './char-stats/char-stats.component';
     EquipmentComponent,
     ItemDetailComponent,
     CharStatsComponent,
+    SummonComponent,
   ]
 })
 export class ComponentModule {}

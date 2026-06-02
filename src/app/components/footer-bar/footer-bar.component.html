@@ -5,6 +5,7 @@
 <app-modal-container #mapStatsModal></app-modal-container>
 <app-modal-container #mapKillsModal></app-modal-container>
 <app-modal-container #statsModal></app-modal-container>
+<app-modal-container #summonModal></app-modal-container>
 
 <ion-footer>
   <ion-toolbar>
@@ -22,6 +23,11 @@
     <div class="icon-menu-wrapper" (click)="openEquipment()">
       <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Equipo</span>
+    </div>
+
+    <div class="icon-menu-wrapper" (click)="openSummon()">
+      <ion-icon name="flash-outline" class="footer-ion-icon"></ion-icon>
+      <span class="btn-label">Invocar</span>
     </div>
 
     <div class="icon-menu-wrapper right" (click)="openMenu()">

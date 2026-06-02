@@ -6,6 +6,7 @@ import { MapStatsService } from '../services/map-stats.service';
 import { PlayerBridgeService } from '../services/player-bridge.service';
 import { PlayerStateService } from '../services/player-state.service';
 import { WorldService } from '../services/world.service';
+import { SummonService } from '../services/summon.service';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
 export const REGISTRY_KEYS = {
@@ -17,6 +18,7 @@ export const REGISTRY_KEYS = {
   MAP:           'mapService',
   MAP_STATS:     'mapStatsService',
   EQUIPMENT:     'equipmentService',
+  SUMMON:        'summonService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -31,4 +33,5 @@ export class GameRegistry {
   get map():          MapService           { return this.game.registry.get(REGISTRY_KEYS.MAP); }
   get mapStats():     MapStatsService      { return this.game.registry.get(REGISTRY_KEYS.MAP_STATS); }
   get equipment():    EquipmentService     { return this.game.registry.get(REGISTRY_KEYS.EQUIPMENT); }
+  get summon():       SummonService        { return this.game.registry.get(REGISTRY_KEYS.SUMMON); }
 }
