@@ -123,20 +123,6 @@ const orc1: EnemyTypeConfig = {
       directional: false,
       frames: { start: 0, end: 7 },
     },
-    walkAttackFront: {
-      filename: 'orc1_walk_attack_front_full',
-      frameWidth: 64, frameHeight: 64,
-      frameRate: 8, repeat: 0,
-      directional: false,
-      frames: { start: 0, end: 5 },
-    },
-    runAttackFront: {
-      filename: 'orc1_run_attack_front_full',
-      frameWidth: 64, frameHeight: 64,
-      frameRate: 8, repeat: 0,
-      directional: false,
-      frames: { start: 0, end: 7 },
-    },
   },
 };
 

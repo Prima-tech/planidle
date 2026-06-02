@@ -41,6 +41,7 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.image('sword', 'assets/icon/weapons/sword8.png');
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
+      this.load.spritesheet('portal', 'assets/sprites/resources/Dimensional_Portal.png', { frameWidth: 32, frameHeight: 32 });
 
       for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
         if (!this.textures.exists(cfg.key)) {
@@ -254,15 +255,22 @@ export class GameScene extends Phaser.Scene {
     }
 
     initPortals() {
-      const gfx = this.add.graphics();
-      gfx.setDepth(3);
+      if (!this.anims.exists('portal_spin')) {
+        this.anims.create({
+          key: 'portal_spin',
+          frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 5 }),
+          frameRate: 6,
+          repeat: -1,
+        });
+      }
+
       this.currentMapConfig.portals.forEach(portal => {
-        const px = portal.tilePos.x * GameScene.TILE_SIZE;
-        const py = portal.tilePos.y * GameScene.TILE_SIZE;
-        gfx.fillStyle(0x00ffff, 0.45);
-        gfx.fillRect(px, py, GameScene.TILE_SIZE, GameScene.TILE_SIZE);
-        gfx.lineStyle(2, 0xffffff, 0.9);
-        gfx.strokeRect(px, py, GameScene.TILE_SIZE, GameScene.TILE_SIZE);
+        const px = portal.tilePos.x * GameScene.TILE_SIZE + GameScene.TILE_SIZE / 2;
+        const py = portal.tilePos.y * GameScene.TILE_SIZE + GameScene.TILE_SIZE / 2;
+        const sprite = this.add.sprite(px, py, 'portal');
+        sprite.setDepth(1);
+        sprite.setScale(3);
+        sprite.play('portal_spin');
       });
     }
 

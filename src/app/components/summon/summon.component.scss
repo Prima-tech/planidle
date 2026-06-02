@@ -77,7 +77,7 @@
   background: #2a2a3e;
   border: 1px solid #444;
   border-radius: 6px;
-  padding: 5px 3px 4px;
+  padding: 6px 4px 6px;
   cursor: pointer;
   color: #fff;
   transition: border-color 0.15s, background 0.15s;
@@ -93,22 +93,22 @@
   &.oblivion { border-color: #cc00ff; }
 }
 
-// Caja exterior: 36×36, recorta el frame escalado
+// Caja exterior: 72×72, recorta el frame escalado
 .enemy-frame {
-  width: 36px;
-  height: 36px;
+  width: 72px;
+  height: 72px;
   overflow: hidden;
-  border-radius: 3px;
+  border-radius: 4px;
   background-color: #1a1a2e;
   flex-shrink: 0;
 }
 
-// Caja interior: 64×64 escalada a 36×36 (scale 0.5625)
+// Caja interior: 64×64 escalada a 72×72 (scale 1.125)
 .enemy-frame-inner {
   width: 64px;
   height: 64px;
   overflow: hidden;
-  transform: scale(0.5625);
+  transform: scale(1.125);
   transform-origin: 0 0;
   background-position: 0 0;
   background-repeat: no-repeat;
@@ -117,7 +117,7 @@
 }
 
 .tier-label {
-  font-size: 0.55em;
+  font-size: 0.65em;
   color: #ccc;
   text-align: center;
   line-height: 1.2;
