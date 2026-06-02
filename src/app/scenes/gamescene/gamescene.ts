@@ -26,6 +26,7 @@ export class GameScene extends Phaser.Scene {
     private eliteKills = 0;
     private currentMapConfig: MapConfig;
     private reg: GameRegistry;
+    private animService: AnimationService;
     private equipSub:  { unsubscribe(): void } | null = null;
     private summonSub: { unsubscribe(): void } | null = null;
     currentMap: any;
@@ -53,9 +54,19 @@ export class GameScene extends Phaser.Scene {
       this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
       this.load.tilemapTiledJSON(mapCfg.tilemapKey, mapCfg.tilemapJson);
 
-      // Precarga todos los tipos de enemigo (no solo los del mapa actual) para que
-      // summon nunca necesite cargas dinámicas que generan 'load' handler violations.
-      for (const [type, cfg] of Object.entries(ENEMY_REGISTRY)) {
+      // Solo carga texturas para los enemigos del mapa actual + variantes elite/oblivion.
+      // Las texturas persisten entre reinicios de escena (textures.exists guard),
+      // así que cada tipo se carga una sola vez en toda la sesión.
+      const spawnTypes = mapCfg.spawns.map((s: { enemyType: string }) => s.enemyType);
+      const typesToLoad = new Set<string>();
+      for (const base of spawnTypes) {
+        typesToLoad.add(base);
+        typesToLoad.add(`${base}_elite`);
+        typesToLoad.add(`${base}_oblivion`);
+      }
+      for (const type of typesToLoad) {
+        const cfg = ENEMY_REGISTRY[type];
+        if (!cfg) continue;
         const baseType = cfg.spriteType ?? type;
         for (const [action, actionCfg] of Object.entries(cfg.actions) as [string, ActionConfig][]) {
           const key = `${baseType}_${action}`;
@@ -77,6 +88,7 @@ export class GameScene extends Phaser.Scene {
       this.sessionKills = {};
       this.eliteKills = 0;
       this.currentMapConfig = this.reg.world.getCurrentMap();
+      this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
 
       // Inmediato: lo mínimo para que el primer frame sea válido
@@ -215,9 +227,16 @@ export class GameScene extends Phaser.Scene {
     }
 
     private registerEnemyAnimations(): void {
-      const animService = new AnimationService(this);
-      for (const cfg of Object.values(ENEMY_REGISTRY)) {
-        animService.registerEnemyAnimations(cfg);
+      const spawnTypes = this.currentMapConfig.spawns.map(s => s.enemyType);
+      const typesToRegister = new Set<string>();
+      for (const base of spawnTypes) {
+        typesToRegister.add(base);
+        typesToRegister.add(`${base}_elite`);
+        typesToRegister.add(`${base}_oblivion`);
+      }
+      for (const type of typesToRegister) {
+        const cfg = ENEMY_REGISTRY[type];
+        if (cfg) this.animService.registerEnemyAnimations(cfg);
       }
     }
 
@@ -422,8 +441,11 @@ export class GameScene extends Phaser.Scene {
 
       const baseType = cfg.spriteType ?? cfg.type;
       const idleKey  = `${baseType}_idle`;
-      // Todas las texturas y animaciones se precargan en preload() + registerEnemyAnimations(),
-      // por lo que no se necesita carga dinámica aquí.
+      if (!this.textures.exists(idleKey)) {
+        console.warn(`summon: textura "${idleKey}" no cargada — invoca desde el mapa que usa este enemigo`);
+        return;
+      }
+      this.animService.registerEnemyAnimations(cfg);
       this.doSummon(cfg, idleKey, tileX, tileY);
     }
 

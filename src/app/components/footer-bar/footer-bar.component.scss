@@ -1,6 +1,6 @@
 :host {
     .footer-ion-icon {
-      font-size: 14px;
+      font-size: 22px;
       color: white;
       display: block;
     }
@@ -19,7 +19,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 1px;
+      gap: 4px;
       &.right {
         float: right;
       }
@@ -35,10 +35,4 @@
       white-space: nowrap;
     }
 
-    app-icon {
-      display: block;
-      img {
-        width: 20px !important;
-      }
-    }
 }
