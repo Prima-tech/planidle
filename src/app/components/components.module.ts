@@ -24,6 +24,7 @@ import { DeathModalComponent } from './death-modal/death-modal.component';
 import { StatsPageComponent } from './stats-page/stats-page.component';
 import { EquipmentComponent } from './equipment/equipment.component';
 import { ItemDetailComponent } from './item-detail/item-detail.component';
+import { CharStatsComponent } from './char-stats/char-stats.component';
 
 @NgModule({
   declarations: [
@@ -47,6 +48,7 @@ import { ItemDetailComponent } from './item-detail/item-detail.component';
     StatsPageComponent,
     EquipmentComponent,
     ItemDetailComponent,
+    CharStatsComponent,
   ],
   imports: [
     CommonModule,
@@ -77,6 +79,7 @@ import { ItemDetailComponent } from './item-detail/item-detail.component';
     StatsPageComponent,
     EquipmentComponent,
     ItemDetailComponent,
+    CharStatsComponent,
   ]
 })
 export class ComponentModule {}

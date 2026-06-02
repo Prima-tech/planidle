@@ -1,0 +1,37 @@
+<ng-container *ngIf="vm$ | async as vm">
+
+  <div class="cs-title">Personaje</div>
+
+  <div class="cs-row">
+    <span class="cs-label">Nivel</span>
+    <span class="cs-val">{{ vm.lvl }}</span>
+  </div>
+
+  <div class="cs-row">
+    <span class="cs-label">EXP</span>
+    <span class="cs-val cs-xp" *ngIf="!vm.isMaxLevel">{{ vm.exp }} / {{ vm.expCap }}</span>
+    <span class="cs-val cs-xp cs-max" *ngIf="vm.isMaxLevel">MAX</span>
+  </div>
+  <div class="cs-xp-track">
+    <div class="cs-xp-fill" [style.width.%]="vm.expPct"></div>
+  </div>
+
+  <div class="cs-divider"></div>
+
+  <div class="cs-row">
+    <span class="cs-label">Ataque</span>
+    <span class="cs-val cs-dmg">{{ vm.damage.total }}</span>
+  </div>
+
+  <div class="cs-breakdown">
+    <div class="cs-bk-row">
+      <span>Base</span>
+      <span>{{ vm.damage.base }}</span>
+    </div>
+    <div class="cs-bk-row" *ngIf="vm.damage.equipment > 0">
+      <span>Equipo</span>
+      <span class="cs-bonus">+{{ vm.damage.equipment }}</span>
+    </div>
+  </div>
+
+</ng-container>

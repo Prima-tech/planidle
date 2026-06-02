@@ -1,0 +1,85 @@
+:host {
+  display: block;
+  color: #fff;
+}
+
+.cs-title {
+  font-size: 0.7em;
+  font-weight: bold;
+  color: #aaaadd;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.cs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.78em;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.cs-label {
+  color: #888;
+  white-space: nowrap;
+}
+
+.cs-val {
+  color: #e0e0ff;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.cs-xp {
+  font-size: 0.82em;
+  color: #aaa;
+  font-weight: normal;
+}
+
+.cs-max {
+  color: #f0c040;
+}
+
+.cs-xp-track {
+  height: 4px;
+  background: #2a2a4e;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.cs-xp-fill {
+  height: 100%;
+  background: #3498db;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.cs-divider {
+  height: 1px;
+  background: #2a2a4e;
+  margin: 6px 0 8px;
+}
+
+.cs-dmg {
+  color: #ff7675;
+}
+
+.cs-breakdown {
+  margin-top: 4px;
+}
+
+.cs-bk-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68em;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+.cs-bonus {
+  color: #f0c040;
+}

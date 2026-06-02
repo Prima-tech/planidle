@@ -3,7 +3,22 @@
   background: #1a1a2e;
   padding: 10px 8px;
   color: #fff;
-  min-width: 180px;
+}
+
+.eq-layout {
+  display: flex;
+  align-items: flex-start;
+}
+
+.eq-slots {
+  flex: 0 0 auto;
+}
+
+.eq-divider-v {
+  width: 1px;
+  background: #2a2a4e;
+  align-self: stretch;
+  margin: 0 10px;
 }
 
 .equipment-header {
