@@ -9,10 +9,13 @@
     <app-status-bar [class]="'health'" [service$]="valueHP$"></app-status-bar>
     <app-status-bar [class]="'experience'" [service$]="valueXP$"></app-status-bar>
   </div>
-  <div class="coins-wrapper">
-    <div class="coin-placeholder">
-      {{ coins$ | async }}
+  <div class="right-side">
+    <div class="coins-wrapper">
+      <div class="coin-placeholder">
+        {{ coins$ | async }}
+      </div>
+      <div class="coin-spinner"></div>
     </div>
-    <div class="coin-spinner"></div>
+    <app-map-label></app-map-label>
   </div>
 </div>
