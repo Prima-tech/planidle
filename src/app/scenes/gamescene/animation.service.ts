@@ -87,6 +87,7 @@ export class AnimationService extends Phaser.Scene {
     key: string, texture: string, start: number, end: number,
     repeat: number, frameRate: number,
   ): void {
+    if (this.mainScene.anims.exists(key)) return;
     const frames = this.mainScene.anims.generateFrameNumbers(texture, { start, end });
     if (!frames.length) {
       console.warn(`[AnimationService] "${key}": no frames found in "${texture}" (${start}-${end}). Adjust framesPerDir in enemy-config.ts.`);
