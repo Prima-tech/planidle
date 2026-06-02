@@ -10,6 +10,13 @@ interface EnemyCard {
   tier:      'base' | 'elite' | 'oblivion';
 }
 
+interface EnemyGroup {
+  name:     string;
+  base:     EnemyCard;
+  elite:    EnemyCard | null;
+  oblivion: EnemyCard | null;
+}
+
 @Component({
   selector: 'app-summon',
   templateUrl: './summon.component.html',
@@ -18,12 +25,19 @@ interface EnemyCard {
 })
 export class SummonComponent {
 
-  readonly tabs  = ['Enemigos'];
-  activeTab      = 0;
-  readonly enemies: EnemyCard[];
+  readonly tabs = ['Enemigos'];
+  activeTab     = 0;
+  readonly enemyGroups: EnemyGroup[];
 
   constructor(private summonService: SummonService) {
-    this.enemies = Object.values(ENEMY_REGISTRY).map(cfg => this.toCard(cfg));
+    const allCards = Object.values(ENEMY_REGISTRY).map(cfg => this.toCard(cfg));
+    const baseCards = allCards.filter(c => c.tier === 'base');
+    this.enemyGroups = baseCards.map(base => ({
+      name:     base.label,
+      base,
+      elite:    allCards.find(c => c.type === `${base.type}_elite`)    ?? null,
+      oblivion: allCards.find(c => c.type === `${base.type}_oblivion`) ?? null,
+    }));
   }
 
   summon(type: string): void {

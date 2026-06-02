@@ -11,24 +11,44 @@
   </div>
 </div>
 
-<div class="summon-grid" *ngIf="activeTab === 0">
-  <button
-    *ngFor="let enemy of enemies"
-    class="enemy-card"
-    [class.elite]="enemy.tier === 'elite'"
-    [class.oblivion]="enemy.tier === 'oblivion'"
-    (click)="summon(enemy.type)"
-  >
-    <!-- Contenedor exterior: 48×48 con overflow:hidden -->
-    <div class="enemy-frame">
-      <!-- Div interior: tamaño del frame (64×64) escalado a 48×48 con transform.
-           El overflow:hidden recorta al primer frame antes de escalar. -->
-      <div
-        class="enemy-frame-inner"
-        [style.background-image]="'url(' + enemy.spriteUrl + ')'"
-      ></div>
+<div class="summon-list" *ngIf="activeTab === 0">
+  <div *ngFor="let group of enemyGroups" class="enemy-group">
+
+    <span class="group-name">{{ group.name }}</span>
+
+    <div class="group-row">
+
+      <button class="enemy-card base" (click)="summon(group.base.type)">
+        <div class="enemy-frame">
+          <div class="enemy-frame-inner"
+               [style.background-image]="'url(' + group.base.spriteUrl + ')'">
+          </div>
+        </div>
+        <span class="tier-label">Normal</span>
+      </button>
+
+      <button class="enemy-card elite"
+              [disabled]="!group.elite"
+              (click)="group.elite && summon(group.elite.type)">
+        <div class="enemy-frame">
+          <div class="enemy-frame-inner"
+               [style.background-image]="group.elite ? 'url(' + group.elite.spriteUrl + ')' : 'none'">
+          </div>
+        </div>
+        <span class="tier-label">Elite</span>
+      </button>
+
+      <button class="enemy-card oblivion"
+              [disabled]="!group.oblivion"
+              (click)="group.oblivion && summon(group.oblivion.type)">
+        <div class="enemy-frame">
+          <div class="enemy-frame-inner"
+               [style.background-image]="group.oblivion ? 'url(' + group.oblivion.spriteUrl + ')' : 'none'">
+          </div>
+        </div>
+        <span class="tier-label">Oblivion</span>
+      </button>
+
     </div>
-    <span class="enemy-name">{{ enemy.label }}</span>
-    <span class="enemy-hp">{{ enemy.hp }} HP</span>
-  </button>
+  </div>
 </div>

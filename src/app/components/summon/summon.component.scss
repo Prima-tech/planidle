@@ -39,49 +39,76 @@
   }
 }
 
-.summon-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+// ── Lista de grupos ──────────────────────────────────────────────────────────
+
+.summon-list {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
+
+.enemy-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.group-name {
+  font-size: 0.65em;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-left: 2px;
+}
+
+.group-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+// ── Botón de invocación ──────────────────────────────────────────────────────
 
 .enemy-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: #2a2a3e;
   border: 1px solid #444;
   border-radius: 6px;
-  padding: 8px 4px 6px;
+  padding: 5px 3px 4px;
   cursor: pointer;
   color: #fff;
   transition: border-color 0.15s, background 0.15s;
 
-  &:active   { background: #3a3a5e; }
+  &:active:not([disabled]) { background: #3a3a5e; }
+
+  &[disabled] {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
   &.elite    { border-color: #ffcc00; }
   &.oblivion { border-color: #cc00ff; }
 }
 
-// Caja exterior: 48×48, recorta lo que sobresalga del frame escalado
+// Caja exterior: 36×36, recorta el frame escalado
 .enemy-frame {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 3px;
   background-color: #1a1a2e;
   flex-shrink: 0;
 }
 
-// Caja interior: 64×64 (tamaño del frame en el spritesheet).
-// overflow:hidden recorta la imagen al primer frame antes de aplicar el scale.
-// transform: scale(0.75) la reduce de 64→48px visualmente.
-// transform-origin: 0 0 ancla el escalado a la esquina superior izquierda.
+// Caja interior: 64×64 escalada a 36×36 (scale 0.5625)
 .enemy-frame-inner {
   width: 64px;
   height: 64px;
   overflow: hidden;
-  transform: scale(0.75);
+  transform: scale(0.5625);
   transform-origin: 0 0;
   background-position: 0 0;
   background-repeat: no-repeat;
@@ -89,14 +116,10 @@
   image-rendering: pixelated;
 }
 
-.enemy-name {
-  font-size: 0.65em;
-  color: #ddd;
+.tier-label {
+  font-size: 0.55em;
+  color: #ccc;
   text-align: center;
   line-height: 1.2;
-}
-
-.enemy-hp {
-  font-size: 0.6em;
-  color: #888;
+  white-space: nowrap;
 }
