@@ -11,6 +11,8 @@ export interface InventoryItem {
   mergeable?: boolean;
   sum?: number;
   order?: number;
+  description?: string;
+  stats?: Record<string, number>;
 }
 
 const TABS = 4;
@@ -91,11 +93,11 @@ export class InventoryService {
   // --- Mock: edita aquí los items de prueba ---
 
   private seedMockData(): void {
-    this.mockGrid[0][0][0] = { id: 'mock-1', name: 'Espada', icon: 'assets/icon/weapons/sword8.png', mergeable: false, order: 2 };
-    this.mockGrid[0][0][1] = { id: 'mock-2', name: 'Escudo',                                         mergeable: false, order: 1 };
-    this.mockGrid[0][1][0] = { id: 'mock-3', name: 'Poción', icon: 'assets/icon/potion.svg',         mergeable: true,  sum: 1, order: 3 };
-    this.mockGrid[0][2][2] = { id: 'mock-4', name: 'Hierro',                                         mergeable: true,  sum: 2, order: 4 };
-    this.mockGrid[0][2][3] = { id: 'mock-5', name: 'Hierro',                                         mergeable: true,  sum: 3, order: 5 };
+    this.mockGrid[0][0][0] = { id: 'mock-1', name: 'Espada', icon: 'assets/icon/weapons/sword8.png', mergeable: false, order: 2, description: 'Espada de hierro forjada en Asgard.', stats: { damage: 5 } };
+    this.mockGrid[0][0][1] = { id: 'mock-2', name: 'Escudo',                                         mergeable: false, order: 1, description: 'Escudo de madera reforzado con metal.', stats: { defense: 3 } };
+    this.mockGrid[0][1][0] = { id: 'mock-3', name: 'Poción', icon: 'assets/icon/potion.svg',         mergeable: true,  sum: 1, order: 3, description: 'Restaura puntos de vida al usarla.', stats: { healing: 6 } };
+    this.mockGrid[0][2][2] = { id: 'mock-4', name: 'Hierro',                                         mergeable: true,  sum: 2, order: 4, description: 'Material básico de forja.' };
+    this.mockGrid[0][2][3] = { id: 'mock-5', name: 'Hierro',                                         mergeable: true,  sum: 3, order: 5, description: 'Material básico de forja.' };
   }
 
   // --- Supabase (pendiente de implementar) ---

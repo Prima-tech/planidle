@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
@@ -24,6 +24,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   deleteModalOpen: boolean = false;
 
   equipmentSlotIds: string[] = [];
+  detailPanelStyle: { [key: string]: string } = {};
 
   private saveTimer: any;
   private dropSub: Subscription;
@@ -32,7 +33,20 @@ export class InventoryComponent implements OnInit, OnDestroy {
   constructor(
     private inventoryService: InventoryService,
     public equipmentService: EquipmentService,
+    private el: ElementRef,
   ) {}
+
+  get selectedItemData(): InventoryItem | null {
+    if (!this.selectedItem) return null;
+    return this.inventories[this.selectedItem.tabIndex]?.[this.selectedItem.row]?.[this.selectedItem.col] ?? null;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.el.nativeElement.contains(event.target as Node)) {
+      this.selectedItem = null;
+    }
+  }
 
   ngOnInit() {
     this.tabs = Array.from({ length: this.NUMBER_OF_TABS }, (_, i) => `Tab ${i + 1}`);
@@ -86,6 +100,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   selectTab(index: number): void {
     this.activeTabIndex = index;
+    this.selectedItem = null;
     this.splitMenuOpen = false;
     this.deleteModalOpen = false;
   }
@@ -102,6 +117,16 @@ export class InventoryComponent implements OnInit, OnDestroy {
       this.selectedItem?.col === col;
 
     this.selectedItem = isSame ? null : { tabIndex, row, col };
+
+    if (this.selectedItem) {
+      const rect = (this.el.nativeElement as HTMLElement).getBoundingClientRect();
+      this.detailPanelStyle = {
+        top:    rect.top + 'px',
+        right:  (window.innerWidth - rect.left + 8) + 'px',
+        bottom: '56px',
+      };
+    }
+
     this.splitMenuOpen = false;
     this.deleteModalOpen = false;
   }

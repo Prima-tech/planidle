@@ -23,6 +23,7 @@ import { MapKillsComponent } from './map-kills/map-kills.component';
 import { DeathModalComponent } from './death-modal/death-modal.component';
 import { StatsPageComponent } from './stats-page/stats-page.component';
 import { EquipmentComponent } from './equipment/equipment.component';
+import { ItemDetailComponent } from './item-detail/item-detail.component';
 
 @NgModule({
   declarations: [
@@ -45,6 +46,7 @@ import { EquipmentComponent } from './equipment/equipment.component';
     DeathModalComponent,
     StatsPageComponent,
     EquipmentComponent,
+    ItemDetailComponent,
   ],
   imports: [
     CommonModule,
@@ -74,6 +76,7 @@ import { EquipmentComponent } from './equipment/equipment.component';
     DeathModalComponent,
     StatsPageComponent,
     EquipmentComponent,
+    ItemDetailComponent,
   ]
 })
 export class ComponentModule {}

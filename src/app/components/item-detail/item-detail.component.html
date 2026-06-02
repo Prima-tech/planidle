@@ -1,0 +1,25 @@
+<div class="detail-panel" *ngIf="item" [ngStyle]="panelStyle">
+
+  <div class="detail-header">
+    <img *ngIf="item.icon" [src]="item.icon" class="detail-icon">
+    <span *ngIf="!item.icon" class="detail-icon-fallback">{{ item.name.charAt(0) }}</span>
+    <span class="detail-name">{{ item.name }}</span>
+  </div>
+
+  <p *ngIf="item.description" class="detail-description">{{ item.description }}</p>
+
+  <ng-container *ngIf="item.stats">
+    <div class="detail-divider"></div>
+    <div class="detail-stats">
+      <div *ngFor="let stat of item.stats | keyvalue" class="stat-row">
+        <span class="stat-label">{{ statLabel(stat.key) }}</span>
+        <span class="stat-value">{{ stat.value }}</span>
+      </div>
+    </div>
+  </ng-container>
+
+  <div *ngIf="item.mergeable && item.sum !== undefined" class="detail-quantity">
+    Cantidad: {{ item.sum }}
+  </div>
+
+</div>
