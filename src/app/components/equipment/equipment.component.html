@@ -21,8 +21,13 @@
              cdkDrag
              [cdkDragData]="{ sourceContext: 'equipment', slotId: 'equip-' + slot.id, item: slot.item }"
              [title]="slot.item.name">
-          <img *ngIf="slot.item.icon" [src]="slot.item.icon" class="item-icon">
-          <span *ngIf="!slot.item.icon" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
+          <div *ngIf="slot.item.iconSheet != null"
+               class="item-icon-sheet"
+               [style.background-image]="'url(' + slot.item.iconSheet + ')'"
+               [style.background-position]="getSheetPos(slot.item.iconFrame)">
+          </div>
+          <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon">
+          <span *ngIf="!slot.item.icon && slot.item.iconSheet == null" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
         </div>
 
         <ng-template #emptySlot>

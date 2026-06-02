@@ -205,7 +205,6 @@ export class Enemy {
   private performAttack(): void {
     this.facePlayer();
     this.state = 'attack';
-    this.mainScene.events.emit('enemyAttackPlayer', { damage: this.damage });
 
     const animName = this.resolveAttackAnim();
     const played   = this.playAnim(animName);
@@ -215,6 +214,25 @@ export class Enemy {
       this.playAnim('idle');
       return;
     }
+
+    // Retrasa el daño ~40% de la duración de la animación para que coincida
+    // visualmente con el impacto, en lugar de aplicarse al primer frame.
+    const attackCfg = this.config.actions.attack;
+    const frameRate = attackCfg?.frameRate ?? 8;
+    const framesAny = attackCfg?.frames as any;
+    let frameCount  = 8;
+    if (framesAny) {
+      frameCount = typeof framesAny.end === 'number'
+        ? framesAny.end - framesAny.start + 1
+        : (Object.values(framesAny)[0] as any).end - (Object.values(framesAny)[0] as any).start + 1;
+    }
+    const hitDelay  = Math.round(frameCount * 0.4 / frameRate * 1000);
+    const damage    = this.damage;
+
+    this.mainScene.time.delayedCall(hitDelay, () => {
+      if (this.isDead) return;
+      this.mainScene.events.emit('enemyAttackPlayer', { damage });
+    });
 
     this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       if (this.isDead) return;

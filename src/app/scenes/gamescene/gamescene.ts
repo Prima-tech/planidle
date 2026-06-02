@@ -22,6 +22,7 @@ export class GameScene extends Phaser.Scene {
     private spawnTrackers: SpawnTracker[] = [];
     private spaceKey: Phaser.Input.Keyboard.Key;
     private portalCooldown = false;
+    private lastDamageTime = -Infinity;
     private sessionKills: Record<string, number> = {};
     private eliteKills = 0;
     private currentMapConfig: MapConfig;
@@ -40,9 +41,9 @@ export class GameScene extends Phaser.Scene {
       this.reg = new GameRegistry(this.game);
 
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
-      this.load.image('sword', 'assets/icon/weapons/sword8.png');
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
       this.load.spritesheet('portal', 'assets/sprites/resources/Dimensional_Portal.png', { frameWidth: 32, frameHeight: 32 });
+      this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
       for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
         if (!this.textures.exists(cfg.key)) {
@@ -250,21 +251,6 @@ export class GameScene extends Phaser.Scene {
         });
       }
 
-      if (!this.textures.exists('drop_potion')) {
-        const g = this.add.graphics();
-        g.fillStyle(0x7a3b00);
-        g.fillRect(5, 0, 6, 4);          // corcho
-        g.fillStyle(0xcc55ff);
-        g.fillRect(6, 4, 4, 6);          // cuello
-        g.fillStyle(0xaa33ff);
-        g.fillCircle(8, 17, 7);          // cuerpo base
-        g.fillStyle(0xcc55ff, 0.7);
-        g.fillCircle(8, 16, 5);          // cuerpo claro
-        g.fillStyle(0xffffff, 0.35);
-        g.fillCircle(5, 14, 2);          // reflejo
-        g.generateTexture('drop_potion', 16, 24);
-        g.destroy();
-      }
     }
 
     initPortals() {
@@ -316,6 +302,7 @@ export class GameScene extends Phaser.Scene {
 
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
+        if (this.player.isAttacking) return;
         this.player.playerAttack();
         this.gridPhysics.attackEnemy();
       });
@@ -338,8 +325,12 @@ export class GameScene extends Phaser.Scene {
 
     initEnemyAttackListener() {
       this.events.on('enemyAttackPlayer', ({ damage }: { damage: number }) => {
+        const now = this.time.now;
+        if (now - this.lastDamageTime < 500) return;
+        this.lastDamageTime = now;
         this.reg.playerBridge.setAttackToPlayer({ HP: -damage });
         this.flashPlayer();
+        this.showPlayerDamage(damage);
       });
 
       this.events.on('enemyDied', ({ type, position }: { type: string, position: Phaser.Math.Vector2 }) => {
@@ -404,6 +395,21 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(150, () => sprite.clearTint());
     }
 
+    private showPlayerDamage(amount: number): void {
+      const sprite = this.player.getSprite();
+      const x = sprite.x + Phaser.Math.Between(-20, 20);
+      const y = sprite.y - sprite.displayHeight * 0.5;
+      const text = this.add.text(x, y, `-${amount}`, {
+        fontSize: '28px', color: '#ff4444', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 6,
+      });
+      text.setOrigin(0.5, 1).setDepth(10);
+      this.tweens.add({
+        targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
+        onComplete: () => text.destroy(),
+      });
+    }
+
     private initMapStatsTimers() {
       // Actualiza el conteo de enemigos activos cada 500ms
       this.time.addEvent({
@@ -441,12 +447,36 @@ export class GameScene extends Phaser.Scene {
 
       const baseType = cfg.spriteType ?? cfg.type;
       const idleKey  = `${baseType}_idle`;
-      if (!this.textures.exists(idleKey)) {
-        console.warn(`summon: textura "${idleKey}" no cargada — invoca desde el mapa que usa este enemigo`);
+
+      if (this.textures.exists(idleKey)) {
+        this.animService.registerEnemyAnimations(cfg);
+        this.doSummon(cfg, idleKey, tileX, tileY);
         return;
       }
-      this.animService.registerEnemyAnimations(cfg);
-      this.doSummon(cfg, idleKey, tileX, tileY);
+
+      // Carga dinámica: registra los sprites que falten y espera a que carguen
+      let needsLoad = false;
+      for (const [action, actionCfg] of Object.entries(cfg.actions) as [string, ActionConfig][]) {
+        const key = `${baseType}_${action}`;
+        if (!this.textures.exists(key)) {
+          this.load.spritesheet(key, `assets/sprites/enemy/${baseType}/${actionCfg.filename}.png`, {
+            frameWidth: actionCfg.frameWidth,
+            frameHeight: actionCfg.frameHeight,
+          });
+          needsLoad = true;
+        }
+      }
+
+      if (needsLoad) {
+        this.load.once('complete', () => {
+          this.animService.registerEnemyAnimations(cfg);
+          this.doSummon(cfg, idleKey, tileX, tileY);
+        });
+        this.load.start();
+      } else {
+        this.animService.registerEnemyAnimations(cfg);
+        this.doSummon(cfg, idleKey, tileX, tileY);
+      }
     }
 
     private doSummon(cfg: EnemyTypeConfig, idleKey: string, tileX: number, tileY: number): void {

@@ -8,6 +8,8 @@ export interface InventoryItem {
   id: string;
   name: string;
   icon?: string;
+  iconSheet?: string;
+  iconFrame?: number;
   mergeable?: boolean;
   sum?: number;
   order?: number;

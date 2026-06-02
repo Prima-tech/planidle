@@ -335,4 +335,12 @@ export class InventoryComponent implements OnInit, OnDestroy {
     clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => this.inventoryService.save(this.inventories), 2000);
   }
+
+  getSheetPos(frame: number = 0): string {
+    const cols = 12;
+    const size = 40;
+    const col = frame % cols;
+    const row = Math.floor(frame / cols);
+    return `-${col * size}px -${row * size}px`;
+  }
 }

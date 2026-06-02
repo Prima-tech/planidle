@@ -46,4 +46,12 @@ export class EquipmentComponent implements OnInit {
     // Si sourceContext === 'equipment' (mismo componente), no hace nada adicional
     // porque equip() ya reemplazó el slot con el nuevo ítem
   }
+
+  getSheetPos(frame: number = 0): string {
+    const cols = 12;
+    const size = 40;
+    const col  = frame % cols;
+    const row  = Math.floor(frame / cols);
+    return `-${col * size}px -${row * size}px`;
+  }
 }

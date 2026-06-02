@@ -102,6 +102,15 @@
   pointer-events: none;
 }
 
+.item-icon-sheet {
+  width: 40px;
+  height: 40px;
+  background-size: 480px 400px;
+  image-rendering: pixelated;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
 .item-fallback {
   font-size: 1em;
   font-weight: bold;

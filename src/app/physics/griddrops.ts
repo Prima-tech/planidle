@@ -10,7 +10,10 @@ interface LootEntry {
   maxQty: number;
   mergeable: boolean;
   texture: string;
+  frame?: number;
   icon?: string;
+  iconSheet?: string;
+  iconFrame?: number;
   animKey?: string;
   scale: number;
   order: number;
@@ -19,21 +22,45 @@ interface LootEntry {
 }
 
 const EXP_REWARDS: Record<string, number> = {
-  slime4:          5,
-  slime4_elite:    25,
-  slime4_oblivion: 70,
-  slime5:          5,
-  slime5_elite:    25,
-  slime5_oblivion: 70,
-  slime6:          5,
-  slime6_elite:    25,
-  slime6_oblivion: 70,
-  orc1:          15,
-  orc1_elite:    75,
-  orc1_oblivion: 200,
+  slime1:          3,  slime1_elite:    15,  slime1_oblivion: 45,
+  slime2:          4,  slime2_elite:    18,  slime2_oblivion: 55,
+  slime3:          4,  slime3_elite:    20,  slime3_oblivion: 60,
+  slime4:          5,  slime4_elite:    25,  slime4_oblivion: 70,
+  slime5:          5,  slime5_elite:    25,  slime5_oblivion: 70,
+  slime6:          5,  slime6_elite:    25,  slime6_oblivion: 70,
+  slime7:          8,  slime7_elite:    35,  slime7_oblivion: 90,
+  slime8:          9,  slime8_elite:    40,  slime8_oblivion: 100,
+  slime9:         10,  slime9_elite:    45,  slime9_oblivion: 120,
+  orc1:           15,  orc1_elite:      75,  orc1_oblivion:   200,
 };
 
+const COIN = (min: number, max: number): LootEntry => ({
+  name: 'Oro', type: 'currency', chance: 1.0, minQty: min, maxQty: max,
+  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png',
+  animKey: 'coin_spin', scale: 3, order: 10,
+});
+const COIN_ELITE    = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
+const COIN_OBLIVION = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
+
 const LOOT_TABLES: Record<string, LootEntry[]> = {
+  slime1:          [ COIN(1, 1) ],
+  slime1_elite:    [ COIN(2, 5) ],
+  slime1_oblivion: [ COIN(8, 15) ],
+  slime2:          [ COIN(1, 2) ],
+  slime2_elite:    [ COIN(3, 7) ],
+  slime2_oblivion: [ COIN(10, 20) ],
+  slime3:          [ COIN(1, 2) ],
+  slime3_elite:    [ COIN(3, 8) ],
+  slime3_oblivion: [ COIN(12, 25) ],
+  slime7:          [ COIN(1, 3) ],
+  slime7_elite:    [ COIN(5, 12) ],
+  slime7_oblivion: [ COIN(15, 30) ],
+  slime8:          [ COIN(2, 4) ],
+  slime8_elite:    [ COIN(6, 14) ],
+  slime8_oblivion: [ COIN(18, 35) ],
+  slime9:          [ COIN(2, 5) ],
+  slime9_elite:    [ COIN(8, 16) ],
+  slime9_oblivion: [ COIN(20, 40) ],
   slime4: [
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
   ],
@@ -63,18 +90,18 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
   ],
   orc1: [
     { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5,  mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Espada', type: 'item',     chance: 0.15, minQty: 1, maxQty: 1,  mergeable: false, texture: 'sword',       icon: 'assets/icon/weapons/sword8.png', scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.', stats: { damage: 5 } },
-    { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: true,  texture: 'drop_potion', icon: 'assets/icon/potion.svg',                scale: 4, order: 5, description: 'Restaura puntos de vida al usarla.',   stats: { healing: 6 } },
+    { name: 'Espada', type: 'item',     chance: 0.15, minQty: 1, maxQty: 1,  mergeable: false, texture: 'icons1', frame: 3, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 3, scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.', stats: { damage: 5 } },
+    { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',   stats: { healing: 6 } },
   ],
   orc1_elite: [
     { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 5, maxQty: 15, mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Espada', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: false, texture: 'sword',       icon: 'assets/icon/weapons/sword8.png', scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.', stats: { damage: 5 } },
-    { name: 'Poción', type: 'item',     chance: 0.8,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'drop_potion', icon: 'assets/icon/potion.svg',                scale: 4, order: 5, description: 'Restaura puntos de vida al usarla.',   stats: { healing: 6 } },
+    { name: 'Espada', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: false, texture: 'icons1', frame: 3, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 3, scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.', stats: { damage: 5 } },
+    { name: 'Poción', type: 'item',     chance: 0.8,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',   stats: { healing: 6 } },
   ],
   orc1_oblivion: [
     { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 15, maxQty: 40, mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Espada', type: 'item',     chance: 0.8,  minQty: 1,  maxQty: 2,  mergeable: false, texture: 'sword',       icon: 'assets/icon/weapons/sword8.png', scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.', stats: { damage: 5 } },
-    { name: 'Poción', type: 'item',     chance: 1.0,  minQty: 2,  maxQty: 4,  mergeable: true,  texture: 'drop_potion', icon: 'assets/icon/potion.svg',                scale: 4, order: 5, description: 'Restaura puntos de vida al usarla.',   stats: { healing: 6 } },
+    { name: 'Espada', type: 'item',     chance: 0.8,  minQty: 1,  maxQty: 2,  mergeable: false, texture: 'icons1', frame: 3, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 3, scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.', stats: { damage: 5 } },
+    { name: 'Poción', type: 'item',     chance: 1.0,  minQty: 2,  maxQty: 4,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',   stats: { healing: 6 } },
   ],
   default: [
     { name: 'Oro',    type: 'currency', chance: 0.4,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
@@ -92,7 +119,7 @@ export class GridDrops {
     this.mainScene.events.on('enemyDied', ({ position, type }: { position: Phaser.Math.Vector2, type: string }) => {
       this.playerState.addExp(EXP_REWARDS[type] ?? 10);
       const drops = this.rollDrops(type);
-      drops.forEach(loot => this.spawnDrop(position, loot));
+      drops.forEach(loot => { try { this.spawnDrop(position, loot); } catch (e) { console.error('Drop error:', e); } });
     });
   }
 
@@ -109,7 +136,7 @@ export class GridDrops {
       position.x + offsetX,
       position.y + offsetY,
       loot.texture,
-      0,
+      loot.frame ?? 0,
     );
     sprite.setDepth(1);
     sprite.setAlpha(0);
@@ -165,6 +192,8 @@ export class GridDrops {
       id: `drop-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name: loot.name,
       icon: loot.icon,
+      iconSheet: loot.iconSheet,
+      iconFrame: loot.iconFrame,
       mergeable: loot.mergeable,
       sum: loot.mergeable ? qty : undefined,
       order: loot.order,
