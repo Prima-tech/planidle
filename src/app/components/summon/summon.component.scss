@@ -58,12 +58,12 @@
   color: #fff;
   transition: border-color 0.15s, background 0.15s;
 
-  &:active { background: #3a3a5e; }
-  &.elite   { border-color: #ffcc00; }
+  &:active   { background: #3a3a5e; }
+  &.elite    { border-color: #ffcc00; }
   &.oblivion { border-color: #cc00ff; }
 }
 
-// Contenedor con overflow:hidden → muestra solo el primer frame del spritesheet
+// Caja exterior: 48×48, recorta lo que sobresalga del frame escalado
 .enemy-frame {
   width: 48px;
   height: 48px;
@@ -73,14 +73,20 @@
   flex-shrink: 0;
 }
 
-.enemy-frame-fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-size: 1.4em;
-  color: #555;
+// Caja interior: 64×64 (tamaño del frame en el spritesheet).
+// overflow:hidden recorta la imagen al primer frame antes de aplicar el scale.
+// transform: scale(0.75) la reduce de 64→48px visualmente.
+// transform-origin: 0 0 ancla el escalado a la esquina superior izquierda.
+.enemy-frame-inner {
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  transform: scale(0.75);
+  transform-origin: 0 0;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  image-rendering: pixelated;
 }
 
 .enemy-name {

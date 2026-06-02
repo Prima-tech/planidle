@@ -2,14 +2,12 @@ import { Component } from '@angular/core';
 import { ENEMY_REGISTRY, EnemyTypeConfig } from 'src/app/enemy/enemy-config';
 import { SummonService } from 'src/app/services/summon.service';
 
-const PREVIEW_SIZE = 48; // px del cuadro del botón
-
 interface EnemyCard {
-  type:        string;
-  label:       string;
-  hp:          number;
-  frameStyle:  { [key: string]: string };
-  tier:        'base' | 'elite' | 'oblivion';
+  type:      string;
+  label:     string;
+  hp:        number;
+  spriteUrl: string;
+  tier:      'base' | 'elite' | 'oblivion';
 }
 
 @Component({
@@ -40,28 +38,16 @@ export class SummonComponent {
                                   : cfg.type.endsWith('_elite')    ? 'elite'
                                   : 'base';
 
-    const frameStyle = idleCfg ? this.buildFrameStyle(baseType, idleCfg.filename, idleCfg.frameHeight) : {};
+    const spriteUrl = idleCfg
+      ? `assets/sprites/enemy/${baseType}/${idleCfg.filename}.png`
+      : '';
 
     return {
-      type:  cfg.type,
+      type: cfg.type,
       label: this.formatLabel(cfg.type),
       hp:    cfg.hp,
-      frameStyle,
+      spriteUrl,
       tier,
-    };
-  }
-
-  // Muestra solo el primer frame (DOWN idle) usando background-image + clip.
-  // background-size escala el alto al tamaño del cuadro; la anchura se ajusta
-  // proporcionalmente → el primer frame (cuadrado) queda alineado en 0 0.
-  private buildFrameStyle(baseType: string, filename: string, frameHeight: number): { [key: string]: string } {
-    const scale   = PREVIEW_SIZE / frameHeight;
-    return {
-      'background-image':    `url(assets/sprites/enemy/${baseType}/${filename}.png)`,
-      'background-position': '0 0',
-      'background-repeat':   'no-repeat',
-      'background-size':     `auto ${PREVIEW_SIZE}px`,
-      'image-rendering':     'pixelated',
     };
   }
 

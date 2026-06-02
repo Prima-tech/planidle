@@ -19,8 +19,14 @@
     [class.oblivion]="enemy.tier === 'oblivion'"
     (click)="summon(enemy.type)"
   >
-    <div class="enemy-frame" [ngStyle]="enemy.frameStyle">
-      <span *ngIf="!enemy.frameStyle['background-image']" class="enemy-frame-fallback">?</span>
+    <!-- Contenedor exterior: 48×48 con overflow:hidden -->
+    <div class="enemy-frame">
+      <!-- Div interior: tamaño del frame (64×64) escalado a 48×48 con transform.
+           El overflow:hidden recorta al primer frame antes de escalar. -->
+      <div
+        class="enemy-frame-inner"
+        [style.background-image]="'url(' + enemy.spriteUrl + ')'"
+      ></div>
     </div>
     <span class="enemy-name">{{ enemy.label }}</span>
     <span class="enemy-hp">{{ enemy.hp }} HP</span>
