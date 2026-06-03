@@ -102,6 +102,7 @@ export class LayoutComponent implements OnDestroy {
       render: { antialias: false },
       physics: { default: 'arcade' },
       type: Phaser.AUTO,
+      input: { activePointers: 3 },
       scene: [GameScene, MobileHUDScene],
       scale: {
         width: window.innerWidth,

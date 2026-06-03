@@ -72,16 +72,6 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "watchOptions": {
-              "ignored": [
-                "C:\\DumpStack.log.tmp",
-                "C:\\pagefile.sys",
-                "C:\\swapfile.sys",
-                "**/node_modules/**"
-              ]
-            }
-          },
           "configurations": {
             "production": {
               "buildTarget": "app:build:production"
