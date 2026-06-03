@@ -126,6 +126,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.EQUIPMENT,    this.equipmentService);
     this.phaserGame.registry.set(REGISTRY_KEYS.SUMMON,       this.summonService);
     this.phaserGame.registry.set(REGISTRY_KEYS.CHAR_STATS,   this.characterStatsService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.ASGARD,       this.asgardService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

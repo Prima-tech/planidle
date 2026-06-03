@@ -322,6 +322,7 @@ export class GameScene extends Phaser.Scene {
 
     createGameControls() {
       this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        this.reg.asgard.closeAllMenus();
         this.onGameClick(pointer);
       });
 

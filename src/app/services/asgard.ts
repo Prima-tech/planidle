@@ -18,6 +18,8 @@ export class AsgardService {
   private closeMenuSource = new Subject<void>();
   closeMenu$ = this.closeMenuSource.asObservable();
 
+  closeAllMenus() { this.closeMenuSource.next(); }
+
   constructor(
     private storageService: StorageService,
     private router: Router,
