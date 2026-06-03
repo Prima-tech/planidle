@@ -4,6 +4,7 @@ import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridDrops } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
+import { MobileInput, MOBILE_INPUT_KEY } from "src/app/scenes/mobile-hud.scene";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
 import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
@@ -32,6 +33,7 @@ export class GameScene extends Phaser.Scene {
     private summonSub:   { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
     private playerDamage = 10;
+    private mobileInput: MobileInput | null = null;
     currentMap: any;
 
       constructor(
@@ -97,11 +99,16 @@ export class GameScene extends Phaser.Scene {
       // Inmediato: lo mínimo para que el primer frame sea válido
       this.initMap();
       this.initPlayer();
+      this.initCamera();
+      this.mobileInput = { direction: Direction.NONE, lastCardinalDir: Direction.DOWN, isAttackHeld: false };
+      this.registry.set(MOBILE_INPUT_KEY, this.mobileInput);
+      this.scene.launch('MobileHUDScene');
       this.createPhysics();
       this.createGameControls();
-      this.initCamera();
       this.cameras.main.fadeIn(500, 0, 0, 0);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.scene.stop('MobileHUDScene');
+        this.mobileInput = null;
         this.equipSub?.unsubscribe();
         this.summonSub?.unsubscribe();
         this.statsSub?.unsubscribe();
@@ -130,6 +137,12 @@ export class GameScene extends Phaser.Scene {
     override update(_time: number, delta: number) {
       this.gridControls.update();
       this.gridPhysics.update(delta);
+
+      if (this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
+        this.player.playerAttack();
+        this.gridPhysics.attackEnemy(this.playerDamage);
+      }
+
       const playerPos = this.player.getPosition();
       for (let i = 0; i < this.enemies.length; i++) {
         this.enemies[i].update(delta, playerPos);
@@ -321,11 +334,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     createPhysics() {
-      this.gridPhysics = new GridPhysics(this.player, this.currentMap, this.enemies);
-      this.gridControls = new GridControls(
-        this.input,
-        this.gridPhysics
-      );
+      this.gridPhysics  = new GridPhysics(this.player, this.currentMap, this.enemies);
+      this.gridControls = new GridControls(this.input, this.gridPhysics, this.mobileInput);
     }
 
     createDrops() {

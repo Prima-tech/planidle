@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { GameScene } from 'src/app/scenes/gamescene/gamescene';
+import { MobileHUDScene } from 'src/app/scenes/mobile-hud.scene';
 import { FakeApiService } from 'src/app/services/fakeapi';
 import { ProfileService } from 'src/app/services/profile';
 import Phaser from 'phaser';
@@ -101,7 +102,7 @@ export class LayoutComponent implements OnDestroy {
       render: { antialias: false },
       physics: { default: 'arcade' },
       type: Phaser.AUTO,
-      scene: [GameScene],
+      scene: [GameScene, MobileHUDScene],
       scale: {
         width: window.innerWidth,
         height: window.innerHeight,
