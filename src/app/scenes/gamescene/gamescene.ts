@@ -28,8 +28,10 @@ export class GameScene extends Phaser.Scene {
     private currentMapConfig: MapConfig;
     private reg: GameRegistry;
     private animService: AnimationService;
-    private equipSub:  { unsubscribe(): void } | null = null;
-    private summonSub: { unsubscribe(): void } | null = null;
+    private equipSub:    { unsubscribe(): void } | null = null;
+    private summonSub:   { unsubscribe(): void } | null = null;
+    private statsSub:    { unsubscribe(): void } | null = null;
+    private playerDamage = 10;
     currentMap: any;
 
       constructor(
@@ -102,6 +104,7 @@ export class GameScene extends Phaser.Scene {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.equipSub?.unsubscribe();
         this.summonSub?.unsubscribe();
+        this.statsSub?.unsubscribe();
         this.player?.clearLayers();
         this.events.off('enemyAttackPlayer');
         this.events.off('enemyDied');
@@ -120,6 +123,7 @@ export class GameScene extends Phaser.Scene {
         this.initMapStatsTimers();
         this.initEquipLayers();
         this.initSummonListener();
+        this.initStatsListener();
       });
     }
 
@@ -132,6 +136,14 @@ export class GameScene extends Phaser.Scene {
       }
       this.checkPortals(playerPos);
       this.player.syncLayers();
+    }
+
+    private initStatsListener(): void {
+      const charStats = this.reg.charStats;
+      if (!charStats) return;
+      this.statsSub = charStats.damage$.subscribe(breakdown => {
+        this.playerDamage = breakdown.total;
+      });
     }
 
     private initEquipLayers(): void {
@@ -304,7 +316,7 @@ export class GameScene extends Phaser.Scene {
       this.spaceKey.on('down', () => {
         if (this.player.isAttacking) return;
         this.player.playerAttack();
-        this.gridPhysics.attackEnemy();
+        this.gridPhysics.attackEnemy(this.playerDamage);
       });
     }
 

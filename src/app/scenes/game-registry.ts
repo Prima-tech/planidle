@@ -1,3 +1,4 @@
+import { CharacterStatsService } from '../services/character-stats.service';
 import { EquipmentService } from '../services/equipment.service';
 import { InventoryService } from '../services/inventory.service';
 import { KillService } from '../services/kill.service';
@@ -19,19 +20,21 @@ export const REGISTRY_KEYS = {
   MAP_STATS:     'mapStatsService',
   EQUIPMENT:     'equipmentService',
   SUMMON:        'summonService',
+  CHAR_STATS:    'characterStatsService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
 export class GameRegistry {
   constructor(private game: Phaser.Game) {}
 
-  get playerBridge(): PlayerBridgeService  { return this.game.registry.get(REGISTRY_KEYS.PLAYER_BRIDGE); }
-  get world():        WorldService         { return this.game.registry.get(REGISTRY_KEYS.WORLD); }
-  get inventory():    InventoryService     { return this.game.registry.get(REGISTRY_KEYS.INVENTORY); }
-  get playerState():  PlayerStateService   { return this.game.registry.get(REGISTRY_KEYS.PLAYER_STATE); }
-  get kill():         KillService          { return this.game.registry.get(REGISTRY_KEYS.KILL); }
-  get map():          MapService           { return this.game.registry.get(REGISTRY_KEYS.MAP); }
-  get mapStats():     MapStatsService      { return this.game.registry.get(REGISTRY_KEYS.MAP_STATS); }
-  get equipment():    EquipmentService     { return this.game.registry.get(REGISTRY_KEYS.EQUIPMENT); }
-  get summon():       SummonService        { return this.game.registry.get(REGISTRY_KEYS.SUMMON); }
+  get playerBridge(): PlayerBridgeService    { return this.game.registry.get(REGISTRY_KEYS.PLAYER_BRIDGE); }
+  get world():        WorldService           { return this.game.registry.get(REGISTRY_KEYS.WORLD); }
+  get inventory():    InventoryService       { return this.game.registry.get(REGISTRY_KEYS.INVENTORY); }
+  get playerState():  PlayerStateService     { return this.game.registry.get(REGISTRY_KEYS.PLAYER_STATE); }
+  get kill():         KillService            { return this.game.registry.get(REGISTRY_KEYS.KILL); }
+  get map():          MapService             { return this.game.registry.get(REGISTRY_KEYS.MAP); }
+  get mapStats():     MapStatsService        { return this.game.registry.get(REGISTRY_KEYS.MAP_STATS); }
+  get equipment():    EquipmentService       { return this.game.registry.get(REGISTRY_KEYS.EQUIPMENT); }
+  get summon():       SummonService          { return this.game.registry.get(REGISTRY_KEYS.SUMMON); }
+  get charStats():    CharacterStatsService  { return this.game.registry.get(REGISTRY_KEYS.CHAR_STATS); }
 }
