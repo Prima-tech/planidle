@@ -139,17 +139,26 @@ orc1: [
     minQty: 1,
     maxQty: 1,
     mergeable: false,           // true solo para consumibles (pociones, etc.)
-    texture: 'icons1',
-    frame: 60,                  // frame en icons1.png (ver hoja de iconos)
-    iconSheet: 'assets/icon/icons/icons1.png',
-    iconFrame: 60,
-    scale: 3,
+    // --- Drop en el mundo Phaser (sprite que aparece al morir el enemigo) ---
+    texture: 'nombre_idle',     // clave de la textura Phaser (ya cargada por EQUIP_LAYER_REGISTRY)
+    frame: 4,                   // frame 4 = fila 3 col 1 (idle_down)
+    animKey: 'nombre_idle_down',// anima el drop con idle_down
+    scale: 1.5,                 // 64px × 1.5 = 96px display (equivale a 32px × 3)
+    // --- Icono en la UI Angular (inventario y ventana de equipamiento) ---
+    iconSheet: 'assets/sprites/player/equip/<tipo>/<nombre>/idle.png',
+    iconFrame: 4,               // misma fila 3 col 1
+    iconFrameSize: 64,
+    iconFrameCols: 2,
     order: 2,                   // orden de recogida (menor = primero)
     description: 'Descripción del item.',
     stats: { hp: 15 },          // stats que aplica al equiparse
   },
 ],
 ```
+
+> **Coherencia visual**: el mismo frame (fila 3, col 1 = idle_down primer frame) se usa tanto para el sprite que cae en el mundo Phaser (`texture`/`frame`) como para el icono en el inventario/equipamiento (`iconSheet`/`iconFrame`). Esto es automático porque `EQUIP_LAYER_REGISTRY` carga todos los sheets en `preload()` independientemente de si el player los tiene equipados.
+
+> **`scale` para sprites de 64px**: usar `1.5` en lugar de `3` para mantener ~96px de tamaño en pantalla.
 
 > **`category` vs `name`**: `name` es el nombre visible del item ('Armet', 'Yelmo de Fuego'). `category` es el tipo de slot ('Casco', 'Arma', 'Pantalones'). `EquipmentService.canEquip()` comprueba `item.category ?? item.name` contra `slot.accepts`, así que todos los cascos con `category: 'Casco'` encajan en el slot sin necesidad de listarlos uno a uno.
 
