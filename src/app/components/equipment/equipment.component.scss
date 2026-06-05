@@ -129,7 +129,6 @@
   align-items: center;
   justify-content: center;
   cursor: grab;
-  margin-top: 6px;
 }
 
 .equip-item:active { cursor: grabbing; }
@@ -159,7 +158,6 @@
 }
 
 .slot-empty {
-  margin-top: 6px;
   font-size: 1.1em;
   color: #444;
 }
