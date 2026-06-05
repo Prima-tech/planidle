@@ -43,6 +43,13 @@
   }
 }
 
+// ── Contenedor de tabs (ancho fijo = tab 0) ──────────────────────────────────
+
+.eq-content {
+  width: 226px;
+  flex-shrink: 0;
+}
+
 // ── Tab 0: Equipamiento — layout 3 columnas ──────────────────────────────────
 
 .eq-layout {
@@ -160,7 +167,8 @@
 // ── Tab 1: Stats ─────────────────────────────────────────────────────────────
 
 .eq-stats-panel {
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .equipment-header {
