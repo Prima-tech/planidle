@@ -2,6 +2,7 @@
 .modal-window {
   position: fixed;
   z-index: 51;
+  border-radius: 5px;
   &.menu {
     top: 10px;
     bottom: 56px;
@@ -66,7 +67,6 @@
     bottom: 66px;
     left: 10px;
     width: fit-content;
-    border-radius: 12px 12px 0 0;
     background: #1a1a2e;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   }
