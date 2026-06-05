@@ -21,12 +21,12 @@ export interface BaseStats {
 }
 
 const DEFAULT_BASE_STATS: BaseStats = {
-  STR:   1,
-  DEX:   1,
-  CONST: 1,
-  INT:   1,
-  MAG:   1,
-  CHR:   1,
+  STR:   10,
+  DEX:   10,
+  CONST: 10,
+  INT:   10,
+  MAG:   10,
+  CHR:   10,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +34,9 @@ export class CharacterStatsService {
 
   readonly damage$: Observable<DamageBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
+
+  increment(key: keyof BaseStats): void { this.stats[key]++; }
+  decrement(key: keyof BaseStats): void { if (this.stats[key] > 0) this.stats[key]--; }
 
   constructor(private equipment: EquipmentService) {
     this.damage$ = this.equipment.changes$.pipe(

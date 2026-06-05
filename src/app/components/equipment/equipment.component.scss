@@ -183,15 +183,6 @@
   padding: 6px 10px;
 }
 
-.stat-key {
-  font-size: 0.75em;
-  font-weight: bold;
-  color: #3498db;
-  width: 38px;
-  flex-shrink: 0;
-  letter-spacing: 0.04em;
-}
-
 .stat-label {
   font-size: 0.7em;
   color: #888;
@@ -202,6 +193,27 @@
   font-size: 0.85em;
   font-weight: bold;
   color: #fff;
-  min-width: 20px;
-  text-align: right;
+  min-width: 24px;
+  text-align: center;
+}
+
+.stat-btn {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #1a1a2e;
+  color: #ccc;
+  font-size: 1em;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+
+  &:active { background: #3a3a5e; }
+  &.plus  { color: #3498db; border-color: #3498db; }
+  &.minus { color: #e74c3c; border-color: #e74c3c; }
 }

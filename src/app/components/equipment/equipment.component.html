@@ -60,9 +60,10 @@
     <div class="equipment-header">Stats</div>
     <div class="stats-grid">
       <div class="stat-row" *ngFor="let s of statsList">
-        <span class="stat-key">{{ s.key }}</span>
+        <button class="stat-btn minus" (click)="charStats.decrement(s.key)">−</button>
         <span class="stat-label">{{ s.label }}</span>
         <span class="stat-val">{{ charStats.stats[s.key] }}</span>
+        <button class="stat-btn plus" (click)="charStats.increment(s.key)">+</button>
       </div>
     </div>
   </div>
