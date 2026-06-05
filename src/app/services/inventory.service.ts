@@ -7,10 +7,12 @@ const USE_MOCK = true;
 export interface InventoryItem {
   id: string;
   name: string;
-  category?: string;    // tipo de slot (ej. 'Casco', 'Arma') — usado por EquipmentService
+  category?: string;       // tipo de slot (ej. 'Casco', 'Arma') — usado por EquipmentService
   icon?: string;
   iconSheet?: string;
   iconFrame?: number;
+  iconFrameSize?: number;  // tamaño original del frame en px (por defecto 32 para icons1)
+  iconFrameCols?: number;  // columnas en el sheet (por defecto 12 para icons1)
   mergeable?: boolean;
   sum?: number;
   order?: number;

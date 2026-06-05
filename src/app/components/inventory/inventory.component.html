@@ -51,7 +51,8 @@
             <div *ngIf="cell.iconSheet != null"
                  class="item-icon-sheet"
                  [style.background-image]="'url(' + cell.iconSheet + ')'"
-                 [style.background-position]="getSheetPos(cell.iconFrame)">
+                 [style.background-size]="getSheetBgSize(cell.iconFrameCols, cell.iconFrameSize)"
+                 [style.background-position]="getSheetPos(cell.iconFrame, cell.iconFrameCols, cell.iconFrameSize)">
             </div>
             <img *ngIf="cell.icon && cell.iconSheet == null" [src]="cell.icon" class="item-icon">
             <span *ngIf="!cell.icon && cell.iconSheet == null" class="item-fallback">{{ cell.name.charAt(0) }}</span>

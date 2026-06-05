@@ -4,7 +4,7 @@ import { Player } from '../pnj/player/player';
 
 interface LootEntry {
   name: string;
-  category?: string;    // tipo de slot para EquipmentService (ej. 'Casco', 'Arma')
+  category?: string;       // tipo de slot para EquipmentService (ej. 'Casco', 'Arma')
   type: 'currency' | 'item';
   chance: number;
   minQty: number;
@@ -15,6 +15,8 @@ interface LootEntry {
   icon?: string;
   iconSheet?: string;
   iconFrame?: number;
+  iconFrameSize?: number;  // tamaño original del frame en px (por defecto 32 para icons1)
+  iconFrameCols?: number;  // columnas en el sheet (por defecto 12 para icons1)
   animKey?: string;
   scale: number;
   order: number;
@@ -93,13 +95,13 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
     { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5,  mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
     { name: 'Espada', type: 'item',     chance: 0.15, minQty: 1, maxQty: 1,  mergeable: false, texture: 'icons1', frame: 3,  iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 3,  scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.',                   stats: { damage: 5 } },
     { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
-    { name: 'Armet', category: 'Casco', type: 'item', chance: 1.0,  minQty: 1, maxQty: 1,  mergeable: false, texture: 'icons1', frame: 60, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 60, scale: 3, order: 2, description: 'Casco de acero forjado. Protege la cabeza en combate.', stats: { hp: 15 } },
+    { name: 'Armet', category: 'Casco', type: 'item', chance: 1.0,  minQty: 1, maxQty: 1,  mergeable: false, texture: 'icons1', frame: 60, iconSheet: 'assets/sprites/player/equip/helmets/armet/idle.png', iconFrame: 4, iconFrameSize: 64, iconFrameCols: 2, scale: 3, order: 2, description: 'Casco de acero forjado. Protege la cabeza en combate.', stats: { hp: 15 } },
   ],
   orc1_elite: [
     { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 5, maxQty: 15, mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
     { name: 'Espada', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: false, texture: 'icons1', frame: 3,  iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 3,  scale: 3, order: 1, description: 'Espada de hierro forjada en Asgard.',                   stats: { damage: 5 } },
     { name: 'Poción', type: 'item',     chance: 0.8,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
-    { name: 'Armet', category: 'Casco', type: 'item', chance: 1.0,  minQty: 1, maxQty: 1,  mergeable: false, texture: 'icons1', frame: 60, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 60, scale: 3, order: 2, description: 'Casco de acero forjado. Protege la cabeza en combate.', stats: { hp: 15 } },
+    { name: 'Armet', category: 'Casco', type: 'item', chance: 1.0,  minQty: 1, maxQty: 1,  mergeable: false, texture: 'icons1', frame: 60, iconSheet: 'assets/sprites/player/equip/helmets/armet/idle.png', iconFrame: 4, iconFrameSize: 64, iconFrameCols: 2, scale: 3, order: 2, description: 'Casco de acero forjado. Protege la cabeza en combate.', stats: { hp: 15 } },
   ],
   orc1_oblivion: [
     { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 15, maxQty: 40, mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
@@ -199,6 +201,8 @@ export class GridDrops {
       icon: loot.icon,
       iconSheet: loot.iconSheet,
       iconFrame: loot.iconFrame,
+      iconFrameSize: loot.iconFrameSize,
+      iconFrameCols: loot.iconFrameCols,
       mergeable: loot.mergeable,
       sum: loot.mergeable ? qty : undefined,
       order: loot.order,

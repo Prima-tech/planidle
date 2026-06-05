@@ -155,6 +155,21 @@ orc1: [
 
 Repetir la entrada en `orc1_elite`, `orc1_oblivion`, y cualquier otro enemigo que dropee el item con sus propias chances.
 
+### Icono del item — usar el propio sprite
+
+Para que el icono en el inventario y ventana de equipamiento use el sprite del item (en lugar de un icono genérico de `icons1.png`), especifica estos campos apuntando a la hoja `idle.png` y el frame de **fila 3, columna 1** (idle_down primer frame):
+
+```typescript
+iconSheet:     'assets/sprites/player/equip/<tipo>/<nombre>/idle.png',
+iconFrame:     4,    // fila 3 col 1 → row=2, col=0 en 0-based → frame = 2*cols + 0 = 4
+iconFrameSize: 64,   // tamaño original del frame en px
+iconFrameCols: 2,    // columnas del idle.png
+```
+
+Cálculo del frame: `frame = (fila-1) * cols + (columna-1)` (índices 1-based del sprite).
+
+Si el idle.png tiene distinto número de columnas, ajustar `iconFrameCols`.
+
 ### Stats disponibles
 | Clave | Efecto |
 |-------|--------|
