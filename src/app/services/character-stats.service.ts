@@ -76,9 +76,10 @@ export class CharacterStatsService {
     this.hp$     = trigger$.pipe(map(() => this._calcHp()));
     this.mp$     = trigger$.pipe(map(() => this._calcMp()));
 
-    // Sincronizar valores iniciales
-    this.syncHpMax();
-    this.syncMpMax();
+    trigger$.subscribe(() => {
+      this.syncHpMax();
+      this.syncMpMax();
+    });
   }
 
   private syncHpMax(): void {

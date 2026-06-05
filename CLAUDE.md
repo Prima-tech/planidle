@@ -1,5 +1,9 @@
 # CLAUDE.md — Idle RPG Incremental
 
+## Reglas de comportamiento
+
+- **NUNCA preguntes si enviar la app al móvil.** Solo ejecuta el build/deploy de Android si el usuario lo pide explícitamente.
+
 ## Stack
 
 | Capa | Tecnología |
