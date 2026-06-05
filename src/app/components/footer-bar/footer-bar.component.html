@@ -9,37 +9,37 @@
 <ion-footer>
   <ion-toolbar>
 
-<div class="icon-menu-wrapper" (click)="openEquipment()">
+    <div class="icon-menu-wrapper" [class.active]="equipmentModal.isOpenModal()" (click)="openEquipment()">
       <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Equipo</span>
     </div>
 
-    <div class="icon-menu-wrapper" (click)="openSummon()">
+    <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
       <ion-icon name="flash-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Invocar</span>
     </div>
 
-    <div class="icon-menu-wrapper right" (click)="openMenu()">
+    <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">
       <ion-icon name="settings-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Ajustes</span>
     </div>
 
-    <div class="icon-menu-wrapper right" (click)="openInventory()">
+    <div class="icon-menu-wrapper right" [class.active]="inventoryModal.isOpenModal()" (click)="openInventory()">
       <ion-icon name="bag-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Bag</span>
     </div>
 
-    <div class="icon-menu-wrapper right" (click)="openMapStats()">
+    <div class="icon-menu-wrapper right" [class.active]="mapStatsModal.isOpenModal()" (click)="openMapStats()">
       <ion-icon name="bar-chart-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Stats</span>
     </div>
 
-    <div class="icon-menu-wrapper right" (click)="openMapKills()">
+    <div class="icon-menu-wrapper right" [class.active]="mapKillsModal.isOpenModal()" (click)="openMapKills()">
       <ion-icon name="skull-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Bajas</span>
     </div>
 
-    <div class="icon-menu-wrapper right" (click)="openStats()">
+    <div class="icon-menu-wrapper right" [class.active]="statsModal.isOpenModal()" (click)="openStats()">
       <ion-icon name="podium-outline" class="footer-ion-icon"></ion-icon>
       <span class="btn-label">Rank</span>
     </div>
