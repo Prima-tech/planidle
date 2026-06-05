@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
@@ -20,6 +20,8 @@ interface StatsViewModel {
   standalone: false,
 })
 export class CharStatsComponent {
+
+  @Input() section: 'all' | 'header' | 'combat' = 'all';
 
   readonly vm$: Observable<StatsViewModel>;
 
