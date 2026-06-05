@@ -8,6 +8,8 @@ export interface PlayerState {
   lvl: number;
   hp: number;
   hpMax: number;
+  mp: number;
+  mpMax: number;
   lifetimeCoins: number;
   totalDeaths: number;
 }
@@ -26,6 +28,8 @@ const INITIAL_STATE: PlayerState = {
   lvl: 1,
   hp: 100,
   hpMax: 100,
+  mp: 100,
+  mpMax: 100,
   lifetimeCoins: 0,
   totalDeaths: 0,
 };
@@ -55,6 +59,8 @@ export class PlayerStateService {
       lvl:           profile.lvl            ?? 1,
       hp:            profile.hp             ?? profile.current_hp ?? 100,
       hpMax:         profile.hpMax          ?? profile.max_hp     ?? 100,
+      mp:            profile.mp             ?? 100,
+      mpMax:         profile.mpMax          ?? 100,
       lifetimeCoins: profile.lifetimeCoins  ?? 0,
       totalDeaths:   profile.totalDeaths    ?? 0,
     });

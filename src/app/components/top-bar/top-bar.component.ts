@@ -16,6 +16,7 @@ export class TopBarComponent implements OnInit {
   asgardService        = inject(AsgardService);
 
   valueHP$: any = null;
+  valueMP$: any = null;
   valueXP$: any = null;
   initStatusBar = false;
   coins$ = this.playerState.coins$;
@@ -47,6 +48,9 @@ export class TopBarComponent implements OnInit {
         const color = value < 0.25 ? 'danger' : value < 0.5 ? 'warning' : 'success';
         return { value, color };
       })
+    );
+    this.valueMP$ = this.playerState.state$.pipe(
+      map(s => Math.max(0, Math.min(1, s.mp / (s.mpMax || 1))))
     );
     this.valueXP$ = this.playerState.state$.pipe(
       map(s => ({

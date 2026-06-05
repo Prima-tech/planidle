@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+
 .top-bar {
   height: 60px;
   position: absolute;
@@ -52,19 +54,22 @@
 .char-info {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 3px;
   min-width: 110px;
 }
 
 .char-name {
-  font-size: 0.72em;
-  font-weight: bold;
-  color: #fff;
-  letter-spacing: 0.04em;
+  font-family: 'Russo One', sans-serif;
+  font-size: 0.82em;
+  color: #f0c040;
+  letter-spacing: 0.05em;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 110px;
+  text-shadow: 0 1px 6px rgba(200, 150, 0, 0.5);
 }
 
 // ── Barras HP / EXP ──────────────────────────────────────────────────────────
@@ -72,7 +77,7 @@
 .bar-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  width: 100%;
 }
 
 .bar-lbl {
@@ -100,6 +105,7 @@
   transition: width 0.3s ease;
 
   &--hp  { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+  &--mp  { background: linear-gradient(90deg, #1a6ab0, #3498db); }
   &--xp  { background: linear-gradient(90deg, #d4a000, #f0c040); }
 }
 
