@@ -16,13 +16,15 @@ export class EquipmentComponent implements OnInit {
   activeTab = 0;
   showAtkBreakdown = false;
   readonly damage$ = this.charStats.damage$;
+  readonly hp$     = this.charStats.hp$;
+  showHpBreakdown  = false;
   readonly expNeeded = expNeeded;
   readonly maxLevel = MAX_LEVEL;
 
   readonly statsList: { key: keyof BaseStats; label: string }[] = [
     { key: 'STR',   label: 'Fuerza'        },
     { key: 'DEX',   label: 'Destreza'      },
-    { key: 'CONST', label: 'Constitución'  },
+    { key: 'CONST', label: 'Vitalidad'     },
     { key: 'INT',   label: 'Inteligencia'  },
     { key: 'MAG',   label: 'Magia'         },
     { key: 'CHR',   label: 'Carisma'       },

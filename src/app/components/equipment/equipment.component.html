@@ -78,6 +78,31 @@
 
     </ng-container>
 
+    <!-- Acordeón: Vida -->
+    <div class="ov-accordion" (click)="showHpBreakdown = !showHpBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Vida</span>
+        <ng-container *ngIf="(hp$ | async) as hp">
+          <ng-container *ngIf="playerState.state$ | async as st">
+            <span class="ov-val ov-val--hp">{{ st.hp }} / {{ hp.total }}</span>
+          </ng-container>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showHpBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showHpBreakdown">
+        <ng-container *ngIf="hp$ | async as hp">
+          <div class="ov-bk-row">
+            <span>Vitalidad</span>
+            <span>{{ hp.base }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="hp.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ hp.equipment }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
     <!-- Acordeón: Ataque -->
     <div class="ov-accordion" (click)="showAtkBreakdown = !showAtkBreakdown">
       <div class="ov-accordion-header">
