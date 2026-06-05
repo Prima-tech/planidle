@@ -105,8 +105,13 @@
 .item-icon-sheet {
   width: 32px;
   height: 32px;
+  image-rendering: pixelated;
   pointer-events: none;
   flex-shrink: 0;
+  transform: scale(1.4) translateY(6px);
+}
+
+.item-icon-sheet--equip {
   transform: scale(2) translateY(3px);
 }
 

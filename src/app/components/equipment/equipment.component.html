@@ -178,6 +178,7 @@
          [title]="slot.item.name">
       <div *ngIf="slot.item.iconSheet != null"
            class="item-icon-sheet"
+           [class.item-icon-sheet--equip]="slot.item.iconFrameSize != null"
            [style.background-image]="'url(' + slot.item.iconSheet + ')'"
            [style.background-size]="getSheetBgSize(slot.item.iconFrameCols)"
            [style.background-position]="getSheetPos(slot.item.iconFrame, slot.item.iconFrameCols, slot.item.iconFrameSize)">
