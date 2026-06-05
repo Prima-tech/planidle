@@ -12,46 +12,31 @@
   <!-- Tab 0: Equipamiento -->
   <div class="eq-layout" *ngIf="activeTab === 0">
 
-    <div class="eq-slots">
-      <div class="equipment-header">Equipamiento</div>
-      <div class="equipment-grid">
-        <div
-          *ngFor="let slot of equipmentService.slots"
-          class="equip-slot"
-          [class.occupied]="slot.item !== null"
-          cdkDropList
-          cdkDropListSortingDisabled
-          [id]="'equip-' + slot.id"
-          [cdkDropListConnectedTo]="equipmentService.inventoryCellIds"
-          [cdkDropListEnterPredicate]="canDropInSlot"
-          (cdkDropListDropped)="onEquipDrop($event, slot)"
-        >
-          <div class="slot-label">{{ slot.label }}</div>
-
-          <div *ngIf="slot.item; else emptySlot"
-               class="equip-item"
-               cdkDrag
-               [cdkDragData]="{ sourceContext: 'equipment', slotId: 'equip-' + slot.id, item: slot.item }"
-               [title]="slot.item.name">
-            <div *ngIf="slot.item.iconSheet != null"
-                 class="item-icon-sheet"
-                 [style.background-image]="'url(' + slot.item.iconSheet + ')'"
-                 [style.background-position]="getSheetPos(slot.item.iconFrame)">
-            </div>
-            <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon">
-            <span *ngIf="!slot.item.icon && slot.item.iconSheet == null" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
-          </div>
-
-          <ng-template #emptySlot>
-            <div class="slot-empty">—</div>
-          </ng-template>
-        </div>
-      </div>
+    <!-- Columna izquierda: casco, armadura, botas -->
+    <div class="eq-col">
+      <ng-container *ngFor="let slot of equipmentService.slots">
+        <ng-container *ngIf="slot.id === 'helmet' || slot.id === 'armor' || slot.id === 'boots'">
+          <ng-container *ngTemplateOutlet="slotTpl; context: { slot: slot }"></ng-container>
+        </ng-container>
+      </ng-container>
     </div>
 
-    <div class="eq-divider-v"></div>
+    <!-- Centro: preview del personaje + char-stats debajo -->
+    <div class="eq-center">
+      <div class="preview-frame">
+        <app-player-preview [size]="96"></app-player-preview>
+      </div>
+      <app-char-stats></app-char-stats>
+    </div>
 
-    <app-char-stats></app-char-stats>
+    <!-- Columna derecha: arma, escudo, anillo -->
+    <div class="eq-col">
+      <ng-container *ngFor="let slot of equipmentService.slots">
+        <ng-container *ngIf="slot.id === 'weapon' || slot.id === 'shield' || slot.id === 'ring'">
+          <ng-container *ngTemplateOutlet="slotTpl; context: { slot: slot }"></ng-container>
+        </ng-container>
+      </ng-container>
+    </div>
 
   </div>
 
@@ -69,3 +54,37 @@
   </div>
 
 </div>
+
+<!-- Template reutilizable para cada slot -->
+<ng-template #slotTpl let-slot="slot">
+  <div
+    class="equip-slot"
+    [class.occupied]="slot.item !== null"
+    cdkDropList
+    cdkDropListSortingDisabled
+    [id]="'equip-' + slot.id"
+    [cdkDropListConnectedTo]="equipmentService.inventoryCellIds"
+    [cdkDropListEnterPredicate]="canDropInSlot"
+    (cdkDropListDropped)="onEquipDrop($event, slot)"
+  >
+    <div class="slot-label">{{ slot.label }}</div>
+
+    <div *ngIf="slot.item; else emptySlot"
+         class="equip-item"
+         cdkDrag
+         [cdkDragData]="{ sourceContext: 'equipment', slotId: 'equip-' + slot.id, item: slot.item }"
+         [title]="slot.item.name">
+      <div *ngIf="slot.item.iconSheet != null"
+           class="item-icon-sheet"
+           [style.background-image]="'url(' + slot.item.iconSheet + ')'"
+           [style.background-position]="getSheetPos(slot.item.iconFrame)">
+      </div>
+      <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon">
+      <span *ngIf="!slot.item.icon && slot.item.iconSheet == null" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
+    </div>
+
+    <ng-template #emptySlot>
+      <div class="slot-empty">—</div>
+    </ng-template>
+  </div>
+</ng-template>
