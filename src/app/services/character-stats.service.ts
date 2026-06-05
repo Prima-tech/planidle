@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable, startWith } from 'rxjs';
+import { merge, Observable, Subject, startWith } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { EquipmentService } from './equipment.service';
-
-const BASE_DAMAGE = 10;
 
 export interface DamageBreakdown {
   base:      number;
@@ -35,21 +33,33 @@ export class CharacterStatsService {
   readonly damage$: Observable<DamageBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
-  increment(key: keyof BaseStats): void { this.stats[key]++; }
-  decrement(key: keyof BaseStats): void { if (this.stats[key] > 0) this.stats[key]--; }
+  private readonly statsChanged$ = new Subject<void>();
+
+  increment(key: keyof BaseStats): void {
+    this.stats[key]++;
+    this.statsChanged$.next();
+  }
+
+  decrement(key: keyof BaseStats): void {
+    if (this.stats[key] > 0) {
+      this.stats[key]--;
+      this.statsChanged$.next();
+    }
+  }
 
   constructor(private equipment: EquipmentService) {
-    this.damage$ = this.equipment.changes$.pipe(
+    this.damage$ = merge(this.equipment.changes$, this.statsChanged$).pipe(
       startWith(null as void),
       map(() => this._calcDamage()),
     );
   }
 
   private _calcDamage(): DamageBreakdown {
+    const base      = this.stats.STR;
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['damage'] ?? 0),
       0
     );
-    return { base: BASE_DAMAGE, equipment, total: BASE_DAMAGE + equipment };
+    return { base, equipment, total: base + equipment };
   }
 }
