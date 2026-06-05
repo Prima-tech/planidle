@@ -134,8 +134,8 @@
 .equip-item:active { cursor: grabbing; }
 
 .item-icon {
-  width: 26px;
-  height: 26px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   image-rendering: pixelated;
   pointer-events: none;
@@ -147,6 +147,7 @@
   image-rendering: pixelated;
   pointer-events: none;
   flex-shrink: 0;
+  transform: scale(2) translateY(3px);
 }
 
 .item-fallback {
