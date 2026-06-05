@@ -115,13 +115,15 @@
 .coins-wrapper {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   background: rgba(26, 26, 46, 0.88);
   border: 1px solid #2a2a4e;
   border-radius: 6px;
-  padding: 3px 8px 3px 3px;
+  padding: 3px 8px 3px 4px;
   backdrop-filter: blur(4px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  min-width: 64px;
+  justify-content: flex-end;
 }
 
 .coin-spinner {
