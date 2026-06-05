@@ -231,3 +231,135 @@
   &.plus  { color: #3498db; border-color: #3498db; }
   &.minus { color: #e74c3c; border-color: #e74c3c; }
 }
+
+// ── Tab 2: Resumen ────────────────────────────────────────────────────────────
+
+.eq-overview-panel {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ov-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2a2a3e;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 7px 10px;
+}
+
+.ov-label {
+  font-size: 0.7em;
+  color: #888;
+}
+
+.ov-val {
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #fff;
+
+  &--highlight { color: #e74c3c; }
+}
+
+// Card nivel + exp integrada
+.ov-level-card {
+  background: #2a2a3e;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 8px 10px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ov-level-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.ov-level-num {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+.ov-level-exp {
+  font-size: 0.62em;
+  color: #888;
+}
+
+.ov-exp-track {
+  width: 100%;
+  height: 5px;
+  background: #0e0e1e;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid #2a2a4e;
+}
+
+.ov-exp-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #d4a000, #f0c040);
+  transition: width 0.4s ease;
+}
+
+// Acordeón
+.ov-accordion {
+  background: #2a2a3e;
+  border: 1px solid #333;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+
+  &:active { background: #33334e; }
+}
+
+.ov-accordion-header {
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  gap: 6px;
+
+  .ov-label { flex: 1; }
+
+  .ov-chevron {
+    font-size: 0.75em;
+    color: #555;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+}
+
+.ov-accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, padding 0.25s ease;
+  padding: 0 10px;
+  background: #1e1e30;
+
+  &.open {
+    max-height: 200px;
+    padding: 6px 10px 8px;
+  }
+}
+
+.ov-bk-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65em;
+  color: #777;
+  padding: 3px 0;
+  border-bottom: 1px solid #2a2a3e;
+
+  &:last-child { border-bottom: none; }
+}
+
+.ov-bonus { color: #3498db; }

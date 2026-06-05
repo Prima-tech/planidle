@@ -3,6 +3,7 @@ import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats } from 'src/app/services/character-stats.service';
+import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
 
 @Component({
   selector: 'app-equipment',
@@ -13,6 +14,10 @@ import { CharacterStatsService, BaseStats } from 'src/app/services/character-sta
 export class EquipmentComponent implements OnInit {
 
   activeTab = 0;
+  showAtkBreakdown = false;
+  readonly damage$ = this.charStats.damage$;
+  readonly expNeeded = expNeeded;
+  readonly maxLevel = MAX_LEVEL;
 
   readonly statsList: { key: keyof BaseStats; label: string }[] = [
     { key: 'STR',   label: 'Fuerza'        },
@@ -27,6 +32,7 @@ export class EquipmentComponent implements OnInit {
     public equipmentService: EquipmentService,
     private inventoryService: InventoryService,
     public charStats: CharacterStatsService,
+    public playerState: PlayerStateService,
   ) {}
 
   ngOnInit(): void {}

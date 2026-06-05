@@ -7,6 +7,9 @@
     <button class="eq-vtab" [class.active]="activeTab === 1" (click)="activeTab = 1">
       <ion-icon name="bar-chart-outline"></ion-icon>
     </button>
+    <button class="eq-vtab" [class.active]="activeTab === 2" (click)="activeTab = 2">
+      <ion-icon name="podium-outline"></ion-icon>
+    </button>
   </div>
 
   <div class="eq-content">
@@ -54,6 +57,50 @@
         <button class="stat-btn plus" (click)="charStats.increment(s.key)">+</button>
       </div>
     </div>
+  </div>
+
+  <!-- Tab 2: Resumen de stats -->
+  <div class="eq-overview-panel" *ngIf="activeTab === 2">
+    <div class="equipment-header">Resumen</div>
+
+    <ng-container *ngIf="playerState.state$ | async as st">
+
+      <div class="ov-level-card">
+        <div class="ov-level-top">
+          <span class="ov-level-num">Nv. {{ st.lvl }}</span>
+          <span class="ov-level-exp" *ngIf="st.lvl < maxLevel">{{ st.exp }} / {{ expNeeded(st.lvl) }} EXP</span>
+          <span class="ov-level-exp" *ngIf="st.lvl >= maxLevel">MAX</span>
+        </div>
+        <div class="ov-exp-track">
+          <div class="ov-exp-fill" [style.width.%]="st.lvl >= maxLevel ? 100 : (st.exp / expNeeded(st.lvl)) * 100"></div>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- Acordeón: Ataque -->
+    <div class="ov-accordion" (click)="showAtkBreakdown = !showAtkBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Ataque</span>
+        <ng-container *ngIf="damage$ | async as dmg">
+          <span class="ov-val ov-val--highlight">{{ dmg.total }}</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showAtkBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showAtkBreakdown">
+        <ng-container *ngIf="damage$ | async as dmg">
+          <div class="ov-bk-row">
+            <span>Fuerza</span>
+            <span>{{ dmg.base }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="dmg.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ dmg.equipment }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
   </div>
 
   </div><!-- eq-content -->
