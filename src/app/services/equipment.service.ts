@@ -20,7 +20,7 @@ export class EquipmentService {
 
   readonly slots: EquipmentSlot[] = [
     // Columna izquierda
-    { id: 'helmet',  label: 'Casco',      accepts: ['Casco'],      item: null },
+    { id: 'helmet',  label: 'Casco',      accepts: ['Casco', 'Armet'], item: null },
     { id: 'armor',   label: 'Armadura',   accepts: ['Armadura'],   item: null },
     { id: 'pants',   label: 'Pantalones', accepts: ['Pantalones'], item: null },
     { id: 'boots',   label: 'Botas',      accepts: ['Botas'],      item: null },

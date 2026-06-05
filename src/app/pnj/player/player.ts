@@ -2,6 +2,7 @@ import { GameScene } from "src/app/scenes/gamescene/gamescene";
 import { Direction } from "../interfaces/Direction";
 import { AnimationService } from "src/app/scenes/gamescene/animation.service";
 import { playerAnimations, playerTags } from "src/app/scenes/gamescene/constants";
+import { EquipLayerConfig } from "./equip-layer-registry";
 import { Subject } from "rxjs";
 
 export interface IAttack {
@@ -15,7 +16,8 @@ export class Player {
   public mainScene: Phaser.Scene;
   public sprite: Phaser.GameObjects.Sprite;
   private tilePos: Phaser.Math.Vector2;
-  private layers = new Map<string, Phaser.GameObjects.Sprite>();
+  private layers       = new Map<string, Phaser.GameObjects.Sprite>();
+  private layerConfigs = new Map<string, EquipLayerConfig>();
   private readonly _posCache = new Phaser.Math.Vector2();
 
   status = {
@@ -151,23 +153,29 @@ export class Player {
 
   // ── Capas de equipamiento ──────────────────────────────────────────────────
 
-  addLayer(slotId: string, key: string, depth: number): void {
+  addLayer(slotId: string, key: string, depth: number, cfg?: EquipLayerConfig): void {
     this.removeLayer(slotId);
     const layer = this.mainScene.add.sprite(this.sprite.x, this.sprite.y, key);
     layer.setOrigin(this.sprite.originX, this.sprite.originY);
     layer.setScale(this.sprite.scaleX, this.sprite.scaleY);
     layer.setDepth(depth);
+    if (cfg?.mode === 'anim' && cfg.fallbackAnim && this.mainScene.anims.exists(cfg.fallbackAnim)) {
+      layer.play(cfg.fallbackAnim, true);
+    }
     this.layers.set(slotId, layer);
+    if (cfg) this.layerConfigs.set(slotId, cfg);
   }
 
   removeLayer(slotId: string): void {
     const layer = this.layers.get(slotId);
     if (layer?.active) layer.destroy();
     this.layers.delete(slotId);
+    this.layerConfigs.delete(slotId);
   }
 
   clearLayers(): void {
     this.layers.clear();
+    this.layerConfigs.clear();
   }
 
   // Spritesheets de equipo LPC parciales (ej. long_knife) solo tienen 21 filas (frames 0-272).
@@ -186,14 +194,25 @@ export class Player {
     if (!this.sprite?.active || !this.sprite.anims?.currentFrame) return;
     const currentAnimKey = this.sprite.anims.currentAnim?.key ?? '';
     const isIdle = currentAnimKey.startsWith(playerTags.IDLE);
-    this.layers.forEach(layer => {
+    this.layers.forEach((layer, slotId) => {
       if (!layer?.active) return;
       layer.setPosition(this.sprite.x, this.sprite.y);
-      if (isIdle) {
-        const dir = currentAnimKey.slice(playerTags.IDLE.length);
-        layer.setFrame(Player.IDLE_HOLD_FRAME[dir] ?? 130);
+      const cfg = this.layerConfigs.get(slotId);
+      if (cfg?.mode === 'anim' && cfg.playerPrefix && cfg.layerPrefix) {
+        const targetKey = currentAnimKey.startsWith(cfg.playerPrefix)
+          ? cfg.layerPrefix + currentAnimKey.slice(cfg.playerPrefix.length)
+          : (cfg.fallbackAnim ?? '');
+        if (targetKey && layer.anims.currentAnim?.key !== targetKey) {
+          const animKey = this.mainScene.anims.exists(targetKey) ? targetKey : (cfg.fallbackAnim ?? '');
+          if (animKey) layer.play(animKey, true);
+        }
       } else {
-        layer.setFrame(this.sprite.anims.currentFrame.frame.name);
+        if (isIdle) {
+          const dir = currentAnimKey.slice(playerTags.IDLE.length);
+          layer.setFrame(Player.IDLE_HOLD_FRAME[dir] ?? 130);
+        } else {
+          layer.setFrame(this.sprite.anims.currentFrame.frame.name);
+        }
       }
     });
   }

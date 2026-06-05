@@ -50,8 +50,14 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
       for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
-        if (!this.textures.exists(cfg.key)) {
-          this.load.spritesheet(cfg.key, cfg.path, { frameWidth: cfg.frameWidth, frameHeight: cfg.frameHeight });
+        if (cfg.mode === 'anim') {
+          for (const sheet of cfg.sheets ?? []) {
+            if (!this.textures.exists(sheet.key)) {
+              this.load.spritesheet(sheet.key, sheet.path, { frameWidth: sheet.frameWidth, frameHeight: sheet.frameHeight });
+            }
+          }
+        } else if (cfg.key && !this.textures.exists(cfg.key)) {
+          this.load.spritesheet(cfg.key, cfg.path!, { frameWidth: cfg.frameWidth, frameHeight: cfg.frameHeight });
         }
       }
 
@@ -160,6 +166,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private initEquipLayers(): void {
+      this.registerEquipLayerAnims();
       const equipment = this.reg.equipment;
       if (!equipment) return;
       for (const slot of equipment.slots) {
@@ -172,11 +179,31 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
+    private registerEquipLayerAnims(): void {
+      for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
+        if (cfg.mode !== 'anim' || !cfg.sheets) continue;
+        for (const sheet of cfg.sheets) {
+          for (const anim of sheet.anims) {
+            if (this.anims.exists(anim.key)) continue;
+            const frames = this.anims.generateFrameNumbers(sheet.key, { start: anim.startFrame, end: anim.endFrame });
+            if (frames.length) this.anims.create({ key: anim.key, frames, frameRate: anim.frameRate, repeat: anim.repeat });
+          }
+        }
+      }
+    }
+
     private applyEquipLayer(slotId: string, item: InventoryItem | null): void {
       if (!item) { this.player.removeLayer(slotId); return; }
       const cfg = EQUIP_LAYER_REGISTRY[item.name];
-      if (!cfg || !this.textures.exists(cfg.key)) { this.player.removeLayer(slotId); return; }
-      this.player.addLayer(slotId, cfg.key, cfg.depth);
+      if (!cfg) { this.player.removeLayer(slotId); return; }
+      if (cfg.mode === 'anim') {
+        const allLoaded = (cfg.sheets ?? []).every(s => this.textures.exists(s.key));
+        if (!allLoaded) { this.player.removeLayer(slotId); return; }
+        this.player.addLayer(slotId, cfg.sheets![0].key, cfg.depth, cfg);
+      } else {
+        if (!cfg.key || !this.textures.exists(cfg.key)) { this.player.removeLayer(slotId); return; }
+        this.player.addLayer(slotId, cfg.key, cfg.depth);
+      }
     }
 
     initMap() {
