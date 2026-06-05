@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
+import { CharacterStatsService, BaseStats } from 'src/app/services/character-stats.service';
 
 @Component({
   selector: 'app-equipment',
@@ -11,9 +12,21 @@ import { InventoryItem, InventoryService } from 'src/app/services/inventory.serv
 })
 export class EquipmentComponent implements OnInit {
 
+  activeTab = 0;
+
+  readonly statsList: { key: keyof BaseStats; label: string }[] = [
+    { key: 'STR',   label: 'Fuerza'        },
+    { key: 'DEX',   label: 'Destreza'      },
+    { key: 'CONST', label: 'Constitución'  },
+    { key: 'INT',   label: 'Inteligencia'  },
+    { key: 'MAG',   label: 'Magia'         },
+    { key: 'CHR',   label: 'Carisma'       },
+  ];
+
   constructor(
     public equipmentService: EquipmentService,
     private inventoryService: InventoryService,
+    public charStats: CharacterStatsService,
   ) {}
 
   ngOnInit(): void {}

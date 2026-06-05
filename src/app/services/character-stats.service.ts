@@ -8,16 +8,32 @@ const BASE_DAMAGE = 10;
 export interface DamageBreakdown {
   base:      number;
   equipment: number;
-  // attributes: number;  // futuro: bonificación por STR/AGI del personaje
-  // buffs:      number;  // futuro: bufos temporales de pociones/habilidades
-  // passives:   number;  // futuro: pasivas/talentos permanentes
   total:     number;
 }
+
+export interface BaseStats {
+  STR:   number;
+  DEX:   number;
+  CONST: number;
+  INT:   number;
+  MAG:   number;
+  CHR:   number;
+}
+
+const DEFAULT_BASE_STATS: BaseStats = {
+  STR:   1,
+  DEX:   1,
+  CONST: 1,
+  INT:   1,
+  MAG:   1,
+  CHR:   1,
+};
 
 @Injectable({ providedIn: 'root' })
 export class CharacterStatsService {
 
   readonly damage$: Observable<DamageBreakdown>;
+  readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   constructor(private equipment: EquipmentService) {
     this.damage$ = this.equipment.changes$.pipe(
@@ -31,7 +47,6 @@ export class CharacterStatsService {
       (sum, slot) => sum + (slot.item?.stats?.['damage'] ?? 0),
       0
     );
-    // Futuro: sumar aquí attributes + buffs + passives antes de retornar
     return { base: BASE_DAMAGE, equipment, total: BASE_DAMAGE + equipment };
   }
 }

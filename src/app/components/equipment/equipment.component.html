@@ -1,44 +1,70 @@
-<div class="eq-layout">
+<div class="eq-wrapper">
 
-  <div class="eq-slots">
-    <div class="equipment-header">Equipamiento</div>
-    <div class="equipment-grid">
-      <div
-        *ngFor="let slot of equipmentService.slots"
-        class="equip-slot"
-        [class.occupied]="slot.item !== null"
-        cdkDropList
-        cdkDropListSortingDisabled
-        [id]="'equip-' + slot.id"
-        [cdkDropListConnectedTo]="equipmentService.inventoryCellIds"
-        [cdkDropListEnterPredicate]="canDropInSlot"
-        (cdkDropListDropped)="onEquipDrop($event, slot)"
-      >
-        <div class="slot-label">{{ slot.label }}</div>
+  <div class="eq-vtabs">
+    <button class="eq-vtab" [class.active]="activeTab === 0" (click)="activeTab = 0">
+      <ion-icon name="shield-outline"></ion-icon>
+    </button>
+    <button class="eq-vtab" [class.active]="activeTab === 1" (click)="activeTab = 1">
+      <ion-icon name="bar-chart-outline"></ion-icon>
+    </button>
+  </div>
 
-        <div *ngIf="slot.item; else emptySlot"
-             class="equip-item"
-             cdkDrag
-             [cdkDragData]="{ sourceContext: 'equipment', slotId: 'equip-' + slot.id, item: slot.item }"
-             [title]="slot.item.name">
-          <div *ngIf="slot.item.iconSheet != null"
-               class="item-icon-sheet"
-               [style.background-image]="'url(' + slot.item.iconSheet + ')'"
-               [style.background-position]="getSheetPos(slot.item.iconFrame)">
+  <!-- Tab 0: Equipamiento -->
+  <div class="eq-layout" *ngIf="activeTab === 0">
+
+    <div class="eq-slots">
+      <div class="equipment-header">Equipamiento</div>
+      <div class="equipment-grid">
+        <div
+          *ngFor="let slot of equipmentService.slots"
+          class="equip-slot"
+          [class.occupied]="slot.item !== null"
+          cdkDropList
+          cdkDropListSortingDisabled
+          [id]="'equip-' + slot.id"
+          [cdkDropListConnectedTo]="equipmentService.inventoryCellIds"
+          [cdkDropListEnterPredicate]="canDropInSlot"
+          (cdkDropListDropped)="onEquipDrop($event, slot)"
+        >
+          <div class="slot-label">{{ slot.label }}</div>
+
+          <div *ngIf="slot.item; else emptySlot"
+               class="equip-item"
+               cdkDrag
+               [cdkDragData]="{ sourceContext: 'equipment', slotId: 'equip-' + slot.id, item: slot.item }"
+               [title]="slot.item.name">
+            <div *ngIf="slot.item.iconSheet != null"
+                 class="item-icon-sheet"
+                 [style.background-image]="'url(' + slot.item.iconSheet + ')'"
+                 [style.background-position]="getSheetPos(slot.item.iconFrame)">
+            </div>
+            <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon">
+            <span *ngIf="!slot.item.icon && slot.item.iconSheet == null" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
           </div>
-          <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon">
-          <span *ngIf="!slot.item.icon && slot.item.iconSheet == null" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
-        </div>
 
-        <ng-template #emptySlot>
-          <div class="slot-empty">—</div>
-        </ng-template>
+          <ng-template #emptySlot>
+            <div class="slot-empty">—</div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <div class="eq-divider-v"></div>
+
+    <app-char-stats></app-char-stats>
+
+  </div>
+
+  <!-- Tab 1: Stats -->
+  <div class="eq-stats-panel" *ngIf="activeTab === 1">
+    <div class="equipment-header">Stats</div>
+    <div class="stats-grid">
+      <div class="stat-row" *ngFor="let s of statsList">
+        <span class="stat-key">{{ s.key }}</span>
+        <span class="stat-label">{{ s.label }}</span>
+        <span class="stat-val">{{ charStats.stats[s.key] }}</span>
       </div>
     </div>
   </div>
-
-  <div class="eq-divider-v"></div>
-
-  <app-char-stats></app-char-stats>
 
 </div>
