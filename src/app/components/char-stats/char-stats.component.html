@@ -1,7 +1,7 @@
 <ng-container *ngIf="vm$ | async as vm">
 
   <ng-container *ngIf="section === 'all' || section === 'header'">
-    <div class="cs-title">Personaje</div>
+    <div class="cs-title">{{ asgard.selectedPlayer?.name ?? 'Personaje' }}</div>
 
     <div class="cs-row">
       <span class="cs-label">Nivel</span>

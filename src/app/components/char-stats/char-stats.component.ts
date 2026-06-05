@@ -3,6 +3,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
 import { CharacterStatsService, DamageBreakdown } from 'src/app/services/character-stats.service';
+import { AsgardService } from 'src/app/services/asgard';
 
 interface StatsViewModel {
   lvl:        number;
@@ -25,7 +26,7 @@ export class CharStatsComponent {
 
   readonly vm$: Observable<StatsViewModel>;
 
-  constructor(playerState: PlayerStateService, charStats: CharacterStatsService) {
+  constructor(playerState: PlayerStateService, charStats: CharacterStatsService, public asgard: AsgardService) {
     this.vm$ = combineLatest([playerState.state$, charStats.damage$]).pipe(
       map(([s, damage]) => {
         const isMaxLevel = s.lvl >= MAX_LEVEL;
