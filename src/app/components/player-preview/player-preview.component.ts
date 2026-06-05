@@ -1,12 +1,14 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { debounceTime, startWith } from 'rxjs/operators';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { EQUIP_LAYER_REGISTRY } from 'src/app/pnj/player/equip-layer-registry';
 
-const SHEET_COLS   = 13;
-const FRAME_SIZE   = 64;
-const IDLE_START   = 312; // idle DOWN frame 0
-const IDLE_FRAMES  = 2;
-const FRAME_MS     = 500;
+const SHEET_COLS    = 13;
+const FRAME_SIZE    = 64;
+const PREVIEW_START  = 130; // WALK DOWN fila 10 — existe en todos los sheets LPC
+const PREVIEW_FRAMES = 9;
+const FRAME_MS       = 130;
 
 @Component({
   selector: 'app-player-preview',
@@ -22,52 +24,58 @@ export class PlayerPreviewComponent implements OnInit, OnDestroy {
   private ctx: CanvasRenderingContext2D;
   private timer: ReturnType<typeof setTimeout>;
   private frameIdx = 0;
+  private sub: Subscription;
 
   constructor(private equipment: EquipmentService) {}
 
   ngOnInit(): void {
     this.ctx = this.cvRef.nativeElement.getContext('2d')!;
     this.ctx.imageSmoothingEnabled = false;
-    this.loadAndAnimate();
+
+    this.sub = this.equipment.changes$.pipe(
+      startWith(null as void),
+      debounceTime(50),
+    ).subscribe(() => this.reload());
   }
 
   ngOnDestroy(): void {
     clearTimeout(this.timer);
+    this.sub?.unsubscribe();
   }
 
-  private loadAndAnimate(): void {
-    const layers: { img: HTMLImageElement; depth: number }[] = [];
+  private async reload(): Promise<void> {
+    clearTimeout(this.timer);
+    this.frameIdx = 0;
 
-    const body = new Image();
-    body.src = 'assets/sprites/player/character/body/main.png';
-    layers.push({ img: body, depth: 0 });
+    const sources: { src: string; depth: number }[] = [
+      { src: 'assets/sprites/player/character/body/main.png', depth: 0 },
+    ];
 
     for (const slot of this.equipment.slots) {
       if (!slot.item) continue;
       const cfg = EQUIP_LAYER_REGISTRY[slot.item.name];
-      if (!cfg) continue;
+      if (cfg) sources.push({ src: cfg.path, depth: cfg.depth });
+    }
+
+    sources.sort((a, b) => a.depth - b.depth);
+
+    const imgs = await Promise.all(sources.map(s => this.loadImg(s.src)));
+    this.startLoop(imgs);
+  }
+
+  private loadImg(src: string): Promise<HTMLImageElement> {
+    return new Promise(resolve => {
       const img = new Image();
-      img.src = cfg.path;
-      layers.push({ img, depth: cfg.depth });
-    }
-
-    layers.sort((a, b) => a.depth - b.depth);
-
-    let loaded = 0;
-    const onLoad = () => {
-      loaded++;
-      if (loaded === layers.length) this.startLoop(layers.map(l => l.img));
-    };
-
-    for (const l of layers) {
-      if (l.img.complete) { onLoad(); }
-      else { l.img.onload = onLoad; }
-    }
+      img.onload  = () => resolve(img);
+      img.onerror = () => resolve(img); // continúa aunque falle
+      img.src = src;
+      if (img.complete && img.naturalWidth > 0) resolve(img);
+    });
   }
 
   private startLoop(imgs: HTMLImageElement[]): void {
     const tick = () => {
-      const frame = IDLE_START + this.frameIdx;
+      const frame = PREVIEW_START + this.frameIdx;
       const col   = frame % SHEET_COLS;
       const row   = Math.floor(frame / SHEET_COLS);
       const sx    = col * FRAME_SIZE;
@@ -75,10 +83,12 @@ export class PlayerPreviewComponent implements OnInit, OnDestroy {
 
       this.ctx.clearRect(0, 0, this.size, this.size);
       for (const img of imgs) {
-        this.ctx.drawImage(img, sx, sy, FRAME_SIZE, FRAME_SIZE, 0, 0, this.size, this.size);
+        if (img.naturalWidth > 0) {
+          this.ctx.drawImage(img, sx, sy, FRAME_SIZE, FRAME_SIZE, 0, 0, this.size, this.size);
+        }
       }
 
-      this.frameIdx = (this.frameIdx + 1) % IDLE_FRAMES;
+      this.frameIdx = (this.frameIdx + 1) % PREVIEW_FRAMES;
       this.timer = setTimeout(tick, FRAME_MS);
     };
     tick();
