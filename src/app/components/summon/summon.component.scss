@@ -123,3 +123,67 @@
   line-height: 1.2;
   white-space: nowrap;
 }
+
+// ── Lista de mapas ───────────────────────────────────────────────────────────
+
+.map-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2a2a3e;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: #fff;
+  width: 100%;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:active { background: #3a3a5e; }
+
+  &.current {
+    border-color: #3498db;
+    background: #1e3a5f;
+  }
+}
+
+.map-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.map-name {
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #fff;
+}
+
+.map-enemies {
+  font-size: 0.65em;
+  color: #888;
+  text-transform: capitalize;
+
+  &.empty { font-style: italic; }
+}
+
+.map-badge {
+  font-size: 0.65em;
+  background: #3498db;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.map-go {
+  font-size: 0.75em;
+  color: #666;
+}
