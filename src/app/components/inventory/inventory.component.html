@@ -83,10 +83,33 @@
 <!-- Modal Borrar -->
 <div class="modal-overlay" *ngIf="deleteModalOpen" (click)="cancelDelete($event)">
   <div class="modal" (click)="$event.stopPropagation()">
-    <p>{{ 'INVENTORY.CONFIRM_DELETE' | translate }}</p>
-    <div class="modal-buttons">
-      <button (click)="confirmDelete($event)">{{ 'INVENTORY.BTN.ACCEPT' | translate }}</button>
-      <button (click)="cancelDelete($event)">{{ 'INVENTORY.BTN.CANCEL' | translate }}</button>
+
+    <div class="modal-icon-wrap">
+      <ion-icon name="trash-outline" class="modal-trash-icon"></ion-icon>
     </div>
+
+    <div class="modal-title">¿Borrar objeto?</div>
+
+    <div class="modal-item-preview" *ngIf="selectedItemData as item">
+      <div class="modal-item-icon">
+        <div *ngIf="item.iconSheet != null"
+             class="item-icon-sheet"
+             [style.background-image]="'url(' + item.iconSheet + ')'"
+             [style.background-size]="getSheetBgSize(item.iconFrameCols, item.iconFrameSize)"
+             [style.background-position]="getSheetPos(item.iconFrame, item.iconFrameCols, item.iconFrameSize)">
+        </div>
+        <img *ngIf="item.icon && item.iconSheet == null" [src]="item.icon" class="item-icon">
+        <span *ngIf="!item.icon && item.iconSheet == null" class="item-fallback">{{ item.name.charAt(0) }}</span>
+      </div>
+      <span class="modal-item-name">{{ item.name }}</span>
+    </div>
+
+    <p class="modal-warning">Esta acción no se puede deshacer.</p>
+
+    <div class="modal-buttons">
+      <button class="btn-cancel" (click)="cancelDelete($event)">Cancelar</button>
+      <button class="btn-delete" (click)="confirmDelete($event)">Borrar</button>
+    </div>
+
   </div>
 </div>
