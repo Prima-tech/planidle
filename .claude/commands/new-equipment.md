@@ -178,14 +178,18 @@ El nombre en `accepts` debe coincidir **exactamente** con el campo `name` en el 
 
 ---
 
-## Paso 5 — Verificar que GameScene carga todo automáticamente
+## Paso 5 — Verificar que GameScene y PlayerPreview cargan todo automáticamente
 
 No hay que tocar `gamescene.ts`. El sistema ya:
 - Lee `EQUIP_LAYER_REGISTRY` en `preload()` y carga las texturas de cada sheet
 - Registra las animaciones Phaser en `registerEquipLayerAnims()` al entrar al mapa
 - Aplica el layer con `applyEquipLayer()` cuando el jugador equipa/desequipa
 
-Solo asegurarse de que las rutas de los PNG en `sheets[].path` son correctas y los archivos existen en `src/assets/`.
+`PlayerPreviewComponent` (la ventana de equipamiento Angular) también es automático:
+- Para `mode: 'frame'`: usa `cfg.path` directamente (sheet LPC combinado, 13 cols)
+- Para `mode: 'anim'`: busca automáticamente la hoja que contiene `_walk_down` y extrae sus parámetros (`sheetStart`, `sheetCols`) para dibujar los frames correctos
+
+Solo asegurarse de que las rutas de los PNG en `sheets[].path` y en `cfg.path` son correctas y los archivos existen en `src/assets/`.
 
 ---
 
