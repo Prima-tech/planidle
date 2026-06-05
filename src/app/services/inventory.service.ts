@@ -7,6 +7,7 @@ const USE_MOCK = true;
 export interface InventoryItem {
   id: string;
   name: string;
+  category?: string;    // tipo de slot (ej. 'Casco', 'Arma') — usado por EquipmentService
   icon?: string;
   iconSheet?: string;
   iconFrame?: number;

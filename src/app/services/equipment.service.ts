@@ -20,7 +20,7 @@ export class EquipmentService {
 
   readonly slots: EquipmentSlot[] = [
     // Columna izquierda
-    { id: 'helmet',  label: 'Casco',      accepts: ['Casco', 'Armet'], item: null },
+    { id: 'helmet',  label: 'Casco',      accepts: ['Casco'],          item: null },
     { id: 'armor',   label: 'Armadura',   accepts: ['Armadura'],   item: null },
     { id: 'pants',   label: 'Pantalones', accepts: ['Pantalones'], item: null },
     { id: 'boots',   label: 'Botas',      accepts: ['Botas'],      item: null },
@@ -54,7 +54,8 @@ export class EquipmentService {
 
   canEquip(item: InventoryItem, cdkSlotId: string): boolean {
     const slot = this.findSlot(cdkSlotId);
-    return !!slot && !!item && slot.accepts.includes(item.name);
+    const key = item.category ?? item.name;
+    return !!slot && !!item && slot.accepts.includes(key);
   }
 
   equip(cdkSlotId: string, item: InventoryItem): InventoryItem | null {

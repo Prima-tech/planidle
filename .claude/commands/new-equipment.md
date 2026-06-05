@@ -132,23 +132,26 @@ Añadir una entrada en `LOOT_TABLES` para cada tipo de enemigo que debe dropearl
 orc1: [
   // ...entradas existentes...
   {
-    name: 'NombreItem',
+    name: 'NombreItem',         // nombre de display (ej. 'Armet', 'Yelmo de hierro')
+    category: 'Casco',          // tipo de slot — usado por EquipmentService.canEquip()
     type: 'item',
-    chance: 0.20,          // 0.0–1.0 (1.0 = 100%)
+    chance: 0.20,               // 0.0–1.0 (1.0 = 100%)
     minQty: 1,
     maxQty: 1,
-    mergeable: false,      // true solo para consumibles (pociones, etc.)
+    mergeable: false,           // true solo para consumibles (pociones, etc.)
     texture: 'icons1',
-    frame: 60,             // frame en icons1.png (ver hoja de iconos)
+    frame: 60,                  // frame en icons1.png (ver hoja de iconos)
     iconSheet: 'assets/icon/icons/icons1.png',
     iconFrame: 60,
     scale: 3,
-    order: 2,              // orden de recogida (menor = primero)
+    order: 2,                   // orden de recogida (menor = primero)
     description: 'Descripción del item.',
-    stats: { hp: 15 },     // stats que aplica al equiparse
+    stats: { hp: 15 },          // stats que aplica al equiparse
   },
 ],
 ```
+
+> **`category` vs `name`**: `name` es el nombre visible del item ('Armet', 'Yelmo de Fuego'). `category` es el tipo de slot ('Casco', 'Arma', 'Pantalones'). `EquipmentService.canEquip()` comprueba `item.category ?? item.name` contra `slot.accepts`, así que todos los cascos con `category: 'Casco'` encajan en el slot sin necesidad de listarlos uno a uno.
 
 Repetir la entrada en `orc1_elite`, `orc1_oblivion`, y cualquier otro enemigo que dropee el item con sus propias chances.
 
@@ -162,19 +165,21 @@ Repetir la entrada en `orc1_elite`, `orc1_oblivion`, y cualquier otro enemigo qu
 
 ---
 
-## Paso 4 — Registrar el slot en `equipment.service.ts`
+## Paso 4 — Verificar el slot en `equipment.service.ts`
 
 Archivo: `src/app/services/equipment.service.ts`
 
-Añadir el nombre del item al array `accepts` del slot correspondiente:
+**No hace falta tocar `accepts`** si el item tiene `category` correcto en `griddrops.ts`. Los slots ya están configurados por categoría:
 
 ```typescript
-{ id: 'helmet',  label: 'Casco',    accepts: ['Casco', 'Armet', 'NombreItem'], item: null },
-{ id: 'weapon',  label: 'Arma',     accepts: ['Espada', 'NombreItem'],         item: null },
-{ id: 'pants',   label: 'Pantalones', accepts: ['Pantalones', 'NombreItem'],   item: null },
+{ id: 'helmet',    label: 'Casco',       accepts: ['Casco'],      item: null },
+{ id: 'weapon',    label: 'Arma',        accepts: ['Arma'],       item: null },
+{ id: 'pants',     label: 'Pantalones',  accepts: ['Pantalones'], item: null },
+{ id: 'boots',     label: 'Botas',       accepts: ['Botas'],      item: null },
+{ id: 'armor',     label: 'Armadura',    accepts: ['Armadura'],   item: null },
 ```
 
-El nombre en `accepts` debe coincidir **exactamente** con el campo `name` en el drop de `griddrops.ts` y con la clave en `EQUIP_LAYER_REGISTRY`.
+Solo editar `accepts` si estás añadiendo una categoría nueva que no existe todavía.
 
 ---
 
