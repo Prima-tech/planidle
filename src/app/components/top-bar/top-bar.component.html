@@ -1,21 +1,38 @@
 <div class="top-bar">
-  <div class="avatar-wrapper">
+
+  <!-- Panel personaje: avatar + nombre + barras -->
+  <div class="char-panel">
     <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
       <ion-icon [name]="classIcon"></ion-icon>
     </div>
-    <div class="name">{{asgardService?.selectedPlayer?.name}}</div>
+    <div class="char-info">
+      <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
+      <div class="bar-row" *ngIf="initStatusBar">
+        <span class="bar-lbl">HP</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-fill--hp"
+               [style.width.%]="(valueHP$ | async)?.value * 100">
+          </div>
+        </div>
+      </div>
+      <div class="bar-row" *ngIf="initStatusBar">
+        <span class="bar-lbl">EXP</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-fill--xp"
+               [style.width.%]="(valueXP$ | async)?.value * 100">
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="bars-stack" *ngIf="initStatusBar">
-    <app-status-bar [class]="'health'" [service$]="valueHP$"></app-status-bar>
-    <app-status-bar [class]="'experience'" [service$]="valueXP$"></app-status-bar>
-  </div>
+
+  <!-- Derecha: monedas + mapa -->
   <div class="right-side">
     <div class="coins-wrapper">
-      <div class="coin-placeholder">
-        {{ coins$ | async }}
-      </div>
       <div class="coin-spinner"></div>
+      <span class="coin-amount">{{ coins$ | async }}</span>
     </div>
     <app-map-label></app-map-label>
   </div>
+
 </div>
