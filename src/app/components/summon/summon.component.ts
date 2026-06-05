@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { ENEMY_REGISTRY, EnemyTypeConfig } from 'src/app/enemy/enemy-config';
 import { MAP_REGISTRY, MapConfig } from 'src/app/scenes/gamescene/map-config';
+import { ITEM_CATALOG, LootEntry } from 'src/app/physics/griddrops';
 import { SummonService } from 'src/app/services/summon.service';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
+import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 
 interface EnemyCard {
   type:      string;
@@ -28,15 +30,21 @@ interface EnemyGroup {
 })
 export class SummonComponent {
 
-  readonly tabs = ['Enemigos', 'Mapas'];
+  readonly tabs = [
+    { icon: 'skull-outline',      title: 'Enemigos' },
+    { icon: 'map-outline',        title: 'Mapas'    },
+    { icon: 'bag-handle-outline', title: 'Items'    },
+  ];
   activeTab     = 0;
   readonly enemyGroups: EnemyGroup[];
   readonly maps: MapConfig[];
+  readonly itemCatalog: LootEntry[] = ITEM_CATALOG;
 
   constructor(
     private summonService: SummonService,
     private worldService: WorldService,
     private playerBridge: PlayerBridgeService,
+    private inventoryService: InventoryService,
   ) {
     const allCards = Object.values(ENEMY_REGISTRY).map(cfg => this.toCard(cfg));
     const baseCards = allCards.filter(c => c.tier === 'base');
@@ -61,6 +69,37 @@ export class SummonComponent {
     if (mapId === this.currentMapId) return;
     this.worldService.setCurrentMap(mapId);
     this.playerBridge.restartGameScene();
+  }
+
+  giveItem(entry: LootEntry): void {
+    const item: InventoryItem = {
+      id:           `give-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name:         entry.name,
+      category:     entry.category,
+      icon:         entry.icon,
+      iconSheet:    entry.iconSheet,
+      iconFrame:    entry.iconFrame,
+      iconFrameSize: entry.iconFrameSize,
+      iconFrameCols: entry.iconFrameCols,
+      mergeable:    entry.mergeable,
+      sum:          entry.mergeable ? 1 : undefined,
+      order:        entry.order,
+      description:  entry.description,
+      stats:        entry.stats,
+    };
+    this.inventoryService.addDroppedItem(item);
+  }
+
+  getSheetPos(frame = 0, cols = 12, frameSize = 32): string {
+    const display = 32;
+    const scale   = display / frameSize;
+    const col     = frame % cols;
+    const row     = Math.floor(frame / cols);
+    return `-${col * frameSize * scale}px -${row * frameSize * scale}px`;
+  }
+
+  getSheetBgSize(cols = 12, frameSize = 32): string {
+    return `${cols * 32}px auto`;
   }
 
   private toCard(cfg: EnemyTypeConfig): EnemyCard {

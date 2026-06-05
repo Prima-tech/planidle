@@ -2,7 +2,7 @@ import { InventoryItem, InventoryService } from '../services/inventory.service';
 import { PlayerStateService } from '../services/player-state.service';
 import { Player } from '../pnj/player/player';
 
-interface LootEntry {
+export interface LootEntry {
   name: string;
   category?: string;       // tipo de slot para EquipmentService (ej. 'Casco', 'Arma')
   type: 'currency' | 'item';
@@ -113,6 +113,15 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
     { name: 'Oro',    type: 'currency', chance: 0.4,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
   ],
 };
+
+const _catalogSeen = new Set<string>();
+export const ITEM_CATALOG: LootEntry[] = Object.values(LOOT_TABLES)
+  .flat()
+  .filter(e => {
+    if (e.type !== 'item' || _catalogSeen.has(e.name)) return false;
+    _catalogSeen.add(e.name);
+    return true;
+  });
 
 export class GridDrops {
 

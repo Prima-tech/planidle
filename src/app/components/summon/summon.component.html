@@ -5,9 +5,10 @@
     *ngFor="let tab of tabs; let i = index"
     class="summon-tab"
     [class.active]="i === activeTab"
+    [title]="tab.title"
     (click)="activeTab = i"
   >
-    {{ tab }}
+    <ion-icon [name]="tab.icon"></ion-icon>
   </div>
 </div>
 
@@ -71,4 +72,22 @@
     <span class="map-badge" *ngIf="map.id === currentMapId">Aquí</span>
     <span class="map-go" *ngIf="map.id !== currentMapId">▶</span>
   </button>
+</div>
+
+<div class="item-list" *ngIf="activeTab === 2">
+  <div class="item-grid">
+    <button *ngFor="let entry of itemCatalog" class="item-card" (click)="giveItem(entry)" [title]="entry.name">
+      <div class="item-frame">
+        <div *ngIf="entry.iconSheet"
+             class="item-icon-sheet"
+             [class.item-icon-sheet--equip]="entry.iconFrameSize != null"
+             [style.background-image]="'url(' + entry.iconSheet + ')'"
+             [style.background-size]="getSheetBgSize(entry.iconFrameCols, entry.iconFrameSize)"
+             [style.background-position]="getSheetPos(entry.iconFrame, entry.iconFrameCols, entry.iconFrameSize)">
+        </div>
+        <img *ngIf="entry.icon && !entry.iconSheet" [src]="entry.icon" class="item-icon">
+      </div>
+      <span class="item-name">{{ entry.name }}</span>
+    </button>
+  </div>
 </div>
