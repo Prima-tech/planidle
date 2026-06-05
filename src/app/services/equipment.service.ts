@@ -19,12 +19,18 @@ const INV_COLS = 5;
 export class EquipmentService {
 
   readonly slots: EquipmentSlot[] = [
-    { id: 'weapon', label: 'Arma',     accepts: ['Espada'],   item: null },
-    { id: 'shield', label: 'Escudo',   accepts: ['Escudo'],   item: null },
-    { id: 'helmet', label: 'Casco',    accepts: ['Casco'],    item: null },
-    { id: 'armor',  label: 'Armadura', accepts: ['Armadura'], item: null },
-    { id: 'boots',  label: 'Botas',    accepts: ['Botas'],    item: null },
-    { id: 'ring',   label: 'Anillo',   accepts: ['Anillo'],   item: null },
+    // Columna izquierda
+    { id: 'helmet',  label: 'Casco',      accepts: ['Casco'],      item: null },
+    { id: 'armor',   label: 'Armadura',   accepts: ['Armadura'],   item: null },
+    { id: 'pants',   label: 'Pantalones', accepts: ['Pantalones'], item: null },
+    { id: 'boots',   label: 'Botas',      accepts: ['Botas'],      item: null },
+    { id: 'weapon',  label: 'Arma',       accepts: ['Espada'],     item: null },
+    // Columna derecha
+    { id: 'necklace', label: 'Collar',    accepts: ['Collar'],     item: null },
+    { id: 'ring1',    label: 'Anillo 1',  accepts: ['Anillo'],     item: null },
+    { id: 'ring2',    label: 'Anillo 2',  accepts: ['Anillo'],     item: null },
+    { id: 'food',     label: 'Comida',    accepts: ['Comida'],     item: null },
+    { id: 'potion',   label: 'Poción',    accepts: ['Poción'],     item: null },
   ];
 
   readonly changes$ = new Subject<void>();

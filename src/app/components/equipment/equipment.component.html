@@ -12,16 +12,16 @@
   <!-- Tab 0: Equipamiento -->
   <div class="eq-layout" *ngIf="activeTab === 0">
 
-    <!-- Columna izquierda: casco, armadura, botas -->
+    <!-- Columna izquierda: casco, armadura, pantalones, botas, arma -->
     <div class="eq-col">
       <ng-container *ngFor="let slot of equipmentService.slots">
-        <ng-container *ngIf="slot.id === 'helmet' || slot.id === 'armor' || slot.id === 'boots'">
+        <ng-container *ngIf="['helmet','armor','pants','boots','weapon'].includes(slot.id)">
           <ng-container *ngTemplateOutlet="slotTpl; context: { slot: slot }"></ng-container>
         </ng-container>
       </ng-container>
     </div>
 
-    <!-- Centro: preview del personaje + char-stats debajo -->
+    <!-- Centro: preview del personaje -->
     <div class="eq-center">
       <div class="preview-frame">
         <app-player-preview [size]="96"></app-player-preview>
@@ -29,10 +29,10 @@
       <app-char-stats></app-char-stats>
     </div>
 
-    <!-- Columna derecha: arma, escudo, anillo -->
+    <!-- Columna derecha: collar, anillo1, anillo2, comida, poción -->
     <div class="eq-col">
       <ng-container *ngFor="let slot of equipmentService.slots">
-        <ng-container *ngIf="slot.id === 'weapon' || slot.id === 'shield' || slot.id === 'ring'">
+        <ng-container *ngIf="['necklace','ring1','ring2','food','potion'].includes(slot.id)">
           <ng-container *ngTemplateOutlet="slotTpl; context: { slot: slot }"></ng-container>
         </ng-container>
       </ng-container>
