@@ -17,7 +17,9 @@ export class EquipmentComponent implements OnInit {
   showAtkBreakdown = false;
   readonly damage$ = this.charStats.damage$;
   readonly hp$     = this.charStats.hp$;
+  readonly mp$     = this.charStats.mp$;
   showHpBreakdown  = false;
+  showMpBreakdown  = false;
   readonly expNeeded = expNeeded;
   readonly maxLevel = MAX_LEVEL;
 

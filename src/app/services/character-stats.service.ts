@@ -12,7 +12,13 @@ export interface DamageBreakdown {
 
 export interface HpBreakdown {
   base:      number; // CONST * 10
-  equipment: number; // bonus de armaduras etc.
+  equipment: number;
+  total:     number;
+}
+
+export interface MpBreakdown {
+  base:      number; // MAG * 5
+  equipment: number;
   total:     number;
 }
 
@@ -35,12 +41,14 @@ const DEFAULT_BASE_STATS: BaseStats = {
 };
 
 const HP_PER_CONST = 10;
+const MP_PER_MAG   = 5;
 
 @Injectable({ providedIn: 'root' })
 export class CharacterStatsService {
 
   readonly damage$: Observable<DamageBreakdown>;
   readonly hp$:     Observable<HpBreakdown>;
+  readonly mp$:     Observable<MpBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   private readonly statsChanged$ = new Subject<void>();
@@ -49,6 +57,7 @@ export class CharacterStatsService {
     this.stats[key]++;
     this.statsChanged$.next();
     if (key === 'CONST') this.syncHpMax();
+    if (key === 'MAG')   this.syncMpMax();
   }
 
   decrement(key: keyof BaseStats): void {
@@ -56,6 +65,7 @@ export class CharacterStatsService {
       this.stats[key]--;
       this.statsChanged$.next();
       if (key === 'CONST') this.syncHpMax();
+      if (key === 'MAG')   this.syncMpMax();
     }
   }
 
@@ -64,9 +74,11 @@ export class CharacterStatsService {
 
     this.damage$ = trigger$.pipe(map(() => this._calcDamage()));
     this.hp$     = trigger$.pipe(map(() => this._calcHp()));
+    this.mp$     = trigger$.pipe(map(() => this._calcMp()));
 
-    // Sincronizar hpMax inicial
+    // Sincronizar valores iniciales
     this.syncHpMax();
+    this.syncMpMax();
   }
 
   private syncHpMax(): void {
@@ -83,10 +95,24 @@ export class CharacterStatsService {
     return { base, equipment, total: base + equipment };
   }
 
+  private syncMpMax(): void {
+    const { total } = this._calcMp();
+    const current   = this.playerState.snapshot().mp;
+    this.playerState.setMp(Math.min(current, total), total);
+  }
+
   private _calcHp(): HpBreakdown {
     const base      = this.stats.CONST * HP_PER_CONST;
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['hp'] ?? 0), 0
+    );
+    return { base, equipment, total: base + equipment };
+  }
+
+  private _calcMp(): MpBreakdown {
+    const base      = this.stats.MAG * MP_PER_MAG;
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['mp'] ?? 0), 0
     );
     return { base, equipment, total: base + equipment };
   }

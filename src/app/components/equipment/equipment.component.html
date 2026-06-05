@@ -103,6 +103,31 @@
       </div>
     </div>
 
+    <!-- Acordeón: Mana -->
+    <div class="ov-accordion" (click)="showMpBreakdown = !showMpBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Mana</span>
+        <ng-container *ngIf="(mp$ | async) as mp">
+          <ng-container *ngIf="playerState.state$ | async as st">
+            <span class="ov-val ov-val--mp">{{ st.mp }} / {{ mp.total }}</span>
+          </ng-container>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showMpBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showMpBreakdown">
+        <ng-container *ngIf="mp$ | async as mp">
+          <div class="ov-bk-row">
+            <span>Magia</span>
+            <span>{{ mp.base }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="mp.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ mp.equipment }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
     <!-- Acordeón: Ataque -->
     <div class="ov-accordion" (click)="showAtkBreakdown = !showAtkBreakdown">
       <div class="ov-accordion-header">

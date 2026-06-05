@@ -105,6 +105,12 @@ export class PlayerStateService {
     this._patch(patch);
   }
 
+  setMp(mp: number, mpMax?: number): void {
+    const patch: Partial<PlayerState> = { mp: Math.max(0, mp) };
+    if (mpMax !== undefined) patch.mpMax = mpMax;
+    this._patch(patch);
+  }
+
   /** Devuelve una copia plana lista para persistir en Supabase */
   snapshot(): PlayerState {
     return { ...this._state$.getValue() };
