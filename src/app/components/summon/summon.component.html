@@ -85,8 +85,19 @@
 
   <ng-container [ngSwitch]="activeItemTab">
 
-    <div class="item-grid" *ngSwitchCase="0">
-      <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: armorCatalog }"></ng-container>
+    <div class="armor-accordion" *ngSwitchCase="0">
+      <div *ngFor="let group of armorGroups" class="accordion-section">
+        <div class="accordion-header" (click)="toggleGroup(group.category)">
+          <span class="accordion-title">{{ group.category }}</span>
+          <span class="accordion-count">{{ group.items.length }}</span>
+          <ion-icon [name]="openGroups.has(group.category) ? 'chevron-up-outline' : 'chevron-down-outline'" class="accordion-chevron"></ion-icon>
+        </div>
+        <div class="accordion-body" *ngIf="openGroups.has(group.category)">
+          <div class="item-grid">
+            <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: group.items }"></ng-container>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="item-grid" *ngSwitchCase="1">

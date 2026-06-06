@@ -22,6 +22,11 @@ interface EnemyGroup {
   oblivion: EnemyCard | null;
 }
 
+interface ArmorGroup {
+  category: string;
+  items:    LootEntry[];
+}
+
 @Component({
   selector: 'app-summon',
   templateUrl: './summon.component.html',
@@ -43,6 +48,8 @@ export class SummonComponent {
   readonly armorCatalog:  LootEntry[];
   readonly weaponCatalog: LootEntry[];
   readonly miscCatalog:   LootEntry[];
+  readonly armorGroups:   ArmorGroup[];
+  openGroups = new Set<string>();
 
   private armorKeys:  Set<string>;
   private weaponKeys: Set<string>;
@@ -65,6 +72,19 @@ export class SummonComponent {
     this.armorCatalog  = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'armor');
     this.weaponCatalog = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'weapon');
     this.miscCatalog   = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'misc');
+
+    const ARMOR_ORDER = ['Casco', 'Armadura', 'Pantalones', 'Botas'];
+    const groupMap = new Map<string, LootEntry[]>();
+    for (const item of this.armorCatalog) {
+      const cat = item.category ?? 'Otro';
+      if (!groupMap.has(cat)) groupMap.set(cat, []);
+      groupMap.get(cat)!.push(item);
+    }
+    this.armorGroups = [
+      ...ARMOR_ORDER.filter(c => groupMap.has(c)).map(c => ({ category: c, items: groupMap.get(c)! })),
+      ...Array.from(groupMap.entries()).filter(([c]) => !ARMOR_ORDER.includes(c)).map(([c, items]) => ({ category: c, items })),
+    ];
+    if (this.armorGroups.length > 0) this.openGroups.add(this.armorGroups[0].category);
     const allCards = Object.values(ENEMY_REGISTRY).map(cfg => this.toCard(cfg));
     const baseCards = allCards.filter(c => c.tier === 'base');
     this.enemyGroups = baseCards.map(base => ({
@@ -104,6 +124,11 @@ export class SummonComponent {
 
   getSheetBgSize(cols = 12, frameSize = 32): string {
     return `${cols * 32}px auto`;
+  }
+
+  toggleGroup(category: string): void {
+    if (this.openGroups.has(category)) this.openGroups.delete(category);
+    else this.openGroups.add(category);
   }
 
   private itemGroup(entry: LootEntry): 'armor' | 'weapon' | 'misc' {

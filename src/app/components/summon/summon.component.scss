@@ -183,6 +183,60 @@
   color: #666;
 }
 
+// ── Acordeón de armaduras ────────────────────────────────────────────────────
+
+.armor-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accordion-section {
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #22223a;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+
+  &:hover  { background: #2a2a52; }
+  &:active { background: #2d4a70; }
+}
+
+.accordion-title {
+  flex: 1;
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #99aacc;
+}
+
+.accordion-count {
+  font-size: 0.65em;
+  color: #556;
+  min-width: 16px;
+  text-align: right;
+}
+
+.accordion-chevron {
+  font-size: 0.8em;
+  color: #556;
+}
+
+.accordion-body {
+  padding: 8px;
+  background: #1a1a2e;
+}
+
 // ── Items ────────────────────────────────────────────────────────────────────
 
 .item-subtabs {
