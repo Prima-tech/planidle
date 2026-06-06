@@ -673,7 +673,7 @@ const BEHOLDER1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 const beholder1: EnemyTypeConfig = {
   type: 'beholder1',
   hp: 100,
-  scale: 3,
+  scale: 4,
   speed: 85,
   damage: 14,
   attackCooldown: 1100,
@@ -687,8 +687,8 @@ const beholder1: EnemyTypeConfig = {
   },
 };
 
-const beholder1_elite: EnemyTypeConfig    = { ...beholder1, type: 'beholder1_elite',    hp: 300, scale: 3.5, speed: 94,  damage: 28, attackCooldown: 880, tint: 0xffcc00, spriteType: 'beholder1' };
-const beholder1_oblivion: EnemyTypeConfig = { ...beholder1, type: 'beholder1_oblivion', hp: 800, scale: 4,   speed: 102, damage: 46, attackCooldown: 740, tint: 0xcc00ff, spriteType: 'beholder1' };
+const beholder1_elite: EnemyTypeConfig    = { ...beholder1, type: 'beholder1_elite',    hp: 300, scale: 4.5, speed: 94,  damage: 28, attackCooldown: 880, tint: 0xffcc00, spriteType: 'beholder1' };
+const beholder1_oblivion: EnemyTypeConfig = { ...beholder1, type: 'beholder1_oblivion', hp: 800, scale: 5, speed: 102, damage: 46, attackCooldown: 740, tint: 0xcc00ff, spriteType: 'beholder1' };
 
 // ── Definición del Beholder2 ─────────────────────────────────────────────────
 
@@ -697,7 +697,7 @@ const BEHOLDER2_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 const beholder2: EnemyTypeConfig = {
   type: 'beholder2',
   hp: 130,
-  scale: 3,
+  scale: 4,
   speed: 90,
   damage: 18,
   attackCooldown: 1000,
@@ -711,8 +711,8 @@ const beholder2: EnemyTypeConfig = {
   },
 };
 
-const beholder2_elite: EnemyTypeConfig    = { ...beholder2, type: 'beholder2_elite',    hp: 390, scale: 3.5, speed: 99,  damage: 36, attackCooldown: 800, tint: 0xffcc00, spriteType: 'beholder2' };
-const beholder2_oblivion: EnemyTypeConfig = { ...beholder2, type: 'beholder2_oblivion', hp: 1040, scale: 4,  speed: 108, damage: 60, attackCooldown: 670, tint: 0xcc00ff, spriteType: 'beholder2' };
+const beholder2_elite: EnemyTypeConfig    = { ...beholder2, type: 'beholder2_elite',    hp: 390,  scale: 4.5, speed: 99,  damage: 36, attackCooldown: 800, tint: 0xffcc00, spriteType: 'beholder2' };
+const beholder2_oblivion: EnemyTypeConfig = { ...beholder2, type: 'beholder2_oblivion', hp: 1040, scale: 5, speed: 108, damage: 60, attackCooldown: 670, tint: 0xcc00ff, spriteType: 'beholder2' };
 
 // ── Definición del Beholder3 ─────────────────────────────────────────────────
 
@@ -721,7 +721,7 @@ const BEHOLDER3_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 const beholder3: EnemyTypeConfig = {
   type: 'beholder3',
   hp: 160,
-  scale: 3,
+  scale: 4,
   speed: 95,
   damage: 22,
   attackCooldown: 950,
@@ -735,8 +735,8 @@ const beholder3: EnemyTypeConfig = {
   },
 };
 
-const beholder3_elite: EnemyTypeConfig    = { ...beholder3, type: 'beholder3_elite',    hp: 480,  scale: 3.5, speed: 105, damage: 44, attackCooldown: 760, tint: 0xffcc00, spriteType: 'beholder3' };
-const beholder3_oblivion: EnemyTypeConfig = { ...beholder3, type: 'beholder3_oblivion', hp: 1280, scale: 4,   speed: 114, damage: 73, attackCooldown: 637, tint: 0xcc00ff, spriteType: 'beholder3' };
+const beholder3_elite: EnemyTypeConfig    = { ...beholder3, type: 'beholder3_elite',    hp: 480,  scale: 4.5, speed: 105, damage: 44, attackCooldown: 760, tint: 0xffcc00, spriteType: 'beholder3' };
+const beholder3_oblivion: EnemyTypeConfig = { ...beholder3, type: 'beholder3_oblivion', hp: 1280, scale: 5, speed: 114, damage: 73, attackCooldown: 637, tint: 0xcc00ff, spriteType: 'beholder3' };
 
 // ── Definición del Golem1 ────────────────────────────────────────────────────
 
@@ -745,7 +745,7 @@ const GOLEM1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const golem1: EnemyTypeConfig = {
   type: 'golem1',
   hp: 80,
-  scale: 3,
+  scale: 4.5,
   speed: 70,
   damage: 16,
   attackCooldown: 2000,
@@ -759,8 +759,8 @@ const golem1: EnemyTypeConfig = {
   },
 };
 
-const golem1_elite: EnemyTypeConfig    = { ...golem1, type: 'golem1_elite',    hp: 240, scale: 3.5, speed: 77, damage: 32, attackCooldown: 1600, tint: 0xffcc00, spriteType: 'golem1' };
-const golem1_oblivion: EnemyTypeConfig = { ...golem1, type: 'golem1_oblivion', hp: 640, scale: 4,   speed: 84, damage: 53, attackCooldown: 1340, tint: 0xcc00ff, spriteType: 'golem1' };
+const golem1_elite: EnemyTypeConfig    = { ...golem1, type: 'golem1_elite',    hp: 240, scale: 5.5, speed: 77, damage: 32, attackCooldown: 1600, tint: 0xffcc00, spriteType: 'golem1' };
+const golem1_oblivion: EnemyTypeConfig = { ...golem1, type: 'golem1_oblivion', hp: 640, scale: 6, speed: 84, damage: 53, attackCooldown: 1340, tint: 0xcc00ff, spriteType: 'golem1' };
 
 // ── Definición del Golem2 ────────────────────────────────────────────────────
 
@@ -769,7 +769,7 @@ const GOLEM2_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const golem2: EnemyTypeConfig = {
   type: 'golem2',
   hp: 120,
-  scale: 3,
+  scale: 4.5,
   speed: 75,
   damage: 20,
   attackCooldown: 1800,
@@ -783,8 +783,8 @@ const golem2: EnemyTypeConfig = {
   },
 };
 
-const golem2_elite: EnemyTypeConfig    = { ...golem2, type: 'golem2_elite',    hp: 360,  scale: 3.5, speed: 83, damage: 40, attackCooldown: 1440, tint: 0xffcc00, spriteType: 'golem2' };
-const golem2_oblivion: EnemyTypeConfig = { ...golem2, type: 'golem2_oblivion', hp: 960,  scale: 4,   speed: 90, damage: 66, attackCooldown: 1206, tint: 0xcc00ff, spriteType: 'golem2' };
+const golem2_elite: EnemyTypeConfig    = { ...golem2, type: 'golem2_elite',    hp: 360,  scale: 5.5, speed: 83, damage: 40, attackCooldown: 1440, tint: 0xffcc00, spriteType: 'golem2' };
+const golem2_oblivion: EnemyTypeConfig = { ...golem2, type: 'golem2_oblivion', hp: 960,  scale: 6, speed: 90, damage: 66, attackCooldown: 1206, tint: 0xcc00ff, spriteType: 'golem2' };
 
 // ── Definición del Golem3 ────────────────────────────────────────────────────
 
@@ -793,7 +793,7 @@ const GOLEM3_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const golem3: EnemyTypeConfig = {
   type: 'golem3',
   hp: 160,
-  scale: 3,
+  scale: 4.5,
   speed: 80,
   damage: 25,
   attackCooldown: 1600,
@@ -807,8 +807,8 @@ const golem3: EnemyTypeConfig = {
   },
 };
 
-const golem3_elite: EnemyTypeConfig    = { ...golem3, type: 'golem3_elite',    hp: 480,  scale: 3.5, speed: 88, damage: 50, attackCooldown: 1280, tint: 0xffcc00, spriteType: 'golem3' };
-const golem3_oblivion: EnemyTypeConfig = { ...golem3, type: 'golem3_oblivion', hp: 1280, scale: 4,   speed: 96, damage: 83, attackCooldown: 1072, tint: 0xcc00ff, spriteType: 'golem3' };
+const golem3_elite: EnemyTypeConfig    = { ...golem3, type: 'golem3_elite',    hp: 480,  scale: 5.5, speed: 88, damage: 50, attackCooldown: 1280, tint: 0xffcc00, spriteType: 'golem3' };
+const golem3_oblivion: EnemyTypeConfig = { ...golem3, type: 'golem3_oblivion', hp: 1280, scale: 6, speed: 96, damage: 83, attackCooldown: 1072, tint: 0xcc00ff, spriteType: 'golem3' };
 
 // ── Registro global de tipos de enemigo ──────────────────────────────────────
 // Para añadir un enemigo nuevo: agregar su config aquí.
