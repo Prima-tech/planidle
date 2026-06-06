@@ -12,6 +12,7 @@ export interface SkillConfig {
   frameCount: number;
   frameRate: number;
   scale: number;
+  iconPath?: string;    // imagen para el botón del footer
   speed?: number;       // world pixels/second — solo para 'projectile'
 }
 
@@ -26,5 +27,6 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 6,
     frameRate: 12,
     scale: 2,
+    iconPath: 'assets/sprites/skills/icons/fire.png',
   },
 };

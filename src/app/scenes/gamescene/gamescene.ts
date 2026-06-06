@@ -156,6 +156,7 @@ export class GameScene extends Phaser.Scene {
         this.initStatsListener();
         this.registerSkillAnimations();
         this.initSkillListener();
+        this.initSkillTargetChecker();
       });
     }
 
@@ -620,6 +621,27 @@ export class GameScene extends Phaser.Scene {
       this.enemies.push(enemy);
     }
 
+    private initSkillTargetChecker(): void {
+      const skillSvc = this.reg.skillActivation;
+      if (!skillSvc) return;
+      this.time.addEvent({
+        delay: 500, loop: true,
+        callback: () => {
+          const playerPos = this.player.getPosition();
+          for (const cfg of Object.values(SKILL_REGISTRY)) {
+            const rangePx = GameScene.TILE_SIZE * cfg.range;
+            const has = this.enemies.some(e => {
+              if (e.isDead) return false;
+              const p = e.getPixelPos();
+              const dx = p.x - playerPos.x, dy = p.y - playerPos.y;
+              return dx * dx + dy * dy <= rangePx * rangePx;
+            });
+            skillSvc.setTargetAvailable(cfg.abilityId, has);
+          }
+        },
+      });
+    }
+
     private registerSkillAnimations(): void {
       for (const cfg of Object.values(SKILL_REGISTRY)) {
         const animKey = cfg.spriteKey;
@@ -637,18 +659,18 @@ export class GameScene extends Phaser.Scene {
     private initSkillListener(): void {
       const skillSvc = this.reg.skillActivation;
       if (!skillSvc) return;
-      this.skillSub = skillSvc.activate$.subscribe(abilityId => this.executeSkill(abilityId));
+      this.skillSub = skillSvc.activate$.subscribe(({ abilityId, damage }) => this.executeSkill(abilityId, damage));
     }
 
-    private executeSkill(abilityId: string): void {
+    private executeSkill(abilityId: string, damage: number): void {
       const cfg = SKILL_REGISTRY[abilityId];
       if (!cfg) return;
       const target = this.findNearestEnemy(cfg.range);
       if (!target) return;
       if (cfg.effectType === 'projectile') {
-        this.launchProjectile(cfg, target);
+        this.launchProjectile(cfg, damage, target);
       } else {
-        this.playImpact(cfg, target);
+        this.playImpact(cfg, damage, target);
       }
     }
 
@@ -669,7 +691,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // El sprite aparece en el enemigo y se destruye al terminar el ciclo de animación
-    private playImpact(cfg: SkillConfig, target: Enemy): void {
+    private playImpact(cfg: SkillConfig, damage: number, target: Enemy): void {
       const pos = target.getPixelPos();
       // sprite.y es el borde inferior del enemigo (origin 0.5, 1) — centramos el efecto
       const centerY = pos.y - target.sprite.displayHeight * 0.75;
@@ -677,13 +699,13 @@ export class GameScene extends Phaser.Scene {
       sprite.setDepth(6);
       sprite.setScale(cfg.scale);
       if (this.anims.exists(cfg.spriteKey)) sprite.play(cfg.spriteKey);
-      target.takeDamage(cfg.damage);
+      target.takeDamage(damage);
       const duration = (cfg.frameCount / cfg.frameRate) * 1000;
       this.time.delayedCall(duration, () => sprite.destroy());
     }
 
     // El sprite viaja desde el jugador hasta el enemigo y aplica daño al llegar
-    private launchProjectile(cfg: SkillConfig, target: Enemy): void {
+    private launchProjectile(cfg: SkillConfig, damage: number, target: Enemy): void {
       const playerPos = this.player.getPosition();
       const targetPos = target.getPixelPos();
       const proj = this.add.sprite(playerPos.x, playerPos.y, `${cfg.spriteKey}_1`);
@@ -697,7 +719,7 @@ export class GameScene extends Phaser.Scene {
         targets: proj, x: targetPos.x, y: targetPos.y, duration, ease: 'Linear',
         onComplete: () => {
           proj.destroy();
-          if (!target.isDead) target.takeDamage(cfg.damage);
+          if (!target.isDead) target.takeDamage(damage);
         },
       });
     }

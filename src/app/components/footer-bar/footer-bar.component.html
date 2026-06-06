@@ -59,25 +59,20 @@
         <ion-icon [name]="locked ? 'lock-closed-outline' : 'lock-open-outline'" class="footer-ion-icon"></ion-icon>
       </div>
 
-      <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 1 && skillSlotsModal.isOpenModal()" [class.on-cooldown]="slotOnCooldown(1)" (click)="onSkillSlotClick(1)">
-        <ion-icon *ngIf="slotIcon(1)" [name]="slotIcon(1)" class="footer-ion-icon"></ion-icon>
-        <span *ngIf="!slotIcon(1) && !locked" class="skill-placeholder">+</span>
-      </div>
-
-      <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 2 && skillSlotsModal.isOpenModal()" [class.on-cooldown]="slotOnCooldown(2)" (click)="onSkillSlotClick(2)">
-        <ion-icon *ngIf="slotIcon(2)" [name]="slotIcon(2)" class="footer-ion-icon"></ion-icon>
-        <span *ngIf="!slotIcon(2) && !locked" class="skill-placeholder">+</span>
-      </div>
-
-      <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 3 && skillSlotsModal.isOpenModal()" [class.on-cooldown]="slotOnCooldown(3)" (click)="onSkillSlotClick(3)">
-        <ion-icon *ngIf="slotIcon(3)" [name]="slotIcon(3)" class="footer-ion-icon"></ion-icon>
-        <span *ngIf="!slotIcon(3) && !locked" class="skill-placeholder">+</span>
-      </div>
-
-      <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 4 && skillSlotsModal.isOpenModal()" [class.on-cooldown]="slotOnCooldown(4)" (click)="onSkillSlotClick(4)">
-        <ion-icon *ngIf="slotIcon(4)" [name]="slotIcon(4)" class="footer-ion-icon"></ion-icon>
-        <span *ngIf="!slotIcon(4) && !locked" class="skill-placeholder">+</span>
-      </div>
+      <ng-container *ngFor="let slot of [1,2,3,4]">
+        <div class="icon-menu-wrapper right skill-slot"
+             [class.active]="activeSkillSlot === slot && skillSlotsModal.isOpenModal()"
+             [class.flashing]="isFlashing(slot)"
+             [class.no-target]="locked && slotNoTarget(slot)"
+             [style.--cd-angle]="cdAngles[slot] + 'deg'"
+             (click)="onSkillSlotClick(slot)">
+          <img *ngIf="slotIconImage(slot)" [src]="slotIconImage(slot)" class="skill-icon-img" />
+          <ion-icon *ngIf="!slotIconImage(slot) && slotIcon(slot)" [name]="slotIcon(slot)" class="footer-ion-icon"></ion-icon>
+          <span *ngIf="!slotIconImage(slot) && !slotIcon(slot) && !locked" class="skill-placeholder">+</span>
+          <div *ngIf="cdAngles[slot] > 0" class="cd-overlay"></div>
+          <span *ngIf="cdSeconds[slot]" class="cd-text">{{ cdSeconds[slot] }}</span>
+        </div>
+      </ng-container>
     </ng-container>
 
   </ion-toolbar>

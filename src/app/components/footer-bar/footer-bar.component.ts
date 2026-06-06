@@ -12,8 +12,9 @@ import { SummonComponent } from '../summon/summon.component';
 import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel.component';
 import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
-import { TalentService } from 'src/app/services/talent.service';
+import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
+import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 
 @Component({
   selector: 'app-footer-bar',
@@ -32,12 +33,21 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('skillSlotsModal')  skillSlotsModal!:  ModalContainerComponent;
   @ViewChild('skillDetailModal') skillDetailModal!: ModalContainerComponent;
 
-  private detailSub: Subscription;
-  private closeSub:  Subscription;
+  private detailSub:   Subscription;
+  private closeSub:    Subscription;
+  private activateSub: Subscription;
+  private cdInterval:  ReturnType<typeof setInterval> | null = null;
 
   page: 'main' | 'skills' = 'main';
   activeSkillSlot: number | null = null;
   locked = true;
+
+  // grados 0-360 del arco de cooldown para cada slot
+  cdAngles:  Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+  // texto de segundos restantes ("2", "0.5", …) o vacío
+  cdSeconds: Record<number, string> = { 1: '', 2: '', 3: '', 4: '' };
+  // slots con la animación de activación activa
+  private flashSlots = new Set<number>();
 
   private skillEquipService      = inject(SkillEquipService);
   private talentService          = inject(TalentService);
@@ -54,20 +64,38 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       if (this.skillDetailModal?.isOpenModal()) this.skillDetailModal.close();
       if (this.skillSlotsModal?.isOpenModal())  this.skillSlotsModal.close();
       this.activeSkillSlot = null;
-      this.skillEquipService.activeSlot      = null;
+      this.skillEquipService.activeSlot       = null;
       this.skillEquipService.selectedAbilityId = null;
+    });
+    this.activateSub = this.skillActivationService.activate$.subscribe(({ abilityId }) => {
+      for (let slot = 1; slot <= 4; slot++) {
+        if (this.slotAbility(slot) === abilityId) { this.triggerFlash(slot); break; }
+      }
+      this.startCdLoop();
     });
   }
 
   ngOnDestroy() {
     this.detailSub?.unsubscribe();
     this.closeSub?.unsubscribe();
+    this.activateSub?.unsubscribe();
+    if (this.cdInterval) clearInterval(this.cdInterval);
   }
 
   slotIcon(slot: number): string | null {
     const id = this.skillEquipService.slots[slot];
     if (!id) return null;
     return this.talentService.nodes.find(n => n.id === id)?.icon ?? null;
+  }
+
+  slotIconImage(slot: number): string | null {
+    const ability = this.slotAbility(slot);
+    return ability ? (SKILL_REGISTRY[ability]?.iconPath ?? null) : null;
+  }
+
+  slotNoTarget(slot: number): boolean {
+    const ability = this.slotAbility(slot);
+    return !!ability && this.cdAngles[slot] === 0 && !this.skillActivationService.hasTarget(ability);
   }
 
   slotLabel(slot: number): string | null {
@@ -118,19 +146,43 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   }
 
   private activateSkill(slot: number): void {
-    const abilityId = this.skillEquipService.slots[slot];
-    if (!abilityId) return;
-    const node = this.talentService.nodes.find(n => n.id === abilityId);
+    const nodeId = this.skillEquipService.slots[slot];
+    if (!nodeId) return;
+    const node = this.talentService.nodes.find(n => n.id === nodeId);
     if (!node?.effect?.ability) return;
-    this.skillActivationService.request(node.effect.ability);
+    const sphere = this.talentService.slotted[nodeId];
+    const damage = node.effect.base * (sphere ? SPHERE_MULT[sphere] : 1);
+    this.skillActivationService.request(node.effect.ability, damage);
   }
 
-  slotOnCooldown(slot: number): boolean {
-    const abilityId = this.skillEquipService.slots[slot];
-    if (!abilityId) return false;
-    const node = this.talentService.nodes.find(n => n.id === abilityId);
-    if (!node?.effect?.ability) return false;
-    return this.skillActivationService.isOnCooldown(node.effect.ability);
+  isFlashing(slot: number): boolean { return this.flashSlots.has(slot); }
+
+  slotAbility(slot: number): string | null {
+    const nodeId = this.skillEquipService.slots[slot];
+    if (!nodeId) return null;
+    return this.talentService.nodes.find(n => n.id === nodeId)?.effect?.ability ?? null;
+  }
+
+  private triggerFlash(slot: number): void {
+    this.flashSlots.add(slot);
+    setTimeout(() => this.flashSlots.delete(slot), 400);
+  }
+
+  private startCdLoop(): void {
+    if (this.cdInterval) return;
+    this.cdInterval = setInterval(() => {
+      let anyActive = false;
+      for (let slot = 1; slot <= 4; slot++) {
+        const ability = this.slotAbility(slot);
+        if (!ability) { this.cdAngles[slot] = 0; this.cdSeconds[slot] = ''; continue; }
+        const ratio = this.skillActivationService.cooldownRatio(ability);
+        const secs  = this.skillActivationService.cooldownRemaining(ability);
+        this.cdAngles[slot]  = ratio * 360;
+        this.cdSeconds[slot] = secs > 0 ? (secs >= 1 ? String(Math.ceil(secs)) : secs.toFixed(1)) : '';
+        if (ratio > 0) anyActive = true;
+      }
+      if (!anyActive) { clearInterval(this.cdInterval!); this.cdInterval = null; }
+    }, 50);
   }
 
   openSkillSlot(slot: number) {
