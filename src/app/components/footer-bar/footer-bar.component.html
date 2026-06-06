@@ -5,44 +5,76 @@
 <app-modal-container #mapKillsModal></app-modal-container>
 <app-modal-container #statsModal></app-modal-container>
 <app-modal-container #summonModal></app-modal-container>
+<app-modal-container #skillSlotsModal></app-modal-container>
 
 <ion-footer>
   <ion-toolbar>
 
-    <div class="icon-menu-wrapper" [class.active]="equipmentModal.isOpenModal()" (click)="openEquipment()">
-      <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
-      <span class="btn-label">Equipo</span>
+    <!-- Botón switch, siempre centrado -->
+    <div class="switch-btn" (click)="togglePage()">
+      <ion-icon [name]="page === 'main' ? 'swap-horizontal-outline' : 'arrow-back-outline'" class="switch-icon"></ion-icon>
     </div>
 
-    <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
-      <ion-icon name="flash-outline" class="footer-ion-icon"></ion-icon>
-      <span class="btn-label">Invocar</span>
-    </div>
+    <!-- Página principal -->
+    <ng-container *ngIf="page === 'main'">
+      <div class="icon-menu-wrapper" [class.active]="equipmentModal.isOpenModal()" (click)="openEquipment()">
+        <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Equipo</span>
+      </div>
 
-    <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">
-      <ion-icon name="settings-outline" class="footer-ion-icon"></ion-icon>
-      <span class="btn-label">Ajustes</span>
-    </div>
+      <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
+        <ion-icon name="flash-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Invocar</span>
+      </div>
 
-    <div class="icon-menu-wrapper right" [class.active]="inventoryModal.isOpenModal()" (click)="openInventory()">
-      <ion-icon name="bag-outline" class="footer-ion-icon"></ion-icon>
-      <span class="btn-label">Bag</span>
-    </div>
+      <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">
+        <ion-icon name="settings-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Ajustes</span>
+      </div>
 
-    <div class="icon-menu-wrapper right" [class.active]="mapStatsModal.isOpenModal()" (click)="openMapStats()">
-      <ion-icon name="bar-chart-outline" class="footer-ion-icon"></ion-icon>
-      <span class="btn-label">Stats</span>
-    </div>
+      <div class="icon-menu-wrapper right" [class.active]="inventoryModal.isOpenModal()" (click)="openInventory()">
+        <ion-icon name="bag-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Bag</span>
+      </div>
 
-    <div class="icon-menu-wrapper right" [class.active]="mapKillsModal.isOpenModal()" (click)="openMapKills()">
-      <ion-icon name="skull-outline" class="footer-ion-icon"></ion-icon>
-      <span class="btn-label">Bajas</span>
-    </div>
+      <div class="icon-menu-wrapper right" [class.active]="mapStatsModal.isOpenModal()" (click)="openMapStats()">
+        <ion-icon name="bar-chart-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Stats</span>
+      </div>
 
-    <div class="icon-menu-wrapper right" [class.active]="statsModal.isOpenModal()" (click)="openStats()">
-      <ion-icon name="podium-outline" class="footer-ion-icon"></ion-icon>
-      <span class="btn-label">Rank</span>
-    </div>
+      <div class="icon-menu-wrapper right" [class.active]="mapKillsModal.isOpenModal()" (click)="openMapKills()">
+        <ion-icon name="skull-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Bajas</span>
+      </div>
+
+      <div class="icon-menu-wrapper right" [class.active]="statsModal.isOpenModal()" (click)="openStats()">
+        <ion-icon name="podium-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Rank</span>
+      </div>
+    </ng-container>
+
+    <!-- Página de habilidades -->
+    <ng-container *ngIf="page === 'skills'">
+      <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 1 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(1)">
+        <span class="skill-placeholder">+</span>
+        <span class="btn-label">H1</span>
+      </div>
+
+      <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 2 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(2)">
+        <span class="skill-placeholder">+</span>
+        <span class="btn-label">H2</span>
+      </div>
+
+      <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 3 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(3)">
+        <span class="skill-placeholder">+</span>
+        <span class="btn-label">H3</span>
+      </div>
+
+      <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 4 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(4)">
+        <span class="skill-placeholder">+</span>
+        <span class="btn-label">H4</span>
+      </div>
+    </ng-container>
 
   </ion-toolbar>
 </ion-footer>

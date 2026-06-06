@@ -1,0 +1,15 @@
+<div class="skills-panel">
+  <div class="panel-title">Habilidades</div>
+
+  <div class="ability-list">
+    <div *ngFor="let a of abilities" class="ability-item">
+      <ion-icon [name]="a.icon" class="ability-icon"></ion-icon>
+      <span class="ability-label">{{ a.label }}</span>
+    </div>
+
+    <div *ngIf="abilities.length === 0" class="empty-state">
+      <ion-icon name="lock-closed-outline" class="empty-icon"></ion-icon>
+      <p>Desbloquea habilidades en el árbol de talentos</p>
+    </div>
+  </div>
+</div>

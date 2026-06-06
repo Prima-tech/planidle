@@ -8,6 +8,7 @@ import { MapStatsComponent } from '../map-stats/map-stats.component';
 import { MapKillsComponent } from '../map-kills/map-kills.component';
 import { StatsPageComponent } from '../stats-page/stats-page.component';
 import { SummonComponent } from '../summon/summon.component';
+import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -16,13 +17,17 @@ import { SummonComponent } from '../summon/summon.component';
   standalone: false
 })
 export class FooterBarComponent implements OnInit {
-  @ViewChild('menuModal')      menuModal!:      ModalContainerComponent;
-  @ViewChild('inventoryModal') inventoryModal!: ModalContainerComponent;
-  @ViewChild('equipmentModal') equipmentModal!: ModalContainerComponent;
-  @ViewChild('mapStatsModal')  mapStatsModal!:  ModalContainerComponent;
-  @ViewChild('mapKillsModal')  mapKillsModal!:  ModalContainerComponent;
-  @ViewChild('statsModal')     statsModal!:     ModalContainerComponent;
-  @ViewChild('summonModal')    summonModal!:    ModalContainerComponent;
+  @ViewChild('menuModal')       menuModal!:       ModalContainerComponent;
+  @ViewChild('inventoryModal')  inventoryModal!:  ModalContainerComponent;
+  @ViewChild('equipmentModal')  equipmentModal!:  ModalContainerComponent;
+  @ViewChild('mapStatsModal')   mapStatsModal!:   ModalContainerComponent;
+  @ViewChild('mapKillsModal')   mapKillsModal!:   ModalContainerComponent;
+  @ViewChild('statsModal')      statsModal!:      ModalContainerComponent;
+  @ViewChild('summonModal')     summonModal!:     ModalContainerComponent;
+  @ViewChild('skillSlotsModal') skillSlotsModal!: ModalContainerComponent;
+
+  page: 'main' | 'skills' = 'main';
+  activeSkillSlot: number | null = null;
 
   constructor() { }
 
@@ -30,10 +35,34 @@ export class FooterBarComponent implements OnInit {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left: [this.summonModal, this.equipmentModal],
-      right: [this.menuModal, this.mapStatsModal, this.mapKillsModal, this.statsModal, this.inventoryModal],
+      left:  [this.summonModal, this.equipmentModal],
+      right: [this.menuModal, this.mapStatsModal, this.mapKillsModal, this.statsModal, this.inventoryModal, this.skillSlotsModal],
     };
-    groups[side].forEach(m => { if (m !== except && m.isOpenModal()) m.close(); });
+    groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
+  }
+
+  togglePage() {
+    if (this.page === 'main') {
+      [this.menuModal, this.inventoryModal, this.equipmentModal,
+       this.mapStatsModal, this.mapKillsModal, this.statsModal, this.summonModal]
+        .forEach(m => { if (m?.isOpenModal()) m.close(); });
+      this.page = 'skills';
+    } else {
+      if (this.skillSlotsModal?.isOpenModal()) this.skillSlotsModal.close();
+      this.activeSkillSlot = null;
+      this.page = 'main';
+    }
+  }
+
+  openSkillSlot(slot: number) {
+    if (this.activeSkillSlot === slot && this.skillSlotsModal.isOpenModal()) {
+      this.skillSlotsModal.close();
+      this.activeSkillSlot = null;
+    } else {
+      this.closeOtherOnSide('right', this.skillSlotsModal);
+      this.skillSlotsModal.open(SkillSlotsPanelComponent, 'skill-slots');
+      this.activeSkillSlot = slot;
+    }
   }
 
   openMenu() {
@@ -63,7 +92,7 @@ export class FooterBarComponent implements OnInit {
     }
   }
 
-openMapStats() {
+  openMapStats() {
     if (this.mapStatsModal.isOpenModal()) {
       this.mapStatsModal.close();
     } else {
@@ -98,5 +127,4 @@ openMapStats() {
       this.summonModal.open(SummonComponent, 'summon');
     }
   }
-
 }
