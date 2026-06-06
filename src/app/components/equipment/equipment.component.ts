@@ -70,15 +70,16 @@ export class EquipmentComponent implements OnInit {
     // porque equip() ya reemplazó el slot con el nuevo ítem
   }
 
-  getSheetPos(frame: number = 0, cols: number = 12, frameSize: number = 32): string {
-    const display = 32;
-    const scale   = display / frameSize;
-    const col     = frame % cols;
-    const row     = Math.floor(frame / cols);
+  getSheetPos(frame: number = 0, cols: number = 12, frameSize: number = 32, contentSize?: number): string {
+    const cs    = contentSize ?? frameSize;
+    const scale = 32 / cs;
+    const col   = frame % cols;
+    const row   = Math.floor(frame / cols);
     return `-${col * frameSize * scale}px -${row * frameSize * scale}px`;
   }
 
-  getSheetBgSize(cols: number = 12): string {
-    return `${cols * 32}px auto`;
+  getSheetBgSize(cols: number = 12, frameSize: number = 32, contentSize?: number): string {
+    const cs = contentSize ?? frameSize;
+    return `${cols * frameSize * (32 / cs)}px auto`;
   }
 }

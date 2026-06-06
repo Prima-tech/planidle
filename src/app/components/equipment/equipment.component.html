@@ -184,8 +184,8 @@
            [class.item-icon-sheet--boots]="slot.item.category === 'Botas'"
            [class.item-icon-sheet--weapon]="slot.item.category === 'Arma'"
            [style.background-image]="'url(' + slot.item.iconSheet + ')'"
-           [style.background-size]="getSheetBgSize(slot.item.iconFrameCols)"
-           [style.background-position]="getSheetPos(slot.item.iconFrame, slot.item.iconFrameCols, slot.item.iconFrameSize)">
+           [style.background-size]="getSheetBgSize(slot.item.iconFrameCols, slot.item.iconFrameSize, slot.item.iconContentSize)"
+           [style.background-position]="getSheetPos(slot.item.iconFrame, slot.item.iconFrameCols, slot.item.iconFrameSize, slot.item.iconContentSize)">
       </div>
       <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon">
       <span *ngIf="!slot.item.icon && slot.item.iconSheet == null" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>

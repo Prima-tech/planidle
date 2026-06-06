@@ -15,8 +15,9 @@ export interface LootEntry {
   icon?: string;
   iconSheet?: string;
   iconFrame?: number;
-  iconFrameSize?: number;  // tamaño original del frame en px (por defecto 32 para icons1)
-  iconFrameCols?: number;  // columnas en el sheet (por defecto 12 para icons1)
+  iconFrameSize?: number;    // tamaño físico del frame en px (por defecto 32 para icons1)
+  iconFrameCols?: number;    // columnas en el sheet (por defecto 12 para icons1)
+  iconContentSize?: number;  // tamaño real del arte dentro del frame (si difiere de iconFrameSize)
   animKey?: string;
   scale: number;
   order: number;
@@ -232,7 +233,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
     texture: 'cimitar_main', frame: 261, scale: 1.5, order: 2,
     iconSheet: 'assets/sprites/player/equip/weapons1/cimitar.png',
-    iconFrame: 261, iconFrameSize: 128, iconFrameCols: 9,
+    iconFrame: 261, iconFrameSize: 128, iconFrameCols: 9, iconContentSize: 64,
     stats: { damage: 9 },
   },
 ];
@@ -346,6 +347,7 @@ export class GridDrops {
       iconFrame: loot.iconFrame,
       iconFrameSize: loot.iconFrameSize,
       iconFrameCols: loot.iconFrameCols,
+      iconContentSize: loot.iconContentSize,
       mergeable: loot.mergeable,
       sum: loot.mergeable ? qty : undefined,
       order: loot.order,

@@ -155,7 +155,8 @@ export class Player {
 
   addLayer(slotId: string, key: string, depth: number, cfg?: EquipLayerConfig): void {
     this.removeLayer(slotId);
-    const layer = this.mainScene.add.sprite(this.sprite.x, this.sprite.y, key);
+    const offsetY = cfg?.layerOffsetY ?? 0;
+    const layer = this.mainScene.add.sprite(this.sprite.x, this.sprite.y + offsetY, key);
     layer.setOrigin(this.sprite.originX, this.sprite.originY);
     const s = cfg?.layerScale ?? this.sprite.scaleX;
     layer.setScale(s, s);
@@ -197,8 +198,8 @@ export class Player {
     const isIdle = currentAnimKey.startsWith(playerTags.IDLE);
     this.layers.forEach((layer, slotId) => {
       if (!layer?.active) return;
-      layer.setPosition(this.sprite.x, this.sprite.y);
       const cfg = this.layerConfigs.get(slotId);
+      layer.setPosition(this.sprite.x, this.sprite.y + (cfg?.layerOffsetY ?? 0));
       if (cfg?.mode === 'anim' && cfg.playerPrefix && cfg.layerPrefix) {
         const targetKey = currentAnimKey.startsWith(cfg.playerPrefix)
           ? cfg.layerPrefix + currentAnimKey.slice(cfg.playerPrefix.length)

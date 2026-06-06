@@ -113,16 +113,17 @@ export class SummonComponent {
     this.summonService.dropItem(entry);
   }
 
-  getSheetPos(frame = 0, cols = 12, frameSize = 32): string {
-    const display = 32;
-    const scale   = display / frameSize;
-    const col     = frame % cols;
-    const row     = Math.floor(frame / cols);
+  getSheetPos(frame = 0, cols = 12, frameSize = 32, contentSize?: number): string {
+    const cs    = contentSize ?? frameSize;
+    const scale = 32 / cs;
+    const col   = frame % cols;
+    const row   = Math.floor(frame / cols);
     return `-${col * frameSize * scale}px -${row * frameSize * scale}px`;
   }
 
-  getSheetBgSize(cols = 12, frameSize = 32): string {
-    return `${cols * 32}px auto`;
+  getSheetBgSize(cols = 12, frameSize = 32, contentSize?: number): string {
+    const cs = contentSize ?? frameSize;
+    return `${cols * frameSize * (32 / cs)}px auto`;
   }
 
   toggleGroup(category: string): void {

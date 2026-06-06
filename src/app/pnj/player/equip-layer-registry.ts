@@ -30,6 +30,9 @@ export interface EquipLayerConfig {
   /** Override scale for layers whose frameSize differs from the player's 64×64 base.
    *  If omitted, copies the player sprite's scale. */
   layerScale?: number;
+  /** Y offset (world px) applied to the layer position, e.g. to compensate when
+   *  the physical frame is larger than the sprite content area. */
+  layerOffsetY?: number;
 }
 
 function bootsLayer(folder: string): EquipLayerConfig {
@@ -200,7 +203,8 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   // Filas 27-30 walk (9 frames), filas 31-34 slash (6 frames).
   'Cimitar': {
     frameWidth: 128, frameHeight: 128, depth: 4, mode: 'anim',
-    layerScale: 1.25,  // 128×1.25 = 160px display, same height as player (64×2.5)
+    layerScale: 2.5,   // content 64px×2.5 = 160px display, same height as player (64×2.5)
+    layerOffsetY: 80,  // frame 128×2.5 top = y-160; need +80 to match original y-80 alignment
     playerPrefix: 'player_', layerPrefix: 'cimitar_', fallbackAnim: 'cimitar_idle_down',
     sheets: [{
       key: 'cimitar_main',
