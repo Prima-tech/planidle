@@ -31,6 +31,7 @@ export class GameScene extends Phaser.Scene {
     private animService: AnimationService;
     private equipSub:    { unsubscribe(): void } | null = null;
     private summonSub:   { unsubscribe(): void } | null = null;
+    private itemDropSub: { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
     private playerDamage = 10;
     private mobileInput: MobileInput | null = null;
@@ -117,6 +118,7 @@ export class GameScene extends Phaser.Scene {
         this.mobileInput = null;
         this.equipSub?.unsubscribe();
         this.summonSub?.unsubscribe();
+        this.itemDropSub?.unsubscribe();
         this.statsSub?.unsubscribe();
         this.player?.clearLayers();
         this.events.off('enemyAttackPlayer');
@@ -132,6 +134,7 @@ export class GameScene extends Phaser.Scene {
         this.reg.mapStats?.setTrackers(this.spawnTrackers);
         this.initEnemyAttackListener();
         this.createDrops();
+        this.initItemDropListener();
         this.initPortals();
         this.initMapStatsTimers();
         this.initEquipLayers();
@@ -488,6 +491,19 @@ export class GameScene extends Phaser.Scene {
         const tileX = Math.floor(playerPos.x / GameScene.TILE_SIZE) + 3;
         const tileY = Math.floor(playerPos.y / GameScene.TILE_SIZE);
         this.summonEnemyAt(enemyType, tileX, tileY);
+      });
+    }
+
+    private initItemDropListener(): void {
+      this.itemDropSub = this.reg.summon.itemDrop$.subscribe(entry => {
+        const pos  = this.player.getPosition();
+        const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+        const dist  = Phaser.Math.Between(120, 200);
+        const spawn = new Phaser.Math.Vector2(
+          pos.x + Math.cos(angle) * dist,
+          pos.y + Math.sin(angle) * dist,
+        );
+        this.gridDrops.spawnDrop(spawn, entry);
       });
     }
 

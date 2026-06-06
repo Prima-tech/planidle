@@ -143,7 +143,7 @@ export class GridDrops {
     return table.filter(entry => Math.random() < entry.chance);
   }
 
-  private spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry): void {
+  spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry): void {
     const offsetX = Phaser.Math.Between(-40, 40);
     const offsetY = Phaser.Math.Between(-20, 20);
 
@@ -156,10 +156,12 @@ export class GridDrops {
     sprite.setDepth(1);
     sprite.setAlpha(0);
     sprite.setScale(0);
+    (sprite.body as Phaser.Physics.Arcade.Body).enable = false;
 
     if (loot.animKey) sprite.play(loot.animKey);
 
-    // Animación de aparición
+    // Animación de aparición; collider activo solo al terminar para evitar
+    // recogida instantánea cuando el jugador está encima del spawn point.
     this.mainScene.tweens.add({
       targets: sprite,
       alpha: 1,
@@ -167,19 +169,21 @@ export class GridDrops {
       scaleY: loot.scale,
       duration: 250,
       ease: 'Back.Out',
+      onComplete: () => {
+        (sprite.body as Phaser.Physics.Arcade.Body).enable = true;
+        let collected = false;
+        const collider = this.mainScene.physics.add.overlap(
+          this.player.getSprite(),
+          sprite,
+          () => {
+            if (collected) return;
+            collected = true;
+            this.mainScene.physics.world.removeCollider(collider);
+            this.collectDrop(sprite, loot);
+          }
+        );
+      },
     });
-
-    let collected = false;
-    const collider = this.mainScene.physics.add.overlap(
-      this.player.getSprite(),
-      sprite,
-      () => {
-        if (collected) return;
-        collected = true;
-        this.mainScene.physics.world.removeCollider(collider);
-        this.collectDrop(sprite, loot);
-      }
-    );
   }
 
   private collectDrop(sprite: Phaser.Physics.Arcade.Sprite, loot: LootEntry): void {
