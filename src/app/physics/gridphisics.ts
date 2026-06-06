@@ -32,7 +32,8 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
   constructor(
     private player: Player,
     private tileMap: Phaser.Tilemaps.Tilemap,
-    private enemies: Enemy[]
+    private enemies: Enemy[],
+    private collisionTiles: Set<string> = new Set(),
   ) {
     super();
     this.layerCount = tileMap.layers.length;
@@ -116,6 +117,7 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
   private isTileBlockedXY(px: number, py: number): boolean {
     const tileX = Math.floor(px / GameScene.TILE_SIZE);
     const tileY = Math.floor(py / GameScene.TILE_SIZE);
+    if (this.collisionTiles.has(`${tileX},${tileY}`)) return true;
     let hasAny = false;
     for (let i = 0; i < this.layerCount; i++) {
       const tile = this.tileMap.getTileAt(tileX, tileY, false, i);

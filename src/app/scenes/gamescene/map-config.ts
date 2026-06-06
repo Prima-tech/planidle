@@ -25,6 +25,12 @@ export interface PortalConfig {
   targetMapId: string;
 }
 
+export interface TilesetConfig {
+  key: string;
+  image: string;
+  name: string;
+}
+
 export interface MapConfig {
   id: string;
   name: string;
@@ -33,6 +39,7 @@ export interface MapConfig {
   tilesetKey: string;
   tilesetImage: string;
   tilesetName: string;
+  extraTilesets?: TilesetConfig[];
   spawns: SpawnConfig[];
   portals: PortalConfig[];
   spawnPos?: { x: number; y: number };
@@ -90,6 +97,11 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     spawns: [],
     portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1' }],
     spawnPos: { x: 30, y: 30 },
+    extraTilesets: [
+      { key: 'w1-water-detail', name: 'Water_detilazation', image: 'assets/tilemaps/W1/water_detilazation.png' },
+      { key: 'w1-water-coasts', name: 'Water_coasts',       image: 'assets/tilemaps/W1/Water_coasts.png'       },
+      { key: 'w1-ground-copia', name: 'ground_grasss - copia', image: 'assets/tilemaps/W1/ground_grasss.png' },
+    ],
   },
 
   '1-1': {

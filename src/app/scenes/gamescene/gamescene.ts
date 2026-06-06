@@ -47,7 +47,7 @@ export class GameScene extends Phaser.Scene {
 
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
-      this.load.spritesheet('portal', 'assets/sprites/resources/Dimensional_Portal.png', { frameWidth: 32, frameHeight: 32 });
+      this.load.spritesheet('portal', 'assets/sprites/resources/portal.png', { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
       for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
@@ -64,6 +64,9 @@ export class GameScene extends Phaser.Scene {
 
       const mapCfg = this.reg.world.getCurrentMap();
       this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
+      for (const ts of mapCfg.extraTilesets ?? []) {
+        if (!this.textures.exists(ts.key)) this.load.image(ts.key, ts.image);
+      }
       this.load.tilemapTiledJSON(mapCfg.tilemapKey, mapCfg.tilemapJson);
 
       // Solo carga texturas para los enemigos del mapa actual + variantes elite/oblivion.
@@ -221,10 +224,17 @@ export class GameScene extends Phaser.Scene {
     initMap() {
       const cfg = this.currentMapConfig;
       this.currentMap = this.make.tilemap({ key: cfg.tilemapKey });
+      const allTilesetNames = [cfg.tilesetName];
       this.currentMap.addTilesetImage(cfg.tilesetName, cfg.tilesetKey);
+      for (const ts of cfg.extraTilesets ?? []) {
+        this.currentMap.addTilesetImage(ts.name, ts.key);
+        allTilesetNames.push(ts.name);
+      }
+      let depth = 0;
       for (let i = 0; i < this.currentMap.layers.length; i++) {
-        const layer = this.currentMap.createLayer(i, cfg.tilesetName, 0, 0);
-        layer.setDepth(i);
+        const layer = this.currentMap.createLayer(i, allTilesetNames, 0, 0);
+        if (!layer) continue; // object layers devuelven null
+        layer.setDepth(depth++);
         layer.scale = 3;
       }
     }
@@ -322,8 +332,8 @@ export class GameScene extends Phaser.Scene {
       if (!this.anims.exists('portal_spin')) {
         this.anims.create({
           key: 'portal_spin',
-          frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 5 }),
-          frameRate: 6,
+          frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 6 }),
+          frameRate: 12,
           repeat: -1,
         });
       }
@@ -375,8 +385,31 @@ export class GameScene extends Phaser.Scene {
     }
 
     createPhysics() {
-      this.gridPhysics  = new GridPhysics(this.player, this.currentMap, this.enemies);
+      this.gridPhysics  = new GridPhysics(this.player, this.currentMap, this.enemies, this.buildCollisionTiles());
       this.gridControls = new GridControls(this.input, this.gridPhysics, this.mobileInput);
+    }
+
+    private buildCollisionTiles(): Set<string> {
+      const blocked = new Set<string>();
+      const tw = this.currentMap.tileWidth;
+      for (const objLayer of this.currentMap.objects) {
+        const hasCollides = objLayer.properties?.some(
+          (p: any) => p.name === 'collides' && p.value === true
+        );
+        if (!hasCollides) continue;
+        for (const obj of objLayer.objects) {
+          const x0 = Math.floor(obj.x / tw);
+          const y0 = Math.floor(obj.y / tw);
+          const x1 = Math.ceil((obj.x + (obj.width ?? tw)) / tw);
+          const y1 = Math.ceil((obj.y + (obj.height ?? tw)) / tw);
+          for (let tx = x0; tx < x1; tx++) {
+            for (let ty = y0; ty < y1; ty++) {
+              blocked.add(`${tx},${ty}`);
+            }
+          }
+        }
+      }
+      return blocked;
     }
 
     createDrops() {
