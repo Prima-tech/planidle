@@ -114,14 +114,64 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
   ],
 };
 
+const _helmet = (folder: string, name: string, hp: number): LootEntry => ({
+  name,
+  category: 'Casco',
+  type: 'item',
+  chance: 1,
+  minQty: 1,
+  maxQty: 1,
+  mergeable: false,
+  texture: `${folder}_idle`,
+  frame: 4,
+  animKey: `${folder}_idle_down`,
+  iconSheet: `assets/sprites/player/equip/helmets/${folder}/idle.png`,
+  iconFrame: 4,
+  iconFrameSize: 64,
+  iconFrameCols: 2,
+  scale: 1.5,
+  order: 2,
+  stats: { hp },
+});
+
+const HELMET_CATALOG: LootEntry[] = [
+  _helmet('barbarian',         'Barbarian',         10),
+  _helmet('barbarian_nasal',   'Barbarian Nasal',   10),
+  _helmet('barbarian_viking',  'Barbarian Viking',  22),
+  _helmet('barbuta',           'Barbuta',           20),
+  _helmet('barbuta_simple',    'Barbuta Simple',    15),
+  _helmet('bascinet',          'Bascinet',          18),
+  _helmet('bascinet_round',    'Bascinet Round',    18),
+  _helmet('close',             'Close Helm',        30),
+  _helmet('flattop',           'Flattop',           12),
+  _helmet('greathelm',         'Greathelm',         35),
+  _helmet('horned',            'Horned Helm',       25),
+  _helmet('kettle',            'Kettle Helm',       10),
+  _helmet('legion',            'Legion',            22),
+  _helmet('mail',              'Mail Coif',         12),
+  _helmet('maximus',           'Maximus',           28),
+  _helmet('morion',            'Morion',            18),
+  _helmet('nasal',             'Nasal Helm',         8),
+  _helmet('norman',            'Norman Helm',       10),
+  _helmet('pointed',           'Pointed Helm',      12),
+  _helmet('spangehelm',        'Spangehelm',        15),
+  _helmet('spangehelm_viking', 'Spangehelm Viking', 22),
+  _helmet('sugarloaf',         'Sugarloaf',         25),
+  _helmet('sugarloaf_simple',  'Sugarloaf Simple',  20),
+  _helmet('xeon',              'Xeon',              40),
+];
+
 const _catalogSeen = new Set<string>();
-export const ITEM_CATALOG: LootEntry[] = Object.values(LOOT_TABLES)
-  .flat()
-  .filter(e => {
-    if (e.type !== 'item' || _catalogSeen.has(e.name)) return false;
-    _catalogSeen.add(e.name);
-    return true;
-  });
+export const ITEM_CATALOG: LootEntry[] = [
+  ...Object.values(LOOT_TABLES)
+    .flat()
+    .filter(e => {
+      if (e.type !== 'item' || _catalogSeen.has(e.name)) return false;
+      _catalogSeen.add(e.name);
+      return true;
+    }),
+  ...HELMET_CATALOG,
+];
 
 export class GridDrops {
 
