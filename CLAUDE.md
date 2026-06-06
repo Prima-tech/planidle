@@ -3,6 +3,7 @@
 ## Reglas de comportamiento
 
 - **NUNCA preguntes si enviar la app al móvil.** Solo ejecuta el build/deploy de Android si el usuario lo pide explícitamente.
+- **Cuando ejecutes una skill**, muestra siempre por consola (texto al usuario) qué skill se está ejecutando y con qué argumentos antes de empezar. Ejemplo: `> Ejecutando skill: new-enemy (gnoll4)`
 
 ## Stack
 

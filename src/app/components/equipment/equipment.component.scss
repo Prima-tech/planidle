@@ -11,6 +11,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  position: relative;
 }
 
 .eq-vtabs {
@@ -382,3 +383,220 @@
 }
 
 .ov-bonus { color: #3498db; }
+
+// ── Tab 3: Talentos ───────────────────────────────────────────────────────────
+
+.talent-panel {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// Barra de esferas
+.talent-sphere-bar {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+}
+
+.tsphere {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #2a2a3e;
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 3px 5px;
+  font-size: 0.65em;
+  user-select: none;
+}
+
+.tsphere-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tsphere-label { color: #aaa; }
+.tsphere-count { color: #fff; font-weight: bold; }
+
+// Resumen de bonos
+.talent-bonus-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  font-size: 0.68em;
+  color: #3498db;
+  font-weight: bold;
+}
+
+// Árbol (canvas)
+.talent-tree {
+  position: relative;
+  width: 220px;
+  height: 256px;
+  align-self: center;
+}
+
+.talent-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.tline {
+  stroke: #333;
+  stroke-width: 2;
+
+  &--active { stroke: #3498db; }
+}
+
+// Nodos
+.tnode {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  background: #22223a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+
+  &--locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  &--available {
+    border-color: #3498db;
+    box-shadow: 0 0 6px rgba(52, 152, 219, 0.4);
+  }
+
+  &--slotted {
+    background: #1e1e30;
+  }
+
+  &--selected {
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.8);
+  }
+}
+
+.tnode-icon {
+  font-size: 1em;
+  color: #ccc;
+  pointer-events: none;
+}
+
+.tnode-sphere-dot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid #1a1a2e;
+  pointer-events: none;
+}
+
+// Picker flotante (a la derecha del panel)
+.talent-picker-flyout {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  width: 160px;
+  background: #22223a;
+  border: 1px solid #3498db;
+  border-radius: 8px;
+  padding: 10px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  z-index: 200;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.tpicker-name {
+  font-size: 0.72em;
+  font-weight: bold;
+  color: #ccc;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-right: 18px;
+}
+
+.tpicker-spheres {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tpicker-sphere {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1a1a2e;
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 5px 7px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:active:not([disabled]) { background: #2a2a4e; }
+  &[disabled] { opacity: 0.3; cursor: not-allowed; }
+}
+
+.tpicker-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tpicker-effect {
+  flex: 1;
+  font-size: 0.62em;
+  color: #ccc;
+  line-height: 1.2;
+}
+
+.tpicker-count {
+  font-size: 0.6em;
+  color: #888;
+  white-space: nowrap;
+}
+
+.tpicker-unslot {
+  background: #3a1a1e;
+  border: 1px solid #c0392b;
+  border-radius: 4px;
+  color: #e74c3c;
+  font-size: 0.65em;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.1s;
+  &:active { background: #4a2a2e; }
+}
+
+.tpicker-cancel {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 0.85em;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px;
+  &:hover { color: #aaa; }
+}

@@ -10,6 +10,9 @@
     <button class="eq-vtab" [class.active]="activeTab === 2" (click)="activeTab = 2">
       <ion-icon name="podium-outline"></ion-icon>
     </button>
+    <button class="eq-vtab" [class.active]="activeTab === 3" (click)="activeTab = 3">
+      <ion-icon name="sparkles-outline"></ion-icon>
+    </button>
   </div>
 
   <div class="eq-content">
@@ -99,6 +102,10 @@
             <span>Equipo</span>
             <span class="ov-bonus">+{{ hp.equipment }}</span>
           </div>
+          <div class="ov-bk-row" *ngIf="hp.talents > 0">
+            <span>Talentos</span>
+            <span class="ov-bonus">+{{ hp.talents }}</span>
+          </div>
         </ng-container>
       </div>
     </div>
@@ -147,13 +154,89 @@
             <span>Equipo</span>
             <span class="ov-bonus">+{{ dmg.equipment }}</span>
           </div>
+          <div class="ov-bk-row" *ngIf="dmg.talents > 0">
+            <span>Talentos</span>
+            <span class="ov-bonus">+{{ dmg.talents }}</span>
+          </div>
         </ng-container>
       </div>
     </div>
 
   </div>
 
+  <!-- Tab 3: Talentos -->
+  <div class="talent-panel" *ngIf="activeTab === 3">
+    <div class="equipment-header">Talentos</div>
+
+    <!-- Inventario de esferas -->
+    <div class="talent-sphere-bar">
+      <div *ngFor="let s of sphereTypes" class="tsphere" [style.border-color]="sphereColors[s]" [title]="s">
+        <span class="tsphere-dot" [style.background]="sphereColors[s]"></span>
+        <span class="tsphere-label">{{ sphereLabels[s] }}</span>
+        <span class="tsphere-count">{{ talent.spheres[s] }}</span>
+      </div>
+    </div>
+
+    <!-- Resumen de bonos activos -->
+    <div class="talent-bonus-bar" *ngIf="talentBonus.atk > 0 || talentBonus.hp > 0">
+      <span *ngIf="talentBonus.atk > 0">+{{ talentBonus.atk }} ATK</span>
+      <span *ngIf="talentBonus.hp  > 0">+{{ talentBonus.hp }} HP</span>
+    </div>
+
+    <!-- Árbol -->
+    <div class="talent-tree" (click)="$event.target === $event.currentTarget && (selectedNodeId = null)">
+
+      <svg class="talent-svg" width="220" height="256">
+        <line *ngFor="let l of treeLines"
+              [attr.x1]="l.x1" [attr.y1]="l.y1"
+              [attr.x2]="l.x2" [attr.y2]="l.y2"
+              [class.tline--active]="l.active"
+              class="tline"
+        />
+      </svg>
+
+      <div *ngFor="let node of talent.nodes"
+           class="tnode"
+           [class.tnode--locked]="nodeState(node) === 'locked'"
+           [class.tnode--available]="nodeState(node) === 'available'"
+           [class.tnode--slotted]="nodeState(node) === 'slotted'"
+           [class.tnode--selected]="selectedNodeId === node.id"
+           [style.left]="nodeStyle(node)['left']"
+           [style.top]="nodeStyle(node)['top']"
+           [style.border-color]="nodeColor(node) || null"
+           [title]="node.label"
+           (click)="onNodeClick(node)"
+      >
+        <ion-icon [name]="node.icon" class="tnode-icon"></ion-icon>
+        <span *ngIf="nodeState(node) === 'slotted'" class="tnode-sphere-dot" [style.background]="nodeColor(node)"></span>
+      </div>
+
+    </div><!-- talent-tree -->
+
+  </div><!-- talent-panel -->
+
   </div><!-- eq-content -->
+
+  <!-- Picker flotante: aparece a la derecha del panel al seleccionar un talento -->
+  <div class="talent-picker-flyout" *ngIf="activeTab === 3 && selectedNodeId">
+    <button class="tpicker-cancel" (click)="selectedNodeId = null">✕</button>
+    <div class="tpicker-name">{{ formatNodeLabel(selectedNode!) }}</div>
+    <div class="tpicker-spheres">
+      <button *ngFor="let s of sphereTypes"
+              class="tpicker-sphere"
+              [style.border-color]="sphereColors[s]"
+              [disabled]="talent.spheres[s] === 0"
+              (click)="slotSphere(s)"
+      >
+        <span class="tpicker-dot" [style.background]="sphereColors[s]"></span>
+        <span class="tpicker-effect">{{ nodeEffectLabel(selectedNode!, s) }}</span>
+        <span class="tpicker-count">×{{ talent.spheres[s] }}</span>
+      </button>
+    </div>
+    <button class="tpicker-unslot" *ngIf="canUnslotSelected()" (click)="unslotSelected()">
+      Quitar esfera
+    </button>
+  </div>
 
 </div>
 

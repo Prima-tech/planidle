@@ -4,6 +4,7 @@ import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.serv
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
+import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT } from 'src/app/services/talent.service';
 
 @Component({
   selector: 'app-equipment',
@@ -13,7 +14,13 @@ import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/playe
 })
 export class EquipmentComponent implements OnInit {
 
-  activeTab = 0;
+  private _activeTab = 0;
+  get activeTab(): number { return this._activeTab; }
+  set activeTab(v: number) {
+    this._activeTab = v;
+    if (v !== 3) this.selectedNodeId = null;
+  }
+
   showAtkBreakdown = false;
   readonly damage$ = this.charStats.damage$;
   readonly hp$     = this.charStats.hp$;
@@ -21,7 +28,7 @@ export class EquipmentComponent implements OnInit {
   showHpBreakdown  = false;
   showMpBreakdown  = false;
   readonly expNeeded = expNeeded;
-  readonly maxLevel = MAX_LEVEL;
+  readonly maxLevel  = MAX_LEVEL;
 
   readonly statsList: { key: keyof BaseStats; label: string }[] = [
     { key: 'STR',   label: 'Fuerza'        },
@@ -32,11 +39,99 @@ export class EquipmentComponent implements OnInit {
     { key: 'CHR',   label: 'Carisma'       },
   ];
 
+  // ── Talentos ─────────────────────────────────────────────────────────────────
+
+  selectedNodeId: string | null = null;
+
+  readonly sphereTypes: SphereType[] = ['common', 'normal', 'rare', 'epic', 'legendary'];
+
+  readonly sphereColors: Record<SphereType, string> = {
+    common:    '#888',
+    normal:    '#4caf50',
+    rare:      '#2196f3',
+    epic:      '#9c27b0',
+    legendary: '#ff9800',
+  };
+
+  readonly sphereLabels: Record<SphereType, string> = {
+    common:    'C', normal: 'N', rare: 'R', epic: 'E', legendary: 'L',
+  };
+
+  get selectedNode(): TalentNodeConfig | null {
+    return this.talent.nodes.find(n => n.id === this.selectedNodeId) ?? null;
+  }
+
+  get talentBonus() { return this.talent.getBonus(); }
+
+  get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
+    const CW = 44, CH = 64;
+    const cx = (col: number) => col * CW + CW / 2;
+    const cy = (row: number) => row * CH + 21;
+    return this.talent.nodes.flatMap(node =>
+      node.requires.map(reqId => {
+        const parent = this.talent.nodes.find(n => n.id === reqId)!;
+        return {
+          x1: cx(parent.col), y1: cy(parent.row),
+          x2: cx(node.col),   y2: cy(node.row),
+          active: !!this.talent.slotted[reqId] && !!this.talent.slotted[node.id],
+        };
+      })
+    );
+  }
+
+  nodeState(node: TalentNodeConfig): 'locked' | 'available' | 'slotted' {
+    if (!this.talent.isUnlocked(node.id)) return 'locked';
+    if (this.talent.slotted[node.id])     return 'slotted';
+    return 'available';
+  }
+
+  nodeStyle(node: TalentNodeConfig): Record<string, string> {
+    return { left: `${node.col * 44 + 3}px`, top: `${node.row * 64 + 3}px` };
+  }
+
+  nodeColor(node: TalentNodeConfig): string {
+    const sphere = this.talent.slotted[node.id];
+    return sphere ? this.sphereColors[sphere] : '';
+  }
+
+  onNodeClick(node: TalentNodeConfig): void {
+    if (!this.talent.isUnlocked(node.id)) return;
+    this.selectedNodeId = this.selectedNodeId === node.id ? null : node.id;
+  }
+
+  slotSphere(sphere: SphereType): void {
+    if (!this.selectedNodeId) return;
+    this.talent.slot(this.selectedNodeId, sphere);
+    this.selectedNodeId = null;
+  }
+
+  canUnslotSelected(): boolean {
+    return !!this.selectedNodeId &&
+           !!this.talent.slotted[this.selectedNodeId] &&
+           !this.talent.hasDependents(this.selectedNodeId);
+  }
+
+  unslotSelected(): void {
+    if (this.selectedNodeId) this.talent.unslot(this.selectedNodeId);
+    this.selectedNodeId = null;
+  }
+
+  nodeEffectLabel(node: TalentNodeConfig, sphere: SphereType): string {
+    const val = node.effect.base * SPHERE_MULT[sphere];
+    if (node.effect.type === 'hp') return `+${val} HP`;
+    return `+${val} ATK`;
+  }
+
+  formatNodeLabel(node: TalentNodeConfig): string {
+    return node.label.replace('\n', ' ');
+  }
+
   constructor(
     public equipmentService: EquipmentService,
     private inventoryService: InventoryService,
     public charStats: CharacterStatsService,
     public playerState: PlayerStateService,
+    public talent: TalentService,
   ) {}
 
   ngOnInit(): void {}

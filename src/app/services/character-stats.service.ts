@@ -3,16 +3,19 @@ import { merge, Observable, Subject, startWith } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { EquipmentService } from './equipment.service';
 import { PlayerStateService } from './player-state.service';
+import { TalentService } from './talent.service';
 
 export interface DamageBreakdown {
   base:      number;
   equipment: number;
+  talents:   number;
   total:     number;
 }
 
 export interface HpBreakdown {
   base:      number; // CONST * 10
   equipment: number;
+  talents:   number;
   total:     number;
 }
 
@@ -69,8 +72,8 @@ export class CharacterStatsService {
     }
   }
 
-  constructor(private equipment: EquipmentService, private playerState: PlayerStateService) {
-    const trigger$ = merge(this.equipment.changes$, this.statsChanged$).pipe(startWith(null as void));
+  constructor(private equipment: EquipmentService, private playerState: PlayerStateService, private talent: TalentService) {
+    const trigger$ = merge(this.equipment.changes$, this.statsChanged$, this.talent.changes$).pipe(startWith(null as void));
 
     this.damage$ = trigger$.pipe(map(() => this._calcDamage()));
     this.hp$     = trigger$.pipe(map(() => this._calcHp()));
@@ -93,7 +96,8 @@ export class CharacterStatsService {
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['damage'] ?? 0), 0
     );
-    return { base, equipment, total: base + equipment };
+    const talents = this.talent.getBonus().atk;
+    return { base, equipment, talents, total: base + equipment + talents };
   }
 
   private syncMpMax(): void {
@@ -107,7 +111,8 @@ export class CharacterStatsService {
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['hp'] ?? 0), 0
     );
-    return { base, equipment, total: base + equipment };
+    const talents = this.talent.getBonus().hp;
+    return { base, equipment, talents, total: base + equipment + talents };
   }
 
   private _calcMp(): MpBreakdown {

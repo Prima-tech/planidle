@@ -8,6 +8,7 @@ import { SupabaseService } from './supabase.service';
 import { WorldService } from './world.service';
 import { KillService, KillMap } from './kill.service';
 import { OfflineGainsService, OfflineGains } from './offline-gains.service';
+import { TalentService, TalentSnapshot } from './talent.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -24,6 +25,7 @@ export interface GameSnapshot {
   equipment: EquipmentSnapshot;
   mapId: string;
   kills: KillMap;
+  talents?: TalentSnapshot;
   lastSeen: string;
   lastModified: string;
 }
@@ -98,8 +100,9 @@ export class SaveService {
     private world: WorldService,
     private kills: KillService,
     private offlineGains: OfflineGainsService,
+    private talent: TalentService,
   ) {
-    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$)
+    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.talent.changes$)
       .pipe(
         skip(1),
         filter(() => !this.isRestoring),
@@ -137,12 +140,14 @@ export class SaveService {
       this.equipment.restoreFromSnapshot(snapshot.equipment ?? null);
       this.world.setCurrentMap(snapshot.mapId ?? 'hogar');
       this.kills.restoreCharKills(snapshot.kills ?? {});
+      this.talent.restoreFromSnapshot(snapshot.talents ?? null);
     } else {
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
       this.equipment.restoreFromSnapshot(null);
       this.world.setCurrentMap('hogar');
       this.kills.restoreCharKills({});
+      this.talent.restoreFromSnapshot(null);
     }
     await this.kills.loadGlobalKills();
     this.pendingGains$.next(gains);
@@ -254,6 +259,7 @@ export class SaveService {
       equipment:    this.equipment.getSnapshot(),
       mapId:        this.world.getCurrentMap().id,
       kills:        this.kills.getCharKillsSnapshot(),
+      talents:      this.talent.getSnapshot(),
       lastSeen:     now,
       lastModified: now,
     };
