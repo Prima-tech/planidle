@@ -201,8 +201,8 @@ export class Player {
       const cfg = this.layerConfigs.get(slotId);
       layer.setPosition(this.sprite.x, this.sprite.y + (cfg?.layerOffsetY ?? 0));
       if (cfg?.depthWhenUp !== undefined) {
-        const facingUp = currentAnimKey.endsWith('_up');
-        layer.setDepth(facingUp ? cfg.depthWhenUp : cfg.depth);
+        const facingDown = currentAnimKey.endsWith('_down');
+        layer.setDepth(facingDown ? cfg.depth : cfg.depthWhenUp);
       }
       if (cfg?.mode === 'anim' && cfg.playerPrefix && cfg.layerPrefix) {
         const targetKey = currentAnimKey.startsWith(cfg.playerPrefix)
@@ -210,7 +210,10 @@ export class Player {
           : (cfg.fallbackAnim ?? '');
         if (targetKey && layer.anims.currentAnim?.key !== targetKey) {
           const animKey = this.mainScene.anims.exists(targetKey) ? targetKey : (cfg.fallbackAnim ?? '');
-          if (animKey) layer.play(animKey, true);
+          if (animKey) {
+            layer.play(animKey, true);
+            layer.anims.setProgress(this.sprite.anims.getProgress());
+          }
         }
       } else {
         if (isIdle) {
