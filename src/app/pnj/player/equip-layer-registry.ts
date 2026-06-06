@@ -238,14 +238,14 @@ function weaponAttackLayer(prefix: string, walkPath: string, slashPath: string):
         ],
       },
       {
-        // 18c×12r: rows 0-3 = UP/LEFT/DOWN/RIGHT (18 frames/dir, 30fps ≈ 0.6s)
+        // Realmente 6c×4r con frames de 192×192 (el sheet mide 1152×768)
         key: `${p}_slash`, path: `assets/sprites/player/equip/${slashPath}`,
-        frameWidth: 64, frameHeight: 64,
+        frameWidth: 192, frameHeight: 192,
         anims: [
-          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 17, frameRate: 30, repeat: 0 },
-          { key: `${p}_attack_left`,  startFrame: 18, endFrame: 35, frameRate: 30, repeat: 0 },
-          { key: `${p}_attack_down`,  startFrame: 36, endFrame: 53, frameRate: 30, repeat: 0 },
-          { key: `${p}_attack_right`, startFrame: 54, endFrame: 71, frameRate: 30, repeat: 0 },
+          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
         ],
       },
     ],
@@ -318,14 +318,14 @@ function armingLayer(material: string): EquipLayerConfig {
         ],
       },
       {
-        // attack_slash/fg: 12c×8r — rows 0-3 = UP/LEFT/DOWN/RIGHT, 12 frames cada dir (20fps ≈ 0.6s)
+        // Realmente 6c×4r con frames de 128×128 (el sheet mide 768×512)
         key: `${p}_slash`, path: `assets/sprites/player/equip/weapons/arming/attack_slash/fg/${material}.png`,
-        frameWidth: 64, frameHeight: 64,
+        frameWidth: 128, frameHeight: 128,
         anims: [
-          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 11, frameRate: 20, repeat: 0 },
-          { key: `${p}_attack_left`,  startFrame: 12, endFrame: 23, frameRate: 20, repeat: 0 },
-          { key: `${p}_attack_down`,  startFrame: 24, endFrame: 35, frameRate: 20, repeat: 0 },
-          { key: `${p}_attack_right`, startFrame: 36, endFrame: 47, frameRate: 20, repeat: 0 },
+          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
         ],
       },
     ],
