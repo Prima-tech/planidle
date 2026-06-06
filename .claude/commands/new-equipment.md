@@ -122,6 +122,55 @@ Archivo: `src/app/pnj/player/equip-layer-registry.ts`
 
 ---
 
+## Paso 2b — Añadir muchos items del mismo tipo (patrón batch)
+
+Cuando hay varios items del mismo tipo (ej. 24 cascos, 6 armaduras), usar una **función helper** en `equip-layer-registry.ts` para evitar repetición:
+
+```typescript
+function helmetLayer(folder: string): EquipLayerConfig {
+  const p = folder;
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [
+      { key: `${p}_idle`, path: `assets/sprites/player/equip/helmets/${p}/idle.png`, frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_idle_up`,    startFrame: 0, endFrame: 1, frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_left`,  startFrame: 2, endFrame: 3, frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_down`,  startFrame: 4, endFrame: 5, frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_right`, startFrame: 6, endFrame: 7, frameRate: 2,  repeat: -1 },
+        ],
+      },
+      { key: `${p}_walk`, path: `assets/sprites/player/equip/helmets/${p}/walk.png`, frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
+        ],
+      },
+      { key: `${p}_slash`, path: `assets/sprites/player/equip/helmets/${p}/slash.png`, frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
+        ],
+      },
+    ],
+  };
+}
+
+// En EQUIP_LAYER_REGISTRY:
+'Barbarian': helmetLayer('barbarian'),
+'Bascinet':  helmetLayer('bascinet'),
+// ...etc
+```
+
+Adaptar la ruta (`helmets/`, `armour/`, `boots/`, `legs/`) según el tipo. Ya existen helpers: `helmetLayer`, `armourLayer`, `bootsLayer`, `legsLayer`.
+
+---
+
 ## Paso 3 — Añadir el drop en `griddrops.ts`
 
 Archivo: `src/app/physics/griddrops.ts`
@@ -163,6 +212,36 @@ orc1: [
 > **`category` vs `name`**: `name` es el nombre visible del item ('Armet', 'Yelmo de Fuego'). `category` es el tipo de slot ('Casco', 'Arma', 'Pantalones'). `EquipmentService.canEquip()` comprueba `item.category ?? item.name` contra `slot.accepts`, así que todos los cascos con `category: 'Casco'` encajan en el slot sin necesidad de listarlos uno a uno.
 
 Repetir la entrada en `orc1_elite`, `orc1_oblivion`, y cualquier otro enemigo que dropee el item con sus propias chances.
+
+### Items solo para la ventana de invocación (sin drop de enemigos)
+
+Si el item NO debe dropearlo ningún enemigo pero sí aparecer en el summon, usar un **catálogo separado** en lugar de `LOOT_TABLES`:
+
+```typescript
+// griddrops.ts — helper de fábrica
+const _helmet = (folder: string, name: string, hp: number): LootEntry => ({
+  name, category: 'Casco', type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: `${folder}_idle`, frame: 4, animKey: `${folder}_idle_down`,
+  iconSheet: `assets/sprites/player/equip/helmets/${folder}/idle.png`,
+  iconFrame: 4, iconFrameSize: 64, iconFrameCols: 2,
+  scale: 1.5, order: 2, stats: { hp },
+});
+
+const HELMET_CATALOG: LootEntry[] = [
+  _helmet('barbarian', 'Barbarian', 10),
+  // ...
+];
+
+// Al final del fichero, concatenar al ITEM_CATALOG:
+export const ITEM_CATALOG: LootEntry[] = [
+  ...Object.values(LOOT_TABLES).flat().filter(e => { /* dedup */ }),
+  ...HELMET_CATALOG,
+  ...ARMOUR_CATALOG,   // si hay más catálogos
+];
+```
+
+> **NO añadir a `LOOT_TABLES`** — así nunca dropean de enemigos pero sí aparecen en el summon y en el inventario.
 
 ### Icono del item — usar el propio sprite
 
@@ -233,11 +312,44 @@ El servicio ya recalcula HP y MP automáticamente cuando cambia el equipamiento 
 
 ---
 
+## Paso 6b — Ventana de invocación (summon)
+
+Los items del catálogo se distribuyen automáticamente en sub-tabs:
+
+| Sub-tab | Categorías incluidas | Cómo se decide |
+|---------|----------------------|----------------|
+| **Armaduras** | Casco, Armadura, Pantalones, Botas | `ARMOR_SLOT_IDS = ['helmet','armor','pants','boots']` en `summon.component.ts` |
+| **Armas** | Espada (y cualquier `accepts` del slot `weapon`) | `WEAPON_SLOT_IDS = ['weapon']` |
+| **Miscelánea** | Todo lo demás | fallback |
+
+> **Bug conocido**: NO usar "todo lo que no sea weapon" para definir armadura. Los slots de accesorios (`potion`, `ring1`, `ring2`, `food`, `necklace`) también son "no-weapon" y se clasificarían mal. Siempre usar `ARMOR_SLOT_IDS` explícito.
+
+La sub-tab **Armaduras** usa un **acordeón** agrupado por `category`, en este orden: Casco → Armadura → Pantalones → Botas. Si añades una categoría nueva, incluirla en `ARMOR_ORDER` en `summon.component.ts`.
+
+### Ajuste de icono por categoría
+
+Si los iconos de un tipo de equipo se ven desplazados, añadir una clase CSS modificadora en los 3 componentes que muestran items: `inventory`, `equipment`, `summon`.
+
+**HTML** (en los 3 componentes, junto a `[class.item-icon-sheet--equip]`):
+```html
+[class.item-icon-sheet--armour]="entry.category === 'Armadura'"
+```
+
+**SCSS** (en los 3 componentes, después de `.item-icon-sheet--equip`):
+```scss
+.item-icon-sheet--armour {
+  transform: scale(2) translateY(-5px);  // ajustar según necesidad
+}
+```
+
+---
+
 ## Checklist final
 
 - [ ] PNG del sprite existe en `src/assets/sprites/player/equip/<tipo>/<nombre>/`
 - [ ] Entrada en `EQUIP_LAYER_REGISTRY` con claves de animación en **minúsculas**
 - [ ] `startFrame`/`endFrame` calculados correctamente (fila 0=UP, 1=LEFT, 2=DOWN, 3=RIGHT)
-- [ ] Drop añadido en `LOOT_TABLES` para cada enemigo correspondiente
-- [ ] Nombre del item en `accepts[]` del slot correcto en `EquipmentService`
-- [ ] El icono en `icons1.png` existe en el frame indicado
+- [ ] Si drop de enemigo: añadido en `LOOT_TABLES`. Si solo summon: añadido en catálogo separado y concatenado al `ITEM_CATALOG`
+- [ ] `category` correcto en el item (`'Casco'`, `'Armadura'`, `'Pantalones'`, `'Botas'`, `'Espada'`…)
+- [ ] Slot en `EquipmentService` ya existe o añadido con el `accepts` correcto
+- [ ] Si es tipo nuevo de equipo con icono desplazado: añadir clase CSS modificadora en inventory + equipment + summon
