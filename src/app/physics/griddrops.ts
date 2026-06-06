@@ -114,6 +114,41 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
   ],
 };
 
+const _boots = (folder: string, name: string, hp: number): LootEntry => ({
+  name,
+  category: 'Botas',
+  type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: `${folder}_idle`, frame: 4, animKey: `${folder}_idle_down`,
+  iconSheet: `assets/sprites/player/equip/boots/${folder}/idle.png`,
+  iconFrame: 4, iconFrameSize: 64, iconFrameCols: 2,
+  scale: 1.5, order: 2, stats: { hp },
+});
+
+const BOOTS_CATALOG: LootEntry[] = [
+  _boots('basic',  'Basic Boots',  8),
+  _boots('fold',   'Fold Boots',  15),
+  _boots('armour', 'Armour Boots', 25),
+];
+
+const _legs = (folder: string, name: string, hp: number): LootEntry => ({
+  name,
+  category: 'Pantalones',
+  type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: `${folder}_idle`, frame: 4, animKey: `${folder}_idle_down`,
+  iconSheet: `assets/sprites/player/equip/legs/${folder}/idle.png`,
+  iconFrame: 4, iconFrameSize: 64, iconFrameCols: 2,
+  scale: 1.5, order: 2, stats: { hp },
+});
+
+const PANTS_CATALOG: LootEntry[] = [
+  _legs('shorts',  'Shorts',       5),
+  _legs('hose',    'Hose',        10),
+  _legs('leggins', 'Leggings',    18),
+  _legs('armour',  'Armour Pants', 30),
+];
+
 const _armour = (folder: string, name: string, hp: number): LootEntry => ({
   name,
   category: 'Armadura',
@@ -199,6 +234,8 @@ export const ITEM_CATALOG: LootEntry[] = [
       _catalogSeen.add(e.name);
       return true;
     }),
+  ...BOOTS_CATALOG,
+  ...PANTS_CATALOG,
   ...ARMOUR_CATALOG,
   ...HELMET_CATALOG,
 ];

@@ -84,7 +84,6 @@ export class SummonComponent {
       ...ARMOR_ORDER.filter(c => groupMap.has(c)).map(c => ({ category: c, items: groupMap.get(c)! })),
       ...Array.from(groupMap.entries()).filter(([c]) => !ARMOR_ORDER.includes(c)).map(([c, items]) => ({ category: c, items })),
     ];
-    if (this.armorGroups.length > 0) this.openGroups.add(this.armorGroups[0].category);
     const allCards = Object.values(ENEMY_REGISTRY).map(cfg => this.toCard(cfg));
     const baseCards = allCards.filter(c => c.tier === 'base');
     this.enemyGroups = baseCards.map(base => ({
