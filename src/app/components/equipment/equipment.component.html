@@ -131,6 +131,10 @@
             <span>Equipo</span>
             <span class="ov-bonus">+{{ mp.equipment }}</span>
           </div>
+          <div class="ov-bk-row" *ngIf="mp.talents > 0">
+            <span>Talentos</span>
+            <span class="ov-bonus">+{{ mp.talents }}</span>
+          </div>
         </ng-container>
       </div>
     </div>
@@ -166,7 +170,17 @@
 
   <!-- Tab 3: Talentos -->
   <div class="talent-panel" *ngIf="activeTab === 3">
-    <div class="equipment-header">Talentos</div>
+
+    <!-- Sub-tabs -->
+    <div class="talent-tree-tabs">
+      <button *ngFor="let tree of talentTrees; let i = index"
+              class="talent-tree-tab"
+              [class.active]="i === activeTalentTree"
+              (click)="activeTalentTree = i">
+        <ion-icon [name]="tree.icon"></ion-icon>
+        <span>{{ tree.label }}</span>
+      </button>
+    </div>
 
     <!-- Inventario de esferas -->
     <div class="talent-sphere-bar">
@@ -178,15 +192,18 @@
     </div>
 
     <!-- Resumen de bonos activos -->
-    <div class="talent-bonus-bar" *ngIf="talentBonus.atk > 0 || talentBonus.hp > 0">
+    <div class="talent-bonus-bar" *ngIf="talentBonus.atk > 0 || talentBonus.hp > 0 || talentBonus.mp > 0">
       <span *ngIf="talentBonus.atk > 0">+{{ talentBonus.atk }} ATK</span>
       <span *ngIf="talentBonus.hp  > 0">+{{ talentBonus.hp }} HP</span>
+      <span *ngIf="talentBonus.mp  > 0">+{{ talentBonus.mp }} MP</span>
     </div>
 
     <!-- Árbol -->
-    <div class="talent-tree" (click)="$event.target === $event.currentTarget && (selectedNodeId = null)">
+    <div *ngIf="activeTalentTree < 2"
+         class="talent-tree"
+         [style.height.px]="treeHeight">
 
-      <svg class="talent-svg" width="220" height="256">
+      <svg class="talent-svg" width="220" [attr.height]="treeHeight">
         <line *ngFor="let l of treeLines"
               [attr.x1]="l.x1" [attr.y1]="l.y1"
               [attr.x2]="l.x2" [attr.y2]="l.y2"
@@ -195,7 +212,7 @@
         />
       </svg>
 
-      <div *ngFor="let node of talent.nodes"
+      <div *ngFor="let node of activeTreeNodes"
            class="tnode"
            [class.tnode--locked]="nodeState(node) === 'locked'"
            [class.tnode--available]="nodeState(node) === 'available'"
@@ -212,6 +229,12 @@
       </div>
 
     </div><!-- talent-tree -->
+
+    <!-- Skills: sin sistema implementado -->
+    <div *ngIf="activeTalentTree === 2" class="talent-empty">
+      <ion-icon name="construct-outline"></ion-icon>
+      <span>Sistema de skills en construcción</span>
+    </div>
 
   </div><!-- talent-panel -->
 

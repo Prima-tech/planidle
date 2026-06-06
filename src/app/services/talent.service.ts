@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 export type SphereType = 'common' | 'normal' | 'rare' | 'epic' | 'legendary';
 
 export interface TalentEffect {
-  type:     'atk' | 'hp' | 'ability';
+  type:     'atk' | 'hp' | 'mp' | 'ability';
   base:     number;
   ability?: string;
 }
@@ -35,6 +35,8 @@ export const SPHERE_MULT: Record<SphereType, number> = {
 const DEFAULT_SPHERES: Record<SphereType, number> = {
   common: 10, normal: 10, rare: 10, epic: 10, legendary: 10,
 };
+
+// ── Árbol: Combate ────────────────────────────────────────────────────────────
 
 export const TALENT_NODES: TalentNodeConfig[] = [
   {
@@ -89,16 +91,60 @@ export const TALENT_NODES: TalentNodeConfig[] = [
   },
 ];
 
+// ── Árbol: Magia ──────────────────────────────────────────────────────────────
+
+export const TALENT_NODES_MAGIA: TalentNodeConfig[] = [
+  {
+    id: 'magia_base', label: 'Magia\nBase', icon: 'sparkles-outline',
+    col: 2, row: 0, requires: [],
+    effect: { type: 'atk', base: 4 },
+  },
+  {
+    id: 'mente_aguda', label: 'Mente\nAguda', icon: 'bulb-outline',
+    col: 0, row: 1, requires: ['magia_base'],
+    effect: { type: 'atk', base: 6 },
+  },
+  {
+    id: 'reserva_mana', label: 'Reserva\nde Maná', icon: 'water-outline',
+    col: 4, row: 1, requires: ['magia_base'],
+    effect: { type: 'mp', base: 30 },
+  },
+  {
+    id: 'rayo_arcano', label: 'Rayo\nArcano', icon: 'thunderstorm-outline',
+    col: 0, row: 2, requires: ['mente_aguda'],
+    effect: { type: 'ability', base: 10, ability: 'lightning_strike' },
+  },
+  {
+    id: 'gran_reserva', label: 'Gran\nReserva', icon: 'battery-charging-outline',
+    col: 4, row: 2, requires: ['reserva_mana'],
+    effect: { type: 'mp', base: 60 },
+  },
+  {
+    id: 'tormenta', label: 'Tormenta\nArcana', icon: 'cloudy-outline',
+    col: 0, row: 3, requires: ['rayo_arcano'],
+    effect: { type: 'ability', base: 18, ability: 'storm' },
+  },
+  {
+    id: 'barrera_arcana', label: 'Barrera\nArcana', icon: 'shield-checkmark-outline',
+    col: 4, row: 3, requires: ['gran_reserva'],
+    effect: { type: 'hp', base: 60 },
+  },
+];
+
+// ── Registro global (todos los árboles) ──────────────────────────────────────
+
+const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA];
+
 @Injectable({ providedIn: 'root' })
 export class TalentService {
 
-  readonly nodes   = TALENT_NODES;
+  readonly nodes   = ALL_NODES;
   readonly spheres: Record<SphereType, number>        = { ...DEFAULT_SPHERES };
   readonly slotted: Record<string, SphereType | null> = {};
   readonly changes$ = new Subject<void>();
 
   constructor() {
-    for (const n of TALENT_NODES) this.slotted[n.id] = null;
+    for (const n of ALL_NODES) this.slotted[n.id] = null;
   }
 
   isUnlocked(nodeId: string): boolean {
@@ -128,8 +174,8 @@ export class TalentService {
     this.changes$.next();
   }
 
-  getBonus(): { atk: number; hp: number; abilities: string[] } {
-    let atk = 0, hp = 0;
+  getBonus(): { atk: number; hp: number; mp: number; abilities: string[] } {
+    let atk = 0, hp = 0, mp = 0;
     const abilities: string[] = [];
     for (const node of this.nodes) {
       const sphere = this.slotted[node.id];
@@ -139,12 +185,14 @@ export class TalentService {
         atk += node.effect.base * mult;
       } else if (node.effect.type === 'hp') {
         hp += node.effect.base * mult;
+      } else if (node.effect.type === 'mp') {
+        mp += node.effect.base * mult;
       } else if (node.effect.type === 'ability') {
         atk += node.effect.base * mult;
         if (node.effect.ability) abilities.push(node.effect.ability);
       }
     }
-    return { atk, hp, abilities };
+    return { atk, hp, mp, abilities };
   }
 
   getSnapshot(): TalentSnapshot {
@@ -157,12 +205,12 @@ export class TalentService {
   restoreFromSnapshot(snap: TalentSnapshot | null): void {
     if (!snap) {
       Object.assign(this.spheres, DEFAULT_SPHERES);
-      for (const n of TALENT_NODES) this.slotted[n.id] = null;
+      for (const n of ALL_NODES) this.slotted[n.id] = null;
       this.changes$.next();
       return;
     }
     Object.assign(this.spheres, snap.spheres);
-    for (const n of TALENT_NODES) {
+    for (const n of ALL_NODES) {
       this.slotted[n.id] = snap.nodes?.[n.id] ?? null;
     }
     this.changes$.next();

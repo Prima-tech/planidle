@@ -4,7 +4,7 @@ import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.serv
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
-import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT } from 'src/app/services/talent.service';
+import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES, TALENT_NODES_MAGIA } from 'src/app/services/talent.service';
 
 @Component({
   selector: 'app-equipment',
@@ -41,6 +41,20 @@ export class EquipmentComponent implements OnInit {
 
   // ── Talentos ─────────────────────────────────────────────────────────────────
 
+  readonly talentTrees: { label: string; icon: string; nodes: TalentNodeConfig[] }[] = [
+    { label: 'Combate', icon: 'shield-half-outline',  nodes: TALENT_NODES       },
+    { label: 'Magia',   icon: 'sparkles-outline',     nodes: TALENT_NODES_MAGIA },
+    { label: 'Skills',  icon: 'rocket-outline',       nodes: []                 },
+  ];
+
+  private _activeTalentTree = 0;
+  get activeTalentTree(): number { return this._activeTalentTree; }
+  set activeTalentTree(v: number) { this._activeTalentTree = v; this.selectedNodeId = null; }
+
+  get activeTreeNodes(): TalentNodeConfig[] {
+    return this.talentTrees[this._activeTalentTree]?.nodes ?? [];
+  }
+
   selectedNodeId: string | null = null;
 
   readonly sphereTypes: SphereType[] = ['common', 'normal', 'rare', 'epic', 'legendary'];
@@ -63,19 +77,29 @@ export class EquipmentComponent implements OnInit {
 
   get talentBonus() { return this.talent.getBonus(); }
 
+  get treeHeight(): number {
+    const nodes = this.activeTreeNodes;
+    if (!nodes.length) return 64;
+    return (Math.max(...nodes.map(n => n.row)) + 1) * 64;
+  }
+
   get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
+    const nodes = this.activeTreeNodes;
     const CW = 44, CH = 64;
     const cx = (col: number) => col * CW + CW / 2;
     const cy = (row: number) => row * CH + 21;
-    return this.talent.nodes.flatMap(node =>
-      node.requires.map(reqId => {
-        const parent = this.talent.nodes.find(n => n.id === reqId)!;
-        return {
-          x1: cx(parent.col), y1: cy(parent.row),
-          x2: cx(node.col),   y2: cy(node.row),
-          active: !!this.talent.slotted[reqId] && !!this.talent.slotted[node.id],
-        };
-      })
+    return nodes.flatMap(node =>
+      node.requires
+        .map(reqId => {
+          const parent = nodes.find(n => n.id === reqId);
+          if (!parent) return null;
+          return {
+            x1: cx(parent.col), y1: cy(parent.row),
+            x2: cx(node.col),   y2: cy(node.row),
+            active: !!this.talent.slotted[reqId] && !!this.talent.slotted[node.id],
+          };
+        })
+        .filter((l): l is NonNullable<typeof l> => l !== null)
     );
   }
 
@@ -119,6 +143,7 @@ export class EquipmentComponent implements OnInit {
   nodeEffectLabel(node: TalentNodeConfig, sphere: SphereType): string {
     const val = node.effect.base * SPHERE_MULT[sphere];
     if (node.effect.type === 'hp') return `+${val} HP`;
+    if (node.effect.type === 'mp') return `+${val} MP`;
     return `+${val} ATK`;
   }
 

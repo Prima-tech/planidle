@@ -22,6 +22,7 @@ export interface HpBreakdown {
 export interface MpBreakdown {
   base:      number; // MAG * 5
   equipment: number;
+  talents:   number;
   total:     number;
 }
 
@@ -102,7 +103,7 @@ export class CharacterStatsService {
 
   private syncMpMax(): void {
     const { total } = this._calcMp();
-    const current   = this.playerState.snapshot().mp;
+    const current   = this.playerState.snapshot().mp ?? total;
     this.playerState.setMp(Math.min(current, total), total);
   }
 
@@ -120,6 +121,7 @@ export class CharacterStatsService {
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['mp'] ?? 0), 0
     );
-    return { base, equipment, total: base + equipment };
+    const talents = this.talent.getBonus().mp;
+    return { base, equipment, talents, total: base + equipment + talents };
   }
 }
