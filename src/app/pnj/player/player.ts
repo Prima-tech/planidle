@@ -157,7 +157,8 @@ export class Player {
     this.removeLayer(slotId);
     const layer = this.mainScene.add.sprite(this.sprite.x, this.sprite.y, key);
     layer.setOrigin(this.sprite.originX, this.sprite.originY);
-    layer.setScale(this.sprite.scaleX, this.sprite.scaleY);
+    const s = cfg?.layerScale ?? this.sprite.scaleX;
+    layer.setScale(s, s);
     layer.setDepth(depth);
     if (cfg?.mode === 'anim' && cfg.fallbackAnim && this.mainScene.anims.exists(cfg.fallbackAnim)) {
       layer.play(cfg.fallbackAnim, true);

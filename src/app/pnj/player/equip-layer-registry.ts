@@ -27,6 +27,9 @@ export interface EquipLayerConfig {
   playerPrefix?: string;   // e.g. 'player_'
   layerPrefix?: string;    // e.g. 'armet_'
   fallbackAnim?: string;
+  /** Override scale for layers whose frameSize differs from the player's 64×64 base.
+   *  If omitted, copies the player sprite's scale. */
+  layerScale?: number;
 }
 
 function bootsLayer(folder: string): EquipLayerConfig {
@@ -192,6 +195,33 @@ function helmetLayer(folder: string): EquipLayerConfig {
 
 export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   // ── Sombra del jugador (capa permanente, depth < player) ──────────────────
+  // ── Armas ─────────────────────────────────────────────────────────────────
+  // weapons1/cimitar.png: 9c×35r a 128×128px. Contenido en filas 27-34.
+  // Filas 27-30 walk (9 frames), filas 31-34 slash (6 frames).
+  'Cimitar': {
+    frameWidth: 128, frameHeight: 128, depth: 4, mode: 'anim',
+    layerScale: 1.25,  // 128×1.25 = 160px display, same height as player (64×2.5)
+    playerPrefix: 'player_', layerPrefix: 'cimitar_', fallbackAnim: 'cimitar_idle_down',
+    sheets: [{
+      key: 'cimitar_main',
+      path: 'assets/sprites/player/equip/weapons1/cimitar.png',
+      frameWidth: 128, frameHeight: 128,
+      anims: [
+        { key: 'cimitar_idle_up',      startFrame: 243, endFrame: 243, frameRate: 2,  repeat: -1 },
+        { key: 'cimitar_idle_left',    startFrame: 252, endFrame: 252, frameRate: 2,  repeat: -1 },
+        { key: 'cimitar_idle_down',    startFrame: 261, endFrame: 261, frameRate: 2,  repeat: -1 },
+        { key: 'cimitar_idle_right',   startFrame: 270, endFrame: 270, frameRate: 2,  repeat: -1 },
+        { key: 'cimitar_walk_up',      startFrame: 243, endFrame: 251, frameRate: 10, repeat: -1 },
+        { key: 'cimitar_walk_left',    startFrame: 252, endFrame: 260, frameRate: 10, repeat: -1 },
+        { key: 'cimitar_walk_down',    startFrame: 261, endFrame: 269, frameRate: 10, repeat: -1 },
+        { key: 'cimitar_walk_right',   startFrame: 270, endFrame: 278, frameRate: 10, repeat: -1 },
+        { key: 'cimitar_attack_up',    startFrame: 279, endFrame: 284, frameRate: 10, repeat: 0 },
+        { key: 'cimitar_attack_left',  startFrame: 288, endFrame: 293, frameRate: 10, repeat: 0 },
+        { key: 'cimitar_attack_down',  startFrame: 297, endFrame: 302, frameRate: 10, repeat: 0 },
+        { key: 'cimitar_attack_right', startFrame: 306, endFrame: 311, frameRate: 10, repeat: 0 },
+      ],
+    }],
+  },
   'Shadow': {
     frameWidth: 64, frameHeight: 64, depth: 1, mode: 'anim',
     playerPrefix: 'player_', layerPrefix: 'shadow_', fallbackAnim: 'shadow_idle_down',

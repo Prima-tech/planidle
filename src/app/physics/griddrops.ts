@@ -226,6 +226,17 @@ const HELMET_CATALOG: LootEntry[] = [
 ];
 
 
+const WEAPON_CATALOG: LootEntry[] = [
+  {
+    name: 'Cimitar', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'cimitar_main', frame: 261, scale: 1.5, order: 2,
+    iconSheet: 'assets/sprites/player/equip/weapons1/cimitar.png',
+    iconFrame: 261, iconFrameSize: 128, iconFrameCols: 9,
+    stats: { damage: 9 },
+  },
+];
+
 const _catalogSeen = new Set<string>();
 export const ITEM_CATALOG: LootEntry[] = [
   ...Object.values(LOOT_TABLES)
@@ -239,6 +250,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...PANTS_CATALOG,
   ...ARMOUR_CATALOG,
   ...HELMET_CATALOG,
+  ...WEAPON_CATALOG,
 ];
 
 export class GridDrops {

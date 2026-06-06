@@ -121,6 +121,7 @@
            [class.item-icon-sheet--armour]="entry.category === 'Armadura'"
            [class.item-icon-sheet--pants]="entry.category === 'Pantalones'"
            [class.item-icon-sheet--boots]="entry.category === 'Botas'"
+           [class.item-icon-sheet--weapon]="entry.category === 'Arma'"
            [style.background-image]="'url(' + entry.iconSheet + ')'"
            [style.background-size]="getSheetBgSize(entry.iconFrameCols, entry.iconFrameSize)"
            [style.background-position]="getSheetPos(entry.iconFrame, entry.iconFrameCols, entry.iconFrameSize)">
