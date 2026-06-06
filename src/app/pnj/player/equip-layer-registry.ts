@@ -333,6 +333,39 @@ function armingLayer(material: string): EquipLayerConfig {
 }
 
 export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
+  // ── Sombra del jugador (capa permanente, depth < player) ──────────────────
+  'Shadow': {
+    frameWidth: 64, frameHeight: 64, depth: 1, mode: 'anim',
+    playerPrefix: 'player_', layerPrefix: 'shadow_', fallbackAnim: 'shadow_idle_down',
+    sheets: [
+      {
+        key: 'shadow_walk',
+        path: 'assets/sprites/player/character/shadow/walk/shadow.png',
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: 'shadow_idle_up',    startFrame: 0,  endFrame: 0,  frameRate: 2,  repeat: -1 },
+          { key: 'shadow_idle_left',  startFrame: 9,  endFrame: 9,  frameRate: 2,  repeat: -1 },
+          { key: 'shadow_idle_down',  startFrame: 18, endFrame: 18, frameRate: 2,  repeat: -1 },
+          { key: 'shadow_idle_right', startFrame: 27, endFrame: 27, frameRate: 2,  repeat: -1 },
+          { key: 'shadow_walk_up',    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
+          { key: 'shadow_walk_left',  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
+          { key: 'shadow_walk_down',  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
+          { key: 'shadow_walk_right', startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        key: 'shadow_slash',
+        path: 'assets/sprites/player/character/shadow/slash/shadow.png',
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: 'shadow_attack_up',    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
+          { key: 'shadow_attack_left',  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
+          { key: 'shadow_attack_down',  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
+          { key: 'shadow_attack_right', startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
+        ],
+      },
+    ],
+  },
   'Espada': {
     key: 'equip_espada',
     path: 'assets/sprites/player/equip/right-hand/long_knife.png',

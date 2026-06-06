@@ -170,6 +170,7 @@ export class GameScene extends Phaser.Scene {
 
     private initEquipLayers(): void {
       this.registerEquipLayerAnims();
+      this.initShadowLayer();
       const equipment = this.reg.equipment;
       if (!equipment) return;
       for (const slot of equipment.slots) {
@@ -180,6 +181,14 @@ export class GameScene extends Phaser.Scene {
           this.applyEquipLayer(slot.id, slot.item);
         }
       });
+    }
+
+    private initShadowLayer(): void {
+      const cfg = EQUIP_LAYER_REGISTRY['Shadow'];
+      if (!cfg || !cfg.sheets) return;
+      const allLoaded = cfg.sheets.every(s => this.textures.exists(s.key));
+      if (!allLoaded) return;
+      this.player.addLayer('shadow', cfg.sheets[0].key, cfg.depth, cfg);
     }
 
     private registerEquipLayerAnims(): void {
