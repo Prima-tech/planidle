@@ -49,7 +49,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.tabs = Array.from({ length: this.NUMBER_OF_TABS }, (_, i) => `Tab ${i + 1}`);
+    this.tabs = ['I', 'II', 'III', 'IV', 'V'].slice(0, this.NUMBER_OF_TABS);
     this.equipmentSlotIds = this.equipmentService.getEquipmentSlotIds();
 
     // Grid vacío síncrono para que CDK registre los drop lists antes de cargar datos

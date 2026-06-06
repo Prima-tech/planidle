@@ -67,9 +67,15 @@
 
 <!-- Botones -->
 <div class="button-bar" (click)="$event.stopPropagation()">
-  <button (click)="openSplitMenu($event)">{{ 'INVENTORY.BTN.SPLIT' | translate }}</button>
-  <button (click)="openDeleteModal($event)">{{ 'INVENTORY.BTN.DELETE' | translate }}</button>
-  <button (click)="sortInventory()">{{ 'INVENTORY.BTN.SORT' | translate }}</button>
+  <button class="btn-action" (click)="openSplitMenu($event)" title="Split">
+    <ion-icon name="git-branch-outline"></ion-icon>
+  </button>
+  <button class="btn-action btn-danger" (click)="openDeleteModal($event)" title="Borrar">
+    <ion-icon name="trash-outline"></ion-icon>
+  </button>
+  <button class="btn-action" (click)="sortInventory()" title="Ordenar">
+    <ion-icon name="swap-vertical-outline"></ion-icon>
+  </button>
 </div>
 
 <!-- Menú Split -->

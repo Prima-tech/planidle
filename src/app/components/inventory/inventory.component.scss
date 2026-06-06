@@ -135,22 +135,57 @@
 .button-bar {
   display: flex;
   justify-content: center;
-  margin-top: 4px;
-  gap: 6px;
+  margin-top: 6px;
+  gap: 8px;
 }
 
-.button-bar button {
-  padding: 4px 10px;
-  font-size: 0.75em;
-  background: #2a2a4e;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 4px;
+.btn-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #22223a;
+  color: #8899bb;
+  border: 1px solid #3a3a5a;
+  border-radius: 10px;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  ion-icon {
+    font-size: 22px;
+    pointer-events: none;
+  }
+
+  &:hover {
+    background: #2e2e52;
+    color: #c8d4f0;
+    border-color: #5a5a88;
+  }
+
+  &:active {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+  }
 }
 
-.button-bar button:active {
-  background: #3498db;
+.btn-danger {
+  color: #c0564a;
+  border-color: #4a2a2a;
+  background: #261a1a;
+
+  &:hover {
+    background: #3a1f1f;
+    color: #e07070;
+    border-color: #7a3a3a;
+  }
+
+  &:active {
+    background: #c0392b;
+    color: #fff;
+    border-color: #c0392b;
+  }
 }
 
 /* Split */
