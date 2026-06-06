@@ -33,6 +33,9 @@ export interface EquipLayerConfig {
   /** Y offset (world px) applied to the layer position, e.g. to compensate when
    *  the physical frame is larger than the sprite content area. */
   layerOffsetY?: number;
+  /** Depth to use when the player faces up (weapon goes behind the sprite).
+   *  If omitted, depth stays constant for all directions. */
+  depthWhenUp?: number;
 }
 
 function bootsLayer(folder: string): EquipLayerConfig {
@@ -203,8 +206,9 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   // Filas 27-30 walk (9 frames), filas 31-34 slash (6 frames).
   'Cimitar': {
     frameWidth: 128, frameHeight: 128, depth: 4, mode: 'anim',
-    layerScale: 2.5,   // content 64px×2.5 = 160px display, same height as player (64×2.5)
-    layerOffsetY: 80,  // frame 128×2.5 top = y-160; need +80 to match original y-80 alignment
+    layerScale: 2.5,    // content 64px×2.5 = 160px display, same height as player (64×2.5)
+    layerOffsetY: 80,   // frame 128×2.5 top = y-160; need +80 to match original y-80 alignment
+    depthWhenUp: 1.5,   // behind player (depth 2) when facing up
     playerPrefix: 'player_', layerPrefix: 'cimitar_', fallbackAnim: 'cimitar_idle_down',
     sheets: [{
       key: 'cimitar_main',

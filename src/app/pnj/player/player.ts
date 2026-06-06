@@ -200,6 +200,10 @@ export class Player {
       if (!layer?.active) return;
       const cfg = this.layerConfigs.get(slotId);
       layer.setPosition(this.sprite.x, this.sprite.y + (cfg?.layerOffsetY ?? 0));
+      if (cfg?.depthWhenUp !== undefined) {
+        const facingUp = currentAnimKey.endsWith('_up');
+        layer.setDepth(facingUp ? cfg.depthWhenUp : cfg.depth);
+      }
       if (cfg?.mode === 'anim' && cfg.playerPrefix && cfg.layerPrefix) {
         const targetKey = currentAnimKey.startsWith(cfg.playerPrefix)
           ? cfg.layerPrefix + currentAnimKey.slice(cfg.playerPrefix.length)
