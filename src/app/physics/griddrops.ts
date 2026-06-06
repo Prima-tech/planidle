@@ -114,6 +114,35 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
   ],
 };
 
+const _armour = (folder: string, name: string, hp: number): LootEntry => ({
+  name,
+  category: 'Armadura',
+  type: 'item',
+  chance: 1,
+  minQty: 1,
+  maxQty: 1,
+  mergeable: false,
+  texture: `${folder}_idle`,
+  frame: 4,
+  animKey: `${folder}_idle_down`,
+  iconSheet: `assets/sprites/player/equip/armour/${folder}/idle.png`,
+  iconFrame: 4,
+  iconFrameSize: 64,
+  iconFrameCols: 2,
+  scale: 1.5,
+  order: 2,
+  stats: { hp },
+});
+
+const ARMOUR_CATALOG: LootEntry[] = [
+  _armour('tshirt',          'Tshirt',           5),
+  _armour('tshirt_buttoned', 'Tshirt Buttoned',  8),
+  _armour('leather',         'Leather Armour',  15),
+  _armour('chainmail',       'Chainmail',       25),
+  _armour('legion',          'Legion Armour',   30),
+  _armour('plate',           'Plate Armour',    45),
+];
+
 const _helmet = (folder: string, name: string, hp: number): LootEntry => ({
   name,
   category: 'Casco',
@@ -170,6 +199,7 @@ export const ITEM_CATALOG: LootEntry[] = [
       _catalogSeen.add(e.name);
       return true;
     }),
+  ...ARMOUR_CATALOG,
   ...HELMET_CATALOG,
 ];
 

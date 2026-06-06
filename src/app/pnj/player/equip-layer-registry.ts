@@ -29,6 +29,46 @@ export interface EquipLayerConfig {
   fallbackAnim?: string;
 }
 
+function armourLayer(folder: string): EquipLayerConfig {
+  const p = folder;
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [
+      {
+        key: `${p}_idle`, path: `assets/sprites/player/equip/armour/${p}/idle.png`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_idle_up`,    startFrame: 0, endFrame: 1, frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_left`,  startFrame: 2, endFrame: 3, frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_down`,  startFrame: 4, endFrame: 5, frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_right`, startFrame: 6, endFrame: 7, frameRate: 2,  repeat: -1 },
+        ],
+      },
+      {
+        key: `${p}_walk`, path: `assets/sprites/player/equip/armour/${p}/walk.png`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        key: `${p}_slash`, path: `assets/sprites/player/equip/armour/${p}/slash.png`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
+        ],
+      },
+    ],
+  };
+}
+
 function helmetLayer(folder: string): EquipLayerConfig {
   const p = folder;
   return {
@@ -77,6 +117,12 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
     frameHeight: 64,
     depth: 4,
   },
+  'Chainmail':        armourLayer('chainmail'),
+  'Leather Armour':   armourLayer('leather'),
+  'Legion Armour':    armourLayer('legion'),
+  'Plate Armour':     armourLayer('plate'),
+  'Tshirt':           armourLayer('tshirt'),
+  'Tshirt Buttoned':  armourLayer('tshirt_buttoned'),
   'Barbarian':        helmetLayer('barbarian'),
   'Barbarian Nasal':  helmetLayer('barbarian_nasal'),
   'Barbarian Viking': helmetLayer('barbarian_viking'),

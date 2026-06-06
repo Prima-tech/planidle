@@ -107,6 +107,7 @@
       <div *ngIf="entry.iconSheet"
            class="item-icon-sheet"
            [class.item-icon-sheet--equip]="entry.iconFrameSize != null"
+           [class.item-icon-sheet--armour]="entry.category === 'Armadura'"
            [style.background-image]="'url(' + entry.iconSheet + ')'"
            [style.background-size]="getSheetBgSize(entry.iconFrameCols, entry.iconFrameSize)"
            [style.background-position]="getSheetPos(entry.iconFrame, entry.iconFrameCols, entry.iconFrameSize)">
