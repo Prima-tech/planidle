@@ -608,8 +608,8 @@ const gnoll1: EnemyTypeConfig = {
   actions: {
     idle:   { filename: 'Gnoll1_Idle_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GNOLL1_DIR) },
     walk:   { filename: 'Gnoll1_Walk_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, GNOLL1_DIR) },
-    run:    { filename: 'Gnoll1_Run_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(6, GNOLL1_DIR) },
-    attack: { filename: 'Gnoll1_Attack_with_shadow',frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(7, GNOLL1_DIR) },
+    run:    { filename: 'Gnoll1_Run_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(8,  GNOLL1_DIR) },
+    attack: { filename: 'Gnoll1_Attack_with_shadow',frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(10, GNOLL1_DIR) },
     hurt:   { filename: 'Gnoll1_Hurt_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true, frames: dirFrames(4, GNOLL1_DIR) },
     death:  { filename: 'Gnoll_Death_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true, frames: dirFrames(6, GNOLL1_DIR) },
   },
@@ -632,8 +632,8 @@ const gnoll2: EnemyTypeConfig = {
   actions: {
     idle:   { filename: 'Gnoll2_Idle_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GNOLL2_DIR) },
     walk:   { filename: 'Gnoll2_Walk_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, GNOLL2_DIR) },
-    run:    { filename: 'Gnoll2_Run_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(6, GNOLL2_DIR) },
-    attack: { filename: 'Gnoll2_Attack_with_shadow',frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(7, GNOLL2_DIR) },
+    run:    { filename: 'Gnoll2_Run_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(8,  GNOLL2_DIR) },
+    attack: { filename: 'Gnoll2_Attack_with_shadow',frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(10, GNOLL2_DIR) },
     hurt:   { filename: 'Gnoll2_Hurt_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true, frames: dirFrames(4, GNOLL2_DIR) },
     death:  { filename: 'Gnoll2_Death_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true, frames: dirFrames(6, GNOLL2_DIR) },
   },
@@ -656,8 +656,8 @@ const gnoll3: EnemyTypeConfig = {
   actions: {
     idle:   { filename: 'Gnoll3_Idle_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GNOLL3_DIR) },
     walk:   { filename: 'Gnoll3_Walk_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, GNOLL3_DIR) },
-    run:    { filename: 'Gnoll3_Run_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(6, GNOLL3_DIR) },
-    attack: { filename: 'Gnoll3_Attack_with_shadow',frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(7, GNOLL3_DIR) },
+    run:    { filename: 'Gnoll3_Run_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(8,  GNOLL3_DIR) },
+    attack: { filename: 'Gnoll3_Attack_with_shadow',frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(10, GNOLL3_DIR) },
     hurt:   { filename: 'Gnoll3_Hurt_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true, frames: dirFrames(4, GNOLL3_DIR) },
     death:  { filename: 'Gnoll3_Death_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true, frames: dirFrames(6, GNOLL3_DIR) },
   },
