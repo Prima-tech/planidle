@@ -1,15 +1,15 @@
-<div class="skills-panel">
+<div class="grid-view">
   <div class="panel-title">Habilidades</div>
 
-  <div class="ability-list">
-    <div *ngFor="let a of abilities" class="ability-item">
+  <div class="ability-grid" *ngIf="abilities.length > 0">
+    <div *ngFor="let a of abilities" class="ability-btn" [class.active]="a.id === selectedId" (click)="select(a)">
       <ion-icon [name]="a.icon" class="ability-icon"></ion-icon>
       <span class="ability-label">{{ a.label }}</span>
     </div>
+  </div>
 
-    <div *ngIf="abilities.length === 0" class="empty-state">
-      <ion-icon name="lock-closed-outline" class="empty-icon"></ion-icon>
-      <p>Desbloquea habilidades en el árbol de talentos</p>
-    </div>
+  <div class="empty-state" *ngIf="abilities.length === 0">
+    <ion-icon name="lock-closed-outline" class="empty-icon"></ion-icon>
+    <p>Desbloquea habilidades en el árbol de talentos</p>
   </div>
 </div>

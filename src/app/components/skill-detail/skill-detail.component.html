@@ -1,0 +1,13 @@
+<div class="detail-panel" *ngIf="ability">
+  <div class="detail-icon-wrap">
+    <ion-icon [name]="ability.icon" class="detail-icon"></ion-icon>
+  </div>
+
+  <div class="detail-name">{{ ability.label }}</div>
+  <div class="detail-ability">{{ ability.effect.ability }}</div>
+  <div class="detail-value">Poder base: {{ ability.effect.base }}</div>
+
+  <button class="equip-btn" (click)="equip()" [disabled]="!activeSlot">
+    <ion-icon name="add-outline"></ion-icon>
+  </button>
+</div>

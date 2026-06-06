@@ -61,34 +61,6 @@
     transition: color 0.15s;
   }
 
-  .switch-btn {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #2a2a3e;
-    border: 1px solid #555;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1;
-    transition: border-color 0.15s, background 0.15s;
-
-    &:active {
-      background: #1e3a5f;
-      border-color: #3498db;
-    }
-
-    .switch-icon {
-      font-size: 18px;
-      color: #888;
-    }
-  }
-
   .skill-placeholder {
     font-size: 22px;
     color: #555;

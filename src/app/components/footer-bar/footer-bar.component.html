@@ -6,13 +6,13 @@
 <app-modal-container #statsModal></app-modal-container>
 <app-modal-container #summonModal></app-modal-container>
 <app-modal-container #skillSlotsModal></app-modal-container>
+<app-modal-container #skillDetailModal></app-modal-container>
 
 <ion-footer>
   <ion-toolbar>
 
-    <!-- Botón switch, siempre centrado -->
-    <div class="switch-btn" (click)="togglePage()">
-      <ion-icon [name]="page === 'main' ? 'swap-horizontal-outline' : 'arrow-back-outline'" class="switch-icon"></ion-icon>
+    <div class="icon-menu-wrapper" (click)="togglePage()">
+      <ion-icon [name]="page === 'main' ? 'swap-horizontal-outline' : 'arrow-back-outline'" class="footer-ion-icon"></ion-icon>
     </div>
 
     <!-- Página principal -->
@@ -56,23 +56,23 @@
     <!-- Página de habilidades -->
     <ng-container *ngIf="page === 'skills'">
       <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 1 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(1)">
-        <span class="skill-placeholder">+</span>
-        <span class="btn-label">H1</span>
+        <ion-icon *ngIf="slotIcon(1)" [name]="slotIcon(1)" class="footer-ion-icon"></ion-icon>
+        <span *ngIf="!slotIcon(1)" class="skill-placeholder">+</span>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 2 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(2)">
-        <span class="skill-placeholder">+</span>
-        <span class="btn-label">H2</span>
+        <ion-icon *ngIf="slotIcon(2)" [name]="slotIcon(2)" class="footer-ion-icon"></ion-icon>
+        <span *ngIf="!slotIcon(2)" class="skill-placeholder">+</span>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 3 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(3)">
-        <span class="skill-placeholder">+</span>
-        <span class="btn-label">H3</span>
+        <ion-icon *ngIf="slotIcon(3)" [name]="slotIcon(3)" class="footer-ion-icon"></ion-icon>
+        <span *ngIf="!slotIcon(3)" class="skill-placeholder">+</span>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 4 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(4)">
-        <span class="skill-placeholder">+</span>
-        <span class="btn-label">H4</span>
+        <ion-icon *ngIf="slotIcon(4)" [name]="slotIcon(4)" class="footer-ion-icon"></ion-icon>
+        <span *ngIf="!slotIcon(4)" class="skill-placeholder">+</span>
       </div>
     </ng-container>
 

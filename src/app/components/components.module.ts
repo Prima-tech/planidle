@@ -27,6 +27,7 @@ import { CharStatsComponent } from './char-stats/char-stats.component';
 import { SummonComponent } from './summon/summon.component';
 import { PlayerPreviewComponent } from './player-preview/player-preview.component';
 import { SkillSlotsPanelComponent } from './skill-slots-panel/skill-slots-panel.component';
+import { SkillDetailComponent } from './skill-detail/skill-detail.component';
 
 @NgModule({
   declarations: [
@@ -53,6 +54,7 @@ import { SkillSlotsPanelComponent } from './skill-slots-panel/skill-slots-panel.
     SummonComponent,
     PlayerPreviewComponent,
     SkillSlotsPanelComponent,
+    SkillDetailComponent,
   ],
   imports: [
     CommonModule,
