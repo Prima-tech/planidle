@@ -225,6 +225,40 @@ const HELMET_CATALOG: LootEntry[] = [
   _helmet('xeon',              'Xeon',              40),
 ];
 
+const _weapon = (name: string, iconPath: string, iconFrame: number, iconCols: number, damage: number): LootEntry => ({
+  name, category: 'Arma', type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: 'icons1', frame: 3, scale: 1.5, order: 2,
+  iconSheet: `assets/sprites/player/equip/${iconPath}`,
+  iconFrame, iconFrameSize: 64, iconFrameCols: iconCols,
+  stats: { damage },
+});
+
+const _weaponArming = (material: string, name: string, damage: number): LootEntry => ({
+  name, category: 'Arma', type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: 'icons1', frame: 3, scale: 1.5, order: 2,
+  iconSheet: `assets/sprites/player/equip/weapons/arming/universal/fg/idle/${material}.png`,
+  iconFrame: 4, iconFrameSize: 64, iconFrameCols: 2,
+  stats: { damage },
+});
+
+const WEAPON_CATALOG: LootEntry[] = [
+  _weapon('Dagger',           'weapons/dagger/walk/dagger.png',               18, 9,   3),
+  _weapon('Longsword',        'weapons/longsword/walk/longsword.png',          18, 9,   8),
+  _weapon('Longsword Alt',    'weapons/longsword_alt/walk/longsword_alt.png',  52, 26,  8),
+  _weapon('Rapier',           'weapons/rapier/walk/rapier.png',                18, 9,   6),
+  _weapon('Saber',            'weapons/saber/walk/saber.png',                  18, 9,   7),
+  _weapon('Scimitar',         'weapons/scimitar/walk/scimitar.png',            52, 26,  9),
+  _weapon('Katana',           'weapons/katana/walk/katana.png',                52, 26, 10),
+  _weapon('Glowsword Blue',   'weapons/glowsword/walk/blue.png',               18, 9,  12),
+  _weapon('Glowsword Red',    'weapons/glowsword/walk/red.png',                18, 9,  15),
+  _weaponArming('iron',   'Arming (Iron)',    6),
+  _weaponArming('steel',  'Arming (Steel)',   9),
+  _weaponArming('silver', 'Arming (Silver)', 11),
+  _weaponArming('gold',   'Arming (Gold)',   14),
+];
+
 const _catalogSeen = new Set<string>();
 export const ITEM_CATALOG: LootEntry[] = [
   ...Object.values(LOOT_TABLES)
@@ -238,6 +272,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...PANTS_CATALOG,
   ...ARMOUR_CATALOG,
   ...HELMET_CATALOG,
+  ...WEAPON_CATALOG,
 ];
 
 export class GridDrops {

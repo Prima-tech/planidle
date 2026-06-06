@@ -189,6 +189,149 @@ function helmetLayer(folder: string): EquipLayerConfig {
   };
 }
 
+// walk-only weapons: idle = frame estático del walk sheet, no attack defined
+function weaponWalkLayer(prefix: string, walkPath: string): EquipLayerConfig {
+  const p = prefix;
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [{
+      key: `${p}_walk`, path: `assets/sprites/player/equip/${walkPath}`,
+      frameWidth: 64, frameHeight: 64,
+      anims: [
+        // idle: frame estático por dirección (primer frame de cada dirección del walk)
+        { key: `${p}_idle_up`,    startFrame: 0,  endFrame: 0,  frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_left`,  startFrame: 9,  endFrame: 9,  frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_down`,  startFrame: 18, endFrame: 18, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_right`, startFrame: 27, endFrame: 27, frameRate: 2,  repeat: -1 },
+        // walk
+        { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
+      ],
+    }],
+  };
+}
+
+// weapons with 18c×12r attack_slash: rows 0-3 = UP/LEFT/DOWN/RIGHT, 18 frames each
+function weaponAttackLayer(prefix: string, walkPath: string, slashPath: string): EquipLayerConfig {
+  const p = prefix;
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [
+      {
+        key: `${p}_walk`, path: `assets/sprites/player/equip/${walkPath}`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          // idle: frame estático por dirección
+          { key: `${p}_idle_up`,    startFrame: 0,  endFrame: 0,  frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_left`,  startFrame: 9,  endFrame: 9,  frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_down`,  startFrame: 18, endFrame: 18, frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_right`, startFrame: 27, endFrame: 27, frameRate: 2,  repeat: -1 },
+          // walk
+          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        // 18c×12r: rows 0-3 = UP/LEFT/DOWN/RIGHT (18 frames/dir, 30fps ≈ 0.6s)
+        key: `${p}_slash`, path: `assets/sprites/player/equip/${slashPath}`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 17, frameRate: 30, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: 18, endFrame: 35, frameRate: 30, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: 36, endFrame: 53, frameRate: 30, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: 54, endFrame: 71, frameRate: 30, repeat: 0 },
+        ],
+      },
+    ],
+  };
+}
+
+// dagger: standard LPC slash (6c×4r)
+function weaponFullLayer(prefix: string, walkPath: string, slashPath: string): EquipLayerConfig {
+  const p = prefix;
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [
+      {
+        key: `${p}_walk`, path: `assets/sprites/player/equip/${walkPath}`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          // idle: frame estático por dirección
+          { key: `${p}_idle_up`,    startFrame: 0,  endFrame: 0,  frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_left`,  startFrame: 9,  endFrame: 9,  frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_down`,  startFrame: 18, endFrame: 18, frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_right`, startFrame: 27, endFrame: 27, frameRate: 2,  repeat: -1 },
+          // walk
+          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        // dagger/slash: estándar LPC 6c×4r
+        key: `${p}_slash`, path: `assets/sprites/player/equip/${slashPath}`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
+        ],
+      },
+    ],
+  };
+}
+
+function armingLayer(material: string): EquipLayerConfig {
+  const p = `arming_${material}`;
+  const base = `weapons/arming/universal/fg`;
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [
+      {
+        key: `${p}_idle`, path: `assets/sprites/player/equip/${base}/idle/${material}.png`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_idle_up`,    startFrame: 0, endFrame: 1, frameRate: 2, repeat: -1 },
+          { key: `${p}_idle_left`,  startFrame: 2, endFrame: 3, frameRate: 2, repeat: -1 },
+          { key: `${p}_idle_down`,  startFrame: 4, endFrame: 5, frameRate: 2, repeat: -1 },
+          { key: `${p}_idle_right`, startFrame: 6, endFrame: 7, frameRate: 2, repeat: -1 },
+        ],
+      },
+      {
+        key: `${p}_walk`, path: `assets/sprites/player/equip/${base}/walk/${material}.png`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        // attack_slash/fg: 12c×8r — rows 0-3 = UP/LEFT/DOWN/RIGHT, 12 frames cada dir (20fps ≈ 0.6s)
+        key: `${p}_slash`, path: `assets/sprites/player/equip/weapons/arming/attack_slash/fg/${material}.png`,
+        frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 11, frameRate: 20, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: 12, endFrame: 23, frameRate: 20, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: 24, endFrame: 35, frameRate: 20, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: 36, endFrame: 47, frameRate: 20, repeat: 0 },
+        ],
+      },
+    ],
+  };
+}
+
 export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   'Espada': {
     key: 'equip_espada',
@@ -234,6 +377,17 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   'Sugarloaf':        helmetLayer('sugarloaf'),
   'Sugarloaf Simple': helmetLayer('sugarloaf_simple'),
   'Xeon':             helmetLayer('xeon'),
+  // Weapons
+  'Dagger':         weaponFullLayer('dagger',        'weapons/dagger/walk/dagger.png',           'weapons/dagger/slash/dagger.png'),
+  'Longsword':      weaponAttackLayer('longsword',   'weapons/longsword/walk/longsword.png',     'weapons/longsword/attack_slash/longsword.png'),
+  'Rapier':         weaponAttackLayer('rapier',      'weapons/rapier/walk/rapier.png',           'weapons/rapier/attack_slash/rapier.png'),
+  'Saber':          weaponAttackLayer('saber',       'weapons/saber/walk/saber.png',             'weapons/saber/attack_slash/saber.png'),
+  'Glowsword Blue': weaponAttackLayer('glowsword_blue','weapons/glowsword/walk/blue.png',        'weapons/glowsword/attack_slash/blue.png'),
+  'Glowsword Red':  weaponAttackLayer('glowsword_red', 'weapons/glowsword/walk/red.png',        'weapons/glowsword/attack_slash/red.png'),
+  'Arming (Iron)':  armingLayer('iron'),
+  'Arming (Steel)': armingLayer('steel'),
+  'Arming (Silver)':armingLayer('silver'),
+  'Arming (Gold)':  armingLayer('gold'),
   'Armet': {
     frameWidth: 64,
     frameHeight: 64,
