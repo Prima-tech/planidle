@@ -53,11 +53,13 @@ export class SummonComponent {
     private playerBridge: PlayerBridgeService,
     private equipmentService: EquipmentService,
   ) {
+    const ARMOR_SLOT_IDS  = new Set(['helmet', 'armor', 'pants', 'boots']);
+    const WEAPON_SLOT_IDS = new Set(['weapon']);
     this.armorKeys  = new Set<string>();
     this.weaponKeys = new Set<string>();
     for (const slot of this.equipmentService.slots) {
-      if (slot.id === 'weapon') slot.accepts.forEach(a => this.weaponKeys.add(a));
-      else                      slot.accepts.forEach(a => this.armorKeys.add(a));
+      if (WEAPON_SLOT_IDS.has(slot.id))      slot.accepts.forEach(a => this.weaponKeys.add(a));
+      else if (ARMOR_SLOT_IDS.has(slot.id))  slot.accepts.forEach(a => this.armorKeys.add(a));
     }
 
     this.armorCatalog  = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'armor');
