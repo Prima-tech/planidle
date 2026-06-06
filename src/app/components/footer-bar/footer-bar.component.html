@@ -55,24 +55,28 @@
 
     <!-- Página de habilidades -->
     <ng-container *ngIf="page === 'skills'">
+      <div class="icon-menu-wrapper" [class.active]="!locked" (click)="toggleLock()">
+        <ion-icon [name]="locked ? 'lock-closed-outline' : 'lock-open-outline'" class="footer-ion-icon"></ion-icon>
+      </div>
+
       <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 1 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(1)">
         <ion-icon *ngIf="slotIcon(1)" [name]="slotIcon(1)" class="footer-ion-icon"></ion-icon>
-        <span *ngIf="!slotIcon(1)" class="skill-placeholder">+</span>
+        <span *ngIf="!slotIcon(1) && !locked" class="skill-placeholder">+</span>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 2 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(2)">
         <ion-icon *ngIf="slotIcon(2)" [name]="slotIcon(2)" class="footer-ion-icon"></ion-icon>
-        <span *ngIf="!slotIcon(2)" class="skill-placeholder">+</span>
+        <span *ngIf="!slotIcon(2) && !locked" class="skill-placeholder">+</span>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 3 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(3)">
         <ion-icon *ngIf="slotIcon(3)" [name]="slotIcon(3)" class="footer-ion-icon"></ion-icon>
-        <span *ngIf="!slotIcon(3)" class="skill-placeholder">+</span>
+        <span *ngIf="!slotIcon(3) && !locked" class="skill-placeholder">+</span>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="activeSkillSlot === 4 && skillSlotsModal.isOpenModal()" (click)="openSkillSlot(4)">
         <ion-icon *ngIf="slotIcon(4)" [name]="slotIcon(4)" class="footer-ion-icon"></ion-icon>
-        <span *ngIf="!slotIcon(4)" class="skill-placeholder">+</span>
+        <span *ngIf="!slotIcon(4) && !locked" class="skill-placeholder">+</span>
       </div>
     </ng-container>
 

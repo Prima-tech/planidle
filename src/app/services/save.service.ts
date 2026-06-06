@@ -9,6 +9,7 @@ import { WorldService } from './world.service';
 import { KillService, KillMap } from './kill.service';
 import { OfflineGainsService, OfflineGains } from './offline-gains.service';
 import { TalentService, TalentSnapshot } from './talent.service';
+import { SkillEquipService, SkillSlotsSnapshot } from './skill-equip.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -26,6 +27,7 @@ export interface GameSnapshot {
   mapId: string;
   kills: KillMap;
   talents?: TalentSnapshot;
+  skillSlots?: SkillSlotsSnapshot;
   lastSeen: string;
   lastModified: string;
 }
@@ -101,8 +103,9 @@ export class SaveService {
     private kills: KillService,
     private offlineGains: OfflineGainsService,
     private talent: TalentService,
+    private skillEquip: SkillEquipService,
   ) {
-    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.talent.changes$)
+    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.talent.changes$, this.skillEquip.changes$)
       .pipe(
         skip(1),
         filter(() => !this.isRestoring),
@@ -141,6 +144,7 @@ export class SaveService {
       this.world.setCurrentMap(snapshot.mapId ?? 'hogar');
       this.kills.restoreCharKills(snapshot.kills ?? {});
       this.talent.restoreFromSnapshot(snapshot.talents ?? null);
+      this.skillEquip.restoreFromSnapshot(snapshot.skillSlots ?? null);
     } else {
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
@@ -148,6 +152,7 @@ export class SaveService {
       this.world.setCurrentMap('hogar');
       this.kills.restoreCharKills({});
       this.talent.restoreFromSnapshot(null);
+      this.skillEquip.restoreFromSnapshot(null);
     }
     await this.kills.loadGlobalKills();
     this.pendingGains$.next(gains);
@@ -260,6 +265,7 @@ export class SaveService {
       mapId:        this.world.getCurrentMap().id,
       kills:        this.kills.getCharKillsSnapshot(),
       talents:      this.talent.getSnapshot(),
+      skillSlots:   this.skillEquip.getSnapshot(),
       lastSeen:     now,
       lastModified: now,
     };

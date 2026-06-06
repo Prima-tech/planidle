@@ -36,6 +36,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   page: 'main' | 'skills' = 'main';
   activeSkillSlot: number | null = null;
+  locked = true;
 
   private skillEquipService = inject(SkillEquipService);
   private talentService     = inject(TalentService);
@@ -95,7 +96,19 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleLock() {
+    this.locked = !this.locked;
+    if (this.locked) {
+      if (this.skillSlotsModal?.isOpenModal())  this.skillSlotsModal.close();
+      if (this.skillDetailModal?.isOpenModal()) this.skillDetailModal.close();
+      this.activeSkillSlot = null;
+      this.skillEquipService.activeSlot      = null;
+      this.skillEquipService.selectedAbilityId = null;
+    }
+  }
+
   openSkillSlot(slot: number) {
+    if (this.locked) return;
     if (this.activeSkillSlot === slot && this.skillSlotsModal.isOpenModal()) {
       this.skillSlotsModal.close();
       this.activeSkillSlot = null;
