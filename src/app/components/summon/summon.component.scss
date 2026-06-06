@@ -98,13 +98,8 @@
   flex-shrink: 0;
 }
 
-// Caja interior: 64×64 escalada a 72×72 (scale 1.125)
+// Caja interior: dimensiones y scale calculados dinámicamente por componente
 .enemy-frame-inner {
-  width: 64px;
-  height: 64px;
-  overflow: hidden;
-  transform: scale(1.125);
-  transform-origin: 0 0;
   background-position: 0 0;
   background-repeat: no-repeat;
   background-size: auto auto;

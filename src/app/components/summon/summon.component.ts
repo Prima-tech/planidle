@@ -8,11 +8,13 @@ import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 
 interface EnemyCard {
-  type:      string;
-  label:     string;
-  hp:        number;
-  spriteUrl: string;
-  tier:      'base' | 'elite' | 'oblivion';
+  type:        string;
+  label:       string;
+  hp:          number;
+  spriteUrl:   string;
+  tier:        'base' | 'elite' | 'oblivion';
+  frameWidth:  number;
+  frameHeight: number;
 }
 
 interface EnemyGroup {
@@ -40,10 +42,13 @@ export class SummonComponent {
     { icon: 'map-outline',        title: 'Mapas'    },
     { icon: 'bag-handle-outline', title: 'Items'    },
   ];
-  activeTab     = 0;
-  activeItemTab = 0;
-  readonly itemSubTabs = ['Armaduras', 'Armas', 'Miscelánea'];
-  readonly enemyGroups: EnemyGroup[];
+  activeTab      = 0;
+  activeItemTab  = 0;
+  activeEnemyTab = 0;
+  readonly itemSubTabs  = ['Armaduras', 'Armas', 'Miscelánea'];
+  readonly enemySubTabs = ['Slimes', 'Miscelánea'];
+  readonly slimeGroups: EnemyGroup[];
+  readonly miscGroups:  EnemyGroup[];
   readonly maps: MapConfig[];
   readonly armorCatalog:  LootEntry[];
   readonly weaponCatalog: LootEntry[];
@@ -86,12 +91,14 @@ export class SummonComponent {
     ];
     const allCards = Object.values(ENEMY_REGISTRY).map(cfg => this.toCard(cfg));
     const baseCards = allCards.filter(c => c.tier === 'base');
-    this.enemyGroups = baseCards.map(base => ({
+    const toGroup = (base: EnemyCard): EnemyGroup => ({
       name:     base.label,
       base,
       elite:    allCards.find(c => c.type === `${base.type}_elite`)    ?? null,
       oblivion: allCards.find(c => c.type === `${base.type}_oblivion`) ?? null,
-    }));
+    });
+    this.slimeGroups = baseCards.filter(c => c.type.startsWith('slime')).map(toGroup);
+    this.miscGroups  = baseCards.filter(c => !c.type.startsWith('slime')).map(toGroup);
     this.maps = Object.values(MAP_REGISTRY);
   }
 
@@ -151,11 +158,24 @@ export class SummonComponent {
       : '';
 
     return {
-      type: cfg.type,
-      label: this.formatLabel(cfg.type),
-      hp:    cfg.hp,
+      type:        cfg.type,
+      label:       this.formatLabel(cfg.type),
+      hp:          cfg.hp,
       spriteUrl,
       tier,
+      frameWidth:  idleCfg?.frameWidth  ?? 64,
+      frameHeight: idleCfg?.frameHeight ?? 64,
+    };
+  }
+
+  enemyFrameStyle(card: EnemyCard): Record<string, string> {
+    const BOX = 72;
+    const scale = BOX / Math.max(card.frameWidth, card.frameHeight);
+    return {
+      width:           `${card.frameWidth}px`,
+      height:          `${card.frameHeight}px`,
+      transform:       `scale(${scale})`,
+      transformOrigin: '0 0',
     };
   }
 

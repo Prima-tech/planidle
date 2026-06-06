@@ -11,46 +11,75 @@
 </div>
 
 <div class="summon-list" *ngIf="activeTab === 0">
-  <div *ngFor="let group of enemyGroups" class="enemy-group">
 
-    <span class="group-name">{{ group.name }}</span>
-
-    <div class="group-row">
-
-      <button class="enemy-card base" (click)="summon(group.base.type)">
-        <div class="enemy-frame">
-          <div class="enemy-frame-inner"
-               [style.background-image]="'url(' + group.base.spriteUrl + ')'">
-          </div>
-        </div>
-        <span class="tier-label">Normal</span>
-      </button>
-
-      <button class="enemy-card elite"
-              [disabled]="!group.elite"
-              (click)="group.elite && summon(group.elite.type)">
-        <div class="enemy-frame">
-          <div class="enemy-frame-inner"
-               [style.background-image]="group.elite ? 'url(' + group.elite.spriteUrl + ')' : 'none'">
-          </div>
-        </div>
-        <span class="tier-label">Elite</span>
-      </button>
-
-      <button class="enemy-card oblivion"
-              [disabled]="!group.oblivion"
-              (click)="group.oblivion && summon(group.oblivion.type)">
-        <div class="enemy-frame">
-          <div class="enemy-frame-inner"
-               [style.background-image]="group.oblivion ? 'url(' + group.oblivion.spriteUrl + ')' : 'none'">
-          </div>
-        </div>
-        <span class="tier-label">Oblivion</span>
-      </button>
-
-    </div>
+  <div class="item-subtabs">
+    <div
+      *ngFor="let tab of enemySubTabs; let i = index"
+      class="item-subtab"
+      [class.active]="i === activeEnemyTab"
+      (click)="activeEnemyTab = i"
+    >{{ tab }}</div>
   </div>
+
+  <ng-container [ngSwitch]="activeEnemyTab">
+
+    <ng-container *ngSwitchCase="0">
+      <div *ngFor="let group of slimeGroups" class="enemy-group">
+        <ng-container *ngTemplateOutlet="enemyGroupRow; context: { $implicit: group }"></ng-container>
+      </div>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="1">
+      <div *ngFor="let group of miscGroups" class="enemy-group">
+        <ng-container *ngTemplateOutlet="enemyGroupRow; context: { $implicit: group }"></ng-container>
+      </div>
+    </ng-container>
+
+  </ng-container>
+
 </div>
+
+<ng-template #enemyGroupRow let-group>
+  <span class="group-name">{{ group.name }}</span>
+
+  <div class="group-row">
+
+    <button class="enemy-card base" (click)="summon(group.base.type)">
+      <div class="enemy-frame">
+        <div class="enemy-frame-inner"
+             [ngStyle]="enemyFrameStyle(group.base)"
+             [style.background-image]="'url(' + group.base.spriteUrl + ')'">
+        </div>
+      </div>
+      <span class="tier-label">Normal</span>
+    </button>
+
+    <button class="enemy-card elite"
+            [disabled]="!group.elite"
+            (click)="group.elite && summon(group.elite.type)">
+      <div class="enemy-frame">
+        <div class="enemy-frame-inner"
+             [ngStyle]="group.elite ? enemyFrameStyle(group.elite) : {}"
+             [style.background-image]="group.elite ? 'url(' + group.elite.spriteUrl + ')' : 'none'">
+        </div>
+      </div>
+      <span class="tier-label">Elite</span>
+    </button>
+
+    <button class="enemy-card oblivion"
+            [disabled]="!group.oblivion"
+            (click)="group.oblivion && summon(group.oblivion.type)">
+      <div class="enemy-frame">
+        <div class="enemy-frame-inner"
+             [ngStyle]="group.oblivion ? enemyFrameStyle(group.oblivion) : {}"
+             [style.background-image]="group.oblivion ? 'url(' + group.oblivion.spriteUrl + ')' : 'none'">
+        </div>
+      </div>
+      <span class="tier-label">Oblivion</span>
+    </button>
+
+  </div>
+</ng-template>
 
 <div class="map-list" *ngIf="activeTab === 1">
   <button
