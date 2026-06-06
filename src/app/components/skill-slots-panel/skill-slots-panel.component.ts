@@ -13,9 +13,7 @@ export class SkillSlotsPanelComponent {
   private skillEquipService = inject(SkillEquipService);
 
   get abilities(): TalentNodeConfig[] {
-    return this.talentService.nodes.filter(
-      n => n.effect.type === 'ability' && this.talentService.slotted[n.id] != null
-    );
+    return this.talentService.nodes.filter(n => n.effect.type === 'ability');
   }
 
   get selectedId(): string | null {

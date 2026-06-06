@@ -13,7 +13,19 @@ import { InventoryItem } from "src/app/services/inventory.service";
 import { EQUIP_LAYER_REGISTRY } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 
-const FIRE_FRAME_COUNT = 6;
+const SKILL_SPRITE_SOURCES: { key: string; path: string; count: number }[] = [
+  { key: 'skill_fire',           path: 'assets/sprites/skills/fire/Fire/fire_',                     count: 6  },
+  { key: 'skill_fireball',       path: 'assets/sprites/skills/fire/Fireball/fireball_',              count: 15 },
+  { key: 'skill_fire_flower',    path: 'assets/sprites/skills/fire/Fire_flower/fire_flower_',        count: 11 },
+  { key: 'skill_fire_hurricane', path: 'assets/sprites/skills/fire/Fire_hurracane/Fire_hurracane',   count: 14 },
+  { key: 'skill_fire_pillar',    path: 'assets/sprites/skills/fire/Fire_pillar/fire_pillar_',        count: 8  },
+  { key: 'skill_fire_shield',    path: 'assets/sprites/skills/fire/Fire_shield/fire_shield_',        count: 8  },
+  { key: 'skill_lava_drop',      path: 'assets/sprites/skills/fire/Lava_drop/lava_drop_',            count: 16 },
+  { key: 'skill_lava_paddle',    path: 'assets/sprites/skills/fire/Lava_paddle/lava_padlle_',        count: 10 },
+  { key: 'skill_magma_geyser',   path: 'assets/sprites/skills/fire/Magma_geyser/magma_geyser_',     count: 11 },
+  { key: 'skill_phoenix',        path: 'assets/sprites/skills/fire/Phoenix/phoenix_',                count: 16 },
+  { key: 'skill_small_fire',     path: 'assets/sprites/skills/fire/Small_fire/phoenix_',             count: 6  },
+];
 
 export class GameScene extends Phaser.Scene {
 
@@ -54,9 +66,10 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet('portal', 'assets/sprites/resources/portal.png', { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
-      for (let i = 1; i <= FIRE_FRAME_COUNT; i++) {
-        if (!this.textures.exists(`skill_fire_${i}`)) {
-          this.load.image(`skill_fire_${i}`, `assets/sprites/skills/fire/Fire/fire_${i}.png`);
+      for (const s of SKILL_SPRITE_SOURCES) {
+        for (let i = 1; i <= s.count; i++) {
+          const k = `${s.key}_${i}`;
+          if (!this.textures.exists(k)) this.load.image(k, `${s.path}${i}.png`);
         }
       }
 

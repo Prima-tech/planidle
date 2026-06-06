@@ -131,9 +131,64 @@ export const TALENT_NODES_MAGIA: TalentNodeConfig[] = [
   },
 ];
 
+// ── Habilidades de fuego (disponibles sin desbloquear) ────────────────────────
+
+export const TALENT_NODES_FIRE: TalentNodeConfig[] = [
+  {
+    id: 'small_fire', label: 'Fuego\nPequeño', icon: 'bonfire-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 5, ability: 'small_fire' },
+  },
+  {
+    id: 'fire_flower', label: 'Flor de\nFuego', icon: 'rose-outline',
+    col: 1, row: 0, requires: [],
+    effect: { type: 'ability', base: 8, ability: 'fire_flower' },
+  },
+  {
+    id: 'fire_pillar', label: 'Pilar de\nFuego', icon: 'arrow-up-outline',
+    col: 2, row: 0, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'fire_pillar' },
+  },
+  {
+    id: 'fire_shield', label: 'Escudo\nde Fuego', icon: 'shield-half-outline',
+    col: 3, row: 0, requires: [],
+    effect: { type: 'ability', base: 8, ability: 'fire_shield' },
+  },
+  {
+    id: 'lava_paddle', label: 'Paleta\nde Lava', icon: 'golf-outline',
+    col: 4, row: 0, requires: [],
+    effect: { type: 'ability', base: 10, ability: 'lava_paddle' },
+  },
+  {
+    id: 'fireball', label: 'Bola de\nFuego', icon: 'flame-outline',
+    col: 0, row: 1, requires: [],
+    effect: { type: 'ability', base: 15, ability: 'fireball' },
+  },
+  {
+    id: 'fire_hurricane', label: 'Huracán\nde Fuego', icon: 'reload-circle-outline',
+    col: 1, row: 1, requires: [],
+    effect: { type: 'ability', base: 18, ability: 'fire_hurricane' },
+  },
+  {
+    id: 'lava_drop', label: 'Gota de\nLava', icon: 'rainy-outline',
+    col: 2, row: 1, requires: [],
+    effect: { type: 'ability', base: 15, ability: 'lava_drop' },
+  },
+  {
+    id: 'magma_geyser', label: 'Géiser de\nMagma', icon: 'nuclear-outline',
+    col: 3, row: 1, requires: [],
+    effect: { type: 'ability', base: 20, ability: 'magma_geyser' },
+  },
+  {
+    id: 'phoenix', label: 'Fénix', icon: 'sunny-outline',
+    col: 4, row: 1, requires: [],
+    effect: { type: 'ability', base: 25, ability: 'phoenix' },
+  },
+];
+
 // ── Registro global (todos los árboles) ──────────────────────────────────────
 
-const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA];
+const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA, ...TALENT_NODES_FIRE];
 
 @Injectable({ providedIn: 'root' })
 export class TalentService {
