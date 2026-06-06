@@ -180,6 +180,8 @@
            class="item-icon-sheet"
            [class.item-icon-sheet--equip]="slot.item.iconFrameSize != null"
            [class.item-icon-sheet--armour]="slot.item.category === 'Armadura'"
+           [class.item-icon-sheet--pants]="slot.item.category === 'Pantalones'"
+           [class.item-icon-sheet--boots]="slot.item.category === 'Botas'"
            [style.background-image]="'url(' + slot.item.iconSheet + ')'"
            [style.background-size]="getSheetBgSize(slot.item.iconFrameCols)"
            [style.background-position]="getSheetPos(slot.item.iconFrame, slot.item.iconFrameCols, slot.item.iconFrameSize)">
