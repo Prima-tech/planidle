@@ -9,20 +9,22 @@ import { PlayerBridgeService } from '../services/player-bridge.service';
 import { PlayerStateService } from '../services/player-state.service';
 import { WorldService } from '../services/world.service';
 import { SummonService } from '../services/summon.service';
+import { SkillActivationService } from '../services/skill-activation.service';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
 export const REGISTRY_KEYS = {
-  PLAYER_BRIDGE: 'playerBridgeService',
-  WORLD:         'worldService',
-  INVENTORY:     'inventoryService',
-  PLAYER_STATE:  'playerStateService',
-  KILL:          'killService',
-  MAP:           'mapService',
-  MAP_STATS:     'mapStatsService',
-  EQUIPMENT:     'equipmentService',
-  SUMMON:        'summonService',
-  CHAR_STATS:    'characterStatsService',
-  ASGARD:        'asgardService',
+  PLAYER_BRIDGE:    'playerBridgeService',
+  WORLD:            'worldService',
+  INVENTORY:        'inventoryService',
+  PLAYER_STATE:     'playerStateService',
+  KILL:             'killService',
+  MAP:              'mapService',
+  MAP_STATS:        'mapStatsService',
+  EQUIPMENT:        'equipmentService',
+  SUMMON:           'summonService',
+  CHAR_STATS:       'characterStatsService',
+  ASGARD:           'asgardService',
+  SKILL_ACTIVATION: 'skillActivationService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -38,6 +40,7 @@ export class GameRegistry {
   get mapStats():     MapStatsService        { return this.game.registry.get(REGISTRY_KEYS.MAP_STATS); }
   get equipment():    EquipmentService       { return this.game.registry.get(REGISTRY_KEYS.EQUIPMENT); }
   get summon():       SummonService          { return this.game.registry.get(REGISTRY_KEYS.SUMMON); }
-  get charStats():    CharacterStatsService  { return this.game.registry.get(REGISTRY_KEYS.CHAR_STATS); }
-  get asgard():       AsgardService          { return this.game.registry.get(REGISTRY_KEYS.ASGARD); }
+  get charStats():       CharacterStatsService    { return this.game.registry.get(REGISTRY_KEYS.CHAR_STATS); }
+  get asgard():          AsgardService            { return this.game.registry.get(REGISTRY_KEYS.ASGARD); }
+  get skillActivation(): SkillActivationService   { return this.game.registry.get(REGISTRY_KEYS.SKILL_ACTIVATION); }
 }

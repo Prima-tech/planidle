@@ -11,6 +11,9 @@ import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
 import { EQUIP_LAYER_REGISTRY } from "src/app/pnj/player/equip-layer-registry";
+import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
+
+const FIRE_FRAME_COUNT = 6;
 
 export class GameScene extends Phaser.Scene {
 
@@ -33,6 +36,7 @@ export class GameScene extends Phaser.Scene {
     private summonSub:   { unsubscribe(): void } | null = null;
     private itemDropSub: { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
+    private skillSub:    { unsubscribe(): void } | null = null;
     private playerDamage = 10;
     private mobileInput: MobileInput | null = null;
     currentMap: any;
@@ -49,6 +53,12 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
       this.load.spritesheet('portal', 'assets/sprites/resources/portal.png', { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
+
+      for (let i = 1; i <= FIRE_FRAME_COUNT; i++) {
+        if (!this.textures.exists(`skill_fire_${i}`)) {
+          this.load.image(`skill_fire_${i}`, `assets/sprites/skills/fire/Fire/fire_${i}.png`);
+        }
+      }
 
       for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
         if (cfg.mode === 'anim') {
@@ -123,6 +133,7 @@ export class GameScene extends Phaser.Scene {
         this.summonSub?.unsubscribe();
         this.itemDropSub?.unsubscribe();
         this.statsSub?.unsubscribe();
+        this.skillSub?.unsubscribe();
         this.player?.clearLayers();
         this.events.off('enemyAttackPlayer');
         this.events.off('enemyDied');
@@ -143,6 +154,8 @@ export class GameScene extends Phaser.Scene {
         this.initEquipLayers();
         this.initSummonListener();
         this.initStatsListener();
+        this.registerSkillAnimations();
+        this.initSkillListener();
       });
     }
 
@@ -605,6 +618,88 @@ export class GameScene extends Phaser.Scene {
         },
       );
       this.enemies.push(enemy);
+    }
+
+    private registerSkillAnimations(): void {
+      for (const cfg of Object.values(SKILL_REGISTRY)) {
+        const animKey = cfg.spriteKey;
+        if (this.anims.exists(animKey)) continue;
+        const frames = [];
+        for (let i = 1; i <= cfg.frameCount; i++) {
+          if (this.textures.exists(`${animKey}_${i}`)) frames.push({ key: `${animKey}_${i}` });
+        }
+        if (frames.length) {
+          this.anims.create({ key: animKey, frames, frameRate: cfg.frameRate, repeat: -1 });
+        }
+      }
+    }
+
+    private initSkillListener(): void {
+      const skillSvc = this.reg.skillActivation;
+      if (!skillSvc) return;
+      this.skillSub = skillSvc.activate$.subscribe(abilityId => this.executeSkill(abilityId));
+    }
+
+    private executeSkill(abilityId: string): void {
+      const cfg = SKILL_REGISTRY[abilityId];
+      if (!cfg) return;
+      const target = this.findNearestEnemy(cfg.range);
+      if (!target) return;
+      if (cfg.effectType === 'projectile') {
+        this.launchProjectile(cfg, target);
+      } else {
+        this.playImpact(cfg, target);
+      }
+    }
+
+    private findNearestEnemy(rangeTiles: number): Enemy | null {
+      const RANGE = GameScene.TILE_SIZE * rangeTiles;
+      const playerPos = this.player.getPosition();
+      let nearest: Enemy | null = null;
+      let nearestDist = Infinity;
+      for (const enemy of this.enemies) {
+        if (enemy.isDead) continue;
+        const ePos = enemy.getPixelPos();
+        const dx = ePos.x - playerPos.x;
+        const dy = ePos.y - playerPos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist <= RANGE && dist < nearestDist) { nearest = enemy; nearestDist = dist; }
+      }
+      return nearest;
+    }
+
+    // El sprite aparece en el enemigo y se destruye al terminar el ciclo de animación
+    private playImpact(cfg: SkillConfig, target: Enemy): void {
+      const pos = target.getPixelPos();
+      // sprite.y es el borde inferior del enemigo (origin 0.5, 1) — centramos el efecto
+      const centerY = pos.y - target.sprite.displayHeight * 0.75;
+      const sprite = this.add.sprite(pos.x, centerY, `${cfg.spriteKey}_1`);
+      sprite.setDepth(6);
+      sprite.setScale(cfg.scale);
+      if (this.anims.exists(cfg.spriteKey)) sprite.play(cfg.spriteKey);
+      target.takeDamage(cfg.damage);
+      const duration = (cfg.frameCount / cfg.frameRate) * 1000;
+      this.time.delayedCall(duration, () => sprite.destroy());
+    }
+
+    // El sprite viaja desde el jugador hasta el enemigo y aplica daño al llegar
+    private launchProjectile(cfg: SkillConfig, target: Enemy): void {
+      const playerPos = this.player.getPosition();
+      const targetPos = target.getPixelPos();
+      const proj = this.add.sprite(playerPos.x, playerPos.y, `${cfg.spriteKey}_1`);
+      proj.setDepth(5);
+      proj.setScale(cfg.scale);
+      if (this.anims.exists(cfg.spriteKey)) proj.play(cfg.spriteKey);
+      proj.setRotation(Phaser.Math.Angle.Between(playerPos.x, playerPos.y, targetPos.x, targetPos.y));
+      const dist = Phaser.Math.Distance.Between(playerPos.x, playerPos.y, targetPos.x, targetPos.y);
+      const duration = (dist / (cfg.speed ?? 400)) * 1000;
+      this.tweens.add({
+        targets: proj, x: targetPos.x, y: targetPos.y, duration, ease: 'Linear',
+        onComplete: () => {
+          proj.destroy();
+          if (!target.isDead) target.takeDamage(cfg.damage);
+        },
+      });
     }
 
 }

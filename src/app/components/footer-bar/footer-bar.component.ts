@@ -13,6 +13,7 @@ import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel
 import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService } from 'src/app/services/talent.service';
+import { SkillActivationService } from 'src/app/services/skill-activation.service';
 
 @Component({
   selector: 'app-footer-bar',
@@ -38,8 +39,9 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   activeSkillSlot: number | null = null;
   locked = true;
 
-  private skillEquipService = inject(SkillEquipService);
-  private talentService     = inject(TalentService);
+  private skillEquipService      = inject(SkillEquipService);
+  private talentService          = inject(TalentService);
+  private skillActivationService = inject(SkillActivationService);
 
   constructor() { }
 
@@ -107,8 +109,31 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     }
   }
 
+  onSkillSlotClick(slot: number) {
+    if (this.locked) {
+      this.activateSkill(slot);
+    } else {
+      this.openSkillSlot(slot);
+    }
+  }
+
+  private activateSkill(slot: number): void {
+    const abilityId = this.skillEquipService.slots[slot];
+    if (!abilityId) return;
+    const node = this.talentService.nodes.find(n => n.id === abilityId);
+    if (!node?.effect?.ability) return;
+    this.skillActivationService.request(node.effect.ability);
+  }
+
+  slotOnCooldown(slot: number): boolean {
+    const abilityId = this.skillEquipService.slots[slot];
+    if (!abilityId) return false;
+    const node = this.talentService.nodes.find(n => n.id === abilityId);
+    if (!node?.effect?.ability) return false;
+    return this.skillActivationService.isOnCooldown(node.effect.ability);
+  }
+
   openSkillSlot(slot: number) {
-    if (this.locked) return;
     if (this.activeSkillSlot === slot && this.skillSlotsModal.isOpenModal()) {
       this.skillSlotsModal.close();
       this.activeSkillSlot = null;

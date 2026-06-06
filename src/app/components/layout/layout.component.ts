@@ -22,6 +22,7 @@ import { REGISTRY_KEYS } from 'src/app/scenes/game-registry';
 import { CharacterStatsService } from 'src/app/services/character-stats.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { SummonService } from 'src/app/services/summon.service';
+import { SkillActivationService } from 'src/app/services/skill-activation.service';
 
 @Component({
   selector: 'app-layout',
@@ -56,6 +57,7 @@ export class LayoutComponent implements OnDestroy {
     private equipmentService: EquipmentService,
     private summonService: SummonService,
     private characterStatsService: CharacterStatsService,
+    private skillActivationService: SkillActivationService,
   ) {
     this.loadGame();
   }
@@ -125,8 +127,9 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_STATS,     this.mapStatsService);
     this.phaserGame.registry.set(REGISTRY_KEYS.EQUIPMENT,    this.equipmentService);
     this.phaserGame.registry.set(REGISTRY_KEYS.SUMMON,       this.summonService);
-    this.phaserGame.registry.set(REGISTRY_KEYS.CHAR_STATS,   this.characterStatsService);
-    this.phaserGame.registry.set(REGISTRY_KEYS.ASGARD,       this.asgardService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.CHAR_STATS,       this.characterStatsService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.ASGARD,           this.asgardService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.SKILL_ACTIVATION, this.skillActivationService);
     this.sceneManager.setGame(this.phaserGame);
   }
 
