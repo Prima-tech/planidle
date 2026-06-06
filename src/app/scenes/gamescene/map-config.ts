@@ -35,6 +35,7 @@ export interface MapConfig {
   tilesetName: string;
   spawns: SpawnConfig[];
   portals: PortalConfig[];
+  spawnPos?: { x: number; y: number };
 }
 
 const BASE_TILESET = {
@@ -42,6 +43,14 @@ const BASE_TILESET = {
   tilemapJson:  'assets/tilemaps/test/test.tmj',
   tilesetKey:   'ground-grasss',
   tilesetImage: 'assets/tilemaps/test/ground_grasss.png',
+  tilesetName:  'ground_grasss',
+};
+
+const W1_HOME_TILESET = {
+  tilemapKey:   'w1-home',
+  tilemapJson:  'assets/tilemaps/W1/home01.tmj',
+  tilesetKey:   'w1-ground-grasss',
+  tilesetImage: 'assets/tilemaps/W1/ground_grasss.png',
   tilesetName:  'ground_grasss',
 };
 
@@ -76,10 +85,11 @@ export const MAP_OBLIVION_THRESHOLD: Record<string, number> = {
 export const MAP_REGISTRY: Record<string, MapConfig> = {
 
   hogar: {
-    ...BASE_TILESET,
+    ...W1_HOME_TILESET,
     id: 'hogar', name: 'Hogar',
     spawns: [],
     portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1' }],
+    spawnPos: { x: 30, y: 30 },
   },
 
   '1-1': {

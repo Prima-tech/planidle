@@ -235,10 +235,11 @@ export class GameScene extends Phaser.Scene {
       playerSprite.scale = 2.5;
       this.cameras.main.startFollow(playerSprite);
       this.cameras.main.roundPixels = true;
+      const spawn = this.currentMapConfig.spawnPos ?? { x: 6, y: 6 };
       const sprites = {
         mainScene: this,
         sprite: playerSprite,
-        tilePos: new Phaser.Math.Vector2(6, 6)
+        tilePos: new Phaser.Math.Vector2(spawn.x, spawn.y)
       };
       this.reg.playerBridge.setInitialSprites(sprites);
       this.player = this.reg.playerBridge.getPlayer();

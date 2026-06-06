@@ -10,7 +10,7 @@ type Vector2 = Phaser.Math.Vector2;
 const DIAG = 1 / Math.sqrt(2);
 
 export class GridPhysics extends Phaser.Events.EventEmitter {
-  private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 4;
+  private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 8;
 
   private movementIntent: Direction = Direction.NONE;
   private animDirection: Direction = Direction.DOWN;
