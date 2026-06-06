@@ -1,5 +1,3 @@
-<div class="summon-header">Invocar</div>
-
 <div class="summon-tabs">
   <div
     *ngFor="let tab of tabs; let i = index"
@@ -75,19 +73,47 @@
 </div>
 
 <div class="item-list" *ngIf="activeTab === 2">
-  <div class="item-grid">
-    <button *ngFor="let entry of itemCatalog" class="item-card" (click)="giveItem(entry)" [title]="entry.name">
-      <div class="item-frame">
-        <div *ngIf="entry.iconSheet"
-             class="item-icon-sheet"
-             [class.item-icon-sheet--equip]="entry.iconFrameSize != null"
-             [style.background-image]="'url(' + entry.iconSheet + ')'"
-             [style.background-size]="getSheetBgSize(entry.iconFrameCols, entry.iconFrameSize)"
-             [style.background-position]="getSheetPos(entry.iconFrame, entry.iconFrameCols, entry.iconFrameSize)">
-        </div>
-        <img *ngIf="entry.icon && !entry.iconSheet" [src]="entry.icon" class="item-icon">
-      </div>
-      <span class="item-name">{{ entry.name }}</span>
-    </button>
+
+  <div class="item-subtabs">
+    <div
+      *ngFor="let tab of itemSubTabs; let i = index"
+      class="item-subtab"
+      [class.active]="i === activeItemTab"
+      (click)="activeItemTab = i"
+    >{{ tab }}</div>
   </div>
+
+  <ng-container [ngSwitch]="activeItemTab">
+
+    <div class="item-grid" *ngSwitchCase="0">
+      <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: armorCatalog }"></ng-container>
+    </div>
+
+    <div class="item-grid" *ngSwitchCase="1">
+      <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: weaponCatalog }"></ng-container>
+    </div>
+
+    <div class="item-grid" *ngSwitchCase="2">
+      <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: miscCatalog }"></ng-container>
+    </div>
+
+  </ng-container>
+
 </div>
+
+<ng-template #itemCards let-entries>
+  <button *ngFor="let entry of entries" class="item-card" (click)="giveItem(entry)" [title]="entry.name">
+    <div class="item-frame">
+      <div *ngIf="entry.iconSheet"
+           class="item-icon-sheet"
+           [class.item-icon-sheet--equip]="entry.iconFrameSize != null"
+           [style.background-image]="'url(' + entry.iconSheet + ')'"
+           [style.background-size]="getSheetBgSize(entry.iconFrameCols, entry.iconFrameSize)"
+           [style.background-position]="getSheetPos(entry.iconFrame, entry.iconFrameCols, entry.iconFrameSize)">
+      </div>
+      <img *ngIf="entry.icon && !entry.iconSheet" [src]="entry.icon" class="item-icon">
+    </div>
+    <span class="item-name">{{ entry.name }}</span>
+  </button>
+  <div class="item-empty" *ngIf="!entries.length">Sin items</div>
+</ng-template>

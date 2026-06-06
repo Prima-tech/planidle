@@ -5,6 +5,7 @@ import { ITEM_CATALOG, LootEntry } from 'src/app/physics/griddrops';
 import { SummonService } from 'src/app/services/summon.service';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
+import { EquipmentService } from 'src/app/services/equipment.service';
 
 interface EnemyCard {
   type:      string;
@@ -35,15 +36,33 @@ export class SummonComponent {
     { icon: 'bag-handle-outline', title: 'Items'    },
   ];
   activeTab     = 0;
+  activeItemTab = 0;
+  readonly itemSubTabs = ['Armaduras', 'Armas', 'Miscelánea'];
   readonly enemyGroups: EnemyGroup[];
   readonly maps: MapConfig[];
-  readonly itemCatalog: LootEntry[] = ITEM_CATALOG;
+  readonly armorCatalog:  LootEntry[];
+  readonly weaponCatalog: LootEntry[];
+  readonly miscCatalog:   LootEntry[];
+
+  private armorKeys:  Set<string>;
+  private weaponKeys: Set<string>;
 
   constructor(
     private summonService: SummonService,
     private worldService: WorldService,
     private playerBridge: PlayerBridgeService,
+    private equipmentService: EquipmentService,
   ) {
+    this.armorKeys  = new Set<string>();
+    this.weaponKeys = new Set<string>();
+    for (const slot of this.equipmentService.slots) {
+      if (slot.id === 'weapon') slot.accepts.forEach(a => this.weaponKeys.add(a));
+      else                      slot.accepts.forEach(a => this.armorKeys.add(a));
+    }
+
+    this.armorCatalog  = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'armor');
+    this.weaponCatalog = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'weapon');
+    this.miscCatalog   = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'misc');
     const allCards = Object.values(ENEMY_REGISTRY).map(cfg => this.toCard(cfg));
     const baseCards = allCards.filter(c => c.tier === 'base');
     this.enemyGroups = baseCards.map(base => ({
@@ -83,6 +102,13 @@ export class SummonComponent {
 
   getSheetBgSize(cols = 12, frameSize = 32): string {
     return `${cols * 32}px auto`;
+  }
+
+  private itemGroup(entry: LootEntry): 'armor' | 'weapon' | 'misc' {
+    const key = entry.category ?? entry.name;
+    if (this.armorKeys.has(key))  return 'armor';
+    if (this.weaponKeys.has(key)) return 'weapon';
+    return 'misc';
   }
 
   private toCard(cfg: EnemyTypeConfig): EnemyCard {

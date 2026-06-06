@@ -7,16 +7,6 @@
   box-sizing: border-box;
 }
 
-.summon-header {
-  text-align: center;
-  font-size: 0.85em;
-  font-weight: bold;
-  color: #aaa;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 .summon-tabs {
   display: flex;
   gap: 4px;
@@ -195,8 +185,43 @@
 
 // ── Items ────────────────────────────────────────────────────────────────────
 
+.item-subtabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.item-subtab {
+  flex: 1;
+  padding: 5px 4px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 0.68em;
+  text-align: center;
+  cursor: pointer;
+  color: #888;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &.active {
+    background: #3498db;
+    border-color: #3498db;
+    color: #fff;
+  }
+}
+
 .item-list {
   padding-top: 2px;
+}
+
+.item-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #555;
+  font-size: 0.75em;
+  padding: 12px 0;
 }
 
 .item-grid {
