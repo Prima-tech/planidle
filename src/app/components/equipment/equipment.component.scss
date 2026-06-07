@@ -49,6 +49,14 @@
 .eq-content {
   width: 226px;
   flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  // modal: top 10px + bottom 66px = 76px; host padding: 10px×2 = 20px → 96px total
+  max-height: calc(100dvh - 96px);
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
 }
 
 // ── Tab 0: Equipamiento — layout 3 columnas ──────────────────────────────────
