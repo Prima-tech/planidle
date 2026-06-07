@@ -25,6 +25,7 @@ export interface SkillConfig {
   speed?: number;       // world pixels/second — solo para 'projectile'
   aoeRadius?: number;   // tiles — si se define, daña a todos los enemigos en este radio alrededor del impacto
   buff?: BuffDef;       // si se define, aplica este buffo al jugador al activar la habilidad
+  manaCost?: number;   // mana consumido al activar (0 = gratis)
 }
 
 export const SKILL_REGISTRY: Record<string, SkillConfig> = {
@@ -89,6 +90,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     iconPath: 'assets/sprites/skills/fire/icons/escudo_de_fuego.png',
     buff: { stat: 'defense', value: 10 },
+    manaCost: 10,
   },
   lava_paddle: {
     abilityId: 'lava_paddle',

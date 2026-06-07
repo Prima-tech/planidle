@@ -704,6 +704,15 @@ export class GameScene extends Phaser.Scene {
     private executeSkill(abilityId: string, damage: number): void {
       const cfg = SKILL_REGISTRY[abilityId];
       if (!cfg) return;
+      if (cfg.manaCost) {
+        const ps = this.reg.playerState;
+        const state = ps?.snapshot();
+        if (!state || state.mp < cfg.manaCost) {
+          this.reg.skillActivation?.refundCooldown(abilityId);
+          return;
+        }
+        ps.setMp(state.mp - cfg.manaCost);
+      }
       if (cfg.effectType === 'buff') {
         this.playImpactSelf(cfg);
         if (cfg.buff) {
