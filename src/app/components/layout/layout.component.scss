@@ -11,6 +11,16 @@
     opacity: 0;
     pointer-events: none;
   }
+
+  &__text {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+  }
 }
 
 .dinamyc-area {

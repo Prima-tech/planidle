@@ -1,4 +1,6 @@
-<div class="loading-cover" [class.loading-cover--hidden]="dataLoaded && sceneVisible"></div>
+<div class="loading-cover" [class.loading-cover--hidden]="dataLoaded && sceneVisible">
+  <span class="loading-cover__text">Cargando...</span>
+</div>
 
 <app-top-bar *ngIf="dataLoaded && sceneVisible"></app-top-bar>
 <ion-content>
