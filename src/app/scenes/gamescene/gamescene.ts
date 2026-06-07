@@ -203,7 +203,8 @@ export class GameScene extends Phaser.Scene {
 
       if (this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
         this.player.playerAttack();
-        this.gridPhysics.attackEnemy(this.playerDamage);
+        const { dmg: dmgM, isCrit: critM } = this.rollAttack();
+        this.gridPhysics.attackEnemy(dmgM, critM);
       }
 
       const playerPos = this.player.getPosition();
@@ -431,7 +432,8 @@ export class GameScene extends Phaser.Scene {
       this.spaceKey.on('down', () => {
         if (this.player.isAttacking) return;
         this.player.playerAttack();
-        this.gridPhysics.attackEnemy(this.playerDamage);
+        const { dmg, isCrit } = this.rollAttack();
+        this.gridPhysics.attackEnemy(dmg, isCrit);
       });
     }
 
@@ -547,6 +549,13 @@ export class GameScene extends Phaser.Scene {
       );
 
       this.enemies.push(enemy);
+    }
+
+    private rollAttack(): { dmg: number; isCrit: boolean } {
+      const critChance = this.reg.charStats?.currentCritChance ?? 10;
+      const isCrit     = Math.random() * 100 < critChance;
+      const critMult   = isCrit ? (this.reg.charStats?.currentCritDamage ?? 150) / 100 : 1;
+      return { dmg: Math.round(this.playerDamage * critMult), isCrit };
     }
 
     private flashPlayer() {

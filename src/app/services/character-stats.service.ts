@@ -36,10 +36,26 @@ export interface DefenseBreakdown {
 }
 
 export interface EvasionBreakdown {
-  dex:       number;  // % from DEX
-  equipment: number;  // % from equipment
-  buffs:     number;  // % from buffs/skills
-  total:     number;  // total %
+  dex:       number;
+  equipment: number;
+  buffs:     number;
+  total:     number;
+}
+
+export interface CritChanceBreakdown {
+  base:      number;  // always 10
+  equipment: number;
+  buffs:     number;
+  talents:   number;
+  total:     number;  // %
+}
+
+export interface CritDamageBreakdown {
+  base:      number;  // always 150
+  str:       number;  // floor((STR-20)/5), min 0
+  equipment: number;
+  buffs:     number;
+  total:     number;  // %
 }
 
 export interface BaseStats {
@@ -78,8 +94,10 @@ export class CharacterStatsService {
   readonly damage$:  Observable<DamageBreakdown>;
   readonly hp$:      Observable<HpBreakdown>;
   readonly mp$:      Observable<MpBreakdown>;
-  readonly defense$: Observable<DefenseBreakdown>;
-  readonly evasion$: Observable<EvasionBreakdown>;
+  readonly defense$:    Observable<DefenseBreakdown>;
+  readonly evasion$:    Observable<EvasionBreakdown>;
+  readonly critChance$: Observable<CritChanceBreakdown>;
+  readonly critDamage$: Observable<CritDamageBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   private readonly statsChanged$ = new Subject<void>();
@@ -119,8 +137,10 @@ export class CharacterStatsService {
     this.damage$  = trigger$.pipe(map(() => this._calcDamage()));
     this.hp$      = trigger$.pipe(map(() => this._calcHp()));
     this.mp$      = trigger$.pipe(map(() => this._calcMp()));
-    this.defense$ = defTrigger$.pipe(map(() => this._calcDefense()));
-    this.evasion$ = defTrigger$.pipe(map(() => this._calcEvasion()));
+    this.defense$    = defTrigger$.pipe(map(() => this._calcDefense()));
+    this.evasion$    = defTrigger$.pipe(map(() => this._calcEvasion()));
+    this.critChance$ = defTrigger$.pipe(map(() => this._calcCritChance()));
+    this.critDamage$ = defTrigger$.pipe(map(() => this._calcCritDamage()));
 
     trigger$.subscribe(() => {
       this.syncHpMax();
@@ -168,8 +188,30 @@ export class CharacterStatsService {
   }
 
   // DEX → defensa/evasión: los primeros 10 puntos no cuentan, cada 10 adicionales = +1 def / +1%
-  get currentDefense(): number { return this._calcDefense().total; }
-  get currentEvasion(): number { return this._calcEvasion().total; }
+  get currentDefense():    number { return this._calcDefense().total; }
+  get currentEvasion():    number { return this._calcEvasion().total; }
+  get currentCritChance(): number { return this._calcCritChance().total; }
+  get currentCritDamage(): number { return this._calcCritDamage().total; }
+
+  private _calcCritChance(): CritChanceBreakdown {
+    const base      = 10;
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['critChance'] ?? 0), 0
+    );
+    const talents = this.talent.getBonus().critChance ?? 0;
+    const buffs   = this.buff.getValue('critChance');
+    return { base, equipment, talents, buffs, total: base + equipment + talents + buffs };
+  }
+
+  private _calcCritDamage(): CritDamageBreakdown {
+    const base      = 150;
+    const str       = Math.max(0, Math.floor((this.stats.STR - 20) / 5));
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['critDamage'] ?? 0), 0
+    );
+    const buffs = this.buff.getValue('critDamage');
+    return { base, str, equipment, buffs, total: base + str + equipment + buffs };
+  }
 
   private _calcEvasion(): EvasionBreakdown {
     const dex       = Math.max(0, Math.floor((this.stats.DEX - 10) / 10));

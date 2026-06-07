@@ -231,6 +231,68 @@
       </div>
     </div>
 
+    <!-- Acordeón: Prob. Crítico -->
+    <div class="ov-accordion" (click)="showCritBreakdown = !showCritBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Prob. Crítico</span>
+        <ng-container *ngIf="critChance$ | async as cc">
+          <span class="ov-val ov-val--crit">{{ cc.total }}%</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showCritBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showCritBreakdown">
+        <ng-container *ngIf="critChance$ | async as cc">
+          <div class="ov-bk-row">
+            <span>Base</span>
+            <span>{{ cc.base }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="cc.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ cc.equipment }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="cc.talents > 0">
+            <span>Talentos</span>
+            <span class="ov-bonus">+{{ cc.talents }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="cc.buffs > 0">
+            <span>Habilidades</span>
+            <span class="ov-bonus">+{{ cc.buffs }}%</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Acordeón: Daño Crítico -->
+    <div class="ov-accordion" (click)="showCritBreakdown = !showCritBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Daño Crítico</span>
+        <ng-container *ngIf="critDamage$ | async as cd">
+          <span class="ov-val ov-val--crit">{{ cd.total }}%</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showCritBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showCritBreakdown">
+        <ng-container *ngIf="critDamage$ | async as cd">
+          <div class="ov-bk-row">
+            <span>Base</span>
+            <span>{{ cd.base }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="cd.str > 0">
+            <span>Fuerza</span>
+            <span class="ov-bonus">+{{ cd.str }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="cd.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ cd.equipment }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="cd.buffs > 0">
+            <span>Habilidades</span>
+            <span class="ov-bonus">+{{ cd.buffs }}%</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
   </div>
 
   <!-- Tab 3: Talentos -->

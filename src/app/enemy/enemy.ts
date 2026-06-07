@@ -114,10 +114,10 @@ export class Enemy {
     this.move(sx, sy, dx, dy, dist, delta);
   }
 
-  takeDamage(amount: number) {
+  takeDamage(amount: number, isCrit = false) {
     if (this.isDead) return;
     this.HP -= amount;
-    this.showDamageNumber(amount);
+    this.showDamageNumber(amount, isCrit);
     this.ensureHPBar();
     this.drawHPBar();
     if (this.HP <= 0) { this.die(); return; }
@@ -305,16 +305,23 @@ export class Enemy {
     }
   }
 
-  private showDamageNumber(amount: number): void {
+  private showDamageNumber(amount: number, isCrit = false): void {
     const x    = this.sprite.x + Phaser.Math.Between(-30, 30);
     const y    = this.sprite.y - this.sprite.displayHeight * 0.6;
     const text = this.mainScene.add.text(x, y, `${amount}`, {
-      fontSize: '28px', color: '#ffd700', fontStyle: 'bold',
-      stroke: '#000000', strokeThickness: 6,
+      fontSize:        isCrit ? '48px' : '28px',
+      color:           isCrit ? '#b85c00' : '#ffd700',
+      fontStyle:       'bold',
+      stroke:          '#000000',
+      strokeThickness: isCrit ? 8 : 6,
     });
     text.setOrigin(0.5, 1).setDepth(10);
     this.mainScene.tweens.add({
-      targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
+      targets:  text,
+      y:        y - (isCrit ? 55 : 35),
+      alpha:    0,
+      duration: isCrit ? 900 : 700,
+      ease:     'Power2',
       onComplete: () => text.destroy(),
     });
   }

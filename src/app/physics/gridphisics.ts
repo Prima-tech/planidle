@@ -87,7 +87,7 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     }
   }
 
-  attackEnemy(damage: number): void {
+  attackEnemy(damage: number, isCrit = false): void {
     const pos  = this.player.getPosition();
     const dir  = this.player.getDirection();
     const RANGE = GameScene.TILE_SIZE * 2;
@@ -101,7 +101,7 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
       if (dist > RANGE || dist === 0) return;
       if (!this.isInAttackDirection(dx, dy, dir)) return;
 
-      enemy.takeDamage(damage);
+      enemy.takeDamage(damage, isCrit);
       enemy.startChasing();
       this.emit('enemyAttacked', enemy);
     });
