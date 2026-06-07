@@ -69,6 +69,8 @@ export class Player {
     this.mainScene = sprites.mainScene;
     this.sprite = sprites.sprite;
     this.tilePos = sprites.tilePos;
+    this.isAttacking = false;
+    this.isMoving = false;
     this.initSpriteProperties();
     this.initPlayerAnimation();
   }
@@ -208,11 +210,16 @@ export class Player {
         const targetKey = currentAnimKey.startsWith(cfg.playerPrefix)
           ? cfg.layerPrefix + currentAnimKey.slice(cfg.playerPrefix.length)
           : (cfg.fallbackAnim ?? '');
-        if (targetKey && layer.anims.currentAnim?.key !== targetKey) {
+        const layerKey       = layer.anims.currentAnim?.key ?? '';
+        const isSameKey      = layerKey === targetKey;
+        const isStillPlaying = layer.anims.isPlaying;
+        if (targetKey && (!isSameKey || !isStillPlaying)) {
           const animKey = this.mainScene.anims.exists(targetKey) ? targetKey : (cfg.fallbackAnim ?? '');
           if (animKey) {
-            layer.play(animKey, true);
-            layer.anims.setProgress(this.sprite.anims.getProgress());
+            layer.play(animKey);
+            if (!isSameKey) {
+              layer.anims.setProgress(this.sprite.anims.getProgress());
+            }
           }
         }
       } else {
