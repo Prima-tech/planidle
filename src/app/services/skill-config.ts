@@ -30,7 +30,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 6,
     frameRate: 12,
     scale: 2,
-    iconPath: 'assets/sprites/skills/icons/fire.png',
+    iconPath: 'assets/sprites/skills/fire/icons/fire.png',
   },
   small_fire: {
     abilityId: 'small_fire',
@@ -42,7 +42,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 6,
     frameRate: 12,
     scale: 1.5,
-    iconPath: 'assets/sprites/skills/icons/fuego_pequeno.png',
+    iconPath: 'assets/sprites/skills/fire/icons/fuego_pequeno.png',
   },
   fire_flower: {
     abilityId: 'fire_flower',
@@ -54,7 +54,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 11,
     frameRate: 12,
     scale: 2.5,
-    iconPath: 'assets/sprites/skills/icons/flor_de_fuego.png',
+    iconPath: 'assets/sprites/skills/fire/icons/flor_de_fuego.png',
   },
   fire_pillar: {
     abilityId: 'fire_pillar',
@@ -66,7 +66,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 8,
     frameRate: 12,
     scale: 2.5,
-    iconPath: 'assets/sprites/skills/icons/pilar_de_fuego.png',
+    iconPath: 'assets/sprites/skills/fire/icons/pilar_de_fuego.png',
   },
   fire_shield: {
     abilityId: 'fire_shield',
@@ -79,7 +79,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 8,
     frameRate: 10,
     scale: 2.5,
-    iconPath: 'assets/sprites/skills/icons/escudo_de_fuego.png',
+    iconPath: 'assets/sprites/skills/fire/icons/escudo_de_fuego.png',
   },
   lava_paddle: {
     abilityId: 'lava_paddle',
@@ -91,7 +91,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2,
-    iconPath: 'assets/sprites/skills/icons/paleta_de_lava.png',
+    iconPath: 'assets/sprites/skills/fire/icons/paleta_de_lava.png',
   },
   fireball: {
     abilityId: 'fireball',
@@ -104,7 +104,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 14,
     scale: 2,
     speed: 350,
-    iconPath: 'assets/sprites/skills/icons/bola_de_fuego.png',
+    iconPath: 'assets/sprites/skills/fire/icons/bola_de_fuego.png',
   },
   fire_hurricane: {
     abilityId: 'fire_hurricane',
@@ -116,7 +116,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 14,
     frameRate: 12,
     scale: 3,
-    iconPath: 'assets/sprites/skills/icons/huracan_de_fuego.png',
+    iconPath: 'assets/sprites/skills/fire/icons/huracan_de_fuego.png',
   },
   lava_drop: {
     abilityId: 'lava_drop',
@@ -128,7 +128,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 16,
     frameRate: 14,
     scale: 2.5,
-    iconPath: 'assets/sprites/skills/icons/gota_de_lava.png',
+    iconPath: 'assets/sprites/skills/fire/icons/gota_de_lava.png',
   },
   magma_geyser: {
     abilityId: 'magma_geyser',
@@ -140,7 +140,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 11,
     frameRate: 12,
     scale: 3,
-    iconPath: 'assets/sprites/skills/icons/geiser_de_lava.png',
+    iconPath: 'assets/sprites/skills/fire/icons/geiser_de_lava.png',
   },
   phoenix: {
     abilityId: 'phoenix',
@@ -153,6 +153,6 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 3,
     speed: 300,
-    iconPath: 'assets/sprites/skills/icons/fenix.png',
+    iconPath: 'assets/sprites/skills/fire/icons/fenix.png',
   },
 };
