@@ -1,31 +1,43 @@
 <div class="top-bar">
 
-  <!-- Panel personaje: avatar + nombre + barras -->
-  <div class="char-panel">
-    <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
-      <ion-icon [name]="classIcon"></ion-icon>
+  <!-- Panel personaje + buffos -->
+  <div class="left-side">
+    <div class="char-panel">
+      <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
+        <ion-icon [name]="classIcon"></ion-icon>
+      </div>
+      <div class="char-info">
+        <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
+        <div class="bar-row" *ngIf="initStatusBar">
+          <div class="bar-track">
+            <div class="bar-fill bar-fill--hp"
+                 [style.width.%]="(valueHP$ | async)?.value * 100">
+            </div>
+          </div>
+        </div>
+        <div class="bar-row" *ngIf="initStatusBar">
+          <div class="bar-track">
+            <div class="bar-fill bar-fill--mp"
+                 [style.width.%]="(valueMP$ | async) * 100">
+            </div>
+          </div>
+        </div>
+        <div class="bar-row" *ngIf="initStatusBar">
+          <div class="bar-track">
+            <div class="bar-fill bar-fill--xp"
+                 [style.width.%]="(valueXP$ | async)?.value * 100">
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="char-info">
-      <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
-      <div class="bar-row" *ngIf="initStatusBar">
-        <div class="bar-track">
-          <div class="bar-fill bar-fill--hp"
-               [style.width.%]="(valueHP$ | async)?.value * 100">
-          </div>
-        </div>
-      </div>
-      <div class="bar-row" *ngIf="initStatusBar">
-        <div class="bar-track">
-          <div class="bar-fill bar-fill--mp"
-               [style.width.%]="(valueMP$ | async) * 100">
-          </div>
-        </div>
-      </div>
-      <div class="bar-row" *ngIf="initStatusBar">
-        <div class="bar-track">
-          <div class="bar-fill bar-fill--xp"
-               [style.width.%]="(valueXP$ | async)?.value * 100">
-          </div>
+
+    <!-- Buffos activos -->
+    <div class="buff-list" *ngIf="activeBuffs.length > 0">
+      <div class="buff-item" *ngFor="let buff of activeBuffs">
+        <div class="buff-icon"
+             [style.background-image]="'url(' + buff.icon + ')'"
+             [style.--ratio]="buffRatio(buff)">
         </div>
       </div>
     </div>

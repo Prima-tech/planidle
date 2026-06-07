@@ -669,7 +669,7 @@ export class GameScene extends Phaser.Scene {
       if (!skillSvc) return;
       const playerPos = this.player.getPosition();
       for (const cfg of Object.values(SKILL_REGISTRY)) {
-        if (cfg.target === 'self') { skillSvc.setTargetAvailable(cfg.abilityId, true); continue; }
+        if (cfg.effectType === 'buff' || cfg.target === 'self') { skillSvc.setTargetAvailable(cfg.abilityId, true); continue; }
         const rangePx = GameScene.TILE_SIZE * cfg.range;
         const has = this.enemies.some(e => {
           if (e.isDead) return false;
@@ -704,6 +704,20 @@ export class GameScene extends Phaser.Scene {
     private executeSkill(abilityId: string, damage: number): void {
       const cfg = SKILL_REGISTRY[abilityId];
       if (!cfg) return;
+      if (cfg.effectType === 'buff') {
+        this.playImpactSelf(cfg);
+        if (cfg.buff) {
+          this.reg.buff?.apply({
+            id: cfg.abilityId,
+            stat: cfg.buff.stat,
+            value: cfg.buff.value,
+            icon: cfg.iconPath ?? '',
+            startTime: Date.now(),
+            duration: cfg.cooldown,
+          });
+        }
+        return;
+      }
       if (cfg.target === 'self') {
         this.playImpactSelf(cfg);
         return;

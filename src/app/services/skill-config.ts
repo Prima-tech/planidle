@@ -1,8 +1,14 @@
 // 'impact'    — el sprite aparece directamente sobre el enemigo
 // 'projectile' — el sprite viaja desde el jugador hasta el enemigo
-export type SkillEffectType = 'impact' | 'projectile';
+// 'buff'       — se aplica sobre el jugador: animación self + buffo activo
+export type SkillEffectType = 'impact' | 'projectile' | 'buff';
 
 export type SkillTarget = 'enemy' | 'self';
+
+export interface BuffDef {
+  stat: string;
+  value: number;
+}
 
 export interface SkillConfig {
   abilityId: string;
@@ -18,6 +24,7 @@ export interface SkillConfig {
   iconPath?: string;    // imagen para el botón del footer
   speed?: number;       // world pixels/second — solo para 'projectile'
   aoeRadius?: number;   // tiles — si se define, daña a todos los enemigos en este radio alrededor del impacto
+  buff?: BuffDef;       // si se define, aplica este buffo al jugador al activar la habilidad
 }
 
 export const SKILL_REGISTRY: Record<string, SkillConfig> = {
@@ -72,16 +79,16 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
   },
   fire_shield: {
     abilityId: 'fire_shield',
-    effectType: 'impact',
-    target: 'self',
+    effectType: 'buff',
     damage: 0,
     range: 0,
-    cooldown: 4000,
+    cooldown: 20000,
     spriteKey: 'skill_fire_shield',
     frameCount: 8,
     frameRate: 10,
     scale: 2.5,
     iconPath: 'assets/sprites/skills/fire/icons/escudo_de_fuego.png',
+    buff: { stat: 'defense', value: 10 },
   },
   lava_paddle: {
     abilityId: 'lava_paddle',

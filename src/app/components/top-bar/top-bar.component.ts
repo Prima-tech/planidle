@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { map, startWith } from 'rxjs';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Subscription, map, startWith } from 'rxjs';
 import { AsgardService } from 'src/app/services/asgard';
+import { ActiveBuff, BuffService } from 'src/app/services/buff.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { expNeeded, MAX_LEVEL, PlayerStateService } from 'src/app/services/player-state.service';
 
@@ -10,9 +11,10 @@ import { expNeeded, MAX_LEVEL, PlayerStateService } from 'src/app/services/playe
   styleUrls: ['./top-bar.component.scss'],
   standalone: false,
 })
-export class TopBarComponent implements OnInit {
+export class TopBarComponent implements OnInit, OnDestroy {
   private playerState  = inject(PlayerStateService);
   private playerBridge = inject(PlayerBridgeService);
+  private buffService  = inject(BuffService);
   asgardService        = inject(AsgardService);
 
   valueHP$: any = null;
@@ -21,6 +23,10 @@ export class TopBarComponent implements OnInit {
   initStatusBar = false;
   coins$ = this.playerState.coins$;
   lvl$   = this.playerState.lvl$;
+
+  activeBuffs: ActiveBuff[] = [];
+  private buffSub: Subscription;
+  private tickInterval: any;
 
   private readonly CLASS_ICONS: Record<string, string> = {
     Warrior:   'shield-outline',
@@ -60,5 +66,22 @@ export class TopBarComponent implements OnInit {
     );
 
     this.initStatusBar = true;
+
+    this.buffSub = this.buffService.buffs$.subscribe(buffs => {
+      this.activeBuffs = buffs;
+    });
+    this.tickInterval = setInterval(() => {
+      this.buffService.tick();
+      this.activeBuffs = [...this.activeBuffs];
+    }, 100);
+  }
+
+  ngOnDestroy(): void {
+    this.buffSub?.unsubscribe();
+    clearInterval(this.tickInterval);
+  }
+
+  buffRatio(buff: ActiveBuff): number {
+    return this.buffService.ratio(buff);
   }
 }

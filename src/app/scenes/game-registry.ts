@@ -1,4 +1,5 @@
 import { AsgardService } from '../services/asgard';
+import { BuffService } from '../services/buff.service';
 import { CharacterStatsService } from '../services/character-stats.service';
 import { EquipmentService } from '../services/equipment.service';
 import { InventoryService } from '../services/inventory.service';
@@ -25,6 +26,7 @@ export const REGISTRY_KEYS = {
   CHAR_STATS:       'characterStatsService',
   ASGARD:           'asgardService',
   SKILL_ACTIVATION: 'skillActivationService',
+  BUFF:             'buffService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -43,4 +45,5 @@ export class GameRegistry {
   get charStats():       CharacterStatsService    { return this.game.registry.get(REGISTRY_KEYS.CHAR_STATS); }
   get asgard():          AsgardService            { return this.game.registry.get(REGISTRY_KEYS.ASGARD); }
   get skillActivation(): SkillActivationService   { return this.game.registry.get(REGISTRY_KEYS.SKILL_ACTIVATION); }
+  get buff():            BuffService              { return this.game.registry.get(REGISTRY_KEYS.BUFF); }
 }
