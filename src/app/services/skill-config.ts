@@ -17,6 +17,7 @@ export interface SkillConfig {
   scale: number;
   iconPath?: string;    // imagen para el botón del footer
   speed?: number;       // world pixels/second — solo para 'projectile'
+  aoeRadius?: number;   // tiles — si se define, daña a todos los enemigos en este radio alrededor del impacto
 }
 
 export const SKILL_REGISTRY: Record<string, SkillConfig> = {
@@ -54,6 +55,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 11,
     frameRate: 12,
     scale: 2.5,
+    aoeRadius: 1,
     iconPath: 'assets/sprites/skills/fire/icons/flor_de_fuego.png',
   },
   fire_pillar: {
@@ -116,6 +118,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 14,
     frameRate: 12,
     scale: 3,
+    aoeRadius: 2,
     iconPath: 'assets/sprites/skills/fire/icons/huracan_de_fuego.png',
   },
   lava_drop: {
@@ -128,6 +131,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 16,
     frameRate: 14,
     scale: 2.5,
+    aoeRadius: 1,
     iconPath: 'assets/sprites/skills/fire/icons/gota_de_lava.png',
   },
   magma_geyser: {
@@ -140,6 +144,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 11,
     frameRate: 12,
     scale: 3,
+    aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/fire/icons/geiser_de_lava.png',
   },
   water_drop: {
@@ -196,6 +201,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 9,
     frameRate: 12,
     scale: 2.5,
+    aoeRadius: 1.5,
   },
   ice_spike: {
     abilityId: 'ice_spike',
@@ -231,6 +237,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 19,
     frameRate: 12,
     scale: 3,
+    aoeRadius: 2,
   },
   circle_explosion: {
     abilityId: 'circle_explosion',
@@ -242,6 +249,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2.5,
+    aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon1.png',
   },
   explosion: {
@@ -254,6 +262,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 3,
+    aoeRadius: 2,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon2.png',
   },
   explosion_blue_circle: {
@@ -266,6 +275,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2.5,
+    aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon3.png',
   },
   explosion_blue_oval: {
@@ -278,6 +288,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2.5,
+    aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon4.png',
   },
   explosion_gas: {
@@ -290,6 +301,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2.5,
+    aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon5.png',
   },
   explosion_gas_circle: {
@@ -302,6 +314,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 3,
+    aoeRadius: 2,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon6.png',
   },
   explosion_two_colors: {
@@ -314,6 +327,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 3,
+    aoeRadius: 2,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon7.png',
   },
   circle_smoke: {

@@ -742,6 +742,16 @@ export class GameScene extends Phaser.Scene {
       return nearest;
     }
 
+    private getEnemiesInRadius(cx: number, cy: number, radiusTiles: number): Enemy[] {
+      const rangePx = GameScene.TILE_SIZE * radiusTiles;
+      return this.enemies.filter(e => {
+        if (e.isDead) return false;
+        const p = e.getPixelPos();
+        const dx = p.x - cx, dy = p.y - cy;
+        return dx * dx + dy * dy <= rangePx * rangePx;
+      });
+    }
+
     // El sprite aparece en el enemigo y se destruye al terminar el ciclo de animación
     private playImpact(cfg: SkillConfig, damage: number, target: Enemy): void {
       const pos = target.getPixelPos();
@@ -751,7 +761,11 @@ export class GameScene extends Phaser.Scene {
       sprite.setDepth(6);
       sprite.setScale(cfg.scale);
       if (this.anims.exists(cfg.spriteKey)) sprite.play(cfg.spriteKey);
-      target.takeDamage(damage);
+      if (cfg.aoeRadius) {
+        this.getEnemiesInRadius(pos.x, pos.y, cfg.aoeRadius).forEach(e => e.takeDamage(damage));
+      } else {
+        target.takeDamage(damage);
+      }
       const duration = (cfg.frameCount / cfg.frameRate) * 1000;
       this.time.delayedCall(duration, () => sprite.destroy());
     }
@@ -771,7 +785,11 @@ export class GameScene extends Phaser.Scene {
         targets: proj, x: targetPos.x, y: targetPos.y, duration, ease: 'Linear',
         onComplete: () => {
           proj.destroy();
-          if (!target.isDead) target.takeDamage(damage);
+          if (cfg.aoeRadius) {
+            this.getEnemiesInRadius(targetPos.x, targetPos.y, cfg.aoeRadius).forEach(e => e.takeDamage(damage));
+          } else if (!target.isDead) {
+            target.takeDamage(damage);
+          }
         },
       });
     }
