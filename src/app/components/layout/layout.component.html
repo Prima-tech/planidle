@@ -1,5 +1,6 @@
-<div class="loading-cover" [class.loading-cover--hidden]="dataLoaded"></div>
-<app-top-bar *ngIf="dataLoaded"></app-top-bar>
+<div class="loading-cover" [class.loading-cover--hidden]="dataLoaded && sceneVisible"></div>
+
+<app-top-bar *ngIf="dataLoaded && sceneVisible"></app-top-bar>
 <ion-content>
 
   <!-- Zona estática -->
@@ -17,7 +18,7 @@
 <app-footer-bar></app-footer-bar>
 
 <app-offline-gains-modal
-  *ngIf="dataLoaded && pendingGains"
+  *ngIf="dataLoaded && sceneVisible && pendingGains"
   [gains]="pendingGains"
   (collected)="collectGains($event)">
 </app-offline-gains-modal>

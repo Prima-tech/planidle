@@ -193,6 +193,7 @@ export class GameScene extends Phaser.Scene {
         this.registerSkillAnimations();
         this.initSkillListener();
         this.initSkillTargetChecker();
+        this.time.delayedCall(600, () => this.reg.playerBridge?.emitSceneReady());
       });
     }
 

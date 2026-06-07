@@ -10,6 +10,8 @@ export class PlayerBridgeService {
   player: Player;
   isDead = false;
   readonly death$ = new Subject<void>();
+  readonly sceneStarting$ = new Subject<void>();
+  readonly sceneReady$ = new Subject<void>();
 
   constructor(
     private sceneManager: SceneManager,
@@ -48,11 +50,16 @@ export class PlayerBridgeService {
   restartGameScene(): void {
     const game = this.sceneManager.game;
     if (!game) return;
+    this.sceneStarting$.next();
     const scene = game.scene.getScene('GameScene');
     if (scene?.scene.isActive()) {
       scene.scene.restart();
     } else {
       game.scene.start('GameScene');
     }
+  }
+
+  emitSceneReady(): void {
+    this.sceneReady$.next();
   }
 }

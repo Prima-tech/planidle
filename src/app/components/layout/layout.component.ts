@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, NgZone, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -36,13 +36,17 @@ export class LayoutComponent implements OnDestroy {
   config: Phaser.Types.Core.GameConfig | undefined;
   phaserGame: Phaser.Game | undefined;
   dataLoaded = false;
+  sceneVisible = false;
   pendingGains: OfflineGains | null = null;
   playerDead = false;
   private gainsSub: Subscription;
   private deathSub: Subscription;
+  private sceneStartingSub: Subscription;
+  private sceneReadySub: Subscription;
 
   constructor(
     private router: Router,
+    private ngZone: NgZone,
     public service: FakeApiService,
     public profile: ProfileService,
     public mapService: MapService,
@@ -76,6 +80,14 @@ export class LayoutComponent implements OnDestroy {
       this.playerDead = true;
     });
 
+    this.sceneStartingSub = this.playerBridgeService.sceneStarting$.subscribe(() => {
+      this.ngZone.run(() => { this.sceneVisible = false; });
+    });
+
+    this.sceneReadySub = this.playerBridgeService.sceneReady$.subscribe(() => {
+      this.ngZone.run(() => { this.sceneVisible = true; });
+    });
+
     this.asgardService.refreshData();
     this.service.getUserData().subscribe(async (data) => {
       this.playerBridgeService.createPlayer();
@@ -95,6 +107,8 @@ export class LayoutComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.gainsSub?.unsubscribe();
     this.deathSub?.unsubscribe();
+    this.sceneStartingSub?.unsubscribe();
+    this.sceneReadySub?.unsubscribe();
     this.phaserGame?.destroy(true);
     this.phaserGame = undefined;
     this.sceneManager.setGame(null);
