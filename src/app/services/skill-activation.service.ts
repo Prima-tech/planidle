@@ -42,6 +42,10 @@ export class SkillActivationService {
     this.cooldowns = {};
   }
 
+  refundCooldown(abilityId: string): void {
+    delete this.cooldowns[abilityId];
+  }
+
   private targetAvailable: Record<string, boolean> = {};
 
   setTargetAvailable(abilityId: string, available: boolean): void {

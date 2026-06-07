@@ -660,23 +660,25 @@ export class GameScene extends Phaser.Scene {
     private initSkillTargetChecker(): void {
       const skillSvc = this.reg.skillActivation;
       if (!skillSvc) return;
-      this.time.addEvent({
-        delay: 500, loop: true,
-        callback: () => {
-          const playerPos = this.player.getPosition();
-          for (const cfg of Object.values(SKILL_REGISTRY)) {
-            if (cfg.target === 'self') { skillSvc.setTargetAvailable(cfg.abilityId, true); continue; }
-            const rangePx = GameScene.TILE_SIZE * cfg.range;
-            const has = this.enemies.some(e => {
-              if (e.isDead) return false;
-              const p = e.getPixelPos();
-              const dx = p.x - playerPos.x, dy = p.y - playerPos.y;
-              return dx * dx + dy * dy <= rangePx * rangePx;
-            });
-            skillSvc.setTargetAvailable(cfg.abilityId, has);
-          }
-        },
-      });
+      this.time.addEvent({ delay: 500, loop: true, callback: () => this.recheckSkillTargets() });
+      this.events.on('enemyDied', () => this.recheckSkillTargets());
+    }
+
+    private recheckSkillTargets(): void {
+      const skillSvc = this.reg.skillActivation;
+      if (!skillSvc) return;
+      const playerPos = this.player.getPosition();
+      for (const cfg of Object.values(SKILL_REGISTRY)) {
+        if (cfg.target === 'self') { skillSvc.setTargetAvailable(cfg.abilityId, true); continue; }
+        const rangePx = GameScene.TILE_SIZE * cfg.range;
+        const has = this.enemies.some(e => {
+          if (e.isDead) return false;
+          const p = e.getPixelPos();
+          const dx = p.x - playerPos.x, dy = p.y - playerPos.y;
+          return dx * dx + dy * dy <= rangePx * rangePx;
+        });
+        skillSvc.setTargetAvailable(cfg.abilityId, has);
+      }
     }
 
     private registerSkillAnimations(): void {
@@ -707,7 +709,10 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       const target = this.findNearestEnemy(cfg.range);
-      if (!target) return;
+      if (!target) {
+        this.reg.skillActivation?.refundCooldown(abilityId);
+        return;
+      }
       if (cfg.effectType === 'projectile') {
         this.launchProjectile(cfg, damage, target);
       } else {
