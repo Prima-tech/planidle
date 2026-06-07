@@ -231,6 +231,46 @@ export const TALENT_NODES_WATER: TalentNodeConfig[] = [
   },
 ];
 
+// ── Habilidades de explosión (disponibles sin desbloquear) ───────────────────
+
+export const TALENT_NODES_EXPLOSION: TalentNodeConfig[] = [
+  {
+    id: 'circle_explosion', label: 'Explosión\nCircular', icon: 'radio-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 10, ability: 'circle_explosion' },
+  },
+  {
+    id: 'explosion', label: 'Explosión', icon: 'flash-outline',
+    col: 1, row: 0, requires: [],
+    effect: { type: 'ability', base: 15, ability: 'explosion' },
+  },
+  {
+    id: 'explosion_blue_circle', label: 'Explosión\nAzul', icon: 'ellipse-outline',
+    col: 2, row: 0, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'explosion_blue_circle' },
+  },
+  {
+    id: 'explosion_blue_oval', label: 'Óvalo\nExplosivo', icon: 'resize-outline',
+    col: 3, row: 0, requires: [],
+    effect: { type: 'ability', base: 14, ability: 'explosion_blue_oval' },
+  },
+  {
+    id: 'explosion_gas', label: 'Gas\nExplosivo', icon: 'medical-outline',
+    col: 0, row: 1, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'explosion_gas' },
+  },
+  {
+    id: 'explosion_gas_circle', label: 'Gas\nCircular', icon: 'disc-outline',
+    col: 1, row: 1, requires: [],
+    effect: { type: 'ability', base: 18, ability: 'explosion_gas_circle' },
+  },
+  {
+    id: 'explosion_two_colors', label: 'Explosión\nBicolor', icon: 'color-palette-outline',
+    col: 2, row: 1, requires: [],
+    effect: { type: 'ability', base: 20, ability: 'explosion_two_colors' },
+  },
+];
+
 // ── Habilidades de humo (disponibles sin desbloquear) ─────────────────────────
 
 export const TALENT_NODES_SMOKER: TalentNodeConfig[] = [
@@ -278,7 +318,7 @@ export const TALENT_NODES_SMOKER: TalentNodeConfig[] = [
 
 // ── Registro global (todos los árboles) ──────────────────────────────────────
 
-const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER];
+const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION];
 
 @Injectable({ providedIn: 'root' })
 export class TalentService {
