@@ -48,8 +48,10 @@ mocks/         # FakeApiService
 | Servicio | Responsabilidad |
 |----------|----------------|
 | `AsgardService` | **Solo sesión y roster**: personaje seleccionado, lista de personajes, perfil, `closeMenu$`. NO maneja Phaser. |
-| `PlayerBridgeService` | **Puente Angular↔Phaser**: instancia `Player`, `setInitialSprites()`, `setAttackToPlayer()` (también sincroniza HP a `PlayerStateService`), `restartGameScene()`. Es lo que GameScene recibe vía registry. |
-| `PlayerStateService` | Fuente única de verdad para coins, exp, lvl, hp, hpMax. BehaviorSubject reactivo. `collectCoins()` emite `coinDropped$`. `setHp(hp, hpMax?)` sincroniza HP tras recibir daño. |
+| `PlayerBridgeService` | **Puente Angular↔Phaser**: instancia `Player`, `setInitialSprites()`, `setAttackToPlayer()` (sincroniza HP a `PlayerStateService`), `healPlayer(amount)` (regen — actualiza sprite Phaser + playerState), `restartGameScene()`. |
+| `PlayerStateService` | Fuente única de verdad para coins, exp, lvl, hp, hpMax, **mp, mpMax**. BehaviorSubject reactivo. `collectCoins()` emite `coinDropped$`. `setHp/setMp` sincronizan HP/MP. |
+| `CharacterStatsService` | Calcula todos los stats derivados de `BaseStats` + equipo + talentos + buffs. Observables: `damage$`, `magicDamage$`, `hp$`, `mp$`, `defense$`, `evasion$`, `critChance$`, `critDamage$`, `hpRegen$`, `mpRegen$`, `freePoints$`. Getters síncronos: `currentDefense`, `currentEvasion`, `currentCritChance`, `currentCritDamage`, `currentMagicDamage`, `currentHpRegen`, `currentMpRegen`. Gestiona `BaseStats` (STR/DEX/CONST/INT/MAG/CHR): `increment()`, `decrement()`, `resetStats()`, `restoreStats()`. |
+| `RegenService` | Timer de 10s. Recupera HP (base=CONST) y MP (base=MAG) aleatorios entre min–max. HP vía `playerBridge.healPlayer()`, MP vía `playerState.setMp()`. Emite `regenTick$` para el game-log. `start()`/`stop()` en `LayoutComponent.ngOnInit/ngOnDestroy`. |
 | `SaveService` | Orquesta toda la persistencia. Snapshot por personaje. Auto-save con debounce 2s. Flag `isRestoring` bloquea auto-save durante `loadCharacter()`. `pendingGains$` para ganancias offline. |
 | `OfflineGainsService` | Calcula ganancias AFK: tasa de kills por spawn × tiempo offline × monedas por kill. Mínimo 2 min, máximo 8h. |
 | `WorldService` | Mapa actual del jugador. BehaviorSubject `currentMap$` → actualiza `MapLabelComponent`. |
@@ -144,10 +146,14 @@ Botón "Guardar partida":
 ### GameSnapshot
 ```typescript
 interface GameSnapshot {
-  playerState: PlayerState;   // coins, exp, lvl, hp, hpMax
+  playerState: PlayerState;   // coins, exp, lvl, hp, hpMax, mp, mpMax
   inventory: (InventoryItem | null)[][][];
+  equipment: EquipmentSnapshot;
   mapId: string;
   kills: KillMap;             // { mapId: { enemyType: count } }
+  talents?: TalentSnapshot;
+  skillSlots?: SkillSlotsSnapshot;
+  baseStats?: BaseStats;      // STR/DEX/CONST/INT/MAG/CHR — persiste asignación de puntos
   lastSeen: string;           // ISO — se actualiza en cada save (auto o manual)
   lastModified: string;       // ISO — mismo valor que lastSeen
 }
@@ -223,8 +229,15 @@ interface SpawnConfig {
 - Servicios accesibles vía `this.reg` (GameRegistry) — nunca `game.registry.get()` raw
 
 ### Player (pnj/player)
-- `Player.resetStatus(hp, hpMax)` — llamar siempre al cambiar de personaje
+- `Player.resetStatus(hp, hpMax)` — llamar siempre al cambiar de personaje y al curar
+- `Player.setHP(n)` — **suma** `n` al HP actual (negativo = daño, positivo = curación) y emite `status$`
 - `sprite.once(ANIMATION_COMPLETE, ...)` en ataques — nunca `on()` (acumula listeners)
+
+### Fuentes de verdad HP vs MP
+- **Barra de HP** (`top-bar`) lee de `playerBridge.player.status$` (sprite Phaser) — **NO** de `playerState`
+- **Barra de MP** lee de `playerState.state$`
+- Al curar HP: usar siempre `playerBridge.healPlayer(amount)` — actualiza sprite + playerState
+- Al curar MP: usar `playerState.setMp(newMp, mpMax)` directamente
 
 ## Pantalla de selección de personaje (globalposition)
 
@@ -275,6 +288,59 @@ Incluye: `global_data` (coins, exp, lvl), `inventory` (pendiente de tabla), `cha
 - **Suscripciones en componentes**: siempre con `ngOnDestroy` + `unsubscribe()` o `takeUntil`
 - Componentes: `.ts` + `.html` + `.scss` + `.spec.ts`
 - Páginas: lazy-loaded con `loadChildren` (excepto login y globalposition)
+
+## Sistema de estadísticas del personaje
+
+### BaseStats
+```typescript
+interface BaseStats { STR: number; DEX: number; CONST: number; INT: number; MAG: number; CHR: number; }
+```
+Todos los stats arrancan en **10**. No hay mínimo inferior a 10 (decrement guarda el floor).
+
+### Puntos de stat
+- Total disponible: `8 + (lvl − 1)`
+- Gastados: `sum(all stats) − 60` (60 = 6 stats × 10 base)
+- Libres: `total − gastados` → expuesto como `charStats.freePoints$`
+- `increment()` falla silenciosamente si `freePoints <= 0`
+- `decrement()` no baja de 10
+- Persistidos en `GameSnapshot.baseStats`; restaurados con `charStats.restoreStats()`
+
+### Escalado de stats → stats derivados
+
+| Stat | Derivado | Fórmula |
+|------|----------|---------|
+| STR | Daño físico | base = STR, 1:1 |
+| INT | Daño mágico | base = INT, 1:1 |
+| CONST | HP máx | CONST × 10 |
+| CONST | HP regen max | = CONST; min = floor(CONST/2) |
+| MAG | MP máx | MAG × 5 |
+| MAG | MP regen max | = MAG; min = floor(MAG/2) |
+| DEX | Defensa | floor((DEX−10)/10), mín 0 — primeros 10 pts no cuentan |
+| DEX | Evasión % | misma fórmula que defensa |
+| STR ≥ 20 | Daño crítico extra | +1% por cada 5 STR sobre 20 |
+
+### Combate avanzado (GameScene)
+
+- **Defensa** — resta daño por ataque enemigo: `effectiveDmg = max(0, dmg − defense)`. Si = 0 → muestra "IMMUNE"
+- **Evasión** — roll antes de aplicar daño: `if (random()*100 < evasion) → "EVADE"`, sin daño
+- **Crítico físico** — `rollAttack()` en GameScene: base 10% + talentos/equipo/buffs. Multiplicador = `critDamage%/100`. Número en naranja oscuro `#b85c00`, 48px
+- **Daño mágico** — `playerMagicDamage` en GameScene suscrito a `charStats.magicDamage$`. Pendiente de integrar en hechizos
+
+### Sistema de regeneración (RegenService)
+
+- Intervalo: **10 segundos**
+- HP: regen entre `floor(hpRegenMax/2)` y `hpRegenMax` (base = CONST + equipo + talentos). Solo si HP < HPMax
+- MP: misma lógica con MAG
+- HP curado vía `playerBridge.healPlayer()` (actualiza sprite + playerState)
+- MP curado vía `playerState.setMp()`
+- Notificación en game-log: "HP rec: +X" en rojo `#e74c3c`, "MP rec: +X" en azul `#3498db`
+- `RegenService.start()` en `LayoutComponent.ngOnInit`, `stop()` en `ngOnDestroy`
+
+### Game log (GameLogComponent)
+- Posición: `fixed`, `bottom: 60px`, `left: 4px`
+- Sin fondo — solo texto con `text-shadow` en las 4 diagonales para legibilidad
+- Tipos: `'drop'` (dorado), `'coin'` (amarillo claro), `'regen-hp'` (rojo), `'regen-mp'` (azul)
+- Entradas mergeables (mismo `name`, no fading) acumulan `sum` y reinician timer
 
 ## Notas activas
 

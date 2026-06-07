@@ -10,7 +10,7 @@ src/app/components/equipment/
   equipment.component.ts                    ← UI: tab activa, getter/setter, métodos picker
   equipment.component.html                  ← árbol SVG + nodos + picker flotante
   equipment.component.scss                  ← estilos .tnode, .talent-tree, .talent-picker-flyout
-src/app/services/character-stats.service.ts ← aplica talentBonus a damage$, hp$, mp$, defense$
+src/app/services/character-stats.service.ts ← aplica talentBonus a todos los derivados
 src/app/services/save.service.ts            ← persiste TalentSnapshot en GameSnapshot
 ```
 
@@ -21,7 +21,7 @@ export type SphereType = 'common' | 'normal' | 'rare' | 'epic' | 'legendary';
 // Multiplicadores de poder: 1× / 2× / 4× / 8× / 16×
 
 export interface TalentEffect {
-  type:     'atk' | 'hp' | 'mp' | 'defense' | 'ability';
+  type:     'atk' | 'hp' | 'mp' | 'defense' | 'critChance' | 'hpRegen' | 'mpRegen' | 'ability';
   base:     number;       // valor con esfera common (×1)
   ability?: string;       // solo si type === 'ability' (ej: 'area_attack')
 }
@@ -46,29 +46,44 @@ export interface TalentNodeConfig {
 
 ### Efectos disponibles
 
-| type | Qué hace | Suma a | Cómo se aplica |
-|------|----------|--------|----------------|
-| `'atk'` | `base × mult` puntos de ataque | `CharacterStatsService.damage$` | `_calcDamage()` usa `talent.getBonus().atk` |
-| `'hp'` | `base × mult` puntos de vida máx | `CharacterStatsService.hp$` | `_calcHp()` usa `talent.getBonus().hp` |
-| `'mp'` | `base × mult` puntos de maná máx | `CharacterStatsService.mp$` | `_calcMp()` usa `talent.getBonus().mp` |
-| `'defense'` | `base × mult` puntos de defensa | `CharacterStatsService.defense$` | `_calcDefense()` usa `talent.getBonus().defense` |
-| `'ability'` | Desbloquea habilidad (+ `base × mult` ATK) | `talent.getBonus().abilities[]` | La clave se lee desde GameScene |
-
-La defensa resta daño directo por ataque de enemigo en `GameScene.initEnemyAttackListener()`.
+| type | Qué hace | Suma a |
+|------|----------|--------|
+| `'atk'` | `base × mult` puntos de ataque físico | `CharacterStatsService.damage$` via `talent.getBonus().atk` |
+| `'hp'` | `base × mult` puntos de vida máx | `CharacterStatsService.hp$` via `talent.getBonus().hp` |
+| `'mp'` | `base × mult` puntos de maná máx | `CharacterStatsService.mp$` via `talent.getBonus().mp` |
+| `'defense'` | `base × mult` puntos de defensa plana | `CharacterStatsService.defense$` via `talent.getBonus().defense` |
+| `'critChance'` | `base × mult` % probabilidad crítico | `CharacterStatsService.critChance$` via `talent.getBonus().critChance` |
+| `'hpRegen'` | `base × mult` puntos extra de HP regen max | `RegenService` via `talent.getBonus().hpRegen` |
+| `'mpRegen'` | `base × mult` puntos extra de MP regen max | `RegenService` via `talent.getBonus().mpRegen` |
+| `'ability'` | Desbloquea habilidad (+ `base × mult` ATK) | `talent.getBonus().abilities[]` |
 
 ### `getBonus()` — retorno actual
 
 ```typescript
-getBonus(): { atk: number; hp: number; mp: number; defense: number; abilities: string[] }
+getBonus(): {
+  atk: number;
+  hp: number;
+  mp: number;
+  defense: number;
+  critChance: number;
+  hpRegen: number;
+  mpRegen: number;
+  abilities: string[];
+}
 ```
 
 ### Breakdowns en `CharacterStatsService`
 
 ```typescript
-interface DefenseBreakdown { dex: number; equipment: number; talents: number; buffs: number; total: number; }
-interface DamageBreakdown  { base: number; equipment: number; talents: number; total: number; }
-interface HpBreakdown      { base: number; equipment: number; talents: number; total: number; }
-interface MpBreakdown      { base: number; equipment: number; talents: number; total: number; }
+interface DamageBreakdown      { base: number; equipment: number; talents: number; total: number; }
+interface MagicDamageBreakdown { base: number; equipment: number; talents: number; total: number; }
+interface HpBreakdown          { base: number; equipment: number; talents: number; total: number; }
+interface MpBreakdown          { base: number; equipment: number; talents: number; total: number; }
+interface DefenseBreakdown     { dex: number; equipment: number; talents: number; buffs: number; total: number; }
+interface EvasionBreakdown     { dex: number; equipment: number; buffs: number; total: number; }
+interface CritChanceBreakdown  { base: number; equipment: number; talents: number; buffs: number; total: number; }
+interface CritDamageBreakdown  { base: number; str: number; equipment: number; buffs: number; total: number; }
+interface RegenBreakdown       { base: number; equipment: number; talents: number; total: number; min: number; }
 ```
 
 ---
@@ -83,11 +98,11 @@ Pregunta en un solo mensaje:
 - **Icono** ion-icon (ej: `skull-outline`)
 - **Posición** en la cuadrícula: col (0–4) y row
 - **Requiere**: IDs de nodos padre (vacío = nodo raíz)
-- **Efecto**: tipo (`atk`, `hp`, `mp`, `defense` o `ability`), valor base con esfera común, y si es ability su clave
+- **Efecto**: tipo (ver tabla arriba), valor base con esfera común, y si es ability su clave
 
 ### Paso 2 — Verificar posición libre
 
-Lee `TALENT_NODES` (o el array correspondiente) en `talent.service.ts` y confirma que no hay otro nodo en `(col, row)`.
+Lee el array correspondiente en `talent.service.ts` y confirma que no hay otro nodo en `(col, row)`.
 Avisa si la posición está ocupada y pide una alternativa.
 
 ### Paso 3 — Implementar
@@ -96,9 +111,7 @@ Avisa si la posición está ocupada y pide una alternativa.
 - Añade la entrada al array del árbol correspondiente (`TALENT_NODES`, `TALENT_NODES_MAGIA`, etc.)
 - Asegúrate de que los `requires` apunten a IDs existentes
 
-**No hay que tocar `SaveService`**: el sistema lo persiste automáticamente.
-
-**`CharacterStatsService` solo necesita cambios si se añade un tipo de efecto nuevo** (distinto a los 5 ya existentes). Para tipos ya soportados (`atk`, `hp`, `mp`, `defense`, `ability`), todo se aplica solo.
+**No hay que tocar `SaveService`** ni `CharacterStatsService`: el sistema los aplica automáticamente vía `getBonus()`.
 
 ---
 
@@ -108,62 +121,44 @@ Un árbol nuevo vive como un **conjunto separado de nodos** dentro del mismo tab
 
 ### Paso 1 — Nombre e intención
 
-Pregunta:
-- **Nombre del árbol** (ej: `Magia`, `Sigilo`, `Combate`)
-- **Descripción breve** de su temática
-- **Nodos iniciales** (puede pedir que los proponga el asistente basándose en la temática)
+Pregunta: nombre del árbol, temática, nodos iniciales.
 
-### Paso 2 — Diseño de nodos
+### Paso 2 — Implementar en `talent.service.ts`
 
-Para cada nodo recoge:
-- ID, label, icon, col, row, requires, effect (igual que Flujo A — Paso 1)
-
-El árbol nuevo tiene su propia cuadrícula de 5 columnas. Las filas empiezan en 0 independientemente.
-
-### Paso 3 — Implementar en `talent.service.ts`
-
-Añade una **constante de exportación separada** para el nuevo árbol:
+Añade una **constante de exportación separada**:
 
 ```typescript
 export const TALENT_NODES_NUEVO: TalentNodeConfig[] = [
-  { id: 'nodo_raiz', label: 'Nodo\nRaíz', icon: 'flash-outline', col: 2, row: 0, requires: [], effect: { type: 'atk', base: 4 } },
-  // ... más nodos
+  { id: 'nodo_raiz', label: 'Nodo\nRaíz', icon: 'star-outline', col: 2, row: 0, requires: [], effect: { type: 'atk', base: 4 } },
 ];
 ```
 
-Incluye el nuevo array en `ALL_NODES`:
+Añade los IDs al constructor e incluye el array en `this.nodes`:
 
 ```typescript
-const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA, ...TALENT_NODES_NUEVO, /* resto */];
+readonly nodes = [...TALENT_NODES, ...TALENT_NODES_MAGIA, ...TALENT_NODES_NUEVO];
 ```
 
-> `getBonus()`, `isUnlocked()`, `hasDependents()`, `getSnapshot()`, `restoreFromSnapshot()` usan `this.nodes = ALL_NODES` — no necesitan cambios.
-
-### Paso 4 — Sub-tab en el componente
-
-**`equipment.component.ts`** — añade entrada a `talentTrees`:
+### Paso 3 — Sub-tabs en `equipment.component.ts`
 
 ```typescript
 import { TALENT_NODES_NUEVO } from 'src/app/services/talent.service';
 
 readonly talentTrees = [
-  { label: 'Combate', icon: 'shield-half-outline',  nodes: TALENT_NODES       },
-  { label: 'Magia',   icon: 'sparkles-outline',     nodes: TALENT_NODES_MAGIA },
-  { label: 'NombreNuevo', icon: 'el-icono',         nodes: TALENT_NODES_NUEVO },
+  { label: 'Combate', icon: 'shield-half-outline', nodes: TALENT_NODES       },
+  { label: 'Magia',   icon: 'sparkles-outline',    nodes: TALENT_NODES_MAGIA },
+  { label: 'Nuevo',   icon: 'star-outline',         nodes: TALENT_NODES_NUEVO },
   { label: 'Skills',  icon: 'rocket-outline',       nodes: []                 },
 ];
 ```
-
-El HTML y la lógica de sub-tabs ya iteran sobre `talentTrees` dinámicamente — no necesitan cambios.
 
 ---
 
 ## Notas generales
 
-- **IDs únicos globales**: no puede haber dos nodos con el mismo ID en ningún árbol.
 - **Nunca usar posiciones duplicadas** `(col, row)` dentro del mismo árbol.
 - **`requires: []`** → nodo raíz, siempre desbloqueable.
-- **Esferas** son compartidas entre todos los árboles. El inventario inicial es 10 de cada tipo.
-- Las esferas se guardan y restauran automáticamente via `SaveService` (campo `talents` en `GameSnapshot`).
-- La barra de bonos activos en el UI (`talent-bonus-bar`) muestra ATK, HP, MP y DEF cuando son > 0.
-- Para eliminar un nodo: quitar del array correspondiente. Esferas guardadas en snapshots viejos son ignoradas silenciosamente por `restoreFromSnapshot()`.
+- **Esferas** son compartidas entre todos los árboles.
+- `type: 'ability'` también suma `base × mult` a ATK; la mecánica real en GameScene es trabajo aparte.
+- Para eliminar un nodo: quitar del array. Las esferas guardadas en snapshots viejos se ignoran silenciosamente.
+- El nodo `nodeEffectLabel()` en `equipment.component.ts` muestra el label del picker — actualizar si se añaden tipos nuevos.
