@@ -80,8 +80,15 @@
 
           <!-- AFK rates -->
           <div class="mip-rates" *ngIf="d.coinsPerHour > 0">
-            <span class="mip-rate">💰 {{ d.coinsPerHour | number }}/h</span>
-            <span class="mip-rate">✨ {{ d.expPerHour | number }} XP/h</span>
+            <div class="mip-rates-title">Producción AFK / hora</div>
+            <div class="mip-rate">
+              <span class="mip-rate-label">Oro</span>
+              <span class="mip-rate-val">{{ d.coinsPerHour | number }}</span>
+            </div>
+            <div class="mip-rate">
+              <span class="mip-rate-label">XP</span>
+              <span class="mip-rate-val">{{ d.expPerHour | number }}</span>
+            </div>
           </div>
           <div class="mip-no-spawn" *ngIf="d.coinsPerHour === 0">Sin enemigos activos</div>
 

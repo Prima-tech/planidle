@@ -84,7 +84,7 @@
   top: 100%;
   left: -1px;
   right: -1px;
-  padding: 8px 8px 6px;
+  padding: 8px 8px 8px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -95,6 +95,19 @@
   backdrop-filter: blur(6px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
   box-sizing: border-box;
+  transform-origin: top center;
+  animation: panel-open 0.18s ease-out both;
+}
+
+@keyframes panel-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scaleY(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
 }
 
 // spawn progress rows
@@ -151,12 +164,33 @@
 .mip-rates {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+}
+
+.mip-rates-title {
+  font-size: 0.52em;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 2px;
 }
 
 .mip-rate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mip-rate-label {
+  font-size: 0.6em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mip-rate-val {
   font-size: 0.62em;
-  color: rgba(255, 255, 255, 0.7);
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .mip-no-spawn {
