@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { merge, Observable, Subject, startWith } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { BuffService } from './buff.service';
 import { EquipmentService } from './equipment.service';
 import { PlayerStateService } from './player-state.service';
 import { TalentService } from './talent.service';
@@ -23,6 +24,12 @@ export interface MpBreakdown {
   base:      number; // MAG * 5
   equipment: number;
   talents:   number;
+  total:     number;
+}
+
+export interface DefenseBreakdown {
+  equipment: number;
+  buffs:     number;
   total:     number;
 }
 
@@ -50,9 +57,10 @@ const MP_PER_MAG   = 5;
 @Injectable({ providedIn: 'root' })
 export class CharacterStatsService {
 
-  readonly damage$: Observable<DamageBreakdown>;
-  readonly hp$:     Observable<HpBreakdown>;
-  readonly mp$:     Observable<MpBreakdown>;
+  readonly damage$:  Observable<DamageBreakdown>;
+  readonly hp$:      Observable<HpBreakdown>;
+  readonly mp$:      Observable<MpBreakdown>;
+  readonly defense$: Observable<DefenseBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   private readonly statsChanged$ = new Subject<void>();
@@ -73,12 +81,19 @@ export class CharacterStatsService {
     }
   }
 
-  constructor(private equipment: EquipmentService, private playerState: PlayerStateService, private talent: TalentService) {
-    const trigger$ = merge(this.equipment.changes$, this.statsChanged$, this.talent.changes$).pipe(startWith(null as void));
+  constructor(
+    private equipment: EquipmentService,
+    private playerState: PlayerStateService,
+    private talent: TalentService,
+    private buff: BuffService,
+  ) {
+    const trigger$  = merge(this.equipment.changes$, this.statsChanged$, this.talent.changes$).pipe(startWith(null as void));
+    const defTrigger$ = merge(trigger$, this.buff.buffs$);
 
-    this.damage$ = trigger$.pipe(map(() => this._calcDamage()));
-    this.hp$     = trigger$.pipe(map(() => this._calcHp()));
-    this.mp$     = trigger$.pipe(map(() => this._calcMp()));
+    this.damage$  = trigger$.pipe(map(() => this._calcDamage()));
+    this.hp$      = trigger$.pipe(map(() => this._calcHp()));
+    this.mp$      = trigger$.pipe(map(() => this._calcMp()));
+    this.defense$ = defTrigger$.pipe(map(() => this._calcDefense()));
 
     trigger$.subscribe(() => {
       this.syncHpMax();
@@ -123,5 +138,13 @@ export class CharacterStatsService {
     );
     const talents = this.talent.getBonus().mp;
     return { base, equipment, talents, total: base + equipment + talents };
+  }
+
+  private _calcDefense(): DefenseBreakdown {
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['defense'] ?? 0), 0
+    );
+    const buffs = this.buff.getValue('defense');
+    return { equipment, buffs, total: equipment + buffs };
   }
 }

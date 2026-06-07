@@ -6,7 +6,7 @@
 
   <div class="detail-name">{{ ability.label }}</div>
   <div class="detail-ability">{{ ability.effect.ability }}</div>
-  <div class="detail-value">Poder base: {{ ability.effect.base }}</div>
+  <div class="detail-value">{{ powerLabel }}</div>
 
   <button class="equip-btn" (click)="equip()" [disabled]="!activeSlot">
     <ion-icon name="add-outline"></ion-icon>

@@ -139,6 +139,33 @@
       </div>
     </div>
 
+    <!-- Acordeón: Defensa -->
+    <div class="ov-accordion" (click)="showDefBreakdown = !showDefBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Defensa</span>
+        <ng-container *ngIf="defense$ | async as def">
+          <span class="ov-val ov-val--def">{{ def.total }}</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showDefBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showDefBreakdown">
+        <ng-container *ngIf="defense$ | async as def">
+          <div class="ov-bk-row" *ngIf="def.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ def.equipment }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="def.buffs > 0">
+            <span>Habilidades</span>
+            <span class="ov-bonus">+{{ def.buffs }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="def.total === 0">
+            <span>Sin bonificaciones</span>
+            <span>0</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
     <!-- Acordeón: Ataque -->
     <div class="ov-accordion" (click)="showAtkBreakdown = !showAtkBreakdown">
       <div class="ov-accordion-header">

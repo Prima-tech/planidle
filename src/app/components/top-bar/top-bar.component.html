@@ -37,7 +37,7 @@
       <div class="buff-item" *ngFor="let buff of activeBuffs">
         <div class="buff-icon"
              [style.background-image]="'url(' + buff.icon + ')'"
-             [style.--ratio]="buffRatio(buff)">
+             [style.--ratio]="buffRatios[buff.id]">
         </div>
       </div>
     </div>

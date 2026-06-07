@@ -22,6 +22,22 @@ export class SkillDetailComponent {
     return SKILL_REGISTRY[this.ability?.effect.ability ?? '']?.iconPath ?? null;
   }
 
+  private readonly STAT_LABELS: Record<string, string> = {
+    defense: 'Defensa',
+    attack:  'Ataque',
+    hp:      'Vida',
+    mp:      'Maná',
+  };
+
+  get powerLabel(): string {
+    const cfg = SKILL_REGISTRY[this.ability?.effect.ability ?? ''];
+    if (cfg?.effectType === 'buff' && cfg.buff) {
+      const name = this.STAT_LABELS[cfg.buff.stat] ?? cfg.buff.stat;
+      return `${name}: +${cfg.buff.value}`;
+    }
+    return `Poder base: ${this.ability?.effect.base ?? 0}`;
+  }
+
   get activeSlot(): number | null {
     return this.skillEquipService.activeSlot;
   }

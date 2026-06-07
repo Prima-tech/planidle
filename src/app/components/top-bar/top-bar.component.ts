@@ -25,6 +25,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   lvl$   = this.playerState.lvl$;
 
   activeBuffs: ActiveBuff[] = [];
+  buffRatios: Record<string, number> = {};
   private buffSub: Subscription;
   private tickInterval: any;
 
@@ -73,6 +74,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.tickInterval = setInterval(() => {
       this.buffService.tick();
       this.activeBuffs = [...this.activeBuffs];
+      const ratios: Record<string, number> = {};
+      for (const buff of this.activeBuffs) ratios[buff.id] = this.buffService.ratio(buff);
+      this.buffRatios = ratios;
     }, 100);
   }
 
@@ -81,7 +85,4 @@ export class TopBarComponent implements OnInit, OnDestroy {
     clearInterval(this.tickInterval);
   }
 
-  buffRatio(buff: ActiveBuff): number {
-    return this.buffService.ratio(buff);
-  }
 }

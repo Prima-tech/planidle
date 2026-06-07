@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
-import { CharacterStatsService, BaseStats } from 'src/app/services/character-stats.service';
+import { CharacterStatsService, BaseStats, DefenseBreakdown } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
 import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES, TALENT_NODES_MAGIA } from 'src/app/services/talent.service';
 
@@ -22,11 +22,13 @@ export class EquipmentComponent implements OnInit {
   }
 
   showAtkBreakdown = false;
-  readonly damage$ = this.charStats.damage$;
-  readonly hp$     = this.charStats.hp$;
-  readonly mp$     = this.charStats.mp$;
-  showHpBreakdown  = false;
-  showMpBreakdown  = false;
+  readonly damage$  = this.charStats.damage$;
+  readonly hp$      = this.charStats.hp$;
+  readonly mp$      = this.charStats.mp$;
+  readonly defense$ = this.charStats.defense$;
+  showHpBreakdown   = false;
+  showMpBreakdown   = false;
+  showDefBreakdown  = false;
   readonly expNeeded = expNeeded;
   readonly maxLevel  = MAX_LEVEL;
 
