@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
 
 .top-bar {
-  height: 60px;
+  height: 72px;
   position: absolute;
   top: 0;
   left: 0;
@@ -30,13 +30,23 @@
 .char-panel {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: rgba(26, 26, 46, 0.88);
   border: 1px solid #2a2a4e;
   border-radius: 8px;
-  padding: 5px 10px 5px 5px;
+  padding: 6px 10px 6px 6px;
   backdrop-filter: blur(4px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+// ── Avatar + nombre apilados ─────────────────────────────────────────────────
+
+.avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
 .avatar-icon {
@@ -47,7 +57,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 
   ion-icon { font-size: 20px; }
 
@@ -59,62 +68,69 @@
   &--ancestral { background: rgba(0,210,255,0.18);  border-color: rgba(0,210,255,0.55);  ion-icon { color: #00d2ff; } }
 }
 
-.char-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  min-width: 110px;
-}
-
 .char-name {
   font-family: 'Russo One', sans-serif;
-  font-size: 0.82em;
+  font-size: 0.62em;
   color: #f0c040;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 110px;
-  text-shadow: 0 1px 6px rgba(200, 150, 0, 0.5);
+  max-width: 52px;
+  text-shadow: 0 1px 4px rgba(200, 150, 0, 0.5);
 }
 
-// ── Barras HP / EXP ──────────────────────────────────────────────────────────
+// ── Barras ───────────────────────────────────────────────────────────────────
+
+.char-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 150px;
+}
 
 .bar-row {
-  display: flex;
-  align-items: center;
+  position: relative;
   width: 100%;
-}
-
-.bar-lbl {
-  font-size: 0.5em;
-  font-weight: bold;
-  color: #555;
-  width: 18px;
-  text-align: right;
-  letter-spacing: 0.04em;
-  flex-shrink: 0;
+  height: 14px;
 }
 
 .bar-track {
-  flex: 1;
-  height: 6px;
-  background: #0e0e1e;
-  border-radius: 3px;
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 22, 0.9);
+  border-radius: 4px;
   overflow: hidden;
-  border: 1px solid #2a2a4e;
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .bar-fill {
   height: 100%;
-  border-radius: 3px;
   transition: width 0.3s ease;
 
   &--hp  { background: linear-gradient(90deg, #c0392b, #e74c3c); }
   &--mp  { background: linear-gradient(90deg, #1a6ab0, #3498db); }
   &--xp  { background: linear-gradient(90deg, #d4a000, #f0c040); }
+}
+
+.bar-text {
+  position: absolute;
+  top: 0;
+  right: 5px;
+  height: 14px;
+  line-height: 14px;
+  font-size: 0.65em;
+  font-weight: bold;
+  color: #fff;
+  text-shadow:
+    1px  1px 0 #000,
+   -1px -1px 0 #000,
+    1px -1px 0 #000,
+   -1px  1px 0 #000;
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 // ── Buffos activos ────────────────────────────────────────────────────────────

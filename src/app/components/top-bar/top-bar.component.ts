@@ -50,20 +50,28 @@ export class TopBarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.valueHP$ = this.playerBridge.player.status$.pipe(
       startWith(this.playerBridge.getPlayer().getStatus()),
-      map(status => {
-        const value = Math.max(0, Math.min(1, status.HP / status.HPMax));
-        const color = value < 0.25 ? 'danger' : value < 0.5 ? 'warning' : 'success';
-        return { value, color };
-      })
+      map(status => ({
+        ratio:   Math.max(0, Math.min(1, status.HP / status.HPMax)),
+        current: Math.max(0, Math.floor(status.HP)),
+        max:     status.HPMax,
+      }))
     );
     this.valueMP$ = this.playerState.state$.pipe(
-      map(s => Math.max(0, Math.min(1, s.mp / (s.mpMax || 1))))
+      map(s => ({
+        ratio:   Math.max(0, Math.min(1, s.mp / (s.mpMax || 1))),
+        current: Math.floor(s.mp),
+        max:     s.mpMax,
+      }))
     );
     this.valueXP$ = this.playerState.state$.pipe(
-      map(s => ({
-        value: s.lvl >= MAX_LEVEL ? 1 : s.exp / expNeeded(s.lvl),
-        color: 'warning',
-      }))
+      map(s => {
+        const needed = expNeeded(s.lvl);
+        return {
+          ratio:   s.lvl >= MAX_LEVEL ? 1 : s.exp / needed,
+          current: s.exp,
+          max:     needed,
+        };
+      })
     );
 
     this.initStatusBar = true;
