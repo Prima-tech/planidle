@@ -149,9 +149,17 @@
       </div>
       <div class="ov-accordion-body" [class.open]="showDefBreakdown">
         <ng-container *ngIf="defense$ | async as def">
+          <div class="ov-bk-row" *ngIf="def.dex > 0">
+            <span>Destreza</span>
+            <span class="ov-bonus">+{{ def.dex }}</span>
+          </div>
           <div class="ov-bk-row" *ngIf="def.equipment > 0">
             <span>Equipo</span>
             <span class="ov-bonus">+{{ def.equipment }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="def.talents > 0">
+            <span>Talentos</span>
+            <span class="ov-bonus">+{{ def.talents }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="def.buffs > 0">
             <span>Habilidades</span>
@@ -218,10 +226,11 @@
     </div>
 
     <!-- Resumen de bonos activos -->
-    <div class="talent-bonus-bar" *ngIf="talentBonus.atk > 0 || talentBonus.hp > 0 || talentBonus.mp > 0">
-      <span *ngIf="talentBonus.atk > 0">+{{ talentBonus.atk }} ATK</span>
-      <span *ngIf="talentBonus.hp  > 0">+{{ talentBonus.hp }} HP</span>
-      <span *ngIf="talentBonus.mp  > 0">+{{ talentBonus.mp }} MP</span>
+    <div class="talent-bonus-bar" *ngIf="talentBonus.atk > 0 || talentBonus.hp > 0 || talentBonus.mp > 0 || talentBonus.defense > 0">
+      <span *ngIf="talentBonus.atk     > 0">+{{ talentBonus.atk }} ATK</span>
+      <span *ngIf="talentBonus.hp      > 0">+{{ talentBonus.hp }} HP</span>
+      <span *ngIf="talentBonus.mp      > 0">+{{ talentBonus.mp }} MP</span>
+      <span *ngIf="talentBonus.defense > 0">+{{ talentBonus.defense }} DEF</span>
     </div>
 
     <!-- Árbol -->

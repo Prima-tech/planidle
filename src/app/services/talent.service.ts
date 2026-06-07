@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 export type SphereType = 'common' | 'normal' | 'rare' | 'epic' | 'legendary';
 
 export interface TalentEffect {
-  type:     'atk' | 'hp' | 'mp' | 'ability';
+  type:     'atk' | 'hp' | 'mp' | 'defense' | 'ability';
   base:     number;
   ability?: string;
 }
@@ -43,6 +43,11 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     id: 'ataque_normal', label: 'Ataque\nNormal', icon: 'flash-outline',
     col: 2, row: 0, requires: [],
     effect: { type: 'atk', base: 3 },
+  },
+  {
+    id: 'guardia', label: 'Guardia', icon: 'hand-left-outline',
+    col: 2, row: 1, requires: ['ataque_normal'],
+    effect: { type: 'defense', base: 1 },
   },
   {
     id: 'fuerza_bruta', label: 'Fuerza\nBruta', icon: 'barbell-outline',
@@ -379,8 +384,8 @@ export class TalentService {
     this.changes$.next();
   }
 
-  getBonus(): { atk: number; hp: number; mp: number; abilities: string[] } {
-    let atk = 0, hp = 0, mp = 0;
+  getBonus(): { atk: number; hp: number; mp: number; defense: number; abilities: string[] } {
+    let atk = 0, hp = 0, mp = 0, defense = 0;
     const abilities: string[] = [];
     for (const node of this.nodes) {
       const sphere = this.slotted[node.id];
@@ -392,12 +397,14 @@ export class TalentService {
         hp += node.effect.base * mult;
       } else if (node.effect.type === 'mp') {
         mp += node.effect.base * mult;
+      } else if (node.effect.type === 'defense') {
+        defense += node.effect.base * mult;
       } else if (node.effect.type === 'ability') {
         atk += node.effect.base * mult;
         if (node.effect.ability) abilities.push(node.effect.ability);
       }
     }
-    return { atk, hp, mp, abilities };
+    return { atk, hp, mp, defense, abilities };
   }
 
   getSnapshot(): TalentSnapshot {

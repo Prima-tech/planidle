@@ -28,7 +28,9 @@ export interface MpBreakdown {
 }
 
 export interface DefenseBreakdown {
+  dex:       number;
   equipment: number;
+  talents:   number;
   buffs:     number;
   total:     number;
 }
@@ -44,7 +46,7 @@ export interface BaseStats {
 
 const DEFAULT_BASE_STATS: BaseStats = {
   STR:   10,
-  DEX:   10,
+  DEX:   20,
   CONST: 10,
   INT:   10,
   MAG:   10,
@@ -140,11 +142,16 @@ export class CharacterStatsService {
     return { base, equipment, talents, total: base + equipment + talents };
   }
 
+  // DEX → defensa: los primeros 10 puntos no cuentan, cada 10 adicionales = +1
+  get currentDefense(): number { return this._calcDefense().total; }
+
   private _calcDefense(): DefenseBreakdown {
+    const dex       = Math.max(0, Math.floor((this.stats.DEX - 10) / 10));
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['defense'] ?? 0), 0
     );
-    const buffs = this.buff.getValue('defense');
-    return { equipment, buffs, total: equipment + buffs };
+    const talents = this.talent.getBonus().defense;
+    const buffs   = this.buff.getValue('defense');
+    return { dex, equipment, talents, buffs, total: dex + equipment + talents + buffs };
   }
 }

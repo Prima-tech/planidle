@@ -475,9 +475,11 @@ export class GameScene extends Phaser.Scene {
         const now = this.time.now;
         if (now - this.lastDamageTime < 500) return;
         this.lastDamageTime = now;
-        this.reg.playerBridge.setAttackToPlayer({ HP: -damage });
+        const defense        = this.reg.charStats?.currentDefense ?? 0;
+        const effectiveDamage = Math.max(0, damage - defense);
+        if (effectiveDamage > 0) this.reg.playerBridge.setAttackToPlayer({ HP: -effectiveDamage });
         this.flashPlayer();
-        this.showPlayerDamage(damage);
+        this.showPlayerDamage(effectiveDamage);
       });
 
       this.events.on('enemyDied', ({ type, position }: { type: string, position: Phaser.Math.Vector2 }) => {
