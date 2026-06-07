@@ -1,34 +1,37 @@
-<div class="afk-backdrop">
-  <div class="afk-panel">
+<div class="afk-backdrop" (click)="collect()">
+  <div class="afk-panel" (click)="$event.stopPropagation()">
 
     <div class="afk-header">
-      <span class="afk-icon">⚔</span>
-      <h2 class="afk-title">Ganancias AFK</h2>
-      <p class="afk-subtitle">{{ gains.mapName }} · {{ elapsedText }} desconectado</p>
+      <ion-icon name="time-outline" class="afk-header-icon"></ion-icon>
+      <div>
+        <div class="afk-title">Ganancias AFK</div>
+        <div class="afk-subtitle">{{ gains.mapName }} · {{ elapsedText }} fuera</div>
+      </div>
     </div>
 
-    <div class="afk-divider"></div>
+    <div class="afk-section-label">Enemigos eliminados</div>
 
-    <div class="afk-body">
+    <div class="afk-rows">
       <div class="afk-row" *ngFor="let entry of gains.enemyGains">
-        <span class="afk-label">{{ entry.displayName }}s eliminados</span>
+        <span class="afk-label">{{ entry.displayName }}</span>
         <span class="afk-value">{{ entry.kills | number }}</span>
       </div>
-      <div class="afk-row afk-row--coins">
-        <span class="afk-label">💰 Monedas ganadas</span>
-        <span class="afk-value afk-value--coins">{{ gains.coins | number }}</span>
+    </div>
+
+    <div class="afk-section-label">Recompensas</div>
+
+    <div class="afk-rows">
+      <div class="afk-row">
+        <span class="afk-label">Monedas</span>
+        <span class="afk-value afk-value--coins">+{{ gains.coins | number }}</span>
       </div>
-      <div class="afk-row afk-row--exp">
-        <span class="afk-label">✨ XP ganada</span>
-        <span class="afk-value afk-value--exp">{{ gains.exp | number }}</span>
+      <div class="afk-row">
+        <span class="afk-label">Experiencia</span>
+        <span class="afk-value afk-value--exp">+{{ gains.exp | number }}</span>
       </div>
     </div>
 
-    <div class="afk-divider"></div>
-
-    <button class="afk-collect-btn" (click)="collect()">
-      Recoger
-    </button>
+    <button class="afk-collect-btn" (click)="collect()">Recoger</button>
 
   </div>
 </div>

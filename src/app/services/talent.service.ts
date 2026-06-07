@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
-export type SphereType = 'common' | 'normal' | 'rare' | 'epic' | 'legendary';
+export type SphereType = 'normal' | 'rare' | 'epic';
 
 export interface TalentEffect {
   type:     'atk' | 'hp' | 'mp' | 'defense' | 'critChance' | 'hpRegen' | 'mpRegen' | 'dropRate' | 'ability';
@@ -25,15 +25,13 @@ export interface TalentSnapshot {
 }
 
 export const SPHERE_MULT: Record<SphereType, number> = {
-  common:    1,
-  normal:    2,
-  rare:      4,
-  epic:      8,
-  legendary: 16,
+  normal: 2,
+  rare:   4,
+  epic:   8,
 };
 
 const DEFAULT_SPHERES: Record<SphereType, number> = {
-  common: 10, normal: 10, rare: 10, epic: 10, legendary: 10,
+  normal: 10, rare: 10, epic: 10,
 };
 
 // ── Árbol: Combate ────────────────────────────────────────────────────────────

@@ -15,59 +15,65 @@
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
+  from { transform: translateY(16px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 
 .afk-panel {
-  width: 300px;
+  width: 280px;
   background: #1a1a2e;
   border: 1px solid #444;
-  border-radius: 12px 12px 12px 12px;
+  border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   overflow: hidden;
-  animation: slideUp 0.25s ease;
+  animation: slideUp 0.22s ease;
   color: #fff;
+  padding: 14px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .afk-header {
-  padding: 16px 16px 12px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #2a2a4e;
-
-  .afk-icon {
-    font-size: 22px;
-  }
-
-  .afk-title {
-    margin: 6px 0 4px;
-    font-size: 0.85em;
-    font-weight: bold;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #aaa;
-  }
-
-  .afk-subtitle {
-    margin: 0;
-    font-size: 0.65em;
-    color: #666;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
 }
 
-.afk-divider {
-  height: 1px;
-  background: #2a2a4e;
-  margin: 0 12px;
+.afk-header-icon {
+  font-size: 20px;
+  color: #3498db;
+  flex-shrink: 0;
 }
 
-.afk-body {
-  padding: 12px 16px;
+.afk-title {
+  font-size: 0.85em;
+  font-weight: bold;
+  color: #aaa;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.afk-subtitle {
+  font-size: 0.62em;
+  color: #555;
+  letter-spacing: 0.03em;
+  margin-top: 2px;
+}
+
+.afk-section-label {
+  font-size: 0.58em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #444;
+}
+
+.afk-rows {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .afk-row {
@@ -78,49 +84,26 @@
   border: 1px solid #333;
   border-radius: 5px;
   padding: 6px 10px;
+}
 
-  .afk-label {
-    font-size: 0.7em;
-    color: #888;
-  }
+.afk-label {
+  font-size: 0.7em;
+  color: #888;
+}
 
-  .afk-value {
-    font-size: 0.8em;
-    font-weight: bold;
-    color: #fff;
-  }
+.afk-value {
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #fff;
 
-  &--coins {
-    border-color: #3498db;
-    background: #1e2a3e;
-
-    .afk-label { color: #aaa; }
-
-    .afk-value--coins {
-      font-size: 0.9em;
-      color: #3498db;
-      font-weight: bold;
-    }
-  }
-
-  &--exp {
-    border-color: #d4a000;
-    background: #1e1a00;
-
-    .afk-label { color: #aaa; }
-
-    .afk-value--exp {
-      font-size: 0.9em;
-      color: #f0c040;
-      font-weight: bold;
-    }
-  }
+  &--coins { color: #f0c040; }
+  &--exp   { color: #3498db; }
 }
 
 .afk-collect-btn {
   display: block;
-  width: calc(100% - 32px);
-  margin: 12px 16px 16px;
+  width: 100%;
+  margin-top: 2px;
   padding: 10px;
   background: #3498db;
   border: 1px solid #2980b9;

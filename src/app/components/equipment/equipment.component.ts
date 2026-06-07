@@ -75,18 +75,16 @@ export class EquipmentComponent implements OnInit {
 
   selectedNodeId: string | null = null;
 
-  readonly sphereTypes: SphereType[] = ['common', 'normal', 'rare', 'epic', 'legendary'];
+  readonly sphereTypes: SphereType[] = ['normal', 'rare', 'epic'];
 
   readonly sphereColors: Record<SphereType, string> = {
-    common:    '#888',
-    normal:    '#4caf50',
-    rare:      '#2196f3',
-    epic:      '#9c27b0',
-    legendary: '#ff9800',
+    normal: '#4caf50',
+    rare:   '#2196f3',
+    epic:   '#9c27b0',
   };
 
   readonly sphereLabels: Record<SphereType, string> = {
-    common:    'C', normal: 'N', rare: 'R', epic: 'E', legendary: 'L',
+    normal: 'N', rare: 'R', epic: 'E',
   };
 
   get selectedNode(): TalentNodeConfig | null {
