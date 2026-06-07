@@ -2,53 +2,55 @@
 
   <!-- Panel personaje + buffos -->
   <div class="left-side">
-    <div class="char-widget" [class.char-widget--open]="mapPanelOpen">
+    <div class="char-block" [class.char-block--open]="mapPanelOpen">
 
-      <!-- Panel superior: avatar + barras -->
-      <div class="char-panel">
-        <div class="avatar-col">
-          <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
-            <ion-icon [name]="classIcon"></ion-icon>
+      <!-- Tarjeta superior: avatar + barras -->
+      <div class="char-widget">
+        <div class="char-panel">
+          <div class="avatar-col">
+            <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
+              <ion-icon [name]="classIcon"></ion-icon>
+            </div>
+            <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
           </div>
-          <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
-        </div>
 
-        <div class="char-info" *ngIf="initStatusBar">
+          <div class="char-info" *ngIf="initStatusBar">
 
-          <ng-container *ngIf="valueHP$ | async as hp">
-            <div class="bar-row">
-              <div class="bar-track">
-                <div class="bar-fill bar-fill--hp" [style.width.%]="hp.ratio * 100"></div>
+            <ng-container *ngIf="valueHP$ | async as hp">
+              <div class="bar-row">
+                <div class="bar-track">
+                  <div class="bar-fill bar-fill--hp" [style.width.%]="hp.ratio * 100"></div>
+                </div>
+                <span class="bar-text">{{ hp.current }} / {{ hp.max }}</span>
               </div>
-              <span class="bar-text">{{ hp.current }} / {{ hp.max }}</span>
-            </div>
-          </ng-container>
+            </ng-container>
 
-          <ng-container *ngIf="valueMP$ | async as mp">
-            <div class="bar-row">
-              <div class="bar-track">
-                <div class="bar-fill bar-fill--mp" [style.width.%]="mp.ratio * 100"></div>
+            <ng-container *ngIf="valueMP$ | async as mp">
+              <div class="bar-row">
+                <div class="bar-track">
+                  <div class="bar-fill bar-fill--mp" [style.width.%]="mp.ratio * 100"></div>
+                </div>
+                <span class="bar-text">{{ mp.current }} / {{ mp.max }}</span>
               </div>
-              <span class="bar-text">{{ mp.current }} / {{ mp.max }}</span>
-            </div>
-          </ng-container>
+            </ng-container>
 
-          <ng-container *ngIf="valueXP$ | async as xp">
-            <div class="bar-row">
-              <div class="bar-track">
-                <div class="bar-fill bar-fill--xp" [style.width.%]="xp.ratio * 100"></div>
+            <ng-container *ngIf="valueXP$ | async as xp">
+              <div class="bar-row">
+                <div class="bar-track">
+                  <div class="bar-fill bar-fill--xp" [style.width.%]="xp.ratio * 100"></div>
+                </div>
+                <span class="bar-text">{{ xp.current }} / {{ xp.max }}</span>
               </div>
-              <span class="bar-text">{{ xp.current }} / {{ xp.max }}</span>
-            </div>
-          </ng-container>
+            </ng-container>
 
+          </div>
         </div>
       </div>
 
-      <!-- Ancla: bisagra entre los dos paneles -->
+      <!-- Ancla: solo el nombre del mapa (botón sin fondo cuando cerrado) -->
       <button class="map-anchor" (click)="toggleMapPanel()">
         <app-map-label></app-map-label>
-        <ion-icon class="map-anchor-chevron" [name]="mapPanelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        <ion-icon class="map-anchor-chevron" name="chevron-down-outline"></ion-icon>
       </button>
 
       <!-- Panel inferior: info del mapa -->

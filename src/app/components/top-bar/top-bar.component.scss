@@ -26,22 +26,28 @@
   margin-top: 36px;
 }
 
-// ── Tarjeta unificada: char-panel + ancla (+ info-panel absoluto abajo) ──────
+// ── Contenedor relativo: agrupa widget + ancla + info-panel ──────────────────
 
-.char-widget {
+.char-block {
   position: relative;
   display: flex;
   flex-direction: column;
   margin-top: 10px;
+  min-width: 190px;
+}
+
+// ── Tarjeta superior: solo char-panel ────────────────────────────────────────
+
+.char-widget {
   background: rgba(26, 26, 46, 0.88);
   border: 1px solid #2a2a4e;
   border-radius: 8px;
   backdrop-filter: blur(4px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  min-width: 190px;
 
-  &--open {
+  .char-block--open & {
     border-color: rgba(52, 152, 219, 0.35);
+    border-radius: 8px 8px 0 0;
   }
 }
 
@@ -52,21 +58,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  padding: 4px 8px;
+  padding: 2px 8px;
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 0 0 7px 7px;
-  background: rgba(0, 0, 0, 0.18);
+  background: transparent;
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.45);
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  color: rgba(255, 255, 255, 0.35);
+  transition: background 0.15s, color 0.15s;
 
-  .char-widget--open & {
+  .char-block--open & {
     background: rgba(52, 152, 219, 0.1);
-    border-top-color: rgba(52, 152, 219, 0.25);
-    border-radius: 0;
+    border-top: 1px solid rgba(52, 152, 219, 0.25);
+    padding: 4px 8px;
     color: #3498db;
   }
 }
@@ -74,7 +78,12 @@
 .map-anchor-chevron {
   font-size: 10px;
   flex-shrink: 0;
-  opacity: 0.6;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .char-block--open & {
+    opacity: 0.6;
+  }
 }
 
 // ── Panel info del mapa (absoluto, cuelga bajo el widget sin alterar altura) ──
@@ -82,8 +91,8 @@
 .map-info-panel {
   position: absolute;
   top: 100%;
-  left: -1px;
-  right: -1px;
+  left: 0;
+  right: 0;
   padding: 8px 8px 8px;
   display: flex;
   flex-direction: column;
