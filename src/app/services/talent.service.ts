@@ -89,6 +89,16 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 1, row: 3, requires: ['fortaleza'],
     effect: { type: 'hp', base: 80 },
   },
+  {
+    id: 'frenesi', label: 'Frenesí', icon: 'skull-outline',
+    col: 0, row: 3, requires: ['golpe_brutal'],
+    effect: { type: 'atk', base: 16 },
+  },
+  {
+    id: 'titan', label: 'Titán', icon: 'accessibility-outline',
+    col: 1, row: 4, requires: ['piel_acero'],
+    effect: { type: 'hp', base: 120 },
+  },
 ];
 
 // ── Árbol: Magia ──────────────────────────────────────────────────────────────
@@ -128,6 +138,16 @@ export const TALENT_NODES_MAGIA: TalentNodeConfig[] = [
     id: 'barrera_arcana', label: 'Barrera\nArcana', icon: 'shield-checkmark-outline',
     col: 4, row: 3, requires: ['gran_reserva'],
     effect: { type: 'hp', base: 60 },
+  },
+  {
+    id: 'caos_arcano', label: 'Caos\nArcano', icon: 'infinite-outline',
+    col: 0, row: 4, requires: ['tormenta'],
+    effect: { type: 'atk', base: 22 },
+  },
+  {
+    id: 'fortaleza_maxima', label: 'Fortaleza\nMáxima', icon: 'lock-closed-outline',
+    col: 4, row: 4, requires: ['barrera_arcana'],
+    effect: { type: 'hp', base: 100 },
   },
 ];
 
