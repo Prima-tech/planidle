@@ -5,6 +5,36 @@
   height: 100%;
 }
 
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 4px;
+    background: #1a1a2e;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: #666;
+    font-size: 11px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+    ion-icon { font-size: 13px; }
+
+    &.active {
+      background: #1e3a5f;
+      border-color: #3498db;
+      color: #5ab0ff;
+    }
+  }
+}
+
 .panel-title {
   font-size: 14px;
   font-weight: 600;
@@ -23,6 +53,7 @@
 }
 
 .ability-btn {
+  position: relative;
   aspect-ratio: 1;
   display: flex;
   flex-direction: column;
@@ -34,6 +65,7 @@
   cursor: pointer;
   gap: 4px;
   padding: 4px;
+  overflow: hidden;
   transition: border-color 0.15s, background 0.15s;
 
   &:active, &.active {
@@ -41,6 +73,16 @@
     border-color: #3498db;
     .ability-icon { color: #3498db; }
     .ability-label { color: #fff; }
+  }
+
+  .ability-icon-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+    border-radius: 5px;
   }
 
   .ability-icon {

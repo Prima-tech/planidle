@@ -642,6 +642,7 @@ export class GameScene extends Phaser.Scene {
         callback: () => {
           const playerPos = this.player.getPosition();
           for (const cfg of Object.values(SKILL_REGISTRY)) {
+            if (cfg.target === 'self') { skillSvc.setTargetAvailable(cfg.abilityId, true); continue; }
             const rangePx = GameScene.TILE_SIZE * cfg.range;
             const has = this.enemies.some(e => {
               if (e.isDead) return false;
@@ -678,6 +679,10 @@ export class GameScene extends Phaser.Scene {
     private executeSkill(abilityId: string, damage: number): void {
       const cfg = SKILL_REGISTRY[abilityId];
       if (!cfg) return;
+      if (cfg.target === 'self') {
+        this.playImpactSelf(cfg);
+        return;
+      }
       const target = this.findNearestEnemy(cfg.range);
       if (!target) return;
       if (cfg.effectType === 'projectile') {
@@ -685,6 +690,17 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.playImpact(cfg, damage, target);
       }
+    }
+
+    private playImpactSelf(cfg: SkillConfig): void {
+      const pos = this.player.getPosition();
+      const playerSprite = this.player.getSprite();
+      const sprite = this.add.sprite(pos.x, pos.y - playerSprite.displayHeight * 0.5, `${cfg.spriteKey}_1`);
+      sprite.setDepth(6);
+      sprite.setScale(cfg.scale);
+      if (this.anims.exists(cfg.spriteKey)) sprite.play(cfg.spriteKey);
+      const duration = (cfg.frameCount / cfg.frameRate) * 1000;
+      this.time.delayedCall(duration, () => sprite.destroy());
     }
 
     private findNearestEnemy(rangeTiles: number): Enemy | null {

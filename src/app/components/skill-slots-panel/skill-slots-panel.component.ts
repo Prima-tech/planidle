@@ -1,6 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { TalentService, TalentNodeConfig } from 'src/app/services/talent.service';
+import { TalentService, TalentNodeConfig, TALENT_NODES_FIRE } from 'src/app/services/talent.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
+import { SKILL_REGISTRY } from 'src/app/services/skill-config';
+
+export type SkillTab = 'fire' | 'water' | 'other';
+
+const FIRE_IDS  = new Set(TALENT_NODES_FIRE.map(n => n.id));
 
 @Component({
   selector: 'app-skill-slots-panel',
@@ -12,12 +17,23 @@ export class SkillSlotsPanelComponent {
   private talentService     = inject(TalentService);
   private skillEquipService = inject(SkillEquipService);
 
+  activeTab: SkillTab = 'fire';
+
   get abilities(): TalentNodeConfig[] {
-    return this.talentService.nodes.filter(n => n.effect.type === 'ability');
+    const all = this.talentService.nodes.filter(n => n.effect.type === 'ability');
+    if (this.activeTab === 'fire')  return all.filter(n => FIRE_IDS.has(n.id));
+    if (this.activeTab === 'water') return [];
+    return all.filter(n => !FIRE_IDS.has(n.id));
   }
 
   get selectedId(): string | null {
     return this.skillEquipService.selectedAbilityId;
+  }
+
+  setTab(tab: SkillTab) { this.activeTab = tab; }
+
+  iconOf(ability: TalentNodeConfig): string | null {
+    return SKILL_REGISTRY[ability.effect.ability ?? '']?.iconPath ?? null;
   }
 
   select(ability: TalentNodeConfig) {

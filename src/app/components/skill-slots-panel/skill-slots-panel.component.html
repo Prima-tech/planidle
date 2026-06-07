@@ -1,15 +1,30 @@
 <div class="grid-view">
   <div class="panel-title">Habilidades</div>
 
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'fire'"  (click)="setTab('fire')">
+      <ion-icon name="flame-outline"></ion-icon> Fuego
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'water'" (click)="setTab('water')">
+      <ion-icon name="water-outline"></ion-icon> Agua
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'other'" (click)="setTab('other')">
+      <ion-icon name="ellipsis-horizontal-outline"></ion-icon> Otras
+    </button>
+  </div>
+
   <div class="ability-grid" *ngIf="abilities.length > 0">
     <div *ngFor="let a of abilities" class="ability-btn" [class.active]="a.id === selectedId" (click)="select(a)">
-      <ion-icon [name]="a.icon" class="ability-icon"></ion-icon>
-      <span class="ability-label">{{ a.label }}</span>
+      <img *ngIf="iconOf(a)" [src]="iconOf(a)" class="ability-icon-img" />
+      <ng-container *ngIf="!iconOf(a)">
+        <ion-icon [name]="a.icon" class="ability-icon"></ion-icon>
+        <span class="ability-label">{{ a.label }}</span>
+      </ng-container>
     </div>
   </div>
 
   <div class="empty-state" *ngIf="abilities.length === 0">
     <ion-icon name="lock-closed-outline" class="empty-icon"></ion-icon>
-    <p>Desbloquea habilidades en el árbol de talentos</p>
+    <p>No hay habilidades en esta categoría</p>
   </div>
 </div>

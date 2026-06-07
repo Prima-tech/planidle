@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { TalentService, TalentNodeConfig } from 'src/app/services/talent.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
+import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 
 @Component({
   selector: 'app-skill-detail',
@@ -15,6 +16,10 @@ export class SkillDetailComponent {
   get ability(): TalentNodeConfig | null {
     const id = this.skillEquipService.selectedAbilityId;
     return id ? (this.talentService.nodes.find(n => n.id === id) ?? null) : null;
+  }
+
+  get iconPath(): string | null {
+    return SKILL_REGISTRY[this.ability?.effect.ability ?? '']?.iconPath ?? null;
   }
 
   get activeSlot(): number | null {

@@ -1,6 +1,7 @@
 <div class="detail-panel" *ngIf="ability">
   <div class="detail-icon-wrap">
-    <ion-icon [name]="ability.icon" class="detail-icon"></ion-icon>
+    <img *ngIf="iconPath" [src]="iconPath" class="detail-icon-img" />
+    <ion-icon *ngIf="!iconPath" [name]="ability.icon" class="detail-icon"></ion-icon>
   </div>
 
   <div class="detail-name">{{ ability.label }}</div>

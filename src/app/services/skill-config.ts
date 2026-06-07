@@ -2,9 +2,12 @@
 // 'projectile' — el sprite viaja desde el jugador hasta el enemigo
 export type SkillEffectType = 'impact' | 'projectile';
 
+export type SkillTarget = 'enemy' | 'self';
+
 export interface SkillConfig {
   abilityId: string;
   effectType: SkillEffectType;
+  target?: SkillTarget;   // 'enemy' (por defecto) | 'self' — habilidades sobre el propio jugador
   damage: number;
   range: number;        // tiles
   cooldown: number;     // ms
@@ -39,6 +42,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 6,
     frameRate: 12,
     scale: 1.5,
+    iconPath: 'assets/sprites/skills/icons/fuego_pequeno.png',
   },
   fire_flower: {
     abilityId: 'fire_flower',
@@ -62,17 +66,20 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 8,
     frameRate: 12,
     scale: 2.5,
+    iconPath: 'assets/sprites/skills/icons/pilar_de_fuego.png',
   },
   fire_shield: {
     abilityId: 'fire_shield',
     effectType: 'impact',
+    target: 'self',
     damage: 0,
-    range: 3,
+    range: 0,
     cooldown: 4000,
     spriteKey: 'skill_fire_shield',
     frameCount: 8,
     frameRate: 10,
     scale: 2.5,
+    iconPath: 'assets/sprites/skills/icons/escudo_de_fuego.png',
   },
   lava_paddle: {
     abilityId: 'lava_paddle',
@@ -84,6 +91,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2,
+    iconPath: 'assets/sprites/skills/icons/paleta_de_lava.png',
   },
   fireball: {
     abilityId: 'fireball',
@@ -96,6 +104,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 14,
     scale: 2,
     speed: 350,
+    iconPath: 'assets/sprites/skills/icons/bola_de_fuego.png',
   },
   fire_hurricane: {
     abilityId: 'fire_hurricane',
@@ -107,6 +116,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 14,
     frameRate: 12,
     scale: 3,
+    iconPath: 'assets/sprites/skills/icons/huracan_de_fuego.png',
   },
   lava_drop: {
     abilityId: 'lava_drop',
@@ -118,6 +128,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 16,
     frameRate: 14,
     scale: 2.5,
+    iconPath: 'assets/sprites/skills/icons/gota_de_lava.png',
   },
   magma_geyser: {
     abilityId: 'magma_geyser',
@@ -129,6 +140,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 11,
     frameRate: 12,
     scale: 3,
+    iconPath: 'assets/sprites/skills/icons/geiser_de_lava.png',
   },
   phoenix: {
     abilityId: 'phoenix',
@@ -141,5 +153,6 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 3,
     speed: 300,
+    iconPath: 'assets/sprites/skills/icons/fenix.png',
   },
 };
