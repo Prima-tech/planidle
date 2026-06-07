@@ -186,9 +186,99 @@ export const TALENT_NODES_FIRE: TalentNodeConfig[] = [
   },
 ];
 
+// ── Habilidades de agua (disponibles sin desbloquear) ─────────────────────────
+
+export const TALENT_NODES_WATER: TalentNodeConfig[] = [
+  {
+    id: 'water_drop', label: 'Gota de\nAgua', icon: 'rainy-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 5, ability: 'water_drop' },
+  },
+  {
+    id: 'ice_crystal', label: 'Cristal\nde Hielo', icon: 'diamond-outline',
+    col: 1, row: 0, requires: [],
+    effect: { type: 'ability', base: 8, ability: 'ice_crystal' },
+  },
+  {
+    id: 'water_geyser', label: 'Géiser\nde Agua', icon: 'water-outline',
+    col: 2, row: 0, requires: [],
+    effect: { type: 'ability', base: 10, ability: 'water_geyser' },
+  },
+  {
+    id: 'snowflake', label: 'Copo de\nNieve', icon: 'flower-outline',
+    col: 3, row: 0, requires: [],
+    effect: { type: 'ability', base: 10, ability: 'snowflake' },
+  },
+  {
+    id: 'water_splash', label: 'Salpicadura', icon: 'planet-outline',
+    col: 4, row: 0, requires: [],
+    effect: { type: 'ability', base: 18, ability: 'water_splash' },
+  },
+  {
+    id: 'ice_spike', label: 'Pico\nde Hielo', icon: 'triangle-outline',
+    col: 0, row: 1, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'ice_spike' },
+  },
+  {
+    id: 'waterball', label: 'Bola de\nAgua', icon: 'ellipse-outline',
+    col: 1, row: 1, requires: [],
+    effect: { type: 'ability', base: 15, ability: 'waterball' },
+  },
+  {
+    id: 'kraken', label: 'Kraken', icon: 'skull-outline',
+    col: 2, row: 1, requires: [],
+    effect: { type: 'ability', base: 25, ability: 'kraken' },
+  },
+];
+
+// ── Habilidades de humo (disponibles sin desbloquear) ─────────────────────────
+
+export const TALENT_NODES_SMOKER: TalentNodeConfig[] = [
+  {
+    id: 'cycled_smoke', label: 'Humo\nCíclico', icon: 'refresh-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 5, ability: 'cycled_smoke' },
+  },
+  {
+    id: 'circle_smoke', label: 'Círculo\nde Humo', icon: 'radio-button-off-outline',
+    col: 1, row: 0, requires: [],
+    effect: { type: 'ability', base: 8, ability: 'circle_smoke' },
+  },
+  {
+    id: 'rising_smoke', label: 'Humo\nAscendente', icon: 'trending-up-outline',
+    col: 2, row: 0, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'rising_smoke' },
+  },
+  {
+    id: 'cycled_smoke_long', label: 'Humo\nProlongado', icon: 'repeat-outline',
+    col: 3, row: 0, requires: [],
+    effect: { type: 'ability', base: 10, ability: 'cycled_smoke_long' },
+  },
+  {
+    id: 'falling_smoke', label: 'Humo\nCaído', icon: 'arrow-down-outline',
+    col: 4, row: 0, requires: [],
+    effect: { type: 'ability', base: 14, ability: 'falling_smoke' },
+  },
+  {
+    id: 'horisontal_smoke', label: 'Humo\nHorizontal', icon: 'remove-outline',
+    col: 0, row: 1, requires: [],
+    effect: { type: 'ability', base: 10, ability: 'horisontal_smoke' },
+  },
+  {
+    id: 'curved_smoke', label: 'Humo\nCurvo', icon: 'git-branch-outline',
+    col: 1, row: 1, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'curved_smoke' },
+  },
+  {
+    id: 'smoke_ghost', label: 'Fantasma\nde Humo', icon: 'cloud-outline',
+    col: 2, row: 1, requires: [],
+    effect: { type: 'ability', base: 20, ability: 'smoke_ghost' },
+  },
+];
+
 // ── Registro global (todos los árboles) ──────────────────────────────────────
 
-const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA, ...TALENT_NODES_FIRE];
+const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER];
 
 @Injectable({ providedIn: 'root' })
 export class TalentService {
