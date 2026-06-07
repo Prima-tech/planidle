@@ -555,7 +555,7 @@ export class GameScene extends Phaser.Scene {
       const sprite = this.player.getSprite();
       const x = sprite.x + Phaser.Math.Between(-20, 20);
       const y = sprite.y - sprite.displayHeight * 0.5;
-      const text = this.add.text(x, y, 'MISS', {
+      const text = this.add.text(x, y, 'EVADE', {
         fontSize: '24px', color: '#1abc9c', fontStyle: 'bold',
         stroke: '#000000', strokeThickness: 5,
       });
