@@ -11,6 +11,7 @@ import { OfflineGainsService, OfflineGains } from './offline-gains.service';
 import { TalentService, TalentSnapshot } from './talent.service';
 import { SkillEquipService, SkillSlotsSnapshot } from './skill-equip.service';
 import { AfkBonusService } from './afk-bonus.service';
+import { CharacterStatsService } from './character-stats.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -106,6 +107,7 @@ export class SaveService {
     private talent: TalentService,
     private skillEquip: SkillEquipService,
     private afkBonus: AfkBonusService,
+    private charStats: CharacterStatsService,
   ) {
     merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.talent.changes$, this.skillEquip.changes$)
       .pipe(
@@ -176,10 +178,11 @@ export class SaveService {
    */
   async clearCurrentCharacter(): Promise<void> {
     if (!this.charId) return;
-    const current = this.playerState.snapshot();
-    this.playerState.setFromProfile({ ...current, coins: 0, specialCoins: 0 });
+    this.playerState.setFromProfile(EMPTY_STATE);
     this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
     this.equipment.clearAll();
+    this.talent.restoreFromSnapshot(null);
+    this.charStats.resetStats();
     await this.saveLocal();
   }
 

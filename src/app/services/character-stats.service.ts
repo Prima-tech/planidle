@@ -53,6 +53,15 @@ const DEFAULT_BASE_STATS: BaseStats = {
   CHR:   10,
 };
 
+const RESET_BASE_STATS: BaseStats = {
+  STR:   10,
+  DEX:   10,
+  CONST: 10,
+  INT:   10,
+  MAG:   10,
+  CHR:   10,
+};
+
 const HP_PER_CONST = 10;
 const MP_PER_MAG   = 5;
 
@@ -81,6 +90,13 @@ export class CharacterStatsService {
       if (key === 'CONST') this.syncHpMax();
       if (key === 'MAG')   this.syncMpMax();
     }
+  }
+
+  resetStats(): void {
+    Object.assign(this.stats, RESET_BASE_STATS);
+    this.statsChanged$.next();
+    this.syncHpMax();
+    this.syncMpMax();
   }
 
   constructor(
