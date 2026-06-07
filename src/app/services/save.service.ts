@@ -30,6 +30,7 @@ export interface GameSnapshot {
   kills: KillMap;
   talents?: TalentSnapshot;
   skillSlots?: SkillSlotsSnapshot;
+  baseStats?: import('./character-stats.service').BaseStats;
   lastSeen: string;
   lastModified: string;
 }
@@ -147,6 +148,7 @@ export class SaveService {
       this.kills.restoreCharKills(snapshot.kills ?? {});
       this.talent.restoreFromSnapshot(snapshot.talents ?? null);
       this.skillEquip.restoreFromSnapshot(snapshot.skillSlots ?? null);
+      if (snapshot.baseStats) this.charStats.restoreStats(snapshot.baseStats);
     } else {
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
@@ -272,6 +274,7 @@ export class SaveService {
       kills:        this.kills.getCharKillsSnapshot(),
       talents:      this.talent.getSnapshot(),
       skillSlots:   this.skillEquip.getSnapshot(),
+      baseStats:    { ...this.charStats.stats },
       lastSeen:     now,
       lastModified: now,
     };

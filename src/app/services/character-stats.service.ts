@@ -58,6 +58,13 @@ export interface CritDamageBreakdown {
   total:     number;  // %
 }
 
+export interface MagicDamageBreakdown {
+  base:      number;  // INT
+  equipment: number;
+  talents:   number;
+  total:     number;
+}
+
 export interface BaseStats {
   STR:   number;
   DEX:   number;
@@ -69,7 +76,7 @@ export interface BaseStats {
 
 const DEFAULT_BASE_STATS: BaseStats = {
   STR:   10,
-  DEX:   20,
+  DEX:   10,
   CONST: 10,
   INT:   10,
   MAG:   10,
@@ -91,18 +98,21 @@ const MP_PER_MAG   = 5;
 @Injectable({ providedIn: 'root' })
 export class CharacterStatsService {
 
-  readonly damage$:  Observable<DamageBreakdown>;
+  readonly damage$:       Observable<DamageBreakdown>;
+  readonly magicDamage$:  Observable<MagicDamageBreakdown>;
   readonly hp$:      Observable<HpBreakdown>;
   readonly mp$:      Observable<MpBreakdown>;
   readonly defense$:    Observable<DefenseBreakdown>;
   readonly evasion$:    Observable<EvasionBreakdown>;
   readonly critChance$: Observable<CritChanceBreakdown>;
   readonly critDamage$: Observable<CritDamageBreakdown>;
+  readonly freePoints$: Observable<number>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   private readonly statsChanged$ = new Subject<void>();
 
   increment(key: keyof BaseStats): void {
+    if (this.freePoints <= 0) return;
     this.stats[key]++;
     this.statsChanged$.next();
     if (key === 'CONST') this.syncHpMax();
@@ -110,7 +120,7 @@ export class CharacterStatsService {
   }
 
   decrement(key: keyof BaseStats): void {
-    if (this.stats[key] > 0) {
+    if (this.stats[key] > 10) {
       this.stats[key]--;
       this.statsChanged$.next();
       if (key === 'CONST') this.syncHpMax();
@@ -125,6 +135,15 @@ export class CharacterStatsService {
     this.syncMpMax();
   }
 
+  restoreStats(stats: BaseStats): void {
+    Object.assign(this.stats, stats);
+    this.statsChanged$.next();
+    this.syncHpMax();
+    this.syncMpMax();
+  }
+
+  get freePoints(): number { return this._calcFreePoints(); }
+
   constructor(
     private equipment: EquipmentService,
     private playerState: PlayerStateService,
@@ -134,13 +153,18 @@ export class CharacterStatsService {
     const trigger$  = merge(this.equipment.changes$, this.statsChanged$, this.talent.changes$).pipe(startWith(null as void));
     const defTrigger$ = merge(trigger$, this.buff.buffs$);
 
-    this.damage$  = trigger$.pipe(map(() => this._calcDamage()));
+    this.damage$       = trigger$.pipe(map(() => this._calcDamage()));
+    this.magicDamage$  = trigger$.pipe(map(() => this._calcMagicDamage()));
     this.hp$      = trigger$.pipe(map(() => this._calcHp()));
     this.mp$      = trigger$.pipe(map(() => this._calcMp()));
     this.defense$    = defTrigger$.pipe(map(() => this._calcDefense()));
     this.evasion$    = defTrigger$.pipe(map(() => this._calcEvasion()));
     this.critChance$ = defTrigger$.pipe(map(() => this._calcCritChance()));
     this.critDamage$ = defTrigger$.pipe(map(() => this._calcCritDamage()));
+    this.freePoints$ = merge(this.statsChanged$, this.playerState.state$).pipe(
+      startWith(null),
+      map(() => this._calcFreePoints()),
+    );
 
     trigger$.subscribe(() => {
       this.syncHpMax();
@@ -154,12 +178,27 @@ export class CharacterStatsService {
     this.playerState.setHp(Math.min(current, total), total);
   }
 
+  private _calcFreePoints(): number {
+    const lvl   = this.playerState.snapshot().lvl;
+    const spent = (Object.values(this.stats) as number[]).reduce((a, v) => a + v, 0) - 60;
+    return 8 + (lvl - 1) - spent;
+  }
+
   private _calcDamage(): DamageBreakdown {
     const base      = this.stats.STR;
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['damage'] ?? 0), 0
     );
     const talents = this.talent.getBonus().atk;
+    return { base, equipment, talents, total: base + equipment + talents };
+  }
+
+  private _calcMagicDamage(): MagicDamageBreakdown {
+    const base      = this.stats.INT;
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['magicDamage'] ?? 0), 0
+    );
+    const talents = this.talent.getBonus().atk;  // magic tree atk nodes count too
     return { base, equipment, talents, total: base + equipment + talents };
   }
 
@@ -188,10 +227,11 @@ export class CharacterStatsService {
   }
 
   // DEX → defensa/evasión: los primeros 10 puntos no cuentan, cada 10 adicionales = +1 def / +1%
-  get currentDefense():    number { return this._calcDefense().total; }
-  get currentEvasion():    number { return this._calcEvasion().total; }
-  get currentCritChance(): number { return this._calcCritChance().total; }
-  get currentCritDamage(): number { return this._calcCritDamage().total; }
+  get currentDefense():      number { return this._calcDefense().total; }
+  get currentEvasion():      number { return this._calcEvasion().total; }
+  get currentCritChance():   number { return this._calcCritChance().total; }
+  get currentCritDamage():   number { return this._calcCritDamage().total; }
+  get currentMagicDamage():  number { return this._calcMagicDamage().total; }
 
   private _calcCritChance(): CritChanceBreakdown {
     const base      = 10;

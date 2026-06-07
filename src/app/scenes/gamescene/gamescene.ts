@@ -72,7 +72,8 @@ export class GameScene extends Phaser.Scene {
     private itemDropSub: { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
-    private playerDamage = 10;
+    private playerDamage      = 10;
+    private playerMagicDamage = 10;
     private mobileInput: MobileInput | null = null;
     currentMap: any;
 
@@ -220,6 +221,9 @@ export class GameScene extends Phaser.Scene {
       if (!charStats) return;
       this.statsSub = charStats.damage$.subscribe(breakdown => {
         this.playerDamage = breakdown.total;
+      });
+      charStats.magicDamage$.subscribe(breakdown => {
+        this.playerMagicDamage = breakdown.total;
       });
     }
 

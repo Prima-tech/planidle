@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
-import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown } from 'src/app/services/character-stats.service';
+import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown, MagicDamageBreakdown } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
 import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES, TALENT_NODES_MAGIA } from 'src/app/services/talent.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
@@ -25,8 +25,11 @@ export class EquipmentComponent implements OnInit {
     if (v !== 3) this.selectedNodeId = null;
   }
 
-  showAtkBreakdown     = false;
-  readonly damage$  = this.charStats.damage$;
+  showAtkBreakdown      = false;
+  showMagicAtkBreakdown = false;
+  readonly damage$       = this.charStats.damage$;
+  readonly magicDamage$  = this.charStats.magicDamage$;
+  readonly freePoints$   = this.charStats.freePoints$;
   readonly hp$      = this.charStats.hp$;
   readonly mp$      = this.charStats.mp$;
   readonly defense$ = this.charStats.defense$;

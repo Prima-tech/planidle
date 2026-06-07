@@ -51,14 +51,20 @@
   <!-- Tab 1: Stats -->
   <div class="eq-stats-panel" *ngIf="activeTab === 1">
     <div class="equipment-header">Stats</div>
-    <div class="stats-grid">
-      <div class="stat-row" *ngFor="let s of statsList">
-        <button class="stat-btn minus" (click)="charStats.decrement(s.key)">−</button>
-        <span class="stat-label">{{ s.label }}</span>
-        <span class="stat-val">{{ charStats.stats[s.key] }}</span>
-        <button class="stat-btn plus" (click)="charStats.increment(s.key)">+</button>
+    <ng-container *ngIf="{ pts: freePoints$ | async } as vm">
+      <div class="stat-points-bar" [class.empty]="vm.pts <= 0">
+        <span>Puntos libres</span>
+        <strong>{{ vm.pts }}</strong>
       </div>
-    </div>
+      <div class="stats-grid">
+        <div class="stat-row" *ngFor="let s of statsList">
+          <button class="stat-btn minus" (click)="charStats.decrement(s.key)">−</button>
+          <span class="stat-label">{{ s.label }}</span>
+          <span class="stat-val">{{ charStats.stats[s.key] }}</span>
+          <button class="stat-btn plus" [disabled]="vm.pts <= 0" (click)="charStats.increment(s.key)">+</button>
+        </div>
+      </div>
+    </ng-container>
   </div>
 
   <!-- Tab 2: Resumen de stats -->
@@ -226,6 +232,33 @@
           <div class="ov-bk-row" *ngIf="dmg.talents > 0">
             <span>Talentos</span>
             <span class="ov-bonus">+{{ dmg.talents }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Acordeón: Daño Mágico -->
+    <div class="ov-accordion" (click)="showMagicAtkBreakdown = !showMagicAtkBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Daño Mágico</span>
+        <ng-container *ngIf="magicDamage$ | async as mdmg">
+          <span class="ov-val ov-val--mp">{{ mdmg.total }}</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showMagicAtkBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showMagicAtkBreakdown">
+        <ng-container *ngIf="magicDamage$ | async as mdmg">
+          <div class="ov-bk-row">
+            <span>Inteligencia</span>
+            <span>{{ mdmg.base }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="mdmg.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ mdmg.equipment }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="mdmg.talents > 0">
+            <span>Talentos</span>
+            <span class="ov-bonus">+{{ mdmg.talents }}</span>
           </div>
         </ng-container>
       </div>
