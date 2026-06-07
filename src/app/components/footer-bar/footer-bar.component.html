@@ -55,12 +55,12 @@
 
     <!-- Página de habilidades -->
     <ng-container *ngIf="page === 'skills'">
-      <div class="icon-menu-wrapper" [class.active]="!locked" (click)="toggleLock()">
+      <div class="icon-menu-wrapper lock-btn" [class.active]="!locked" (click)="toggleLock()">
         <ion-icon [name]="locked ? 'lock-closed-outline' : 'lock-open-outline'" class="footer-ion-icon"></ion-icon>
       </div>
-
-      <ng-container *ngFor="let slot of [1,2,3,4]">
-        <div class="icon-menu-wrapper right skill-slot"
+      <div class="skill-slots-row">
+        <div *ngFor="let slot of skillSlots"
+             class="icon-menu-wrapper skill-slot"
              [class.active]="activeSkillSlot === slot && skillSlotsModal.isOpenModal()"
              [class.flashing]="isFlashing(slot)"
              [class.no-target]="locked && slotNoTarget(slot)"
@@ -72,7 +72,7 @@
           <div *ngIf="cdAngles[slot] > 0" class="cd-overlay"></div>
           <span *ngIf="cdSeconds[slot]" class="cd-text">{{ cdSeconds[slot] }}</span>
         </div>
-      </ng-container>
+      </div>
     </ng-container>
 
   </ion-toolbar>

@@ -42,10 +42,11 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   activeSkillSlot: number | null = null;
   locked = true;
 
+  readonly skillSlots = [1,2,3,4,5,6,7,8,9,10];
   // grados 0-360 del arco de cooldown para cada slot
-  cdAngles:  Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+  cdAngles:  Record<number, number> = Object.fromEntries(this.skillSlots.map(s => [s, 0]));
   // texto de segundos restantes ("2", "0.5", …) o vacío
-  cdSeconds: Record<number, string> = { 1: '', 2: '', 3: '', 4: '' };
+  cdSeconds: Record<number, string> = Object.fromEntries(this.skillSlots.map(s => [s, '']));
   // slots con la animación de activación activa
   private flashSlots = new Set<number>();
 
@@ -68,7 +69,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.skillEquipService.selectedAbilityId = null;
     });
     this.activateSub = this.skillActivationService.activate$.subscribe(({ abilityId }) => {
-      for (let slot = 1; slot <= 4; slot++) {
+      for (const slot of this.skillSlots) {
         if (this.slotAbility(slot) === abilityId) { this.triggerFlash(slot); break; }
       }
       this.startCdLoop();
@@ -172,7 +173,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     if (this.cdInterval) return;
     this.cdInterval = setInterval(() => {
       let anyActive = false;
-      for (let slot = 1; slot <= 4; slot++) {
+      for (const slot of this.skillSlots) {
         const ability = this.slotAbility(slot);
         if (!ability) { this.cdAngles[slot] = 0; this.cdSeconds[slot] = ''; continue; }
         const ratio = this.skillActivationService.cooldownRatio(ability);

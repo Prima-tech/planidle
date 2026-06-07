@@ -54,6 +54,22 @@
     image-rendering: pixelated;
   }
 
+  // ── Skills bar ─────────────────────────────────────────────────────────────
+
+  .lock-btn {
+    float: left;
+    margin-right: 5px;
+  }
+
+  .skill-slots-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 3px;
+    height: 100%;
+
+  }
+
   // ── Skill slots ────────────────────────────────────────────────────────────
 
   .skill-slot {
