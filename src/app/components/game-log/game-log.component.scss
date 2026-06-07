@@ -31,6 +31,16 @@
     border-left: 3px solid #ffec80;
   }
 
+  &.regen-hp {
+    color: #e74c3c;
+    border-left: 3px solid #e74c3c;
+  }
+
+  &.regen-mp {
+    color: #3498db;
+    border-left: 3px solid #3498db;
+  }
+
   &.fading {
     opacity: 0;
   }

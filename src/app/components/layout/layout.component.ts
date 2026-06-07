@@ -25,6 +25,7 @@ import { SummonService } from 'src/app/services/summon.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { BuffService } from 'src/app/services/buff.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
+import { RegenService } from 'src/app/services/regen.service';
 
 @Component({
   selector: 'app-layout',
@@ -66,11 +67,13 @@ export class LayoutComponent implements OnDestroy {
     private skillActivationService: SkillActivationService,
     private buffService: BuffService,
     private panelStateService: PanelStateService,
+    private regenService: RegenService,
   ) {
     this.loadGame();
   }
 
   ngOnInit(): void {
+    this.regenService.start();
     this.gainsSub = this.saveService.pendingGains$
       .pipe(filter(g => g !== null))
       .subscribe(gains => {
@@ -111,6 +114,7 @@ export class LayoutComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.regenService.stop();
     this.gainsSub?.unsubscribe();
     this.deathSub?.unsubscribe();
     this.sceneStartingSub?.unsubscribe();

@@ -144,6 +144,18 @@
       </div>
     </div>
 
+    <!-- Rec. HP -->
+    <div class="ov-row" *ngIf="hpRegen$ | async as hr">
+      <span class="ov-label">Rec. HP / 10s</span>
+      <span class="ov-val ov-val--highlight">{{ hr.min }}–{{ hr.total }}</span>
+    </div>
+
+    <!-- Rec. MP -->
+    <div class="ov-row" *ngIf="mpRegen$ | async as mr">
+      <span class="ov-label">Rec. MP / 10s</span>
+      <span class="ov-val ov-val--mp">{{ mr.min }}–{{ mr.total }}</span>
+    </div>
+
     <!-- Acordeón: Defensa -->
     <div class="ov-accordion" (click)="showDefBreakdown = !showDefBreakdown">
       <div class="ov-accordion-header">

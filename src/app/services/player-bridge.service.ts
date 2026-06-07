@@ -43,6 +43,14 @@ export class PlayerBridgeService {
     }
   }
 
+  healPlayer(amount: number): void {
+    if (!this.player || amount <= 0) return;
+    const { HP, HPMax } = this.player.status;
+    const newHP = Math.min(HP + amount, HPMax);
+    this.player.resetStatus(newHP, HPMax);
+    this.playerState.setHp(newHP, HPMax);
+  }
+
   resetPlayerStatus(currentHp: number, maxHp: number): void {
     this.player?.resetStatus(currentHp, maxHp);
   }

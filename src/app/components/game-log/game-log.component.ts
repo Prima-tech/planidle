@@ -3,12 +3,13 @@ import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
+import { RegenService } from 'src/app/services/regen.service';
 
 interface LogEntry {
   id: number;
   name: string;          // clave de agrupación
   label: string;         // texto visible
-  type: 'drop' | 'coin';
+  type: 'drop' | 'coin' | 'regen-hp' | 'regen-mp';
   sum: number;           // cantidad acumulada
   mergeable: boolean;
   fading: boolean;
@@ -35,6 +36,7 @@ export class GameLogComponent implements OnInit, OnDestroy {
     private inventoryService: InventoryService,
     private playerState: PlayerStateService,
     private translate: TranslateService,
+    private regen: RegenService,
   ) {}
 
   ngOnInit() {
@@ -56,6 +58,14 @@ export class GameLogComponent implements OnInit, OnDestroy {
           sum:       amount,
           mergeable: true,
         });
+      }),
+      this.regen.regenTick$.subscribe(({ hp, mp }) => {
+        if (hp > 0) {
+          this.push({ name: '__regen_hp__', label: `HP rec: +${hp}`, type: 'regen-hp', sum: hp, mergeable: true });
+        }
+        if (mp > 0) {
+          this.push({ name: '__regen_mp__', label: `MP rec: +${mp}`, type: 'regen-mp', sum: mp, mergeable: true });
+        }
       }),
     );
   }
@@ -95,6 +105,8 @@ export class GameLogComponent implements OnInit, OnDestroy {
   }
 
   private buildLabel(name: string, sum: number, type: LogEntry['type']): string {
+    if (type === 'regen-hp') return `HP rec: +${sum}`;
+    if (type === 'regen-mp') return `MP rec: +${sum}`;
     const prefix = type === 'coin' ? '🪙' : '+';
     return sum > 1 ? `${prefix} ${name} ×${sum}` : `${prefix} ${name}`;
   }

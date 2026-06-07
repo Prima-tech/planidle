@@ -65,6 +65,14 @@ export interface MagicDamageBreakdown {
   total:     number;
 }
 
+export interface RegenBreakdown {
+  base:      number;  // CONST (hp) or MAG (mp)
+  equipment: number;
+  talents:   number;
+  total:     number;
+  min:       number;  // floor(total / 2)
+}
+
 export interface BaseStats {
   STR:   number;
   DEX:   number;
@@ -107,6 +115,8 @@ export class CharacterStatsService {
   readonly critChance$: Observable<CritChanceBreakdown>;
   readonly critDamage$: Observable<CritDamageBreakdown>;
   readonly freePoints$: Observable<number>;
+  readonly hpRegen$:    Observable<RegenBreakdown>;
+  readonly mpRegen$:    Observable<RegenBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   private readonly statsChanged$ = new Subject<void>();
@@ -165,6 +175,8 @@ export class CharacterStatsService {
       startWith(null),
       map(() => this._calcFreePoints()),
     );
+    this.hpRegen$ = trigger$.pipe(map(() => this._calcHpRegen()));
+    this.mpRegen$ = trigger$.pipe(map(() => this._calcMpRegen()));
 
     trigger$.subscribe(() => {
       this.syncHpMax();
@@ -202,6 +214,26 @@ export class CharacterStatsService {
     return { base, equipment, talents, total: base + equipment + talents };
   }
 
+  private _calcHpRegen(): RegenBreakdown {
+    const base      = this.stats.CONST;
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['hpRegen'] ?? 0), 0
+    );
+    const talents = this.talent.getBonus().hpRegen;
+    const total   = base + equipment + talents;
+    return { base, equipment, talents, total, min: Math.floor(total / 2) };
+  }
+
+  private _calcMpRegen(): RegenBreakdown {
+    const base      = this.stats.MAG;
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['mpRegen'] ?? 0), 0
+    );
+    const talents = this.talent.getBonus().mpRegen;
+    const total   = base + equipment + talents;
+    return { base, equipment, talents, total, min: Math.floor(total / 2) };
+  }
+
   private syncMpMax(): void {
     const { total } = this._calcMp();
     const current   = this.playerState.snapshot().mp ?? total;
@@ -232,6 +264,8 @@ export class CharacterStatsService {
   get currentCritChance():   number { return this._calcCritChance().total; }
   get currentCritDamage():   number { return this._calcCritDamage().total; }
   get currentMagicDamage():  number { return this._calcMagicDamage().total; }
+  get currentHpRegen():      RegenBreakdown { return this._calcHpRegen(); }
+  get currentMpRegen():      RegenBreakdown { return this._calcMpRegen(); }
 
   private _calcCritChance(): CritChanceBreakdown {
     const base      = 10;
