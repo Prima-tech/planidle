@@ -169,6 +169,7 @@ export class LayoutComponent implements OnDestroy {
 
   collectGains(gains: OfflineGains) {
     this.playerStateService.collectCoins(gains.coins);
+    this.playerStateService.addExp(gains.exp);
     this.pendingGains = null;
     this.saveService.pendingGains$.next(null);
   }

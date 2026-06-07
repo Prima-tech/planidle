@@ -102,6 +102,19 @@
       font-weight: bold;
     }
   }
+
+  &--exp {
+    border-color: #d4a000;
+    background: #1e1a00;
+
+    .afk-label { color: #aaa; }
+
+    .afk-value--exp {
+      font-size: 0.9em;
+      color: #f0c040;
+      font-weight: bold;
+    }
+  }
 }
 
 .afk-collect-btn {

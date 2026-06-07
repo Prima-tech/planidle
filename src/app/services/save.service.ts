@@ -10,6 +10,7 @@ import { KillService, KillMap } from './kill.service';
 import { OfflineGainsService, OfflineGains } from './offline-gains.service';
 import { TalentService, TalentSnapshot } from './talent.service';
 import { SkillEquipService, SkillSlotsSnapshot } from './skill-equip.service';
+import { AfkBonusService } from './afk-bonus.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -104,6 +105,7 @@ export class SaveService {
     private offlineGains: OfflineGainsService,
     private talent: TalentService,
     private skillEquip: SkillEquipService,
+    private afkBonus: AfkBonusService,
   ) {
     merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.talent.changes$, this.skillEquip.changes$)
       .pipe(
@@ -135,8 +137,6 @@ export class SaveService {
     this.charId = charId;
     const snapshot: GameSnapshot | null = await this.storage.get(this.snapshotKey());
 
-    const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
-
     if (snapshot) {
       this.playerState.setFromProfile(snapshot.playerState);
       this.inventory.restoreFromSnapshot(snapshot.inventory);
@@ -155,6 +155,9 @@ export class SaveService {
       this.skillEquip.restoreFromSnapshot(null);
     }
     await this.kills.loadGlobalKills();
+    // load AFK passives before calculating gains so multipliers are applied
+    await this.afkBonus.loadForChar(charId);
+    const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
     this.pendingGains$.next(gains);
     this.isRestoring = false;
   }
