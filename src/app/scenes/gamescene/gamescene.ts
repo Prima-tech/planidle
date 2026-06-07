@@ -475,7 +475,14 @@ export class GameScene extends Phaser.Scene {
         const now = this.time.now;
         if (now - this.lastDamageTime < 500) return;
         this.lastDamageTime = now;
-        const defense        = this.reg.charStats?.currentDefense ?? 0;
+
+        const evasion = this.reg.charStats?.currentEvasion ?? 0;
+        if (evasion > 0 && Math.random() * 100 < evasion) {
+          this.showPlayerMiss();
+          return;
+        }
+
+        const defense         = this.reg.charStats?.currentDefense ?? 0;
         const effectiveDamage = Math.max(0, damage - defense);
         if (effectiveDamage > 0) this.reg.playerBridge.setAttackToPlayer({ HP: -effectiveDamage });
         this.flashPlayer();
@@ -542,6 +549,21 @@ export class GameScene extends Phaser.Scene {
       const sprite = this.player.getSprite();
       sprite.setTint(0xff4444);
       this.time.delayedCall(150, () => sprite.clearTint());
+    }
+
+    private showPlayerMiss(): void {
+      const sprite = this.player.getSprite();
+      const x = sprite.x + Phaser.Math.Between(-20, 20);
+      const y = sprite.y - sprite.displayHeight * 0.5;
+      const text = this.add.text(x, y, 'MISS', {
+        fontSize: '24px', color: '#1abc9c', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 5,
+      });
+      text.setOrigin(0.5, 1).setDepth(10);
+      this.tweens.add({
+        targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
+        onComplete: () => text.destroy(),
+      });
     }
 
     private showPlayerDamage(amount: number): void {

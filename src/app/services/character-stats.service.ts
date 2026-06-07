@@ -35,6 +35,13 @@ export interface DefenseBreakdown {
   total:     number;
 }
 
+export interface EvasionBreakdown {
+  dex:       number;  // % from DEX
+  equipment: number;  // % from equipment
+  buffs:     number;  // % from buffs/skills
+  total:     number;  // total %
+}
+
 export interface BaseStats {
   STR:   number;
   DEX:   number;
@@ -72,6 +79,7 @@ export class CharacterStatsService {
   readonly hp$:      Observable<HpBreakdown>;
   readonly mp$:      Observable<MpBreakdown>;
   readonly defense$: Observable<DefenseBreakdown>;
+  readonly evasion$: Observable<EvasionBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   private readonly statsChanged$ = new Subject<void>();
@@ -112,6 +120,7 @@ export class CharacterStatsService {
     this.hp$      = trigger$.pipe(map(() => this._calcHp()));
     this.mp$      = trigger$.pipe(map(() => this._calcMp()));
     this.defense$ = defTrigger$.pipe(map(() => this._calcDefense()));
+    this.evasion$ = defTrigger$.pipe(map(() => this._calcEvasion()));
 
     trigger$.subscribe(() => {
       this.syncHpMax();
@@ -158,8 +167,18 @@ export class CharacterStatsService {
     return { base, equipment, talents, total: base + equipment + talents };
   }
 
-  // DEX → defensa: los primeros 10 puntos no cuentan, cada 10 adicionales = +1
+  // DEX → defensa/evasión: los primeros 10 puntos no cuentan, cada 10 adicionales = +1 def / +1%
   get currentDefense(): number { return this._calcDefense().total; }
+  get currentEvasion(): number { return this._calcEvasion().total; }
+
+  private _calcEvasion(): EvasionBreakdown {
+    const dex       = Math.max(0, Math.floor((this.stats.DEX - 10) / 10));
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['evasion'] ?? 0), 0
+    );
+    const buffs = this.buff.getValue('evasion');
+    return { dex, equipment, buffs, total: dex + equipment + buffs };
+  }
 
   private _calcDefense(): DefenseBreakdown {
     const dex       = Math.max(0, Math.floor((this.stats.DEX - 10) / 10));

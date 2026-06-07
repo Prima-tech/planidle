@@ -173,6 +173,37 @@
       </div>
     </div>
 
+    <!-- Acordeón: Evasión -->
+    <div class="ov-accordion" (click)="showEvasionBreakdown = !showEvasionBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Evasión</span>
+        <ng-container *ngIf="evasion$ | async as ev">
+          <span class="ov-val ov-val--evasion">{{ ev.total }}%</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showEvasionBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showEvasionBreakdown">
+        <ng-container *ngIf="evasion$ | async as ev">
+          <div class="ov-bk-row" *ngIf="ev.dex > 0">
+            <span>Destreza</span>
+            <span class="ov-bonus">+{{ ev.dex }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="ev.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ ev.equipment }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="ev.buffs > 0">
+            <span>Habilidades</span>
+            <span class="ov-bonus">+{{ ev.buffs }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="ev.total === 0">
+            <span>Sin bonificaciones</span>
+            <span>0%</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
     <!-- Acordeón: Ataque -->
     <div class="ov-accordion" (click)="showAtkBreakdown = !showAtkBreakdown">
       <div class="ov-accordion-header">
