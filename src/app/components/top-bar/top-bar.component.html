@@ -2,10 +2,10 @@
 
   <!-- Panel personaje + buffos -->
   <div class="left-side">
-    <div class="char-col">
-      <div class="char-panel">
+    <div class="char-widget" [class.char-widget--open]="mapPanelOpen">
 
-        <!-- Avatar + nombre apilados -->
+      <!-- Panel superior: avatar + barras -->
+      <div class="char-panel">
         <div class="avatar-col">
           <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
             <ion-icon [name]="classIcon"></ion-icon>
@@ -13,7 +13,6 @@
           <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
         </div>
 
-        <!-- Barras -->
         <div class="char-info" *ngIf="initStatusBar">
 
           <ng-container *ngIf="valueHP$ | async as hp">
@@ -46,51 +45,49 @@
         </div>
       </div>
 
-      <!-- Zona de mapa: absoluta para no alterar la altura del char-col -->
-      <div class="map-area">
-        <div class="map-row">
-          <button class="map-btn" [class.map-btn--active]="mapPanelOpen" (click)="toggleMapPanel()">
-            <ion-icon name="map-outline"></ion-icon>
-          </button>
-          <app-map-label></app-map-label>
-        </div>
-        <div class="map-info-panel" *ngIf="mapPanelOpen">
-          <ng-container *ngIf="mapPanelData$ | async as d">
+      <!-- Ancla: bisagra entre los dos paneles -->
+      <button class="map-anchor" (click)="toggleMapPanel()">
+        <app-map-label></app-map-label>
+        <ion-icon class="map-anchor-chevron" [name]="mapPanelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </button>
 
-            <!-- Elite / Oblivion progress -->
-            <ng-container *ngIf="d.eliteThreshold > 0">
-              <div class="mip-spawn-row">
-                <div class="mip-spawn-label">
-                  <span class="mip-spawn-tier mip-spawn-tier--elite">ELITE</span>
-                  <span class="mip-spawn-count">{{ d.baseKillsCurrent }}/{{ d.eliteThreshold }}</span>
-                </div>
-                <div class="mip-bar">
-                  <div class="mip-bar-fill mip-bar-fill--elite" [style.width.%]="d.eliteProgress * 100"></div>
-                </div>
-              </div>
-              <div class="mip-spawn-row" *ngIf="d.oblivionThreshold">
-                <div class="mip-spawn-label">
-                  <span class="mip-spawn-tier mip-spawn-tier--oblivion">OBLIVION</span>
-                  <span class="mip-spawn-count">{{ d.eliteKillsCurrent }}/{{ d.oblivionThreshold }}</span>
-                </div>
-                <div class="mip-bar">
-                  <div class="mip-bar-fill mip-bar-fill--oblivion" [style.width.%]="d.oblivionProgress * 100"></div>
-                </div>
-              </div>
-              <div class="mip-divider"></div>
-            </ng-container>
+      <!-- Panel inferior: info del mapa -->
+      <div class="map-info-panel" *ngIf="mapPanelOpen">
+        <ng-container *ngIf="mapPanelData$ | async as d">
 
-            <!-- AFK rates -->
-            <div class="mip-rates" *ngIf="d.coinsPerHour > 0">
-              <span class="mip-rate">💰 {{ d.coinsPerHour | number }}/h</span>
-              <span class="mip-rate">✨ {{ d.expPerHour | number }} XP/h</span>
+          <!-- Elite / Oblivion progress -->
+          <ng-container *ngIf="d.eliteThreshold > 0">
+            <div class="mip-spawn-row">
+              <div class="mip-spawn-label">
+                <span class="mip-spawn-tier mip-spawn-tier--elite">ELITE</span>
+                <span class="mip-spawn-count">{{ d.baseKillsCurrent }}/{{ d.eliteThreshold }}</span>
+              </div>
+              <div class="mip-bar">
+                <div class="mip-bar-fill mip-bar-fill--elite" [style.width.%]="d.eliteProgress * 100"></div>
+              </div>
             </div>
-            <div class="mip-no-spawn" *ngIf="d.coinsPerHour === 0">Sin enemigos activos</div>
-
-
+            <div class="mip-spawn-row" *ngIf="d.oblivionThreshold">
+              <div class="mip-spawn-label">
+                <span class="mip-spawn-tier mip-spawn-tier--oblivion">OBLIVION</span>
+                <span class="mip-spawn-count">{{ d.eliteKillsCurrent }}/{{ d.oblivionThreshold }}</span>
+              </div>
+              <div class="mip-bar">
+                <div class="mip-bar-fill mip-bar-fill--oblivion" [style.width.%]="d.oblivionProgress * 100"></div>
+              </div>
+            </div>
+            <div class="mip-divider"></div>
           </ng-container>
-        </div>
+
+          <!-- AFK rates -->
+          <div class="mip-rates" *ngIf="d.coinsPerHour > 0">
+            <span class="mip-rate">💰 {{ d.coinsPerHour | number }}/h</span>
+            <span class="mip-rate">✨ {{ d.expPerHour | number }} XP/h</span>
+          </div>
+          <div class="mip-no-spawn" *ngIf="d.coinsPerHour === 0">Sin enemigos activos</div>
+
+        </ng-container>
       </div>
+
     </div>
 
     <!-- Buffos activos -->

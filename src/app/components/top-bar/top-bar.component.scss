@@ -23,71 +23,78 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 36px;
 }
 
-// char-col solo tiene el char-panel en flujo normal;
-// map-area sale fuera del flujo (absolute) para no alterar la altura.
-.char-col {
+// ── Tarjeta unificada: char-panel + ancla (+ info-panel absoluto abajo) ──────
+
+.char-widget {
   position: relative;
-}
-
-// ── Zona de mapa (absoluta bajo char-panel) ───────────────────────────────────
-
-.map-area {
-  position: absolute;
-  top: calc(100% + 3px);
-  left: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  min-width: 100%;
-}
-
-.map-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.map-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-top: 10px;
   background: rgba(26, 26, 46, 0.88);
   border: 1px solid #2a2a4e;
-  border-radius: 6px;
-  padding: 3px 6px;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-  flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  border-radius: 8px;
   backdrop-filter: blur(4px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  min-width: 190px;
 
-  &--active {
-    border-color: rgba(52, 152, 219, 0.6);
-    color: #3498db;
-    background: rgba(52, 152, 219, 0.12);
+  &--open {
+    border-color: rgba(52, 152, 219, 0.35);
   }
 }
 
-// ── Panel info del mapa ───────────────────────────────────────────────────────
+// ── Ancla entre paneles ───────────────────────────────────────────────────────
+
+.map-anchor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0 0 7px 7px;
+  background: rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  color: rgba(255, 255, 255, 0.45);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  .char-widget--open & {
+    background: rgba(52, 152, 219, 0.1);
+    border-top-color: rgba(52, 152, 219, 0.25);
+    border-radius: 0;
+    color: #3498db;
+  }
+}
+
+.map-anchor-chevron {
+  font-size: 10px;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+// ── Panel info del mapa (absoluto, cuelga bajo el widget sin alterar altura) ──
 
 .map-info-panel {
-  background: rgba(26, 26, 46, 0.92);
-  border: 1px solid #2a2a4e;
-  border-radius: 8px;
+  position: absolute;
+  top: 100%;
+  left: -1px;
+  right: -1px;
   padding: 8px 8px 6px;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-  width: 100%;
-  min-width: 190px;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 5px;
+  background: rgba(26, 26, 46, 0.92);
+  border: 1px solid rgba(52, 152, 219, 0.35);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
 }
 
 // spawn progress rows
@@ -214,12 +221,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(26, 26, 46, 0.88);
-  border: 1px solid #2a2a4e;
-  border-radius: 8px;
   padding: 6px 10px 6px 6px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
 // ── Avatar + nombre apilados ─────────────────────────────────────────────────
