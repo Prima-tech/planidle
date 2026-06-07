@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats, DefenseBreakdown } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
 import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES, TALENT_NODES_MAGIA } from 'src/app/services/talent.service';
+import { PanelStateService } from 'src/app/services/panel-state.service';
 
 @Component({
   selector: 'app-equipment',
@@ -14,10 +15,13 @@ import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES,
 })
 export class EquipmentComponent implements OnInit {
 
+  private panelState = inject(PanelStateService);
+
   private _activeTab = 0;
   get activeTab(): number { return this._activeTab; }
   set activeTab(v: number) {
     this._activeTab = v;
+    this.panelState.set('equip.tab', v);
     if (v !== 3) this.selectedNodeId = null;
   }
 
@@ -161,7 +165,9 @@ export class EquipmentComponent implements OnInit {
     public talent: TalentService,
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this._activeTab = this.panelState.get('equip.tab', 0);
+  }
 
   // Predicate: sólo acepta ítems compatibles con este slot
   canDropInSlot = (drag: CdkDrag, drop: CdkDropList): boolean => {

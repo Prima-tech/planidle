@@ -1,7 +1,8 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { PanelStateService } from 'src/app/services/panel-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -30,6 +31,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private dropSub: Subscription;
   private removeSub: Subscription;
 
+  private panelState = inject(PanelStateService);
+
   constructor(
     private inventoryService: InventoryService,
     public equipmentService: EquipmentService,
@@ -49,6 +52,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.activeTabIndex = this.panelState.get('inv.tab', 0);
     this.tabs = ['I', 'II', 'III', 'IV', 'V'].slice(0, this.NUMBER_OF_TABS);
     this.equipmentSlotIds = this.equipmentService.getEquipmentSlotIds();
 
@@ -100,6 +104,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   selectTab(index: number): void {
     this.activeTabIndex = index;
+    this.panelState.set('inv.tab', index);
     this.selectedItem = null;
     this.splitMenuOpen = false;
     this.deleteModalOpen = false;

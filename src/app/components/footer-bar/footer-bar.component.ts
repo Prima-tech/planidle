@@ -15,6 +15,7 @@ import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
+import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 
 @Component({
   selector: 'app-footer-bar',
@@ -33,10 +34,11 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('skillSlotsModal')  skillSlotsModal!:  ModalContainerComponent;
   @ViewChild('skillDetailModal') skillDetailModal!: ModalContainerComponent;
 
-  private detailSub:   Subscription;
-  private closeSub:    Subscription;
-  private activateSub: Subscription;
-  private cdInterval:  ReturnType<typeof setInterval> | null = null;
+  private detailSub:        Subscription;
+  private closeSub:         Subscription;
+  private activateSub:      Subscription;
+  private sceneStartingSub: Subscription;
+  private cdInterval:       ReturnType<typeof setInterval> | null = null;
 
   page: 'main' | 'skills' = 'main';
   activeSkillSlot: number | null = null;
@@ -53,6 +55,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private skillEquipService      = inject(SkillEquipService);
   private talentService          = inject(TalentService);
   private skillActivationService = inject(SkillActivationService);
+  private playerBridge           = inject(PlayerBridgeService);
 
   constructor() { }
 
@@ -68,6 +71,14 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.skillEquipService.activeSlot       = null;
       this.skillEquipService.selectedAbilityId = null;
     });
+    this.sceneStartingSub = this.playerBridge.sceneStarting$.subscribe(() => {
+      this.page = 'main';
+      this.locked = true;
+      this.activeSkillSlot = null;
+      this.skillEquipService.activeSlot        = null;
+      this.skillEquipService.selectedAbilityId = null;
+    });
+
     this.activateSub = this.skillActivationService.activate$.subscribe(({ abilityId }) => {
       for (const slot of this.skillSlots) {
         if (this.slotAbility(slot) === abilityId) { this.triggerFlash(slot); break; }
@@ -80,6 +91,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.detailSub?.unsubscribe();
     this.closeSub?.unsubscribe();
     this.activateSub?.unsubscribe();
+    this.sceneStartingSub?.unsubscribe();
     if (this.cdInterval) clearInterval(this.cdInterval);
   }
 

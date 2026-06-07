@@ -24,6 +24,7 @@ import { EquipmentService } from 'src/app/services/equipment.service';
 import { SummonService } from 'src/app/services/summon.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { BuffService } from 'src/app/services/buff.service';
+import { PanelStateService } from 'src/app/services/panel-state.service';
 
 @Component({
   selector: 'app-layout',
@@ -64,6 +65,7 @@ export class LayoutComponent implements OnDestroy {
     private characterStatsService: CharacterStatsService,
     private skillActivationService: SkillActivationService,
     private buffService: BuffService,
+    private panelStateService: PanelStateService,
   ) {
     this.loadGame();
   }
@@ -81,7 +83,11 @@ export class LayoutComponent implements OnDestroy {
     });
 
     this.sceneStartingSub = this.playerBridgeService.sceneStarting$.subscribe(() => {
-      this.ngZone.run(() => { this.sceneVisible = false; });
+      this.ngZone.run(() => {
+        this.sceneVisible = false;
+        this.panelStateService.reset();
+        this.asgardService.triggerCloseMenu();
+      });
     });
 
     this.sceneReadySub = this.playerBridgeService.sceneReady$.subscribe(() => {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ENEMY_REGISTRY, EnemyTypeConfig } from 'src/app/enemy/enemy-config';
 import { MAP_REGISTRY, MapConfig } from 'src/app/scenes/gamescene/map-config';
 import { ITEM_CATALOG, LootEntry } from 'src/app/physics/griddrops';
@@ -6,6 +6,7 @@ import { SummonService } from 'src/app/services/summon.service';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { PanelStateService } from 'src/app/services/panel-state.service';
 
 interface EnemyCard {
   type:        string;
@@ -42,9 +43,19 @@ export class SummonComponent {
     { icon: 'map-outline',        title: 'Mapas'    },
     { icon: 'bag-handle-outline', title: 'Items'    },
   ];
-  activeTab      = 0;
-  activeItemTab  = 0;
-  activeEnemyTab = 0;
+  private panelState = inject(PanelStateService);
+
+  private _activeTab      = 0;
+  private _activeItemTab  = 0;
+  private _activeEnemyTab = 0;
+
+  get activeTab():      number { return this._activeTab; }
+  get activeItemTab():  number { return this._activeItemTab; }
+  get activeEnemyTab(): number { return this._activeEnemyTab; }
+
+  set activeTab(v: number)      { this._activeTab = v;      this.panelState.set('summon.tab', v); }
+  set activeItemTab(v: number)  { this._activeItemTab = v;  this.panelState.set('summon.itemTab', v); }
+  set activeEnemyTab(v: number) { this._activeEnemyTab = v; this.panelState.set('summon.enemyTab', v); }
   readonly itemSubTabs  = ['Armaduras', 'Armas', 'Miscelánea'];
   readonly enemySubTabs = ['Slimes', 'Miscelánea'];
   readonly slimeGroups: EnemyGroup[];
@@ -100,6 +111,10 @@ export class SummonComponent {
     this.slimeGroups = baseCards.filter(c => c.type.startsWith('slime')).map(toGroup);
     this.miscGroups  = baseCards.filter(c => !c.type.startsWith('slime')).map(toGroup);
     this.maps = Object.values(MAP_REGISTRY);
+
+    this._activeTab      = this.panelState.get('summon.tab',      0);
+    this._activeItemTab  = this.panelState.get('summon.itemTab',  0);
+    this._activeEnemyTab = this.panelState.get('summon.enemyTab', 0);
   }
 
   get currentMapId(): string {

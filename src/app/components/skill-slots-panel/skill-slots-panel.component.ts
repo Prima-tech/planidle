@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { TalentService, TalentNodeConfig, TALENT_NODES_FIRE, TALENT_NODES_WATER } from 'src/app/services/talent.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
+import { PanelStateService } from 'src/app/services/panel-state.service';
 
 export type SkillTab = 'fire' | 'water' | 'other';
 
@@ -14,11 +15,16 @@ const WATER_IDS = new Set(TALENT_NODES_WATER.map(n => n.id));
   styleUrls: ['./skill-slots-panel.component.scss'],
   standalone: false
 })
-export class SkillSlotsPanelComponent {
+export class SkillSlotsPanelComponent implements OnInit {
   private talentService     = inject(TalentService);
   private skillEquipService = inject(SkillEquipService);
+  private panelState        = inject(PanelStateService);
 
   activeTab: SkillTab = 'fire';
+
+  ngOnInit(): void {
+    this.activeTab = this.panelState.get<SkillTab>('skillSlots.tab', 'fire');
+  }
 
   get abilities(): TalentNodeConfig[] {
     const all = this.talentService.nodes.filter(n => n.effect.type === 'ability');
@@ -31,7 +37,10 @@ export class SkillSlotsPanelComponent {
     return this.skillEquipService.selectedAbilityId;
   }
 
-  setTab(tab: SkillTab) { this.activeTab = tab; }
+  setTab(tab: SkillTab) {
+    this.activeTab = tab;
+    this.panelState.set('skillSlots.tab', tab);
+  }
 
   iconOf(ability: TalentNodeConfig): string | null {
     return SKILL_REGISTRY[ability.effect.ability ?? '']?.iconPath ?? null;
