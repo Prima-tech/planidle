@@ -1,5 +1,7 @@
 import { InventoryItem, InventoryService } from '../services/inventory.service';
 import { PlayerStateService } from '../services/player-state.service';
+import { CharacterStatsService } from '../services/character-stats.service';
+import { WorldService } from '../services/world.service';
 import { Player } from '../pnj/player/player';
 
 export interface LootEntry {
@@ -304,7 +306,9 @@ export class GridDrops {
     private player: Player,
     private mainScene: Phaser.Scene,
     private inventoryService: InventoryService,
-    private playerState: PlayerStateService
+    private playerState: PlayerStateService,
+    private charStats?: CharacterStatsService,
+    private world?: WorldService,
   ) {
     this.mainScene.events.on('enemyDied', ({ position, type }: { position: Phaser.Math.Vector2, type: string }) => {
       this.playerState.addExp(EXP_REWARDS[type] ?? 10);
@@ -315,7 +319,15 @@ export class GridDrops {
 
   private rollDrops(enemyType: string): LootEntry[] {
     const table = LOOT_TABLES[enemyType] ?? LOOT_TABLES['default'];
-    return table.filter(entry => Math.random() < entry.chance);
+    const charBonus     = this.charStats?.currentDropRateBonus ?? 0;
+    const mapModifier   = this.world?.getCurrentMap()?.dropRateModifier ?? 1.0;
+    const multiplier    = (1 + charBonus / 100) * mapModifier;
+    return table.filter(entry => {
+      const finalChance = entry.type === 'item'
+        ? Math.min(1, entry.chance * multiplier)
+        : entry.chance;
+      return Math.random() < finalChance;
+    });
   }
 
   spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry): void {

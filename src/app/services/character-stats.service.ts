@@ -73,6 +73,13 @@ export interface RegenBreakdown {
   min:       number;  // floor(total / 2)
 }
 
+export interface DropRateBreakdown {
+  chr:       number;  // floor((CHR-10)/2), min 0 — primeros 10 pts no cuentan
+  equipment: number;
+  talents:   number;
+  total:     number;  // % bonus sobre la chance base
+}
+
 export interface BaseStats {
   STR:   number;
   DEX:   number;
@@ -117,6 +124,7 @@ export class CharacterStatsService {
   readonly freePoints$: Observable<number>;
   readonly hpRegen$:    Observable<RegenBreakdown>;
   readonly mpRegen$:    Observable<RegenBreakdown>;
+  readonly dropRate$:   Observable<DropRateBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   private readonly statsChanged$ = new Subject<void>();
@@ -175,8 +183,9 @@ export class CharacterStatsService {
       startWith(null),
       map(() => this._calcFreePoints()),
     );
-    this.hpRegen$ = trigger$.pipe(map(() => this._calcHpRegen()));
-    this.mpRegen$ = trigger$.pipe(map(() => this._calcMpRegen()));
+    this.hpRegen$  = trigger$.pipe(map(() => this._calcHpRegen()));
+    this.mpRegen$  = trigger$.pipe(map(() => this._calcMpRegen()));
+    this.dropRate$ = trigger$.pipe(map(() => this._calcDropRate()));
 
     trigger$.subscribe(() => {
       this.syncHpMax();
@@ -234,6 +243,15 @@ export class CharacterStatsService {
     return { base, equipment, talents, total, min: Math.floor(total / 2) };
   }
 
+  private _calcDropRate(): DropRateBreakdown {
+    const chr       = Math.max(0, Math.floor((this.stats.CHR - 10) / 2));
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['dropRate'] ?? 0), 0
+    );
+    const talents = this.talent.getBonus().dropRate ?? 0;
+    return { chr, equipment, talents, total: chr + equipment + talents };
+  }
+
   private syncMpMax(): void {
     const { total } = this._calcMp();
     const current   = this.playerState.snapshot().mp ?? total;
@@ -266,6 +284,7 @@ export class CharacterStatsService {
   get currentMagicDamage():  number { return this._calcMagicDamage().total; }
   get currentHpRegen():      RegenBreakdown { return this._calcHpRegen(); }
   get currentMpRegen():      RegenBreakdown { return this._calcMpRegen(); }
+  get currentDropRateBonus(): number { return this._calcDropRate().total; }
 
   private _calcCritChance(): CritChanceBreakdown {
     const base      = 10;

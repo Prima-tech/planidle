@@ -470,7 +470,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     createDrops() {
-      this.gridDrops = new GridDrops(this.player, this, this.reg.inventory, this.reg.playerState);
+      this.gridDrops = new GridDrops(this.player, this, this.reg.inventory, this.reg.playerState, this.reg.charStats, this.reg.world);
     }
 
     onGameClick(_pointer: Phaser.Input.Pointer) { }

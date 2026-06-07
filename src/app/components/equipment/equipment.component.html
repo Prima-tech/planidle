@@ -338,6 +338,41 @@
       </div>
     </div>
 
+    <!-- Tasa de botín -->
+    <div class="ov-accordion" (click)="showDropBreakdown = !showDropBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Tasa de botín</span>
+        <ng-container *ngIf="dropRate$ | async as dr">
+          <span class="ov-val ov-val--drop">+{{ dr.total }}%</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showDropBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showDropBreakdown">
+        <ng-container *ngIf="dropRate$ | async as dr">
+          <div class="ov-bk-row" *ngIf="dr.chr > 0">
+            <span>Carisma</span>
+            <span class="ov-bonus">+{{ dr.chr }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="dr.equipment > 0">
+            <span>Equipo</span>
+            <span class="ov-bonus">+{{ dr.equipment }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="dr.talents > 0">
+            <span>Talentos</span>
+            <span class="ov-bonus">+{{ dr.talents }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="dr.total === 0">
+            <span>Sin bonificaciones</span>
+            <span>0%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="dr.total > 0">
+            <span>Multiplicador efectivo</span>
+            <span>×{{ (1 + dr.total / 100) | number:'1.2-2' }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
   </div>
 
   <!-- Tab 3: Talentos -->

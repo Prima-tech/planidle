@@ -43,6 +43,7 @@ export interface MapConfig {
   spawns: SpawnConfig[];
   portals: PortalConfig[];
   spawnPos?: { x: number; y: number };
+  dropRateModifier?: number;  // multiplicador sobre la chance base de items (default 1.0)
 }
 
 const BASE_TILESET = {
