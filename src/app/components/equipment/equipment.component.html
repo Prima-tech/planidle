@@ -385,7 +385,7 @@
   <div class="talent-panel" *ngIf="activeTab === 3">
 
     <!-- Sub-tabs -->
-    <div class="talent-tree-tabs">
+    <div class="talent-tree-tabs" *ngIf="talentTrees.length > 1">
       <button *ngFor="let tree of talentTrees; let i = index"
               class="talent-tree-tab"
               [class.active]="i === activeTalentTree"
@@ -413,8 +413,7 @@
     </div>
 
     <!-- Árbol -->
-    <div *ngIf="activeTalentTree < 2"
-         class="talent-viewport"
+    <div class="talent-viewport"
          (pointerdown)="onCanvasPointerDown($event)"
          (pointermove)="onCanvasPointerMove($event)"
          (pointerup)="onCanvasPointerUp()"
@@ -450,12 +449,6 @@
 
       </div>
     </div><!-- talent-viewport -->
-
-    <!-- Skills: sin sistema implementado -->
-    <div *ngIf="activeTalentTree === 2" class="talent-empty">
-      <ion-icon name="construct-outline"></ion-icon>
-      <span>Sistema de skills en construcción</span>
-    </div>
 
   </div><!-- talent-panel -->
 

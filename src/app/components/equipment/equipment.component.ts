@@ -4,7 +4,7 @@ import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.serv
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown, MagicDamageBreakdown, RegenBreakdown, DropRateBreakdown } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
-import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES, TALENT_NODES_MAGIA } from 'src/app/services/talent.service';
+import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES } from 'src/app/services/talent.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 
 @Component({
@@ -61,9 +61,7 @@ export class EquipmentComponent implements OnInit {
   // ── Talentos ─────────────────────────────────────────────────────────────────
 
   readonly talentTrees: { label: string; icon: string; nodes: TalentNodeConfig[] }[] = [
-    { label: 'Combate', icon: 'shield-half-outline',  nodes: TALENT_NODES       },
-    { label: 'Magia',   icon: 'sparkles-outline',     nodes: TALENT_NODES_MAGIA },
-    { label: 'Skills',  icon: 'rocket-outline',       nodes: []                 },
+    { label: 'Combate', icon: 'shield-half-outline',  nodes: TALENT_NODES },
   ];
 
   private _activeTalentTree = 0;

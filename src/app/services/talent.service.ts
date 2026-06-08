@@ -119,75 +119,6 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 9, row: 6, requires: ['c_apl'], effect: { type: 'atk', base: 22 } },
 ];
 
-// ── Árbol: Magia (centro en col=5, row=5) ─────────────────────────────────────
-// Arriba: Hechizos/Daño | Abajo: Escudos Mágicos | Izquierda: Amplificación | Derecha: Maná/Regen
-
-export const TALENT_NODES_MAGIA: TalentNodeConfig[] = [
-  // Centro
-  { id: 'm0',    label: 'Magia\nArcana',       icon: 'sparkles-outline',
-    col: 5, row: 5, requires: [], effect: { type: 'atk', base: 4 } },
-
-  // ── Arriba: Hechizos ────────────────────────────────────────
-  { id: 'm_int', label: 'Intelecto',            icon: 'bulb-outline',
-    col: 5, row: 4, requires: ['m0'], effect: { type: 'atk', base: 5 } },
-  { id: 'm_foc', label: 'Foco\nArcano',         icon: 'locate-outline',
-    col: 4, row: 3, requires: ['m_int'], effect: { type: 'atk', base: 7 } },
-  { id: 'm_man', label: 'Reserva\nde Maná',     icon: 'water-outline',
-    col: 6, row: 3, requires: ['m_int'], effect: { type: 'mp', base: 30 } },
-  { id: 'm_ray', label: 'Rayo\nArcano',         icon: 'thunderstorm-outline',
-    col: 4, row: 2, requires: ['m_foc'], effect: { type: 'ability', base: 10, ability: 'lightning_strike' } },
-  { id: 'm_grm', label: 'Gran\nReserva',        icon: 'battery-charging-outline',
-    col: 6, row: 2, requires: ['m_man'], effect: { type: 'mp', base: 55 } },
-  { id: 'm_tor', label: 'Tormenta\nArcana',     icon: 'cloudy-outline',
-    col: 5, row: 1, requires: ['m_ray', 'm_grm'], effect: { type: 'ability', base: 18, ability: 'storm' } },
-  { id: 'm_cao', label: 'Caos\nArcano',         icon: 'infinite-outline',
-    col: 5, row: 0, requires: ['m_tor'], effect: { type: 'atk', base: 25 } },
-
-  // ── Abajo: Escudos / Resistencia Mágica ─────────────────────
-  { id: 'm_bar', label: 'Barrera\nMágica',      icon: 'shield-checkmark-outline',
-    col: 5, row: 6, requires: ['m0'], effect: { type: 'defense', base: 3 } },
-  { id: 'm_esc', label: 'Escudo\nMágico',       icon: 'shield-half-outline',
-    col: 4, row: 7, requires: ['m_bar'], effect: { type: 'hp', base: 40 } },
-  { id: 'm_res', label: 'Resistencia\nArcana',  icon: 'body-outline',
-    col: 6, row: 7, requires: ['m_bar'], effect: { type: 'defense', base: 4 } },
-  { id: 'm_frt', label: 'Fortaleza\nMágica',    icon: 'lock-closed-outline',
-    col: 5, row: 8, requires: ['m_esc', 'm_res'], effect: { type: 'hp', base: 70 } },
-  { id: 'm_aeg', label: 'Aegis',                icon: 'shield-outline',
-    col: 5, row: 9, requires: ['m_frt'], effect: { type: 'hp', base: 100 } },
-  { id: 'm_inm', label: 'Inmortal\nArcano',     icon: 'trophy-outline',
-    col: 5, row: 10, requires: ['m_aeg'], effect: { type: 'hp', base: 150 } },
-
-  // ── Izquierda: Amplificación de Daño ────────────────────────
-  { id: 'm_amp', label: 'Amplificar',           icon: 'expand-outline',
-    col: 4, row: 5, requires: ['m0'], effect: { type: 'atk', base: 5 } },
-  { id: 'm_sob', label: 'Sobrecarga',           icon: 'flash-outline',
-    col: 3, row: 4, requires: ['m_amp'], effect: { type: 'atk', base: 9 } },
-  { id: 'm_vmp', label: 'Veneno\nMágico',       icon: 'skull-outline',
-    col: 3, row: 6, requires: ['m_amp'], effect: { type: 'atk', base: 8 } },
-  { id: 'm_exp', label: 'Explosión\nMágica',    icon: 'nuclear-outline',
-    col: 2, row: 5, requires: ['m_sob', 'm_vmp'], effect: { type: 'atk', base: 18 } },
-  { id: 'm_sng', label: 'Singularidad',         icon: 'planet-outline',
-    col: 1, row: 5, requires: ['m_exp'], effect: { type: 'atk', base: 30 } },
-  { id: 'm_voi', label: 'Vacío\nArcano',        icon: 'disc-outline',
-    col: 0, row: 5, requires: ['m_sng'], effect: { type: 'atk', base: 40 } },
-
-  // ── Derecha: Regeneración de Maná ───────────────────────────
-  { id: 'm_can', label: 'Canalizar',            icon: 'radio-outline',
-    col: 6, row: 5, requires: ['m0'], effect: { type: 'mpRegen', base: 2 } },
-  { id: 'm_med', label: 'Meditación',           icon: 'refresh-outline',
-    col: 7, row: 5, requires: ['m_can'], effect: { type: 'mpRegen', base: 3 } },
-  { id: 'm_sab', label: 'Sabiduría',            icon: 'sunny-outline',
-    col: 7, row: 4, requires: ['m_med'], effect: { type: 'mpRegen', base: 4 } },
-  { id: 'm_flu', label: 'Flujo de\nManá',       icon: 'cloud-outline',
-    col: 7, row: 6, requires: ['m_med'], effect: { type: 'mp', base: 40 } },
-  { id: 'm_arc', label: 'Arcano\nSuperior',     icon: 'sparkles-outline',
-    col: 8, row: 5, requires: ['m_med'], effect: { type: 'mpRegen', base: 6 } },
-  { id: 'm_omn', label: 'Omnipotente',          icon: 'diamond-outline',
-    col: 9, row: 5, requires: ['m_arc'], effect: { type: 'atk', base: 28 } },
-  { id: 'm_div', label: 'Divinidad\nArcana',    icon: 'star-outline',
-    col: 10, row: 5, requires: ['m_omn'], effect: { type: 'atk', base: 40 } },
-];
-
 // ── Habilidades de fuego (disponibles sin desbloquear) ────────────────────────
 
 export const TALENT_NODES_FIRE: TalentNodeConfig[] = [
@@ -375,7 +306,7 @@ export const TALENT_NODES_SMOKER: TalentNodeConfig[] = [
 
 // ── Registro global (todos los árboles) ──────────────────────────────────────
 
-const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_MAGIA, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION];
+const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION];
 
 @Injectable({ providedIn: 'root' })
 export class TalentService {
