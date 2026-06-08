@@ -116,6 +116,92 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 14, row: 1,  requires: ['n6_3'], effect: { type: 'atk', base: 0 } },
   { id: 'n6_5', label: '', icon: 'ellipse-outline', num: 30,
     col: 15, row: 0,  requires: ['n6_4'], effect: { type: 'atk', base: 0 } },
+
+  // ── Sub-ramas desde el nodo 2 de cada rama · direcciones orgánicas ───────────
+
+  // n1_2 (14,5) → sub-A: gira arriba luego derecha · sub-B: gira abajo luego izquierda
+  { id: 's1a1', label: '', icon: 'ellipse-outline', num: 31, small: true,
+    col: 15, row: 4,  requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's1a2', label: '', icon: 'ellipse-outline', num: 32,
+    col: 16, row: 4,  requires: ['s1a1'], effect: { type: 'atk', base: 0 } },
+  { id: 's1a3', label: '', icon: 'ellipse-outline', num: 33,
+    col: 17, row: 3,  requires: ['s1a2'], effect: { type: 'atk', base: 0 } },
+  { id: 's1b1', label: '', icon: 'ellipse-outline', num: 34,
+    col: 15, row: 6,  requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's1b2', label: '', icon: 'ellipse-outline', num: 35, small: true,
+    col: 15, row: 7,  requires: ['s1b1'], effect: { type: 'atk', base: 0 } },
+  { id: 's1b3', label: '', icon: 'ellipse-outline', num: 36,
+    col: 16, row: 8,  requires: ['s1b2'], effect: { type: 'atk', base: 0 } },
+
+  // n2_2 (12,7) → sub-A: derecha luego gira abajo · sub-B: abajo luego gira izquierda
+  { id: 's2a1', label: '', icon: 'ellipse-outline', num: 37, small: true,
+    col: 13, row: 7,  requires: ['n2_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's2a2', label: '', icon: 'ellipse-outline', num: 38,
+    col: 14, row: 7,  requires: ['s2a1'], effect: { type: 'atk', base: 0 } },
+  { id: 's2a3', label: '', icon: 'ellipse-outline', num: 39,
+    col: 14, row: 8,  requires: ['s2a2'], effect: { type: 'atk', base: 0 } },
+  { id: 's2b1', label: '', icon: 'ellipse-outline', num: 40,
+    col: 12, row: 8,  requires: ['n2_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's2b2', label: '', icon: 'ellipse-outline', num: 41, small: true,
+    col: 11, row: 9,  requires: ['s2b1'], effect: { type: 'atk', base: 0 } },
+  { id: 's2b3', label: '', icon: 'ellipse-outline', num: 42,
+    col: 11, row: 10, requires: ['s2b2'], effect: { type: 'atk', base: 0 } },
+
+  // n3_2 (8,7) → sub-A: izquierda luego gira abajo · sub-B: abajo luego gira derecha
+  { id: 's3a1', label: '', icon: 'ellipse-outline', num: 43, small: true,
+    col: 7,  row: 7,  requires: ['n3_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's3a2', label: '', icon: 'ellipse-outline', num: 44,
+    col: 6,  row: 7,  requires: ['s3a1'], effect: { type: 'atk', base: 0 } },
+  { id: 's3a3', label: '', icon: 'ellipse-outline', num: 45,
+    col: 6,  row: 8,  requires: ['s3a2'], effect: { type: 'atk', base: 0 } },
+  { id: 's3b1', label: '', icon: 'ellipse-outline', num: 46,
+    col: 8,  row: 8,  requires: ['n3_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's3b2', label: '', icon: 'ellipse-outline', num: 47, small: true,
+    col: 9,  row: 9,  requires: ['s3b1'], effect: { type: 'atk', base: 0 } },
+  { id: 's3b3', label: '', icon: 'ellipse-outline', num: 48,
+    col: 9,  row: 10, requires: ['s3b2'], effect: { type: 'atk', base: 0 } },
+
+  // n4_2 (6,5) → sub-A: sube luego gira izquierda · sub-B: baja luego gira izquierda
+  { id: 's4a1', label: '', icon: 'ellipse-outline', num: 49, small: true,
+    col: 5,  row: 4,  requires: ['n4_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's4a2', label: '', icon: 'ellipse-outline', num: 50,
+    col: 5,  row: 3,  requires: ['s4a1'], effect: { type: 'atk', base: 0 } },
+  { id: 's4a3', label: '', icon: 'ellipse-outline', num: 51,
+    col: 4,  row: 3,  requires: ['s4a2'], effect: { type: 'atk', base: 0 } },
+  { id: 's4b1', label: '', icon: 'ellipse-outline', num: 52,
+    col: 5,  row: 6,  requires: ['n4_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's4b2', label: '', icon: 'ellipse-outline', num: 53, small: true,
+    col: 4,  row: 6,  requires: ['s4b1'], effect: { type: 'atk', base: 0 } },
+  { id: 's4b3', label: '', icon: 'ellipse-outline', num: 54,
+    col: 4,  row: 7,  requires: ['s4b2'], effect: { type: 'atk', base: 0 } },
+
+  // n5_2 (8,3) → sub-A: izquierda luego gira arriba · sub-B: arriba luego gira derecha
+  { id: 's5a1', label: '', icon: 'ellipse-outline', num: 55, small: true,
+    col: 7,  row: 3,  requires: ['n5_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's5a2', label: '', icon: 'ellipse-outline', num: 56,
+    col: 6,  row: 3,  requires: ['s5a1'], effect: { type: 'atk', base: 0 } },
+  { id: 's5a3', label: '', icon: 'ellipse-outline', num: 57,
+    col: 6,  row: 2,  requires: ['s5a2'], effect: { type: 'atk', base: 0 } },
+  { id: 's5b1', label: '', icon: 'ellipse-outline', num: 58,
+    col: 8,  row: 2,  requires: ['n5_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's5b2', label: '', icon: 'ellipse-outline', num: 59, small: true,
+    col: 9,  row: 2,  requires: ['s5b1'], effect: { type: 'atk', base: 0 } },
+  { id: 's5b3', label: '', icon: 'ellipse-outline', num: 60,
+    col: 9,  row: 1,  requires: ['s5b2'], effect: { type: 'atk', base: 0 } },
+
+  // n6_2 (12,3) → sub-A: arriba luego gira izquierda · sub-B: derecha luego gira abajo
+  { id: 's6a1', label: '', icon: 'ellipse-outline', num: 61, small: true,
+    col: 12, row: 2,  requires: ['n6_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's6a2', label: '', icon: 'ellipse-outline', num: 62,
+    col: 11, row: 2,  requires: ['s6a1'], effect: { type: 'atk', base: 0 } },
+  { id: 's6a3', label: '', icon: 'ellipse-outline', num: 63,
+    col: 11, row: 1,  requires: ['s6a2'], effect: { type: 'atk', base: 0 } },
+  { id: 's6b1', label: '', icon: 'ellipse-outline', num: 64,
+    col: 13, row: 3,  requires: ['n6_2'], effect: { type: 'atk', base: 0 } },
+  { id: 's6b2', label: '', icon: 'ellipse-outline', num: 65, small: true,
+    col: 14, row: 3,  requires: ['s6b1'], effect: { type: 'atk', base: 0 } },
+  { id: 's6b3', label: '', icon: 'ellipse-outline', num: 66,
+    col: 14, row: 4,  requires: ['s6b2'], effect: { type: 'atk', base: 0 } },
 ];
 
 // ── Habilidades de fuego (disponibles sin desbloquear) ────────────────────────
