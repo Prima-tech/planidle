@@ -36,6 +36,33 @@
   min-width: 190px;
 }
 
+// ── Botón flotante para abrir panel del mapa ─────────────────────────────────
+
+.map-open-btn {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #3498db;
+  background: rgba(26, 26, 46, 0.92);
+  color: #3498db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 55;
+  font-size: 0.78em;
+  padding: 0;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: background 0.15s;
+
+  &:active { background: rgba(52, 152, 219, 0.2); }
+}
+
 // ── Tarjeta superior: solo char-panel ────────────────────────────────────────
 
 .char-widget {

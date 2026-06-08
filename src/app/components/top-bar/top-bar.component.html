@@ -2,7 +2,7 @@
 
   <!-- Panel personaje + buffos -->
   <div class="left-side">
-    <div class="char-block" [class.char-block--open]="mapPanelOpen">
+    <div class="char-block">
 
       <!-- Tarjeta superior: avatar + barras -->
       <div class="char-widget">
@@ -47,17 +47,14 @@
         </div>
       </div>
 
-      <!-- Ancla: solo el nombre del mapa (botón sin fondo cuando cerrado) -->
-      <button class="map-anchor" (click)="toggleMapPanel()">
-        <app-map-label></app-map-label>
-        <ion-icon class="map-anchor-chevron" name="chevron-down-outline"></ion-icon>
+      <button class="map-open-btn" (click)="toggleMapPanel()">
+        <ion-icon [name]="mapPanelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
       </button>
 
-      <!-- Panel inferior: info del mapa -->
+      <!-- Panel info del mapa -->
       <div class="map-info-panel" *ngIf="mapPanelOpen">
         <ng-container *ngIf="mapPanelData$ | async as d">
 
-          <!-- Elite / Oblivion progress -->
           <ng-container *ngIf="d.eliteThreshold > 0">
             <div class="mip-spawn-row">
               <div class="mip-spawn-label">
@@ -80,7 +77,6 @@
             <div class="mip-divider"></div>
           </ng-container>
 
-          <!-- AFK rates -->
           <div class="mip-rates" *ngIf="d.coinsPerHour > 0">
             <div class="mip-rates-title">Producción AFK / hora</div>
             <div class="mip-rate">
@@ -110,12 +106,17 @@
     </div>
   </div>
 
-  <!-- Derecha: monedas -->
+  <!-- Derecha: monedas + nombre del mapa -->
   <div class="right-side">
     <div class="coins-wrapper">
       <div class="coin-spinner"></div>
       <span class="coin-amount">{{ coins$ | async }}</span>
     </div>
+    <button class="map-anchor" (click)="toggleMapPanel()">
+      <app-map-label></app-map-label>
+      <ion-icon class="map-anchor-chevron" name="chevron-down-outline"></ion-icon>
+    </button>
   </div>
+
 
 </div>
