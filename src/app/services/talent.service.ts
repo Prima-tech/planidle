@@ -34,124 +34,158 @@ const DEFAULT_SPHERES: Record<SphereType, number> = {
   normal: 10, rare: 10, epic: 10,
 };
 
-// ── Árbol: Combate ────────────────────────────────────────────────────────────
+// ── Árbol: Combate (centro en col=5, row=5) ───────────────────────────────────
+// Arriba: Agilidad/Crítico | Abajo: Defensa/HP | Izquierda: Regen | Derecha: ATK Bruto
 
 export const TALENT_NODES: TalentNodeConfig[] = [
-  {
-    id: 'ataque_normal', label: 'Ataque\nNormal', icon: 'flash-outline',
-    col: 2, row: 0, requires: [],
-    effect: { type: 'atk', base: 3 },
-  },
-  {
-    id: 'guardia', label: 'Guardia', icon: 'hand-left-outline',
-    col: 2, row: 1, requires: ['ataque_normal'],
-    effect: { type: 'defense', base: 1 },
-  },
-  {
-    id: 'fuerza_bruta', label: 'Fuerza\nBruta', icon: 'barbell-outline',
-    col: 0, row: 1, requires: ['ataque_normal'],
-    effect: { type: 'atk', base: 5 },
-  },
-  {
-    id: 'vida_robusta', label: 'Vida\nRobusta', icon: 'heart-outline',
-    col: 1, row: 1, requires: ['ataque_normal'],
-    effect: { type: 'hp', base: 25 },
-  },
-  {
-    id: 'ataque_area', label: 'Ataque\nÁrea', icon: 'radio-outline',
-    col: 3, row: 1, requires: ['ataque_normal'],
-    effect: { type: 'ability', base: 8, ability: 'area_attack' },
-  },
-  {
-    id: 'ataque_distancia', label: 'Ataque\nLejos', icon: 'send-outline',
-    col: 4, row: 1, requires: ['ataque_normal'],
-    effect: { type: 'ability', base: 8, ability: 'ranged_attack' },
-  },
-  {
-    id: 'golpe_brutal', label: 'Golpe\nBrutal', icon: 'hammer-outline',
-    col: 0, row: 2, requires: ['fuerza_bruta'],
-    effect: { type: 'atk', base: 10 },
-  },
-  {
-    id: 'fortaleza', label: 'Fortaleza', icon: 'shield-outline',
-    col: 1, row: 2, requires: ['vida_robusta'],
-    effect: { type: 'hp', base: 50 },
-  },
-  {
-    id: 'onda_expansiva', label: 'Onda\nExpansiva', icon: 'expand-outline',
-    col: 3, row: 2, requires: ['ataque_area'],
-    effect: { type: 'atk', base: 12 },
-  },
-  {
-    id: 'tiro_preciso', label: 'Tiro\nPreciso', icon: 'locate-outline',
-    col: 4, row: 2, requires: ['ataque_distancia'],
-    effect: { type: 'atk', base: 12 },
-  },
-  {
-    id: 'piel_acero', label: 'Piel de\nAcero', icon: 'body-outline',
-    col: 1, row: 3, requires: ['fortaleza'],
-    effect: { type: 'hp', base: 80 },
-  },
-  {
-    id: 'frenesi', label: 'Frenesí', icon: 'skull-outline',
-    col: 0, row: 3, requires: ['golpe_brutal'],
-    effect: { type: 'atk', base: 16 },
-  },
-  {
-    id: 'titan', label: 'Titán', icon: 'accessibility-outline',
-    col: 1, row: 4, requires: ['piel_acero'],
-    effect: { type: 'hp', base: 120 },
-  },
+  // Centro
+  { id: 'c0',     label: 'Espíritu\nGuerrero', icon: 'flame-outline',
+    col: 5, row: 5, requires: [], effect: { type: 'atk', base: 3 } },
+
+  // ── Arriba: Agilidad / Crítico ───────────────────────────────
+  { id: 'c_prec', label: 'Precisión',          icon: 'locate-outline',
+    col: 5, row: 4, requires: ['c0'], effect: { type: 'critChance', base: 2 } },
+  { id: 'c_vel',  label: 'Velocidad',           icon: 'arrow-up-circle-outline',
+    col: 4, row: 3, requires: ['c_prec'], effect: { type: 'atk', base: 4 } },
+  { id: 'c_crit', label: 'Crítico',             icon: 'flash-outline',
+    col: 6, row: 3, requires: ['c_prec'], effect: { type: 'critChance', base: 3 } },
+  { id: 'c_esq',  label: 'Esquiva',             icon: 'walk-outline',
+    col: 3, row: 2, requires: ['c_vel'], effect: { type: 'defense', base: 2 } },
+  { id: 'c_cert', label: 'Golpe\nCertero',      icon: 'star-outline',
+    col: 5, row: 2, requires: ['c_vel', 'c_crit'], effect: { type: 'critChance', base: 5 } },
+  { id: 'c_ven',  label: 'Filo\nVenenoso',      icon: 'skull-outline',
+    col: 7, row: 2, requires: ['c_crit'], effect: { type: 'atk', base: 8 } },
+  { id: 'c_som',  label: 'Sombra',              icon: 'eye-off-outline',
+    col: 4, row: 1, requires: ['c_esq', 'c_cert'], effect: { type: 'atk', base: 10 } },
+  { id: 'c_asn',  label: 'Asesino',             icon: 'hand-right-outline',
+    col: 6, row: 1, requires: ['c_cert', 'c_ven'], effect: { type: 'atk', base: 14 } },
+  { id: 'c_ley',  label: 'Leyenda',             icon: 'trophy-outline',
+    col: 5, row: 0, requires: ['c_som', 'c_asn'], effect: { type: 'atk', base: 22 } },
+
+  // ── Abajo: Defensa / HP ──────────────────────────────────────
+  { id: 'c_grd',  label: 'Guardia',             icon: 'hand-left-outline',
+    col: 5, row: 6, requires: ['c0'], effect: { type: 'defense', base: 2 } },
+  { id: 'c_vit',  label: 'Vitalidad',           icon: 'heart-outline',
+    col: 4, row: 7, requires: ['c_grd'], effect: { type: 'hp', base: 30 } },
+  { id: 'c_esc',  label: 'Escudo',              icon: 'shield-outline',
+    col: 6, row: 7, requires: ['c_grd'], effect: { type: 'defense', base: 3 } },
+  { id: 'c_vr',   label: 'Vida\nRobusta',       icon: 'body-outline',
+    col: 3, row: 8, requires: ['c_vit'], effect: { type: 'hp', base: 50 } },
+  { id: 'c_bst',  label: 'Bastión',             icon: 'shield-checkmark-outline',
+    col: 5, row: 8, requires: ['c_vit', 'c_esc'], effect: { type: 'hp', base: 60 } },
+  { id: 'c_fort', label: 'Fortaleza',           icon: 'barbell-outline',
+    col: 7, row: 8, requires: ['c_esc'], effect: { type: 'hp', base: 40 } },
+  { id: 'c_pac',  label: 'Piel de\nAcero',      icon: 'diamond-outline',
+    col: 4, row: 9, requires: ['c_vr', 'c_bst'], effect: { type: 'hp', base: 80 } },
+  { id: 'c_bar',  label: 'Barrera',             icon: 'lock-closed-outline',
+    col: 6, row: 9, requires: ['c_bst', 'c_fort'], effect: { type: 'defense', base: 5 } },
+  { id: 'c_tit',  label: 'Titán',               icon: 'accessibility-outline',
+    col: 5, row: 10, requires: ['c_pac', 'c_bar'], effect: { type: 'hp', base: 120 } },
+
+  // ── Izquierda: Regeneración ──────────────────────────────────
+  { id: 'c_reg',  label: 'Regen',               icon: 'refresh-outline',
+    col: 4, row: 5, requires: ['c0'], effect: { type: 'hpRegen', base: 2 } },
+  { id: 'c_cur',  label: 'Curación',            icon: 'repeat-outline',
+    col: 3, row: 5, requires: ['c_reg'], effect: { type: 'hpRegen', base: 3 } },
+  { id: 'c_rec',  label: 'Recup.\nRápida',      icon: 'reload-circle-outline',
+    col: 3, row: 4, requires: ['c_cur'], effect: { type: 'hpRegen', base: 4 } },
+  { id: 'c_resi', label: 'Resiliencia',         icon: 'trending-up-outline',
+    col: 3, row: 6, requires: ['c_cur'], effect: { type: 'mpRegen', base: 2 } },
+  { id: 'c_san',  label: 'Sanación',            icon: 'heart-outline',
+    col: 2, row: 5, requires: ['c_cur'], effect: { type: 'hp', base: 50 } },
+  { id: 'c_ind',  label: 'Indestructible',      icon: 'infinite-outline',
+    col: 1, row: 5, requires: ['c_rec', 'c_san', 'c_resi'], effect: { type: 'hp', base: 100 } },
+  { id: 'c_ete',  label: 'Eterno',              icon: 'star-outline',
+    col: 0, row: 5, requires: ['c_ind'], effect: { type: 'hp', base: 150 } },
+
+  // ── Derecha: Ataque Bruto ────────────────────────────────────
+  { id: 'c_pod',  label: 'Poder',               icon: 'barbell-outline',
+    col: 6, row: 5, requires: ['c0'], effect: { type: 'atk', base: 5 } },
+  { id: 'c_fb',   label: 'Fuerza\nBruta',       icon: 'hammer-outline',
+    col: 7, row: 5, requires: ['c_pod'], effect: { type: 'atk', base: 8 } },
+  { id: 'c_gf',   label: 'Golpe\nFuerte',       icon: 'arrow-up-outline',
+    col: 7, row: 4, requires: ['c_fb'], effect: { type: 'atk', base: 10 } },
+  { id: 'c_emb',  label: 'Embate',              icon: 'arrow-down-outline',
+    col: 7, row: 6, requires: ['c_fb'], effect: { type: 'atk', base: 10 } },
+  { id: 'c_dev',  label: 'Devastador',          icon: 'nuclear-outline',
+    col: 8, row: 5, requires: ['c_fb'], effect: { type: 'atk', base: 12 } },
+  { id: 'c_tor',  label: 'Torbellino',          icon: 'reload-circle-outline',
+    col: 8, row: 4, requires: ['c_gf', 'c_dev'], effect: { type: 'atk', base: 16 } },
+  { id: 'c_apl',  label: 'Aplastamiento',       icon: 'expand-outline',
+    col: 8, row: 6, requires: ['c_emb', 'c_dev'], effect: { type: 'atk', base: 16 } },
+  { id: 'c_cat',  label: 'Cataclismo',          icon: 'thunderstorm-outline',
+    col: 9, row: 4, requires: ['c_tor'], effect: { type: 'atk', base: 22 } },
+  { id: 'c_dst',  label: 'Destrucción\nTotal',  icon: 'planet-outline',
+    col: 9, row: 6, requires: ['c_apl'], effect: { type: 'atk', base: 22 } },
 ];
 
-// ── Árbol: Magia ──────────────────────────────────────────────────────────────
+// ── Árbol: Magia (centro en col=5, row=5) ─────────────────────────────────────
+// Arriba: Hechizos/Daño | Abajo: Escudos Mágicos | Izquierda: Amplificación | Derecha: Maná/Regen
 
 export const TALENT_NODES_MAGIA: TalentNodeConfig[] = [
-  {
-    id: 'magia_base', label: 'Magia\nBase', icon: 'sparkles-outline',
-    col: 2, row: 0, requires: [],
-    effect: { type: 'atk', base: 4 },
-  },
-  {
-    id: 'mente_aguda', label: 'Mente\nAguda', icon: 'bulb-outline',
-    col: 0, row: 1, requires: ['magia_base'],
-    effect: { type: 'atk', base: 6 },
-  },
-  {
-    id: 'reserva_mana', label: 'Reserva\nde Maná', icon: 'water-outline',
-    col: 4, row: 1, requires: ['magia_base'],
-    effect: { type: 'mp', base: 30 },
-  },
-  {
-    id: 'rayo_arcano', label: 'Rayo\nArcano', icon: 'thunderstorm-outline',
-    col: 0, row: 2, requires: ['mente_aguda'],
-    effect: { type: 'ability', base: 10, ability: 'lightning_strike' },
-  },
-  {
-    id: 'gran_reserva', label: 'Gran\nReserva', icon: 'battery-charging-outline',
-    col: 4, row: 2, requires: ['reserva_mana'],
-    effect: { type: 'mp', base: 60 },
-  },
-  {
-    id: 'tormenta', label: 'Tormenta\nArcana', icon: 'cloudy-outline',
-    col: 0, row: 3, requires: ['rayo_arcano'],
-    effect: { type: 'ability', base: 18, ability: 'storm' },
-  },
-  {
-    id: 'barrera_arcana', label: 'Barrera\nArcana', icon: 'shield-checkmark-outline',
-    col: 4, row: 3, requires: ['gran_reserva'],
-    effect: { type: 'hp', base: 60 },
-  },
-  {
-    id: 'caos_arcano', label: 'Caos\nArcano', icon: 'infinite-outline',
-    col: 0, row: 4, requires: ['tormenta'],
-    effect: { type: 'atk', base: 22 },
-  },
-  {
-    id: 'fortaleza_maxima', label: 'Fortaleza\nMáxima', icon: 'lock-closed-outline',
-    col: 4, row: 4, requires: ['barrera_arcana'],
-    effect: { type: 'hp', base: 100 },
-  },
+  // Centro
+  { id: 'm0',    label: 'Magia\nArcana',       icon: 'sparkles-outline',
+    col: 5, row: 5, requires: [], effect: { type: 'atk', base: 4 } },
+
+  // ── Arriba: Hechizos ────────────────────────────────────────
+  { id: 'm_int', label: 'Intelecto',            icon: 'bulb-outline',
+    col: 5, row: 4, requires: ['m0'], effect: { type: 'atk', base: 5 } },
+  { id: 'm_foc', label: 'Foco\nArcano',         icon: 'locate-outline',
+    col: 4, row: 3, requires: ['m_int'], effect: { type: 'atk', base: 7 } },
+  { id: 'm_man', label: 'Reserva\nde Maná',     icon: 'water-outline',
+    col: 6, row: 3, requires: ['m_int'], effect: { type: 'mp', base: 30 } },
+  { id: 'm_ray', label: 'Rayo\nArcano',         icon: 'thunderstorm-outline',
+    col: 4, row: 2, requires: ['m_foc'], effect: { type: 'ability', base: 10, ability: 'lightning_strike' } },
+  { id: 'm_grm', label: 'Gran\nReserva',        icon: 'battery-charging-outline',
+    col: 6, row: 2, requires: ['m_man'], effect: { type: 'mp', base: 55 } },
+  { id: 'm_tor', label: 'Tormenta\nArcana',     icon: 'cloudy-outline',
+    col: 5, row: 1, requires: ['m_ray', 'm_grm'], effect: { type: 'ability', base: 18, ability: 'storm' } },
+  { id: 'm_cao', label: 'Caos\nArcano',         icon: 'infinite-outline',
+    col: 5, row: 0, requires: ['m_tor'], effect: { type: 'atk', base: 25 } },
+
+  // ── Abajo: Escudos / Resistencia Mágica ─────────────────────
+  { id: 'm_bar', label: 'Barrera\nMágica',      icon: 'shield-checkmark-outline',
+    col: 5, row: 6, requires: ['m0'], effect: { type: 'defense', base: 3 } },
+  { id: 'm_esc', label: 'Escudo\nMágico',       icon: 'shield-half-outline',
+    col: 4, row: 7, requires: ['m_bar'], effect: { type: 'hp', base: 40 } },
+  { id: 'm_res', label: 'Resistencia\nArcana',  icon: 'body-outline',
+    col: 6, row: 7, requires: ['m_bar'], effect: { type: 'defense', base: 4 } },
+  { id: 'm_frt', label: 'Fortaleza\nMágica',    icon: 'lock-closed-outline',
+    col: 5, row: 8, requires: ['m_esc', 'm_res'], effect: { type: 'hp', base: 70 } },
+  { id: 'm_aeg', label: 'Aegis',                icon: 'shield-outline',
+    col: 5, row: 9, requires: ['m_frt'], effect: { type: 'hp', base: 100 } },
+  { id: 'm_inm', label: 'Inmortal\nArcano',     icon: 'trophy-outline',
+    col: 5, row: 10, requires: ['m_aeg'], effect: { type: 'hp', base: 150 } },
+
+  // ── Izquierda: Amplificación de Daño ────────────────────────
+  { id: 'm_amp', label: 'Amplificar',           icon: 'expand-outline',
+    col: 4, row: 5, requires: ['m0'], effect: { type: 'atk', base: 5 } },
+  { id: 'm_sob', label: 'Sobrecarga',           icon: 'flash-outline',
+    col: 3, row: 4, requires: ['m_amp'], effect: { type: 'atk', base: 9 } },
+  { id: 'm_vmp', label: 'Veneno\nMágico',       icon: 'skull-outline',
+    col: 3, row: 6, requires: ['m_amp'], effect: { type: 'atk', base: 8 } },
+  { id: 'm_exp', label: 'Explosión\nMágica',    icon: 'nuclear-outline',
+    col: 2, row: 5, requires: ['m_sob', 'm_vmp'], effect: { type: 'atk', base: 18 } },
+  { id: 'm_sng', label: 'Singularidad',         icon: 'planet-outline',
+    col: 1, row: 5, requires: ['m_exp'], effect: { type: 'atk', base: 30 } },
+  { id: 'm_voi', label: 'Vacío\nArcano',        icon: 'disc-outline',
+    col: 0, row: 5, requires: ['m_sng'], effect: { type: 'atk', base: 40 } },
+
+  // ── Derecha: Regeneración de Maná ───────────────────────────
+  { id: 'm_can', label: 'Canalizar',            icon: 'radio-outline',
+    col: 6, row: 5, requires: ['m0'], effect: { type: 'mpRegen', base: 2 } },
+  { id: 'm_med', label: 'Meditación',           icon: 'refresh-outline',
+    col: 7, row: 5, requires: ['m_can'], effect: { type: 'mpRegen', base: 3 } },
+  { id: 'm_sab', label: 'Sabiduría',            icon: 'sunny-outline',
+    col: 7, row: 4, requires: ['m_med'], effect: { type: 'mpRegen', base: 4 } },
+  { id: 'm_flu', label: 'Flujo de\nManá',       icon: 'cloud-outline',
+    col: 7, row: 6, requires: ['m_med'], effect: { type: 'mp', base: 40 } },
+  { id: 'm_arc', label: 'Arcano\nSuperior',     icon: 'sparkles-outline',
+    col: 8, row: 5, requires: ['m_med'], effect: { type: 'mpRegen', base: 6 } },
+  { id: 'm_omn', label: 'Omnipotente',          icon: 'diamond-outline',
+    col: 9, row: 5, requires: ['m_arc'], effect: { type: 'atk', base: 28 } },
+  { id: 'm_div', label: 'Divinidad\nArcana',    icon: 'star-outline',
+    col: 10, row: 5, requires: ['m_omn'], effect: { type: 'atk', base: 40 } },
 ];
 
 // ── Habilidades de fuego (disponibles sin desbloquear) ────────────────────────

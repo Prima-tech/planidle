@@ -22,7 +22,8 @@ export class EquipmentComponent implements OnInit {
   set activeTab(v: number) {
     this._activeTab = v;
     this.panelState.set('equip.tab', v);
-    if (v !== 3) this.selectedNodeId = null;
+    if (v !== 3) { this.selectedNodeId = null; }
+    else { this.initPan(); }
   }
 
   showAtkBreakdown      = false;
@@ -70,8 +71,15 @@ export class EquipmentComponent implements OnInit {
   set activeTalentTree(v: number) {
     this._activeTalentTree = v;
     this.selectedNodeId = null;
-    this.panX = 0;
-    this.panY = 0;
+    this.initPan();
+  }
+
+  private initPan(): void {
+    const nodes = this.activeTreeNodes;
+    const root = nodes.find(n => n.requires.length === 0) ?? nodes[0];
+    if (!root) { this.panX = 0; this.panY = 0; return; }
+    this.panX = 113 - (root.col * 44 + 22);  // centra X en viewport 226px
+    this.panY = 100 - (root.row * 64 + 22);  // nodo raíz a ~38% desde arriba
   }
 
   get activeTreeNodes(): TalentNodeConfig[] {
@@ -205,9 +213,16 @@ export class EquipmentComponent implements OnInit {
 
   nodeEffectLabel(node: TalentNodeConfig, sphere: SphereType): string {
     const val = node.effect.base * SPHERE_MULT[sphere];
-    if (node.effect.type === 'hp') return `+${val} HP`;
-    if (node.effect.type === 'mp') return `+${val} MP`;
-    return `+${val} ATK`;
+    switch (node.effect.type) {
+      case 'hp':         return `+${val} HP`;
+      case 'mp':         return `+${val} MP`;
+      case 'defense':    return `+${val} DEF`;
+      case 'critChance': return `+${val}% CRIT`;
+      case 'hpRegen':    return `+${val} HP/regen`;
+      case 'mpRegen':    return `+${val} MP/regen`;
+      case 'dropRate':   return `+${val}% DROP`;
+      default:           return `+${val} ATK`;
+    }
   }
 
   formatNodeLabel(node: TalentNodeConfig): string {
