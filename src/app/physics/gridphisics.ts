@@ -74,9 +74,9 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     const px = pos.x;
     const py = pos.y;
 
-    const blockedFull = this.isTileBlockedXY(px + dx, py + dy);
-    const blockedX    = this.isTileBlockedXY(px + dx, py     );
-    const blockedY    = this.isTileBlockedXY(px,      py + dy);
+    const blockedFull = this.isTileBlockedXY(px + dx, py + dy) || this.isEnemyBlockedXY(px + dx, py + dy);
+    const blockedX    = this.isTileBlockedXY(px + dx, py     ) || this.isEnemyBlockedXY(px + dx, py     );
+    const blockedY    = this.isTileBlockedXY(px,      py + dy) || this.isEnemyBlockedXY(px,      py + dy);
 
     if (!blockedFull && !(blockedX && blockedY)) {
       this.player.setPositionXY(px + dx, py + dy);
@@ -87,10 +87,20 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     }
   }
 
+  private isEnemyBlockedXY(px: number, py: number): boolean {
+    const HW = GameScene.TILE_SIZE * 0.9;
+    for (let i = 0; i < this.enemies.length; i++) {
+      const e = this.enemies[i];
+      if (e.isDead) continue;
+      if (Math.abs(e.sprite.x - px) < HW && Math.abs(e.getCollisionY() - py) < HW) return true;
+    }
+    return false;
+  }
+
   attackEnemy(damage: number, isCrit = false): void {
     const pos  = this.player.getPosition();
     const dir  = this.player.getDirection();
-    const RANGE = GameScene.TILE_SIZE * 2;
+    const RANGE = GameScene.TILE_SIZE * 3;
 
     this.enemies.forEach(enemy => {
       const ePos = enemy.getPixelPos();

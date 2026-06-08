@@ -129,6 +129,7 @@ export class Enemy {
 
   getTilePos(): Vector2 { return this.tilePos.clone(); }
   getPixelPos(): Vector2 { return new Vector2(this.sprite.x, this.sprite.y); }
+  getCollisionY(): number { return this.sprite.y - this.sprite.displayHeight * 0.4; }
 
   // ── Privada ────────────────────────────────────────────────────────────────
 
@@ -259,9 +260,9 @@ export class Enemy {
     const nx   = (dx / dist) * step;
     const ny   = (dy / dist) * step;
 
-    const bFull = this.isTileBlocked(sx + nx, sy + ny);
-    const bX    = this.isTileBlocked(sx + nx, sy);
-    const bY    = this.isTileBlocked(sx,      sy + ny);
+    const bFull = this.isTileBlocked(sx + nx, sy + ny) || this.isPlayerBlocked(sx + nx, sy + ny);
+    const bX    = this.isTileBlocked(sx + nx, sy     ) || this.isPlayerBlocked(sx + nx, sy     );
+    const bY    = this.isTileBlocked(sx,      sy + ny) || this.isPlayerBlocked(sx,      sy + ny);
 
     let newX = sx;
     let newY = sy;
@@ -457,9 +458,16 @@ export class Enemy {
     return dy > 0 ? Direction.DOWN : Direction.UP;
   }
 
-  // Una sola pasada con índice numérico (más rápido que string lookup por nombre de capa).
-  // Retorna true (bloqueado) si no hay tile en ninguna capa (fuera de mapa) o si
-  // algún tile tiene la propiedad collides=true.
+  // Bloquea movimiento de wander hacia el jugador. Chasing ignorado: el
+  // enemigo necesita acercarse para atacar.
+  private isPlayerBlocked(px: number, py: number): boolean {
+    if (this.isChasing || !this.lastPlayerPos) return false;
+    const HW    = GameScene.TILE_SIZE * 0.9;
+    const bodyY = py - this.sprite.displayHeight * 0.4;
+    return Math.abs(this.lastPlayerPos.x - px) < HW &&
+           Math.abs(this.lastPlayerPos.y - bodyY) < HW;
+  }
+
   private isTileBlocked(px: number, py: number): boolean {
     const tileX = Math.floor(px / GameScene.TILE_SIZE);
     const tileY = Math.floor(py / GameScene.TILE_SIZE);
