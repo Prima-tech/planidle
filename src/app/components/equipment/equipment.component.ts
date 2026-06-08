@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
@@ -16,14 +16,17 @@ import { PanelStateService } from 'src/app/services/panel-state.service';
 export class EquipmentComponent implements OnInit {
 
   private panelState = inject(PanelStateService);
+  private el = inject(ElementRef);
 
   private _activeTab = 0;
   get activeTab(): number { return this._activeTab; }
   set activeTab(v: number) {
     this._activeTab = v;
     this.panelState.set('equip.tab', v);
-    if (v !== 3) { this.selectedNodeId = null; }
-    else { this.initPan(); }
+    if (v !== 3) {
+      this.selectedNodeId = null;
+      this.talentExpanded = false;
+    } else { this.initPan(); }
   }
 
   showAtkBreakdown      = false;
@@ -104,7 +107,13 @@ export class EquipmentComponent implements OnInit {
 
   get talentBonus() { return this.talent.getBonus(); }
 
-  talentExpanded = false;
+  private _talentExpanded = false;
+  get talentExpanded(): boolean { return this._talentExpanded; }
+  set talentExpanded(v: boolean) {
+    this._talentExpanded = v;
+    const modal = this.el.nativeElement.closest('.modal-window') as HTMLElement;
+    if (modal) modal.style.bottom = v ? '10px' : '';
+  }
 
   // ── Pan libre del árbol ──────────────────────────────────────────────────────
 
