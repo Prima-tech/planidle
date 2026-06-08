@@ -404,14 +404,6 @@
       </div>
     </div>
 
-    <!-- Resumen de bonos activos -->
-    <div class="talent-bonus-bar" *ngIf="talentBonus.atk > 0 || talentBonus.hp > 0 || talentBonus.mp > 0 || talentBonus.defense > 0">
-      <span *ngIf="talentBonus.atk     > 0">+{{ talentBonus.atk }} ATK</span>
-      <span *ngIf="talentBonus.hp      > 0">+{{ talentBonus.hp }} HP</span>
-      <span *ngIf="talentBonus.mp      > 0">+{{ talentBonus.mp }} MP</span>
-      <span *ngIf="talentBonus.defense > 0">+{{ talentBonus.defense }} DEF</span>
-    </div>
-
     <!-- Árbol -->
     <div class="talent-viewport"
          (pointerdown)="onCanvasPointerDown($event)"
