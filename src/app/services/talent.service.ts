@@ -18,6 +18,8 @@ export interface TalentNodeConfig {
   requires: string[];
   effect:   TalentEffect;
   num?:     number;
+  small?:    boolean;
+  topLabel?: string;
 }
 
 export interface TalentSnapshot {
@@ -44,7 +46,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 10, row: 5, requires: [], effect: { type: 'atk', base: 0 } },
 
   // ── Rama 1: Derecha (paso +2 cols) ──────────────────────────────
-  { id: 'n1_1', label: '', icon: 'ellipse-outline', num: 1,
+  { id: 'n1_1', label: '', icon: 'ellipse-outline', num: 1, small: true, topLabel: 'STR',
     col: 12, row: 5, requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n1_2', label: '', icon: 'ellipse-outline', num: 2,
     col: 14, row: 5, requires: ['n1_1'], effect: { type: 'atk', base: 0 } },
@@ -56,7 +58,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 20, row: 5, requires: ['n1_4'], effect: { type: 'atk', base: 0 } },
 
   // ── Rama 2: Abajo-derecha (paso +1 col, +1 row) ─────────────────
-  { id: 'n2_1', label: '', icon: 'ellipse-outline', num: 6,
+  { id: 'n2_1', label: '', icon: 'ellipse-outline', num: 6, small: true, topLabel: 'VIT',
     col: 11, row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n2_2', label: '', icon: 'ellipse-outline', num: 7,
     col: 12, row: 7,  requires: ['n2_1'], effect: { type: 'atk', base: 0 } },
@@ -68,7 +70,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 15, row: 10, requires: ['n2_4'], effect: { type: 'atk', base: 0 } },
 
   // ── Rama 3: Abajo-izquierda (paso -1 col, +1 row) ───────────────
-  { id: 'n3_1', label: '', icon: 'ellipse-outline', num: 11,
+  { id: 'n3_1', label: '', icon: 'ellipse-outline', num: 11, small: true, topLabel: 'CHR',
     col: 9,  row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n3_2', label: '', icon: 'ellipse-outline', num: 12,
     col: 8,  row: 7,  requires: ['n3_1'], effect: { type: 'atk', base: 0 } },
@@ -80,7 +82,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 5,  row: 10, requires: ['n3_4'], effect: { type: 'atk', base: 0 } },
 
   // ── Rama 4: Izquierda (paso -2 cols) ────────────────────────────
-  { id: 'n4_1', label: '', icon: 'ellipse-outline', num: 16,
+  { id: 'n4_1', label: '', icon: 'ellipse-outline', num: 16, small: true, topLabel: 'INT',
     col: 8,  row: 5,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n4_2', label: '', icon: 'ellipse-outline', num: 17,
     col: 6,  row: 5,  requires: ['n4_1'], effect: { type: 'atk', base: 0 } },
@@ -92,7 +94,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 0,  row: 5,  requires: ['n4_4'], effect: { type: 'atk', base: 0 } },
 
   // ── Rama 5: Arriba-izquierda (paso -1 col, -1 row) ──────────────
-  { id: 'n5_1', label: '', icon: 'ellipse-outline', num: 21,
+  { id: 'n5_1', label: '', icon: 'ellipse-outline', num: 21, small: true, topLabel: 'MAG',
     col: 9,  row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n5_2', label: '', icon: 'ellipse-outline', num: 22,
     col: 8,  row: 3,  requires: ['n5_1'], effect: { type: 'atk', base: 0 } },
@@ -104,7 +106,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 5,  row: 0,  requires: ['n5_4'], effect: { type: 'atk', base: 0 } },
 
   // ── Rama 6: Arriba-derecha (paso +1 col, -1 row) ────────────────
-  { id: 'n6_1', label: '', icon: 'ellipse-outline', num: 26,
+  { id: 'n6_1', label: '', icon: 'ellipse-outline', num: 26, small: true, topLabel: 'DEX',
     col: 11, row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n6_2', label: '', icon: 'ellipse-outline', num: 27,
     col: 12, row: 3,  requires: ['n6_1'], effect: { type: 'atk', base: 0 } },

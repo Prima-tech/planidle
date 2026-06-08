@@ -592,14 +592,21 @@
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 
+  &--small {
+    width: 19px;
+    height: 19px;
+    margin-left: 9px;
+    margin-top: 9px;
+  }
+
   &--locked {
     opacity: 0.35;
     cursor: not-allowed;
   }
 
   &--available {
-    border-color: #3498db;
-    box-shadow: 0 0 6px rgba(52, 152, 219, 0.4);
+    border-color: #ffffff;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
   }
 
   &--slotted {
@@ -614,6 +621,18 @@
 .tnode-icon {
   font-size: 1em;
   color: #ccc;
+  pointer-events: none;
+}
+
+.tnode-toplabel {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  color: #ccc;
+  white-space: nowrap;
   pointer-events: none;
 }
 

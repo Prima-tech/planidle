@@ -425,6 +425,7 @@
 
         <div *ngFor="let node of activeTreeNodes"
              class="tnode"
+             [class.tnode--small]="node.small"
              [class.tnode--locked]="nodeState(node) === 'locked'"
              [class.tnode--available]="nodeState(node) === 'available'"
              [class.tnode--slotted]="nodeState(node) === 'slotted'"
@@ -435,7 +436,8 @@
              [title]="node.label"
              (click)="onNodeClick(node)"
         >
-          <ion-icon [name]="node.icon" class="tnode-icon"></ion-icon>
+          <span *ngIf="node.topLabel" class="tnode-toplabel">{{ node.topLabel }}</span>
+          <ion-icon *ngIf="!node.small" [name]="node.icon" class="tnode-icon"></ion-icon>
           <span *ngIf="node.num" class="tnode-num">{{ node.num }}</span>
           <span *ngIf="nodeState(node) === 'slotted'" class="tnode-sphere-dot" [style.background]="nodeColor(node)"></span>
         </div>
