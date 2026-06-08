@@ -106,6 +106,8 @@ export class EquipmentComponent implements OnInit {
 
   get talentBonus() { return this.talent.getBonus(); }
 
+  talentExpanded = false;
+
   // ── Pan libre del árbol ──────────────────────────────────────────────────────
 
   panX = 0;

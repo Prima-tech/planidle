@@ -1,4 +1,10 @@
-<div class="eq-wrapper">
+<div class="eq-wrapper" [class.eq-wrapper--wide]="talentExpanded && activeTab === 3">
+
+  <button *ngIf="activeTab === 3"
+          class="talent-expand-btn"
+          (click)="talentExpanded = !talentExpanded">
+    <ion-icon [name]="talentExpanded ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
+  </button>
 
   <div class="eq-vtabs">
     <button class="eq-vtab" [class.active]="activeTab === 0" (click)="activeTab = 0">
