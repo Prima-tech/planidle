@@ -617,6 +617,16 @@
   pointer-events: none;
 }
 
+.tnode-num {
+  position: absolute;
+  bottom: 1px;
+  left: 2px;
+  font-size: 8px;
+  line-height: 1;
+  color: #888;
+  pointer-events: none;
+}
+
 .tnode-sphere-dot {
   position: absolute;
   bottom: 1px;

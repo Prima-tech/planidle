@@ -436,6 +436,7 @@
              (click)="onNodeClick(node)"
         >
           <ion-icon [name]="node.icon" class="tnode-icon"></ion-icon>
+          <span *ngIf="node.num" class="tnode-num">{{ node.num }}</span>
           <span *ngIf="nodeState(node) === 'slotted'" class="tnode-sphere-dot" [style.background]="nodeColor(node)"></span>
         </div>
 

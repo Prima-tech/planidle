@@ -17,6 +17,7 @@ export interface TalentNodeConfig {
   row:      number;
   requires: string[];
   effect:   TalentEffect;
+  num?:     number;
 }
 
 export interface TalentSnapshot {
@@ -34,89 +35,86 @@ const DEFAULT_SPHERES: Record<SphereType, number> = {
   normal: 10, rare: 10, epic: 10,
 };
 
-// ── Árbol: Combate (centro en col=5, row=5) ───────────────────────────────────
-// Arriba: Agilidad/Crítico | Abajo: Defensa/HP | Izquierda: Regen | Derecha: ATK Bruto
+// ── Árbol de Talentos (centro col=5, row=5 · 6 ramas × 5 niveles) ────────────
+// Ramas: Derecha · Abajo-derecha · Abajo-izquierda · Izquierda · Arriba-izquierda · Arriba-derecha
+// Separación angular: 55.5° / 69° alternado (máxima uniformidad posible en grid rectangular)
 
 export const TALENT_NODES: TalentNodeConfig[] = [
-  // Centro
-  { id: 'c0',     label: 'Espíritu\nGuerrero', icon: 'flame-outline',
-    col: 5, row: 5, requires: [], effect: { type: 'atk', base: 3 } },
+  // Centro (hub)
+  { id: 'c0', label: '', icon: 'aperture-outline',
+    col: 5, row: 5, requires: [], effect: { type: 'atk', base: 0 } },
 
-  // ── Arriba: Agilidad / Crítico ───────────────────────────────
-  { id: 'c_prec', label: 'Precisión',          icon: 'locate-outline',
-    col: 5, row: 4, requires: ['c0'], effect: { type: 'critChance', base: 2 } },
-  { id: 'c_vel',  label: 'Velocidad',           icon: 'arrow-up-circle-outline',
-    col: 4, row: 3, requires: ['c_prec'], effect: { type: 'atk', base: 4 } },
-  { id: 'c_crit', label: 'Crítico',             icon: 'flash-outline',
-    col: 6, row: 3, requires: ['c_prec'], effect: { type: 'critChance', base: 3 } },
-  { id: 'c_esq',  label: 'Esquiva',             icon: 'walk-outline',
-    col: 3, row: 2, requires: ['c_vel'], effect: { type: 'defense', base: 2 } },
-  { id: 'c_cert', label: 'Golpe\nCertero',      icon: 'star-outline',
-    col: 5, row: 2, requires: ['c_vel', 'c_crit'], effect: { type: 'critChance', base: 5 } },
-  { id: 'c_ven',  label: 'Filo\nVenenoso',      icon: 'skull-outline',
-    col: 7, row: 2, requires: ['c_crit'], effect: { type: 'atk', base: 8 } },
-  { id: 'c_som',  label: 'Sombra',              icon: 'eye-off-outline',
-    col: 4, row: 1, requires: ['c_esq', 'c_cert'], effect: { type: 'atk', base: 10 } },
-  { id: 'c_asn',  label: 'Asesino',             icon: 'hand-right-outline',
-    col: 6, row: 1, requires: ['c_cert', 'c_ven'], effect: { type: 'atk', base: 14 } },
-  { id: 'c_ley',  label: 'Leyenda',             icon: 'trophy-outline',
-    col: 5, row: 0, requires: ['c_som', 'c_asn'], effect: { type: 'atk', base: 22 } },
+  // ── Rama 1: Derecha ─────────────────────────────────────────────
+  { id: 'n1_1', label: '', icon: 'ellipse-outline', num: 1,
+    col: 6,  row: 5, requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+  { id: 'n1_2', label: '', icon: 'ellipse-outline', num: 2,
+    col: 7,  row: 5, requires: ['n1_1'], effect: { type: 'atk', base: 0 } },
+  { id: 'n1_3', label: '', icon: 'ellipse-outline', num: 3,
+    col: 8,  row: 5, requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
+  { id: 'n1_4', label: '', icon: 'ellipse-outline', num: 4,
+    col: 9,  row: 5, requires: ['n1_3'], effect: { type: 'atk', base: 0 } },
+  { id: 'n1_5', label: '', icon: 'ellipse-outline', num: 5,
+    col: 10, row: 5, requires: ['n1_4'], effect: { type: 'atk', base: 0 } },
 
-  // ── Abajo: Defensa / HP ──────────────────────────────────────
-  { id: 'c_grd',  label: 'Guardia',             icon: 'hand-left-outline',
-    col: 5, row: 6, requires: ['c0'], effect: { type: 'defense', base: 2 } },
-  { id: 'c_vit',  label: 'Vitalidad',           icon: 'heart-outline',
-    col: 4, row: 7, requires: ['c_grd'], effect: { type: 'hp', base: 30 } },
-  { id: 'c_esc',  label: 'Escudo',              icon: 'shield-outline',
-    col: 6, row: 7, requires: ['c_grd'], effect: { type: 'defense', base: 3 } },
-  { id: 'c_vr',   label: 'Vida\nRobusta',       icon: 'body-outline',
-    col: 3, row: 8, requires: ['c_vit'], effect: { type: 'hp', base: 50 } },
-  { id: 'c_bst',  label: 'Bastión',             icon: 'shield-checkmark-outline',
-    col: 5, row: 8, requires: ['c_vit', 'c_esc'], effect: { type: 'hp', base: 60 } },
-  { id: 'c_fort', label: 'Fortaleza',           icon: 'barbell-outline',
-    col: 7, row: 8, requires: ['c_esc'], effect: { type: 'hp', base: 40 } },
-  { id: 'c_pac',  label: 'Piel de\nAcero',      icon: 'diamond-outline',
-    col: 4, row: 9, requires: ['c_vr', 'c_bst'], effect: { type: 'hp', base: 80 } },
-  { id: 'c_bar',  label: 'Barrera',             icon: 'lock-closed-outline',
-    col: 6, row: 9, requires: ['c_bst', 'c_fort'], effect: { type: 'defense', base: 5 } },
-  { id: 'c_tit',  label: 'Titán',               icon: 'accessibility-outline',
-    col: 5, row: 10, requires: ['c_pac', 'c_bar'], effect: { type: 'hp', base: 120 } },
+  // ── Rama 2: Abajo-derecha ───────────────────────────────────────
+  { id: 'n2_1', label: '', icon: 'ellipse-outline', num: 6,
+    col: 6,  row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+  { id: 'n2_2', label: '', icon: 'ellipse-outline', num: 7,
+    col: 7,  row: 7,  requires: ['n2_1'], effect: { type: 'atk', base: 0 } },
+  { id: 'n2_3', label: '', icon: 'ellipse-outline', num: 8,
+    col: 8,  row: 8,  requires: ['n2_2'], effect: { type: 'atk', base: 0 } },
+  { id: 'n2_4', label: '', icon: 'ellipse-outline', num: 9,
+    col: 9,  row: 9,  requires: ['n2_3'], effect: { type: 'atk', base: 0 } },
+  { id: 'n2_5', label: '', icon: 'ellipse-outline', num: 10,
+    col: 10, row: 10, requires: ['n2_4'], effect: { type: 'atk', base: 0 } },
 
-  // ── Izquierda: Regeneración ──────────────────────────────────
-  { id: 'c_reg',  label: 'Regen',               icon: 'refresh-outline',
-    col: 4, row: 5, requires: ['c0'], effect: { type: 'hpRegen', base: 2 } },
-  { id: 'c_cur',  label: 'Curación',            icon: 'repeat-outline',
-    col: 3, row: 5, requires: ['c_reg'], effect: { type: 'hpRegen', base: 3 } },
-  { id: 'c_rec',  label: 'Recup.\nRápida',      icon: 'reload-circle-outline',
-    col: 3, row: 4, requires: ['c_cur'], effect: { type: 'hpRegen', base: 4 } },
-  { id: 'c_resi', label: 'Resiliencia',         icon: 'trending-up-outline',
-    col: 3, row: 6, requires: ['c_cur'], effect: { type: 'mpRegen', base: 2 } },
-  { id: 'c_san',  label: 'Sanación',            icon: 'heart-outline',
-    col: 2, row: 5, requires: ['c_cur'], effect: { type: 'hp', base: 50 } },
-  { id: 'c_ind',  label: 'Indestructible',      icon: 'infinite-outline',
-    col: 1, row: 5, requires: ['c_rec', 'c_san', 'c_resi'], effect: { type: 'hp', base: 100 } },
-  { id: 'c_ete',  label: 'Eterno',              icon: 'star-outline',
-    col: 0, row: 5, requires: ['c_ind'], effect: { type: 'hp', base: 150 } },
+  // ── Rama 3: Abajo-izquierda ─────────────────────────────────────
+  { id: 'n3_1', label: '', icon: 'ellipse-outline', num: 11,
+    col: 4,  row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+  { id: 'n3_2', label: '', icon: 'ellipse-outline', num: 12,
+    col: 3,  row: 7,  requires: ['n3_1'], effect: { type: 'atk', base: 0 } },
+  { id: 'n3_3', label: '', icon: 'ellipse-outline', num: 13,
+    col: 2,  row: 8,  requires: ['n3_2'], effect: { type: 'atk', base: 0 } },
+  { id: 'n3_4', label: '', icon: 'ellipse-outline', num: 14,
+    col: 1,  row: 9,  requires: ['n3_3'], effect: { type: 'atk', base: 0 } },
+  { id: 'n3_5', label: '', icon: 'ellipse-outline', num: 15,
+    col: 0,  row: 10, requires: ['n3_4'], effect: { type: 'atk', base: 0 } },
 
-  // ── Derecha: Ataque Bruto ────────────────────────────────────
-  { id: 'c_pod',  label: 'Poder',               icon: 'barbell-outline',
-    col: 6, row: 5, requires: ['c0'], effect: { type: 'atk', base: 5 } },
-  { id: 'c_fb',   label: 'Fuerza\nBruta',       icon: 'hammer-outline',
-    col: 7, row: 5, requires: ['c_pod'], effect: { type: 'atk', base: 8 } },
-  { id: 'c_gf',   label: 'Golpe\nFuerte',       icon: 'arrow-up-outline',
-    col: 7, row: 4, requires: ['c_fb'], effect: { type: 'atk', base: 10 } },
-  { id: 'c_emb',  label: 'Embate',              icon: 'arrow-down-outline',
-    col: 7, row: 6, requires: ['c_fb'], effect: { type: 'atk', base: 10 } },
-  { id: 'c_dev',  label: 'Devastador',          icon: 'nuclear-outline',
-    col: 8, row: 5, requires: ['c_fb'], effect: { type: 'atk', base: 12 } },
-  { id: 'c_tor',  label: 'Torbellino',          icon: 'reload-circle-outline',
-    col: 8, row: 4, requires: ['c_gf', 'c_dev'], effect: { type: 'atk', base: 16 } },
-  { id: 'c_apl',  label: 'Aplastamiento',       icon: 'expand-outline',
-    col: 8, row: 6, requires: ['c_emb', 'c_dev'], effect: { type: 'atk', base: 16 } },
-  { id: 'c_cat',  label: 'Cataclismo',          icon: 'thunderstorm-outline',
-    col: 9, row: 4, requires: ['c_tor'], effect: { type: 'atk', base: 22 } },
-  { id: 'c_dst',  label: 'Destrucción\nTotal',  icon: 'planet-outline',
-    col: 9, row: 6, requires: ['c_apl'], effect: { type: 'atk', base: 22 } },
+  // ── Rama 4: Izquierda ───────────────────────────────────────────
+  { id: 'n4_1', label: '', icon: 'ellipse-outline', num: 16,
+    col: 4,  row: 5,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+  { id: 'n4_2', label: '', icon: 'ellipse-outline', num: 17,
+    col: 3,  row: 5,  requires: ['n4_1'], effect: { type: 'atk', base: 0 } },
+  { id: 'n4_3', label: '', icon: 'ellipse-outline', num: 18,
+    col: 2,  row: 5,  requires: ['n4_2'], effect: { type: 'atk', base: 0 } },
+  { id: 'n4_4', label: '', icon: 'ellipse-outline', num: 19,
+    col: 1,  row: 5,  requires: ['n4_3'], effect: { type: 'atk', base: 0 } },
+  { id: 'n4_5', label: '', icon: 'ellipse-outline', num: 20,
+    col: 0,  row: 5,  requires: ['n4_4'], effect: { type: 'atk', base: 0 } },
+
+  // ── Rama 5: Arriba-izquierda ────────────────────────────────────
+  { id: 'n5_1', label: '', icon: 'ellipse-outline', num: 21,
+    col: 4,  row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+  { id: 'n5_2', label: '', icon: 'ellipse-outline', num: 22,
+    col: 3,  row: 3,  requires: ['n5_1'], effect: { type: 'atk', base: 0 } },
+  { id: 'n5_3', label: '', icon: 'ellipse-outline', num: 23,
+    col: 2,  row: 2,  requires: ['n5_2'], effect: { type: 'atk', base: 0 } },
+  { id: 'n5_4', label: '', icon: 'ellipse-outline', num: 24,
+    col: 1,  row: 1,  requires: ['n5_3'], effect: { type: 'atk', base: 0 } },
+  { id: 'n5_5', label: '', icon: 'ellipse-outline', num: 25,
+    col: 0,  row: 0,  requires: ['n5_4'], effect: { type: 'atk', base: 0 } },
+
+  // ── Rama 6: Arriba-derecha ──────────────────────────────────────
+  { id: 'n6_1', label: '', icon: 'ellipse-outline', num: 26,
+    col: 6,  row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+  { id: 'n6_2', label: '', icon: 'ellipse-outline', num: 27,
+    col: 7,  row: 3,  requires: ['n6_1'], effect: { type: 'atk', base: 0 } },
+  { id: 'n6_3', label: '', icon: 'ellipse-outline', num: 28,
+    col: 8,  row: 2,  requires: ['n6_2'], effect: { type: 'atk', base: 0 } },
+  { id: 'n6_4', label: '', icon: 'ellipse-outline', num: 29,
+    col: 9,  row: 1,  requires: ['n6_3'], effect: { type: 'atk', base: 0 } },
+  { id: 'n6_5', label: '', icon: 'ellipse-outline', num: 30,
+    col: 10, row: 0,  requires: ['n6_4'], effect: { type: 'atk', base: 0 } },
 ];
 
 // ── Habilidades de fuego (disponibles sin desbloquear) ────────────────────────
