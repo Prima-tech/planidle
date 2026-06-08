@@ -67,7 +67,12 @@ export class EquipmentComponent implements OnInit {
 
   private _activeTalentTree = 0;
   get activeTalentTree(): number { return this._activeTalentTree; }
-  set activeTalentTree(v: number) { this._activeTalentTree = v; this.selectedNodeId = null; }
+  set activeTalentTree(v: number) {
+    this._activeTalentTree = v;
+    this.selectedNodeId = null;
+    this.panX = 0;
+    this.panY = 0;
+  }
 
   get activeTreeNodes(): TalentNodeConfig[] {
     return this.talentTrees[this._activeTalentTree]?.nodes ?? [];
@@ -93,10 +98,51 @@ export class EquipmentComponent implements OnInit {
 
   get talentBonus() { return this.talent.getBonus(); }
 
-  get treeHeight(): number {
+  // ── Pan libre del árbol ──────────────────────────────────────────────────────
+
+  panX = 0;
+  panY = 0;
+  private _panActive = false;
+  private _panStartClientX = 0;
+  private _panStartClientY = 0;
+  private _panStartPanX = 0;
+  private _panStartPanY = 0;
+  panMoved = false;
+
+  get canvasWidth(): number {
     const nodes = this.activeTreeNodes;
-    if (!nodes.length) return 64;
-    return (Math.max(...nodes.map(n => n.row)) + 1) * 64;
+    if (!nodes.length) return 220;
+    return (Math.max(...nodes.map(n => n.col)) + 1) * 44 + 44;
+  }
+
+  get canvasHeight(): number {
+    const nodes = this.activeTreeNodes;
+    if (!nodes.length) return 200;
+    return (Math.max(...nodes.map(n => n.row)) + 1) * 64 + 64;
+  }
+
+  onCanvasPointerDown(e: PointerEvent): void {
+    this._panActive = true;
+    this.panMoved = false;
+    this._panStartClientX = e.clientX;
+    this._panStartClientY = e.clientY;
+    this._panStartPanX = this.panX;
+    this._panStartPanY = this.panY;
+  }
+
+  onCanvasPointerMove(e: PointerEvent): void {
+    if (!this._panActive) return;
+    const dx = e.clientX - this._panStartClientX;
+    const dy = e.clientY - this._panStartClientY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this.panMoved = true;
+    if (this.panMoved) {
+      this.panX = this._panStartPanX + dx;
+      this.panY = this._panStartPanY + dy;
+    }
+  }
+
+  onCanvasPointerUp(): void {
+    this._panActive = false;
   }
 
   get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
@@ -135,6 +181,7 @@ export class EquipmentComponent implements OnInit {
   }
 
   onNodeClick(node: TalentNodeConfig): void {
+    if (this.panMoved) return;
     if (!this.talent.isUnlocked(node.id)) return;
     this.selectedNodeId = this.selectedNodeId === node.id ? null : node.id;
   }

@@ -516,12 +516,26 @@
   font-weight: bold;
 }
 
-// Árbol (canvas)
-.talent-tree {
+// Árbol (viewport con pan libre)
+.talent-viewport {
   position: relative;
-  width: 220px;
-  height: 256px;
-  align-self: center;
+  overflow: hidden;
+  height: 260px;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  background: #0e0e1a;
+  border-radius: 6px;
+  border: 1px solid #1e1e2e;
+
+  &:active { cursor: grabbing; }
+}
+
+.talent-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
 }
 
 .talent-svg {

@@ -408,35 +408,42 @@
 
     <!-- Árbol -->
     <div *ngIf="activeTalentTree < 2"
-         class="talent-tree"
-         [style.height.px]="treeHeight">
+         class="talent-viewport"
+         (pointerdown)="onCanvasPointerDown($event)"
+         (pointermove)="onCanvasPointerMove($event)"
+         (pointerup)="onCanvasPointerUp()"
+         (pointercancel)="onCanvasPointerUp()"
+         (mouseleave)="onCanvasPointerUp()">
 
-      <svg class="talent-svg" width="220" [attr.height]="treeHeight">
-        <line *ngFor="let l of treeLines"
-              [attr.x1]="l.x1" [attr.y1]="l.y1"
-              [attr.x2]="l.x2" [attr.y2]="l.y2"
-              [class.tline--active]="l.active"
-              class="tline"
-        />
-      </svg>
+      <div class="talent-canvas" [style.transform]="'translate(' + panX + 'px, ' + panY + 'px)'">
 
-      <div *ngFor="let node of activeTreeNodes"
-           class="tnode"
-           [class.tnode--locked]="nodeState(node) === 'locked'"
-           [class.tnode--available]="nodeState(node) === 'available'"
-           [class.tnode--slotted]="nodeState(node) === 'slotted'"
-           [class.tnode--selected]="selectedNodeId === node.id"
-           [style.left]="nodeStyle(node)['left']"
-           [style.top]="nodeStyle(node)['top']"
-           [style.border-color]="nodeColor(node) || null"
-           [title]="node.label"
-           (click)="onNodeClick(node)"
-      >
-        <ion-icon [name]="node.icon" class="tnode-icon"></ion-icon>
-        <span *ngIf="nodeState(node) === 'slotted'" class="tnode-sphere-dot" [style.background]="nodeColor(node)"></span>
+        <svg class="talent-svg" [attr.width]="canvasWidth" [attr.height]="canvasHeight">
+          <line *ngFor="let l of treeLines"
+                [attr.x1]="l.x1" [attr.y1]="l.y1"
+                [attr.x2]="l.x2" [attr.y2]="l.y2"
+                [class.tline--active]="l.active"
+                class="tline"
+          />
+        </svg>
+
+        <div *ngFor="let node of activeTreeNodes"
+             class="tnode"
+             [class.tnode--locked]="nodeState(node) === 'locked'"
+             [class.tnode--available]="nodeState(node) === 'available'"
+             [class.tnode--slotted]="nodeState(node) === 'slotted'"
+             [class.tnode--selected]="selectedNodeId === node.id"
+             [style.left]="nodeStyle(node)['left']"
+             [style.top]="nodeStyle(node)['top']"
+             [style.border-color]="nodeColor(node) || null"
+             [title]="node.label"
+             (click)="onNodeClick(node)"
+        >
+          <ion-icon [name]="node.icon" class="tnode-icon"></ion-icon>
+          <span *ngIf="nodeState(node) === 'slotted'" class="tnode-sphere-dot" [style.background]="nodeColor(node)"></span>
+        </div>
+
       </div>
-
-    </div><!-- talent-tree -->
+    </div><!-- talent-viewport -->
 
     <!-- Skills: sin sistema implementado -->
     <div *ngIf="activeTalentTree === 2" class="talent-empty">
