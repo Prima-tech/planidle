@@ -16,6 +16,7 @@ import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
+import { AutoAttackService } from 'src/app/services/auto-attack.service';
 
 @Component({
   selector: 'app-footer-bar',
@@ -56,6 +57,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private talentService          = inject(TalentService);
   private skillActivationService = inject(SkillActivationService);
   private playerBridge           = inject(PlayerBridgeService);
+  autoAttack                     = inject(AutoAttackService);
 
   constructor() { }
 
@@ -124,6 +126,10 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       right: [this.menuModal, this.mapStatsModal, this.mapKillsModal, this.statsModal, this.inventoryModal, this.skillSlotsModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
+  }
+
+  toggleAutoAttack() {
+    this.autoAttack.toggle();
   }
 
   togglePage() {

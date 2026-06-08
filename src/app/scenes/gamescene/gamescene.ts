@@ -200,9 +200,10 @@ export class GameScene extends Phaser.Scene {
 
     override update(_time: number, delta: number) {
       this.gridControls.update();
+      if (this.reg.autoAttack?.isEnabled) this.runAutoAttack();
       this.gridPhysics.update(delta);
 
-      if (this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
+      if (!this.reg.autoAttack?.isEnabled && this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
         this.player.playerAttack();
         const { dmg: dmgM, isCrit: critM } = this.rollAttack();
         this.gridPhysics.attackEnemy(dmgM, critM);
@@ -214,6 +215,61 @@ export class GameScene extends Phaser.Scene {
       }
       this.checkPortals(playerPos);
       this.player.syncLayers();
+    }
+
+    private runAutoAttack(): void {
+      const pos = this.player.getPosition();
+      let nearest: Enemy | null = null;
+      let nearestDistSq = Infinity;
+
+      for (const e of this.enemies) {
+        if (e.isDead) continue;
+        const ep = e.getPixelPos();
+        const dx = ep.x - pos.x;
+        const dy = ep.y - pos.y;
+        const dSq = dx * dx + dy * dy;
+        if (dSq < nearestDistSq) { nearestDistSq = dSq; nearest = e; }
+      }
+
+      if (!nearest) return;
+
+      const ep = nearest.getPixelPos();
+      const dx = ep.x - pos.x;
+      const dy = ep.y - pos.y;
+      const dist = Math.sqrt(nearestDistSq);
+      const STOP_RANGE = GameScene.TILE_SIZE * 2;
+
+      const cardinalDir = this.autoVecToCardinal(dx, dy);
+
+      if (dist <= STOP_RANGE) {
+        this.player.currentDirection = cardinalDir;
+        if (!this.player.isAttacking) {
+          this.player.playerAttack();
+          const { dmg, isCrit } = this.rollAttack();
+          this.gridPhysics.attackEnemy(dmg, isCrit);
+        }
+      } else {
+        const moveDir = this.autoVecTo8Dir(dx, dy);
+        this.gridPhysics.movePlayer(moveDir, cardinalDir);
+      }
+    }
+
+    private autoVecToCardinal(dx: number, dy: number): Direction {
+      return Math.abs(dx) >= Math.abs(dy)
+        ? (dx > 0 ? Direction.RIGHT : Direction.LEFT)
+        : (dy > 0 ? Direction.DOWN  : Direction.UP);
+    }
+
+    private autoVecTo8Dir(dx: number, dy: number): Direction {
+      const deg = ((Math.atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+      if (deg < 22.5  || deg >= 337.5) return Direction.RIGHT;
+      if (deg < 67.5)                  return Direction.DOWN_RIGHT;
+      if (deg < 112.5)                 return Direction.DOWN;
+      if (deg < 157.5)                 return Direction.DOWN_LEFT;
+      if (deg < 202.5)                 return Direction.LEFT;
+      if (deg < 247.5)                 return Direction.UP_LEFT;
+      if (deg < 292.5)                 return Direction.UP;
+      return Direction.UP_RIGHT;
     }
 
     private initStatsListener(): void {

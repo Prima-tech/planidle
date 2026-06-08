@@ -15,6 +15,11 @@
       <ion-icon [name]="page === 'main' ? 'swap-horizontal-outline' : 'arrow-back-outline'" class="footer-ion-icon"></ion-icon>
     </div>
 
+    <div class="icon-menu-wrapper" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
+      <ion-icon name="infinite-outline" class="footer-ion-icon"></ion-icon>
+      <span class="btn-label">Auto</span>
+    </div>
+
     <!-- Página principal -->
     <ng-container *ngIf="page === 'main'">
       <div class="icon-menu-wrapper" [class.active]="equipmentModal.isOpenModal()" (click)="openEquipment()">
