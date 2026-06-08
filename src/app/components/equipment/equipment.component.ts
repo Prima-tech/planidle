@@ -76,8 +76,8 @@ export class EquipmentComponent implements OnInit {
     const nodes = this.activeTreeNodes;
     const root = nodes.find(n => n.requires.length === 0) ?? nodes[0];
     if (!root) { this.panX = 0; this.panY = 0; return; }
-    this.panX = 113 - (root.col * 44 + 22);  // centra X en viewport 226px
-    this.panY = 100 - (root.row * 64 + 22);  // nodo raíz a ~38% desde arriba
+    this.panX = 113 - (root.col * 33 + 16);  // centra X en viewport 226px
+    this.panY = 100 - (root.row * 48 + 22);  // nodo raíz a ~38% desde arriba
   }
 
   get activeTreeNodes(): TalentNodeConfig[] {
@@ -120,13 +120,13 @@ export class EquipmentComponent implements OnInit {
   get canvasWidth(): number {
     const nodes = this.activeTreeNodes;
     if (!nodes.length) return 220;
-    return (Math.max(...nodes.map(n => n.col)) + 1) * 44 + 44;
+    return (Math.max(...nodes.map(n => n.col)) + 1) * 33 + 33;
   }
 
   get canvasHeight(): number {
     const nodes = this.activeTreeNodes;
     if (!nodes.length) return 200;
-    return (Math.max(...nodes.map(n => n.row)) + 1) * 64 + 64;
+    return (Math.max(...nodes.map(n => n.row)) + 1) * 48 + 48;
   }
 
   onCanvasPointerDown(e: PointerEvent): void {
@@ -155,7 +155,7 @@ export class EquipmentComponent implements OnInit {
 
   get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
     const nodes = this.activeTreeNodes;
-    const CW = 44, CH = 64;
+    const CW = 33, CH = 48;
     const cx = (col: number) => col * CW + CW / 2;
     const cy = (row: number) => row * CH + 21;
     return nodes.flatMap(node =>
@@ -180,7 +180,7 @@ export class EquipmentComponent implements OnInit {
   }
 
   nodeStyle(node: TalentNodeConfig): Record<string, string> {
-    return { left: `${node.col * 44 + 3}px`, top: `${node.row * 64 + 3}px` };
+    return { left: `${node.col * 33 + 3}px`, top: `${node.row * 48 + 3}px` };
   }
 
   nodeColor(node: TalentNodeConfig): string {
