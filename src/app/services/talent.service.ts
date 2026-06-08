@@ -35,86 +35,85 @@ const DEFAULT_SPHERES: Record<SphereType, number> = {
   normal: 10, rare: 10, epic: 10,
 };
 
-// ── Árbol de Talentos (centro col=5, row=5 · 6 ramas × 5 niveles) ────────────
-// Ramas: Derecha · Abajo-derecha · Abajo-izquierda · Izquierda · Arriba-izquierda · Arriba-derecha
-// Separación angular: 55.5° / 69° alternado (máxima uniformidad posible en grid rectangular)
+// ── Árbol de Talentos (centro col=10, row=5 · 6 ramas × 5 niveles) ───────────
+// Horizontales: paso 2 cols (88px) · Diagonales: paso 1 col+1 row (77px) — espaciado uniforme
 
 export const TALENT_NODES: TalentNodeConfig[] = [
   // Centro (hub)
   { id: 'c0', label: '', icon: 'aperture-outline',
-    col: 5, row: 5, requires: [], effect: { type: 'atk', base: 0 } },
+    col: 10, row: 5, requires: [], effect: { type: 'atk', base: 0 } },
 
-  // ── Rama 1: Derecha ─────────────────────────────────────────────
+  // ── Rama 1: Derecha (paso +2 cols) ──────────────────────────────
   { id: 'n1_1', label: '', icon: 'ellipse-outline', num: 1,
-    col: 6,  row: 5, requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 12, row: 5, requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n1_2', label: '', icon: 'ellipse-outline', num: 2,
-    col: 7,  row: 5, requires: ['n1_1'], effect: { type: 'atk', base: 0 } },
+    col: 14, row: 5, requires: ['n1_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n1_3', label: '', icon: 'ellipse-outline', num: 3,
-    col: 8,  row: 5, requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
+    col: 16, row: 5, requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
   { id: 'n1_4', label: '', icon: 'ellipse-outline', num: 4,
-    col: 9,  row: 5, requires: ['n1_3'], effect: { type: 'atk', base: 0 } },
+    col: 18, row: 5, requires: ['n1_3'], effect: { type: 'atk', base: 0 } },
   { id: 'n1_5', label: '', icon: 'ellipse-outline', num: 5,
-    col: 10, row: 5, requires: ['n1_4'], effect: { type: 'atk', base: 0 } },
+    col: 20, row: 5, requires: ['n1_4'], effect: { type: 'atk', base: 0 } },
 
-  // ── Rama 2: Abajo-derecha ───────────────────────────────────────
+  // ── Rama 2: Abajo-derecha (paso +1 col, +1 row) ─────────────────
   { id: 'n2_1', label: '', icon: 'ellipse-outline', num: 6,
-    col: 6,  row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 11, row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n2_2', label: '', icon: 'ellipse-outline', num: 7,
-    col: 7,  row: 7,  requires: ['n2_1'], effect: { type: 'atk', base: 0 } },
+    col: 12, row: 7,  requires: ['n2_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n2_3', label: '', icon: 'ellipse-outline', num: 8,
-    col: 8,  row: 8,  requires: ['n2_2'], effect: { type: 'atk', base: 0 } },
+    col: 13, row: 8,  requires: ['n2_2'], effect: { type: 'atk', base: 0 } },
   { id: 'n2_4', label: '', icon: 'ellipse-outline', num: 9,
-    col: 9,  row: 9,  requires: ['n2_3'], effect: { type: 'atk', base: 0 } },
+    col: 14, row: 9,  requires: ['n2_3'], effect: { type: 'atk', base: 0 } },
   { id: 'n2_5', label: '', icon: 'ellipse-outline', num: 10,
-    col: 10, row: 10, requires: ['n2_4'], effect: { type: 'atk', base: 0 } },
+    col: 15, row: 10, requires: ['n2_4'], effect: { type: 'atk', base: 0 } },
 
-  // ── Rama 3: Abajo-izquierda ─────────────────────────────────────
+  // ── Rama 3: Abajo-izquierda (paso -1 col, +1 row) ───────────────
   { id: 'n3_1', label: '', icon: 'ellipse-outline', num: 11,
-    col: 4,  row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 9,  row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n3_2', label: '', icon: 'ellipse-outline', num: 12,
-    col: 3,  row: 7,  requires: ['n3_1'], effect: { type: 'atk', base: 0 } },
+    col: 8,  row: 7,  requires: ['n3_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n3_3', label: '', icon: 'ellipse-outline', num: 13,
-    col: 2,  row: 8,  requires: ['n3_2'], effect: { type: 'atk', base: 0 } },
+    col: 7,  row: 8,  requires: ['n3_2'], effect: { type: 'atk', base: 0 } },
   { id: 'n3_4', label: '', icon: 'ellipse-outline', num: 14,
-    col: 1,  row: 9,  requires: ['n3_3'], effect: { type: 'atk', base: 0 } },
+    col: 6,  row: 9,  requires: ['n3_3'], effect: { type: 'atk', base: 0 } },
   { id: 'n3_5', label: '', icon: 'ellipse-outline', num: 15,
-    col: 0,  row: 10, requires: ['n3_4'], effect: { type: 'atk', base: 0 } },
+    col: 5,  row: 10, requires: ['n3_4'], effect: { type: 'atk', base: 0 } },
 
-  // ── Rama 4: Izquierda ───────────────────────────────────────────
+  // ── Rama 4: Izquierda (paso -2 cols) ────────────────────────────
   { id: 'n4_1', label: '', icon: 'ellipse-outline', num: 16,
-    col: 4,  row: 5,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 8,  row: 5,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n4_2', label: '', icon: 'ellipse-outline', num: 17,
-    col: 3,  row: 5,  requires: ['n4_1'], effect: { type: 'atk', base: 0 } },
+    col: 6,  row: 5,  requires: ['n4_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n4_3', label: '', icon: 'ellipse-outline', num: 18,
-    col: 2,  row: 5,  requires: ['n4_2'], effect: { type: 'atk', base: 0 } },
+    col: 4,  row: 5,  requires: ['n4_2'], effect: { type: 'atk', base: 0 } },
   { id: 'n4_4', label: '', icon: 'ellipse-outline', num: 19,
-    col: 1,  row: 5,  requires: ['n4_3'], effect: { type: 'atk', base: 0 } },
+    col: 2,  row: 5,  requires: ['n4_3'], effect: { type: 'atk', base: 0 } },
   { id: 'n4_5', label: '', icon: 'ellipse-outline', num: 20,
     col: 0,  row: 5,  requires: ['n4_4'], effect: { type: 'atk', base: 0 } },
 
-  // ── Rama 5: Arriba-izquierda ────────────────────────────────────
+  // ── Rama 5: Arriba-izquierda (paso -1 col, -1 row) ──────────────
   { id: 'n5_1', label: '', icon: 'ellipse-outline', num: 21,
-    col: 4,  row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 9,  row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n5_2', label: '', icon: 'ellipse-outline', num: 22,
-    col: 3,  row: 3,  requires: ['n5_1'], effect: { type: 'atk', base: 0 } },
+    col: 8,  row: 3,  requires: ['n5_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n5_3', label: '', icon: 'ellipse-outline', num: 23,
-    col: 2,  row: 2,  requires: ['n5_2'], effect: { type: 'atk', base: 0 } },
+    col: 7,  row: 2,  requires: ['n5_2'], effect: { type: 'atk', base: 0 } },
   { id: 'n5_4', label: '', icon: 'ellipse-outline', num: 24,
-    col: 1,  row: 1,  requires: ['n5_3'], effect: { type: 'atk', base: 0 } },
+    col: 6,  row: 1,  requires: ['n5_3'], effect: { type: 'atk', base: 0 } },
   { id: 'n5_5', label: '', icon: 'ellipse-outline', num: 25,
-    col: 0,  row: 0,  requires: ['n5_4'], effect: { type: 'atk', base: 0 } },
+    col: 5,  row: 0,  requires: ['n5_4'], effect: { type: 'atk', base: 0 } },
 
-  // ── Rama 6: Arriba-derecha ──────────────────────────────────────
+  // ── Rama 6: Arriba-derecha (paso +1 col, -1 row) ────────────────
   { id: 'n6_1', label: '', icon: 'ellipse-outline', num: 26,
-    col: 6,  row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 11, row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
   { id: 'n6_2', label: '', icon: 'ellipse-outline', num: 27,
-    col: 7,  row: 3,  requires: ['n6_1'], effect: { type: 'atk', base: 0 } },
+    col: 12, row: 3,  requires: ['n6_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n6_3', label: '', icon: 'ellipse-outline', num: 28,
-    col: 8,  row: 2,  requires: ['n6_2'], effect: { type: 'atk', base: 0 } },
+    col: 13, row: 2,  requires: ['n6_2'], effect: { type: 'atk', base: 0 } },
   { id: 'n6_4', label: '', icon: 'ellipse-outline', num: 29,
-    col: 9,  row: 1,  requires: ['n6_3'], effect: { type: 'atk', base: 0 } },
+    col: 14, row: 1,  requires: ['n6_3'], effect: { type: 'atk', base: 0 } },
   { id: 'n6_5', label: '', icon: 'ellipse-outline', num: 30,
-    col: 10, row: 0,  requires: ['n6_4'], effect: { type: 'atk', base: 0 } },
+    col: 15, row: 0,  requires: ['n6_4'], effect: { type: 'atk', base: 0 } },
 ];
 
 // ── Habilidades de fuego (disponibles sin desbloquear) ────────────────────────
