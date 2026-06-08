@@ -41,6 +41,17 @@ export class Enemy {
   private readonly visionRadiusSq: number;
   private cachedDisplayHeight = 0;
 
+  private hasWanderZone = false;
+  private wanderBoundsMinX = 0;
+  private wanderBoundsMinY = 0;
+  private wanderBoundsMaxX = 0;
+  private wanderBoundsMaxY = 0;
+  private hasWanderTarget = false;
+  private wanderTargetX = 0;
+  private wanderTargetY = 0;
+  private wanderWaitMs = 0;
+  private wanderStuckMs = 0;
+
   constructor(
     public mainScene: Phaser.Scene,
     public sprite: Phaser.GameObjects.Sprite,
@@ -72,7 +83,18 @@ export class Enemy {
   startChasing() {
     if (this.isDead || this.isChasing) return;
     this.isChasing = true;
+    this.hasWanderTarget = false;
     this.setState('walk');
+  }
+
+  setWanderZone(tileX: number, tileY: number, tileW: number, tileH: number, bufferTiles = 3): void {
+    const ts = GameScene.TILE_SIZE;
+    this.wanderBoundsMinX = (tileX - bufferTiles) * ts;
+    this.wanderBoundsMinY = (tileY - bufferTiles) * ts;
+    this.wanderBoundsMaxX = (tileX + tileW + bufferTiles) * ts;
+    this.wanderBoundsMaxY = (tileY + tileH + bufferTiles) * ts;
+    this.hasWanderZone = true;
+    this.wanderWaitMs = Phaser.Math.Between(0, 2000);
   }
 
   update(delta: number, playerPos: Vector2): void {
@@ -86,9 +108,31 @@ export class Enemy {
     }
 
     if (this.hpBarBg) this.drawHPBar();
-    if (!this.isChasing || this.state === 'attack' || this.state === 'hurt') return;
+    if (this.state === 'attack' || this.state === 'hurt') return;
 
-    // Evitar new Vector2 en el hot path — operar con coordenadas crudas
+    if (this.isChasing) {
+      this.updateChase(playerPos, delta);
+    } else {
+      this.updateWander(delta);
+    }
+  }
+
+  takeDamage(amount: number, isCrit = false) {
+    if (this.isDead) return;
+    this.HP -= amount;
+    this.showDamageNumber(amount, isCrit);
+    this.ensureHPBar();
+    this.drawHPBar();
+    if (this.HP <= 0) { this.die(); return; }
+    this.playHurt();
+  }
+
+  getTilePos(): Vector2 { return this.tilePos.clone(); }
+  getPixelPos(): Vector2 { return new Vector2(this.sprite.x, this.sprite.y); }
+
+  // ── Privada ────────────────────────────────────────────────────────────────
+
+  private updateChase(playerPos: Vector2, delta: number): void {
     const sx   = this.sprite.x;
     const sy   = this.sprite.y;
     const dx   = playerPos.x - sx;
@@ -114,20 +158,66 @@ export class Enemy {
     this.move(sx, sy, dx, dy, dist, delta);
   }
 
-  takeDamage(amount: number, isCrit = false) {
-    if (this.isDead) return;
-    this.HP -= amount;
-    this.showDamageNumber(amount, isCrit);
-    this.ensureHPBar();
-    this.drawHPBar();
-    if (this.HP <= 0) { this.die(); return; }
-    this.playHurt();
+  private updateWander(delta: number): void {
+    if (!this.hasWanderZone) return;
+
+    if (this.wanderWaitMs > 0) {
+      this.wanderWaitMs -= delta;
+      return;
+    }
+
+    if (!this.hasWanderTarget) {
+      this.pickWanderTarget();
+      return;
+    }
+
+    const sx   = this.sprite.x;
+    const sy   = this.sprite.y;
+    const dx   = this.wanderTargetX - sx;
+    const dy   = this.wanderTargetY - sy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < GameScene.TILE_SIZE * 0.6) {
+      this.hasWanderTarget = false;
+      this.wanderWaitMs = Phaser.Math.Between(1500, 4000);
+      this.setState('idle');
+      return;
+    }
+
+    this.move(sx, sy, dx, dy, dist, delta);
+
+    if (Math.abs(this.sprite.x - sx) < 0.5 && Math.abs(this.sprite.y - sy) < 0.5) {
+      this.wanderStuckMs += delta;
+      if (this.wanderStuckMs > 800) {
+        this.wanderStuckMs = 0;
+        this.hasWanderTarget = false;
+        this.wanderWaitMs = Phaser.Math.Between(500, 1500);
+      }
+    } else {
+      this.wanderStuckMs = 0;
+    }
   }
 
-  getTilePos(): Vector2 { return this.tilePos.clone(); }
-  getPixelPos(): Vector2 { return new Vector2(this.sprite.x, this.sprite.y); }
+  private pickWanderTarget(): void {
+    const ts       = GameScene.TILE_SIZE;
+    const curTileX = Math.floor(this.sprite.x / ts);
+    const curTileY = Math.floor(this.sprite.y / ts);
 
-  // ── Privada ────────────────────────────────────────────────────────────────
+    const boundMinX = Math.max(0, Math.ceil(this.wanderBoundsMinX / ts));
+    const boundMaxX = Math.floor(this.wanderBoundsMaxX / ts);
+    const boundMinY = Math.max(0, Math.ceil(this.wanderBoundsMinY / ts));
+    const boundMaxY = Math.floor(this.wanderBoundsMaxY / ts);
+
+    const offX = Phaser.Math.Between(1, 4) * (Math.random() < 0.5 ? 1 : -1);
+    const offY = Phaser.Math.Between(1, 4) * (Math.random() < 0.5 ? 1 : -1);
+    const tx   = Math.max(boundMinX, Math.min(boundMaxX, curTileX + offX));
+    const ty   = Math.max(boundMinY, Math.min(boundMaxY, curTileY + offY));
+
+    this.wanderTargetX = tx * ts + ts / 2;
+    this.wanderTargetY = ty * ts + ts;
+    this.hasWanderTarget = true;
+    this.wanderStuckMs = 0;
+  }
 
   private initSprite() {
     const offsetX = GameScene.TILE_SIZE / 2;

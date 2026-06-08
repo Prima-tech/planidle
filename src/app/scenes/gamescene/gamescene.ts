@@ -354,6 +354,7 @@ export class GameScene extends Phaser.Scene {
         }
       );
 
+      enemy.setWanderZone(cfg.zone.tileX, cfg.zone.tileY, cfg.zone.width, cfg.zone.height);
       this.enemies.push(enemy);
       tracker.count++;
     }
