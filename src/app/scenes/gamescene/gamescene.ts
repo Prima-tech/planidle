@@ -215,6 +215,7 @@ export class GameScene extends Phaser.Scene {
       }
       this.checkPortals(playerPos);
       this.player.syncLayers();
+      this.player.getSprite().setDepth(playerPos.y);
     }
 
     private runAutoAttack(): void {
@@ -633,7 +634,7 @@ export class GameScene extends Phaser.Scene {
         fontSize: '22px', color: '#f0a020', fontStyle: 'bold',
         stroke: '#000000', strokeThickness: 5,
       });
-      text.setOrigin(0.5, 1).setDepth(10);
+      text.setOrigin(0.5, 1).setDepth(5000);
       this.tweens.add({
         targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
         onComplete: () => text.destroy(),
@@ -648,7 +649,7 @@ export class GameScene extends Phaser.Scene {
         fontSize: '24px', color: '#1abc9c', fontStyle: 'bold',
         stroke: '#000000', strokeThickness: 5,
       });
-      text.setOrigin(0.5, 1).setDepth(10);
+      text.setOrigin(0.5, 1).setDepth(5000);
       this.tweens.add({
         targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
         onComplete: () => text.destroy(),
@@ -663,7 +664,7 @@ export class GameScene extends Phaser.Scene {
         fontSize: '28px', color: '#ff4444', fontStyle: 'bold',
         stroke: '#000000', strokeThickness: 6,
       });
-      text.setOrigin(0.5, 1).setDepth(10);
+      text.setOrigin(0.5, 1).setDepth(5000);
       this.tweens.add({
         targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
         onComplete: () => text.destroy(),

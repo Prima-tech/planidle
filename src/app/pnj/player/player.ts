@@ -202,9 +202,12 @@ export class Player {
       if (!layer?.active) return;
       const cfg = this.layerConfigs.get(slotId);
       layer.setPosition(this.sprite.x, this.sprite.y + (cfg?.layerOffsetY ?? 0));
+      const baseY = this.sprite.y;
       if (cfg?.depthWhenUp !== undefined) {
         const facingDown = currentAnimKey.endsWith('_down');
-        layer.setDepth(facingDown ? cfg.depth : cfg.depthWhenUp);
+        layer.setDepth(baseY + (facingDown ? cfg.depth : cfg.depthWhenUp) - 2);
+      } else {
+        layer.setDepth(baseY + (cfg?.depth ?? 2) - 2);
       }
       if (cfg?.mode === 'anim' && cfg.playerPrefix && cfg.layerPrefix) {
         const targetKey = currentAnimKey.startsWith(cfg.playerPrefix)

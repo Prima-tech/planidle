@@ -41,8 +41,6 @@ export class Enemy {
   private readonly visionRadiusSq: number;
   private cachedDisplayHeight = 0;
 
-  private debugGfx: Phaser.GameObjects.Graphics | null = null;
-
   private hasWanderZone = false;
   private wanderBoundsMinX = 0;
   private wanderBoundsMinY = 0;
@@ -109,8 +107,8 @@ export class Enemy {
       if (vdx * vdx + vdy * vdy < this.visionRadiusSq) this.startChasing();
     }
 
+    this.sprite.setDepth(this.sprite.y);
     if (this.hpBarBg) this.drawHPBar();
-    this.drawDebug();
     if (this.state === 'attack' || this.state === 'hurt') return;
 
     if (this.isChasing) {
@@ -375,8 +373,6 @@ export class Enemy {
     this.hpBarFill?.destroy();
     this.hpBarBg = null;
     this.hpBarFill = null;
-    this.debugGfx?.destroy();
-    this.debugGfx = null;
 
     const center = this.sprite.getCenter();
     const type   = this.config.type;
@@ -411,7 +407,7 @@ export class Enemy {
       stroke:          '#000000',
       strokeThickness: isCrit ? 8 : 6,
     });
-    text.setOrigin(0.5, 1).setDepth(10);
+    text.setOrigin(0.5, 1).setDepth(5000);
     this.mainScene.tweens.add({
       targets:  text,
       y:        y - (isCrit ? 55 : 35),
@@ -426,11 +422,11 @@ export class Enemy {
     if (this.hpBarBg) return;
     this.hpBarBg = this.mainScene.add
       .rectangle(0, 0, BAR_W + 2, BAR_H + 2, 0x000000, 0.55)
-      .setDepth(15)
+      .setDepth(5000)
       .setOrigin(0.5, 0.5);
     this.hpBarFill = this.mainScene.add
       .rectangle(0, 0, BAR_W, BAR_H, 0x44cc44, 1)
-      .setDepth(15)
+      .setDepth(5000)
       .setOrigin(0, 0.5);
   }
 
@@ -449,30 +445,6 @@ export class Enemy {
       this.hpBarFill.setSize(BAR_W * pct, BAR_H);
       this.hpBarFill.setFillStyle(color, 1);
     }
-  }
-
-  private drawDebug(): void {
-    if (!this.debugGfx) {
-      this.debugGfx = this.mainScene.add.graphics().setDepth(20);
-    }
-    this.debugGfx.clear();
-
-    // Rojo = sprite.x/y (centro del frame, ahora origin 0.5,0.5)
-    this.debugGfx.fillStyle(0xff0000, 1);
-    this.debugGfx.fillCircle(this.sprite.x, this.sprite.y, 4);
-
-    // Verde = bounding box visual del sprite
-    this.debugGfx.lineStyle(1, 0x00ff00, 0.8);
-    this.debugGfx.strokeRect(
-      this.sprite.x - this.sprite.displayWidth * 0.5,
-      this.sprite.y - this.sprite.displayHeight * 0.5,
-      this.sprite.displayWidth,
-      this.sprite.displayHeight,
-    );
-
-    // Amarillo = zona de colisión (getCollisionY)
-    this.debugGfx.fillStyle(0xffff00, 1);
-    this.debugGfx.fillCircle(this.sprite.x, this.getCollisionY(), 4);
   }
 
   private facePlayer(): void {
