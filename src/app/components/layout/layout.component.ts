@@ -25,6 +25,7 @@ import { SummonService } from 'src/app/services/summon.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { BuffService } from 'src/app/services/buff.service';
 import { AutoAttackService } from 'src/app/services/auto-attack.service';
+import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { RegenService } from 'src/app/services/regen.service';
 
@@ -68,6 +69,7 @@ export class LayoutComponent implements OnDestroy {
     private skillActivationService: SkillActivationService,
     private buffService: BuffService,
     private autoAttackService: AutoAttackService,
+    private gameSettingsService: GameSettingsService,
     private panelStateService: PanelStateService,
     private regenService: RegenService,
   ) {
@@ -160,6 +162,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.SKILL_ACTIVATION, this.skillActivationService);
     this.phaserGame.registry.set(REGISTRY_KEYS.BUFF,             this.buffService);
     this.phaserGame.registry.set(REGISTRY_KEYS.AUTO_ATTACK,      this.autoAttackService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.GAME_SETTINGS,   this.gameSettingsService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

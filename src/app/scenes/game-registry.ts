@@ -12,6 +12,7 @@ import { WorldService } from '../services/world.service';
 import { SummonService } from '../services/summon.service';
 import { SkillActivationService } from '../services/skill-activation.service';
 import { AutoAttackService } from '../services/auto-attack.service';
+import { GameSettingsService } from '../services/game-settings.service';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
 export const REGISTRY_KEYS = {
@@ -29,6 +30,7 @@ export const REGISTRY_KEYS = {
   SKILL_ACTIVATION: 'skillActivationService',
   BUFF:             'buffService',
   AUTO_ATTACK:      'autoAttackService',
+  GAME_SETTINGS:    'gameSettingsService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -49,4 +51,5 @@ export class GameRegistry {
   get skillActivation(): SkillActivationService   { return this.game.registry.get(REGISTRY_KEYS.SKILL_ACTIVATION); }
   get buff():            BuffService              { return this.game.registry.get(REGISTRY_KEYS.BUFF); }
   get autoAttack():      AutoAttackService        { return this.game.registry.get(REGISTRY_KEYS.AUTO_ATTACK); }
+  get gameSettings():    GameSettingsService      { return this.game.registry.get(REGISTRY_KEYS.GAME_SETTINGS); }
 }

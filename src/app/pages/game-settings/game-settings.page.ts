@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { GameSettingsService } from 'src/app/services/game-settings.service';
 
 @Component({
   selector: 'app-game-settings-page',
@@ -8,4 +9,5 @@ import { Component } from '@angular/core';
 })
 export class GameSettingsPageComponent {
   tab: 0 | 1 | 2 = 0;
+  gs = inject(GameSettingsService);
 }

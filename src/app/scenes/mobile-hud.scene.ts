@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { Direction } from '../pnj/interfaces/Direction';
+import { REGISTRY_KEYS } from './game-registry';
+import { Subscription } from 'rxjs';
 
 export interface MobileInput {
   direction: Direction;
@@ -56,13 +58,27 @@ export class MobileHUDScene extends Phaser.Scene {
     const atkLabel  = this.add.image(ax, ay, 'atk_icon')
       .setScale(2.1).setAlpha(0.95);
 
+    // ── Joystick visibility ───────────────────────────────────────────────────
+    const joystickElements = [base, baseRing, thumb];
+    const gameSettings = this.game.registry.get(REGISTRY_KEYS.GAME_SETTINGS);
+    let joystickSub: Subscription | null = null;
+
+    if (gameSettings) {
+      const setJoyVisible = (v: boolean) => joystickElements.forEach(e => e.setVisible(v));
+      setJoyVisible(gameSettings.showJoystick);
+      joystickSub = gameSettings.showJoystick$.subscribe((v: boolean) => setJoyVisible(v));
+    }
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => joystickSub?.unsubscribe());
+
     // ── Pointer tracking ──────────────────────────────────────────────────────
     let joyId: number | null = null;
     let atkId: number | null = null;
     let joySrcX = 0, joySrcY = 0;
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
-      if (p.x < W * 0.5 && joyId === null) {
+      const joyEnabled = !gameSettings || gameSettings.showJoystick;
+      if (p.x < W * 0.5 && joyId === null && joyEnabled) {
         joyId   = p.id;
         joySrcX = p.x;
         joySrcY = p.y;
