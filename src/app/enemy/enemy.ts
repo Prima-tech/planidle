@@ -41,6 +41,8 @@ export class Enemy {
   private readonly visionRadiusSq: number;
   private cachedDisplayHeight = 0;
 
+  private debugGfx: Phaser.GameObjects.Graphics | null = null;
+
   private hasWanderZone = false;
   private wanderBoundsMinX = 0;
   private wanderBoundsMinY = 0;
@@ -108,6 +110,7 @@ export class Enemy {
     }
 
     if (this.hpBarBg) this.drawHPBar();
+    this.drawDebug();
     if (this.state === 'attack' || this.state === 'hurt') return;
 
     if (this.isChasing) {
@@ -129,7 +132,7 @@ export class Enemy {
 
   getTilePos(): Vector2 { return this.tilePos.clone(); }
   getPixelPos(): Vector2 { return new Vector2(this.sprite.x, this.sprite.y); }
-  getCollisionY(): number { return this.sprite.y - this.sprite.displayHeight * 0.4; }
+  getCollisionY(): number { return this.sprite.y + this.sprite.displayHeight * 0.1; }
 
   // ── Privada ────────────────────────────────────────────────────────────────
 
@@ -222,8 +225,8 @@ export class Enemy {
 
   private initSprite() {
     const offsetX = GameScene.TILE_SIZE / 2;
-    const offsetY = GameScene.TILE_SIZE;
-    this.sprite.setOrigin(0.5, 1);
+    const offsetY = GameScene.TILE_SIZE / 2;
+    this.sprite.setOrigin(0.5, 0.5);
     this.sprite.setScale(this.config.scale);
     this.sprite.setPosition(
       this.tilePos.x * GameScene.TILE_SIZE + offsetX,
@@ -372,6 +375,8 @@ export class Enemy {
     this.hpBarFill?.destroy();
     this.hpBarBg = null;
     this.hpBarFill = null;
+    this.debugGfx?.destroy();
+    this.debugGfx = null;
 
     const center = this.sprite.getCenter();
     const type   = this.config.type;
@@ -433,7 +438,7 @@ export class Enemy {
     if (!this.hpBarBg || !this.hpBarFill) return;
     const pct = Math.max(0, this.HP / this.maxHP);
     const cx  = this.sprite.x;
-    const cy  = this.sprite.y - this.cachedDisplayHeight - BAR_OFFSET;
+    const cy  = this.sprite.y - this.cachedDisplayHeight * 0.5 - BAR_OFFSET;
     this.hpBarBg.setPosition(cx, cy);
     this.hpBarFill.setPosition(cx - BAR_W / 2, cy);
 
@@ -444,6 +449,30 @@ export class Enemy {
       this.hpBarFill.setSize(BAR_W * pct, BAR_H);
       this.hpBarFill.setFillStyle(color, 1);
     }
+  }
+
+  private drawDebug(): void {
+    if (!this.debugGfx) {
+      this.debugGfx = this.mainScene.add.graphics().setDepth(20);
+    }
+    this.debugGfx.clear();
+
+    // Rojo = sprite.x/y (centro del frame, ahora origin 0.5,0.5)
+    this.debugGfx.fillStyle(0xff0000, 1);
+    this.debugGfx.fillCircle(this.sprite.x, this.sprite.y, 4);
+
+    // Verde = bounding box visual del sprite
+    this.debugGfx.lineStyle(1, 0x00ff00, 0.8);
+    this.debugGfx.strokeRect(
+      this.sprite.x - this.sprite.displayWidth * 0.5,
+      this.sprite.y - this.sprite.displayHeight * 0.5,
+      this.sprite.displayWidth,
+      this.sprite.displayHeight,
+    );
+
+    // Amarillo = zona de colisión (getCollisionY)
+    this.debugGfx.fillStyle(0xffff00, 1);
+    this.debugGfx.fillCircle(this.sprite.x, this.getCollisionY(), 4);
   }
 
   private facePlayer(): void {
