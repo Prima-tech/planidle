@@ -1,0 +1,22 @@
+<app-modal-container #hudModal [persistent]="true"></app-modal-container>
+
+<div class="hud-skills">
+  <div *ngFor="let i of [2, 1, 0]"
+       class="hud-btn"
+       [class.no-target]="noTarget(i)"
+       [style.--cd-angle]="cdAngles[i] + 'deg'"
+       (touchstart)="onTouchStart(i)"
+       (touchend)="onTouchEnd(i)"
+       (touchcancel)="onTouchCancel()"
+       (mousedown)="onTouchStart(i)"
+       (mouseup)="onTouchEnd(i)">
+
+    <img *ngIf="iconOf(i)" [src]="iconOf(i)" class="hud-btn-icon" />
+    <ion-icon *ngIf="!iconOf(i) && ionIconOf(i)" [name]="ionIconOf(i)" class="hud-btn-ion-icon"></ion-icon>
+    <span *ngIf="!slots[i]" class="hud-btn-plus">+</span>
+
+    <div *ngIf="cdAngles[i] > 0" class="hud-cd-overlay"></div>
+    <span *ngIf="cdSeconds[i]" class="hud-cd-text">{{ cdSeconds[i] }}</span>
+
+  </div>
+</div>

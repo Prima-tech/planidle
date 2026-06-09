@@ -1,6 +1,6 @@
-import { Component, ComponentRef, inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
 import { AsgardService } from 'src/app/services/asgard';
-import { Subscription } from 'rxjs'; // Importamos Subscription
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-modal-container',
@@ -12,7 +12,10 @@ export class ModalContainerComponent {
   @ViewChild('modalContent', { read: ViewContainerRef }) modalContent!: ViewContainerRef;
   private asgardService = inject(AsgardService);
 
-  private closeSub?: Subscription; // Variable para guardar la suscripción
+  /** Si true, el modal no se cierra al tocar el canvas del juego (closeMenu$). */
+  @Input() persistent = false;
+
+  private closeSub?: Subscription;
 
   isOpen = false;
   type: string;
@@ -26,10 +29,9 @@ export class ModalContainerComponent {
       this.modalContent.createComponent(component);
     });
 
-    // Guardamos la suscripción
-    this.closeSub = this.asgardService.closeMenu$.subscribe(() => {
-      this.close();
-    });
+    if (!this.persistent) {
+      this.closeSub = this.asgardService.closeMenu$.subscribe(() => this.close());
+    }
   }
 
   close() {

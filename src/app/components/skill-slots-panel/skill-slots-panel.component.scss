@@ -35,6 +35,20 @@
   }
 }
 
+.clear-slot-btn {
+  width: 100%;
+  padding: 5px 8px;
+  margin-bottom: 8px;
+  background: #2a0a0a;
+  border: 1px solid #8b2020;
+  border-radius: 5px;
+  color: #c0392b;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+  &:active { background: #3a1010; }
+}
+
 .panel-title {
   font-size: 14px;
   font-weight: 600;

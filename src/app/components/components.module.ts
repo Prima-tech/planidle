@@ -29,6 +29,7 @@ import { PlayerPreviewComponent } from './player-preview/player-preview.componen
 import { SkillSlotsPanelComponent } from './skill-slots-panel/skill-slots-panel.component';
 import { SkillDetailComponent } from './skill-detail/skill-detail.component';
 import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.page';
+import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.component';
 
 @NgModule({
   declarations: [
@@ -57,6 +58,7 @@ import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.
     SkillSlotsPanelComponent,
     SkillDetailComponent,
     GameSettingsPageComponent,
+    HudSkillButtonsComponent,
   ],
   imports: [
     CommonModule,
@@ -88,6 +90,7 @@ import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.
     ItemDetailComponent,
     CharStatsComponent,
     SummonComponent,
+    HudSkillButtonsComponent,
   ]
 })
 export class ComponentModule {}

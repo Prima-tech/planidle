@@ -14,8 +14,16 @@ export class SkillEquipService {
   readonly changes$           = new Subject<void>();
   readonly openDetail$        = new Subject<string>();
   readonly closeSkillPanels$  = new Subject<void>();
+  // Slot negativo = HUD slot (index = |slot| - 1). HudSkillButtonsComponent escucha esto.
+  readonly hudEquip$          = new Subject<{ index: number; nodeId: string }>();
 
   equip(slot: number, abilityId: string) {
+    if (slot < 0) {
+      this.hudEquip$.next({ index: Math.abs(slot) - 1, nodeId: abilityId });
+      this.changes$.next();
+      this.closeSkillPanels$.next();
+      return;
+    }
     for (const k of ALL_SLOTS) {
       if (this.slots[k] === abilityId) this.slots[k] = null;
     }

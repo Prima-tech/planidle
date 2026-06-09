@@ -3,6 +3,7 @@ import { TalentService, TalentNodeConfig, TALENT_NODES_FIRE, TALENT_NODES_WATER 
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { PanelStateService } from 'src/app/services/panel-state.service';
+import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 
 export type SkillTab = 'fire' | 'water' | 'other';
 
@@ -19,6 +20,7 @@ export class SkillSlotsPanelComponent implements OnInit {
   private talentService     = inject(TalentService);
   private skillEquipService = inject(SkillEquipService);
   private panelState        = inject(PanelStateService);
+  private hudSlots          = inject(HudSkillSlotsService);
 
   activeTab: SkillTab = 'fire';
 
@@ -49,5 +51,24 @@ export class SkillSlotsPanelComponent implements OnInit {
   select(ability: TalentNodeConfig) {
     this.skillEquipService.selectedAbilityId = ability.id;
     this.skillEquipService.openDetail$.next(ability.id);
+  }
+
+  get isHudSlot(): boolean {
+    return (this.skillEquipService.activeSlot ?? 0) < 0;
+  }
+
+  get hudSlotFilled(): boolean {
+    const slot = this.skillEquipService.activeSlot;
+    if (!this.isHudSlot || slot == null) return false;
+    const index = Math.abs(slot) - 1;
+    return !!this.hudSlots.slots[index];
+  }
+
+  clearSlot(): void {
+    const slot = this.skillEquipService.activeSlot;
+    if (!this.isHudSlot || slot == null) return;
+    const index = Math.abs(slot) - 1;
+    this.hudSlots.set(index, null);
+    this.skillEquipService.closeSkillPanels$.next();
   }
 }

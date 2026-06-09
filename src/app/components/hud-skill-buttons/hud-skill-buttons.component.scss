@@ -1,0 +1,87 @@
+:host {
+  pointer-events: none;
+}
+
+.hud-skills {
+  position: fixed;
+  right: 14px;
+  bottom: 178px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 150;
+  pointer-events: all;
+  align-items: center;
+}
+
+.hud-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0f1a2e;
+  border: 2px solid #2a3a5e;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6), inset 0 1px 3px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+
+  &:active {
+    transform: scale(0.92);
+    border-color: #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+  }
+
+  &.no-target {
+    opacity: 0.4;
+    filter: grayscale(60%);
+  }
+}
+
+.hud-btn-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.hud-btn-ion-icon {
+  font-size: 22px;
+  color: #3498db;
+}
+
+.hud-btn-plus {
+  font-size: 22px;
+  color: #3a4a6e;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.hud-cd-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    rgba(0,0,0,0.72) 0deg var(--cd-angle),
+    transparent var(--cd-angle) 360deg
+  );
+  pointer-events: none;
+}
+
+.hud-cd-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0,0,0,1);
+  pointer-events: none;
+}

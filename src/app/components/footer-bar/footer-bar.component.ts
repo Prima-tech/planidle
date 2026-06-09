@@ -66,6 +66,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.detailSub = this.skillEquipService.openDetail$.subscribe(() => {
       this.closeOtherOnSide('left', this.skillDetailModal);
+      const fromHud = (this.skillEquipService.activeSlot ?? 0) < 0;
+      this.skillDetailModal.persistent = fromHud;
       this.skillDetailModal.open(SkillDetailComponent, 'skill-detail');
     });
     this.closeSub = this.skillEquipService.closeSkillPanels$.subscribe(() => {

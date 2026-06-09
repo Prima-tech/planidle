@@ -1,5 +1,6 @@
 <div class="grid-view">
   <div class="panel-title">Habilidades</div>
+  <button *ngIf="isHudSlot && hudSlotFilled" class="clear-slot-btn" (click)="clearSlot()">Vaciar slot</button>
 
   <div class="tabs">
     <button class="tab-btn" [class.active]="activeTab === 'fire'"  (click)="setTab('fire')">

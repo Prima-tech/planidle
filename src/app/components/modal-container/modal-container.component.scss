@@ -1,8 +1,9 @@
 
 .modal-window {
   position: fixed;
-  z-index: 51;
+  z-index: 200;
   border-radius: 5px;
+  pointer-events: auto;
   &.menu {
     top: 10px;
     bottom: 65px;
@@ -112,6 +113,20 @@
 
 .close-btn {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #aaa;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1;
+  &:active { background: rgba(255,255,255,0.18); }
 }

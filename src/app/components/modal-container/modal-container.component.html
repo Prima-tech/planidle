@@ -1,3 +1,4 @@
   <div class="modal-window" [class]="type" *ngIf="isOpen">
+    <button *ngIf="persistent" class="close-btn" (click)="close()">✕</button>
     <ng-template #modalContent></ng-template>
   </div>
