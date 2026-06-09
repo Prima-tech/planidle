@@ -1,4 +1,5 @@
 <app-modal-container #menuModal></app-modal-container>
+<app-modal-container #gameSettingsModal></app-modal-container>
 <app-modal-container #inventoryModal></app-modal-container>
 <app-modal-container #equipmentModal></app-modal-container>
 <app-modal-container #mapStatsModal></app-modal-container>
@@ -32,9 +33,14 @@
         <span class="btn-label">Invocar</span>
       </div>
 
-      <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">
+      <div class="icon-menu-wrapper right" [class.active]="gameSettingsModal.isOpenModal()" (click)="openGameSettings()">
         <ion-icon name="settings-outline" class="footer-ion-icon"></ion-icon>
         <span class="btn-label">Ajustes</span>
+      </div>
+
+      <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">
+        <ion-icon name="construct-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Admin</span>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="inventoryModal.isOpenModal()" (click)="openInventory()">

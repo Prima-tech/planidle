@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { ModalContainerComponent } from '../modal-container/modal-container.component';
 import { testPageComponent } from 'src/app/pages/test/test.page';
 import { SettingsPageComponent } from 'src/app/pages/settings/settings.page';
+import { GameSettingsPageComponent } from 'src/app/pages/game-settings/game-settings.page';
 import { InventoryComponent } from '../inventory/inventory.component';
 import { EquipmentComponent } from '../equipment/equipment.component';
 import { MapStatsComponent } from '../map-stats/map-stats.component';
@@ -26,6 +27,7 @@ import { AutoAttackService } from 'src/app/services/auto-attack.service';
 })
 export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('menuModal')        menuModal!:        ModalContainerComponent;
+  @ViewChild('gameSettingsModal') gameSettingsModal!: ModalContainerComponent;
   @ViewChild('inventoryModal')   inventoryModal!:   ModalContainerComponent;
   @ViewChild('equipmentModal')   equipmentModal!:   ModalContainerComponent;
   @ViewChild('mapStatsModal')    mapStatsModal!:    ModalContainerComponent;
@@ -123,7 +125,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
       left:  [this.summonModal, this.equipmentModal, this.skillDetailModal],
-      right: [this.menuModal, this.mapStatsModal, this.mapKillsModal, this.statsModal, this.inventoryModal, this.skillSlotsModal],
+      right: [this.menuModal, this.gameSettingsModal, this.mapStatsModal, this.mapKillsModal, this.statsModal, this.inventoryModal, this.skillSlotsModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
   }
@@ -214,6 +216,15 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.skillEquipService.activeSlot = slot;
       this.skillSlotsModal.open(SkillSlotsPanelComponent, 'skill-slots');
       this.activeSkillSlot = slot;
+    }
+  }
+
+  openGameSettings() {
+    if (this.gameSettingsModal.isOpenModal()) {
+      this.gameSettingsModal.close();
+    } else {
+      this.closeOtherOnSide('right', this.gameSettingsModal);
+      this.gameSettingsModal.open(GameSettingsPageComponent, 'game-settings');
     }
   }
 

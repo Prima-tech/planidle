@@ -1,0 +1,30 @@
+<div class="gs-panel">
+
+  <div class="gs-tabs">
+    <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">Juego</button>
+    <button class="gs-tab" [class.active]="tab === 1" (click)="tab = 1">Tab 2</button>
+    <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">Tab 3</button>
+  </div>
+
+  <div class="gs-content">
+
+    <ng-container *ngIf="tab === 0">
+      <div class="gs-section">
+        <p class="gs-section-label">Ajustes del juego</p>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="tab === 1">
+      <div class="gs-section">
+        <p class="gs-section-label">Tab 2</p>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="tab === 2">
+      <div class="gs-section">
+        <p class="gs-section-label">Tab 3</p>
+      </div>
+    </ng-container>
+
+  </div>
+</div>
