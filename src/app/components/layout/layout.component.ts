@@ -28,6 +28,8 @@ import { AutoAttackService } from 'src/app/services/auto-attack.service';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { RegenService } from 'src/app/services/regen.service';
+import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
+import { SkillEquipService } from 'src/app/services/skill-equip.service';
 
 @Component({
   selector: 'app-layout',
@@ -72,6 +74,8 @@ export class LayoutComponent implements OnDestroy {
     private gameSettingsService: GameSettingsService,
     private panelStateService: PanelStateService,
     private regenService: RegenService,
+    private hudSkillSlotsService: HudSkillSlotsService,
+    private skillEquipService: SkillEquipService,
   ) {
     this.loadGame();
   }
@@ -163,6 +167,8 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.BUFF,             this.buffService);
     this.phaserGame.registry.set(REGISTRY_KEYS.AUTO_ATTACK,      this.autoAttackService);
     this.phaserGame.registry.set(REGISTRY_KEYS.GAME_SETTINGS,   this.gameSettingsService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.HUD_SKILL_SLOTS, this.hudSkillSlotsService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.SKILL_EQUIP,     this.skillEquipService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

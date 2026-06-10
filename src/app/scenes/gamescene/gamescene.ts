@@ -75,6 +75,8 @@ export class GameScene extends Phaser.Scene {
     private playerDamage      = 10;
     private playerMagicDamage = 10;
     private mobileInput: MobileInput | null = null;
+    private pendingDashMoveDir: Direction | null = null;
+    private pendingDashAnimDir: Direction | null = null;
     currentMap: any;
 
       constructor(
@@ -501,7 +503,8 @@ export class GameScene extends Phaser.Scene {
 
     createPhysics() {
       this.gridPhysics  = new GridPhysics(this.player, this.currentMap, this.enemies, this.buildCollisionTiles());
-      this.gridControls = new GridControls(this.input, this.gridPhysics, this.mobileInput);
+      this.gridControls = new GridControls(this.input, this.gridPhysics, this.mobileInput,
+        (md, ad) => this.onDashDoubleTap(md, ad));
     }
 
     private buildCollisionTiles(): Set<string> {
@@ -532,6 +535,20 @@ export class GameScene extends Phaser.Scene {
     }
 
     onGameClick(_pointer: Phaser.Input.Pointer) { }
+
+    private onDashDoubleTap(moveDir: Direction, animDir: Direction): void {
+      if (!this.isDashEquipped()) return;
+      this.pendingDashMoveDir = moveDir;
+      this.pendingDashAnimDir = animDir;
+      this.reg.skillActivation?.request('dash', 0);
+    }
+
+    private isDashEquipped(): boolean {
+      if (this.reg.hudSlots?.slots.some(id => id === 'dash')) return true;
+      const slots = this.reg.skillEquip?.slots;
+      if (slots && Object.values(slots).some(id => id === 'dash')) return true;
+      return false;
+    }
 
 
     initEnemyAttackListener() {
@@ -829,7 +846,11 @@ export class GameScene extends Phaser.Scene {
         ps.setMp(state.mp - cfg.manaCost);
       }
       if (cfg.effectType === 'dash') {
-        this.gridPhysics.dash(this.player.getDirection(), this.player.getDirection());
+        const moveDir = this.pendingDashMoveDir ?? this.player.getDirection();
+        const animDir = this.pendingDashAnimDir ?? this.player.getDirection();
+        this.pendingDashMoveDir = null;
+        this.pendingDashAnimDir = null;
+        this.gridPhysics.dash(moveDir, animDir);
         this.playImpactSelf(cfg);
         return;
       }

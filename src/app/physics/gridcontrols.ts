@@ -22,6 +22,7 @@ export class GridControls {
     private input: Phaser.Input.InputPlugin,
     private gridPhysics: GridPhysics,
     private mobileInput?: MobileInput | null,
+    private dashCallback?: (moveDir: Direction, animDir: Direction) => void,
   ) {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys({
@@ -35,7 +36,7 @@ export class GridControls {
       const now = Date.now();
       const last = this.lastDirPressTime[dir] ?? 0;
       if (now - last < this.DOUBLE_TAP_MS) {
-        this.gridPhysics.dash(dir, dir);
+        this.dashCallback?.(dir, dir);
         this.lastDirPressTime[dir] = 0;
       } else {
         this.lastDirPressTime[dir] = now;
@@ -66,7 +67,7 @@ export class GridControls {
         this.mobileReleasedTime = now;
       } else if (this.prevMobileDir === Direction.NONE && mob.direction !== Direction.NONE) {
         if (mob.lastCardinalDir === this.mobileReleasedDir && now - this.mobileReleasedTime < this.DOUBLE_TAP_MS) {
-          this.gridPhysics.dash(mob.direction, mob.lastCardinalDir);
+          this.dashCallback?.(mob.direction, mob.lastCardinalDir);
           this.mobileReleasedDir = Direction.NONE;
         }
       }

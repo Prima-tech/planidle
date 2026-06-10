@@ -33,17 +33,18 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
   private subs: Subscription[] = [];
 
   ngOnInit(): void {
-    // Cuando se equipa desde SkillDetailComponent con slot negativo → asignar al HUD
     this.subs.push(
       this.skillEquip.hudEquip$.subscribe(({ index, nodeId }) => {
         this.hudSlots.set(index, nodeId);
       })
     );
-    // Cerrar el modal del HUD cuando el sistema cierra todos los paneles de skills
     this.subs.push(
       this.skillEquip.closeSkillPanels$.subscribe(() => {
         if (this.hudModal?.isOpenModal()) this.hudModal.close();
       })
+    );
+    this.subs.push(
+      this.skillActivation.activate$.subscribe(() => this.startCdLoop())
     );
     this.startCdLoop();
   }
