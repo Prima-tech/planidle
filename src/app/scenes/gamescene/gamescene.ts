@@ -779,7 +779,7 @@ export class GameScene extends Phaser.Scene {
         new Phaser.Math.Vector2(tileX, tileY),
         this.currentMap,
         cfg,
-        'aggressive',
+        'passive',
         12,
         () => {
           const idx = this.enemies.indexOf(enemy);
