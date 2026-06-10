@@ -3,7 +3,6 @@
 <app-modal-container #inventoryModal></app-modal-container>
 <app-modal-container #equipmentModal></app-modal-container>
 <app-modal-container #mapStatsModal></app-modal-container>
-<app-modal-container #statsModal></app-modal-container>
 <app-modal-container #summonModal></app-modal-container>
 <app-modal-container #skillSlotsModal></app-modal-container>
 <app-modal-container #skillDetailModal></app-modal-container>
@@ -58,10 +57,6 @@
         <span class="btn-label">Stats</span>
       </div>
 
-<div class="icon-menu-wrapper right" [class.active]="statsModal.isOpenModal()" (click)="openStats()">
-        <ion-icon name="podium-outline" class="footer-ion-icon"></ion-icon>
-        <span class="btn-label">Rank</span>
-      </div>
     </ng-container>
 
     <!-- Página de habilidades -->

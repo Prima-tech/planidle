@@ -18,7 +18,6 @@ import { SettingsPageComponent } from '../pages/settings/settings.page';
 import { MapStatsComponent } from './map-stats/map-stats.component';
 import { OfflineGainsModalComponent } from './offline-gains-modal/offline-gains-modal.component';
 import { DeathModalComponent } from './death-modal/death-modal.component';
-import { StatsPageComponent } from './stats-page/stats-page.component';
 import { EquipmentComponent } from './equipment/equipment.component';
 import { ItemDetailComponent } from './item-detail/item-detail.component';
 import { CharStatsComponent } from './char-stats/char-stats.component';
@@ -48,7 +47,6 @@ import { CharacterSpriteComponent } from './character-sprite/character-sprite.co
     MapStatsComponent,
     OfflineGainsModalComponent,
     DeathModalComponent,
-    StatsPageComponent,
     EquipmentComponent,
     ItemDetailComponent,
     CharStatsComponent,
@@ -85,7 +83,6 @@ import { CharacterSpriteComponent } from './character-sprite/character-sprite.co
     MapStatsComponent,
     OfflineGainsModalComponent,
     DeathModalComponent,
-    StatsPageComponent,
     EquipmentComponent,
     ItemDetailComponent,
     CharStatsComponent,
