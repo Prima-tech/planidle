@@ -3,51 +3,51 @@ ion-content {
   --ion-background-color: transparent;
 }
 
-// ── SCREEN LAYOUT ────────────────────────────────────────────────────────────
+// ── LAYOUT ────────────────────────────────────────────────────────────────────
+
 .char-select-screen {
   position: fixed;
   inset: 0;
   display: flex;
   flex-direction: row;
-  background: rgba(0, 0, 0, 0.58);
+  background: rgba(4, 7, 18, 0.86);
   z-index: 1;
 }
 
-// ── LEFT PANEL ───────────────────────────────────────────────────────────────
+// ── LEFT PANEL ────────────────────────────────────────────────────────────────
+
 .left-panel {
-  flex: 0 0 26%;
+  flex: 0 0 22%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 20px;
-  padding-top: 60px;
-  gap: 24px;
+  gap: 20px;
 
   .game-logo {
     text-align: center;
 
     .logo-icon {
-      font-size: 40px;
+      font-size: 34px;
       line-height: 1;
-      filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.8));
     }
 
     .game-title {
-      margin: 6px 0 3px;
-      font-size: 30px;
+      margin: 8px 0 4px;
+      font-size: 24px;
       font-weight: 900;
       letter-spacing: 5px;
-      color: #ffffff;
-      text-shadow: 0 0 20px rgba(0, 210, 255, 0.7);
+      color: #e0ecff;
+      text-shadow: 0 0 18px rgba(91, 192, 248, 0.25);
     }
 
     .game-tagline {
       margin: 0;
-      font-size: 9px;
+      font-size: 8px;
       letter-spacing: 3px;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.4);
+      color: #4a6a9a;
     }
   }
 
@@ -55,51 +55,45 @@ ion-content {
     display: flex;
     align-items: center;
     gap: 7px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 7px 14px;
+    background: rgba(52, 152, 219, 0.07);
+    border: 1px solid #2e4270;
     border-radius: 50px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 13px;
+    color: #7ab0e0;
+    font-size: 12px;
 
     ion-icon {
-      font-size: 18px;
-      color: #00d2ff;
+      font-size: 16px;
+      color: #5bc0f8;
     }
   }
 }
 
-// ── PANEL DIVIDER ─────────────────────────────────────────────────────────────
+// ── DIVIDER ───────────────────────────────────────────────────────────────────
+
 .panel-divider {
   flex: 0 0 1px;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(255, 255, 255, 0.15) 20%,
-    rgba(0, 210, 255, 0.35) 50%,
-    rgba(255, 255, 255, 0.15) 80%,
-    transparent 100%
-  );
+  background: #2e4270;
   align-self: stretch;
-  margin: 20px 0;
+  margin: 16px 0;
 }
 
 // ── RIGHT PANEL ───────────────────────────────────────────────────────────────
+
 .right-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 16px 20px;
-
-  gap: 10px;
+  padding: 14px 18px;
+  gap: 8px;
 
   .choose-label {
     margin: 0;
-    font-size: 9px;
+    font-size: 8px;
     letter-spacing: 3px;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.35);
+    color: #2e4270;
   }
 
   .loading-state {
@@ -109,30 +103,30 @@ ion-content {
     flex: 1;
 
     ion-spinner {
-      color: #00d2ff;
-      width: 36px;
-      height: 36px;
+      color: #3498db;
+      width: 32px;
+      height: 32px;
     }
   }
 }
 
-// ── CHARACTER GRID (3 rows: 5 / 5 / 1) ───────────────────────────────────────
+// ── GRID ──────────────────────────────────────────────────────────────────────
+
 .characters-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .char-row {
   display: flex;
-  gap: 7px;
+  gap: 6px;
 
-  &--centered {
-    justify-content: center;
-  }
+  &--centered { justify-content: center; }
 }
 
-// ── HERO CARD (compact) ───────────────────────────────────────────────────────
+// ── HERO CARD ─────────────────────────────────────────────────────────────────
+
 .hero-card {
   position: relative;
   flex: 1 1 0;
@@ -140,116 +134,91 @@ ion-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   padding: 10px 8px 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: rgba(10, 15, 35, 0.93);
+  border: 1px solid #1e2e50;
+  border-radius: 10px;
   cursor: pointer;
-  backdrop-filter: blur(6px);
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s, box-shadow 0.15s;
 
-  &:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.28);
-  }
+  &:active { background: rgba(18, 26, 52, 0.97); }
 
   &--selected {
-    border-color: #00d2ff;
-    box-shadow: 0 0 14px rgba(0, 210, 255, 0.35), inset 0 0 14px rgba(0, 210, 255, 0.06);
-    transform: translateY(-2px);
+    border-color: #3498db;
+    box-shadow: 0 0 12px rgba(52, 152, 219, 0.28);
   }
 
-  // Ancestral: wider card in row 3
-  &--ancestral-special {
-    flex: 0 0 140px;
-  }
+  &--ancestral-special { flex: 0 0 140px; }
 
-  // ── CLASS THEMES ────────────────────────────────────────
+  // ── Class themes ──────────────────────────────────────────────────────────
+
   &--warrior {
-    .hero-avatar {
-      background: rgba(255, 100, 40, 0.18);
-      border-color: rgba(255, 100, 40, 0.45);
-      ion-icon { color: #ff8040; }
-    }
-    .hero-class-badge { background: rgba(255, 100, 40, 0.2); color: #ffa070; }
-    .hp-bar-fill { background: linear-gradient(90deg, #cc3300, #ff8040); }
+    .hero-avatar { background: rgba(200, 80, 30, 0.14); border-color: rgba(200, 80, 30, 0.4); ion-icon { color: #e07050; } }
+    .hero-class-badge { background: rgba(200, 80, 30, 0.14); color: #e09070; }
+    .hp-bar-fill { background: linear-gradient(90deg, #8b2200, #e07050); }
   }
 
   &--mage {
-    .hero-avatar {
-      background: rgba(30, 100, 220, 0.2);
-      border-color: rgba(60, 140, 255, 0.5);
-      ion-icon { color: #5aadff; }
-    }
-    .hero-class-badge { background: rgba(30, 100, 220, 0.2); color: #90ccff; }
-    .hp-bar-fill { background: linear-gradient(90deg, #1040a0, #5aadff); }
+    .hero-avatar { background: rgba(100, 60, 200, 0.14); border-color: rgba(120, 80, 220, 0.4); ion-icon { color: #9070e0; } }
+    .hero-class-badge { background: rgba(100, 60, 200, 0.14); color: #b0a0f0; }
+    .hp-bar-fill { background: linear-gradient(90deg, #3a1890, #9070e0); }
   }
 
   &--hunter {
-    .hero-avatar {
-      background: rgba(60, 200, 100, 0.18);
-      border-color: rgba(60, 200, 100, 0.45);
-      ion-icon { color: #4ecf7a; }
-    }
-    .hero-class-badge { background: rgba(60, 200, 100, 0.2); color: #80e8a0; }
-    .hp-bar-fill { background: linear-gradient(90deg, #1a8040, #4ecf7a); }
+    .hero-avatar { background: rgba(50, 180, 90, 0.14); border-color: rgba(50, 180, 90, 0.4); ion-icon { color: #50c870; } }
+    .hero-class-badge { background: rgba(50, 180, 90, 0.14); color: #80e090; }
+    .hp-bar-fill { background: linear-gradient(90deg, #186030, #50c870); }
   }
 
   &--priest {
-    .hero-avatar {
-      background: rgba(210, 180, 120, 0.2);
-      border-color: rgba(220, 195, 140, 0.5);
-      ion-icon { color: #e8d5a3; }
-    }
-    .hero-class-badge { background: rgba(210, 180, 120, 0.2); color: #f0e4c0; }
-    .hp-bar-fill { background: linear-gradient(90deg, #9a7a3a, #e8d5a3); }
+    .hero-avatar { background: rgba(200, 170, 100, 0.14); border-color: rgba(200, 170, 100, 0.4); ion-icon { color: #d4b870; } }
+    .hero-class-badge { background: rgba(200, 170, 100, 0.14); color: #e8d090; }
+    .hp-bar-fill { background: linear-gradient(90deg, #7a5a18, #d4b870); }
   }
 
   &--necron {
-    .hero-avatar {
-      background: rgba(40, 40, 40, 0.5);
-      border-color: rgba(120, 120, 120, 0.45);
-      ion-icon { color: #9e9e9e; }
-    }
-    .hero-class-badge { background: rgba(40, 40, 40, 0.5); color: #bdbdbd; }
-    .hp-bar-fill { background: linear-gradient(90deg, #1a1a1a, #757575); }
+    .hero-avatar { background: rgba(70, 70, 90, 0.2); border-color: rgba(100, 100, 120, 0.4); ion-icon { color: #8888a0; } }
+    .hero-class-badge { background: rgba(70, 70, 90, 0.2); color: #a0a0b8; }
+    .hp-bar-fill { background: linear-gradient(90deg, #282830, #686880); }
   }
 
   &--ancestral {
-    .hero-avatar {
-      background: rgba(0, 210, 255, 0.18);
-      border-color: rgba(0, 210, 255, 0.55);
-      ion-icon { color: #00d2ff; }
-    }
-    .hero-class-badge { background: rgba(0, 210, 255, 0.2); color: #80eaff; }
-    .hp-bar-fill { background: linear-gradient(90deg, #0080cc, #00d2ff); }
-
-    // special glow for the unique class
-    border-color: rgba(0, 210, 255, 0.25);
-    box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+    .hero-avatar { background: rgba(52, 152, 219, 0.14); border-color: rgba(52, 152, 219, 0.4); ion-icon { color: #5bc0f8; } }
+    .hero-class-badge { background: rgba(52, 152, 219, 0.14); color: #90d8ff; }
+    .hp-bar-fill { background: linear-gradient(90deg, #1a5090, #5bc0f8); }
+    border-color: rgba(52, 152, 219, 0.2);
   }
 
-  // ── CARD INTERNALS ───────────────────────────────────────
+  // ── Internals ─────────────────────────────────────────────────────────────
+
   .hero-avatar {
-    width: 38px;
-    height: 38px;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid #2e4270;
+    background: rgba(10, 15, 35, 0.88);
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1;
+    ion-icon { font-size: 19px; }
+  }
 
-    ion-icon { font-size: 18px; }
+  app-character-sprite {
+    display: block;
+    margin: 2px 0 0;
   }
 
   .hero-name {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 0.5px;
+    color: #e0ecff;
+    letter-spacing: 0.3px;
     text-align: center;
-    line-height: 1.2;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -257,21 +226,21 @@ ion-content {
   }
 
   .hero-class-badge {
-    padding: 1px 8px;
+    padding: 1px 7px;
     border-radius: 50px;
     font-size: 7px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
     text-transform: uppercase;
   }
 
   .hp-bar-track {
     width: 100%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
+    height: 3px;
+    background: rgba(255, 255, 255, 0.07);
     border-radius: 2px;
     overflow: hidden;
-    margin-top: 2px;
+    margin-top: 1px;
 
     .hp-bar-fill {
       height: 100%;
@@ -283,78 +252,70 @@ ion-content {
     display: flex;
     align-items: center;
     gap: 3px;
-    padding: 2px 6px;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 50px;
     font-size: 8px;
-    letter-spacing: 0.5px;
-    color: rgba(255, 255, 255, 0.5);
-
-    ion-icon {
-      font-size: 9px;
-      color: #00d2ff;
-    }
+    color: #4a6a9a;
+    ion-icon { font-size: 9px; color: #3498db; }
   }
 
   .hero-offline {
     display: flex;
     align-items: center;
     gap: 3px;
-    padding: 2px 6px;
-    background: rgba(255, 180, 0, 0.08);
-    border-radius: 50px;
     font-size: 8px;
-    letter-spacing: 0.5px;
-    color: rgba(255, 200, 80, 0.7);
-
-    ion-icon {
-      font-size: 9px;
-      color: rgba(255, 200, 80, 0.8);
-    }
+    color: rgba(200, 160, 60, 0.7);
+    ion-icon { font-size: 9px; color: rgba(200, 160, 60, 0.8); }
   }
 
   .selected-check {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    ion-icon {
-      font-size: 14px;
-      color: #00d2ff;
-    }
+    top: 5px;
+    right: 5px;
+    ion-icon { font-size: 13px; color: #3498db; }
   }
 }
 
 // ── NO HEROES ─────────────────────────────────────────────────────────────────
+
 .no-heroes {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
+  color: #4a6a9a;
+  font-size: 12px;
 }
 
 // ── ACTION ROW ────────────────────────────────────────────────────────────────
+
 .action-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: -24px;
+  margin-top: -18px;
+}
 
-  .continue-btn {
-    --background: linear-gradient(180deg, #6b4a1e 0%, #3a2208 100%);
-    --border-radius: 4px;
-    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 200, 100, 0.2);
-    --padding-start: 28px;
-    --padding-end: 28px;
-    --color: #f0d080;
-    font-family: serif;
-    font-weight: 700;
-    letter-spacing: 3px;
-    font-size: 12px;
-    text-transform: uppercase;
-    border: 1px solid #8b6020;
-    position: relative;
+.continue-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 22px;
+  background: #0e2040;
+  border: 1px solid #3498db;
+  border-radius: 7px;
+  color: #5bc0f8;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
 
-    &::part(native) {
-      border: 1.5px solid #8b6020;
-      border-bottom-color: #3a2208;
-      border-right-color: #5a3a10;
-    }
+  ion-icon { font-size: 14px; }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: #2e4270;
+    color: #2e4270;
+  }
+
+  &:not(:disabled):active {
+    background: #1e3a5f;
+    color: #e0ecff;
   }
 }

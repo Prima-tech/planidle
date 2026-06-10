@@ -4,6 +4,7 @@ import { AsgardService } from 'src/app/services/asgard';
 import { StorageService } from 'src/app/services/storage.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
+import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 
 @Component({
   selector: 'app-globalposition',
@@ -13,8 +14,9 @@ import { MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
 })
 export class GlobalpositionPage implements OnInit, OnDestroy {
   isSelected: any = null;
-  charMapNames: Record<string, string> = {};
-  charLastSeen: Record<string, string> = {};
+  charMapNames:  Record<string, string>           = {};
+  charLastSeen:  Record<string, string>           = {};
+  charEquipment: Record<string, EquipmentSnapshot> = {};
   now = Date.now();
   private ticker: any;
 
@@ -67,7 +69,8 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     for (const char of chars) {
       const snapshot = await this.storageService.get(`snapshot_char_${char.id}`);
       const mapId = snapshot?.mapId ?? 'hogar';
-      this.charMapNames[char.id] = MAP_REGISTRY[mapId]?.name ?? mapId;
+      this.charMapNames[char.id]  = MAP_REGISTRY[mapId]?.name ?? mapId;
+      this.charEquipment[char.id] = snapshot?.equipment ?? {};
 
       if (snapshot?.lastSeen) {
         this.charLastSeen[char.id] = snapshot.lastSeen;

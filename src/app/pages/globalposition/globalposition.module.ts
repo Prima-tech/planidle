@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { GlobalpositionPageRoutingModule } from './globalposition-routing.module';
 import { GlobalpositionPage } from './globalposition.page';
+import { ComponentModule } from 'src/app/components/components.module';
 
 @NgModule({
     imports: [
@@ -14,7 +15,8 @@ import { GlobalpositionPage } from './globalposition.page';
         FormsModule,
         IonicModule,
         GlobalpositionPageRoutingModule,
-        TranslateModule
+        TranslateModule,
+        ComponentModule,
     ],
     declarations: [GlobalpositionPage]
 })

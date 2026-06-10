@@ -19,7 +19,7 @@
 
     <!-- RIGHT PANEL: character selection -->
     <div class="right-panel">
-      <p class="choose-label">Choose your hero</p>
+      <p class="choose-label">Elige tu héroe</p>
 
       <div class="loading-state" *ngIf="asgardService.isChecking">
         <ion-spinner name="crescent"></ion-spinner>
@@ -38,12 +38,11 @@
               <div class="hero-avatar">
                 <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
               </div>
+              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
               <div class="hero-name">{{ character.name }}</div>
               <span class="hero-class-badge">{{ character.character_class }}</span>
               <div class="hp-bar-track">
-                <div class="hp-bar-fill"
-                     [style.width.%]="(character.current_hp / character.max_hp) * 100">
-                </div>
+                <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
@@ -69,12 +68,11 @@
               <div class="hero-avatar">
                 <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
               </div>
+              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
               <div class="hero-name">{{ character.name }}</div>
               <span class="hero-class-badge">{{ character.character_class }}</span>
               <div class="hp-bar-track">
-                <div class="hp-bar-fill"
-                     [style.width.%]="(character.current_hp / character.max_hp) * 100">
-                </div>
+                <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
@@ -100,12 +98,11 @@
               <div class="hero-avatar">
                 <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
               </div>
+              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
               <div class="hero-name">{{ character.name }}</div>
               <span class="hero-class-badge">{{ character.character_class }}</span>
               <div class="hp-bar-track">
-                <div class="hp-bar-fill"
-                     [style.width.%]="(character.current_hp / character.max_hp) * 100">
-                </div>
+                <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
@@ -128,13 +125,13 @@
         </div>
 
         <div class="action-row">
-          <ion-button class="continue-btn"
-                      *ngIf="asgardService._characters?.length > 0"
-                      (click)="continue()"
-                      [disabled]="!isSelected">
-            {{ 'GLOBAL_POSITION.CONTINUE_BUTTON' | translate }}
-            <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
-          </ion-button>
+          <button class="continue-btn"
+                  *ngIf="asgardService._characters?.length > 0"
+                  (click)="continue()"
+                  [disabled]="!isSelected">
+            CONTINUAR
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+          </button>
         </div>
       </ng-container>
     </div>
