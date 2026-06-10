@@ -10,6 +10,8 @@ const PREVIEW_START  = 130;
 const PREVIEW_FRAMES = 9;
 const FRAME_MS       = 130;
 
+const IMG_CACHE = new Map<string, HTMLImageElement>();
+
 interface LayerSource {
   src: string;
   depth: number;
@@ -106,20 +108,23 @@ export class CharacterSpriteComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private async reload(): Promise<void> {
-    clearTimeout(this.timer);
-    this.frameIdx = 0;
     const sources = this.buildLayers();
     const imgs = await Promise.all(sources.map(s => this.loadImg(s.src)));
+    // Detener el loop anterior solo cuando las nuevas imágenes ya están listas
+    clearTimeout(this.timer);
+    this.frameIdx = 0;
     this.startLoop(sources, imgs);
   }
 
   private loadImg(src: string): Promise<HTMLImageElement> {
+    const cached = IMG_CACHE.get(src);
+    if (cached?.naturalWidth > 0) return Promise.resolve(cached);
     return new Promise(resolve => {
       const img = new Image();
-      img.onload  = () => resolve(img);
+      img.onload  = () => { IMG_CACHE.set(src, img); resolve(img); };
       img.onerror = () => resolve(img);
       img.src = src;
-      if (img.complete && img.naturalWidth > 0) resolve(img);
+      if (img.complete && img.naturalWidth > 0) { IMG_CACHE.set(src, img); resolve(img); }
     });
   }
 
