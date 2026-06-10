@@ -32,6 +32,9 @@
       </ng-template>
     </div>
 
+    <!-- Tab 1: fondo alternativo -->
+    <div class="map-bg alt-bg" *ngIf="activeTab === 1"></div>
+
     <!-- Map pins -->
     <ng-container *ngIf="activeTab === 0">
       <button

@@ -55,6 +55,10 @@
   position: absolute;
   inset: 0;
   background: url('/assets/images/map_background_1.jpg') center / cover no-repeat;
+
+  &.alt-bg {
+    background-image: url('/assets/images/map_background.webp');
+  }
 }
 
 // ── Info card ──────────────────────────────────────────────────────────────
