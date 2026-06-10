@@ -1,4 +1,5 @@
 <div class="panel-layout">
+
   <div class="tabs-bar">
     <div class="tab" [class.active]="activeTab === 0" (click)="activeTab = 0">
       <ion-icon name="map-outline"></ion-icon>
@@ -13,5 +14,42 @@
 
   <div class="map-area">
     <div class="map-bg"></div>
+
+    <!-- Info panel -->
+    <div class="map-info-card" *ngIf="selectedMap">
+      <div class="info-name">{{ selectedMap.name }}</div>
+      <div class="info-section-label">Enemigos</div>
+      <ng-container *ngIf="selectedMap.spawns.length > 0; else noEnemies">
+        <div class="info-enemy" *ngFor="let spawn of selectedMap.spawns">
+          <ion-icon
+            [name]="spawn.behavior === 'aggressive' ? 'warning-outline' : 'eye-outline'"
+            [class]="spawn.behavior"
+          ></ion-icon>
+          <span>{{ spawn.enemyType }}</span>
+        </div>
+      </ng-container>
+      <ng-template #noEnemies>
+        <div class="info-no-enemies">Zona segura</div>
+      </ng-template>
+    </div>
+
+    <!-- Map pins -->
+    <ng-container *ngIf="activeTab === 0">
+      <button
+        *ngFor="let pin of pins"
+        class="map-pin"
+        [class.current]="pin.id === currentMapId"
+        [class.selected]="selectedMap?.id === pin.id"
+        [style.left.%]="pin.x"
+        [style.top.%]="pin.y"
+        (click)="selectPin(pin.id)"
+      >
+        <div class="pin-marker">
+          <ion-icon [name]="pin.id === 'hogar' ? 'home-outline' : 'location-outline'"></ion-icon>
+        </div>
+        <span class="pin-label">{{ pin.name }}</span>
+      </button>
+    </ng-container>
   </div>
+
 </div>

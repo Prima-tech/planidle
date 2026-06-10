@@ -11,19 +11,7 @@
   gap: 8px;
 }
 
-.map-area {
-  flex: 1;
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #2a2a4e;
-}
-
-.map-bg {
-  position: absolute;
-  inset: 0;
-  background: url('/assets/images/map_background_1.jpg') center / cover no-repeat;
-}
+// ── Tab bar ────────────────────────────────────────────────────────────────
 
 .tabs-bar {
   width: 44px;
@@ -50,5 +38,157 @@
     background: #1e3a5f;
     border-color: #3498db;
     color: #3498db;
+  }
+}
+
+// ── Map area ───────────────────────────────────────────────────────────────
+
+.map-area {
+  flex: 1;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #2a2a4e;
+}
+
+.map-bg {
+  position: absolute;
+  inset: 0;
+  background: url('/assets/images/map_background_1.jpg') center / cover no-repeat;
+}
+
+// ── Info card ──────────────────────────────────────────────────────────────
+
+.map-info-card {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  width: 140px;
+  background: rgba(12, 18, 40, 0.92);
+  border: 1px solid #2e4270;
+  border-radius: 8px;
+  padding: 10px 12px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+
+  .info-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e0ecff;
+    margin-bottom: 8px;
+    letter-spacing: 0.4px;
+  }
+
+  .info-section-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #4a6a9a;
+    margin-bottom: 5px;
+  }
+
+  .info-enemy {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #b0c8e8;
+    margin-bottom: 3px;
+
+    ion-icon {
+      font-size: 13px;
+      flex-shrink: 0;
+
+      &.aggressive { color: #e05050; }
+      &.passive    { color: #50a878; }
+    }
+  }
+
+  .info-no-enemies {
+    font-size: 11px;
+    color: #50a878;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+// ── Map pins ───────────────────────────────────────────────────────────────
+
+.map-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1;
+
+  .pin-marker {
+    width: 34px;
+    height: 34px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: rgba(20, 30, 60, 0.85);
+    border: 2px solid #3a5080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    transition: background 0.15s, border-color 0.15s;
+
+    ion-icon {
+      transform: rotate(45deg);
+      font-size: 16px;
+      color: #7ab0e0;
+    }
+  }
+
+  .pin-label {
+    background: rgba(10, 15, 35, 0.82);
+    color: #c0d4f0;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    border: 1px solid #2a3a5e;
+    letter-spacing: 0.3px;
+  }
+
+  &.selected {
+    .pin-marker {
+      background: rgba(40, 60, 100, 0.95);
+      border-color: #f0c040;
+      box-shadow: 0 0 10px rgba(240, 192, 64, 0.5);
+
+      ion-icon { color: #f0c040; }
+    }
+
+    .pin-label {
+      color: #f0c040;
+      border-color: #f0c040;
+    }
+  }
+
+  &.current {
+    .pin-marker {
+      background: rgba(30, 80, 140, 0.9);
+      border-color: #3498db;
+      box-shadow: 0 0 10px rgba(52, 152, 219, 0.6);
+
+      ion-icon { color: #5bc0f8; }
+    }
+
+    .pin-label {
+      color: #5bc0f8;
+      border-color: #3498db;
+    }
   }
 }
