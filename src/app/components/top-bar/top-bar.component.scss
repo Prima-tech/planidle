@@ -147,10 +147,42 @@
 }
 
 // spawn progress rows
-.mip-spawn-row {
+.mip-enemy-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.mip-enemy-sprite {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+  background-position-y: 0;
+  transform: scale(2);
+  transform-origin: center center;
+
+  &.frames-6 { animation: mip-sprite-idle var(--duration, 1s) steps(6) infinite; }
+  &.frames-4 { animation: mip-sprite-idle var(--duration, 1s) steps(4) infinite; }
+}
+
+@keyframes mip-sprite-idle {
+  from { background-position-x: 0; }
+  to   { background-position-x: var(--end-x); }
+}
+
+.mip-bars {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.mip-spawn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .mip-spawn-label {
@@ -175,7 +207,7 @@
 }
 
 .mip-bar {
-  height: 4px;
+  height: 3px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
   overflow: hidden;

@@ -8,10 +8,12 @@ import { WorldService } from 'src/app/services/world.service';
 import { MapStatsService } from 'src/app/services/map-stats.service';
 import { AfkBonusService, AFK_PASSIVE_REGISTRY, AfkPassiveDef } from 'src/app/services/afk-bonus.service';
 import { OfflineGainsService } from 'src/app/services/offline-gains.service';
-import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from 'src/app/scenes/gamescene/map-config';
+import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
+import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
 
 export interface MapPanelData {
   mapId: string;
+  enemyType: string | null;
   eliteThreshold: number;
   oblivionThreshold: number | null;
   baseKillsCurrent: number;
@@ -76,8 +78,11 @@ export class TopBarComponent implements OnInit, OnDestroy {
       const eliteProgress      = eliteThresholdEff    ? baseKillsCurrent / eliteThresholdEff : 0;
       const oblivionProgress   = oblivionThreshold    ? eliteKillsCurrent / oblivionThreshold : 0;
 
+      const enemyType = MAP_REGISTRY[mapId]?.spawns?.[0]?.enemyType ?? null;
+
       return {
         mapId,
+        enemyType,
         eliteThreshold:    eliteThresholdEff ?? 0,
         oblivionThreshold,
         baseKillsCurrent,
@@ -95,6 +100,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
   );
 
   toggleMapPanel() { this.mapPanelOpen = !this.mapPanelOpen; }
+
+  spriteStyle(enemyType: string) { return enemySpriteStyle(enemyType, 32); }
+  spriteClass(enemyType: string) { return enemySpriteClass(enemyType); }
 
   async unlockPassive(passive: AfkPassiveDef & { unlocked: boolean }): Promise<void> {
     if (passive.unlocked) return;

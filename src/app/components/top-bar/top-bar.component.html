@@ -57,22 +57,30 @@
         <ng-container *ngIf="mapPanelData$ | async as d">
 
           <ng-container *ngIf="d.eliteThreshold > 0">
-            <div class="mip-spawn-row">
-              <div class="mip-spawn-label">
-                <span class="mip-spawn-tier mip-spawn-tier--elite">ELITE</span>
-                <span class="mip-spawn-count">{{ d.baseKillsCurrent }}/{{ d.eliteThreshold }}</span>
-              </div>
-              <div class="mip-bar">
-                <div class="mip-bar-fill mip-bar-fill--elite" [style.width.%]="d.eliteProgress * 100"></div>
-              </div>
-            </div>
-            <div class="mip-spawn-row" *ngIf="d.oblivionThreshold">
-              <div class="mip-spawn-label">
-                <span class="mip-spawn-tier mip-spawn-tier--oblivion">OBLIVION</span>
-                <span class="mip-spawn-count">{{ d.eliteKillsCurrent }}/{{ d.oblivionThreshold }}</span>
-              </div>
-              <div class="mip-bar">
-                <div class="mip-bar-fill mip-bar-fill--oblivion" [style.width.%]="d.oblivionProgress * 100"></div>
+            <div class="mip-enemy-block">
+              <div *ngIf="d.enemyType"
+                   class="mip-enemy-sprite"
+                   [ngStyle]="spriteStyle(d.enemyType)"
+                   [ngClass]="spriteClass(d.enemyType)"></div>
+              <div class="mip-bars">
+                <div class="mip-spawn-row">
+                  <div class="mip-spawn-label">
+                    <span class="mip-spawn-tier mip-spawn-tier--elite">ELITE</span>
+                    <span class="mip-spawn-count">{{ d.baseKillsCurrent }}/{{ d.eliteThreshold }}</span>
+                  </div>
+                  <div class="mip-bar">
+                    <div class="mip-bar-fill mip-bar-fill--elite" [style.width.%]="d.eliteProgress * 100"></div>
+                  </div>
+                </div>
+                <div class="mip-spawn-row" *ngIf="d.oblivionThreshold">
+                  <div class="mip-spawn-label">
+                    <span class="mip-spawn-tier mip-spawn-tier--oblivion">OBLIVION</span>
+                    <span class="mip-spawn-count">{{ d.eliteKillsCurrent }}/{{ d.oblivionThreshold }}</span>
+                  </div>
+                  <div class="mip-bar">
+                    <div class="mip-bar-fill mip-bar-fill--oblivion" [style.width.%]="d.oblivionProgress * 100"></div>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="mip-divider"></div>

@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { MAP_REGISTRY, MapConfig } from 'src/app/scenes/gamescene/map-config';
+import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
 
 interface MapPin {
   id: string;
@@ -23,17 +24,7 @@ const MAP_PINS: MapPin[] = [
   { id: '1-8',   name: '1-8',  x: 88, y: 62 },
 ];
 
-// Datos del idle-DOWN de cada tipo de enemigo base.
-const ENEMY_FRAMES: Record<string, { src: string; cols: number; fps: number }> = {
-  slime4: { src: 'assets/sprites/enemy/slime4/Slime1_Idle_with_shadow.png', cols: 6, fps: 6 },
-  slime5: { src: 'assets/sprites/enemy/slime5/Slime2_Idle_with_shadow.png', cols: 6, fps: 6 },
-  slime6: { src: 'assets/sprites/enemy/slime6/Slime3_Idle_with_shadow.png', cols: 6, fps: 6 },
-  orc1:   { src: 'assets/sprites/enemy/orc1/orc1_idle_full.png',            cols: 4, fps: 4 },
-};
-
-const FRAME_PX    = 64;  // frameWidth = frameHeight para todos
-const DISPLAY_PX  = 48;  // tamaño de visualización
-const DIR_ROWS    = 4;   // DOWN / UP / LEFT / RIGHT
+const DISPLAY_PX = 48;
 
 @Component({
   selector: 'app-world-map-panel',
@@ -73,23 +64,6 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.playerBridge.restartGameScene();
   }
 
-  spriteStyle(enemyType: string): Record<string, string> {
-    const f = ENEMY_FRAMES[enemyType];
-    if (!f) return {};
-    const scale    = DISPLAY_PX / FRAME_PX;
-    const totalW   = f.cols * DISPLAY_PX;
-    const duration = `${f.cols / f.fps}s`;
-    return {
-      'background-image':  `url('${f.src}')`,
-      'background-size':   `${totalW}px ${DIR_ROWS * DISPLAY_PX}px`,
-      'background-repeat': 'no-repeat',
-      '--end-x':           `-${totalW}px`,
-      '--duration':        duration,
-    };
-  }
-
-  spriteClass(enemyType: string): string {
-    const f = ENEMY_FRAMES[enemyType];
-    return f ? `frames-${f.cols}` : '';
-  }
+  spriteStyle(enemyType: string) { return enemySpriteStyle(enemyType, DISPLAY_PX); }
+  spriteClass(enemyType: string) { return enemySpriteClass(enemyType); }
 }
