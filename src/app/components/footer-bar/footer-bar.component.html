@@ -2,7 +2,6 @@
 <app-modal-container #gameSettingsModal></app-modal-container>
 <app-modal-container #inventoryModal></app-modal-container>
 <app-modal-container #equipmentModal></app-modal-container>
-<app-modal-container #mapStatsModal></app-modal-container>
 <app-modal-container #summonModal></app-modal-container>
 <app-modal-container #skillSlotsModal></app-modal-container>
 <app-modal-container #skillDetailModal></app-modal-container>
@@ -52,10 +51,6 @@
         <span class="btn-label">Bag</span>
       </div>
 
-      <div class="icon-menu-wrapper right" [class.active]="mapStatsModal.isOpenModal()" (click)="openMapStats()">
-        <ion-icon name="bar-chart-outline" class="footer-ion-icon"></ion-icon>
-        <span class="btn-label">Stats</span>
-      </div>
 
     </ng-container>
 

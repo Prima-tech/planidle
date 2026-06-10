@@ -15,7 +15,6 @@ import { ModalContainerComponent } from './modal-container/modal-container.compo
 import { testPageComponent } from '../pages/test/test.page';
 import { GameLogComponent } from './game-log/game-log.component';
 import { SettingsPageComponent } from '../pages/settings/settings.page';
-import { MapStatsComponent } from './map-stats/map-stats.component';
 import { OfflineGainsModalComponent } from './offline-gains-modal/offline-gains-modal.component';
 import { DeathModalComponent } from './death-modal/death-modal.component';
 import { EquipmentComponent } from './equipment/equipment.component';
@@ -44,7 +43,6 @@ import { CharacterSpriteComponent } from './character-sprite/character-sprite.co
     testPageComponent,
     GameLogComponent,
     SettingsPageComponent,
-    MapStatsComponent,
     OfflineGainsModalComponent,
     DeathModalComponent,
     EquipmentComponent,
@@ -80,7 +78,6 @@ import { CharacterSpriteComponent } from './character-sprite/character-sprite.co
     testPageComponent,
     GameLogComponent,
     SettingsPageComponent,
-    MapStatsComponent,
     OfflineGainsModalComponent,
     DeathModalComponent,
     EquipmentComponent,
