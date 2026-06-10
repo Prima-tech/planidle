@@ -15,7 +15,6 @@ import { ModalContainerComponent } from './modal-container/modal-container.compo
 import { testPageComponent } from '../pages/test/test.page';
 import { GameLogComponent } from './game-log/game-log.component';
 import { SettingsPageComponent } from '../pages/settings/settings.page';
-import { MapLabelComponent } from './map-label/map-label.component';
 import { MapStatsComponent } from './map-stats/map-stats.component';
 import { OfflineGainsModalComponent } from './offline-gains-modal/offline-gains-modal.component';
 import { MapKillsComponent } from './map-kills/map-kills.component';
@@ -44,7 +43,6 @@ import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.
     testPageComponent,
     GameLogComponent,
     SettingsPageComponent,
-    MapLabelComponent,
     MapStatsComponent,
     OfflineGainsModalComponent,
     MapKillsComponent,
@@ -80,7 +78,6 @@ import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.
     testPageComponent,
     GameLogComponent,
     SettingsPageComponent,
-    MapLabelComponent,
     MapStatsComponent,
     OfflineGainsModalComponent,
     MapKillsComponent,
