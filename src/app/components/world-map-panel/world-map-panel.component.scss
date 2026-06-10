@@ -92,18 +92,26 @@
   .info-enemy {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 11px;
     color: #b0c8e8;
     margin-bottom: 3px;
+  }
 
-    ion-icon {
-      font-size: 13px;
-      flex-shrink: 0;
+  .enemy-sprite {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+    background-position-y: 0;
 
-      &.aggressive { color: #e05050; }
-      &.passive    { color: #50a878; }
-    }
+    &.frames-6 { animation: sprite-idle var(--duration, 1s) steps(6) infinite; }
+    &.frames-4 { animation: sprite-idle var(--duration, 1s) steps(4) infinite; }
+  }
+
+  @keyframes sprite-idle {
+    from { background-position-x: 0; }
+    to   { background-position-x: var(--end-x); }
   }
 
   .info-no-enemies {

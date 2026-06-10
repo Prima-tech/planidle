@@ -21,10 +21,9 @@
       <div class="info-section-label">Enemigos</div>
       <ng-container *ngIf="selectedMap.spawns.length > 0; else noEnemies">
         <div class="info-enemy" *ngFor="let spawn of selectedMap.spawns">
-          <ion-icon
-            [name]="spawn.behavior === 'aggressive' ? 'warning-outline' : 'eye-outline'"
-            [class]="spawn.behavior"
-          ></ion-icon>
+          <div class="enemy-sprite"
+               [ngStyle]="spriteStyle(spawn.enemyType)"
+               [ngClass]="spriteClass(spawn.enemyType)"></div>
           <span>{{ spawn.enemyType }}</span>
         </div>
       </ng-container>
@@ -43,6 +42,7 @@
         [style.left.%]="pin.x"
         [style.top.%]="pin.y"
         (click)="selectPin(pin.id)"
+        (dblclick)="teleport(pin.id)"
       >
         <div class="pin-marker">
           <ion-icon [name]="pin.id === 'hogar' ? 'home-outline' : 'location-outline'"></ion-icon>
