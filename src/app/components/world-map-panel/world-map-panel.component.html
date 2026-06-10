@@ -31,6 +31,13 @@
       <ng-template #noEnemies>
         <div class="info-no-enemies">Zona segura</div>
       </ng-template>
+      <div class="info-chars" *ngIf="charsOnMap.length > 0">
+        <div class="info-char" *ngFor="let c of charsOnMap">
+          <app-character-sprite [size]="56" [equipmentSnapshot]="c.equipment"></app-character-sprite>
+          <span class="info-char-name">{{ c.name }}</span>
+        </div>
+      </div>
+
       <button
         *ngIf="selectedMap.id !== currentMapId"
         class="teleport-btn"

@@ -2,6 +2,9 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
+import { AsgardService } from 'src/app/services/asgard';
+import { StorageService } from 'src/app/services/storage.service';
+import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { MAP_REGISTRY, MapConfig } from 'src/app/scenes/gamescene/map-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
 
@@ -26,6 +29,12 @@ const MAP_PINS: MapPin[] = [
 
 const DISPLAY_PX = 48;
 
+export interface CharOnMap {
+  name: string;
+  isCurrent: boolean;
+  equipment: EquipmentSnapshot | null; // null = personaje activo (reactivo)
+}
+
 @Component({
   selector: 'app-world-map-panel',
   templateUrl: './world-map-panel.component.html',
@@ -33,13 +42,16 @@ const DISPLAY_PX = 48;
   standalone: false
 })
 export class WorldMapPanelComponent implements OnInit, OnDestroy {
-  private worldService = inject(WorldService);
-  private playerBridge = inject(PlayerBridgeService);
+  private worldService  = inject(WorldService);
+  private playerBridge  = inject(PlayerBridgeService);
+  private asgard        = inject(AsgardService);
+  private storage       = inject(StorageService);
   private mapSub: Subscription;
 
   activeTab    = 0;
   currentMapId = '';
   selectedMap: MapConfig | null = null;
+  charsOnMap: CharOnMap[] = [];
 
   readonly pins = MAP_PINS;
 
@@ -53,9 +65,37 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.mapSub?.unsubscribe();
   }
 
-  selectPin(pinId: string) {
+  async selectPin(pinId: string) {
     const cfg = MAP_REGISTRY[pinId];
-    this.selectedMap = this.selectedMap?.id === pinId ? null : cfg;
+    if (this.selectedMap?.id === pinId) {
+      this.selectedMap = null;
+      this.charsOnMap  = [];
+    } else {
+      this.selectedMap = cfg;
+      await this.loadCharsOnMap(pinId);
+    }
+  }
+
+  private async loadCharsOnMap(mapId: string) {
+    const chars   = (await this.asgard.getCharacters()) ?? [];
+    const current = String(this.asgard.selectedPlayer?.id ?? '');
+    const result: CharOnMap[] = [];
+
+    for (const char of chars) {
+      if (!char?.id || !char?.name) continue;
+      const id = String(char.id);
+
+      if (id === current) {
+        if (mapId === this.currentMapId)
+          result.push({ name: char.name, isCurrent: true, equipment: null });
+      } else {
+        const snap = await this.storage.get(`snapshot_char_${id}`);
+        if (snap?.mapId === mapId)
+          result.push({ name: char.name, isCurrent: false, equipment: snap.equipment ?? {} });
+      }
+    }
+
+    this.charsOnMap = result;
   }
 
   teleport(pinId: string) {

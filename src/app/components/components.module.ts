@@ -31,6 +31,7 @@ import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.
 import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
 import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
+import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
 
 @NgModule({
   declarations: [
@@ -61,6 +62,7 @@ import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
     HudSkillButtonsComponent,
     WorldMapPanelComponent,
     EnemyNamePipe,
+    CharacterSpriteComponent,
   ],
   imports: [
     CommonModule,
@@ -93,6 +95,7 @@ import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
     SummonComponent,
     HudSkillButtonsComponent,
     EnemyNamePipe,
+    CharacterSpriteComponent,
   ]
 })
 export class ComponentModule {}
