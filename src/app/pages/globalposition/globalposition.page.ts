@@ -20,15 +20,6 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
   now = Date.now();
   private ticker: any;
 
-  private readonly CLASS_ICONS: Record<string, string> = {
-    Warrior:   'shield-outline',
-    Mage:      'flash-outline',
-    Hunter:    'scan-outline',
-    Priest:    'heart-outline',
-    Necron:    'skull-outline',
-    Ancestral: 'infinite-outline',
-  };
-
   // Row 1 = indexes 0-4, Row 2 = 5-9, Row 3 = 10
   get row1(): any[] { return this.sorted.slice(0, 5); }
   get row2(): any[] { return this.sorted.slice(5, 10); }
@@ -138,11 +129,4 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     this.isSelected = player;
   }
 
-  getClassIcon(characterClass: string): string {
-    return this.CLASS_ICONS[characterClass] ?? 'person-outline';
-  }
-
-  classKey(characterClass: string): string {
-    return (characterClass ?? '').toLowerCase();
-  }
 }

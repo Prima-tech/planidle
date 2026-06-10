@@ -32,16 +32,11 @@
           <div class="char-row">
             <div class="hero-card"
                  *ngFor="let character of row1"
-                 [ngClass]="['hero-card--' + classKey(character.character_class),
-                              isSelected?.id === character.id ? 'hero-card--selected' : '']"
+                 [class.hero-card--selected]="isSelected?.id === character.id"
                  (click)="selectPlayer(character)">
-              <div class="hero-avatar">
-                <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
-              </div>
               <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
               <div class="hero-name">{{ character.name }}</div>
-              <span class="hero-class-badge">{{ character.character_class }}</span>
-              <div class="hp-bar-track">
+<div class="hp-bar-track">
                 <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
@@ -62,16 +57,11 @@
           <div class="char-row">
             <div class="hero-card"
                  *ngFor="let character of row2"
-                 [ngClass]="['hero-card--' + classKey(character.character_class),
-                              isSelected?.id === character.id ? 'hero-card--selected' : '']"
+                 [class.hero-card--selected]="isSelected?.id === character.id"
                  (click)="selectPlayer(character)">
-              <div class="hero-avatar">
-                <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
-              </div>
               <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
               <div class="hero-name">{{ character.name }}</div>
-              <span class="hero-class-badge">{{ character.character_class }}</span>
-              <div class="hp-bar-track">
+<div class="hp-bar-track">
                 <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
@@ -90,18 +80,13 @@
 
           <!-- Row 3: Ancestral centered -->
           <div class="char-row char-row--centered">
-            <div class="hero-card hero-card--ancestral-special"
+            <div class="hero-card"
                  *ngFor="let character of row3"
-                 [ngClass]="['hero-card--' + classKey(character.character_class),
-                              isSelected?.id === character.id ? 'hero-card--selected' : '']"
+                 [class.hero-card--selected]="isSelected?.id === character.id"
                  (click)="selectPlayer(character)">
-              <div class="hero-avatar">
-                <ion-icon [name]="getClassIcon(character.character_class)"></ion-icon>
-              </div>
               <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
               <div class="hero-name">{{ character.name }}</div>
-              <span class="hero-class-badge">{{ character.character_class }}</span>
-              <div class="hp-bar-track">
+<div class="hp-bar-track">
                 <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
