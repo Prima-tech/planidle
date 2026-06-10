@@ -5,9 +5,9 @@
 .hud-skills {
   position: fixed;
   right: 14px;
-  bottom: 178px;
+  bottom: 64px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
   z-index: 150;
   pointer-events: all;
@@ -45,6 +45,24 @@
     border-color: #e67e22;
     box-shadow: 0 0 8px rgba(230, 126, 34, 0.5), inset 0 1px 3px rgba(0,0,0,0.4);
   }
+}
+
+// slot 2 — botón superior (visualmente arriba)
+.hud-btn-slot-2 {
+ 
+
+}
+
+// slot 1 — botón central
+.hud-btn-slot-1 {
+    bottom: 80px;
+    right: 40px;
+}
+
+// slot 0 — botón inferior (visualmente abajo)
+.hud-btn-slot-0 {
+  bottom: 100px;
+  right: 10px;
 }
 
 .hud-btn-icon {
