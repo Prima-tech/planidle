@@ -81,27 +81,7 @@
   </div>
 </ng-template>
 
-<div class="map-list" *ngIf="activeTab === 1">
-  <button
-    *ngFor="let map of maps"
-    class="map-card"
-    [class.current]="map.id === currentMapId"
-    (click)="teleport(map.id)"
-  >
-    <div class="map-info">
-      <span class="map-name">{{ map.name }}</span>
-      <span class="map-enemies" *ngIf="map.spawns.length > 0">
-        {{ map.spawns[0].enemyType | enemyName }}
-        <ng-container *ngIf="map.spawns.length > 1"> +{{ map.spawns.length - 1 }}</ng-container>
-      </span>
-      <span class="map-enemies empty" *ngIf="map.spawns.length === 0">Sin enemigos</span>
-    </div>
-    <span class="map-badge" *ngIf="map.id === currentMapId">Aquí</span>
-    <span class="map-go" *ngIf="map.id !== currentMapId">▶</span>
-  </button>
-</div>
-
-<div class="item-list" *ngIf="activeTab === 2">
+<div class="item-list" *ngIf="activeTab === 1">
 
   <div class="item-subtabs">
     <div

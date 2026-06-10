@@ -1,10 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { ENEMY_REGISTRY, EnemyTypeConfig } from 'src/app/enemy/enemy-config';
-import { MAP_REGISTRY, MapConfig } from 'src/app/scenes/gamescene/map-config';
 import { ITEM_CATALOG, LootEntry } from 'src/app/physics/griddrops';
 import { SummonService } from 'src/app/services/summon.service';
-import { WorldService } from 'src/app/services/world.service';
-import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 
@@ -40,7 +37,6 @@ export class SummonComponent {
 
   readonly tabs = [
     { icon: 'skull-outline',      title: 'Enemigos' },
-    { icon: 'map-outline',        title: 'Mapas'    },
     { icon: 'bag-handle-outline', title: 'Items'    },
   ];
   private panelState = inject(PanelStateService);
@@ -60,7 +56,6 @@ export class SummonComponent {
   readonly enemySubTabs = ['Slimes', 'Miscelánea'];
   readonly slimeGroups: EnemyGroup[];
   readonly miscGroups:  EnemyGroup[];
-  readonly maps: MapConfig[];
   readonly armorCatalog:  LootEntry[];
   readonly weaponCatalog: LootEntry[];
   readonly miscCatalog:   LootEntry[];
@@ -72,8 +67,6 @@ export class SummonComponent {
 
   constructor(
     private summonService: SummonService,
-    private worldService: WorldService,
-    private playerBridge: PlayerBridgeService,
     private equipmentService: EquipmentService,
   ) {
     const ARMOR_SLOT_IDS  = new Set(['helmet', 'armor', 'pants', 'boots']);
@@ -110,25 +103,14 @@ export class SummonComponent {
     });
     this.slimeGroups = baseCards.filter(c => c.type.startsWith('slime')).map(toGroup);
     this.miscGroups  = baseCards.filter(c => !c.type.startsWith('slime')).map(toGroup);
-    this.maps = Object.values(MAP_REGISTRY);
-
-    this._activeTab      = this.panelState.get('summon.tab',      0);
+    const rawTab         = this.panelState.get('summon.tab', 0) as number;
+    this._activeTab      = rawTab === 2 ? 1 : rawTab === 1 ? 0 : rawTab;
     this._activeItemTab  = this.panelState.get('summon.itemTab',  0);
     this._activeEnemyTab = this.panelState.get('summon.enemyTab', 0);
   }
 
-  get currentMapId(): string {
-    return this.worldService.getCurrentMap().id;
-  }
-
   summon(type: string): void {
     this.summonService.summon(type);
-  }
-
-  teleport(mapId: string): void {
-    if (mapId === this.currentMapId) return;
-    this.worldService.setCurrentMap(mapId);
-    this.playerBridge.restartGameScene();
   }
 
   giveItem(entry: LootEntry): void {
