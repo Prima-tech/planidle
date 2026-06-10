@@ -46,6 +46,8 @@ export class TopBarComponent implements OnInit, OnDestroy {
   coins$ = this.playerState.coins$;
   lvl$   = this.playerState.lvl$;
 
+  mapName$ = this.worldService.currentMap$.pipe(map(m => m.name));
+
   mapPanelOpen = false;
 
   private _unlockTrigger$ = new BehaviorSubject<void>(undefined);

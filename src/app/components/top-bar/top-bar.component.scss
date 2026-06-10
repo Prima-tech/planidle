@@ -305,15 +305,15 @@
 }
 
 .avatar-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
   border: 1.5px solid rgba(255,255,255,0.15);
   display: flex;
   align-items: center;
   justify-content: center;
 
-  ion-icon { font-size: 20px; }
+  ion-icon { font-size: 14px; }
 
   &--warrior   { background: rgba(255,100,40,0.2);  border-color: rgba(255,100,40,0.5);  ion-icon { color: #ff8040; } }
   &--mage      { background: rgba(30,100,220,0.2);  border-color: rgba(60,140,255,0.5);  ion-icon { color: #5aadff; } }
@@ -334,6 +334,17 @@
   text-overflow: ellipsis;
   max-width: 52px;
   text-shadow: 0 1px 4px rgba(200, 150, 0, 0.5);
+}
+
+.map-name {
+  font-size: 0.52em;
+  color: rgba(180, 210, 255, 0.7);
+  letter-spacing: 0.05em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 52px;
 }
 
 // ── Barras ───────────────────────────────────────────────────────────────────

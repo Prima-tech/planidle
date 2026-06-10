@@ -8,10 +8,11 @@
       <div class="char-widget">
         <div class="char-panel">
           <div class="avatar-col">
+            <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
             <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
               <ion-icon [name]="classIcon"></ion-icon>
             </div>
-            <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
+            <div class="map-name">{{ mapName$ | async }}</div>
           </div>
 
           <div class="char-info" *ngIf="initStatusBar">
