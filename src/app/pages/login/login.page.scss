@@ -1,66 +1,150 @@
 ion-content {
-  --background: url('../../../assets/images/wallpaper2.jpg') no-repeat center center / cover;
+  --background: url('../../../assets/images/map_background_1.jpg') center / cover no-repeat;
   --ion-background-color: transparent;
 }
 
-.login-container {
+.bg-overlay {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(4, 7, 18, 0.78);
+  padding: 16px;
+  box-sizing: border-box;
 }
 
-.login-box {
-  width: 90%;
-  max-width: 400px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 40px 30px;
+// ── Card (dos columnas) ───────────────────────────────────────────────────────
+
+.login-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  background: rgba(10, 15, 35, 0.97);
+  border: 1px solid #2e4270;
+  border-radius: 14px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  width: 100%;
+  max-width: 520px;
+  max-height: 220px;
+}
+
+// ── Columna izquierda: branding ───────────────────────────────────────────────
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px 28px;
+  flex: 0 0 auto;
+  min-width: 150px;
+}
+
+.login-emblem {
+  width: 52px;
+  height: 52px;
+  background: rgba(52, 152, 219, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emblem-icon {
+  font-size: 26px;
+  color: #5bc0f8;
+}
+
+.game-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #e0ecff;
+  letter-spacing: 4px;
+  margin: 0;
+  text-shadow: 0 0 20px rgba(91, 192, 248, 0.2);
+}
+
+.game-subtitle {
+  font-size: 0.65rem;
+  color: #4a6a9a;
+  margin: 0;
+  letter-spacing: 0.3px;
   text-align: center;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+}
 
-  h1 {
-    color: #ffffff;
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 5px;
-  }
+// ── Divisor vertical ──────────────────────────────────────────────────────────
 
-  p {
-    color: #cccccc;
-    margin-bottom: 30px;
-    font-size: 0.9rem;
+.login-divider {
+  width: 1px;
+  align-self: stretch;
+  background: #2e4270;
+  flex-shrink: 0;
+}
+
+// ── Columna derecha: formulario ───────────────────────────────────────────────
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 24px;
+  flex: 1;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #2e4270;
+  border-radius: 7px;
+  padding: 0 12px;
+  gap: 8px;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: #3498db;
+    background: rgba(52, 152, 219, 0.04);
   }
 }
 
-.custom-input {
-  --background: rgba(255, 255, 255, 0.05);
-  --border-radius: 10px;
-  --padding-start: 15px;
-  margin-bottom: 15px;
-  --border-color: transparent;
-  --highlight-color-focused: #00d4ff;
-  color: white;
-
-  ion-icon {
-    color: #00d4ff;
-  }
-
-  ion-input {
-    --placeholder-color: #aaaaaa;
-    --color: white;
-  }
+.input-icon {
+  color: #3a5a8a;
+  font-size: 16px;
+  flex-shrink: 0;
 }
+
+ion-input.dark-input {
+  --color: #e0ecff;
+  --placeholder-color: #2e4270;
+  --background: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  font-size: 0.85rem;
+  height: 38px;
+}
+
+// ── Botón ─────────────────────────────────────────────────────────────────────
 
 .login-btn {
-  margin-top: 25px;
-  --background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
-  --border-radius: 10px;
-  --box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
-  font-weight: 600;
-  letter-spacing: 1px;
+  width: 100%;
+  height: 38px;
+  background: #0e2040;
+  border: 1px solid #3498db;
+  border-radius: 7px;
+  color: #5bc0f8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  margin-top: 2px;
+
+  &:active {
+    background: #1e3a5f;
+    color: #e0ecff;
+  }
 }
