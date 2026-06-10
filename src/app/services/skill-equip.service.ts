@@ -11,6 +11,7 @@ export class SkillEquipService {
   readonly slots: Record<number, string | null> = Object.fromEntries(ALL_SLOTS.map(s => [s, null]));
   activeSlot: number | null = null;
   selectedAbilityId: string | null = null;
+  hudEditMode = false;
   readonly changes$           = new Subject<void>();
   readonly openDetail$        = new Subject<string>();
   readonly closeSkillPanels$  = new Subject<void>();

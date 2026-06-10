@@ -79,11 +79,17 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
     }, 450);
   }
 
+  get editMode(): boolean { return this.skillEquip.hudEditMode; }
+
   onTouchEnd(index: number): void {
     if (this.longPressTimer) {
       clearTimeout(this.longPressTimer);
       this.longPressTimer = null;
-      this.slots[index] ? this.activate(index) : this.openPicker(index);
+      if (this.editMode || !this.slots[index]) {
+        this.openPicker(index);
+      } else {
+        this.activate(index);
+      }
     }
   }
 

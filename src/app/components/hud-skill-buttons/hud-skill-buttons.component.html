@@ -3,7 +3,8 @@
 <div class="hud-skills">
   <div *ngFor="let i of [2, 1, 0]"
        class="hud-btn"
-       [class.no-target]="noTarget(i)"
+       [class.edit-mode]="editMode"
+       [class.no-target]="!editMode && noTarget(i)"
        [style.--cd-angle]="cdAngles[i] + 'deg'"
        (touchstart)="onTouchStart(i)"
        (touchend)="onTouchEnd(i)"

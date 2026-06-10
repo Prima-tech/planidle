@@ -151,11 +151,13 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   toggleLock() {
     this.locked = !this.locked;
+    this.skillEquipService.hudEditMode = !this.locked;
     if (this.locked) {
       if (this.skillSlotsModal?.isOpenModal())  this.skillSlotsModal.close();
       if (this.skillDetailModal?.isOpenModal()) this.skillDetailModal.close();
+      this.skillEquipService.closeSkillPanels$.next();
       this.activeSkillSlot = null;
-      this.skillEquipService.activeSlot      = null;
+      this.skillEquipService.activeSlot        = null;
       this.skillEquipService.selectedAbilityId = null;
     }
   }
