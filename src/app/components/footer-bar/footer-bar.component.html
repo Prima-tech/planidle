@@ -14,8 +14,11 @@
 <ion-footer>
   <ion-toolbar>
 
-    <div class="icon-menu-wrapper" (click)="togglePage()">
-      <ion-icon [name]="page === 'main' ? 'swap-horizontal-outline' : 'arrow-back-outline'" class="footer-ion-icon"></ion-icon>
+    <div class="left-stack">
+      <button class="stack-btn"></button>
+      <button class="stack-btn" (click)="togglePage()">
+        <ion-icon [name]="page === 'main' ? 'swap-horizontal-outline' : 'arrow-back-outline'"></ion-icon>
+      </button>
     </div>
 
     <!-- Página principal -->
