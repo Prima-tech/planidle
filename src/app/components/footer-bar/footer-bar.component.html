@@ -7,16 +7,15 @@
 <app-modal-container #skillDetailModal></app-modal-container>
 <app-modal-container #worldMapModal></app-modal-container>
 
+<button class="auto-attack-fab" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
+  <ion-icon name="infinite-outline"></ion-icon>
+</button>
+
 <ion-footer>
   <ion-toolbar>
 
     <div class="icon-menu-wrapper" (click)="togglePage()">
       <ion-icon [name]="page === 'main' ? 'swap-horizontal-outline' : 'arrow-back-outline'" class="footer-ion-icon"></ion-icon>
-    </div>
-
-    <div class="icon-menu-wrapper" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
-      <ion-icon name="infinite-outline" class="footer-ion-icon"></ion-icon>
-      <span class="btn-label">Auto</span>
     </div>
 
     <!-- Página principal -->

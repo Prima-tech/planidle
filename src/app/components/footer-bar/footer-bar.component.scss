@@ -1,3 +1,36 @@
+// ── Auto-attack FAB ───────────────────────────────────────────────────────────
+
+.auto-attack-fab {
+  position: fixed;
+  bottom: 66px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #2e4270;
+  background: #111828;
+  color: #6a8ab0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 160;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+
+  &.active {
+    background: #3a0a0a;
+    border-color: #cc2222;
+    color: #ff5555;
+    box-shadow: 0 0 10px rgba(200, 30, 30, 0.6), 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
 :host {
 
   ion-toolbar {
