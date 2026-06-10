@@ -12,6 +12,12 @@ export class GridControls {
     right: Phaser.Input.Keyboard.Key;
   };
 
+  private readonly DOUBLE_TAP_MS = 300;
+  private lastDirPressTime: Partial<Record<Direction, number>> = {};
+  private prevMobileDir: Direction = Direction.NONE;
+  private mobileReleasedDir: Direction = Direction.NONE;
+  private mobileReleasedTime = 0;
+
   constructor(
     private input: Phaser.Input.InputPlugin,
     private gridPhysics: GridPhysics,
@@ -25,26 +31,51 @@ export class GridControls {
       right: Phaser.Input.Keyboard.KeyCodes.D,
     }) as any;
 
-    const trackDir = (dir: Direction) => () => this.lastCardinalDir = dir;
+    const trackAndDash = (dir: Direction) => () => {
+      const now = Date.now();
+      const last = this.lastDirPressTime[dir] ?? 0;
+      if (now - last < this.DOUBLE_TAP_MS) {
+        this.gridPhysics.dash(dir, dir);
+        this.lastDirPressTime[dir] = 0;
+      } else {
+        this.lastDirPressTime[dir] = now;
+      }
+      this.lastCardinalDir = dir;
+    };
 
-    this.cursors.left.on('down',  trackDir(Direction.LEFT));
-    this.cursors.right.on('down', trackDir(Direction.RIGHT));
-    this.cursors.up.on('down',    trackDir(Direction.UP));
-    this.cursors.down.on('down',  trackDir(Direction.DOWN));
+    this.cursors.left.on('down',  trackAndDash(Direction.LEFT));
+    this.cursors.right.on('down', trackAndDash(Direction.RIGHT));
+    this.cursors.up.on('down',    trackAndDash(Direction.UP));
+    this.cursors.down.on('down',  trackAndDash(Direction.DOWN));
 
-    this.wasd.left.on('down',  trackDir(Direction.LEFT));
-    this.wasd.right.on('down', trackDir(Direction.RIGHT));
-    this.wasd.up.on('down',    trackDir(Direction.UP));
-    this.wasd.down.on('down',  trackDir(Direction.DOWN));
+    this.wasd.left.on('down',  trackAndDash(Direction.LEFT));
+    this.wasd.right.on('down', trackAndDash(Direction.RIGHT));
+    this.wasd.up.on('down',    trackAndDash(Direction.UP));
+    this.wasd.down.on('down',  trackAndDash(Direction.DOWN));
   }
 
   update() {
     const mob = this.mobileInput;
 
-    // Mobile joystick takes priority when active
-    if (mob && mob.direction !== Direction.NONE) {
-      this.gridPhysics.movePlayer(mob.direction, mob.lastCardinalDir);
-      return;
+    if (mob) {
+      const now = Date.now();
+
+      // Detectar double-tap de joystick: soltar + re-presionar misma dirección cardinal
+      if (this.prevMobileDir !== Direction.NONE && mob.direction === Direction.NONE) {
+        this.mobileReleasedDir  = mob.lastCardinalDir;
+        this.mobileReleasedTime = now;
+      } else if (this.prevMobileDir === Direction.NONE && mob.direction !== Direction.NONE) {
+        if (mob.lastCardinalDir === this.mobileReleasedDir && now - this.mobileReleasedTime < this.DOUBLE_TAP_MS) {
+          this.gridPhysics.dash(mob.direction, mob.lastCardinalDir);
+          this.mobileReleasedDir = Direction.NONE;
+        }
+      }
+      this.prevMobileDir = mob.direction;
+
+      if (mob.direction !== Direction.NONE) {
+        this.gridPhysics.movePlayer(mob.direction, mob.lastCardinalDir);
+        return;
+      }
     }
 
     const left  = this.cursors.left.isDown  || this.wasd.left.isDown;

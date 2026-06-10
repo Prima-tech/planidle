@@ -359,16 +359,19 @@ export class GridDrops {
       onComplete: () => {
         (sprite.body as Phaser.Physics.Arcade.Body).enable = true;
         let collected = false;
+        const collect = () => {
+          if (collected) return;
+          collected = true;
+          this.mainScene.physics.world.removeCollider(collider);
+          this.collectDrop(sprite, loot);
+        };
         const collider = this.mainScene.physics.add.overlap(
           this.player.getSprite(),
           sprite,
-          () => {
-            if (collected) return;
-            collected = true;
-            this.mainScene.physics.world.removeCollider(collider);
-            this.collectDrop(sprite, loot);
-          }
+          collect,
         );
+        sprite.setInteractive();
+        sprite.on('pointerdown', collect);
       },
     });
   }

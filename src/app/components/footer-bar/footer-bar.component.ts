@@ -112,6 +112,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     return ability ? (SKILL_REGISTRY[ability]?.iconPath ?? null) : null;
   }
 
+
   slotNoTarget(slot: number): boolean {
     const ability = this.slotAbility(slot);
     return !!ability && this.cdAngles[slot] === 0 && !this.skillActivationService.hasTarget(ability);

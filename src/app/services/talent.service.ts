@@ -389,9 +389,19 @@ export const TALENT_NODES_SMOKER: TalentNodeConfig[] = [
   },
 ];
 
+// ── Habilidades físicas (disponibles sin desbloquear) ─────────────────────────
+
+export const TALENT_NODES_PHYSICAL: TalentNodeConfig[] = [
+  {
+    id: 'dash', label: 'Dash', icon: 'flash-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 0, ability: 'dash' },
+  },
+];
+
 // ── Registro global (todos los árboles) ──────────────────────────────────────
 
-const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION];
+const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION, ...TALENT_NODES_PHYSICAL];
 
 @Injectable({ providedIn: 'root' })
 export class TalentService {

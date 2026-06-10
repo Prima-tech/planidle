@@ -1,7 +1,7 @@
 // 'impact'    — el sprite aparece directamente sobre el enemigo
 // 'projectile' — el sprite viaja desde el jugador hasta el enemigo
 // 'buff'       — se aplica sobre el jugador: animación self + buffo activo
-export type SkillEffectType = 'impact' | 'projectile' | 'buff';
+export type SkillEffectType = 'impact' | 'projectile' | 'buff' | 'dash';
 
 export type SkillTarget = 'enemy' | 'self';
 
@@ -29,6 +29,18 @@ export interface SkillConfig {
 }
 
 export const SKILL_REGISTRY: Record<string, SkillConfig> = {
+  dash: {
+    abilityId: 'dash',
+    effectType: 'dash',
+    damage: 0,
+    range: 0,
+    cooldown: 5000,
+    spriteKey: 'skill_cycled_smoke',
+    frameCount: 6,
+    frameRate: 12,
+    scale: 2,
+    iconPath: 'assets/icon/icons/46.png',
+  },
   ranged_attack: {
     abilityId: 'ranged_attack',
     effectType: 'impact',

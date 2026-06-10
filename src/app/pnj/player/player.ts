@@ -149,6 +149,16 @@ export class Player {
     return this.currentDirection;
   }
 
+  startDash(): void {
+    this.sprite.setAlpha(0.55);
+    this.layers.forEach(l => l.setAlpha(0.55));
+  }
+
+  endDash(): void {
+    this.sprite.setAlpha(1);
+    this.layers.forEach(l => l.setAlpha(1));
+  }
+
   getSprite() {
     return this.sprite;
   }

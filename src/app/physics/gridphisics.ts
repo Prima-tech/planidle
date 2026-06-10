@@ -11,12 +11,19 @@ const DIAG = 1 / Math.sqrt(2);
 
 export class GridPhysics extends Phaser.Events.EventEmitter {
   private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 8;
+  private readonly DASH_SPEED     = GameScene.TILE_SIZE * 24;
+  private readonly DASH_DURATION  = 180; // ms
 
   private movementIntent: Direction = Direction.NONE;
   private animDirection: Direction = Direction.DOWN;
   private currentAnimDirection: Direction = Direction.NONE;
   private isWalking: boolean = false;
   private readonly layerCount: number;
+
+  private isDashing    = false;
+  private dashRemaining = 0;
+  private dashMoveDir: Direction = Direction.NONE;
+  private dashAnimDir: Direction = Direction.NONE;
 
   private readonly dirVectors: Partial<Record<Direction, Vector2>> = {
     [Direction.UP]:         new Vector2(0, -1),
@@ -44,9 +51,35 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     this.animDirection = animDir;
   }
 
+  dash(moveDir: Direction, animDir: Direction): void {
+    if (this.isDashing || moveDir === Direction.NONE) return;
+    this.isDashing     = true;
+    this.dashRemaining = this.DASH_DURATION;
+    this.dashMoveDir   = moveDir;
+    this.dashAnimDir   = animDir;
+    this.player.startDash();
+  }
+
   update(delta: number): void {
+    if (this.isDashing) {
+      this.dashRemaining -= delta;
+      if (this.dashRemaining <= 0) {
+        this.isDashing = false;
+        this.player.endDash();
+      } else {
+        this.applyMovement(this.dashMoveDir, delta, this.DASH_SPEED, true);
+        if (!this.isWalking || this.dashAnimDir !== this.currentAnimDirection) {
+          this.player.startAnimation(this.dashAnimDir);
+          this.currentAnimDirection = this.dashAnimDir;
+          this.isWalking = true;
+        }
+        this.movementIntent = Direction.NONE;
+        return;
+      }
+    }
+
     if (this.movementIntent !== Direction.NONE) {
-      this.applyMovement(delta);
+      this.applyMovement(this.movementIntent, delta, this.speedPixelsPerSecond);
       if (!this.isWalking || this.animDirection !== this.currentAnimDirection) {
         this.player.startAnimation(this.animDirection);
         this.currentAnimDirection = this.animDirection;
@@ -61,22 +94,25 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     this.movementIntent = Direction.NONE;
   }
 
-  private applyMovement(delta: number): void {
-    const dirVec = this.dirVectors[this.movementIntent];
+  private applyMovement(direction: Direction, delta: number, speed: number, ignoreEnemies = false): void {
+    const dirVec = this.dirVectors[direction];
     if (!dirVec) return;
 
-    const pixels = this.speedPixelsPerSecond * (delta / 1000);
+    const pixels = speed * (delta / 1000);
     const dx = dirVec.x * pixels;
     const dy = dirVec.y * pixels;
 
-    // Usar coordenadas escalares para evitar new Vector2() en el hot path
     const pos = this.player.getPosition();
     const px = pos.x;
     const py = pos.y;
 
-    const blockedFull = this.isTileBlockedXY(px + dx, py + dy) || this.isEnemyBlockedXY(px + dx, py + dy);
-    const blockedX    = this.isTileBlockedXY(px + dx, py     ) || this.isEnemyBlockedXY(px + dx, py     );
-    const blockedY    = this.isTileBlockedXY(px,      py + dy) || this.isEnemyBlockedXY(px,      py + dy);
+    const enemyBlockFull = ignoreEnemies ? false : this.isEnemyBlockedXY(px + dx, py + dy);
+    const enemyBlockX    = ignoreEnemies ? false : this.isEnemyBlockedXY(px + dx, py     );
+    const enemyBlockY    = ignoreEnemies ? false : this.isEnemyBlockedXY(px,      py + dy);
+
+    const blockedFull = this.isTileBlockedXY(px + dx, py + dy) || enemyBlockFull;
+    const blockedX    = this.isTileBlockedXY(px + dx, py     ) || enemyBlockX;
+    const blockedY    = this.isTileBlockedXY(px,      py + dy) || enemyBlockY;
 
     if (!blockedFull && !(blockedX && blockedY)) {
       this.player.setPositionXY(px + dx, py + dy);

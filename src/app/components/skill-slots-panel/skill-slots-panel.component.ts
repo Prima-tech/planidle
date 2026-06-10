@@ -48,6 +48,7 @@ export class SkillSlotsPanelComponent implements OnInit {
     return SKILL_REGISTRY[ability.effect.ability ?? '']?.iconPath ?? null;
   }
 
+
   select(ability: TalentNodeConfig) {
     this.skillEquipService.selectedAbilityId = ability.id;
     this.skillEquipService.openDetail$.next(ability.id);
