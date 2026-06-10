@@ -24,7 +24,7 @@
           <div class="enemy-sprite"
                [ngStyle]="spriteStyle(spawn.enemyType)"
                [ngClass]="spriteClass(spawn.enemyType)"></div>
-          <span>{{ spawn.enemyType }}</span>
+          <span>{{ spawn.enemyType | enemyName }}</span>
         </div>
       </ng-container>
       <ng-template #noEnemies>

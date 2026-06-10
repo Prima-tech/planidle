@@ -30,6 +30,7 @@ import { SkillDetailComponent } from './skill-detail/skill-detail.component';
 import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.page';
 import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
+import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 
 @NgModule({
   declarations: [
@@ -59,6 +60,7 @@ import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.compon
     GameSettingsPageComponent,
     HudSkillButtonsComponent,
     WorldMapPanelComponent,
+    EnemyNamePipe,
   ],
   imports: [
     CommonModule,
@@ -90,6 +92,7 @@ import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.compon
     CharStatsComponent,
     SummonComponent,
     HudSkillButtonsComponent,
+    EnemyNamePipe,
   ]
 })
 export class ComponentModule {}

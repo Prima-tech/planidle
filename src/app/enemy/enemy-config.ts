@@ -35,6 +35,7 @@ export interface EnemyTypeConfig {
   speed: number;           // px/s
   damage: number;
   attackCooldown: number;  // ms
+  displayName?: string;    // nombre visible al jugador (si omitido usa type)
   tint?: number;           // tint visual (0xRRGGBB) — usado para elite/oblivion
   spriteType?: string;     // tipo base cuyos sprites se reusan (omite carga propia)
   actions: {
@@ -159,6 +160,7 @@ const SLIME4_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 
 const slime4: EnemyTypeConfig = {
   type: 'slime4',
+  displayName: 'Slime',
   hp: 50,
   scale: 3,
   speed: 150,
@@ -521,6 +523,7 @@ const slime9_oblivion: EnemyTypeConfig = { ...slime9, type: 'slime9_oblivion', h
 const slime4_elite: EnemyTypeConfig = {
   ...slime4,
   type: 'slime4_elite',
+  displayName: 'Slime',
   hp: 150,
   scale: 3.5,
   speed: 165,
@@ -533,6 +536,7 @@ const slime4_elite: EnemyTypeConfig = {
 const slime4_oblivion: EnemyTypeConfig = {
   ...slime4,
   type: 'slime4_oblivion',
+  displayName: 'Slime',
   hp: 400,
   scale: 4,
   speed: 180,

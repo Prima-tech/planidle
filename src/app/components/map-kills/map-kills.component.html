@@ -10,7 +10,7 @@
   <ng-container *ngIf="baseRows.length > 0; else noKills">
     <div class="kill-entry" *ngFor="let row of baseRows">
       <div class="entry-header">
-        <span class="type-name">{{ row.type }}</span>
+        <span class="type-name">{{ row.type | enemyName }}</span>
         <span class="total-badge">{{ row.total }} bajas</span>
       </div>
       <div class="elite-progress">
@@ -35,7 +35,7 @@
     </div>
     <div class="kill-entry elite" *ngFor="let row of eliteRows">
       <div class="entry-header">
-        <span class="type-name">{{ row.type }}</span>
+        <span class="type-name">{{ row.type | enemyName }}</span>
         <span class="total-badge elite">{{ row.total }} bajas</span>
       </div>
       <div class="elite-progress">
@@ -60,7 +60,7 @@
     </div>
     <div class="kill-entry oblivion" *ngFor="let r of oblivionKills">
       <div class="entry-header">
-        <span class="type-name">{{ r.type }}</span>
+        <span class="type-name">{{ r.type | enemyName }}</span>
         <span class="total-badge oblivion">{{ r.total }} bajas</span>
       </div>
     </div>

@@ -91,7 +91,7 @@
     <div class="map-info">
       <span class="map-name">{{ map.name }}</span>
       <span class="map-enemies" *ngIf="map.spawns.length > 0">
-        {{ map.spawns[0].enemyType }}
+        {{ map.spawns[0].enemyType | enemyName }}
         <ng-container *ngIf="map.spawns.length > 1"> +{{ map.spawns.length - 1 }}</ng-container>
       </span>
       <span class="map-enemies empty" *ngIf="map.spawns.length === 0">Sin enemigos</span>
