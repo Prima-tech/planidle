@@ -130,7 +130,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
       left:  [this.summonModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal],
-      right: [this.menuModal, this.gameSettingsModal, this.mapStatsModal, this.mapKillsModal, this.statsModal, this.inventoryModal, this.skillSlotsModal],
+      right: [this.menuModal, this.gameSettingsModal, this.mapStatsModal, this.mapKillsModal, this.statsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
   }
