@@ -76,6 +76,7 @@ const ORC1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 
 const orc1: EnemyTypeConfig = {
   type: 'orc1',
+  displayName: 'Orco',
   hp: 50,
   scale: 3,
   speed: 96,
@@ -133,6 +134,7 @@ const orc1: EnemyTypeConfig = {
 const orc1_elite: EnemyTypeConfig = {
   ...orc1,
   type: 'orc1_elite',
+  displayName: 'Orco',
   hp: 150,
   scale: 3.5,
   speed: 110,
@@ -145,6 +147,7 @@ const orc1_elite: EnemyTypeConfig = {
 const orc1_oblivion: EnemyTypeConfig = {
   ...orc1,
   type: 'orc1_oblivion',
+  displayName: 'Orco',
   hp: 400,
   scale: 4,
   speed: 130,

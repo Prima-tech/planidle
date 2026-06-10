@@ -18,18 +18,26 @@
     <!-- Info panel -->
     <div class="map-info-card" *ngIf="selectedMap">
       <div class="info-name">{{ selectedMap.name }}</div>
-      <div class="info-section-label">Enemigos</div>
-      <ng-container *ngIf="selectedMap.spawns.length > 0; else noEnemies">
+<ng-container *ngIf="selectedMap.spawns.length > 0; else noEnemies">
         <div class="info-enemy" *ngFor="let spawn of selectedMap.spawns">
-          <div class="enemy-sprite"
-               [ngStyle]="spriteStyle(spawn.enemyType)"
-               [ngClass]="spriteClass(spawn.enemyType)"></div>
-          <span>{{ spawn.enemyType | enemyName }}</span>
+          <div class="enemy-frame">
+            <div class="enemy-sprite"
+                 [ngStyle]="spriteStyle(spawn.enemyType)"
+                 [ngClass]="spriteClass(spawn.enemyType)"></div>
+            <span class="enemy-frame-name">{{ spawn.enemyType | enemyName }}</span>
+          </div>
         </div>
       </ng-container>
       <ng-template #noEnemies>
         <div class="info-no-enemies">Zona segura</div>
       </ng-template>
+      <button
+        *ngIf="selectedMap.id !== currentMapId"
+        class="teleport-btn"
+        (click)="teleport(selectedMap.id)"
+      >
+        <ion-icon name="navigate-outline"></ion-icon>
+      </button>
     </div>
 
     <!-- Tab 1: fondo alternativo -->

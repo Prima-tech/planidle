@@ -83,6 +83,7 @@
     color: #e0ecff;
     margin-bottom: 8px;
     letter-spacing: 0.4px;
+    text-align: center;
   }
 
   .info-section-label {
@@ -96,16 +97,39 @@
   .info-enemy {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: #b0c8e8;
     margin-bottom: 3px;
   }
 
-  .enemy-sprite {
+  .enemy-frame {
+    position: relative;
     width: 48px;
     height: 48px;
     flex-shrink: 0;
+    border: 1px solid #2e4270;
+    border-radius: 6px;
+    box-shadow: 0 0 6px rgba(52, 152, 219, 0.2);
+    overflow: hidden;
+  }
+
+  .enemy-frame-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 8px;
+    font-weight: 600;
+    color: #e0ecff;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 1px 2px;
+    letter-spacing: 0.2px;
+  }
+
+  .enemy-sprite {
+    position: absolute;
+    inset: 0;
+    width: 48px;
+    height: 48px;
     image-rendering: pixelated;
     background-position-y: 0;
 
@@ -116,6 +140,32 @@
   @keyframes sprite-idle {
     from { background-position-x: 0; }
     to   { background-position-x: var(--end-x); }
+  }
+
+  .teleport-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 0 0 8px 0;
+    background: rgba(22, 45, 80, 0.95);
+    border: none;
+    border-top: 1px solid #2e4270;
+    border-left: 1px solid #2e4270;
+    color: #5bc0f8;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background 0.15s, color 0.15s;
+
+    &:active {
+      background: #1e3a5f;
+      color: #fff;
+    }
   }
 
   .info-no-enemies {
