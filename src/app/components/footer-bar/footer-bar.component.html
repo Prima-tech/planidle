@@ -8,6 +8,7 @@
 <app-modal-container #summonModal></app-modal-container>
 <app-modal-container #skillSlotsModal></app-modal-container>
 <app-modal-container #skillDetailModal></app-modal-container>
+<app-modal-container #worldMapModal></app-modal-container>
 
 <ion-footer>
   <ion-toolbar>
@@ -23,6 +24,11 @@
 
     <!-- Página principal -->
     <ng-container *ngIf="page === 'main'">
+      <div class="icon-menu-wrapper" [class.active]="worldMapModal.isOpenModal()" (click)="openWorldMap()">
+        <ion-icon name="map-outline" class="footer-ion-icon"></ion-icon>
+        <span class="btn-label">Mapa</span>
+      </div>
+
       <div class="icon-menu-wrapper" [class.active]="equipmentModal.isOpenModal()" (click)="openEquipment()">
         <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
         <span class="btn-label">Equipo</span>

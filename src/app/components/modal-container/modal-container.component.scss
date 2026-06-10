@@ -109,6 +109,16 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     overflow-y: auto;
   }
+  &.world-map {
+    top: 10px;
+    bottom: 66px;
+    left: 10px;
+    right: 10px;
+    border-radius: 12px;
+    background: #1a1a2e;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+  }
 }
 
 .close-btn {

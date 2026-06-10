@@ -1,0 +1,54 @@
+:host {
+  display: flex;
+  position: absolute;
+  inset: 0;
+}
+
+.panel-layout {
+  display: flex;
+  flex: 1;
+  padding: 12px;
+  gap: 8px;
+}
+
+.map-area {
+  flex: 1;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #2a2a4e;
+}
+
+.map-bg {
+  position: absolute;
+  inset: 0;
+  background: url('/assets/images/map_background_1.jpg') center / cover no-repeat;
+}
+
+.tabs-bar {
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tab {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid #2a2a4e;
+  background: #1e1e3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  font-size: 20px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  &.active, &:active {
+    background: #1e3a5f;
+    border-color: #3498db;
+    color: #3498db;
+  }
+}

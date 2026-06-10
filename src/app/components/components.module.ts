@@ -29,6 +29,7 @@ import { SkillSlotsPanelComponent } from './skill-slots-panel/skill-slots-panel.
 import { SkillDetailComponent } from './skill-detail/skill-detail.component';
 import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.page';
 import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.component';
+import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
 
 @NgModule({
   declarations: [
@@ -57,6 +58,7 @@ import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.
     SkillDetailComponent,
     GameSettingsPageComponent,
     HudSkillButtonsComponent,
+    WorldMapPanelComponent,
   ],
   imports: [
     CommonModule,
