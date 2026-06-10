@@ -1,8 +1,4 @@
 <div class="panel-layout">
-  <div class="map-area">
-    <div class="map-bg"></div>
-  </div>
-
   <div class="tabs-bar">
     <div class="tab" [class.active]="activeTab === 0" (click)="activeTab = 0">
       <ion-icon name="map-outline"></ion-icon>
@@ -13,5 +9,9 @@
     <div class="tab" [class.active]="activeTab === 2" (click)="activeTab = 2">
       <ion-icon name="flag-outline"></ion-icon>
     </div>
+  </div>
+
+  <div class="map-area">
+    <div class="map-bg"></div>
   </div>
 </div>
