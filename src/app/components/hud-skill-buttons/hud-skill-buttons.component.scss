@@ -66,10 +66,13 @@
 }
 
 .hud-btn-icon {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   image-rendering: pixelated;
+  border-radius: 50%;
 }
 
 .hud-btn-ion-icon {

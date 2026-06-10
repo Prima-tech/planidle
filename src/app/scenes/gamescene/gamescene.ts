@@ -802,7 +802,7 @@ export class GameScene extends Phaser.Scene {
       const playerPos = this.player.getPosition();
       for (const cfg of Object.values(SKILL_REGISTRY)) {
         if (cfg.effectType === 'buff' || cfg.effectType === 'dash' || cfg.target === 'self') { skillSvc.setTargetAvailable(cfg.abilityId, true); continue; }
-        const rangePx = GameScene.TILE_SIZE * cfg.range;
+        const rangePx = GameScene.TILE_SIZE * cfg.range * 3;
         const has = this.enemies.some(e => {
           if (e.isDead) return false;
           const p = e.getPixelPos();
@@ -872,7 +872,7 @@ export class GameScene extends Phaser.Scene {
         this.playImpactSelf(cfg);
         return;
       }
-      const target = this.findNearestEnemy(cfg.range);
+      const target = this.findNearestEnemy(cfg.range * 3);
       if (!target) {
         this.reg.skillActivation?.refundCooldown(abilityId);
         return;
