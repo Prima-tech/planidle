@@ -14,6 +14,11 @@ const STAR_COUNT = 90;
 const TEX_SIZE   = 512;
 const SHADE_KEY  = 'planet_shade';
 
+// El canvas se crea a resolución nativa (ver world-map-panel): toda medida en
+// px fijos (fuentes, pins, botón) se multiplica por DPR para mantener el
+// tamaño visual con texto nítido. Las medidas relativas a W/H escalan solas.
+const DPR = Math.min(window.devicePixelRatio || 1, 3);
+
 interface PlanetDef {
   id: string;
   name: string;
@@ -28,12 +33,41 @@ interface PlanetDef {
 }
 
 const PLANETS: PlanetDef[] = [
-  { id: 'mundo',   name: 'Mundo',   kind: 'blob',  base: '#16456e', features: ['#3a7a44', '#46905a', '#54a060'], cloudAlpha: 0.13, halo: 0x3a7ac8, orbit: 0.46, size: 13, speed: 0.10 },
+  { id: 'mundo',   name: 'Tierra',  kind: 'blob',  base: '#16456e', features: ['#3a7a44', '#46905a', '#54a060'], cloudAlpha: 0.13, halo: 0x3a7ac8, orbit: 0.46, size: 13, speed: 0.10 },
   { id: 'magmar',  name: 'Magmar',  kind: 'blob',  base: '#3a1006', features: ['#e0531e', '#ff7a2e', '#b03a10'], cloudAlpha: 0,    halo: 0xd0501e, orbit: 0.28, size: 9,  speed: 0.16 },
   { id: 'ferrum',  name: 'Ferrum',  kind: 'blob',  base: '#7a2f16', features: ['#a14a24', '#b85c2e', '#8f3c1c'], cloudAlpha: 0.04, halo: 0xb05a30, orbit: 0.63, size: 10, speed: 0.08 },
   { id: 'glacius', name: 'Glacius', kind: 'blob',  base: '#7fa8cc', features: ['#ffffff', '#dcecf8', '#bcd8ee'], cloudAlpha: 0.10, halo: 0x9fd0f0, orbit: 0.80, size: 11, speed: 0.06 },
   { id: 'titanus', name: 'Titanus', kind: 'bands', base: '#c8a06a', features: ['#b08850', '#d8b87e', '#9a7444', '#e8cc96'], cloudAlpha: 0, halo: 0xd8b070, orbit: 0.97, size: 16, speed: 0.045 },
 ];
+
+// Puntos de interés sobre la superficie (coordenadas de textura 0-512).
+// Se mueven con el scroll del TileSprite: rotan con el planeta.
+interface SurfacePin {
+  name: string;
+  mapId: string;
+  tx: number;
+  ty: number;
+  color: number;
+}
+
+const TIERRA_PINS: SurfacePin[] = [
+  { name: 'Hogar', mapId: 'hogar', tx: 256, ty: 100, color: 0xf0c040 },
+  { name: '1-1',   mapId: '1-1',   tx: 40,  ty: 200, color: 0x5bc0f8 },
+  { name: '1-2',   mapId: '1-2',   tx: 120, ty: 60,  color: 0x5bc0f8 },
+  { name: '1-3',   mapId: '1-3',   tx: 190, ty: 260, color: 0x5bc0f8 },
+  { name: '1-4',   mapId: '1-4',   tx: 290, ty: 180, color: 0x5bc0f8 },
+  { name: '1-5',   mapId: '1-5',   tx: 350, ty: 330, color: 0x5bc0f8 },
+  { name: '1-6',   mapId: '1-6',   tx: 420, ty: 120, color: 0x5bc0f8 },
+  { name: '1-7',   mapId: '1-7',   tx: 470, ty: 280, color: 0x5bc0f8 },
+  { name: '1-8',   mapId: '1-8',   tx: 80,  ty: 420, color: 0x5bc0f8 },
+];
+
+// El componente Angular registra aquí sus callbacks: abrir la tarjeta de info
+// del mapa (click) y teletransportarse (doble click), como en la tab 0
+export const PLANET_PIN_SELECT_KEY   = 'onPinSelect';
+export const PLANET_PIN_TELEPORT_KEY = 'onPinTeleport';
+
+const DOUBLE_CLICK_MS = 300;
 
 interface OrbitingPlanet {
   def: PlanetDef;
@@ -54,6 +88,10 @@ export class PlanetViewScene extends Phaser.Scene {
   private detailC: Phaser.GameObjects.Container | null = null;
   private planet: Phaser.GameObjects.TileSprite | null = null;
   private planetMask: Phaser.GameObjects.Graphics | null = null;
+  private detailCX = 0;
+  private detailCY = 0;
+  private detailR  = 0;
+  private pinObjs: { pin: SurfacePin; dot: Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text }[] = [];
   private dragging = false;
   private lastX = 0;
   private lastY = 0;
@@ -82,6 +120,7 @@ export class PlanetViewScene extends Phaser.Scene {
   override update(_t: number, delta: number): void {
     if (this.mode === 'detail') {
       this.updateInertia();
+      this.updatePins();
     } else {
       this.updateOrbits(delta);
     }
@@ -145,6 +184,7 @@ export class PlanetViewScene extends Phaser.Scene {
       .setStrokeStyle(2, def.halo, 0.45);
 
     this.planet = this.add.tileSprite(cx, cy, radius * 2, radius * 2, this.texKey(def));
+    this.planet.setTileScale(DPR);  // misma escala visual de la superficie que a DPR 1
     this.planetMask = this.make.graphics({}, false);
     this.planetMask.fillCircle(cx, cy, radius);
     this.planet.setMask(this.planetMask.createGeometryMask());
@@ -152,20 +192,87 @@ export class PlanetViewScene extends Phaser.Scene {
     const shade = this.add.image(cx, cy, SHADE_KEY);
     shade.setDisplaySize(radius * 2, radius * 2);
 
-    const name = this.add.text(cx, cy + radius + 18, def.name, {
-      fontSize: '13px', color: '#9fc0e8', fontStyle: 'bold', letterSpacing: 2,
-    }).setOrigin(0.5, 0.5).setAlpha(0.8);
+    const name = this.add.text(cx, cy + radius + 32 * DPR, def.name, {
+      fontSize: `${18 * DPR}px`, color: '#9fc0e8', fontStyle: 'bold', letterSpacing: 2,
+    }).setOrigin(0.5, 0.5).setAlpha(0.85);
 
     this.detailC.add([haloOuter, haloRing, this.planet, shade, name]);
+
+    this.detailCX = cx;
+    this.detailCY = cy;
+    this.detailR  = radius;
+    this.pinObjs  = [];
+    if (def.id === 'mundo') {
+      for (const pin of TIERRA_PINS) {
+        const dotR = 5.5 * DPR;
+        const dot = this.add.circle(0, 0, dotR, pin.color, 1).setStrokeStyle(1.5 * DPR, 0x000000, 0.6);
+        // Área de toque generosa. En el espacio local del Arc el centro está
+        // en (radius, radius).
+        dot.setInteractive(new Phaser.Geom.Circle(dotR, dotR, 16 * DPR), Phaser.Geom.Circle.Contains);
+        let lastClick = 0;
+        dot.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+          event.stopPropagation();  // que no arranque el drag del planeta
+          const now = Date.now();
+          if (now - lastClick < DOUBLE_CLICK_MS) {
+            const onTeleport = this.game.registry.get(PLANET_PIN_TELEPORT_KEY) as ((mapId: string) => void) | undefined;
+            onTeleport?.(pin.mapId);
+          } else {
+            const onPin = this.game.registry.get(PLANET_PIN_SELECT_KEY) as ((mapId: string) => void) | undefined;
+            onPin?.(pin.mapId);
+          }
+          lastClick = now;
+        });
+        const label = this.add.text(0, 0, pin.name, {
+          fontSize: `${14 * DPR}px`, color: '#ffffff', fontStyle: 'bold',
+          stroke: '#000000', strokeThickness: 4 * DPR,
+        }).setOrigin(0.5, 1);
+        this.detailC.add([dot, label]);
+        this.pinObjs.push({ pin, dot, label });
+      }
+      this.updatePins();
+    }
+
     this.detailC.add(this.buildZoomOutButton());
+  }
+
+  // Proyecta cada pin desde coordenadas de textura a pantalla siguiendo el
+  // scroll del TileSprite. Fuera de la cara visible se oculta (está "al otro
+  // lado" del planeta); cerca del borde se encoge para simular la curvatura.
+  private updatePins(): void {
+    if (!this.planet || this.pinObjs.length === 0) return;
+    const size = this.detailR * 2;
+    for (const o of this.pinObjs) {
+      // wx/wy en px de textura; en pantalla ocupan wx*DPR (tileScale = DPR)
+      const wx = Phaser.Math.Wrap(o.pin.tx - this.planet.tilePositionX, 0, TEX_SIZE) * DPR;
+      const wy = Phaser.Math.Wrap(o.pin.ty - this.planet.tilePositionY, 0, TEX_SIZE) * DPR;
+      if (wx > size || wy > size) {
+        o.dot.setVisible(false);
+        o.label.setVisible(false);
+        continue;
+      }
+      const px = this.detailCX - this.detailR + wx;
+      const py = this.detailCY - this.detailR + wy;
+      const dx = (px - this.detailCX) / this.detailR;
+      const dy = (py - this.detailCY) / this.detailR;
+      const d2 = dx * dx + dy * dy;
+      if (d2 > 0.92) {
+        o.dot.setVisible(false);
+        o.label.setVisible(false);
+        continue;
+      }
+      const curve = 0.7 + 0.3 * Math.sqrt(1 - d2);
+      const alpha = 0.55 + 0.45 * (1 - d2);
+      o.dot.setPosition(px, py).setScale(curve).setAlpha(alpha).setVisible(true);
+      o.label.setPosition(px, py - 8 * DPR).setScale(curve).setAlpha(alpha).setVisible(true);
+    }
   }
 
   // Botón «+»: zoom-out al sistema estelar
   private buildZoomOutButton(): Phaser.GameObjects.GameObject[] {
-    const bx = 26, by = 26, r = 16;
-    const bg = this.add.circle(bx, by, r, 0x1e3a5f, 0.92).setStrokeStyle(1.5, 0x3498db, 0.8);
-    const label = this.add.text(bx, by - 1, '+', {
-      fontSize: '22px', color: '#5bc0f8', fontStyle: 'bold',
+    const bx = 26 * DPR, by = 26 * DPR, r = 16 * DPR;
+    const bg = this.add.circle(bx, by, r, 0x1e3a5f, 0.92).setStrokeStyle(1.5 * DPR, 0x3498db, 0.8);
+    const label = this.add.text(bx, by - DPR, '+', {
+      fontSize: `${22 * DPR}px`, color: '#5bc0f8', fontStyle: 'bold',
     }).setOrigin(0.5, 0.5);
 
     bg.setInteractive({ useHandCursor: true });
@@ -188,8 +295,10 @@ export class PlanetViewScene extends Phaser.Scene {
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
       if (!this.dragging || !this.planet) return;
-      const dx = p.x - this.lastX;
-      const dy = (p.y - this.lastY) * DRAG_Y;
+      // /DPR: tilePosition va en px de textura y la textura se pinta a escala
+      // DPR — así la superficie sigue exactamente al dedo
+      const dx = (p.x - this.lastX) / DPR;
+      const dy = ((p.y - this.lastY) * DRAG_Y) / DPR;
       this.lastX = p.x;
       this.lastY = p.y;
       this.planet.tilePositionX -= dx;
@@ -226,7 +335,7 @@ export class PlanetViewScene extends Phaser.Scene {
 
     // Órbitas (elipses aplastadas para dar perspectiva)
     const orbitGfx = this.add.graphics();
-    orbitGfx.lineStyle(1, 0x3a5a8a, 0.25);
+    orbitGfx.lineStyle(DPR, 0x3a5a8a, 0.25);
     for (const def of PLANETS) {
       orbitGfx.strokeEllipse(cx, cy, def.orbit * maxOrbit * 2, def.orbit * maxOrbit * 2 * 0.42);
     }
@@ -245,8 +354,8 @@ export class PlanetViewScene extends Phaser.Scene {
       duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
 
-    const hint = this.add.text(cx, H - 16, 'Toca un planeta', {
-      fontSize: '11px', color: '#6a8ab0', letterSpacing: 1,
+    const hint = this.add.text(cx, H - 16 * DPR, 'Toca un planeta', {
+      fontSize: `${11 * DPR}px`, color: '#6a8ab0', letterSpacing: 1,
     }).setOrigin(0.5, 0.5).setAlpha(0.7).setDepth(10);
     this.systemC.add(hint);
 
@@ -301,7 +410,7 @@ export class PlanetViewScene extends Phaser.Scene {
       const star = this.add.circle(
         Phaser.Math.Between(0, w),
         Phaser.Math.Between(0, h),
-        Phaser.Math.FloatBetween(0.5, 1.6),
+        Phaser.Math.FloatBetween(0.5, 1.6) * DPR,
         0xffffff,
         Phaser.Math.FloatBetween(0.25, 0.9),
       );
@@ -392,7 +501,7 @@ export class PlanetViewScene extends Phaser.Scene {
   private createMiniTexture(def: PlanetDef): void {
     const key = this.miniKey(def);
     if (this.textures.exists(key)) return;
-    const d = def.size * 2;
+    const d = def.size * 2 * DPR;  // resolución nativa para que no pixele
     const canvas = this.textures.createCanvas(key, d, d)!;
     const ctx = canvas.context;
 

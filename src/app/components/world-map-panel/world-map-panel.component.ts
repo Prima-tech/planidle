@@ -1,7 +1,7 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import Phaser from 'phaser';
-import { PlanetViewScene } from 'src/app/scenes/planet-view.scene';
+import { PlanetViewScene, PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY } from 'src/app/scenes/planet-view.scene';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
@@ -48,6 +48,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private playerBridge  = inject(PlayerBridgeService);
   private asgard        = inject(AsgardService);
   private storage       = inject(StorageService);
+  private ngZone        = inject(NgZone);
   private mapSub: Subscription;
 
   activeTab    = 0;
@@ -86,13 +87,27 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private createPlanetGame() {
     const parent = document.getElementById('planet-view');
     if (!parent || this.planetGame) return;
+    // Canvas a resolución nativa del dispositivo (devicePixelRatio) y reducido
+    // con zoom CSS — sin esto el texto se ve borroso en pantallas de alta densidad
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
     this.planetGame = new Phaser.Game({
       type: Phaser.AUTO,
       parent,
-      width:  parent.clientWidth,
-      height: parent.clientHeight,
+      width:  parent.clientWidth * dpr,
+      height: parent.clientHeight * dpr,
+      scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
+      render: { antialias: true },
       backgroundColor: '#05060f',
       scene: [PlanetViewScene],
+    });
+    // Pin pulsado en el globo → misma tarjeta de info (y teleport) que la tab 0.
+    // El click llega desde Phaser (fuera de Angular): hace falta ngZone.run
+    // para que la change detection pinte la tarjeta.
+    this.planetGame.registry.set(PLANET_PIN_SELECT_KEY, (mapId: string) => {
+      this.ngZone.run(() => this.selectPin(mapId));
+    });
+    this.planetGame.registry.set(PLANET_PIN_TELEPORT_KEY, (mapId: string) => {
+      this.ngZone.run(() => this.teleport(mapId));
     });
   }
 
