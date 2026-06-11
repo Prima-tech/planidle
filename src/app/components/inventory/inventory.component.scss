@@ -201,11 +201,15 @@ $purple: #6e4a67;         // celda seleccionada
   align-items: center;
   gap: 5px;
   margin-left: auto;
-  padding: 3px 8px;
-  background: $cell-bg;
-  border: 2px solid $outline;
+  height: 26px;
+  padding: 0 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
 }
 
 .coin-spinner {
@@ -227,7 +231,7 @@ $purple: #6e4a67;         // celda seleccionada
 .coin-amount {
   font-size: 0.72em;
   font-weight: bold;
-  color: #f0c040;
+  color: $text-brown;
 }
 
 /* Botones */
@@ -243,8 +247,8 @@ $purple: #6e4a67;         // celda seleccionada
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   background: $wood-btn;
   color: $text-brown;
   border: 2px solid;
@@ -257,7 +261,7 @@ $purple: #6e4a67;         // celda seleccionada
   transition: background 0.15s, color 0.15s;
 
   ion-icon {
-    font-size: 16px;
+    font-size: 14px;
     pointer-events: none;
   }
 
