@@ -28,9 +28,8 @@
     bottom: 65px;
     right: 10px;
     width: fit-content;
-    border-radius: 12px 12px 0 0;
-    background: #1a1a2e;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    /* El marco madera/piedra lo pinta el propio InventoryComponent (:host) */
+    background: transparent;
     overflow-y: auto;
   }
   &.equipment {
