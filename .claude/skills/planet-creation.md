@@ -31,7 +31,7 @@ triggers:
 
 - **`detail`** (inicial, planeta Tierra): TileSprite con máscara circular — la textura hace scroll al arrastrar, con inercia (`FRICTION`). Borde de 2px×DPR en color `def.halo`. Botón «+» → zoom-out al sistema.
 - **`system`**: estrella central con pulso + planetas orbitando en elipses aplastadas (×0.42). Click en un planeta → tarjeta de info Angular (`PLANET_SELECT_KEY`); doble click → zoom-in a su detalle. Botón «+» → constelación.
-- **`constellation`**: la Osa Mayor — 7 estrellas (`CONSTELLATION`, posiciones normalizadas 0-1) unidas por `CONSTELLATION_LINES`. La estrella `home` (Alioth, anillo dorado pulsante) lleva de vuelta al sistema; las demás muestran "Inexplorado" (`showUnexplored`). Para dar sistema a otra estrella: hará falta parametrizar `buildSystemView` por estrella.
+- **`constellation`**: la Osa Mayor — 7 estrellas (`CONSTELLATION`, posiciones normalizadas 0-1) unidas por `CONSTELLATION_LINES`. **Cada estrella tiene su propio sistema**: la `home` (Alioth, anillo dorado pulsante) usa los planetas hechos a mano de `PLANETS`; las demás generan **4-8 planetas aleatorios** (`generatePlanets`) al visitarlas por primera vez, cacheados por sesión en `systemPlanets` (Map estrella→planetas). La generación combina estilos pixel con paletas predefinidas (`RANDOM_PALETTES`, 3 por estilo — añadir paletas ahí para más variedad) y nombres procedurales por sílabas. `buildSystemView()` se reconstruye al cambiar de estrella (`goToSystem(star)`) con el color y nombre de la estrella.
 - Transiciones: fade de cámara + tween de zoom (`transition()`), flag `transitioning` bloquea input. El botón «+» es genérico: `buildPlusButton(onClick)`.
 
 ## Crear un planeta nuevo (reutilizando un estilo)

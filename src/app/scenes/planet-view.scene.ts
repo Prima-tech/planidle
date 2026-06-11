@@ -122,6 +122,72 @@ const CONSTELLATION_LINES: [string, string][] = [
 
 type ViewMode = 'detail' | 'system' | 'constellation';
 
+// ── Generación aleatoria de sistemas ─────────────────────────────────────────
+// Cada estrella (salvo la home, que usa PLANETS) genera 4-8 planetas al
+// visitarla por primera vez. Paletas predefinidas por estilo para que
+// cualquier combinación aleatoria quede bien.
+interface PlanetPalette {
+  base: string;
+  features: string[];
+  halo: number;
+}
+
+const RANDOM_PALETTES: Record<Exclude<PixelStyle, 'blackhole'>, PlanetPalette[]> = {
+  terran: [
+    { base: '#2e62d0', features: ['#4ea33c', '#7ac855', '#e3d291'], halo: 0x7fb4f0 },  // terrestre
+    { base: '#1f7a6a', features: ['#7a5c2e', '#a07c3e', '#d8c890'], halo: 0x6fd0c0 },  // océano verde
+    { base: '#3a2e7a', features: ['#7a3ea0', '#a05cc8', '#d0a8e8'], halo: 0xb08ae8 },  // alienígena
+  ],
+  lava: [
+    { base: '#1c0d08', features: ['#7a1e0e', '#e8502a', '#ffa040'], halo: 0xff6a2e },  // volcánico
+    { base: '#140818', features: ['#5a0e7a', '#b02ae8', '#e878ff'], halo: 0xd05aff },  // plasma
+    { base: '#0d1208', features: ['#1e5a0e', '#4ae82a', '#b8ff60'], halo: 0x6aff2e },  // tóxico
+  ],
+  ice: [
+    { base: '#dde6f2', features: ['#b8c6dc', '#9fb2d0', '#ffffff'], halo: 0xcfe0f8 },  // glacial
+    { base: '#cfeaea', features: ['#9fd0cc', '#7ab8b4', '#ffffff'], halo: 0xa0e8e0 },  // menta
+    { base: '#e8dff2', features: ['#c8b8dc', '#b09fd0', '#ffffff'], halo: 0xd8c8f0 },  // lavanda
+  ],
+  baren: [
+    { base: '#8a98a8', features: ['#5a6874', '#46525e', '#aab6c2'], halo: 0x9fb0c0 },  // gris
+    { base: '#a89078', features: ['#74604a', '#5e4c3a', '#c2ac92'], halo: 0xc0a888 },  // desértico
+    { base: '#987878', features: ['#684a4a', '#523a3a', '#b29292'], halo: 0xb89090 },  // rojizo
+  ],
+};
+
+const NAME_SYL_A = ['Zor', 'Kel', 'Vor', 'Tau', 'Nyx', 'Ael', 'Dra', 'Mor', 'Sil', 'Quo', 'Ery', 'Tha'];
+const NAME_SYL_B = ['va', 'ren', 'thar', 'mis', 'dun', 'lex', 'ria', 'gon', 'dor', 'bel'];
+const NAME_SYL_C = ['', 'os', 'a', 'ix', 'um', 'ar', 'e', 'is'];
+
+function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function generatePlanets(starId: string): PlanetDef[] {
+  const count = Phaser.Math.Between(4, 8);
+  const styles = Object.keys(RANDOM_PALETTES) as (keyof typeof RANDOM_PALETTES)[];
+  const planets: PlanetDef[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const style   = pick(styles);
+    const palette = pick(RANDOM_PALETTES[style]);
+    // Órbitas repartidas de dentro a fuera con algo de variación
+    const orbit = 0.25 + (i / Math.max(1, count - 1)) * 0.70 + Phaser.Math.FloatBetween(-0.03, 0.03);
+    planets.push({
+      id: `${starId}_p${i}`,
+      name: pick(NAME_SYL_A) + pick(NAME_SYL_B) + pick(NAME_SYL_C),
+      kind: 'pixel',
+      style,
+      base: palette.base,
+      features: [...palette.features],
+      cloudAlpha: 0,
+      halo: palette.halo,
+      orbit,
+      size: Phaser.Math.Between(8, 15),
+      speed: 0.05 + (1 - orbit) * 0.12 + Phaser.Math.FloatBetween(0, 0.03),
+    });
+  }
+  return planets;
+}
+
 export class PlanetViewScene extends Phaser.Scene {
 
   private mode: ViewMode = 'detail';
@@ -141,9 +207,11 @@ export class PlanetViewScene extends Phaser.Scene {
   private velX = 0;
   private velY = 0;
 
-  // Vista sistema
+  // Vista sistema — una por estrella; los sistemas generados se cachean por sesión
   private systemC: Phaser.GameObjects.Container | null = null;
   private orbiting: OrbitingPlanet[] = [];
+  private currentStar!: StarDef;
+  private readonly systemPlanets = new Map<string, PlanetDef[]>();
 
   // Vista constelación
   private constellationC: Phaser.GameObjects.Container | null = null;
@@ -153,9 +221,11 @@ export class PlanetViewScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor('#05060f');
     this.createStars(this.scale.width, this.scale.height);
-    for (const def of PLANETS) this.createPlanetTexture(def);
     this.createShadeTexture();
-    for (const def of PLANETS) this.createMiniTexture(def);
+
+    // La estrella home usa los planetas hechos a mano; el resto se generan al visitarlas
+    this.currentStar = CONSTELLATION.find(s => s.home)!;
+    this.systemPlanets.set(this.currentStar.id, PLANETS);
 
     this.buildConstellationView();
     this.constellationC!.setVisible(false);
@@ -163,6 +233,20 @@ export class PlanetViewScene extends Phaser.Scene {
     this.systemC!.setVisible(false);
     this.buildDetailView(PLANETS[0]);
     this.initDrag();
+  }
+
+  // Planetas de una estrella: genera (y crea texturas) la primera vez, luego caché
+  private planetsFor(star: StarDef): PlanetDef[] {
+    let planets = this.systemPlanets.get(star.id);
+    if (!planets) {
+      planets = generatePlanets(star.id);
+      this.systemPlanets.set(star.id, planets);
+    }
+    for (const def of planets) {
+      this.createPlanetTexture(def);
+      this.createMiniTexture(def);
+    }
+    return planets;
   }
 
   override update(_t: number, delta: number): void {
@@ -177,19 +261,25 @@ export class PlanetViewScene extends Phaser.Scene {
 
   /** Llamado desde Angular (botón de la tarjeta de info del planeta) */
   zoomToPlanet(planetId: string): void {
-    const def = PLANETS.find(p => p.id === planetId);
+    const planets = this.systemPlanets.get(this.currentStar.id) ?? [];
+    const def = planets.find(p => p.id === planetId);
     if (def) this.goToPlanet(def);
   }
 
   // ── Transiciones ────────────────────────────────────────────────────────────
 
-  private goToSystem(): void {
+  /** Sin argumento vuelve al sistema actual; con estrella, entra en el suyo */
+  private goToSystem(star?: StarDef): void {
     if (this.transitioning || this.mode === 'system') return;
     // Desde el detalle es zoom-out; desde la constelación es zoom-in
     const zoomIn = this.mode === 'constellation';
     this.transition(() => {
       this.detailC?.setVisible(false);
       this.constellationC?.setVisible(false);
+      if (star && star.id !== this.currentStar.id) {
+        this.currentStar = star;
+        this.buildSystemView();  // reconstruye con los planetas de esa estrella
+      }
       this.systemC?.setVisible(true);
       this.mode = 'system';
     }, zoomIn);
@@ -393,6 +483,12 @@ export class PlanetViewScene extends Phaser.Scene {
   // ── Vista sistema ───────────────────────────────────────────────────────────
 
   private buildSystemView(): void {
+    // Se reconstruye al cambiar de estrella
+    this.systemC?.destroy(true);
+
+    const star    = this.currentStar;
+    const planets = this.planetsFor(star);
+
     const W = this.scale.width;
     const H = this.scale.height;
     const cx = W / 2;
@@ -405,19 +501,25 @@ export class PlanetViewScene extends Phaser.Scene {
     // Órbitas (elipses aplastadas para dar perspectiva)
     const orbitGfx = this.add.graphics();
     orbitGfx.lineStyle(DPR, 0x3a5a8a, 0.25);
-    for (const def of PLANETS) {
+    for (const def of planets) {
       orbitGfx.strokeEllipse(cx, cy, def.orbit * maxOrbit * 2, def.orbit * maxOrbit * 2 * 0.42);
     }
     orbitGfx.setDepth(-5);
     this.systemC.add(orbitGfx);
 
-    // Estrella central con pulso
+    // Estrella central con pulso, en el color de la estrella de la constelación
     const sR = Math.min(W, H) * 0.085;
-    const glow2 = this.add.circle(cx, cy, sR * 2.4, 0xffc860, 0.07).setDepth(-1);
-    const glow1 = this.add.circle(cx, cy, sR * 1.6, 0xffd070, 0.16).setDepth(-0.9);
-    const body  = this.add.circle(cx, cy, sR,       0xffdf90, 1).setDepth(0);
-    const core  = this.add.circle(cx, cy, sR * 0.6, 0xfff8dc, 1).setDepth(0.1);
+    const glow2 = this.add.circle(cx, cy, sR * 2.4, star.color, 0.07).setDepth(-1);
+    const glow1 = this.add.circle(cx, cy, sR * 1.6, star.color, 0.16).setDepth(-0.9);
+    const body  = this.add.circle(cx, cy, sR,       star.color, 1).setDepth(0);
+    const core  = this.add.circle(cx, cy, sR * 0.6, 0xfff8f0, 1).setDepth(0.1);
     this.systemC.add([glow2, glow1, body, core]);
+
+    // Nombre de la estrella
+    const title = this.add.text(cx, 18 * DPR, star.name.toUpperCase(), {
+      fontSize: `${13 * DPR}px`, color: '#7a9ac8', fontStyle: 'bold', letterSpacing: 4,
+    }).setOrigin(0.5, 0.5).setAlpha(0.75).setDepth(10);
+    this.systemC.add(title);
     this.tweens.add({
       targets: [glow1, glow2], alpha: 0.04, scaleX: 1.12, scaleY: 1.12,
       duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
@@ -433,7 +535,7 @@ export class PlanetViewScene extends Phaser.Scene {
     this.systemC.add(plusBtn);
 
     // Planetas
-    for (const def of PLANETS) {
+    for (const def of planets) {
       const img = this.add.image(0, 0, this.miniKey(def));
       img.setInteractive({ useHandCursor: true });
       let lastClick = 0;
@@ -546,11 +648,7 @@ export class PlanetViewScene extends Phaser.Scene {
       body.setInteractive(new Phaser.Geom.Circle(r, r, r + 16 * DPR), Phaser.Geom.Circle.Contains);
       body.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
         event.stopPropagation();
-        if (star.home) {
-          this.goToSystem();
-        } else {
-          this.showUnexplored(sx, sy - r - 10 * DPR);
-        }
+        this.goToSystem(star);
       });
     }
 
@@ -562,18 +660,6 @@ export class PlanetViewScene extends Phaser.Scene {
       fontSize: `${11 * DPR}px`, color: '#6a8ab0', letterSpacing: 1,
     }).setOrigin(0.5, 0.5).setAlpha(0.7);
     this.constellationC.add([title, hint]);
-  }
-
-  // Texto flotante sobre estrellas sin sistema explorable
-  private showUnexplored(x: number, y: number): void {
-    const text = this.add.text(x, y, 'Inexplorado', {
-      fontSize: `${12 * DPR}px`, color: '#8a9ab8', fontStyle: 'bold',
-      stroke: '#000000', strokeThickness: 3 * DPR,
-    }).setOrigin(0.5, 1);
-    this.tweens.add({
-      targets: text, y: y - 18 * DPR, alpha: 0, duration: 900, ease: 'Power2',
-      onComplete: () => text.destroy(),
-    });
   }
 
   // ── Texturas procedurales ───────────────────────────────────────────────────
