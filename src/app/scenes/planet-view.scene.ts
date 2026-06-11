@@ -120,7 +120,7 @@ const CONSTELLATION_LINES: [string, string][] = [
   ['megrez', 'dubhe'], ['dubhe', 'merak'], ['merak', 'phecda'], ['phecda', 'megrez'],
 ];
 
-type ViewMode = 'detail' | 'system' | 'constellation';
+type ViewMode = 'detail' | 'system' | 'constellation' | 'galaxy';
 
 // ── Generación aleatoria de sistemas ─────────────────────────────────────────
 // Cada estrella (salvo la home, que usa PLANETS) genera 4-8 planetas al
@@ -216,6 +216,9 @@ export class PlanetViewScene extends Phaser.Scene {
   // Vista constelación
   private constellationC: Phaser.GameObjects.Container | null = null;
 
+  // Vista galaxia
+  private galaxyC: Phaser.GameObjects.Container | null = null;
+
   constructor() { super({ key: 'PlanetViewScene' }); }
 
   create(): void {
@@ -227,6 +230,8 @@ export class PlanetViewScene extends Phaser.Scene {
     this.currentStar = CONSTELLATION.find(s => s.home)!;
     this.systemPlanets.set(this.currentStar.id, PLANETS);
 
+    this.buildGalaxyView();
+    this.galaxyC!.setVisible(false);
     this.buildConstellationView();
     this.constellationC!.setVisible(false);
     this.buildSystemView();
@@ -286,14 +291,26 @@ export class PlanetViewScene extends Phaser.Scene {
   }
 
   private goToConstellation(): void {
-    if (this.transitioning || this.mode !== 'system') return;
+    if (this.transitioning || this.mode === 'constellation' || this.mode === 'detail') return;
     // Cierra la tarjeta de info del planeta si estaba abierta en Angular
     const onZoom = this.game.registry.get(PLANET_ZOOM_KEY) as (() => void) | undefined;
     onZoom?.();
+    // Desde el sistema es zoom-out; desde la galaxia es zoom-in
+    const zoomIn = this.mode === 'galaxy';
     this.transition(() => {
       this.systemC?.setVisible(false);
+      this.galaxyC?.setVisible(false);
       this.constellationC?.setVisible(true);
       this.mode = 'constellation';
+    }, zoomIn);
+  }
+
+  private goToGalaxy(): void {
+    if (this.transitioning || this.mode !== 'constellation') return;
+    this.transition(() => {
+      this.constellationC?.setVisible(false);
+      this.galaxyC?.setVisible(true);
+      this.mode = 'galaxy';
     }, /* zoomIn */ false);
   }
 
@@ -662,6 +679,87 @@ export class PlanetViewScene extends Phaser.Scene {
       fontSize: `${11 * DPR}px`, color: '#6a8ab0', letterSpacing: 1,
     }).setOrigin(0.5, 0.5).setAlpha(0.7);
     this.constellationC.add([title, hint]);
+
+    this.constellationC.add(this.buildPlusButton(() => this.goToGalaxy()));
+  }
+
+  // ── Vista galaxia ───────────────────────────────────────────────────────────
+
+  private buildGalaxyView(): void {
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const cx = W / 2;
+    const cy = H / 2;
+    const maxR = Math.min(W, H) * 0.42;
+
+    this.galaxyC = this.add.container(0, 0);
+
+    // Brazos espirales: puntos a lo largo de espirales con achatamiento
+    // vertical (perspectiva). Rotan muy despacio como sub-container.
+    const arms = this.add.container(cx, cy);
+    const ARM_COUNT = 3;
+    for (let arm = 0; arm < ARM_COUNT; arm++) {
+      const phase = (arm * Math.PI * 2) / ARM_COUNT;
+      for (let i = 0; i < 130; i++) {
+        const t     = i / 130;
+        const angle = phase + t * 4.2 + Phaser.Math.FloatBetween(-0.18, 0.18);
+        const r     = 10 * DPR + t * maxR + Phaser.Math.FloatBetween(-6, 6) * DPR;
+        const px    = Math.cos(angle) * r;
+        const py    = Math.sin(angle) * r * 0.62;
+        const tone  = Math.random();
+        const color = tone < 0.6 ? 0xffffff : tone < 0.85 ? 0xcfe0ff : 0xffd9a0;
+        const dot = this.add.circle(
+          px, py,
+          Phaser.Math.FloatBetween(0.6, 1.8) * DPR,
+          color,
+          Phaser.Math.FloatBetween(0.9, 0.35) * (1 - t * 0.5),
+        );
+        arms.add(dot);
+      }
+    }
+    this.galaxyC.add(arms);
+    this.tweens.add({ targets: arms, rotation: Math.PI * 2, duration: 240_000, repeat: -1 });
+
+    // Bulbo central
+    const bulge3 = this.add.circle(cx, cy, maxR * 0.30, 0xffe8c0, 0.10);
+    const bulge2 = this.add.circle(cx, cy, maxR * 0.18, 0xffe8c0, 0.25);
+    const bulge1 = this.add.circle(cx, cy, maxR * 0.09, 0xfff4dc, 0.85);
+    this.galaxyC.add([bulge3, bulge2, bulge1]);
+
+    // Marcador de la Osa Mayor: vuelve a la constelación
+    const mx = cx + maxR * 0.58;
+    const my = cy - maxR * 0.30;
+    const markerRing = this.add.circle(mx, my, 11 * DPR, 0x000000, 0)
+      .setStrokeStyle(1.5 * DPR, 0xf0c040, 0.85);
+    const markerDot = this.add.circle(mx, my, 3 * DPR, 0xf0c040, 1);
+    this.tweens.add({
+      targets: markerRing, scaleX: 1.35, scaleY: 1.35, alpha: 0.4,
+      duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+    const markerLabel = this.add.text(mx, my + 24 * DPR, 'Osa Mayor', {
+      fontSize: `${13 * DPR}px`, color: '#f0c040', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 3 * DPR,
+    }).setOrigin(0.5, 0.5);
+    this.galaxyC.add([markerRing, markerDot, markerLabel]);
+
+    markerDot.setInteractive({
+      hitArea: new Phaser.Geom.Circle(3 * DPR, 3 * DPR, 25 * DPR),
+      hitAreaCallback: Phaser.Geom.Circle.Contains,
+      useHandCursor: true,
+    });
+    markerDot.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+      this.goToConstellation();
+    });
+
+    // Título y hint
+    const title = this.add.text(cx, 18 * DPR, 'VÍA LÁCTEA', {
+      fontSize: `${13 * DPR}px`, color: '#7a9ac8', fontStyle: 'bold', letterSpacing: 4,
+    }).setOrigin(0.5, 0.5).setAlpha(0.75);
+    const hint = this.add.text(cx, H - 16 * DPR, 'Toca la constelación', {
+      fontSize: `${11 * DPR}px`, color: '#6a8ab0', letterSpacing: 1,
+    }).setOrigin(0.5, 0.5).setAlpha(0.7);
+    this.galaxyC.add([title, hint]);
   }
 
   // ── Texturas procedurales ───────────────────────────────────────────────────
