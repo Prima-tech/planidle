@@ -4,7 +4,7 @@ import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridDrops } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
-import { MobileInput, MOBILE_INPUT_KEY } from "src/app/scenes/mobile-hud.scene";
+import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MINIMAP_DATA_KEY } from "src/app/scenes/mobile-hud.scene";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
 import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
@@ -161,6 +161,7 @@ export class GameScene extends Phaser.Scene {
       this.initCamera();
       this.mobileInput = { direction: Direction.NONE, lastCardinalDir: Direction.DOWN, isAttackHeld: false };
       this.registry.set(MOBILE_INPUT_KEY, this.mobileInput);
+      this.registry.set(MINIMAP_DATA_KEY, this.buildMinimapData());
       this.scene.launch('MobileHUDScene');
       this.createPhysics();
       this.createGameControls();
@@ -368,6 +369,22 @@ export class GameScene extends Phaser.Scene {
       };
       this.reg.playerBridge.setInitialSprites(sprites);
       this.player = this.reg.playerBridge.getPlayer();
+    }
+
+    // El HUD lee esto cada frame: `enemies` es la referencia viva al array
+    // (spawnEnemy hace push y el callback de muerte splice sobre el mismo array)
+    private buildMinimapData(): MinimapData {
+      const ts = GameScene.TILE_SIZE;
+      return {
+        enemies: this.enemies,
+        getPlayerPos: () => this.player.getPosition(),
+        mapWidthPx:  this.currentMap.width  * ts,
+        mapHeightPx: this.currentMap.height * ts,
+        portals: this.currentMapConfig.portals.map(p => ({
+          x: p.tilePos.x * ts + ts / 2,
+          y: p.tilePos.y * ts + ts / 2,
+        })),
+      };
     }
 
     initSpawns() {
