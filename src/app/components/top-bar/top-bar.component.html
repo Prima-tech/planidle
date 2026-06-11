@@ -6,9 +6,12 @@
 
       <!-- Tarjeta superior: avatar + barras -->
       <div class="char-widget">
+
+        <!-- Pastilla flotante con el nombre (mismo estilo que la del minimapa) -->
+        <div class="char-name-pill">{{ asgardService?.selectedPlayer?.name }}</div>
+
         <div class="char-panel">
           <div class="avatar-col">
-            <div class="char-name">{{ asgardService?.selectedPlayer?.name }}</div>
             <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
               <ion-icon [name]="classIcon"></ion-icon>
             </div>
@@ -21,7 +24,6 @@
                 <div class="bar-track">
                   <div class="bar-fill bar-fill--hp" [style.width.%]="hp.ratio * 100"></div>
                 </div>
-                <span class="bar-text">{{ hp.current }} / {{ hp.max }}</span>
               </div>
             </ng-container>
 
@@ -104,13 +106,5 @@
       </div>
     </div>
   </div>
-
-  <!-- Derecha: nombre del mapa -->
-  <div class="right-side">
-    <button class="map-anchor" (click)="toggleMapPanel()">
-<ion-icon class="map-anchor-chevron" name="chevron-down-outline"></ion-icon>
-    </button>
-  </div>
-
 
 </div>

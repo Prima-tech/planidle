@@ -13,6 +13,9 @@ $cell-bg: #38241d;
 $cell-border: #21130e;
 $text-brown: #53301c;
 $text-cream: #ecd9b4;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
 
 .top-bar {
   height: 72px;
@@ -86,6 +89,7 @@ $text-cream: #ecd9b4;
 // ── Tarjeta superior: solo char-panel ────────────────────────────────────────
 
 .char-widget {
+  position: relative; /* ancla de la pastilla flotante del nombre */
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
     $wood-bg;
@@ -102,41 +106,6 @@ $text-cream: #ecd9b4;
   }
 }
 
-// ── Ancla entre paneles ───────────────────────────────────────────────────────
-
-.map-anchor {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 2px 8px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  width: 100%;
-  box-sizing: border-box;
-  color: rgba(236, 217, 180, 0.35);
-  transition: background 0.15s, color 0.15s;
-
-  .char-block--open & {
-    background: rgba(58, 44, 32, 0.25);
-    border-top: 1px solid $outline;
-    padding: 4px 8px;
-    color: $text-cream;
-  }
-}
-
-.map-anchor-chevron {
-  font-size: 10px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.15s;
-
-  .char-block--open & {
-    opacity: 0.6;
-  }
-}
-
 // ── Panel info del mapa (absoluto, cuelga bajo el widget sin alterar altura) ──
 
 .map-info-panel {
@@ -148,9 +117,7 @@ $text-cream: #ecd9b4;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  background:
-    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
-    $wood-bg;
+  background: $wood-bg;
   border: 3px solid;
   border-color: $stone $stone-dark $stone-dark $stone;
   border-top: none;
@@ -232,14 +199,17 @@ $text-cream: #ecd9b4;
 
 .mip-spawn-count {
   font-size: 0.6em;
-  color: rgba(236, 217, 180, 0.75);
+  font-weight: 600;
+  color: #6b4226;
 }
 
 .mip-bar {
-  height: 3px;
+  height: 5px;
   background: $cell-bg;
-  border-radius: 2px;
+  border: 1px solid $outline;
+  border-radius: 3px;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .mip-bar-fill {
@@ -314,36 +284,38 @@ $text-cream: #ecd9b4;
 .mip-passive-name {
   font-size: 0.6em;
   font-weight: bold;
-  color: rgba(255, 255, 255, 0.8);
+  color: $text-brown;
 }
 
 .mip-passive-status {
   font-size: 0.62em;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(83, 48, 28, 0.5);
 
-  &--on { color: #2ecc71; }
+  &--on { color: #2e5d24; }
 }
 
 .mip-passive-desc {
   font-size: 0.55em;
-  color: rgba(255, 255, 255, 0.45);
+  color: #6b4226;
   line-height: 1.3;
 }
 
 .mip-passive-btn {
   align-self: flex-start;
-  background: rgba(52, 152, 219, 0.15);
-  border: 1px solid rgba(52, 152, 219, 0.4);
+  background: $wood-btn;
+  border: 2px solid $outline;
   border-radius: 4px;
   padding: 2px 8px;
   font-size: 0.58em;
-  color: #3498db;
+  font-weight: 600;
+  color: $text-brown;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transition: background 0.15s, color 0.15s;
   margin-top: 2px;
 
-  &:hover { background: rgba(52, 152, 219, 0.28); border-color: rgba(52, 152, 219, 0.7); }
-  &:active { background: rgba(52, 152, 219, 0.4); }
+  &:hover  { background: $wood-btn-light; }
+  &:active { background: $wood-btn-dark; color: $text-cream; }
 }
 
 // ── Panel personaje ──────────────────────────────────────────────────────────
@@ -365,37 +337,55 @@ $text-cream: #ecd9b4;
   flex-shrink: 0;
 }
 
+/* Marco metálico + fondo marrón claro (como la placa del nombre en equipo) */
 .avatar-icon {
   width: 28px;
   height: 28px;
   border-radius: 5px;
-  border: 1.5px solid rgba(255,255,255,0.15);
+  background: $wood-btn-dark;
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
 
-  ion-icon { font-size: 14px; }
+  ion-icon { font-size: 14px; color: $text-cream; }
 
-  &--warrior   { background: rgba(255,100,40,0.2);  border-color: rgba(255,100,40,0.5);  ion-icon { color: #ff8040; } }
-  &--mage      { background: rgba(30,100,220,0.2);  border-color: rgba(60,140,255,0.5);  ion-icon { color: #5aadff; } }
-  &--hunter    { background: rgba(60,200,100,0.2);  border-color: rgba(60,200,100,0.5);  ion-icon { color: #4ecf7a; } }
-  &--priest    { background: rgba(210,180,120,0.2); border-color: rgba(220,195,140,0.5); ion-icon { color: #e8d5a3; } }
-  &--necron    { background: rgba(40,40,40,0.5);    border-color: rgba(120,120,120,0.45);ion-icon { color: #9e9e9e; } }
-  &--ancestral { background: rgba(0,210,255,0.18);  border-color: rgba(0,210,255,0.55);  ion-icon { color: #00d2ff; } }
+  &--warrior   ion-icon { color: #ff8040; }
+  &--mage      ion-icon { color: #5aadff; }
+  &--hunter    ion-icon { color: #4ecf7a; }
+  &--priest    ion-icon { color: #e8d5a3; }
+  &--necron    ion-icon { color: #9e9e9e; }
+  &--ancestral ion-icon { color: #00d2ff; }
 }
 
-.char-name {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 700;
-  font-size: 0.62em;
-  color: $text-brown;
-  letter-spacing: 0.04em;
-  text-align: center;
+/* Pastilla flotante del nombre — mismo estilo que .minimap-name */
+.char-name-pill {
+  position: absolute;
+  top: -16px;
+  left: 28px;
+  transform: translateX(-50%);
+  z-index: 3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 52px;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
+  max-width: 150px;
+  padding: 3px 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  font-size: 11px;
+  font-weight: bold;
+  color: $text-brown;
+  letter-spacing: 0.03em;
 }
 
 // ── Barras ───────────────────────────────────────────────────────────────────
@@ -410,37 +400,58 @@ $text-cream: #ecd9b4;
 .bar-row {
   position: relative;
   width: 100%;
-  height: 14px;
+  height: 15px;
 }
 
+/* Pista hundida, como las celdas del inventario */
 .bar-track {
   position: absolute;
   inset: 0;
-  background: $cell-bg;
-  border-radius: 4px;
+  background: $cell-border;
+  border-radius: 5px;
   overflow: hidden;
-  border: 1px solid $outline;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  border: 2px solid $outline;
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Relleno con brillo superior, sombra inferior y textura píxel */
 .bar-fill {
   height: 100%;
+  border-radius: 2px;
   transition: width 0.3s ease;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3),
+    inset -1px 0 0 rgba(0, 0, 0, 0.25);
 
-  &--hp  { background: linear-gradient(90deg, #c0392b, #e74c3c); }
-  &--mp  { background: linear-gradient(90deg, #1a6ab0, #3498db); }
-  &--xp  { background: linear-gradient(90deg, #d4a000, #f0c040); }
+  &--hp {
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 8px),
+      linear-gradient(180deg, #e8604a 0%, #c0392b 55%, #8e2418 100%);
+  }
+  &--mp {
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 8px),
+      linear-gradient(180deg, #58a8e8 0%, #2f7cc0 55%, #1c4f80 100%);
+  }
+  &--xp {
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 8px),
+      linear-gradient(180deg, #f0c040 0%, #d4a000 55%, #9e7600 100%);
+  }
 }
 
 .bar-text {
   position: absolute;
   top: 0;
   right: 5px;
-  height: 14px;
-  line-height: 14px;
+  height: 15px;
+  line-height: 15px;
   font-size: 0.65em;
   font-weight: bold;
-  color: #fff;
+  color: $text-cream;
   text-shadow:
     1px  1px 0 #000,
    -1px -1px 0 #000,
@@ -500,12 +511,4 @@ $text-cream: #ecd9b4;
   }
 }
 
-// ── Derecha: monedas + mapa ───────────────────────────────────────────────────
-
-.right-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
 

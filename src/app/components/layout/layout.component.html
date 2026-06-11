@@ -9,10 +9,13 @@
   <div class="zona-estatica">
     <div id="game"></div>
     <!-- Aro de piedra sobre el minimapa Phaser (MM_TOP/MM_MARGIN=10, MM_RADIUS=49) -->
-    <div class="minimap-frame" *ngIf="dataLoaded && sceneVisible">
+    <div class="minimap-frame" *ngIf="dataLoaded && sceneVisible" (click)="footerBar.openWorldMap()">
       <span class="minimap-name">{{ (worldService.currentMap$ | async)?.name }}</span>
-      <button class="minimap-btn" (click)="footerBar.openInventory()">
+      <button class="minimap-btn minimap-btn--bag" (click)="footerBar.openInventory(); $event.stopPropagation()">
         <ion-icon name="bag-outline"></ion-icon>
+      </button>
+      <button class="minimap-btn minimap-btn--settings" (click)="footerBar.openMenu(); $event.stopPropagation()">
+        <ion-icon name="settings-outline"></ion-icon>
       </button>
     </div>
   </div>

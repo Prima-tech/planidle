@@ -50,8 +50,12 @@
     0 0 0 2px #3a2c20,
     inset 0 0 0 2px #3a2c20,
     0 4px 10px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
-  z-index: 10;
+  /* clicable: abre la pantalla del mapa (el hit-area respeta el border-radius,
+     así que solo captura dentro del círculo, no en las esquinas) */
+  pointer-events: auto;
+  cursor: pointer;
+  /* por encima de la top-bar (z-index 50), por debajo de los modales (200) */
+  z-index: 60;
 }
 
 /* Pastilla con el nombre del mapa — mismo estilo que la placa de monedas
@@ -76,11 +80,9 @@
   letter-spacing: 0.03em;
 }
 
-/* Botón de inventario incrustado en el aro (esquina inferior izquierda) */
+/* Botones incrustados en el aro del minimapa */
 .minimap-btn {
   position: absolute;
-  left: -2px;
-  bottom: 2px;
   width: 26px;
   height: 26px;
   padding: 0;
@@ -94,7 +96,6 @@
   color: #ecd9b4;                                 /* $text-cream */
   font-size: 14px;
   cursor: pointer;
-  pointer-events: auto;                           /* el aro tiene pointer-events: none */
   box-shadow:
     0 0 0 1px #3a2c20,
     inset 0 0 0 1px #3a2c20;
@@ -102,6 +103,16 @@
   &:active {
     background: #8a5530;                          /* $wood-btn-dark */
     color: #ecd9b4;
+  }
+
+  &--bag {
+    left: -2px;
+    bottom: 2px;
+  }
+
+  &--settings {
+    right: -2px;
+    top: 2px;
   }
 }
 
