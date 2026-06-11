@@ -1,67 +1,90 @@
 /* ===== Tema madera + piedra (pixel-art RPG) ===== */
 $outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
 $cell-bg: #38241d;
 $cell-border: #21130e;
 $text-brown: #53301c;
 $text-cream: #ecd9b4;
-$text-brown-soft: #6b4226;   // secundario sobre madera
+$wood-btn-dark: #8a5530;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
 
+/* Placa oscura con marco metálico: mismo ancho que el cuadro del personaje
+   (96px de sprite + 10 de padding + 8 de borde del preview-frame) */
 :host {
   display: block;
-  width: 100%;
-  color: $text-brown;
+  box-sizing: border-box;
+  width: 114px;
+  padding: 4px 6px 6px;
+  color: $text-cream;
+  background: $wood-btn-dark; /* marrón claro, como las tabs del inventario */
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .cs-title {
-  font-size: 0.8em;
-  font-weight: 700;
+  font-size: 0.68em;
+  font-weight: 800;
   font-family: Georgia, 'Times New Roman', serif;
-  color: $text-brown;
+  color: #ffd700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   text-align: center;
-  margin-bottom: 8px;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
+  margin-bottom: 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(236, 217, 180, 0.15);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .cs-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: 0.78em;
-  margin-bottom: 4px;
+  font-size: 0.72em;
+  margin-bottom: 3px;
   gap: 8px;
 }
 
 .cs-label {
-  color: $text-brown-soft;
+  color: rgba(236, 217, 180, 0.7);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   white-space: nowrap;
 }
 
 .cs-val {
-  color: $text-brown;
-  font-weight: bold;
+  color: $text-cream;
+  font-weight: 800;
   white-space: nowrap;
 }
 
 .cs-xp {
   font-size: 0.82em;
-  color: $text-brown-soft;
-  font-weight: normal;
+  color: rgba(236, 217, 180, 0.7);
+  font-weight: 700;
 }
 
 .cs-max {
-  color: #8a5e00;
-  font-weight: bold;
+  color: #ffd700;
+  font-weight: 800;
 }
 
 .cs-xp-track {
-  height: 5px;
+  height: 6px;
   background: $cell-border;
   border: 1px solid $outline;
   border-radius: 3px;
-  margin-bottom: 10px;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .cs-xp-fill {
@@ -73,12 +96,12 @@ $text-brown-soft: #6b4226;   // secundario sobre madera
 
 .cs-divider {
   height: 1px;
-  background: rgba(58, 44, 32, 0.35);
+  background: rgba(236, 217, 180, 0.15);
   margin: 6px 0 8px;
 }
 
 .cs-dmg {
-  color: #7e2c1c;
+  color: #ff7e6a;
 }
 
 .cs-breakdown {
@@ -89,11 +112,11 @@ $text-brown-soft: #6b4226;   // secundario sobre madera
   display: flex;
   justify-content: space-between;
   font-size: 0.68em;
-  color: $text-brown-soft;
+  color: rgba(236, 217, 180, 0.6);
   margin-bottom: 2px;
 }
 
 .cs-bonus {
-  color: #8a5e00;
-  font-weight: bold;
+  color: #f0c040;
+  font-weight: 700;
 }
