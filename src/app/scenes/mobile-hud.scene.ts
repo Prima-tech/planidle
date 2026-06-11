@@ -37,9 +37,9 @@ const THUMB_R  = 26;
 const BTN_R    = 38;
 
 // ── Minimap ──────────────────────────────────────────────────────────────────
-const MM_MAX_SIZE   = 130;  // lado mayor del minimapa en px de pantalla
+const MM_RADIUS     = 49;   // radio del minimapa circular en px de pantalla
 const MM_MARGIN     = 10;   // separación del borde derecho
-const MM_TOP        = 80;   // bajo la top-bar de Angular (72px)
+const MM_TOP        = 10;   // separación del borde superior
 const MM_DOT_PLAYER = 4;
 const MM_DOT_ENEMY  = 3;
 const MM_DOT_ELITE  = 4;
@@ -61,10 +61,10 @@ export class MobileHUDScene extends Phaser.Scene {
 
   // Minimap — la escena se reutiliza entre mapas, así que todo se resetea en create()
   private mmData: MinimapData | null = null;
-  private mmX = 0;
-  private mmY = 0;
-  private mmW = 0;
-  private mmH = 0;
+  private mmCX = 0;       // centro del círculo en pantalla
+  private mmCY = 0;
+  private mmOffX = 0;     // origen del mapa proyectado (centrado en el círculo)
+  private mmOffY = 0;
   private mmScale = 0;
   private mmPlayerDot: Phaser.GameObjects.Arc | null = null;
   private mmEnemyDots: Phaser.GameObjects.Arc[] = [];
@@ -202,49 +202,51 @@ export class MobileHUDScene extends Phaser.Scene {
     if (!data || !data.mapWidthPx || !data.mapHeightPx) return;
     this.mmData = data;
 
-    this.mmScale = Math.min(MM_MAX_SIZE / data.mapWidthPx, MM_MAX_SIZE / data.mapHeightPx);
-    this.mmW     = data.mapWidthPx  * this.mmScale;
-    this.mmH     = data.mapHeightPx * this.mmScale;
-    this.mmX     = screenW - MM_MARGIN - this.mmW;
-    this.mmY     = MM_TOP;
+    this.mmCX    = screenW - MM_MARGIN - MM_RADIUS;
+    this.mmCY    = MM_TOP + MM_RADIUS;
+    this.mmScale = (MM_RADIUS * 2) / Math.max(data.mapWidthPx, data.mapHeightPx);
+    this.mmOffX  = this.mmCX - (data.mapWidthPx  * this.mmScale) / 2;
+    this.mmOffY  = this.mmCY - (data.mapHeightPx * this.mmScale) / 2;
 
-    const bg = this.add.rectangle(this.mmX, this.mmY, this.mmW, this.mmH, 0x1a1a2e, 0.55);
-    bg.setOrigin(0, 0);
-    const ring = this.add.rectangle(this.mmX, this.mmY, this.mmW, this.mmH, 0x000000, 0);
-    ring.setOrigin(0, 0);
-    ring.setStrokeStyle(1.5, 0x3498db, 0.5);
+    const bg = this.add.circle(this.mmCX, this.mmCY, MM_RADIUS, 0x1a1a2e, 0.55);
+    bg.setStrokeStyle(1.5, 0x3498db, 0.5);
 
     // Portales: estáticos, se dibujan una sola vez
     for (const portal of data.portals) {
-      this.add.circle(
-        this.mmX + Phaser.Math.Clamp(portal.x * this.mmScale, 0, this.mmW),
-        this.mmY + Phaser.Math.Clamp(portal.y * this.mmScale, 0, this.mmH),
-        MM_DOT_PORTAL, MM_COLOR_PORTAL, 0.9,
-      );
+      const dot = this.add.circle(0, 0, MM_DOT_PORTAL, MM_COLOR_PORTAL, 0.9);
+      this.mmPlace(dot, portal.x, portal.y);
     }
 
-    this.mmPlayerDot = this.add.circle(this.mmX, this.mmY, MM_DOT_PLAYER, MM_COLOR_PLAYER, 1);
+    this.mmPlayerDot = this.add.circle(this.mmCX, this.mmCY, MM_DOT_PLAYER, MM_COLOR_PLAYER, 1);
     this.mmPlayerDot.setStrokeStyle(1, 0xffffff, 0.9);
+  }
+
+  // Proyecta px de mundo al minimapa y retiene el punto dentro del círculo
+  // (lo que queda fuera se pega al borde, estilo radar)
+  private mmPlace(dot: Phaser.GameObjects.Arc, worldX: number, worldY: number): void {
+    let dx = this.mmOffX + worldX * this.mmScale - this.mmCX;
+    let dy = this.mmOffY + worldY * this.mmScale - this.mmCY;
+    const maxR = MM_RADIUS - dot.radius - 2;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d > maxR) {
+      dx = (dx / d) * maxR;
+      dy = (dy / d) * maxR;
+    }
+    dot.setPosition(this.mmCX + dx, this.mmCY + dy);
   }
 
   private updateMinimap(): void {
     if (!this.mmData || !this.mmPlayerDot) return;
 
     const playerPos = this.mmData.getPlayerPos();
-    this.mmPlayerDot.setPosition(
-      this.mmX + Phaser.Math.Clamp(playerPos.x * this.mmScale, 0, this.mmW),
-      this.mmY + Phaser.Math.Clamp(playerPos.y * this.mmScale, 0, this.mmH),
-    );
+    this.mmPlace(this.mmPlayerDot, playerPos.x, playerPos.y);
 
     let used = 0;
     for (const enemy of this.mmData.enemies) {
       if (enemy.isDead) continue;
       const dot = this.getEnemyDot(used++);
       const pos = enemy.getPixelPos();
-      dot.setPosition(
-        this.mmX + Phaser.Math.Clamp(pos.x * this.mmScale, 0, this.mmW),
-        this.mmY + Phaser.Math.Clamp(pos.y * this.mmScale, 0, this.mmH),
-      );
+      this.mmPlace(dot, pos.x, pos.y);
 
       const color  = enemy.type.endsWith('_oblivion') ? MM_COLOR_OBLIV
                    : enemy.type.endsWith('_elite')    ? MM_COLOR_ELITE

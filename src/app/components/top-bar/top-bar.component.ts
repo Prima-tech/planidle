@@ -45,8 +45,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   valueMP$: any = null;
   valueXP$: any = null;
   initStatusBar = false;
-  coins$ = this.playerState.coins$;
-  lvl$   = this.playerState.lvl$;
+  lvl$ = this.playerState.lvl$;
 
   mapName$ = this.worldService.currentMap$.pipe(map(m => m.name));
 
