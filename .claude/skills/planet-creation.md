@@ -27,11 +27,12 @@ triggers:
 
 **DPR**: el canvas se crea a `clientWidth × devicePixelRatio` con `zoom: 1/DPR` para texto nítido. En la escena, toda medida en px fijos (fuentes, pins, botón, bordes) se multiplica por la constante `DPR`; las relativas a W/H escalan solas. El globo usa `tileScale = DPR` y el drag divide los deltas por DPR.
 
-### Dos vistas en la misma escena
+### Tres vistas en la misma escena (zoom: detalle ⊂ sistema ⊂ constelación)
 
-- **`detail`** (inicial, planeta Tierra): TileSprite con máscara circular — la textura hace scroll al arrastrar, con inercia (`FRICTION`). Borde de 2px×DPR en color `def.halo`. Botón «+» (arriba-izquierda) → zoom-out al sistema.
-- **`system`**: estrella central con pulso + planetas orbitando en elipses aplastadas (×0.42). Click en un planeta → zoom-in a su detalle.
-- Transiciones: fade de cámara + tween de zoom (`transition()`), flag `transitioning` bloquea input.
+- **`detail`** (inicial, planeta Tierra): TileSprite con máscara circular — la textura hace scroll al arrastrar, con inercia (`FRICTION`). Borde de 2px×DPR en color `def.halo`. Botón «+» → zoom-out al sistema.
+- **`system`**: estrella central con pulso + planetas orbitando en elipses aplastadas (×0.42). Click en un planeta → tarjeta de info Angular (`PLANET_SELECT_KEY`); doble click → zoom-in a su detalle. Botón «+» → constelación.
+- **`constellation`**: la Osa Mayor — 7 estrellas (`CONSTELLATION`, posiciones normalizadas 0-1) unidas por `CONSTELLATION_LINES`. La estrella `home` (Alioth, anillo dorado pulsante) lleva de vuelta al sistema; las demás muestran "Inexplorado" (`showUnexplored`). Para dar sistema a otra estrella: hará falta parametrizar `buildSystemView` por estrella.
+- Transiciones: fade de cámara + tween de zoom (`transition()`), flag `transitioning` bloquea input. El botón «+» es genérico: `buildPlusButton(onClick)`.
 
 ## Crear un planeta nuevo (reutilizando un estilo)
 

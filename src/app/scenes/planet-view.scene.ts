@@ -91,7 +91,36 @@ interface OrbitingPlanet {
   radiusY: number;
 }
 
-type ViewMode = 'detail' | 'system';
+// ── Constelación: Osa Mayor ──────────────────────────────────────────────────
+// Posiciones normalizadas (0-1 sobre W/H) emulando el asterismo: cazo a la
+// derecha (Dubhe-Merak-Phecda-Megrez) y mango descendiendo a la izquierda.
+interface StarDef {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  size: number;    // radio en px (se multiplica por DPR)
+  color: number;
+  home?: boolean;  // la estrella de nuestro sistema
+}
+
+const CONSTELLATION: StarDef[] = [
+  { id: 'dubhe',  name: 'Dubhe',  x: 0.78, y: 0.20, size: 7,   color: 0xffd9a0 },
+  { id: 'merak',  name: 'Merak',  x: 0.76, y: 0.44, size: 6,   color: 0xcfe0ff },
+  { id: 'phecda', name: 'Phecda', x: 0.60, y: 0.48, size: 5.5, color: 0xcfe0ff },
+  { id: 'megrez', name: 'Megrez', x: 0.62, y: 0.26, size: 5,   color: 0xe8f0ff },
+  { id: 'alioth', name: 'Alioth', x: 0.46, y: 0.32, size: 9,   color: 0xffdf90, home: true },
+  { id: 'mizar',  name: 'Mizar',  x: 0.32, y: 0.40, size: 6.5, color: 0xd8e8ff },
+  { id: 'alkaid', name: 'Alkaid', x: 0.16, y: 0.54, size: 6,   color: 0xcfe0ff },
+];
+
+// Trazo del asterismo: mango → cazo cerrado
+const CONSTELLATION_LINES: [string, string][] = [
+  ['alkaid', 'mizar'], ['mizar', 'alioth'], ['alioth', 'megrez'],
+  ['megrez', 'dubhe'], ['dubhe', 'merak'], ['merak', 'phecda'], ['phecda', 'megrez'],
+];
+
+type ViewMode = 'detail' | 'system' | 'constellation';
 
 export class PlanetViewScene extends Phaser.Scene {
 
@@ -116,6 +145,9 @@ export class PlanetViewScene extends Phaser.Scene {
   private systemC: Phaser.GameObjects.Container | null = null;
   private orbiting: OrbitingPlanet[] = [];
 
+  // Vista constelación
+  private constellationC: Phaser.GameObjects.Container | null = null;
+
   constructor() { super({ key: 'PlanetViewScene' }); }
 
   create(): void {
@@ -125,6 +157,8 @@ export class PlanetViewScene extends Phaser.Scene {
     this.createShadeTexture();
     for (const def of PLANETS) this.createMiniTexture(def);
 
+    this.buildConstellationView();
+    this.constellationC!.setVisible(false);
     this.buildSystemView();
     this.systemC!.setVisible(false);
     this.buildDetailView(PLANETS[0]);
@@ -135,9 +169,10 @@ export class PlanetViewScene extends Phaser.Scene {
     if (this.mode === 'detail') {
       this.updateInertia();
       this.updatePins();
-    } else {
+    } else if (this.mode === 'system') {
       this.updateOrbits(delta);
     }
+    // 'constellation' es estática (los brillos van por tweens)
   }
 
   /** Llamado desde Angular (botón de la tarjeta de info del planeta) */
@@ -149,11 +184,26 @@ export class PlanetViewScene extends Phaser.Scene {
   // ── Transiciones ────────────────────────────────────────────────────────────
 
   private goToSystem(): void {
-    if (this.transitioning || this.mode !== 'detail') return;
+    if (this.transitioning || this.mode === 'system') return;
+    // Desde el detalle es zoom-out; desde la constelación es zoom-in
+    const zoomIn = this.mode === 'constellation';
     this.transition(() => {
       this.detailC?.setVisible(false);
+      this.constellationC?.setVisible(false);
       this.systemC?.setVisible(true);
       this.mode = 'system';
+    }, zoomIn);
+  }
+
+  private goToConstellation(): void {
+    if (this.transitioning || this.mode !== 'system') return;
+    // Cierra la tarjeta de info del planeta si estaba abierta en Angular
+    const onZoom = this.game.registry.get(PLANET_ZOOM_KEY) as (() => void) | undefined;
+    onZoom?.();
+    this.transition(() => {
+      this.systemC?.setVisible(false);
+      this.constellationC?.setVisible(true);
+      this.mode = 'constellation';
     }, /* zoomIn */ false);
   }
 
@@ -251,7 +301,7 @@ export class PlanetViewScene extends Phaser.Scene {
       this.updatePins();
     }
 
-    this.detailC.add(this.buildZoomOutButton());
+    this.detailC.add(this.buildPlusButton(() => this.goToSystem()));
   }
 
   // Proyecta cada pin desde coordenadas de textura a pantalla siguiendo el
@@ -286,8 +336,8 @@ export class PlanetViewScene extends Phaser.Scene {
     }
   }
 
-  // Botón «+»: zoom-out al sistema estelar
-  private buildZoomOutButton(): Phaser.GameObjects.GameObject[] {
+  // Botón «+» (esquina superior izquierda): zoom-out al siguiente nivel
+  private buildPlusButton(onClick: () => void): Phaser.GameObjects.GameObject[] {
     const bx = 26 * DPR, by = 26 * DPR, r = 16 * DPR;
     const bg = this.add.circle(bx, by, r, 0x1e3a5f, 0.92).setStrokeStyle(1.5 * DPR, 0x3498db, 0.8);
     const label = this.add.text(bx, by - DPR, '+', {
@@ -296,8 +346,8 @@ export class PlanetViewScene extends Phaser.Scene {
 
     bg.setInteractive({ useHandCursor: true });
     bg.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
-      event.stopPropagation();  // que no arranque el drag del planeta
-      this.goToSystem();
+      event.stopPropagation();  // que no dispare el input de la vista de fondo
+      onClick();
     });
     return [bg, label];
   }
@@ -378,6 +428,10 @@ export class PlanetViewScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5).setAlpha(0.7).setDepth(10);
     this.systemC.add(hint);
 
+    const plusBtn = this.buildPlusButton(() => this.goToConstellation());
+    plusBtn.forEach(o => (o as Phaser.GameObjects.Arc).setDepth?.(20));
+    this.systemC.add(plusBtn);
+
     // Planetas
     for (const def of PLANETS) {
       const img = this.add.image(0, 0, this.miniKey(def));
@@ -431,6 +485,95 @@ export class PlanetViewScene extends Phaser.Scene {
     }
     // Los containers ignoran depth salvo que se ordene la lista explícitamente
     this.systemC?.sort('depth');
+  }
+
+  // ── Vista constelación (Osa Mayor) ──────────────────────────────────────────
+
+  private buildConstellationView(): void {
+    const W = this.scale.width;
+    const H = this.scale.height;
+
+    this.constellationC = this.add.container(0, 0);
+
+    // Líneas del asterismo
+    const byId = new Map(CONSTELLATION.map(s => [s.id, s]));
+    const lines = this.add.graphics();
+    lines.lineStyle(DPR, 0x4a6a9a, 0.35);
+    for (const [a, b] of CONSTELLATION_LINES) {
+      const sa = byId.get(a)!;
+      const sb = byId.get(b)!;
+      lines.lineBetween(sa.x * W, sa.y * H, sb.x * W, sb.y * H);
+    }
+    this.constellationC.add(lines);
+
+    // Estrellas
+    for (const star of CONSTELLATION) {
+      const sx = star.x * W;
+      const sy = star.y * H;
+      const r  = star.size * DPR;
+
+      const glow = this.add.circle(sx, sy, r * 2.4, star.color, star.home ? 0.20 : 0.10);
+      const body = this.add.circle(sx, sy, r, star.color, 1);
+      const core = this.add.circle(sx, sy, r * 0.5, 0xffffff, 1);
+      this.constellationC.add([glow, body, core]);
+
+      if (star.home) {
+        // Anillo pulsante: marca nuestro sistema
+        const ring = this.add.circle(sx, sy, r * 1.9, 0x000000, 0)
+          .setStrokeStyle(1.5 * DPR, 0xf0c040, 0.8);
+        this.constellationC.add(ring);
+        this.tweens.add({
+          targets: [ring, glow], scaleX: 1.25, scaleY: 1.25, alpha: 0.45,
+          duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+        });
+      } else {
+        this.tweens.add({
+          targets: body, alpha: 0.55,
+          duration: Phaser.Math.Between(900, 2000),
+          yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+        });
+      }
+
+      const label = this.add.text(sx, sy + r + 14 * DPR, star.name, {
+        fontSize: `${11 * DPR}px`,
+        color: star.home ? '#f0c040' : '#9fb8d8',
+        fontStyle: star.home ? 'bold' : 'normal',
+        letterSpacing: 1,
+      }).setOrigin(0.5, 0.5).setAlpha(0.85);
+      this.constellationC.add(label);
+
+      // Área de toque generosa (centro local del Arc = (radius, radius))
+      body.setInteractive(new Phaser.Geom.Circle(r, r, r + 16 * DPR), Phaser.Geom.Circle.Contains);
+      body.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+        event.stopPropagation();
+        if (star.home) {
+          this.goToSystem();
+        } else {
+          this.showUnexplored(sx, sy - r - 10 * DPR);
+        }
+      });
+    }
+
+    // Título y hint
+    const title = this.add.text(W / 2, 18 * DPR, 'OSA MAYOR', {
+      fontSize: `${13 * DPR}px`, color: '#7a9ac8', fontStyle: 'bold', letterSpacing: 4,
+    }).setOrigin(0.5, 0.5).setAlpha(0.75);
+    const hint = this.add.text(W / 2, H - 16 * DPR, 'Toca una estrella', {
+      fontSize: `${11 * DPR}px`, color: '#6a8ab0', letterSpacing: 1,
+    }).setOrigin(0.5, 0.5).setAlpha(0.7);
+    this.constellationC.add([title, hint]);
+  }
+
+  // Texto flotante sobre estrellas sin sistema explorable
+  private showUnexplored(x: number, y: number): void {
+    const text = this.add.text(x, y, 'Inexplorado', {
+      fontSize: `${12 * DPR}px`, color: '#8a9ab8', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 3 * DPR,
+    }).setOrigin(0.5, 1);
+    this.tweens.add({
+      targets: text, y: y - 18 * DPR, alpha: 0, duration: 900, ease: 'Power2',
+      onComplete: () => text.destroy(),
+    });
   }
 
   // ── Texturas procedurales ───────────────────────────────────────────────────
