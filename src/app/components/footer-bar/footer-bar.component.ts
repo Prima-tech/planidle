@@ -8,8 +8,8 @@ import { InventoryComponent } from '../inventory/inventory.component';
 import { EquipmentComponent } from '../equipment/equipment.component';
 import { SummonComponent } from '../summon/summon.component';
 import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel.component';
-import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
 import { WorldMapPanelComponent } from '../world-map-panel/world-map-panel.component';
+import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
@@ -256,21 +256,23 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     }
   }
 
+  openWorldMap() {
+    if (this.worldMapModal.isOpenModal()) {
+      this.worldMapModal.close();
+    } else {
+      // Ocupa todo el ancho: cierra los paneles de ambos lados
+      this.closeOtherOnSide('left',  this.worldMapModal);
+      this.closeOtherOnSide('right', this.worldMapModal);
+      this.worldMapModal.open(WorldMapPanelComponent, 'world-map');
+    }
+  }
+
   openSummon() {
     if (this.summonModal.isOpenModal()) {
       this.summonModal.close();
     } else {
       this.closeOtherOnSide('left', this.summonModal);
       this.summonModal.open(SummonComponent, 'summon');
-    }
-  }
-
-  openWorldMap() {
-    if (this.worldMapModal.isOpenModal()) {
-      this.worldMapModal.close();
-    } else {
-      this.closeOtherOnSide('left', this.worldMapModal);
-      this.worldMapModal.open(WorldMapPanelComponent, 'world-map');
     }
   }
 }
