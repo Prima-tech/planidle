@@ -22,9 +22,9 @@ const DPR = Math.min(window.devicePixelRatio || 1, 3);
 interface PlanetDef {
   id: string;
   name: string;
-  kind: 'blob' | 'bands';
+  kind: 'blob' | 'bands' | 'pixel';
   base: string;          // color de fondo (océano / atmósfera)
-  features: string[];    // colores de continentes o bandas
+  features: string[];    // colores de continentes o bandas; en 'pixel': [tierra, tierra clara, arena]
   cloudAlpha: number;
   halo: number;          // color del halo atmosférico
   orbit: number;         // radio orbital (factor 0-1 sobre el máximo)
@@ -33,7 +33,8 @@ interface PlanetDef {
 }
 
 const PLANETS: PlanetDef[] = [
-  { id: 'mundo',   name: 'Tierra',  kind: 'blob',  base: '#16456e', features: ['#3a7a44', '#46905a', '#54a060'], cloudAlpha: 0.13, halo: 0x3a7ac8, orbit: 0.46, size: 13, speed: 0.10 },
+  // Tierra: estilo pixel-art (océano azul vivo, continentes con costa de arena, nubes duras)
+  { id: 'mundo',   name: 'Tierra',  kind: 'pixel', base: '#2e62d0', features: ['#4ea33c', '#7ac855', '#e3d291'], cloudAlpha: 1,    halo: 0x7fb4f0, orbit: 0.46, size: 13, speed: 0.10 },
   { id: 'magmar',  name: 'Magmar',  kind: 'blob',  base: '#3a1006', features: ['#e0531e', '#ff7a2e', '#b03a10'], cloudAlpha: 0,    halo: 0xd0501e, orbit: 0.28, size: 9,  speed: 0.16 },
   { id: 'ferrum',  name: 'Ferrum',  kind: 'blob',  base: '#7a2f16', features: ['#a14a24', '#b85c2e', '#8f3c1c'], cloudAlpha: 0.04, halo: 0xb05a30, orbit: 0.63, size: 10, speed: 0.08 },
   { id: 'glacius', name: 'Glacius', kind: 'blob',  base: '#7fa8cc', features: ['#ffffff', '#dcecf8', '#bcd8ee'], cloudAlpha: 0.10, halo: 0x9fd0f0, orbit: 0.80, size: 11, speed: 0.06 },
@@ -179,9 +180,8 @@ export class PlanetViewScene extends Phaser.Scene {
 
     this.detailC = this.add.container(0, 0);
 
-    const haloOuter = this.add.circle(cx, cy, radius + 6, def.halo, 0.18);
-    const haloRing  = this.add.circle(cx, cy, radius + 2, 0x000000, 0)
-      .setStrokeStyle(2, def.halo, 0.45);
+    const edge = this.add.circle(cx, cy, radius + DPR, 0x000000, 0)
+      .setStrokeStyle(2 * DPR, def.halo, 0.6);
 
     this.planet = this.add.tileSprite(cx, cy, radius * 2, radius * 2, this.texKey(def));
     this.planet.setTileScale(DPR);  // misma escala visual de la superficie que a DPR 1
@@ -196,7 +196,7 @@ export class PlanetViewScene extends Phaser.Scene {
       fontSize: `${18 * DPR}px`, color: '#9fc0e8', fontStyle: 'bold', letterSpacing: 2,
     }).setOrigin(0.5, 0.5).setAlpha(0.85);
 
-    this.detailC.add([haloOuter, haloRing, this.planet, shade, name]);
+    this.detailC.add([edge, this.planet, shade, name]);
 
     this.detailCX = cx;
     this.detailCY = cy;
@@ -434,6 +434,14 @@ export class PlanetViewScene extends Phaser.Scene {
     ctx.fillStyle = def.base;
     ctx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
 
+    if (def.kind === 'pixel') {
+      this.drawPixelPlanet(ctx, def);
+      canvas.refresh();
+      // Sin interpolación al escalar: mantiene los píxeles nítidos
+      this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+      return;
+    }
+
     if (def.kind === 'bands') {
       // Gigante gaseoso: bandas horizontales (la costura del tile cae en un
       // borde de banda, así que no se nota) + óvalos de turbulencia
@@ -496,6 +504,89 @@ export class PlanetViewScene extends Phaser.Scene {
     canvas.refresh();
   }
 
+  // Estilo pixel-art (ref: sprite Terran): se dibuja a 256px y se escala ×2 sin
+  // suavizado. Continentes en dos pasadas (arena debajo, tierra encima) para la
+  // franja de costa, manchas de hierba clara y nubes blancas de borde duro.
+  private drawPixelPlanet(ctx: CanvasRenderingContext2D, def: PlanetDef): void {
+    const LOW = 256;
+    const [land, landLight, sand] = def.features;
+
+    const off = document.createElement('canvas');
+    off.width = LOW;
+    off.height = LOW;
+    const o = off.getContext('2d')!;
+
+    // Dibuja un círculo replicado en ±LOW en ambos ejes (textura tileable)
+    const wrapCircle = (x: number, y: number, r: number) => {
+      for (const ox of [-LOW, 0, LOW]) {
+        for (const oy of [-LOW, 0, LOW]) {
+          o.beginPath();
+          o.arc(x + ox, y + oy, r, 0, Math.PI * 2);
+          o.fill();
+        }
+      }
+    };
+
+    // Océano con zonas ligeramente más oscuras
+    o.fillStyle = def.base;
+    o.fillRect(0, 0, LOW, LOW);
+    o.fillStyle = 'rgba(10, 20, 90, 0.22)';
+    for (let i = 0; i < 6; i++) {
+      wrapCircle(Math.random() * LOW, Math.random() * LOW, 16 + Math.random() * 28);
+    }
+
+    // Continentes: lista de blobs por continente, dos pasadas (arena → tierra)
+    for (let c = 0; c < 5; c++) {
+      const originX = Math.random() * LOW;
+      const originY = Math.random() * LOW;
+      const blobs: { x: number; y: number; r: number }[] = [];
+      for (let b = 0; b < 10; b++) {
+        blobs.push({
+          x: originX + (Math.random() - 0.5) * 68,
+          y: originY + (Math.random() - 0.5) * 48,
+          r: 8 + Math.random() * 18,
+        });
+      }
+      o.fillStyle = sand;
+      for (const b of blobs) wrapCircle(b.x, b.y, b.r + 3.5);
+      o.fillStyle = land;
+      for (const b of blobs) wrapCircle(b.x, b.y, b.r);
+      // Manchas de hierba clara dentro del continente
+      o.fillStyle = landLight;
+      for (const b of blobs) {
+        if (Math.random() < 0.5) wrapCircle(b.x, b.y, b.r * 0.45);
+      }
+    }
+
+    // Nubes: clusters de óvalos blancos con sombra gris muy sutil
+    for (let n = 0; n < 9; n++) {
+      const cxn = Math.random() * LOW;
+      const cyn = Math.random() * LOW;
+      const parts = 2 + Math.floor(Math.random() * 3);
+      for (let p = 0; p < parts; p++) {
+        const px = cxn + (Math.random() - 0.5) * 28;
+        const py = cyn + (Math.random() - 0.5) * 12;
+        const rw = 6 + Math.random() * 12;
+        for (const ox of [-LOW, 0, LOW]) {
+          for (const oy of [-LOW, 0, LOW]) {
+            o.fillStyle = 'rgba(200, 212, 226, 0.85)';
+            o.beginPath();
+            o.ellipse(px + ox, py + oy + 2, rw, rw * 0.45, 0, 0, Math.PI * 2);
+            o.fill();
+            o.fillStyle = '#f4f4f4';
+            o.beginPath();
+            o.ellipse(px + ox, py + oy, rw, rw * 0.45, 0, 0, Math.PI * 2);
+            o.fill();
+          }
+        }
+      }
+    }
+
+    // Escalado ×2 sin suavizado → bloques de 2px, pixel-art más fino
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(off, 0, 0, LOW, LOW, 0, 0, TEX_SIZE, TEX_SIZE);
+  }
+
   // Versión mini pre-renderizada (recorte circular + sombreado) para la vista
   // sistema — evita una máscara por planeta
   private createMiniTexture(def: PlanetDef): void {
@@ -506,6 +597,7 @@ export class PlanetViewScene extends Phaser.Scene {
     const ctx = canvas.context;
 
     const src = this.textures.get(this.texKey(def)).getSourceImage() as HTMLCanvasElement;
+    if (def.kind === 'pixel') ctx.imageSmoothingEnabled = false;
     ctx.drawImage(src, 0, 0, 220, 220, 0, 0, d, d);
 
     ctx.globalCompositeOperation = 'destination-in';
