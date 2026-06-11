@@ -1,11 +1,9 @@
 <ng-container *ngIf="vm$ | async as vm">
 
   <ng-container *ngIf="section === 'all' || section === 'header'">
-    <div class="cs-title">{{ asgard.selectedPlayer?.name ?? 'Personaje' }}</div>
-
-    <div class="cs-row">
-      <span class="cs-label">Nivel</span>
-      <span class="cs-val">{{ vm.lvl }}</span>
+    <div class="cs-title-row">
+      <span class="cs-level-badge" title="Nivel">{{ vm.lvl }}</span>
+      <span class="cs-title">{{ asgard.selectedPlayer?.name ?? 'Personaje' }}</span>
     </div>
 
     <div class="cs-row">
