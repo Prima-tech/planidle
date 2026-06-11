@@ -105,13 +105,13 @@ interface StarDef {
 }
 
 const CONSTELLATION: StarDef[] = [
-  { id: 'dubhe',  name: 'Dubhe',  x: 0.78, y: 0.20, size: 7,   color: 0xffd9a0 },
-  { id: 'merak',  name: 'Merak',  x: 0.76, y: 0.44, size: 6,   color: 0xcfe0ff },
-  { id: 'phecda', name: 'Phecda', x: 0.60, y: 0.48, size: 5.5, color: 0xcfe0ff },
-  { id: 'megrez', name: 'Megrez', x: 0.62, y: 0.26, size: 5,   color: 0xe8f0ff },
-  { id: 'alioth', name: 'Alioth', x: 0.46, y: 0.32, size: 9,   color: 0xffdf90, home: true },
-  { id: 'mizar',  name: 'Mizar',  x: 0.32, y: 0.40, size: 6.5, color: 0xd8e8ff },
-  { id: 'alkaid', name: 'Alkaid', x: 0.16, y: 0.54, size: 6,   color: 0xcfe0ff },
+  { id: 'dubhe',  name: 'Dubhe',  x: 0.81, y: 0.14, size: 9,   color: 0xffd9a0 },
+  { id: 'merak',  name: 'Merak',  x: 0.76, y: 0.50, size: 8,   color: 0xcfe0ff },
+  { id: 'phecda', name: 'Phecda', x: 0.57, y: 0.58, size: 7.5, color: 0xcfe0ff },
+  { id: 'megrez', name: 'Megrez', x: 0.60, y: 0.22, size: 7,   color: 0xe8f0ff },
+  { id: 'alioth', name: 'Alioth', x: 0.44, y: 0.32, size: 11,  color: 0xffdf90, home: true },
+  { id: 'mizar',  name: 'Mizar',  x: 0.29, y: 0.48, size: 8.5, color: 0xd8e8ff },
+  { id: 'alkaid', name: 'Alkaid', x: 0.12, y: 0.70, size: 8,   color: 0xcfe0ff },
 ];
 
 // Trazo del asterismo: mango → cazo cerrado
@@ -636,12 +636,14 @@ export class PlanetViewScene extends Phaser.Scene {
         });
       }
 
-      const label = this.add.text(sx, sy + r + 14 * DPR, star.name, {
-        fontSize: `${11 * DPR}px`,
-        color: star.home ? '#f0c040' : '#9fb8d8',
-        fontStyle: star.home ? 'bold' : 'normal',
+      const label = this.add.text(sx, sy + r + 16 * DPR, star.name, {
+        fontSize: `${14 * DPR}px`,
+        color: star.home ? '#f0c040' : '#cfe0f8',
+        fontStyle: 'bold',
         letterSpacing: 1,
-      }).setOrigin(0.5, 0.5).setAlpha(0.85);
+        stroke: '#000000',
+        strokeThickness: 3 * DPR,
+      }).setOrigin(0.5, 0.5);
       this.constellationC.add(label);
 
       // Área de toque generosa (centro local del Arc = (radius, radius))
