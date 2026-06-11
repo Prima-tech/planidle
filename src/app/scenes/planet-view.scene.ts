@@ -19,26 +19,35 @@ const SHADE_KEY  = 'planet_shade';
 // tamaño visual con texto nítido. Las medidas relativas a W/H escalan solas.
 const DPR = Math.min(window.devicePixelRatio || 1, 3);
 
+// Estilos pixel-art basados en los sprites de referencia (Downloads/Planets):
+// terran (Terran.png), lava (Lava.png), ice (Ice.png), baren (Baren.png),
+// blackhole (Black_hole.png). Para crear un planeta nuevo: copia una entrada,
+// cambia id/name/colores/órbita y reutiliza el style que más se le parezca.
+export type PixelStyle = 'terran' | 'lava' | 'ice' | 'baren' | 'blackhole';
+
 interface PlanetDef {
   id: string;
   name: string;
   kind: 'blob' | 'bands' | 'pixel';
-  base: string;          // color de fondo (océano / atmósfera)
-  features: string[];    // colores de continentes o bandas; en 'pixel': [tierra, tierra clara, arena]
+  style?: PixelStyle;    // solo para kind 'pixel'
+  base: string;          // color de fondo (océano / corteza / hielo / vacío)
+  features: string[];    // 3 colores según el style (ver cada generador)
   cloudAlpha: number;
-  halo: number;          // color del halo atmosférico
+  halo: number;          // color del borde de 1-2px en la vista detalle
   orbit: number;         // radio orbital (factor 0-1 sobre el máximo)
   size: number;          // radio en px en la vista sistema
   speed: number;         // velocidad orbital (rad/s)
 }
 
 const PLANETS: PlanetDef[] = [
-  // Tierra: estilo pixel-art (océano azul vivo, continentes con costa de arena, nubes duras)
-  { id: 'mundo',   name: 'Tierra',  kind: 'pixel', base: '#2e62d0', features: ['#4ea33c', '#7ac855', '#e3d291'], cloudAlpha: 1,    halo: 0x7fb4f0, orbit: 0.46, size: 13, speed: 0.10 },
-  { id: 'magmar',  name: 'Magmar',  kind: 'blob',  base: '#3a1006', features: ['#e0531e', '#ff7a2e', '#b03a10'], cloudAlpha: 0,    halo: 0xd0501e, orbit: 0.28, size: 9,  speed: 0.16 },
-  { id: 'ferrum',  name: 'Ferrum',  kind: 'blob',  base: '#7a2f16', features: ['#a14a24', '#b85c2e', '#8f3c1c'], cloudAlpha: 0.04, halo: 0xb05a30, orbit: 0.63, size: 10, speed: 0.08 },
-  { id: 'glacius', name: 'Glacius', kind: 'blob',  base: '#7fa8cc', features: ['#ffffff', '#dcecf8', '#bcd8ee'], cloudAlpha: 0.10, halo: 0x9fd0f0, orbit: 0.80, size: 11, speed: 0.06 },
-  { id: 'titanus', name: 'Titanus', kind: 'bands', base: '#c8a06a', features: ['#b08850', '#d8b87e', '#9a7444', '#e8cc96'], cloudAlpha: 0, halo: 0xd8b070, orbit: 0.97, size: 16, speed: 0.045 },
+  // terran: [tierra, tierra clara, arena] | lava: [resplandor, lava, lava brillante]
+  // ice: [sombra suave, sombra fuerte, brillo] | baren: [cráter, sombra cráter, borde claro]
+  // blackhole: [veta tenue, veta media, acento brillante]
+  { id: 'mundo',   name: 'Tierra',  kind: 'pixel', style: 'terran',    base: '#2e62d0', features: ['#4ea33c', '#7ac855', '#e3d291'], cloudAlpha: 1, halo: 0x7fb4f0, orbit: 0.46, size: 13, speed: 0.10 },
+  { id: 'magmar',  name: 'Magmar',  kind: 'pixel', style: 'lava',      base: '#1c0d08', features: ['#7a1e0e', '#e8502a', '#ffa040'], cloudAlpha: 0, halo: 0xff6a2e, orbit: 0.28, size: 9,  speed: 0.16 },
+  { id: 'ferrum',  name: 'Ferrum',  kind: 'pixel', style: 'baren',     base: '#8a98a8', features: ['#5a6874', '#46525e', '#aab6c2'], cloudAlpha: 0, halo: 0x9fb0c0, orbit: 0.63, size: 10, speed: 0.08 },
+  { id: 'glacius', name: 'Glacius', kind: 'pixel', style: 'ice',       base: '#dde6f2', features: ['#b8c6dc', '#9fb2d0', '#ffffff'], cloudAlpha: 0, halo: 0xcfe0f8, orbit: 0.80, size: 11, speed: 0.06 },
+  { id: 'vortex',  name: 'Vórtice', kind: 'pixel', style: 'blackhole', base: '#05030a', features: ['#1a1040', '#16275f', '#3a55f0'], cloudAlpha: 0, halo: 0x4a9af8, orbit: 0.97, size: 16, speed: 0.045 },
 ];
 
 // Puntos de interés sobre la superficie (coordenadas de textura 0-512).
@@ -435,7 +444,7 @@ export class PlanetViewScene extends Phaser.Scene {
     ctx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
 
     if (def.kind === 'pixel') {
-      this.drawPixelPlanet(ctx, def);
+      this.drawPixelStyle(ctx, def);
       canvas.refresh();
       // Sin interpolación al escalar: mantiene los píxeles nítidos
       this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
@@ -504,19 +513,17 @@ export class PlanetViewScene extends Phaser.Scene {
     canvas.refresh();
   }
 
-  // Estilo pixel-art (ref: sprite Terran): se dibuja a 256px y se escala ×2 sin
-  // suavizado. Continentes en dos pasadas (arena debajo, tierra encima) para la
-  // franja de costa, manchas de hierba clara y nubes blancas de borde duro.
-  private drawPixelPlanet(ctx: CanvasRenderingContext2D, def: PlanetDef): void {
-    const LOW = 256;
-    const [land, landLight, sand] = def.features;
+  // ── Generadores pixel-art ───────────────────────────────────────────────────
+  // Todos dibujan a 256px y escalan ×2 sin suavizado (bloques de 2px). Cada
+  // elemento se replica en ±LOW en ambos ejes para que la textura tilee.
 
+  private drawPixelStyle(ctx: CanvasRenderingContext2D, def: PlanetDef): void {
+    const LOW = 256;
     const off = document.createElement('canvas');
     off.width = LOW;
     off.height = LOW;
     const o = off.getContext('2d')!;
 
-    // Dibuja un círculo replicado en ±LOW en ambos ejes (textura tileable)
     const wrapCircle = (x: number, y: number, r: number) => {
       for (const ox of [-LOW, 0, LOW]) {
         for (const oy of [-LOW, 0, LOW]) {
@@ -527,15 +534,32 @@ export class PlanetViewScene extends Phaser.Scene {
       }
     };
 
-    // Océano con zonas ligeramente más oscuras
     o.fillStyle = def.base;
     o.fillRect(0, 0, LOW, LOW);
+
+    switch (def.style) {
+      case 'lava':      this.styleLava(o, LOW, def, wrapCircle);  break;
+      case 'ice':       this.styleIce(o, LOW, def, wrapCircle);   break;
+      case 'baren':     this.styleBaren(o, LOW, def, wrapCircle); break;
+      case 'blackhole': this.styleBlackhole(o, LOW, def);         break;
+      default:          this.styleTerran(o, LOW, def, wrapCircle);
+    }
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(off, 0, 0, LOW, LOW, 0, 0, TEX_SIZE, TEX_SIZE);
+  }
+
+  // Ref Terran.png: océano vivo, continentes con costa de arena, nubes duras
+  private styleTerran(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
+                      wrapCircle: (x: number, y: number, r: number) => void): void {
+    const [land, landLight, sand] = def.features;
+
     o.fillStyle = 'rgba(10, 20, 90, 0.22)';
     for (let i = 0; i < 6; i++) {
       wrapCircle(Math.random() * LOW, Math.random() * LOW, 16 + Math.random() * 28);
     }
 
-    // Continentes: lista de blobs por continente, dos pasadas (arena → tierra)
+    // Continentes: dos pasadas (arena debajo → tierra encima) para la costa
     for (let c = 0; c < 5; c++) {
       const originX = Math.random() * LOW;
       const originY = Math.random() * LOW;
@@ -551,14 +575,13 @@ export class PlanetViewScene extends Phaser.Scene {
       for (const b of blobs) wrapCircle(b.x, b.y, b.r + 3.5);
       o.fillStyle = land;
       for (const b of blobs) wrapCircle(b.x, b.y, b.r);
-      // Manchas de hierba clara dentro del continente
       o.fillStyle = landLight;
       for (const b of blobs) {
         if (Math.random() < 0.5) wrapCircle(b.x, b.y, b.r * 0.45);
       }
     }
 
-    // Nubes: clusters de óvalos blancos con sombra gris muy sutil
+    // Nubes con sombra gris sutil
     for (let n = 0; n < 9; n++) {
       const cxn = Math.random() * LOW;
       const cyn = Math.random() * LOW;
@@ -581,10 +604,142 @@ export class PlanetViewScene extends Phaser.Scene {
         }
       }
     }
+  }
 
-    // Escalado ×2 sin suavizado → bloques de 2px, pixel-art más fino
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(off, 0, 0, LOW, LOW, 0, 0, TEX_SIZE, TEX_SIZE);
+  // Ref Lava.png: corteza oscura con ríos de lava en tres capas (resplandor →
+  // lava → centro brillante) y algunos lagos
+  private styleLava(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
+                    wrapCircle: (x: number, y: number, r: number) => void): void {
+    const [glow, lava, bright] = def.features;
+
+    o.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    for (let i = 0; i < 8; i++) {
+      wrapCircle(Math.random() * LOW, Math.random() * LOW, 14 + Math.random() * 30);
+    }
+
+    const drawPath = (pts: number[][], width: number, color: string) => {
+      o.strokeStyle = color;
+      o.lineWidth = width;
+      o.lineCap = 'round';
+      o.lineJoin = 'round';
+      for (const ox of [-LOW, 0, LOW]) {
+        for (const oy of [-LOW, 0, LOW]) {
+          o.beginPath();
+          o.moveTo(pts[0][0] + ox, pts[0][1] + oy);
+          for (let i = 1; i < pts.length; i++) o.lineTo(pts[i][0] + ox, pts[i][1] + oy);
+          o.stroke();
+        }
+      }
+    };
+
+    // Ríos de lava: random walks
+    for (let r = 0; r < 7; r++) {
+      const pts: number[][] = [];
+      let x = Math.random() * LOW;
+      let y = Math.random() * LOW;
+      let ang = Math.random() * Math.PI * 2;
+      for (let s = 0; s < 10; s++) {
+        pts.push([x, y]);
+        ang += (Math.random() - 0.5) * 1.2;
+        x += Math.cos(ang) * (12 + Math.random() * 10);
+        y += Math.sin(ang) * (12 + Math.random() * 10);
+      }
+      drawPath(pts, 9, glow);
+      drawPath(pts, 5, lava);
+      drawPath(pts, 2, bright);
+    }
+
+    // Lagos de lava
+    for (let i = 0; i < 4; i++) {
+      const x = Math.random() * LOW;
+      const y = Math.random() * LOW;
+      const r = 7 + Math.random() * 9;
+      o.fillStyle = glow;
+      wrapCircle(x, y, r + 3);
+      o.fillStyle = lava;
+      wrapCircle(x, y, r);
+      o.fillStyle = bright;
+      wrapCircle(x, y, r * 0.45);
+    }
+  }
+
+  // Ref Ice.png: superficie pálida moteada con sombras suaves y brillos blancos
+  private styleIce(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
+                   wrapCircle: (x: number, y: number, r: number) => void): void {
+    const [shade1, shade2, white] = def.features;
+
+    o.fillStyle = shade1;
+    for (let i = 0; i < 11; i++) {
+      wrapCircle(Math.random() * LOW, Math.random() * LOW, 12 + Math.random() * 24);
+    }
+    o.fillStyle = shade2;
+    for (let i = 0; i < 8; i++) {
+      wrapCircle(Math.random() * LOW, Math.random() * LOW, 6 + Math.random() * 14);
+    }
+    o.fillStyle = white;
+    for (let i = 0; i < 14; i++) {
+      wrapCircle(Math.random() * LOW, Math.random() * LOW, 3 + Math.random() * 8);
+    }
+  }
+
+  // Ref Baren.png: roca gris con cráteres (borde claro arriba, fondo oscuro,
+  // sombra interior desplazada)
+  private styleBaren(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
+                     wrapCircle: (x: number, y: number, r: number) => void): void {
+    const [crater, craterShadow, rim] = def.features;
+
+    o.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    for (let i = 0; i < 8; i++) {
+      wrapCircle(Math.random() * LOW, Math.random() * LOW, 14 + Math.random() * 28);
+    }
+
+    for (let c = 0; c < 11; c++) {
+      const x = Math.random() * LOW;
+      const y = Math.random() * LOW;
+      const r = 5 + Math.random() * 11;
+      o.fillStyle = rim;
+      wrapCircle(x, y - r * 0.18, r + 1.8);
+      o.fillStyle = crater;
+      wrapCircle(x, y, r);
+      o.fillStyle = craterShadow;
+      wrapCircle(x + r * 0.15, y + r * 0.22, r * 0.55);
+    }
+  }
+
+  // Ref Black_hole.png: vacío negro con vetas horizontales onduladas del disco
+  // de acreción (el anillo azul lo pone el borde con def.halo)
+  private styleBlackhole(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef): void {
+    const [wisp1, wisp2, accent] = def.features;
+
+    const band = (color: string, width: number, alpha: number, yBase: number, amp: number, phase: number) => {
+      o.strokeStyle = color;
+      o.globalAlpha = alpha;
+      o.lineWidth = width;
+      for (const oy of [-LOW, 0, LOW]) {
+        o.beginPath();
+        for (let x = -4; x <= LOW + 4; x += 4) {
+          // 2 ciclos completos de seno → la onda empalma en el borde horizontal
+          const y = yBase + oy + Math.sin((x / LOW) * Math.PI * 4 + phase) * amp;
+          if (x === -4) o.moveTo(x, y); else o.lineTo(x, y);
+        }
+        o.stroke();
+      }
+    };
+
+    for (let i = 0; i < 10; i++) {
+      band(
+        Math.random() < 0.5 ? wisp1 : wisp2,
+        6 + Math.random() * 9,
+        0.5,
+        Math.random() * LOW,
+        4 + Math.random() * 8,
+        Math.random() * Math.PI * 2,
+      );
+    }
+    for (let i = 0; i < 4; i++) {
+      band(accent, 1.5 + Math.random() * 1.5, 0.8, Math.random() * LOW, 3 + Math.random() * 6, Math.random() * Math.PI * 2);
+    }
+    o.globalAlpha = 1;
   }
 
   // Versión mini pre-renderizada (recorte circular + sombreado) para la vista
@@ -614,6 +769,15 @@ export class PlanetViewScene extends Phaser.Scene {
     ctx.beginPath();
     ctx.arc(d / 2, d / 2, d / 2, 0, Math.PI * 2);
     ctx.fill();
+
+    // El agujero negro necesita su anillo para verse sobre el fondo espacial
+    if (def.style === 'blackhole') {
+      ctx.strokeStyle = `#${def.halo.toString(16).padStart(6, '0')}`;
+      ctx.lineWidth = Math.max(2, 1.5 * DPR);
+      ctx.beginPath();
+      ctx.arc(d / 2, d / 2, d / 2 - ctx.lineWidth / 2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     canvas.refresh();
   }
