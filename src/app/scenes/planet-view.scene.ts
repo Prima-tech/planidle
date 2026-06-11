@@ -61,7 +61,7 @@ interface SurfacePin {
 }
 
 const TIERRA_PINS: SurfacePin[] = [
-  { name: 'Hogar', mapId: 'hogar', tx: 256, ty: 100, color: 0xf0c040 },
+  { name: 'Asgard', mapId: 'hogar', tx: 256, ty: 100, color: 0xf0c040 },
   { name: '1-1',   mapId: '1-1',   tx: 40,  ty: 200, color: 0x5bc0f8 },
   { name: '1-2',   mapId: '1-2',   tx: 120, ty: 60,  color: 0x5bc0f8 },
   { name: '1-3',   mapId: '1-3',   tx: 190, ty: 260, color: 0x5bc0f8 },

@@ -18,7 +18,7 @@ interface MapPin {
 }
 
 const MAP_PINS: MapPin[] = [
-  { id: 'hogar', name: 'Hogar', x: 50, y: 15 },
+  { id: 'hogar', name: 'Asgard', x: 50, y: 15 },
   { id: '1-1',   name: '1-1',  x: 10, y: 60 },
   { id: '1-2',   name: '1-2',  x: 22, y: 45 },
   { id: '1-3',   name: '1-3',  x: 33, y: 65 },

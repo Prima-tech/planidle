@@ -35,15 +35,6 @@
               </div>
             </ng-container>
 
-            <ng-container *ngIf="valueXP$ | async as xp">
-              <div class="bar-row">
-                <div class="bar-track">
-                  <div class="bar-fill bar-fill--xp" [style.width.%]="xp.ratio * 100"></div>
-                </div>
-                <span class="bar-text">{{ xp.current }} / {{ xp.max }}</span>
-              </div>
-            </ng-container>
-
           </div>
         </div>
       </div>

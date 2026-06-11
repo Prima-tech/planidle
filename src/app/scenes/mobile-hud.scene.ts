@@ -38,8 +38,8 @@ const BTN_R    = 38;
 
 // ── Minimap ──────────────────────────────────────────────────────────────────
 const MM_RADIUS     = 49;   // radio del minimapa circular en px de pantalla
-const MM_MARGIN     = 10;   // separación del borde derecho
-const MM_TOP        = 10;   // separación del borde superior
+const MM_MARGIN     = 15;   // separación del borde derecho (aro HTML a 10px + 5px de bisel)
+const MM_TOP        = 15;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
 const MM_DOT_PLAYER = 4;
 const MM_DOT_ENEMY  = 3;
 const MM_DOT_ELITE  = 4;

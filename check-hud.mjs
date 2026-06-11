@@ -1,0 +1,22 @@
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const page = await browser.newPage({ viewport: { width: 900, height: 420 } });
+await page.goto('http://localhost:8100', { waitUntil: 'networkidle' });
+await page.waitForSelector('ion-input input');
+await page.locator('ion-input input').nth(0).fill('t@t.com');
+await page.locator('ion-input input').nth(1).fill('1');
+await page.click('.login-btn');
+await page.waitForSelector('.hero-card');
+await page.locator('.hero-card', { hasText: /seraphel/i }).first().click();
+await page.click('.continue-btn');
+await page.waitForSelector('app-top-bar .char-widget', { timeout: 20000 });
+await page.waitForTimeout(2500);
+const xpBars = await page.locator('.bar-fill--xp').count();
+const bars = await page.locator('.bar-row').count();
+console.log(JSON.stringify({ xpBars, totalBars: bars }));
+await page.screenshot({ path: 'check-hud-closed.png', clip: { x: 0, y: 0, width: 320, height: 130 } });
+await page.click('.map-open-btn');
+await page.waitForTimeout(400);
+await page.screenshot({ path: 'check-hud-open.png', clip: { x: 0, y: 0, width: 320, height: 230 } });
+await browser.close();

@@ -8,6 +8,10 @@
   <!-- Zona estática -->
   <div class="zona-estatica">
     <div id="game"></div>
+    <!-- Aro de piedra sobre el minimapa Phaser (MM_TOP/MM_MARGIN=10, MM_RADIUS=49) -->
+    <div class="minimap-frame" *ngIf="dataLoaded && sceneVisible">
+      <span class="minimap-name">{{ (worldService.currentMap$ | async)?.name }}</span>
+    </div>
   </div>
 
   <!-- Zona dinámica-->

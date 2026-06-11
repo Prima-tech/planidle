@@ -94,7 +94,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
 
   hogar: {
     ...W1_HOME_TILESET,
-    id: 'hogar', name: 'Hogar',
+    id: 'hogar', name: 'Asgard',
     spawns: [],
     portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1' }],
     spawnPos: { x: 30, y: 30 },

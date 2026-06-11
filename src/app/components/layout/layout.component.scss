@@ -28,6 +28,54 @@
     background: black;
 }
 
+.zona-estatica {
+  position: relative;
+}
+
+/* Aro metálico/piedra alrededor del minimapa (dibujado en MobileHUDScene).
+   El círculo Phaser mide 98px (radio 49) y está a 10px del borde sup/dcho
+   del canvas; el aro se ancla 5px más afuera para que el bisel lo rodee
+   solapando 1px el borde del círculo. */
+.minimap-frame {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 108px;
+  height: 108px;
+  box-sizing: border-box;
+  border: 6px solid;
+  border-color: #a59c8d #6b6357 #6b6357 #8f8678; /* piedra: luz arriba/izq, sombra abajo/dcha */
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px #3a2c20,
+    inset 0 0 0 2px #3a2c20,
+    0 4px 10px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Pastilla con el nombre del mapa — mismo estilo que la placa de monedas
+   del inventario (madera + bisel de piedra) */
+.minimap-name {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 3px 8px;
+  background: #c08349;                            /* $wood-btn */
+  border: 2px solid;
+  border-color: #a59c8d #6b6357 #6b6357 #8f8678;  /* bisel de piedra */
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px #3a2c20,
+    inset 0 0 0 1px #3a2c20;
+  font-size: 11px;
+  font-weight: bold;
+  color: #53301c;                                 /* $text-brown */
+  letter-spacing: 0.03em;
+}
+
 ::ng-deep {
   ion-content {
       --padding-bottom: 120px;

@@ -1,5 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
 
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$wood-btn: #c08349;
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;
+$cell-border: #21130e;
+$text-brown: #53301c;
+$text-cream: #ecd9b4;
+
 .top-bar {
   height: 72px;
   position: absolute;
@@ -46,9 +60,10 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  border: 1px solid #3498db;
-  background: rgba(26, 26, 46, 0.92);
-  color: #3498db;
+  border: 1px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  background: $wood-btn;
+  color: $text-brown;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,24 +71,29 @@
   z-index: 55;
   font-size: 0.78em;
   padding: 0;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 0 1px $outline,
+    0 2px 6px rgba(0, 0, 0, 0.5);
   transition: background 0.15s;
 
-  &:active { background: rgba(52, 152, 219, 0.2); }
+  &:active { background: $wood-btn-dark; color: $text-cream; }
 }
 
 // ── Tarjeta superior: solo char-panel ────────────────────────────────────────
 
 .char-widget {
-  background: rgba(26, 26, 46, 0.88);
-  border: 1px solid #2a2a4e;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 3px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 8px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    0 2px 8px rgba(0, 0, 0, 0.5);
 
   .char-block--open & {
-    border-color: rgba(52, 152, 219, 0.35);
     border-radius: 8px 8px 0 0;
   }
 }
@@ -91,14 +111,14 @@
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(236, 217, 180, 0.35);
   transition: background 0.15s, color 0.15s;
 
   .char-block--open & {
-    background: rgba(52, 152, 219, 0.1);
-    border-top: 1px solid rgba(52, 152, 219, 0.25);
+    background: rgba(58, 44, 32, 0.25);
+    border-top: 1px solid $outline;
     padding: 4px 8px;
-    color: #3498db;
+    color: $text-cream;
   }
 }
 
@@ -124,12 +144,17 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  background: rgba(26, 26, 46, 0.92);
-  border: 1px solid rgba(52, 152, 219, 0.35);
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 3px solid;
+  border-color: $stone $stone-dark $stone-dark $stone;
   border-top: none;
   border-radius: 0 0 8px 8px;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    0 4px 12px rgba(0, 0, 0, 0.6);
   box-sizing: border-box;
   transform-origin: top center;
   animation: panel-open 0.18s ease-out both;
@@ -203,12 +228,12 @@
 
 .mip-spawn-count {
   font-size: 0.6em;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(236, 217, 180, 0.75);
 }
 
 .mip-bar {
   height: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: $cell-bg;
   border-radius: 2px;
   overflow: hidden;
 }
@@ -224,7 +249,7 @@
 
 .mip-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(58, 44, 32, 0.45);
   margin: 2px 0;
 }
 
@@ -240,7 +265,7 @@
   font-weight: bold;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
+  color: #6b4226;
   margin-bottom: 2px;
 }
 
@@ -252,19 +277,19 @@
 
 .mip-rate-label {
   font-size: 0.6em;
-  color: rgba(255, 255, 255, 0.5);
+  color: #6b4226;
 }
 
 .mip-rate-val {
   font-size: 0.62em;
   font-weight: bold;
-  color: rgba(255, 255, 255, 0.85);
+  color: $text-brown;
 }
 
 .mip-no-spawn {
   font-size: 0.58em;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(83, 48, 28, 0.55);
   text-align: center;
   padding: 2px 0;
 }
@@ -356,21 +381,22 @@
 }
 
 .char-name {
-  font-family: 'Russo One', sans-serif;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
   font-size: 0.62em;
-  color: #f0c040;
+  color: $text-brown;
   letter-spacing: 0.04em;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 52px;
-  text-shadow: 0 1px 4px rgba(200, 150, 0, 0.5);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .map-name {
   font-size: 0.52em;
-  color: rgba(180, 210, 255, 0.7);
+  color: #6b4226;
   letter-spacing: 0.05em;
   text-align: center;
   white-space: nowrap;
@@ -397,10 +423,11 @@
 .bar-track {
   position: absolute;
   inset: 0;
-  background: rgba(10, 10, 22, 0.9);
+  background: $cell-bg;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid $outline;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .bar-fill {
