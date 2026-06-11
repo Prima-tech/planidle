@@ -141,6 +141,42 @@ Tamaño compacto 32×32 para barras de acciones (los menús deben caber a lo alt
 
 Variante peligro: mismo marco, `color: #7e2c1c` y `:active { background: #a03325; }`.
 
+### 4b. Botón metálico (cara de acero — usado en el footer)
+
+Mismo marco de piedra, pero la cara es un degradado de acero con reflejo superior.
+Iconos/texto en gris oscuro `#3a342c` / `#4a443c`:
+
+```scss
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
+$metal-face: linear-gradient(180deg, $metal-light 0%, $metal 45%, #847b6e 75%, $metal-dark 100%);
+
+.btn-metal {
+  background: $metal-face;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  color: #3a342c;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 2px 0 rgba(255, 255, 255, 0.3); /* reflejo metálico */
+
+  &:active, &.active {
+    background: $purple; /* o invertir el degradado para efecto pulsado */
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      inset 0 2px 4px rgba(0, 0, 0, 0.35); /* hundido */
+  }
+}
+```
+
+> Ojo con animaciones `forwards` que pisen `background`/`box-shadow`: el último
+> keyframe debe restaurar el degradado y los anillos completos.
+
+**Referencia:** `footer-bar.component.scss`.
+
 ### 5. Tabs
 
 Todas del mismo ancho (`flex: 1 1 0`), padding vertical 2px, inactiva = madera oscura,
