@@ -76,6 +76,35 @@
   letter-spacing: 0.03em;
 }
 
+/* Botón de inventario incrustado en el aro (esquina inferior izquierda) */
+.minimap-btn {
+  position: absolute;
+  left: -2px;
+  bottom: 2px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+  border-color: #a59c8d #6b6357 #6b6357 #8f8678;  /* bisel de piedra */
+  border-radius: 50%;
+  background: #c08349;                            /* $wood-btn */
+  color: #ecd9b4;                                 /* $text-cream */
+  font-size: 14px;
+  cursor: pointer;
+  pointer-events: auto;                           /* el aro tiene pointer-events: none */
+  box-shadow:
+    0 0 0 1px #3a2c20,
+    inset 0 0 0 1px #3a2c20;
+
+  &:active {
+    background: #8a5530;                          /* $wood-btn-dark */
+    color: #ecd9b4;
+  }
+}
+
 ::ng-deep {
   ion-content {
       --padding-bottom: 120px;

@@ -52,15 +52,16 @@ $text-cream: #ecd9b4;
 
 // ── Botón flotante para abrir panel del mapa ─────────────────────────────────
 
+/* Mismo estilo que .talent-expand-btn (equipamiento → talentos) */
 .map-open-btn {
   position: absolute;
-  bottom: -6px;
-  left: 3px;
+  bottom: -8px;
+  left: 5px;
   transform: translateX(-50%);
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 1px solid;
+  border: 2px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
   background: $wood-btn;
   color: $text-brown;
@@ -71,11 +72,14 @@ $text-cream: #ecd9b4;
   z-index: 55;
   font-size: 0.78em;
   padding: 0;
+  flex-shrink: 0;
   box-shadow:
     0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
     0 2px 6px rgba(0, 0, 0, 0.5);
   transition: background 0.15s;
 
+  &:hover  { background: $wood-btn-light; }
   &:active { background: $wood-btn-dark; color: $text-cream; }
 }
 
@@ -392,17 +396,6 @@ $text-cream: #ecd9b4;
   text-overflow: ellipsis;
   max-width: 52px;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.map-name {
-  font-size: 0.52em;
-  color: #6b4226;
-  letter-spacing: 0.05em;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 52px;
 }
 
 // ── Barras ───────────────────────────────────────────────────────────────────
