@@ -56,7 +56,6 @@
 
   <!-- Tab 1: Stats -->
   <div class="eq-stats-panel" *ngIf="activeTab === 1">
-    <div class="equipment-header">Stats</div>
     <ng-container *ngIf="{ pts: freePoints$ | async } as vm">
       <div class="stat-points-bar" [class.empty]="vm.pts <= 0">
         <span>Puntos libres</span>
@@ -75,7 +74,6 @@
 
   <!-- Tab 2: Resumen de stats -->
   <div class="eq-overview-panel" *ngIf="activeTab === 2">
-    <div class="equipment-header">Resumen</div>
 
     <ng-container *ngIf="playerState.state$ | async as st">
 

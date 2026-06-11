@@ -194,7 +194,8 @@ $purple: #6e4a67;         // selección
 
 .slot-placeholder {
   font-size: 20px;
-  color: rgba(236, 217, 180, 0.45);
+  color: #fceeb8;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
   pointer-events: none;
 }
 
@@ -252,7 +253,8 @@ $purple: #6e4a67;         // selección
 .item-fallback {
   font-size: 1em;
   font-weight: bold;
-  color: #c9a87b;
+  color: #3a2c20;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
   pointer-events: none;
 }
 
@@ -261,17 +263,6 @@ $purple: #6e4a67;         // selección
 .eq-stats-panel {
   width: 100%;
   box-sizing: border-box;
-}
-
-.equipment-header {
-  text-align: center;
-  font-size: 0.85em;
-  font-weight: bold;
-  font-family: Georgia, 'Times New Roman', serif;
-  color: $text-brown;
-  margin-bottom: 10px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
 }
 
 .stats-grid {
