@@ -69,7 +69,7 @@
   </div>
 </div>
 
-<!-- Botones -->
+<!-- Botones + monedas -->
 <div class="button-bar" (click)="$event.stopPropagation()">
   <button class="btn-action" (click)="openSplitMenu($event)" title="Split">
     <ion-icon name="git-branch-outline"></ion-icon>
@@ -80,6 +80,11 @@
   <button class="btn-action" (click)="sortInventory()" title="Ordenar">
     <ion-icon name="swap-vertical-outline"></ion-icon>
   </button>
+
+  <div class="coins-section">
+    <div class="coin-spinner"></div>
+    <span class="coin-amount">{{ coins$ | async | number }}</span>
+  </div>
 </div>
 
 <!-- Menú Split -->

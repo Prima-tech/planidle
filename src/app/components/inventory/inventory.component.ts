@@ -3,6 +3,7 @@ import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
+import { PlayerStateService } from 'src/app/services/player-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -32,6 +33,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private removeSub: Subscription;
 
   private panelState = inject(PanelStateService);
+  private playerState = inject(PlayerStateService);
+
+  coins$ = this.playerState.coins$;
 
   constructor(
     private inventoryService: InventoryService,
