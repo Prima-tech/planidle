@@ -76,6 +76,10 @@ const TIERRA_PINS: SurfacePin[] = [
 // del mapa (click) y teletransportarse (doble click), como en la tab 0
 export const PLANET_PIN_SELECT_KEY   = 'onPinSelect';
 export const PLANET_PIN_TELEPORT_KEY = 'onPinTeleport';
+// Click en un planeta de la vista sistema → tarjeta de info del planeta;
+// doble click → zoom a la vista detalle (Angular solo cierra la tarjeta)
+export const PLANET_SELECT_KEY       = 'onPlanetSelect';
+export const PLANET_ZOOM_KEY         = 'onPlanetZoom';
 
 const DOUBLE_CLICK_MS = 300;
 
@@ -134,6 +138,12 @@ export class PlanetViewScene extends Phaser.Scene {
     } else {
       this.updateOrbits(delta);
     }
+  }
+
+  /** Llamado desde Angular (botón de la tarjeta de info del planeta) */
+  zoomToPlanet(planetId: string): void {
+    const def = PLANETS.find(p => p.id === planetId);
+    if (def) this.goToPlanet(def);
   }
 
   // ── Transiciones ────────────────────────────────────────────────────────────
@@ -372,9 +382,23 @@ export class PlanetViewScene extends Phaser.Scene {
     for (const def of PLANETS) {
       const img = this.add.image(0, 0, this.miniKey(def));
       img.setInteractive({ useHandCursor: true });
+      let lastClick = 0;
       img.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
         event.stopPropagation();
-        this.goToPlanet(def);
+        const now = Date.now();
+        if (now - lastClick < DOUBLE_CLICK_MS) {
+          // Doble click: zoom a la vista detalle del planeta. Angular cierra
+          // la tarjeta que abrió el primer click.
+          const onZoom = this.game.registry.get(PLANET_ZOOM_KEY) as (() => void) | undefined;
+          onZoom?.();
+          this.goToPlanet(def);
+        } else {
+          // Click: tarjeta de info en Angular (el zoom se hace desde el botón
+          // de la tarjeta vía zoomToPlanet)
+          const onSelect = this.game.registry.get(PLANET_SELECT_KEY) as ((id: string, name: string) => void) | undefined;
+          onSelect?.(def.id, def.name);
+        }
+        lastClick = now;
       });
       img.on('pointerover', () => img.setScale(1.25));
       img.on('pointerout',  () => img.setScale(1));

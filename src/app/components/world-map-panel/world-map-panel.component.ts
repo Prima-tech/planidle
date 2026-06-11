@@ -1,7 +1,7 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import Phaser from 'phaser';
-import { PlanetViewScene, PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY } from 'src/app/scenes/planet-view.scene';
+import { PlanetViewScene, PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY } from 'src/app/scenes/planet-view.scene';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
@@ -31,6 +31,12 @@ const MAP_PINS: MapPin[] = [
 
 const DISPLAY_PX = 48;
 
+// Qué mapas pertenecen a cada planeta (para saber qué personajes están en él).
+// Al añadir mapas a un planeta nuevo, registrarlos aquí.
+const PLANET_MAPS: Record<string, string[]> = {
+  mundo: ['hogar', '1-1', '1-2', '1-3', '1-4', '1-5', '1-6', '1-7', '1-8'],
+};
+
 export interface CharOnMap {
   name: string;
   isCurrent: boolean;
@@ -55,6 +61,9 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   currentMapId = '';
   selectedMap: MapConfig | null = null;
   charsOnMap: CharOnMap[] = [];
+
+  selectedPlanet: { id: string; name: string } | null = null;
+  charsOnPlanet: CharOnMap[] = [];
 
   private planetGame: Phaser.Game | null = null;
 
@@ -109,11 +118,67 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.planetGame.registry.set(PLANET_PIN_TELEPORT_KEY, (mapId: string) => {
       this.ngZone.run(() => this.teleport(mapId));
     });
+    this.planetGame.registry.set(PLANET_SELECT_KEY, (id: string, name: string) => {
+      this.ngZone.run(() => this.selectPlanet(id, name));
+    });
+    // Doble click en un planeta: la escena hace el zoom; aquí solo se cierra la tarjeta
+    this.planetGame.registry.set(PLANET_ZOOM_KEY, () => {
+      this.ngZone.run(() => {
+        this.selectedPlanet = null;
+        this.charsOnPlanet  = [];
+      });
+    });
   }
 
   private destroyPlanetGame() {
     this.planetGame?.destroy(true);
     this.planetGame = null;
+    this.selectedPlanet = null;
+    this.charsOnPlanet  = [];
+  }
+
+  // ── Tarjeta de info del planeta (vista sistema, tab 2) ─────────────────────
+
+  async selectPlanet(id: string, name: string) {
+    if (this.selectedPlanet?.id === id) {
+      this.selectedPlanet = null;
+      this.charsOnPlanet  = [];
+      return;
+    }
+    this.selectedPlanet = { id, name };
+    await this.loadCharsOnPlanet(id);
+  }
+
+  private async loadCharsOnPlanet(planetId: string) {
+    const mapIds  = PLANET_MAPS[planetId] ?? [];
+    const chars   = (await this.asgard.getCharacters()) ?? [];
+    const current = String(this.asgard.selectedPlayer?.id ?? '');
+    const result: CharOnMap[] = [];
+
+    for (const char of chars) {
+      if (!char?.id || !char?.name) continue;
+      const id = String(char.id);
+
+      if (id === current) {
+        if (mapIds.includes(this.currentMapId))
+          result.push({ name: char.name, isCurrent: true, equipment: null });
+      } else {
+        const snap = await this.storage.get(`snapshot_char_${id}`);
+        if (snap?.mapId && mapIds.includes(snap.mapId))
+          result.push({ name: char.name, isCurrent: false, equipment: snap.equipment ?? {} });
+      }
+    }
+
+    this.charsOnPlanet = result;
+  }
+
+  /** Botón de la tarjeta: hace el zoom-in a la vista detalle del planeta */
+  visitPlanet() {
+    if (!this.selectedPlanet || !this.planetGame) return;
+    const scene = this.planetGame.scene.getScene('PlanetViewScene') as PlanetViewScene;
+    scene?.zoomToPlanet(this.selectedPlanet.id);
+    this.selectedPlanet = null;
+    this.charsOnPlanet  = [];
   }
 
   async selectPin(pinId: string) {

@@ -53,6 +53,23 @@
     <!-- Tab 2: planeta interactivo (mini-instancia Phaser propia) -->
     <div class="planet-area" id="planet-view" *ngIf="activeTab === 2"></div>
 
+    <!-- Tab 2: tarjeta de info del planeta seleccionado -->
+    <div class="map-info-card planet-info-card" *ngIf="activeTab === 2 && selectedPlanet">
+      <div class="info-name">{{ selectedPlanet.name }}</div>
+
+      <div class="info-chars" *ngIf="charsOnPlanet.length > 0">
+        <div class="info-char" *ngFor="let c of charsOnPlanet">
+          <app-character-sprite [size]="56" [equipmentSnapshot]="c.equipment"></app-character-sprite>
+          <span class="info-char-name">{{ c.name }}</span>
+        </div>
+      </div>
+      <div class="info-no-enemies" *ngIf="charsOnPlanet.length === 0">Sin personajes</div>
+
+      <button class="teleport-btn" (click)="visitPlanet()" title="Ver planeta">
+        <ion-icon name="planet-outline"></ion-icon>
+      </button>
+    </div>
+
     <!-- Map pins -->
     <ng-container *ngIf="activeTab === 0">
       <button
