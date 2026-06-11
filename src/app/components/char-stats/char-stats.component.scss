@@ -1,16 +1,27 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;
+$cell-bg: #38241d;
+$cell-border: #21130e;
+$text-brown: #53301c;
+$text-cream: #ecd9b4;
+$text-brown-soft: #6b4226;   // secundario sobre madera
+
 :host {
   display: block;
-  color: #fff;
+  width: 100%;
+  color: $text-brown;
 }
 
 .cs-title {
-  font-size: 0.7em;
-  font-weight: bold;
-  color: #aaaadd;
+  font-size: 0.8em;
+  font-weight: 700;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: $text-brown;
   text-transform: uppercase;
   letter-spacing: 1px;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .cs-row {
@@ -23,49 +34,51 @@
 }
 
 .cs-label {
-  color: #888;
+  color: $text-brown-soft;
   white-space: nowrap;
 }
 
 .cs-val {
-  color: #e0e0ff;
+  color: $text-brown;
   font-weight: bold;
   white-space: nowrap;
 }
 
 .cs-xp {
   font-size: 0.82em;
-  color: #aaa;
+  color: $text-brown-soft;
   font-weight: normal;
 }
 
 .cs-max {
-  color: #f0c040;
+  color: #8a5e00;
+  font-weight: bold;
 }
 
 .cs-xp-track {
-  height: 4px;
-  background: #2a2a4e;
-  border-radius: 2px;
+  height: 5px;
+  background: $cell-border;
+  border: 1px solid $outline;
+  border-radius: 3px;
   margin-bottom: 10px;
   overflow: hidden;
 }
 
 .cs-xp-fill {
   height: 100%;
-  background: #3498db;
-  border-radius: 2px;
+  background: linear-gradient(90deg, #d4a000, #f0c040);
+  border-radius: 3px;
   transition: width 0.4s ease;
 }
 
 .cs-divider {
   height: 1px;
-  background: #2a2a4e;
+  background: rgba(58, 44, 32, 0.35);
   margin: 6px 0 8px;
 }
 
 .cs-dmg {
-  color: #ff7675;
+  color: #7e2c1c;
 }
 
 .cs-breakdown {
@@ -76,10 +89,11 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.68em;
-  color: #555;
+  color: $text-brown-soft;
   margin-bottom: 2px;
 }
 
 .cs-bonus {
-  color: #f0c040;
+  color: #8a5e00;
+  font-weight: bold;
 }

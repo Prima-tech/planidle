@@ -484,8 +484,6 @@
     [cdkDropListEnterPredicate]="canDropInSlot"
     (cdkDropListDropped)="onEquipDrop($event, slot)"
   >
-    <div class="slot-label">{{ slot.label }}</div>
-
     <div *ngIf="slot.item; else emptySlot"
          class="equip-item"
          cdkDrag
@@ -507,7 +505,7 @@
     </div>
 
     <ng-template #emptySlot>
-      <div class="slot-empty">—</div>
+      <ion-icon class="slot-placeholder" [name]="slotPlaceholderIcons[slot.id]" [title]="slot.label"></ion-icon>
     </ng-template>
   </div>
 </ng-template>

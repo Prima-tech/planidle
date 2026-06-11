@@ -34,11 +34,12 @@
   }
   &.equipment {
     top: 10px;
-    bottom: 66px;
+    bottom: 65px;
     left: 10px;
     width: fit-content;
-    background: #1a1a2e;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    /* El marco madera/piedra lo pinta el propio EquipmentComponent (:host) */
+    background: transparent;
+    overflow-y: auto;
   }
   &.summon {
     top: 10px;

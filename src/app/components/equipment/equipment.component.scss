@@ -1,8 +1,38 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;        // contorno oscuro de todos los marcos
+$stone: #8f8678;          // piedra base
+$stone-light: #a59c8d;    // piedra iluminada (arriba/izq)
+$stone-dark: #6b6357;     // piedra en sombra (abajo/dcha)
+$wood-bg: #a86f3e;        // madera del panel
+$wood-bg-dark: #935f34;   // madera oscura
+$wood-btn: #c08349;       // madera de botones/placas
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;        // interior de celdas
+$cell-border: #21130e;
+$grid-bg: #4a3023;        // fondo del área de grid
+$text-brown: #53301c;     // texto sobre madera clara
+$text-cream: #ecd9b4;     // texto sobre fondos oscuros
+$purple: #6e4a67;         // selección
+
 :host {
   display: block;
-  background: #1a1a2e;
-  padding: 10px 8px;
-  color: #fff;
+  box-sizing: border-box;
+  /* mismo alto que el marco del inventario (304px medidos en runtime) */
+  height: min(304px, calc(100% - 4px));
+  margin: 2px; /* deja sitio al contorno exterior dentro del modal */
+  padding: 8px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
 // ── Wrapper con tabs verticales ──────────────────────────────────────────────
@@ -12,12 +42,13 @@
   align-items: flex-start;
   gap: 8px;
   position: relative;
+  height: 100%;
 }
 
 .eq-wrapper--wide {
   .eq-content {
     width: calc(100dvw - 240px);
-    height: calc(100dvh - 40px);
+    height: 100%;
     max-height: none;
     overflow: hidden;
     display: flex;
@@ -52,19 +83,25 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  background: #2a2a3e;
-  border: 1px solid #444;
-  border-radius: 4px;
-  color: #888;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  color: $text-cream;
+  background: $wood-btn-dark;
   font-size: 1.1em;
   cursor: pointer;
   user-select: none;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s, color 0.15s;
 
-  &.active {
-    background: #3498db;
-    border-color: #3498db;
-    color: #fff;
+  &.active,
+  &:hover {
+    background: $wood-btn;
+    color: $text-brown;
+    box-shadow:
+      inset 0 0 0 1px $wood-btn-light,
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -75,12 +112,12 @@
   flex-shrink: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(100dvh - 96px);
+  max-height: 100%;
   transition: width 0.25s ease;
 
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+  &::-webkit-scrollbar-thumb { background: $wood-btn-dark; border-radius: 2px; }
 }
 
 // ── Tab 0: Equipamiento — layout 3 columnas ──────────────────────────────────
@@ -108,10 +145,14 @@
 }
 
 .preview-frame {
-  background: #2a2a3e;
-  border: 1px solid #444;
-  border-radius: 6px;
   padding: 5px;
+  background: $grid-bg;
+  border: 4px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline;
 }
 
 // ── Slots individuales ───────────────────────────────────────────────────────
@@ -121,42 +162,38 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
-  border: 1px solid #444;
-  border-radius: 6px;
-  background: #2a2a3e;
+  width: 46px;
+  height: 46px;
+  border: 2px solid $cell-border;
+  border-radius: 5px;
+  background: $cell-bg;
   position: relative;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.06);
   transition: border-color 0.15s;
 }
 
 .equip-slot.occupied {
-  border-color: #3498db;
+  border-color: $wood-btn-dark;
 }
 
 .equip-slot.cdk-drop-list-dragging {
-  border-color: #27ae60;
-  background: #1e3a2a;
+  border-color: #6f8f4a;
+  background: #2e3220;
 }
 
-.slot-label {
-  position: absolute;
-  top: 2px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 0.45em;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.slot-placeholder {
+  font-size: 20px;
+  color: rgba(236, 217, 180, 0.22);
   pointer-events: none;
 }
 
 .equip-item {
   width: 32px;
   height: 32px;
-  background: #3a3a5e;
-  border: 1px solid #555;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -206,13 +243,8 @@
 .item-fallback {
   font-size: 1em;
   font-weight: bold;
-  color: #ccc;
+  color: #c9a87b;
   pointer-events: none;
-}
-
-.slot-empty {
-  font-size: 1.1em;
-  color: #444;
 }
 
 // ── Tab 1: Stats ─────────────────────────────────────────────────────────────
@@ -226,7 +258,8 @@
   text-align: center;
   font-size: 0.85em;
   font-weight: bold;
-  color: #aaa;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: $text-brown;
   margin-bottom: 10px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -242,22 +275,23 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #2a2a3e;
-  border: 1px solid #333;
-  border-radius: 5px;
-  padding: 6px 10px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  padding: 4px 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .stat-label {
   font-size: 0.7em;
-  color: #888;
+  color: $text-cream;
   flex: 1;
 }
 
 .stat-val {
   font-size: 0.85em;
   font-weight: bold;
-  color: #fff;
+  color: #ffd700;
   min-width: 24px;
   text-align: center;
 }
@@ -266,41 +300,46 @@
   width: 24px;
   height: 24px;
   flex-shrink: 0;
-  border-radius: 4px;
-  border: 1px solid #555;
-  background: #1a1a2e;
-  color: #ccc;
+  border-radius: 5px;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  background: $wood-btn;
+  color: $text-brown;
   font-size: 1em;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
   transition: background 0.1s, color 0.1s;
 
-  &:active { background: #3a3a5e; }
-  &.plus  { color: #3498db; border-color: #3498db; }
-  &.minus { color: #e74c3c; border-color: #e74c3c; }
+  &:hover  { background: $wood-btn-light; }
+  &:active { background: $wood-btn-dark; color: $text-cream; }
+  &.plus  { color: #2e5d24; }
+  &.minus { color: #7e2c1c; }
+  &[disabled] { opacity: 0.4; cursor: not-allowed; }
 }
 
 .stat-points-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 10px;
+  padding: 4px 8px;
   margin-bottom: 6px;
-  background: #1e3a2a;
-  border: 1px solid #27ae60;
-  border-radius: 5px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
   font-size: 0.7em;
-  color: #2ecc71;
+  color: #f0c040;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 
   strong { font-size: 1.1em; }
 
   &.empty {
-    background: #2a1e1e;
-    border-color: #555;
-    color: #666;
+    color: rgba(236, 217, 180, 0.4);
   }
 }
 
@@ -318,15 +357,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #2a2a3e;
-  border: 1px solid #333;
-  border-radius: 5px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
   padding: 7px 10px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .ov-label {
   font-size: 0.7em;
-  color: #888;
+  color: $text-cream;
 }
 
 .ov-val {
@@ -334,24 +374,25 @@
   font-weight: bold;
   color: #fff;
 
-  &--highlight { color: #e74c3c; }
-  &--hp        { color: #e74c3c; }
-  &--mp        { color: #3498db; }
+  &--highlight { color: #ff7e6a; }
+  &--hp        { color: #ff7e6a; }
+  &--mp        { color: #6fb6ec; }
   &--def       { color: #f0a020; }
-  &--evasion   { color: #1abc9c; }
-  &--crit      { color: #b85c00; }
-  &--drop      { color: #a855f7; }
+  &--evasion   { color: #4fd6b8; }
+  &--crit      { color: #f08c3a; }
+  &--drop      { color: #c08aef; }
 }
 
 // Card nivel + exp integrada
 .ov-level-card {
-  background: #2a2a3e;
-  border: 1px solid #333;
-  border-radius: 5px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
   padding: 8px 10px 6px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .ov-level-top {
@@ -363,22 +404,23 @@
 .ov-level-num {
   font-size: 0.9em;
   font-weight: bold;
-  color: #fff;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: $text-cream;
   letter-spacing: 0.04em;
 }
 
 .ov-level-exp {
   font-size: 0.62em;
-  color: #888;
+  color: rgba(236, 217, 180, 0.6);
 }
 
 .ov-exp-track {
   width: 100%;
   height: 5px;
-  background: #0e0e1e;
+  background: $cell-border;
   border-radius: 3px;
   overflow: hidden;
-  border: 1px solid #2a2a4e;
+  border: 1px solid $outline;
 }
 
 .ov-exp-fill {
@@ -390,14 +432,15 @@
 
 // Acordeón
 .ov-accordion {
-  background: #2a2a3e;
-  border: 1px solid #333;
-  border-radius: 5px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
   user-select: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 
-  &:active { background: #33334e; }
+  &:active { background: lighten($cell-bg, 4%); }
 }
 
 .ov-accordion-header {
@@ -410,7 +453,7 @@
 
   .ov-chevron {
     font-size: 0.75em;
-    color: #555;
+    color: rgba(236, 217, 180, 0.45);
     flex-shrink: 0;
     transition: transform 0.2s;
   }
@@ -421,7 +464,7 @@
   overflow: hidden;
   transition: max-height 0.25s ease, padding 0.25s ease;
   padding: 0 10px;
-  background: #1e1e30;
+  background: $cell-border;
 
   &.open {
     max-height: 200px;
@@ -433,14 +476,14 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.65em;
-  color: #777;
+  color: rgba(236, 217, 180, 0.7);
   padding: 3px 0;
-  border-bottom: 1px solid #2a2a3e;
+  border-bottom: 1px solid rgba(236, 217, 180, 0.1);
 
   &:last-child { border-bottom: none; }
 }
 
-.ov-bonus { color: #3498db; }
+.ov-bonus { color: #f0c040; }
 
 // ── Tab 3: Talentos ───────────────────────────────────────────────────────────
 
@@ -460,29 +503,36 @@
 }
 
 .talent-tree-tab {
-  flex: 1;
+  flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 5px 4px;
-  border: 1px solid #444;
-  border-radius: 4px;
+  padding: 4px;
+  border: 2px solid $outline;
+  border-radius: 5px;
   font-size: 0.62em;
-  color: #888;
-  background: #1a1a2e;
+  font-weight: 700;
+  color: $text-cream;
+  background: $wood-btn-dark;
   cursor: pointer;
   user-select: none;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s, color 0.15s;
 
   ion-icon { font-size: 0.95em; }
 
-  &.active {
-    background: #3498db;
-    border-color: #3498db;
-    color: #fff;
+  &.active,
+  &:hover {
+    background: $wood-btn;
+    color: $text-brown;
+    box-shadow:
+      inset 0 0 0 1px $wood-btn-light,
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -494,7 +544,7 @@
   justify-content: center;
   gap: 8px;
   padding: 32px 0;
-  color: #444;
+  color: rgba(236, 217, 180, 0.35);
   font-size: 0.7em;
   text-align: center;
 
@@ -512,12 +562,13 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  background: #2a2a3e;
+  background: $cell-bg;
   border: 1px solid;
   border-radius: 10px;
   padding: 3px 5px;
   font-size: 0.65em;
   user-select: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
 .tsphere-dot {
@@ -527,8 +578,8 @@
   flex-shrink: 0;
 }
 
-.tsphere-label { color: #aaa; }
-.tsphere-count { color: #fff; font-weight: bold; }
+.tsphere-label { color: $text-cream; }
+.tsphere-count { color: #ffd700; font-weight: bold; }
 
 // Resumen de bonos
 .talent-bonus-bar {
@@ -536,7 +587,7 @@
   gap: 8px;
   justify-content: center;
   font-size: 0.68em;
-  color: #3498db;
+  color: #f0c040;
   font-weight: bold;
 }
 
@@ -548,23 +599,27 @@
   touch-action: none;
   user-select: none;
   cursor: grab;
-  background: #0e0e1a;
-  border-radius: 6px;
-  border: 1px solid #1e1e2e;
+  background: $cell-bg;
+  border: 2px solid $cell-border;
+  border-radius: 5px;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.06);
 
   &:active { cursor: grabbing; }
 }
 
 .talent-expand-btn {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: -10px;
+  right: -10px;
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  border: 1px solid #3498db;
-  background: #1a1a2e;
-  color: #3498db;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  background: $wood-btn;
+  color: $text-brown;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -572,9 +627,13 @@
   z-index: 20;
   font-size: 0.85em;
   flex-shrink: 0;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
   transition: background 0.15s;
 
-  &:active { background: #2a2a4e; }
+  &:hover  { background: $wood-btn-light; }
+  &:active { background: $wood-btn-dark; color: $text-cream; }
 }
 
 .talent-canvas {
@@ -592,10 +651,10 @@
 }
 
 .tline {
-  stroke: #333;
+  stroke: #5a4636;
   stroke-width: 2;
 
-  &--active { stroke: #3498db; }
+  &--active { stroke: #f0c040; }
 }
 
 // Nodos
@@ -604,8 +663,8 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 2px solid #444;
-  background: #22223a;
+  border: 2px solid #5a4636;
+  background: $cell-border;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -625,22 +684,22 @@
   }
 
   &--available {
-    border-color: #ffffff;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+    border-color: $text-cream;
+    box-shadow: 0 0 6px rgba(236, 217, 180, 0.4);
   }
 
   &--slotted {
-    background: #1e1e30;
+    background: $cell-bg;
   }
 
   &--selected {
-    box-shadow: 0 0 10px rgba(52, 152, 219, 0.8);
+    box-shadow: 0 0 10px rgba(110, 74, 103, 0.9);
   }
 }
 
 .tnode-icon {
   font-size: 1em;
-  color: #ccc;
+  color: $text-cream;
   pointer-events: none;
 }
 
@@ -651,7 +710,7 @@
   transform: translateX(-50%);
   font-size: 9px;
   font-weight: 700;
-  color: #ccc;
+  color: $text-cream;
   white-space: nowrap;
   pointer-events: none;
 }
@@ -663,7 +722,7 @@
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  color: #e74c3c;
+  color: #ff6b4a;
   pointer-events: none;
 }
 
@@ -674,31 +733,38 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  border: 1px solid #1a1a2e;
+  border: 1px solid $outline;
   pointer-events: none;
 }
 
 // Picker flotante (a la derecha del panel)
 .talent-picker-flyout {
   position: absolute;
-  left: calc(100% + 8px);
+  left: calc(100% + 12px);
   top: 0;
   width: 160px;
-  background: #22223a;
-  border: 1px solid #3498db;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 4px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 8px;
   padding: 10px 8px 8px;
   display: flex;
   flex-direction: column;
   gap: 7px;
   z-index: 200;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 .tpicker-name {
   font-size: 0.72em;
   font-weight: bold;
-  color: #ccc;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: $text-brown;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -715,15 +781,16 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #1a1a2e;
+  background: $cell-bg;
   border: 1px solid;
   border-radius: 5px;
   padding: 5px 7px;
   cursor: pointer;
   text-align: left;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
   transition: background 0.1s;
 
-  &:active:not([disabled]) { background: #2a2a4e; }
+  &:active:not([disabled]) { background: lighten($cell-bg, 5%); }
   &[disabled] { opacity: 0.3; cursor: not-allowed; }
 }
 
@@ -737,27 +804,29 @@
 .tpicker-effect {
   flex: 1;
   font-size: 0.62em;
-  color: #ccc;
+  color: $text-cream;
   line-height: 1.2;
 }
 
 .tpicker-count {
   font-size: 0.6em;
-  color: #888;
+  color: rgba(236, 217, 180, 0.6);
   white-space: nowrap;
 }
 
 .tpicker-unslot {
-  background: #3a1a1e;
-  border: 1px solid #c0392b;
-  border-radius: 4px;
-  color: #e74c3c;
+  background: #a03325;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  color: #f5e3c8;
   font-size: 0.65em;
+  font-weight: 600;
   padding: 5px 8px;
   cursor: pointer;
   text-align: center;
-  transition: background 0.1s;
-  &:active { background: #4a2a2e; }
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  transition: filter 0.1s;
+  &:active { filter: brightness(0.85); }
 }
 
 .tpicker-cancel {
@@ -766,10 +835,10 @@
   right: 6px;
   background: none;
   border: none;
-  color: #555;
+  color: rgba(83, 48, 28, 0.6);
   font-size: 0.85em;
   cursor: pointer;
   line-height: 1;
   padding: 2px;
-  &:hover { color: #aaa; }
+  &:hover { color: $text-brown; }
 }

@@ -52,6 +52,19 @@ export class EquipmentComponent implements OnInit {
   readonly expNeeded = expNeeded;
   readonly maxLevel  = MAX_LEVEL;
 
+  readonly slotPlaceholderIcons: Record<string, string> = {
+    helmet:   'skull-outline',
+    armor:    'shirt-outline',
+    pants:    'man-outline',
+    boots:    'footsteps-outline',
+    weapon:   'hammer-outline',
+    necklace: 'link-outline',
+    ring1:    'diamond-outline',
+    ring2:    'diamond-outline',
+    food:     'restaurant-outline',
+    potion:   'flask-outline',
+  };
+
   readonly statsList: { key: keyof BaseStats; label: string }[] = [
     { key: 'STR',   label: 'Fuerza'        },
     { key: 'DEX',   label: 'Destreza'      },
