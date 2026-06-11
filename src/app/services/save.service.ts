@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, debounceTime, filter, merge, skip } from 'rxjs';
+import { auditTime, BehaviorSubject, filter, merge, skip } from 'rxjs';
 import { StorageService } from './storage.service';
 import { PlayerStateService, PlayerState } from './player-state.service';
 import { InventoryService, InventoryItem } from './inventory.service';
@@ -110,13 +110,15 @@ export class SaveService {
     private afkBonus: AfkBonusService,
     private charStats: CharacterStatsService,
   ) {
+    // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
+    // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
     merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.talent.changes$, this.skillEquip.changes$)
       .pipe(
         skip(1),
         filter(() => !this.isRestoring),
-        debounceTime(2000),
+        auditTime(2000),
       )
-      .subscribe(() => this.saveLocal());
+      .subscribe(() => { if (!this.isRestoring) this.saveLocal(); })
   }
 
   // --- Claves dinámicas por personaje ---

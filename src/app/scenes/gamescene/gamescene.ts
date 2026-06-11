@@ -71,6 +71,7 @@ export class GameScene extends Phaser.Scene {
     private summonSub:   { unsubscribe(): void } | null = null;
     private itemDropSub: { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
+    private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
     private playerDamage      = 10;
     private playerMagicDamage = 10;
@@ -173,6 +174,7 @@ export class GameScene extends Phaser.Scene {
         this.summonSub?.unsubscribe();
         this.itemDropSub?.unsubscribe();
         this.statsSub?.unsubscribe();
+        this.magicSub?.unsubscribe();
         this.skillSub?.unsubscribe();
         this.player?.clearLayers();
         this.events.off('enemyAttackPlayer');
@@ -282,7 +284,7 @@ export class GameScene extends Phaser.Scene {
       this.statsSub = charStats.damage$.subscribe(breakdown => {
         this.playerDamage = breakdown.total;
       });
-      charStats.magicDamage$.subscribe(breakdown => {
+      this.magicSub = charStats.magicDamage$.subscribe(breakdown => {
         this.playerMagicDamage = breakdown.total;
       });
     }

@@ -113,6 +113,10 @@ export class LayoutComponent implements OnDestroy {
         const player = await this.asgardService.getSelectedPlayer();
         if (player?.id) {
           await this.saveService.loadCharacter(String(player.id));
+          // Aplica el HP guardado al sprite: sin esto arranca con el default 100/100
+          // aunque el personaje tenga más hpMax (la barra lee el sprite, no playerState)
+          const state = this.playerStateService.snapshot();
+          this.playerBridgeService.resetPlayerStatus(state.hp, state.hpMax);
         }
         this.registerServices();
       }

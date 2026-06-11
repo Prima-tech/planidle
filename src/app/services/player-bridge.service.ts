@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { distinctUntilChanged, map, Subject } from 'rxjs';
 import { IAttack, Player } from '../pnj/player/player';
 import { SceneManager } from '../scenes/scene-manager';
+import { CharacterStatsService } from './character-stats.service';
 import { PlayerStateService } from './player-state.service';
 
 @Injectable({ providedIn: 'root' })
@@ -16,7 +17,20 @@ export class PlayerBridgeService {
   constructor(
     private sceneManager: SceneManager,
     private playerState: PlayerStateService,
-  ) {}
+    charStats: CharacterStatsService,
+  ) {
+    // El sprite Phaser es la fuente de verdad de la barra de HP, pero hasta ahora
+    // su HPMax solo se fijaba al seleccionar personaje o revivir. Aquí lo mantenemos
+    // en sync cuando cambia el HP máximo (CONST, equipo +hp, talentos).
+    charStats.hp$
+      .pipe(map(b => b.total), distinctUntilChanged())
+      .subscribe(total => {
+        if (!this.player) return;
+        const newHP = Math.min(this.player.status.HP, total);
+        this.player.resetStatus(newHP, total);
+        this.playerState.setHp(newHP, total);
+      });
+  }
 
   createPlayer(): void {
     this.player = new Player();

@@ -12,6 +12,7 @@ export class KillService {
 
   private charKills: KillMap   = {};
   private globalKills: KillMap = {};
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly charKills$   = new BehaviorSubject<KillMap>({});
   readonly globalKills$ = new BehaviorSubject<KillMap>({});
@@ -37,7 +38,7 @@ export class KillService {
 
   // --- Registro de bajas ---
 
-  async recordKill(mapId: string, enemyType: string): Promise<void> {
+  recordKill(mapId: string, enemyType: string): void {
     // Contador individual
     if (!this.charKills[mapId])   this.charKills[mapId]   = {};
     this.charKills[mapId][enemyType] = (this.charKills[mapId][enemyType] ?? 0) + 1;
@@ -47,7 +48,17 @@ export class KillService {
     if (!this.globalKills[mapId]) this.globalKills[mapId] = {};
     this.globalKills[mapId][enemyType] = (this.globalKills[mapId][enemyType] ?? 0) + 1;
     this.globalKills$.next({ ...this.globalKills });
-    await this.storage.set(GLOBAL_KEY, this.globalKills);
+    this.schedulePersist();
+  }
+
+  // Con auto-attack hay un kill cada pocos segundos: agrupa las escrituras a
+  // storage en una cada 5s en vez de una por kill.
+  private schedulePersist(): void {
+    if (this.persistTimer) return;
+    this.persistTimer = setTimeout(() => {
+      this.persistTimer = null;
+      this.storage.set(GLOBAL_KEY, this.globalKills);
+    }, 5000);
   }
 
   // --- Consultas ---
