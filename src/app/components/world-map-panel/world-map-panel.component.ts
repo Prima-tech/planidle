@@ -1,5 +1,7 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import Phaser from 'phaser';
+import { PlanetViewScene } from 'src/app/scenes/planet-view.scene';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
@@ -53,6 +55,8 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   selectedMap: MapConfig | null = null;
   charsOnMap: CharOnMap[] = [];
 
+  private planetGame: Phaser.Game | null = null;
+
   readonly pins = MAP_PINS;
 
   ngOnInit() {
@@ -63,6 +67,38 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.mapSub?.unsubscribe();
+    this.destroyPlanetGame();
+  }
+
+  selectTab(index: number) {
+    if (this.activeTab === index) return;
+    this.activeTab = index;
+    if (index === 2) {
+      this.selectedMap = null;
+      this.charsOnMap  = [];
+      // El contenedor entra al DOM con el *ngIf en este mismo ciclo
+      setTimeout(() => this.createPlanetGame());
+    } else {
+      this.destroyPlanetGame();
+    }
+  }
+
+  private createPlanetGame() {
+    const parent = document.getElementById('planet-view');
+    if (!parent || this.planetGame) return;
+    this.planetGame = new Phaser.Game({
+      type: Phaser.AUTO,
+      parent,
+      width:  parent.clientWidth,
+      height: parent.clientHeight,
+      backgroundColor: '#05060f',
+      scene: [PlanetViewScene],
+    });
+  }
+
+  private destroyPlanetGame() {
+    this.planetGame?.destroy(true);
+    this.planetGame = null;
   }
 
   async selectPin(pinId: string) {

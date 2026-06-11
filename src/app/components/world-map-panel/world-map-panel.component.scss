@@ -61,6 +61,19 @@
   }
 }
 
+// ── Planeta (tab 2) ────────────────────────────────────────────────────────
+
+.planet-area {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #05060f;
+
+  canvas {
+    display: block;
+  }
+}
+
 // ── Info card ──────────────────────────────────────────────────────────────
 
 .map-info-card {

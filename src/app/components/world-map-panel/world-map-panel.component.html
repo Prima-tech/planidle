@@ -1,13 +1,13 @@
 <div class="panel-layout">
 
   <div class="tabs-bar">
-    <div class="tab" [class.active]="activeTab === 0" (click)="activeTab = 0">
+    <div class="tab" [class.active]="activeTab === 0" (click)="selectTab(0)">
       <ion-icon name="map-outline"></ion-icon>
     </div>
-    <div class="tab" [class.active]="activeTab === 1" (click)="activeTab = 1">
+    <div class="tab" [class.active]="activeTab === 1" (click)="selectTab(1)">
       <ion-icon name="compass-outline"></ion-icon>
     </div>
-    <div class="tab" [class.active]="activeTab === 2" (click)="activeTab = 2">
+    <div class="tab" [class.active]="activeTab === 2" (click)="selectTab(2)">
       <ion-icon name="flag-outline"></ion-icon>
     </div>
   </div>
@@ -49,6 +49,9 @@
 
     <!-- Tab 1: fondo alternativo -->
     <div class="map-bg alt-bg" *ngIf="activeTab === 1"></div>
+
+    <!-- Tab 2: planeta interactivo (mini-instancia Phaser propia) -->
+    <div class="planet-area" id="planet-view" *ngIf="activeTab === 2"></div>
 
     <!-- Map pins -->
     <ng-container *ngIf="activeTab === 0">
