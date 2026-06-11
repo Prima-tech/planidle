@@ -37,9 +37,9 @@
     bottom: 65px;
     left: 10px;
     width: fit-content;
-    /* El marco madera/piedra lo pinta el propio EquipmentComponent (:host) */
+    /* El marco madera/piedra lo pinta el propio EquipmentComponent (:host).
+       Sin overflow: el flyout de talentos sobresale por la derecha del panel. */
     background: transparent;
-    overflow-y: auto;
   }
   &.summon {
     top: 10px;

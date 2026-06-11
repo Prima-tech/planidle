@@ -397,7 +397,7 @@
 
     <!-- Inventario de esferas -->
     <div class="talent-sphere-bar">
-      <div *ngFor="let s of sphereTypes" class="tsphere" [style.border-color]="sphereColors[s]" [title]="s">
+      <div *ngFor="let s of sphereTypes" class="tsphere" [title]="s">
         <span class="tsphere-dot" [style.background]="sphereColors[s]"></span>
         <span class="tsphere-label">{{ sphereLabels[s] }}</span>
         <span class="tsphere-count">{{ talent.spheres[s] }}</span>
