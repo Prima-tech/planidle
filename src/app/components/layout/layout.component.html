@@ -14,7 +14,7 @@
       <button class="minimap-btn minimap-btn--bag" (click)="footerBar.openInventory(); $event.stopPropagation()">
         <ion-icon name="bag-outline"></ion-icon>
       </button>
-      <button class="minimap-btn minimap-btn--settings" (click)="footerBar.openMenu(); $event.stopPropagation()">
+      <button class="minimap-btn minimap-btn--settings" (click)="footerBar.openGameSettings(); $event.stopPropagation()">
         <ion-icon name="settings-outline"></ion-icon>
       </button>
     </div>
@@ -27,6 +27,7 @@
 </ion-content>
 
 <app-hud-skill-buttons *ngIf="dataLoaded && sceneVisible"></app-hud-skill-buttons>
+<app-attack-button *ngIf="dataLoaded && sceneVisible"></app-attack-button>
 <app-game-log></app-game-log>
 <app-footer-bar #footerBar></app-footer-bar>
 

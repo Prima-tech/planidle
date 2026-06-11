@@ -1,0 +1,65 @@
+:host {
+  pointer-events: none;
+}
+
+// Misma posición que el antiguo botón Phaser: centro en (W−75, H−125), radio 38
+.attack-btn {
+  position: fixed;
+  right: 37px;
+  bottom: 87px;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  z-index: 150;
+  pointer-events: auto;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  background: radial-gradient(circle at 35% 28%, #ff7a5c 0%, #d6452e 40%, #8f2014 75%, #5e120a 100%);
+  border: 3px solid rgba(255, 215, 170, 0.35);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.65),
+    0 0 0 3px rgba(0, 0, 0, 0.45),
+    inset 0 2px 6px rgba(255, 255, 255, 0.30),
+    inset 0 -5px 10px rgba(0, 0, 0, 0.50);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 70ms ease-out, box-shadow 70ms ease-out, filter 70ms ease-out;
+
+  &.pressed {
+    transform: scale(0.86);
+    filter: brightness(1.25);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.6),
+      0 0 18px rgba(255, 90, 60, 0.85),
+      inset 0 2px 6px rgba(255, 255, 255, 0.35),
+      inset 0 -4px 8px rgba(0, 0, 0, 0.45);
+  }
+}
+
+// Brillo superior tipo cristal
+.attack-btn__shine {
+  position: absolute;
+  top: 6%;
+  left: 14%;
+  width: 72%;
+  height: 40%;
+  border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.attack-btn__icon {
+  width: 44px;
+  height: 44px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+}

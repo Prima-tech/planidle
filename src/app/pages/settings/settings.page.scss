@@ -1,65 +1,92 @@
-$bg:           #1a1a2e;
-$bg-section:   #1e1e30;
-$bg-hover:     #272740;
-$border:       #2a2a42;
-$border-accent:#3a4a7a;
-$blue:         #4a90d9;
-$blue-dim:     #2a5080;
-$text:         #e8e8f0;
-$text-muted:   #6a6a88;
-$danger:       #7a2c2c;
-$danger-hover: #9e3535;
-$success:      #2a7a3a;
-$radius:       8px;
-$radius-sm:    6px;
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;        // contorno oscuro de todos los marcos
+$stone: #8f8678;          // piedra base
+$stone-light: #a59c8d;    // piedra iluminada (arriba/izq)
+$stone-dark: #6b6357;     // piedra en sombra (abajo/dcha)
+$wood-bg: #a86f3e;        // madera del panel
+$wood-bg-dark: #935f34;   // madera oscura
+$wood-btn: #c08349;       // madera de botones/placas
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;        // interior de celdas
+$cell-border: #21130e;
+$grid-bg: #4a3023;        // fondo del área de grid
+$text-brown: #53301c;     // texto sobre madera clara
+$text-cream: #ecd9b4;     // texto sobre fondos oscuros
+$purple: #6e4a67;         // selección
+
+$danger-face: #a03325;    // acción destructiva
+$danger-text: #7e2c1c;
+$gold: #f0c040;           // cantidades / títulos sobre fondo oscuro
+$green: #7ec96a;          // valores positivos
+$red: #e07070;            // valores negativos
+
+:host {
+  display: block;
+  height: 100%;
+}
 
 .settings-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: $bg;
-  color: $text;
+  height: calc(100% - 4px);
+  margin: 2px; /* deja sitio al contorno exterior dentro del modal */
+  box-sizing: border-box;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
   overflow: hidden;
 }
 
 .settings-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 14px;
+  padding: 10px 10px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .settings-section {
-  padding: 8px 0;
+  padding: 6px 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .section-label {
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: $text-muted;
+  color: #6b4226;
   margin: 0 0 2px 2px;
-  font-weight: 600;
+  font-weight: 700;
 
-  &.debug-label { color: rgba($danger-hover, 0.9); }
+  &.debug-label { color: $danger-text; }
 }
 
+/* Ranura tallada en la madera */
 .divider {
-  height: 1px;
-  background: linear-gradient(to right, transparent, $border, transparent);
+  height: 2px;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
   margin: 2px 0;
 }
 
-// ── Botones ───────────────────────────────────────────────────────────────────
+// ── Botones (madera con marco de piedra) ──────────────────────────────────────
 
 .btn-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 
   .settings-btn { flex: 1; }
 }
@@ -68,111 +95,109 @@ $radius-sm:    6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  padding: 12px 14px;
-  border: 1px solid $border;
-  border-radius: $radius;
-  background: $bg-section;
+  padding: 9px 12px;
+  background: $wood-btn;
+  color: $text-brown;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: $text;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  transition: background 0.15s, color 0.15s;
   text-align: center;
 
-  &:active { transform: scale(0.97); }
-
-  &:hover {
-    background: $bg-hover;
-    border-color: $border-accent;
-  }
+  &:hover  { background: $wood-btn-light; }
+  &:active { background: $wood-btn-dark; color: $text-cream; }
 
   &.wide {
     justify-content: center;
   }
 
   &.save-btn {
-    background: rgba($blue, 0.12);
-    border-color: $blue-dim;
-    color: $blue;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 14px;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 11px 12px;
     letter-spacing: 0.5px;
 
-    &:hover:not(:disabled) {
-      background: rgba($blue, 0.22);
-      border-color: $blue;
-    }
     &.saving  { opacity: 0.6; cursor: not-allowed; }
-    &.saved   { background: rgba($success, 0.2); border-color: #3fa855; color: #6dcc84; }
-    &.error   { background: rgba($danger, 0.2);  border-color: $danger;  color: #e07070; }
+    &.saved   { background: #3e6b34; color: #d9f0c8; }
+    &.error   { background: $danger-face; color: #f5e3c8; }
     &:disabled { cursor: not-allowed; }
   }
 
   &.danger {
-    background: rgba($danger, 0.18);
-    border-color: rgba($danger, 0.45);
-    color: #e07070;
+    color: $danger-text;
 
-    &:hover {
-      background: rgba($danger-hover, 0.35);
-      border-color: rgba($danger-hover, 0.7);
+    &:active {
+      background: $danger-face;
+      color: #f5e3c8;
     }
   }
 
   &.muted {
     background: transparent;
-    border: 1px dashed rgba($border, 0.8);
-    color: $text-muted;
-    font-size: 12px;
+    border: 2px dashed rgba($outline, 0.5);
+    box-shadow: none;
+    color: #6b4226;
+    font-size: 11px;
 
-    &:hover { color: $text; border-color: $text-muted; }
+    &:hover { color: $text-brown; border-color: $outline; }
   }
 
   &.info-btn {
-    font-size: 12px;
-    padding: 11px 14px;
+    font-size: 11px;
+    padding: 8px 10px;
 
-    &.active { border-color: $blue-dim; background: rgba($blue, 0.1); color: $blue; }
+    /* panel abierto: botón hundido en madera oscura */
+    &.active {
+      background: $wood-btn-dark;
+      color: $text-cream;
+      box-shadow:
+        0 0 0 1px $outline,
+        inset 0 0 0 1px $outline,
+        inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
   }
 
-  &.payload-btn.active { border-color: #4a8fc9; color: #7bb8e8; }
-
   .btn-icon {
-    font-size: 17px;
+    font-size: 15px;
     flex-shrink: 0;
     line-height: 1;
   }
 }
 
-// ── Paneles de info ───────────────────────────────────────────────────────────
+// ── Paneles de info (placa oscura) ────────────────────────────────────────────
 
 .info-panel {
-  background: rgba(0,0,0,0.25);
-  border: 1px solid $border;
-  border-radius: $radius-sm;
-  padding: 12px 14px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  padding: 10px 12px;
   font-size: 12px;
 
   &__title {
     font-size: 10px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: $blue-dim;
-    margin: 0 0 10px;
-    font-weight: 600;
+    color: $gold;
+    margin: 0 0 8px;
+    font-weight: 700;
   }
 
   &__sub {
     font-size: 9px;
     letter-spacing: 1px;
     text-transform: uppercase;
-    color: $text-muted;
-    margin: 12px 0 5px;
-    opacity: 0.7;
+    color: rgba($text-cream, 0.55);
+    margin: 10px 0 4px;
     &:first-of-type { margin-top: 0; }
   }
 }
@@ -182,46 +207,46 @@ $radius-sm:    6px;
   justify-content: space-between;
   align-items: baseline;
   padding: 4px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 
   &:last-child { border-bottom: none; }
-  &.muted      { opacity: 0.5; }
+  &.muted      { opacity: 0.55; }
   &.delta-row  { padding: 6px 0; }
 }
 
-.info-key  { color: $text-muted; flex-shrink: 0; margin-right: 8px; }
+.info-key  { color: rgba($text-cream, 0.6); flex-shrink: 0; margin-right: 8px; }
 .info-val  {
-  color: $text; text-align: right; font-variant-numeric: tabular-nums;
-  &.muted-text { color: $text-muted; font-style: italic; }
+  color: $text-cream; text-align: right; font-variant-numeric: tabular-nums;
+  &.muted-text { color: rgba($text-cream, 0.5); font-style: italic; }
 }
 
 // ── Payload Supabase ──────────────────────────────────────────────────────────
 
-.payload-panel { border-color: #1e3a5a; background: rgba(0, 10, 30, 0.5); }
-.payload-skip  { color: $text-muted; font-style: italic; font-size: 11px; padding: 4px 0; }
+.payload-skip  { color: rgba($text-cream, 0.55); font-style: italic; font-size: 11px; padding: 4px 0; }
 
 .payload-table {
   margin-bottom: 10px;
   border-radius: 4px;
   overflow: hidden;
-  &.skip { opacity: 0.4; }
+  &.skip { opacity: 0.45; }
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 4px 0;
-    border-bottom: 1px solid #1e3a5a;
+    border-bottom: 1px solid rgba($gold, 0.25);
     margin-bottom: 4px;
   }
 
-  &__name { font-size: 11px; font-weight: bold; color: #7bb8e8; font-family: monospace; }
+  &__name { font-size: 11px; font-weight: bold; color: $gold; font-family: monospace; }
 }
 
 .payload-badge {
   font-size: 9px; font-weight: bold; letter-spacing: 1px; padding: 2px 6px; border-radius: 3px;
-  &.update { background: rgba($success, 0.4); color: #6dcc84; }
-  &.skip   { background: rgba(#444, 0.4);     color: $text-muted; }
+  border: 1px solid $outline;
+  &.update { background: #3e6b34; color: #d9f0c8; }
+  &.skip   { background: rgba(0, 0, 0, 0.3); color: rgba($text-cream, 0.5); }
 }
 
 .payload-field {
@@ -229,15 +254,15 @@ $radius-sm:    6px;
   padding: 2px 0; font-family: monospace; font-size: 11px;
 }
 
-.payload-key { color: #7bb8e8; }
+.payload-key { color: $gold; }
 .payload-val {
-  color: $text; max-width: 60%;
+  color: $text-cream; max-width: 60%;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;
 }
 
 .payload-note {
-  font-size: 10px; color: $text-muted; font-style: italic;
-  margin-top: 4px; padding-top: 4px; border-top: 1px dashed $border;
+  font-size: 10px; color: rgba($text-cream, 0.55); font-style: italic;
+  margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba($text-cream, 0.25);
 }
 
 // ── Delta / badges ────────────────────────────────────────────────────────────
@@ -246,16 +271,17 @@ $radius-sm:    6px;
   display: inline-flex; align-items: center; justify-content: center;
   width: 14px; height: 14px; border-radius: 3px;
   font-size: 10px; font-weight: bold; margin-right: 4px; flex-shrink: 0;
+  border: 1px solid $outline;
 
-  &.added   { background: rgba($success, 0.4); color: #6dcc84; }
-  &.removed { background: rgba($danger, 0.4);  color: #e07070; }
-  &.changed { background: rgba($blue-dim, 0.3); color: $blue;  }
+  &.added   { background: #3e6b34; color: #d9f0c8; }
+  &.removed { background: $danger-face; color: #f5e3c8; }
+  &.changed { background: $purple; color: $text-cream; }
 }
 
 .delta-val {
   display: flex; align-items: center; gap: 4px;
-  .from  { color: $text-muted; }
-  .arrow { color: $text-muted; font-size: 10px; }
-  .to    { color: $text; }
-  .diff  { font-size: 11px; &.pos { color: #6dcc84; } &.neg { color: #e07070; } }
+  .from  { color: rgba($text-cream, 0.55); }
+  .arrow { color: rgba($text-cream, 0.55); font-size: 10px; }
+  .to    { color: $text-cream; }
+  .diff  { font-size: 11px; &.pos { color: $green; } &.neg { color: $red; } }
 }

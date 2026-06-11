@@ -26,6 +26,7 @@ import { SkillSlotsPanelComponent } from './skill-slots-panel/skill-slots-panel.
 import { SkillDetailComponent } from './skill-detail/skill-detail.component';
 import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.page';
 import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.component';
+import { AttackButtonComponent } from './attack-button/attack-button.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
 import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
@@ -54,6 +55,7 @@ import { CharacterSpriteComponent } from './character-sprite/character-sprite.co
     SkillDetailComponent,
     GameSettingsPageComponent,
     HudSkillButtonsComponent,
+    AttackButtonComponent,
     WorldMapPanelComponent,
     EnemyNamePipe,
     CharacterSpriteComponent,

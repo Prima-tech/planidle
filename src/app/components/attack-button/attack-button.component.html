@@ -1,0 +1,10 @@
+<button class="attack-btn"
+        [class.pressed]="pressed"
+        (pointerdown)="onPress($event)"
+        (pointerup)="onRelease()"
+        (pointercancel)="onRelease()"
+        (pointerleave)="onRelease()"
+        (contextmenu)="$event.preventDefault()">
+  <span class="attack-btn__shine"></span>
+  <img class="attack-btn__icon" src="assets/icon/weapons/icon_32_2_15.png" alt="" draggable="false" />
+</button>
