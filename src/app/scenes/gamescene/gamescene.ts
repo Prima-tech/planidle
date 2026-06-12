@@ -209,9 +209,7 @@ export class GameScene extends Phaser.Scene {
       this.gridPhysics.update(delta);
 
       if (!this.reg.autoAttack?.isEnabled && this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
-        this.player.playerAttack();
-        const { dmg: dmgM, isCrit: critM } = this.rollAttack();
-        this.gridPhysics.attackEnemy(dmgM, critM);
+        this.strike();
       }
 
       const playerPos = this.player.getPosition();
@@ -250,9 +248,7 @@ export class GameScene extends Phaser.Scene {
       if (dist <= STOP_RANGE) {
         this.player.currentDirection = cardinalDir;
         if (!this.player.isAttacking) {
-          this.player.playerAttack();
-          const { dmg, isCrit } = this.rollAttack();
-          this.gridPhysics.attackEnemy(dmg, isCrit);
+          this.strike();
         }
       } else {
         const moveDir = this.autoVecTo8Dir(dx, dy);
@@ -514,9 +510,7 @@ export class GameScene extends Phaser.Scene {
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
         if (this.player.isAttacking) return;
-        this.player.playerAttack();
-        const { dmg, isCrit } = this.rollAttack();
-        this.gridPhysics.attackEnemy(dmg, isCrit);
+        this.strike();
       });
     }
 
@@ -647,6 +641,30 @@ export class GameScene extends Phaser.Scene {
       );
 
       this.enemies.push(enemy);
+    }
+
+    // Golpe del jugador: lanza la animación y aplica el daño al ~40% de su
+    // duración para que coincida con el frame de impacto (como los enemigos).
+    private strike(): void {
+      this.player.playerAttack();
+      const anim  = this.player.getSprite().anims.currentAnim;
+      const delay = anim ? Math.round(anim.duration * 0.4) : 150;
+      this.time.delayedCall(delay, () => {
+        if (this.reg.playerBridge?.isDead) return;
+        const { dmg, isCrit } = this.rollAttack();
+        const hits = this.gridPhysics.attackEnemy(dmg, isCrit);
+        if (hits > 0 && isCrit) this.critFeedback();
+      });
+    }
+
+    // Hit-stop + sacudida de cámara: pausa real de la escena un instante.
+    // setTimeout (no this.time): el reloj de la escena queda congelado.
+    private critFeedback(): void {
+      this.scene.pause();
+      setTimeout(() => {
+        this.scene.resume();
+        this.cameras.main.shake(100, 0.0035);
+      }, 60);
     }
 
     private rollAttack(): { dmg: number; isCrit: boolean } {

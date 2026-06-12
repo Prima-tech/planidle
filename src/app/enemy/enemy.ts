@@ -124,7 +124,9 @@ export class Enemy {
     this.showDamageNumber(amount, isCrit);
     this.ensureHPBar();
     this.drawHPBar();
+    this.flashWhite();
     if (this.HP <= 0) { this.die(); return; }
+    this.applyKnockback(isCrit);
     this.playHurt();
   }
 
@@ -335,6 +337,43 @@ export class Enemy {
 
   private resolveAttackAnim(): string {
     return 'attack';
+  }
+
+  // Flash blanco de impacto: tinte sólido un instante y restaurar el tinte propio
+  private flashWhite(): void {
+    this.sprite.setTintFill(0xffffff);
+    this.mainScene.time.delayedCall(70, () => {
+      if (!this.sprite.active) return;
+      if (this.config.tint) this.sprite.setTint(this.config.tint);
+      else this.sprite.clearTint();
+    });
+  }
+
+  // Empujón corto alejándose del jugador (más fuerte en crítico).
+  // Durante 'hurt' el update() no mueve al enemigo, así que el tween no compite.
+  private applyKnockback(isCrit: boolean): void {
+    if (!this.lastPlayerPos) return;
+    const dx = this.sprite.x - this.lastPlayerPos.x;
+    const dy = this.sprite.y - this.lastPlayerPos.y;
+    const d  = Math.sqrt(dx * dx + dy * dy) || 1;
+    const push = isCrit ? 16 : 9;
+    const nx = this.sprite.x + (dx / d) * push;
+    const ny = this.sprite.y + (dy / d) * push;
+    if (this.isTileBlocked(nx, ny)) return;
+
+    this.mainScene.tweens.killTweensOf(this.sprite);
+    this.mainScene.tweens.add({
+      targets: this.sprite,
+      x: nx, y: ny,
+      duration: 90,
+      ease: 'Power2',
+      onComplete: () => {
+        this.tilePos.set(
+          Math.floor(this.sprite.x / GameScene.TILE_SIZE),
+          Math.floor(this.sprite.y / GameScene.TILE_SIZE),
+        );
+      },
+    });
   }
 
   private playHurt(): void {

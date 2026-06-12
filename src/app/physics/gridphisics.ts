@@ -133,10 +133,12 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     return false;
   }
 
-  attackEnemy(damage: number, isCrit = false): void {
+  /** Devuelve el número de enemigos golpeados */
+  attackEnemy(damage: number, isCrit = false): number {
     const pos  = this.player.getPosition();
     const dir  = this.player.getDirection();
     const RANGE = GameScene.TILE_SIZE * 3;
+    let hits = 0;
 
     this.enemies.forEach(enemy => {
       const ePos = enemy.getPixelPos();
@@ -150,7 +152,10 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
       enemy.takeDamage(damage, isCrit);
       enemy.startChasing();
       this.emit('enemyAttacked', enemy);
+      hits++;
     });
+
+    return hits;
   }
 
   private isInAttackDirection(dx: number, dy: number, dir: Direction): boolean {
