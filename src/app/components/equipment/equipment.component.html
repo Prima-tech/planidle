@@ -469,6 +469,15 @@
 
   </div><!-- eq-content -->
 
+  <!-- Sets de equipo: 3 loadouts por personaje, en vertical a la derecha -->
+  <div class="loadout-tabs" *ngIf="activeTab === 0 && !statsFlyoutOpen">
+    <button class="loadout-tab" *ngFor="let i of loadoutIndices"
+            [class.active]="equipmentService.activeLoadout === i"
+            (click)="equipmentService.switchLoadout(i)">
+      {{ i + 1 }}
+    </button>
+  </div>
+
   <!-- Flyout de stats: aparece a la derecha al pinchar la pastilla del tab 0 -->
   <div class="talent-picker-flyout stats-flyout" *ngIf="activeTab === 0 && statsFlyoutOpen">
     <ng-container *ngIf="{ pts: freePoints$ | async } as vm">

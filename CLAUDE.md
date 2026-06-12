@@ -61,7 +61,8 @@ this.reg = new GameRegistry(this.game);
 interface GameSnapshot {
   playerState: PlayerState;           // coins, exp, lvl, hp, hpMax, mp, mpMax
   inventory: (InventoryItem|null)[][][];
-  equipment: EquipmentSnapshot;
+  equipment: EquipmentSnapshot;       // set ACTIVO (roster/mapa leen el sprite de aquí)
+  equipmentLoadouts?: { active: number; sets: (EquipmentSnapshot|null)[] }; // 3 sets por personaje
   mapId: string;
   kills: KillMap;                     // { mapId: { enemyType: count } }
   talents?: TalentSnapshot;

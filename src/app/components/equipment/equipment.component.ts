@@ -78,6 +78,9 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     potion:   'flask-outline',
   };
 
+  // Sets de equipo (loadouts) del tab 0
+  readonly loadoutIndices = [0, 1, 2];
+
   // Flyout de stats (tab 0): se abre al pinchar la pastilla, a la derecha del panel
   statsFlyoutOpen = false;
 

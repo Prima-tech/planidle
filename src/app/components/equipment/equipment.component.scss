@@ -147,6 +147,49 @@ $purple: #6e4a67;         // selección
   padding-top: 10px; /* alineado con la cabecera (badge flotante) */
 }
 
+// Pestañas de sets de equipo: columna vertical colgando a la derecha del marco
+// (espejo de las eq-vtabs de la izquierda). Viven a nivel de eq-wrapper porque
+// eq-content recorta el overflow horizontal.
+.loadout-tabs {
+  position: absolute;
+  left: calc(100% + 21px);  /* 13px de marco + 8px de aire */
+  top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 20;
+}
+
+.loadout-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  font-size: 0.8em;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s, color 0.15s;
+
+  &.active,
+  &:hover {
+    background: $wood-btn;
+    color: $text-brown;
+    box-shadow:
+      inset 0 0 0 1px $wood-btn-light,
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+}
+
 .eq-center {
   display: flex;
   flex-direction: column;

@@ -3,7 +3,7 @@ import { auditTime, BehaviorSubject, filter, merge, skip } from 'rxjs';
 import { StorageService } from './storage.service';
 import { PlayerStateService, PlayerState } from './player-state.service';
 import { InventoryService, InventoryItem } from './inventory.service';
-import { EquipmentService, EquipmentSnapshot } from './equipment.service';
+import { EquipmentService, EquipmentSnapshot, EquipmentLoadouts } from './equipment.service';
 import { SupabaseService } from './supabase.service';
 import { WorldService } from './world.service';
 import { KillService, KillMap } from './kill.service';
@@ -25,7 +25,10 @@ export type SaveStatus = 'idle' | 'local' | 'remote' | 'saved' | 'error';
 export interface GameSnapshot {
   playerState: PlayerState;
   inventory: (InventoryItem | null)[][][];
+  /** Set activo (compat: roster/mapa leen el sprite de aquí) */
   equipment: EquipmentSnapshot;
+  /** Los 3 sets de equipo; si falta (save antiguo), `equipment` migra al set 0 */
+  equipmentLoadouts?: EquipmentLoadouts;
   mapId: string;
   kills: KillMap;
   talents?: TalentSnapshot;
@@ -149,7 +152,7 @@ export class SaveService {
     if (snapshot) {
       this.playerState.setFromProfile(snapshot.playerState);
       this.inventory.restoreFromSnapshot(snapshot.inventory);
-      this.equipment.restoreFromSnapshot(snapshot.equipment ?? null);
+      this.equipment.restoreLoadouts(snapshot.equipmentLoadouts, snapshot.equipment ?? null);
       this.world.setCurrentMap(snapshot.mapId ?? 'hogar');
       this.kills.restoreCharKills(snapshot.kills ?? {});
       this.talent.restoreFromSnapshot(snapshot.talents ?? null);
@@ -158,7 +161,7 @@ export class SaveService {
     } else {
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
-      this.equipment.restoreFromSnapshot(null);
+      this.equipment.restoreLoadouts(null, null);
       this.world.setCurrentMap('hogar');
       this.kills.restoreCharKills({});
       this.talent.restoreFromSnapshot(null);
@@ -278,6 +281,7 @@ export class SaveService {
       playerState:  this.playerState.snapshot(),
       inventory:    this.inventory.getSnapshot(),
       equipment:    this.equipment.getSnapshot(),
+      equipmentLoadouts: this.equipment.getLoadoutsSnapshot(),
       mapId:        this.world.getCurrentMap().id,
       kills:        this.kills.getCharKillsSnapshot(),
       talents:      this.talent.getSnapshot(),
