@@ -15,6 +15,7 @@ import { AutoAttackService } from '../services/auto-attack.service';
 import { GameSettingsService } from '../services/game-settings.service';
 import { HudSkillSlotsService } from '../services/hud-skill-slots.service';
 import { SkillEquipService } from '../services/skill-equip.service';
+import { TalentService } from '../services/talent.service';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
 export const REGISTRY_KEYS = {
@@ -35,6 +36,7 @@ export const REGISTRY_KEYS = {
   GAME_SETTINGS:    'gameSettingsService',
   HUD_SKILL_SLOTS:  'hudSkillSlotsService',
   SKILL_EQUIP:      'skillEquipService',
+  TALENT:           'talentService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -58,4 +60,5 @@ export class GameRegistry {
   get gameSettings():    GameSettingsService      { return this.game.registry.get(REGISTRY_KEYS.GAME_SETTINGS); }
   get hudSlots():        HudSkillSlotsService     { return this.game.registry.get(REGISTRY_KEYS.HUD_SKILL_SLOTS); }
   get skillEquip():      SkillEquipService        { return this.game.registry.get(REGISTRY_KEYS.SKILL_EQUIP); }
+  get talent():          TalentService            { return this.game.registry.get(REGISTRY_KEYS.TALENT); }
 }

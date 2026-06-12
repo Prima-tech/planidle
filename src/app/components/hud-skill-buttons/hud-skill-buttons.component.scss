@@ -10,7 +10,7 @@
 }
 
 // Mismo estilo "esfera" que AttackButtonComponent, en azul zafiro.
-// Se colocan en arco alrededor del botón de ataque (centro right:75 / bottom:115).
+// Se colocan en arco alrededor del botón de ataque (centro right:90 / bottom:115).
 .hud-btn {
   position: fixed;
   width: 52px;
@@ -79,19 +79,19 @@
 // Arco alrededor del botón de ataque (radio ~84px desde su centro)
 // slot 0 — arriba del botón de ataque
 .hud-btn-slot-0 {
-  right: 49px;
+  right: 64px;
   bottom: 173px;
 }
 
 // slot 1 — diagonal
 .hud-btn-slot-1 {
-  right: 108px;
+  right: 123px;
   bottom: 148px;
 }
 
 // slot 2 — a la izquierda
 .hud-btn-slot-2 {
-  right: 133px;
+  right: 148px;
   bottom: 89px;
 }
 

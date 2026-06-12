@@ -10,6 +10,9 @@
 <button class="auto-attack-fab" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
   <ion-icon name="infinite-outline"></ion-icon>
 </button>
+<button class="auto-skill-fab" [class.active]="autoAttack.skillsEnabled" (click)="toggleAutoSkills()">
+  <ion-icon name="sparkles-outline"></ion-icon>
+</button>
 
 <ion-footer>
   <ion-toolbar>

@@ -12,6 +12,7 @@ import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
 import { EQUIP_LAYER_REGISTRY } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
+import { SPHERE_MULT } from "src/app/services/talent.service";
 
 const SKILL_SPRITE_SOURCES: { key: string; path: string; count: number }[] = [
   { key: 'skill_fire',           path: 'assets/sprites/skills/fire/Fire/fire_',                     count: 6  },
@@ -84,6 +85,8 @@ export class GameScene extends Phaser.Scene {
     private autoLastX = 0;
     private autoLastY = 0;
     private autoBlacklist = new Map<Enemy, number>(); // enemigo → time.now hasta el que se ignora
+    private autoSkillGapMs = 0; // cuenta atrás hasta el próximo auto-cast permitido
+    private autoSkillIdx   = 0; // rotación round-robin entre las skills equipadas
     currentMap: any;
 
       constructor(
@@ -214,10 +217,20 @@ export class GameScene extends Phaser.Scene {
 
     override update(_time: number, delta: number) {
       this.gridControls.update();
-      if (this.reg.autoAttack?.isEnabled) this.runAutoAttack(delta);
+
+      // Input manual (ataque o movimiento) → pausa la automatización unos segundos
+      const auto = this.reg.autoAttack;
+      if (this.mobileInput?.isAttackHeld || this.gridControls.hasManualInput()) {
+        auto?.pauseAutomation();
+      }
+      const autoPaused = auto?.isPausedByManual ?? false;
+      if (auto?.isEnabled && !autoPaused) this.runAutoAttack(delta);
+      if (auto?.skillsEnabled && !autoPaused) this.runAutoSkills(delta);
       this.gridPhysics.update(delta);
 
-      if (!this.reg.autoAttack?.isEnabled && this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
+      // El golpe manual funciona siempre: con auto-ataque activo, este queda
+      // pausado mientras mantengas pulsado, así que no compiten
+      if (this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
         this.strike();
       }
 
@@ -294,6 +307,49 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.autoStuckMs = 0;
       }
+    }
+
+    // Auto-skills: lanza UNA habilidad por pasada, rotando entre las equipadas
+    // (HUD + barra de skills), con una pausa entre casts para que se encadenen
+    // con ritmo en vez de dispararse todas a la vez. Mismo camino que pulsar el
+    // botón (request → activate$): respeta maná, cooldown y daño por esfera.
+    private runAutoSkills(delta: number): void {
+      this.autoSkillGapMs -= delta;
+      if (this.autoSkillGapMs > 0) return;
+
+      const talent = this.reg.talent;
+      const acts   = this.reg.skillActivation;
+      if (!talent || !acts) return;
+
+      const ids: string[] = [];
+      for (const id of this.reg.hudSlots?.slots ?? []) {
+        if (id && !ids.includes(id)) ids.push(id);
+      }
+      const slots = this.reg.skillEquip?.slots;
+      if (slots) {
+        for (const id of Object.values(slots)) {
+          if (id && !ids.includes(id)) ids.push(id);
+        }
+      }
+      if (!ids.length) return;
+
+      for (let i = 0; i < ids.length; i++) {
+        const nodeId  = ids[(this.autoSkillIdx + i) % ids.length];
+        const node    = talent.nodes.find(n => n.id === nodeId);
+        const ability = node?.effect?.ability;
+        if (!ability || ability === 'dash') continue;   // dash automático marearía
+        if (acts.isOnCooldown(ability) || !acts.hasTarget(ability)) continue;
+        const sphere = talent.slotted[nodeId];
+        const damage = node.effect.base * (sphere ? SPHERE_MULT[sphere] : 1);
+        acts.request(ability, damage, true);
+        // La siguiente pasada continúa por la skill posterior a esta
+        this.autoSkillIdx   = (this.autoSkillIdx + i + 1) % ids.length;
+        this.autoSkillGapMs = 1100;
+        return;
+      }
+
+      // Ninguna lista (cooldowns / sin objetivo): re-chequear en breve
+      this.autoSkillGapMs = 250;
     }
 
     // Mejor objetivo: el más cercano, con fuerte preferencia por los que ya
@@ -590,6 +646,7 @@ export class GameScene extends Phaser.Scene {
 
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
+        this.reg.autoAttack?.pauseAutomation();
         if (this.player.isAttacking) return;
         this.strike();
       });

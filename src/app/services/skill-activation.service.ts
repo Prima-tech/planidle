@@ -1,15 +1,19 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { SKILL_REGISTRY } from './skill-config';
+import { AutoAttackService } from './auto-attack.service';
 
 @Injectable({ providedIn: 'root' })
 export class SkillActivationService {
   readonly activate$ = new Subject<{ abilityId: string; damage: number }>();
   private cooldowns: Record<string, number> = {};
+  private autoAttack = inject(AutoAttackService);
 
-  request(abilityId: string, damage: number): void {
+  /** `auto = true` cuando lanza el auto-cast: no pausa la automatización */
+  request(abilityId: string, damage: number, auto = false): void {
     const cfg = SKILL_REGISTRY[abilityId];
     if (!cfg) return;
+    if (!auto) this.autoAttack.pauseAutomation();
     const now = Date.now();
     if (now - (this.cooldowns[abilityId] ?? 0) < cfg.cooldown) return;
     this.cooldowns[abilityId] = now;

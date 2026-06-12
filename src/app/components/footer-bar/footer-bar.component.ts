@@ -133,6 +133,10 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.autoAttack.toggle();
   }
 
+  toggleAutoSkills() {
+    this.autoAttack.toggleSkills();
+  }
+
   togglePage() {
     if (this.page === 'main') {
       [this.menuModal, this.inventoryModal, this.equipmentModal,

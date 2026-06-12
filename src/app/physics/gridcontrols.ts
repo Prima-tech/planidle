@@ -55,6 +55,15 @@ export class GridControls {
     this.wasd.down.on('down',  trackAndDash(Direction.DOWN));
   }
 
+  /** true si el jugador está moviéndose por joystick o teclado (input manual) */
+  hasManualInput(): boolean {
+    if (this.mobileInput && this.mobileInput.direction !== Direction.NONE) return true;
+    return this.cursors.left.isDown || this.cursors.right.isDown ||
+           this.cursors.up.isDown   || this.cursors.down.isDown  ||
+           this.wasd.left.isDown    || this.wasd.right.isDown    ||
+           this.wasd.up.isDown      || this.wasd.down.isDown;
+  }
+
   update() {
     const mob = this.mobileInput;
 

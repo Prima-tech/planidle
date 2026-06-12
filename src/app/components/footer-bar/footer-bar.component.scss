@@ -23,11 +23,11 @@ $metal-face: linear-gradient(180deg, $metal-light 0%, $metal 45%, #847b6e 75%, $
 $metal-face-pressed: linear-gradient(180deg, $metal-dark 0%, #847b6e 25%, $metal 60%, $metal-light 100%);
 $icon-metal: #3a342c;     // iconos sobre acero
 
-// ── Auto-attack FAB ───────────────────────────────────────────────────────────
+// ── FABs de automatización (auto-ataque + auto-skills) ───────────────────────
 
-.auto-attack-fab {
+.auto-attack-fab,
+.auto-skill-fab {
   position: fixed;
-  bottom: 60px;
   right: 12px;
   width: 26px;
   height: 26px;
@@ -48,6 +48,14 @@ $icon-metal: #3a342c;     // iconos sobre acero
     inset 0 0 0 1px $outline,
     0 2px 8px rgba(0, 0, 0, 0.5);
 
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+.auto-attack-fab {
+  bottom: 60px;
+
   &.active {
     background: #a03325;
     color: #f5e3c8;
@@ -57,9 +65,19 @@ $icon-metal: #3a342c;     // iconos sobre acero
       0 0 10px rgba(200, 30, 30, 0.6),
       0 2px 8px rgba(0, 0, 0, 0.5);
   }
+}
 
-  &:active {
-    transform: scale(0.9);
+.auto-skill-fab {
+  bottom: 92px;
+
+  &.active {
+    background: #6e4a9e;
+    color: #f5e3c8;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 10px rgba(140, 80, 220, 0.65),
+      0 2px 8px rgba(0, 0, 0, 0.5);
   }
 }
 

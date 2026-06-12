@@ -1,3 +1,25 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;        // contorno oscuro de todos los marcos
+$stone: #8f8678;          // piedra base
+$stone-light: #a59c8d;    // piedra iluminada (arriba/izq)
+$stone-dark: #6b6357;     // piedra en sombra (abajo/dcha)
+$wood-bg: #a86f3e;        // madera del panel
+$wood-bg-dark: #935f34;   // madera oscura
+$wood-btn: #c08349;       // madera de botones/placas
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;        // interior de celdas
+$cell-border: #21130e;
+$grid-bg: #4a3023;        // fondo del área de grid
+$text-brown: #53301c;     // texto sobre madera clara
+$text-cream: #ecd9b4;     // texto sobre fondos oscuros
+$purple: #6e4a67;         // selección
+
+$danger-face: #a03325;    // acción destructiva / acento muerte
+$danger-text: #7e2c1c;    // rojo sobre madera
+$red: #e07070;            // valores perdidos sobre fondo oscuro
+$green: #7ec96a;          // valores restaurados
+
 .death-backdrop {
   position: fixed;
   inset: 0;
@@ -16,14 +38,18 @@
 
 .death-panel {
   width: 300px;
-  background: linear-gradient(160deg, #120808 0%, #0a0505 100%);
-  border: 1.5px solid #5a1a1a;
-  border-radius: 12px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
   box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
     0 0 60px rgba(0, 0, 0, 0.9),
-    0 0 30px rgba(180, 20, 20, 0.2),
-    inset 0 1px 0 rgba(255, 80, 80, 0.06);
-  overflow: hidden;
+    0 0 30px rgba(180, 20, 20, 0.2);
   animation: slideUp 0.3s ease;
 }
 
@@ -33,94 +59,103 @@
 }
 
 .death-header {
-  padding: 28px 24px 18px;
+  padding: 24px 24px 14px;
   text-align: center;
 
   .death-icon {
     font-size: 36px;
     display: block;
-    filter: drop-shadow(0 0 12px rgba(200, 40, 40, 0.7));
+    filter: drop-shadow(0 0 12px rgba(200, 40, 40, 0.6));
   }
 
   .death-title {
     margin: 10px 0 4px;
+    font-family: Georgia, 'Times New Roman', serif;
     font-size: 20px;
     font-weight: 900;
     letter-spacing: 4px;
     text-transform: uppercase;
-    color: #e06060;
-    text-shadow: 0 0 16px rgba(220, 40, 40, 0.5);
+    color: $danger-text;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
   .death-subtitle {
     margin: 0;
     font-size: 10px;
     letter-spacing: 1.5px;
-    color: rgba(220, 120, 120, 0.4);
+    color: #6b4226;
     text-transform: uppercase;
   }
 }
 
+/* Ranura tallada en la madera */
 .death-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(180, 40, 40, 0.35), transparent);
+  height: 2px;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
   margin: 0 16px;
 }
 
 .death-body {
-  padding: 16px 24px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .death-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  padding: 6px 10px;
 
   .death-label {
     font-size: 12px;
-    color: rgba(220, 160, 160, 0.65);
+    color: rgba($text-cream, 0.6);
     letter-spacing: 0.3px;
   }
 
   .death-value {
     font-size: 13px;
     font-weight: 700;
-    color: #d09090;
+    color: $text-cream;
     letter-spacing: 0.5px;
 
     &--lost {
-      color: #e05050;
-      text-shadow: 0 0 6px rgba(220, 40, 40, 0.4);
+      color: $red;
     }
 
     &--restored {
-      color: #60d080;
-      text-shadow: 0 0 6px rgba(40, 200, 80, 0.35);
+      color: $green;
     }
   }
 }
 
 .death-accept-btn {
   display: block;
-  width: calc(100% - 48px);
-  margin: 16px 24px 22px;
-  padding: 12px;
-  background: linear-gradient(180deg, #5a1a1a 0%, #2a0808 100%);
-  border: 1px solid #7a2020;
-  border-bottom-color: #1a0404;
-  border-radius: 4px;
-  color: #e08080;
+  width: calc(100% - 32px);
+  margin: 12px 16px 18px;
+  padding: 11px;
+  background: $danger-face;
+  color: #f5e3c8;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
   cursor: pointer;
   transition: filter 0.15s;
-  box-shadow: inset 0 1px 0 rgba(255, 100, 100, 0.12);
 
-  &:hover  { filter: brightness(1.25); }
+  &:hover  { filter: brightness(1.15); }
   &:active { filter: brightness(0.85); }
 }
