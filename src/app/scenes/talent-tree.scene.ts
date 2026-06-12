@@ -257,6 +257,7 @@ export class TalentTreeScene extends Phaser.Scene {
         fontSize: `${(cfg.small ? 10 : 12) * DPR}px`,
         fontStyle: 'bold',
         color: C_TEXT,
+        resolution: 2,   // glifos rasterizados al doble: nítidos también con zoom
       }).setOrigin(0.5);
       children.push(num);
     }
@@ -267,6 +268,7 @@ export class TalentTreeScene extends Phaser.Scene {
         fontSize: `${10 * DPR}px`,
         fontStyle: 'bold',
         color: C_GOLD,
+        resolution: 2,
       }).setOrigin(0.5));
     }
 
@@ -275,6 +277,7 @@ export class TalentTreeScene extends Phaser.Scene {
       children.push(this.add.text(0, 0, '✦', {
         fontSize: `${20 * DPR}px`,
         color: '#ff8a4a',
+        resolution: 2,
       }).setOrigin(0.5));
 
       const ring = this.add.graphics();

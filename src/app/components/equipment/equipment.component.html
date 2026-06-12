@@ -1,6 +1,6 @@
-<div class="eq-wrapper" [class.eq-wrapper--wide]="talentExpanded && activeTab === 3">
+<div class="eq-wrapper" [class.eq-wrapper--wide]="talentExpanded && (activeTab === 3 || activeTab === 4)">
 
-  <button *ngIf="activeTab === 3"
+  <button *ngIf="activeTab === 3 || activeTab === 4"
           class="talent-expand-btn"
           (click)="talentExpanded = !talentExpanded">
     <ion-icon [name]="talentExpanded ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
@@ -18,6 +18,9 @@
     </button>
     <button class="eq-vtab" [class.active]="activeTab === 3" (click)="activeTab = 3">
       <ion-icon name="sparkles-outline"></ion-icon>
+    </button>
+    <button class="eq-vtab" [class.active]="activeTab === 4" (click)="activeTab = 4">
+      <ion-icon name="git-network-outline"></ion-icon>
     </button>
   </div>
 
@@ -407,10 +410,65 @@
 
   </div><!-- talent-panel -->
 
+  <!-- Tab 4: Árbol de habilidades clásico (HTML + SVG) -->
+  <div class="talent-panel" *ngIf="activeTab === 4">
+
+    <!-- Inventario de esferas -->
+    <div class="talent-sphere-bar">
+      <div *ngFor="let s of sphereTypes" class="tsphere" [title]="s">
+        <span class="tsphere-dot" [style.background]="sphereColors[s]"></span>
+        <span class="tsphere-label">{{ sphereLabels[s] }}</span>
+        <span class="tsphere-count">{{ talent.spheres[s] }}</span>
+      </div>
+    </div>
+
+    <!-- Árbol -->
+    <div class="talent-viewport talent-viewport--classic"
+         (pointerdown)="onCanvasPointerDown($event)"
+         (pointermove)="onCanvasPointerMove($event)"
+         (pointerup)="onCanvasPointerUp()"
+         (pointercancel)="onCanvasPointerUp()"
+         (mouseleave)="onCanvasPointerUp()">
+
+      <div class="talent-canvas" [style.transform]="'translate(' + panX + 'px, ' + panY + 'px)'">
+
+        <svg class="talent-svg" [attr.width]="canvasWidth" [attr.height]="canvasHeight">
+          <line *ngFor="let l of treeLines"
+                [attr.x1]="l.x1" [attr.y1]="l.y1"
+                [attr.x2]="l.x2" [attr.y2]="l.y2"
+                [class.tline--active]="l.active"
+                class="tline"
+          />
+        </svg>
+
+        <div *ngFor="let node of activeTreeNodes"
+             class="tnode"
+             [class.tnode--small]="node.small"
+             [class.tnode--locked]="nodeState(node) === 'locked'"
+             [class.tnode--available]="nodeState(node) === 'available'"
+             [class.tnode--slotted]="nodeState(node) === 'slotted'"
+             [class.tnode--selected]="selectedNodeId === node.id"
+             [style.left]="nodeStyle(node)['left']"
+             [style.top]="nodeStyle(node)['top']"
+             [style.border-color]="nodeColor(node) || null"
+             [title]="node.label"
+             (click)="onNodeClick(node)"
+        >
+          <span *ngIf="node.topLabel" class="tnode-toplabel">{{ node.topLabel }}</span>
+          <ion-icon *ngIf="!node.small" [name]="node.icon" class="tnode-icon"></ion-icon>
+          <span *ngIf="node.num" class="tnode-num">{{ node.num }}</span>
+          <span *ngIf="nodeState(node) === 'slotted'" class="tnode-sphere-dot" [style.background]="nodeColor(node)"></span>
+        </div>
+
+      </div>
+    </div><!-- talent-viewport -->
+
+  </div><!-- talent-panel clásico -->
+
   </div><!-- eq-content -->
 
   <!-- Picker flotante: aparece a la derecha del panel al seleccionar un talento -->
-  <div class="talent-picker-flyout" *ngIf="activeTab === 3 && selectedNodeId">
+  <div class="talent-picker-flyout" *ngIf="(activeTab === 3 || activeTab === 4) && selectedNodeId">
     <button class="tpicker-cancel" (click)="clearTalentSelection()">✕</button>
     <div class="tpicker-name">{{ formatNodeLabel(selectedNode!) }}</div>
     <div class="tpicker-spheres">

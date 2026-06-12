@@ -942,10 +942,9 @@ export class GameScene extends Phaser.Scene {
 
     // El sprite aparece en el enemigo y se destruye al terminar el ciclo de animación
     private playImpact(cfg: SkillConfig, damage: number, target: Enemy): void {
+      // sprite.y ya es el centro del enemigo (origin 0.5, 0.5)
       const pos = target.getPixelPos();
-      // sprite.y es el borde inferior del enemigo (origin 0.5, 1) — centramos el efecto
-      const centerY = pos.y - target.sprite.displayHeight * 0.75;
-      const sprite = this.add.sprite(pos.x, centerY, `${cfg.spriteKey}_1`);
+      const sprite = this.add.sprite(pos.x, pos.y, `${cfg.spriteKey}_1`);
       sprite.setDepth(6);
       sprite.setScale(cfg.scale);
       if (this.anims.exists(cfg.spriteKey)) sprite.play(cfg.spriteKey);

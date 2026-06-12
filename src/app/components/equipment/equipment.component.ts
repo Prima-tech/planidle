@@ -26,13 +26,16 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   set activeTab(v: number) {
     this._activeTab = v;
     this.panelState.set('equip.tab', v);
-    if (v !== 3) {
-      this.selectedNodeId = null;
-      this.talentExpanded = false;
-      this.destroyTalentGame();
-    } else {
+    if (v === 3) {
       // El contenedor entra al DOM con el *ngIf en este mismo ciclo
       setTimeout(() => this.createTalentGame());
+    } else {
+      this.destroyTalentGame();
+    }
+    if (v === 4) this.initPan();
+    if (v !== 3 && v !== 4) {
+      this.selectedNodeId = null;
+      this.talentExpanded = false;
     }
   }
 
@@ -93,6 +96,103 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this._activeTalentTree = v;
     this.selectedNodeId = null;
     this.recreateTalentGame();
+    if (this._activeTab === 4) this.initPan();
+  }
+
+  // ── Árbol HTML clásico (tab 4) ───────────────────────────────────────────────
+
+  private initPan(): void {
+    const nodes = this.activeTreeNodes;
+    const root = nodes.find(n => n.requires.length === 0) ?? nodes[0];
+    if (!root) { this.panX = 0; this.panY = 0; return; }
+    this.panX = 113 - (root.col * 33 + 16);  // centra X en viewport 226px
+    this.panY = 100 - (root.row * 48 + 22);  // nodo raíz a ~38% desde arriba
+  }
+
+  panX = 0;
+  panY = 0;
+  private _panActive = false;
+  private _panStartClientX = 0;
+  private _panStartClientY = 0;
+  private _panStartPanX = 0;
+  private _panStartPanY = 0;
+  panMoved = false;
+
+  get canvasWidth(): number {
+    const nodes = this.activeTreeNodes;
+    if (!nodes.length) return 220;
+    return (Math.max(...nodes.map(n => n.col)) + 1) * 33 + 33;
+  }
+
+  get canvasHeight(): number {
+    const nodes = this.activeTreeNodes;
+    if (!nodes.length) return 200;
+    return (Math.max(...nodes.map(n => n.row)) + 1) * 48 + 48;
+  }
+
+  onCanvasPointerDown(e: PointerEvent): void {
+    this._panActive = true;
+    this.panMoved = false;
+    this._panStartClientX = e.clientX;
+    this._panStartClientY = e.clientY;
+    this._panStartPanX = this.panX;
+    this._panStartPanY = this.panY;
+  }
+
+  onCanvasPointerMove(e: PointerEvent): void {
+    if (!this._panActive) return;
+    const dx = e.clientX - this._panStartClientX;
+    const dy = e.clientY - this._panStartClientY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this.panMoved = true;
+    if (this.panMoved) {
+      this.panX = this._panStartPanX + dx;
+      this.panY = this._panStartPanY + dy;
+    }
+  }
+
+  onCanvasPointerUp(): void {
+    this._panActive = false;
+  }
+
+  get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
+    const nodes = this.activeTreeNodes;
+    const CW = 33, CH = 48;
+    const cx = (col: number) => col * CW + CW / 2;
+    const cy = (row: number) => row * CH + 21;
+    return nodes.flatMap(node =>
+      node.requires
+        .map(reqId => {
+          const parent = nodes.find(n => n.id === reqId);
+          if (!parent) return null;
+          return {
+            x1: cx(parent.col), y1: cy(parent.row),
+            x2: cx(node.col),   y2: cy(node.row),
+            active: !!this.talent.slotted[reqId] && !!this.talent.slotted[node.id],
+          };
+        })
+        .filter((l): l is NonNullable<typeof l> => l !== null)
+    );
+  }
+
+  nodeState(node: TalentNodeConfig): 'locked' | 'available' | 'slotted' {
+    if (!this.talent.isUnlocked(node.id)) return 'locked';
+    if (this.talent.slotted[node.id])     return 'slotted';
+    return 'available';
+  }
+
+  nodeStyle(node: TalentNodeConfig): Record<string, string> {
+    return { left: `${node.col * 33 + 3}px`, top: `${node.row * 48 + 3}px` };
+  }
+
+  nodeColor(node: TalentNodeConfig): string {
+    const sphere = this.talent.slotted[node.id];
+    return sphere ? this.sphereColors[sphere] : '';
+  }
+
+  onNodeClick(node: TalentNodeConfig): void {
+    if (this.panMoved) return;
+    if (!this.talent.isUnlocked(node.id)) return;
+    this.selectedNodeId = this.selectedNodeId === node.id ? null : node.id;
   }
 
   get activeTreeNodes(): TalentNodeConfig[] {
@@ -151,7 +251,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       width:  parent.clientWidth * dpr,
       height: parent.clientHeight * dpr,
       scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
-      render: { antialias: true },
+      // roundPixels: el texto centrado cae en medios píxeles y se emborrona sin esto
+      render: { antialias: true, roundPixels: true },
       backgroundColor: '#0c0908',
       scene: [TalentTreeScene],
     });
@@ -251,6 +352,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
     if (this._activeTab === 3) setTimeout(() => this.createTalentGame());
+    if (this._activeTab === 4) this.initPan();
   }
 
   ngOnDestroy(): void {
