@@ -82,9 +82,8 @@
     bottom: 54px;
     left: 10px;
     right: 10px;
-    border-radius: 12px;
-    background: #1a1a2e;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    /* el marco lo pinta el componente (tema madera + piedra) */
+    background: transparent;
     overflow: hidden;
   }
 }
