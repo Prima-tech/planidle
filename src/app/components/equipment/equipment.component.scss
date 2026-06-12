@@ -66,6 +66,7 @@ $purple: #6e4a67;         // selección
   .talent-tree-zone {
     flex: 1;
     min-height: 0;
+    height: auto;  /* en modo ancho la altura la da el flex del panel */
   }
 
   .talent-viewport {
@@ -752,13 +753,20 @@ $metal-dark: #6b6357;
 }
 
 // Zona del árbol Phaser: el botón de zoom flota fuera del contenedor del canvas
-// (Phaser gestiona ese div; un hermano posicionado nunca queda tapado)
+// (Phaser gestiona ese div; un hermano posicionado nunca queda tapado).
+// OJO: la zona necesita altura propia — con flex-basis 0 del hijo, sin esto
+// el viewport colapsa a 0px y el juego Phaser nunca llega a crearse.
 .talent-tree-zone {
   position: relative;
   display: flex;
   flex-direction: column;
+  height: 260px;
 
-  .talent-viewport { flex: 1; }
+  .talent-viewport {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
 }
 
 // Botón de zoom del árbol Phaser (esquina del viewport)
