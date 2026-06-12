@@ -16,6 +16,7 @@ import { SkillActivationService } from 'src/app/services/skill-activation.servic
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AutoAttackService } from 'src/app/services/auto-attack.service';
+import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 
 @Component({
   selector: 'app-footer-bar',
@@ -56,6 +57,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private skillActivationService = inject(SkillActivationService);
   private playerBridge           = inject(PlayerBridgeService);
   autoAttack                     = inject(AutoAttackService);
+  badges                         = inject(NotificationBadgeService);
 
   constructor() { }
 

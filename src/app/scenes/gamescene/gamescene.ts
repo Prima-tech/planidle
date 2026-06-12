@@ -88,6 +88,10 @@ export class GameScene extends Phaser.Scene {
     private autoBlacklist = new Map<Enemy, number>(); // enemigo → time.now hasta el que se ignora
     private autoSkillGapMs = 0; // cuenta atrás hasta el próximo auto-cast permitido
     private autoSkillIdx   = 0; // rotación round-robin entre las skills equipadas
+    // Animación de subida de nivel
+    private lvlSub: { unsubscribe(): void } | null = null;
+    private lastLvl: number | null = null;
+    private lvlUpText: Phaser.GameObjects.Text | null = null;
     currentMap: any;
 
       constructor(
@@ -179,6 +183,7 @@ export class GameScene extends Phaser.Scene {
       this.scene.launch('MobileHUDScene');
       this.createPhysics();
       this.createGameControls();
+      this.initLevelUpWatcher();
       this.cameras.main.fadeIn(500, 0, 0, 0);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.scene.stop('MobileHUDScene');
@@ -190,6 +195,9 @@ export class GameScene extends Phaser.Scene {
         this.magicSub?.unsubscribe();
         this.skillSub?.unsubscribe();
         this.player?.clearLayers();
+        this.lvlSub?.unsubscribe();
+        this.lvlSub = null;
+        this.lvlUpText = null;   // el shutdown de la escena ya destruye el texto
         this.events.off('enemyAttackPlayer');
         this.events.off('enemyDied');
       });
@@ -238,6 +246,9 @@ export class GameScene extends Phaser.Scene {
       const playerPos = this.player.getPosition();
       for (let i = 0; i < this.enemies.length; i++) {
         this.enemies[i].update(delta, playerPos);
+      }
+      if (this.lvlUpText?.active) {
+        this.lvlUpText.setPosition(playerPos.x, playerPos.y - 160);
       }
       this.checkPortals(playerPos);
       this.player.syncLayers();
@@ -633,6 +644,61 @@ export class GameScene extends Phaser.Scene {
           break;
         }
       }
+    }
+
+    // "LVL UP!" dorado sobre el personaje al subir de nivel (5s, sigue al jugador)
+    private initLevelUpWatcher(): void {
+      this.lastLvl = null;
+      this.lvlSub?.unsubscribe();
+      this.lvlSub = this.reg.playerState.lvl$.subscribe((lvl: number) => {
+        // El primer valor tras crear la escena es el nivel cargado, no una subida
+        if (this.lastLvl !== null && lvl > this.lastLvl) this.showLevelUp();
+        this.lastLvl = lvl;
+      });
+    }
+
+    private showLevelUp(): void {
+      this.lvlUpText?.destroy();
+      const pos = this.player.getPosition();
+      const txt = this.add.text(pos.x, pos.y - 160, 'LVL UP!', {
+        fontSize: '52px',        // más grande que el daño (28px) y el crítico (48px)
+        fontStyle: 'bold',
+        color: '#ffd700',
+        stroke: '#000000',
+        strokeThickness: 10,
+      }).setOrigin(0.5, 1).setDepth(6000);
+      this.lvlUpText = txt;
+
+      // Pop de entrada y después pulso suave
+      txt.setScale(0);
+      this.tweens.add({
+        targets: txt,
+        scale: 1,
+        duration: 250,
+        ease: 'Back.easeOut',
+        onComplete: () => {
+          if (!txt.active) return;
+          this.tweens.add({
+            targets: txt,
+            scale: { from: 1, to: 1.12 },
+            duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+          });
+        },
+      });
+
+      // A los 4.5s se desvanece medio segundo y desaparece (5s en total)
+      this.time.delayedCall(4500, () => {
+        if (!txt.active) return;
+        this.tweens.add({
+          targets: txt,
+          alpha: 0,
+          duration: 500,
+          onComplete: () => {
+            txt.destroy();
+            if (this.lvlUpText === txt) this.lvlUpText = null;
+          },
+        });
+      });
     }
 
     initCamera() {

@@ -8,6 +8,7 @@ import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, C
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
 import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES } from 'src/app/services/talent.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
+import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 
 @Component({
   selector: 'app-equipment',
@@ -20,6 +21,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   private panelState = inject(PanelStateService);
   private el = inject(ElementRef);
   private ngZone = inject(NgZone);
+  badges = inject(NotificationBadgeService);
 
   private _activeTab = 0;
   get activeTab(): number { return this._activeTab; }
@@ -78,6 +80,12 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   // Flyout de stats (tab 0): se abre al pinchar la pastilla, a la derecha del panel
   statsFlyoutOpen = false;
+
+  toggleStatsFlyout(): void {
+    this.statsFlyoutOpen = !this.statsFlyoutOpen;
+    // Al abrirla ya has "visto" el punto nuevo: se apaga el badge
+    if (this.statsFlyoutOpen) this.badges.clear('equip.stats');
+  }
 
   readonly statsList: { key: keyof BaseStats; label: string }[] = [
     { key: 'STR',   label: 'STR' },

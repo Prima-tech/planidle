@@ -37,7 +37,7 @@ const EXP_REWARDS: Record<string, number> = {
   slime7:          8,  slime7_elite:    35,  slime7_oblivion: 90,
   slime8:          9,  slime8_elite:    40,  slime8_oblivion: 100,
   slime9:         10,  slime9_elite:    45,  slime9_oblivion: 120,
-  orc1:           15,  orc1_elite:      75,  orc1_oblivion:   200,
+  orc1:          100,  orc1_elite:      75,  orc1_oblivion:   200,
   goobling2:       5,  goobling2_elite: 22,  goobling2_oblivion:  60,
   goobling3:       7,  goobling3_elite: 28,  goobling3_oblivion:  75,
   gnoll1:          6,  gnoll1_elite:    25,  gnoll1_oblivion:     65,

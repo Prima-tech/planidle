@@ -119,7 +119,7 @@ $metal-dark: #6b6357;
 .char-roster {
   position: absolute;
   left: calc(100% + 8px);
-  top: 0;           /* borde superior alineado con la pastilla de vida/maná */
+  top: -4px;           /* borde superior alineado con la pastilla de vida/maná */
   bottom: -28px;    /* crece solo hacia abajo para que quepa sprite + nombre + mapa */
   box-sizing: border-box;
   overflow: hidden;

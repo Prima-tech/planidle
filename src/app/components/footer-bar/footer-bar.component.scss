@@ -150,6 +150,7 @@ $icon-metal: #3a342c;     // iconos sobre acero
   }
 
   .icon-menu-wrapper {
+    position: relative;   /* ancla del .notif-dot */
     border: 3px solid;
     border-color: $stone-light $stone-dark $stone-dark $stone;
     width: 42px;

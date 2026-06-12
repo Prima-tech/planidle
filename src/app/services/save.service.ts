@@ -94,7 +94,11 @@ export class SaveService {
   readonly status$       = new BehaviorSubject<SaveStatus>('idle');
   readonly pendingGains$ = new BehaviorSubject<OfflineGains | null>(null);
   private charId: string | null = null;
-  private isRestoring   = false;
+  private _isRestoring  = false;
+
+  /** true mientras loadCharacter() restaura un snapshot (bloquea auto-save y
+   *  sirve de guard para no disparar efectos con los valores restaurados) */
+  get isRestoring(): boolean { return this._isRestoring; }
 
   constructor(
     private storage: StorageService,
@@ -138,7 +142,7 @@ export class SaveService {
    * Carga su snapshot local (si existe) o inicializa en limpio.
    */
   async loadCharacter(charId: string): Promise<void> {
-    this.isRestoring = true;
+    this._isRestoring = true;
     this.charId = charId;
     const snapshot: GameSnapshot | null = await this.storage.get(this.snapshotKey());
 
@@ -165,7 +169,7 @@ export class SaveService {
     await this.afkBonus.loadForChar(charId);
     const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
     this.pendingGains$.next(gains);
-    this.isRestoring = false;
+    this._isRestoring = false;
   }
 
   /**
@@ -182,11 +186,13 @@ export class SaveService {
    */
   async clearCurrentCharacter(): Promise<void> {
     if (!this.charId) return;
-    this.playerState.setFromProfile(EMPTY_STATE);
     this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
     this.equipment.clearAll();
     this.talent.restoreFromSnapshot(null);
     this.charStats.resetStats();
+    // Al final, cuando ya no hay recálculos de equipo/stats que puedan parchear
+    // el estado: resetea TODO el PlayerState (nivel 1, exp 0, monedas 0, hp/mp base)
+    this.playerState.setFromProfile(EMPTY_STATE);
     await this.saveLocal();
   }
 

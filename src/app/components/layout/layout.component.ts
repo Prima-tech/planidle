@@ -32,6 +32,7 @@ import { RegenService } from 'src/app/services/regen.service';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService } from 'src/app/services/talent.service';
+import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 
 @Component({
   selector: 'app-layout',
@@ -51,6 +52,8 @@ export class LayoutComponent implements OnDestroy {
   private deathSub: Subscription;
   private sceneStartingSub: Subscription;
   private sceneReadySub: Subscription;
+  private lvlSub: Subscription;
+  private lastLvl: number | null = null;
 
   constructor(
     private router: Router,
@@ -79,6 +82,7 @@ export class LayoutComponent implements OnDestroy {
     private hudSkillSlotsService: HudSkillSlotsService,
     private skillEquipService: SkillEquipService,
     private talentService: TalentService,
+    private badges: NotificationBadgeService,
   ) {
     this.loadGame();
   }
@@ -108,6 +112,17 @@ export class LayoutComponent implements OnDestroy {
       this.ngZone.run(() => { this.sceneVisible = true; });
     });
 
+    // Subir de nivel → badge "hay algo nuevo" en equipo (punto de stat por gastar).
+    // isRestoring evita falsos positivos al cargar/cambiar de personaje.
+    this.lvlSub = this.playerStateService.lvl$.subscribe((lvl: number) => {
+      if (this.saveService.isRestoring || this.lastLvl === null) {
+        this.lastLvl = lvl;
+        return;
+      }
+      if (lvl > this.lastLvl) this.badges.flag('equip.stats');
+      this.lastLvl = lvl;
+    });
+
     this.asgardService.refreshData();
     this.service.getUserData().subscribe(async (data) => {
       this.playerBridgeService.createPlayer();
@@ -134,6 +149,7 @@ export class LayoutComponent implements OnDestroy {
     this.deathSub?.unsubscribe();
     this.sceneStartingSub?.unsubscribe();
     this.sceneReadySub?.unsubscribe();
+    this.lvlSub?.unsubscribe();
     this.phaserGame?.destroy(true);
     this.phaserGame = undefined;
     this.sceneManager.setGame(null);

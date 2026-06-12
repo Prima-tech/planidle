@@ -34,7 +34,7 @@
       "VIEW_CHANGES": "Ver cambios",
       "SUPABASE_PAYLOAD": "Payload Supabase",
       "CLOSE": "Cerrar",
-      "CLEAR_ALL": "Borrar todo (monedas e inventario)",
+      "CLEAR_ALL": "Borrar todo (nivel, exp, monedas e inventario)",
       "ATTACK": "Atacar PJ",
       "KILL": "Matar PJ",
       "LOG_INV": "Log inventario"

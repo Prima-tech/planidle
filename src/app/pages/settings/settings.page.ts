@@ -44,6 +44,9 @@ export class SettingsPageComponent {
 
   async clearAll() {
     await this.saveService.clearCurrentCharacter();
+    // La barra de HP lee el sprite Phaser, no el playerState: sin esto el
+    // reset no se refleja en la barra hasta revivir o recargar
+    this.playerBridge.resetPlayerStatus(100, 100);
     // Refresca los paneles abiertos si los hay
     if (this.localInfo) this.localInfo = await this.saveService.getLocalInfo();
     if (this.delta)     this.delta     = await this.saveService.getDelta();

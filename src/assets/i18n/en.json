@@ -34,7 +34,7 @@
       "VIEW_CHANGES": "View changes",
       "SUPABASE_PAYLOAD": "Supabase payload",
       "CLOSE": "Close",
-      "CLEAR_ALL": "Clear all (coins & inventory)",
+      "CLEAR_ALL": "Clear all (level, exp, coins & inventory)",
       "ATTACK": "Attack player",
       "KILL": "Kill player",
       "LOG_INV": "Log inventory"

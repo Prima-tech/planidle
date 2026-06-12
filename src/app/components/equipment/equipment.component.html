@@ -44,11 +44,12 @@
       <!-- Pastilla con los 6 stats base: abre el flyout de reparto de puntos -->
       <div class="base-stats-plaque"
            [class.open]="statsFlyoutOpen"
-           (click)="statsFlyoutOpen = !statsFlyoutOpen">
+           (click)="toggleStatsFlyout()">
         <div class="bsp-cell" *ngFor="let s of statsList">
           <span class="bsp-label">{{ s.label }}</span>
           <span class="bsp-val">{{ charStats.stats[s.key] }}</span>
         </div>
+        <span class="notif-dot" *ngIf="badges.has('equip.stats')"></span>
       </div>
     </div>
 
