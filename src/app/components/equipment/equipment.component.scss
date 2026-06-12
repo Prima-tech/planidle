@@ -625,9 +625,19 @@ $purple: #6e4a67;         // selección
   canvas { display: block; }
 }
 
-// Variante del árbol HTML clásico (tab 4)
+// Variante del árbol HTML clásico (tab 4): pozo excavado con marco de piedra
 .talent-viewport--classic {
-  background: $cell-bg;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(240, 192, 64, 0.06), transparent 62%),
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 14px),
+    $cell-bg;
+  border: 4px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    inset 0 5px 12px rgba(0, 0, 0, 0.5);
 }
 
 .talent-canvas {
@@ -644,50 +654,89 @@ $purple: #6e4a67;         // selección
   pointer-events: none;
 }
 
+// Caminos punteados tipo mapa del tesoro; encendidos en dorado al activar
 .tline {
-  stroke: #5a4636;
-  stroke-width: 2;
+  stroke: #6b4a30;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1 6;
 
-  &--active { stroke: #f0c040; }
+  &--active {
+    stroke: #f0c040;
+    stroke-dasharray: none;
+    filter: drop-shadow(0 0 3px rgba(240, 192, 64, 0.7));
+  }
 }
 
-// Nodos
+// Nodos: medallones de piedra biselados sobre el pozo
 .tnode {
   position: absolute;
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 2px solid #5a4636;
-  background: $cell-border;
+  border: 3px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  background: radial-gradient(circle at 32% 28%, #4e3429, $cell-bg 72%);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
 
   &--small {
     width: 19px;
     height: 19px;
     margin-left: 9px;
     margin-top: 9px;
+    border-width: 2px;
   }
 
   &--locked {
     opacity: 0.35;
+    filter: grayscale(50%);
     cursor: not-allowed;
   }
 
   &--available {
-    border-color: $text-cream;
-    box-shadow: 0 0 6px rgba(236, 217, 180, 0.4);
+    background: radial-gradient(circle at 32% 28%, #6a4630, #46291d 72%);
+    animation: tnode-glow 1.4s ease-in-out infinite;
   }
 
   &--slotted {
-    background: $cell-bg;
+    // El aro toma el color de la esfera vía [style.border-color] inline
+    background: radial-gradient(circle at 32% 28%, #50362a, #2a1812 75%);
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 7px rgba(255, 255, 255, 0.22);
   }
 
   &--selected {
-    box-shadow: 0 0 10px rgba(110, 74, 103, 0.9);
+    transform: scale(1.1);
+    border-color: lighten($purple, 14%);
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 12px rgba(140, 95, 132, 0.95);
+  }
+}
+
+@keyframes tnode-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 5px rgba(240, 192, 64, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 12px rgba(240, 192, 64, 0.8);
   }
 }
 
@@ -695,18 +744,22 @@ $purple: #6e4a67;         // selección
   font-size: 1em;
   color: $text-cream;
   pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
 }
 
 .tnode-toplabel {
   position: absolute;
-  top: -14px;
+  top: -15px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 9px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 10px;
   font-weight: 700;
-  color: $text-cream;
+  letter-spacing: 0.06em;
+  color: #f0c040;
   white-space: nowrap;
   pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.6);
 }
 
 .tnode-num {
@@ -716,8 +769,9 @@ $purple: #6e4a67;         // selección
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  color: #ff6b4a;
+  color: $text-cream;
   pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 .tnode-sphere-dot {
@@ -728,6 +782,7 @@ $purple: #6e4a67;         // selección
   height: 9px;
   border-radius: 50%;
   border: 1px solid $outline;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 0 4px rgba(0, 0, 0, 0.6);
   pointer-events: none;
 }
 
