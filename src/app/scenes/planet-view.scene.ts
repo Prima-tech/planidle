@@ -43,11 +43,11 @@ const PLANETS: PlanetDef[] = [
   // terran: [tierra, tierra clara, arena] | lava: [resplandor, lava, lava brillante]
   // ice: [sombra suave, sombra fuerte, brillo] | baren: [cráter, sombra cráter, borde claro]
   // blackhole: [veta tenue, veta media, acento brillante]
-  { id: 'mundo',   name: 'Tierra',  kind: 'pixel', style: 'terran',    base: '#2e62d0', features: ['#4ea33c', '#7ac855', '#e3d291'], cloudAlpha: 1, halo: 0x7fb4f0, orbit: 0.46, size: 13, speed: 0.10 },
-  { id: 'magmar',  name: 'Magmar',  kind: 'pixel', style: 'lava',      base: '#1c0d08', features: ['#7a1e0e', '#e8502a', '#ffa040'], cloudAlpha: 0, halo: 0xff6a2e, orbit: 0.28, size: 9,  speed: 0.16 },
-  { id: 'ferrum',  name: 'Ferrum',  kind: 'pixel', style: 'baren',     base: '#8a98a8', features: ['#5a6874', '#46525e', '#aab6c2'], cloudAlpha: 0, halo: 0x9fb0c0, orbit: 0.63, size: 10, speed: 0.08 },
-  { id: 'glacius', name: 'Glacius', kind: 'pixel', style: 'ice',       base: '#dde6f2', features: ['#b8c6dc', '#9fb2d0', '#ffffff'], cloudAlpha: 0, halo: 0xcfe0f8, orbit: 0.80, size: 11, speed: 0.06 },
-  { id: 'vortex',  name: 'Vórtice', kind: 'pixel', style: 'blackhole', base: '#05030a', features: ['#1a1040', '#16275f', '#3a55f0'], cloudAlpha: 0, halo: 0x4a9af8, orbit: 0.97, size: 16, speed: 0.045 },
+  { id: 'mundo',   name: 'Tierra',  kind: 'pixel', style: 'terran',    base: '#2e62d0', features: ['#4ea33c', '#7ac855', '#e3d291'], cloudAlpha: 1, halo: 0x7fb4f0, orbit: 0.46, size: 22, speed: 0.10 },
+  { id: 'magmar',  name: 'Magmar',  kind: 'pixel', style: 'lava',      base: '#1c0d08', features: ['#7a1e0e', '#e8502a', '#ffa040'], cloudAlpha: 0, halo: 0xff6a2e, orbit: 0.28, size: 15, speed: 0.16 },
+  { id: 'ferrum',  name: 'Ferrum',  kind: 'pixel', style: 'baren',     base: '#8a98a8', features: ['#5a6874', '#46525e', '#aab6c2'], cloudAlpha: 0, halo: 0x9fb0c0, orbit: 0.63, size: 17, speed: 0.08 },
+  { id: 'glacius', name: 'Glacius', kind: 'pixel', style: 'ice',       base: '#dde6f2', features: ['#b8c6dc', '#9fb2d0', '#ffffff'], cloudAlpha: 0, halo: 0xcfe0f8, orbit: 0.80, size: 19, speed: 0.06 },
+  { id: 'vortex',  name: 'Vórtice', kind: 'pixel', style: 'blackhole', base: '#05030a', features: ['#1a1040', '#16275f', '#3a55f0'], cloudAlpha: 0, halo: 0x4a9af8, orbit: 0.97, size: 26, speed: 0.045 },
 ];
 
 // Puntos de interés sobre la superficie (coordenadas de textura 0-512).
