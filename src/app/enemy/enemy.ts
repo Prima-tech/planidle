@@ -1,4 +1,5 @@
 import { AnimationService } from "../scenes/gamescene/animation.service";
+import { NATIVE_DPR } from "../scenes/gamescene/constants";
 import { EnemyTypeConfig } from "./enemy-config";
 import { EnemyBehavior } from "../scenes/gamescene/map-config";
 import { GameScene } from "../scenes/gamescene/gamescene";
@@ -12,17 +13,65 @@ type Vector2  = Phaser.Math.Vector2;
 const SCALE_BOOST = 1.15;
 
 const BAR_W      = 104;
-const BAR_H      = 12;
+const BAR_H      = 14;
 const BAR_OFFSET = 4;
-// Estilo de la barra HP del HUD (top-bar): borde $outline + pista $cell-border
-// + relleno rojo con franja clara arriba y oscura abajo (degradado aproximado)
-const BAR_BORDER     = 5;          // ≈2px CSS con la cámara a 0.4
-const BAR_C_OUTLINE  = 0x3a2c20;
-const BAR_C_TRACK    = 0x21130e;
-const BAR_C_FILL     = 0xc0392b;
-const BAR_C_FILL_HI  = 0xe8604a;
-const BAR_C_FILL_LO  = 0x8e2418;
-const BAR_EDGE_H     = 3;          // alto de las franjas clara/oscura
+const BAR_BORDER = 5;   // marco exterior ≈2px CSS con la cámara a 0.4
+
+// Texturas de la barra (pista + relleno) generadas una vez por sesión con el
+// estilo exacto de la barra HP del HUD (top-bar): pista hundida $cell-border
+// con borde $outline y relleno rojo en degradado con rayitas píxel.
+const BAR_TEX_TRACK = 'enemy_hpbar_track';
+const BAR_TEX_FILL  = 'enemy_hpbar_fill';
+// La textura se genera a la resolución exacta a la que la cámara la pinta
+// (zoom 0.4 × DPR): 1 texel = 1 píxel de canvas → separaciones nítidas
+const BAR_RES = 0.4 * NATIVE_DPR;
+
+function barRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y,     x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x,     y + h, r);
+  ctx.arcTo(x,     y + h, x,     y,     r);
+  ctx.arcTo(x,     y,     x + w, y,     r);
+  ctx.closePath();
+}
+
+function ensureBarTextures(scene: Phaser.Scene): void {
+  if (scene.textures.exists(BAR_TEX_TRACK)) return;
+
+  const W = BAR_W + BAR_BORDER * 2;
+  const H = BAR_H + BAR_BORDER * 2;
+  const track = scene.textures.createCanvas(BAR_TEX_TRACK, Math.ceil(W * BAR_RES), Math.ceil(H * BAR_RES))!;
+  const t = track.context;
+  t.setTransform(BAR_RES, 0, 0, BAR_RES, 0, 0);
+  barRoundRect(t, 0, 0, W, H, 9);                         // borde $outline
+  t.fillStyle = '#3a2c20';
+  t.fill();
+  barRoundRect(t, BAR_BORDER, BAR_BORDER, BAR_W, BAR_H, 6); // pista $cell-border
+  t.fillStyle = '#21130e';
+  t.fill();
+  t.fillStyle = 'rgba(0, 0, 0, 0.55)';                    // sombra interior (hundida)
+  t.fillRect(BAR_BORDER + 2, BAR_BORDER, BAR_W - 4, 3);
+  track.refresh();
+
+  const fill = scene.textures.createCanvas(BAR_TEX_FILL, Math.ceil(BAR_W * BAR_RES), Math.ceil(BAR_H * BAR_RES))!;
+  const f = fill.context;
+  f.setTransform(BAR_RES, 0, 0, BAR_RES, 0, 0);
+  const grad = f.createLinearGradient(0, 0, 0, BAR_H);    // degradado del HUD
+  grad.addColorStop(0,    '#e8604a');
+  grad.addColorStop(0.55, '#c0392b');
+  grad.addColorStop(1,    '#8e2418');
+  barRoundRect(f, 0, 0, BAR_W, BAR_H, 4);
+  f.fillStyle = grad;
+  f.fill();
+  f.fillStyle = 'rgba(0, 0, 0, 0.07)';                    // textura píxel vertical
+  for (let x = 0; x < BAR_W; x += 8) f.fillRect(x, 0, 2, BAR_H);
+  f.fillStyle = 'rgba(255, 255, 255, 0.3)';               // brillo superior
+  f.fillRect(2, 1, BAR_W - 4, 2);
+  f.fillStyle = 'rgba(0, 0, 0, 0.3)';                     // sombra inferior
+  f.fillRect(2, BAR_H - 3, BAR_W - 4, 2);
+  fill.refresh();
+}
 // Los spritesheets traen aire transparente alrededor: la cabeza real queda muy
 // por debajo del borde superior del sprite, de ahí el factor < 0.5
 const BAR_ANCHOR = 0.32;
@@ -42,13 +91,10 @@ export class Enemy {
   private currentDir: Direction = Direction.DOWN;
   private lastPlayerPos: Vector2 | null = null;
 
-  // HP bar: Rectangle objects en lugar de Graphics — setPosition/setSize es 10× más
-  // barato que clear() + fillRoundedRect() cada frame.
-  private hpBarOutline:  Phaser.GameObjects.Rectangle | null = null;
-  private hpBarTrack:    Phaser.GameObjects.Rectangle | null = null;
-  private hpBarFill:     Phaser.GameObjects.Rectangle | null = null;
-  private hpBarHi:       Phaser.GameObjects.Rectangle | null = null;
-  private hpBarLo:       Phaser.GameObjects.Rectangle | null = null;
+  // HP bar: dos Images sobre texturas pre-generadas (ensureBarTextures) —
+  // setPosition/setCrop por frame, sin redibujar nada.
+  private hpBarTrack: Phaser.GameObjects.Image | null = null;
+  private hpBarFill:  Phaser.GameObjects.Image | null = null;
   private hpBarLastPct = -1;
 
   private attackTimer: number;
@@ -126,7 +172,7 @@ export class Enemy {
     }
 
     this.sprite.setDepth(this.sprite.y);
-    if (this.hpBarOutline) this.drawHPBar();
+    if (this.hpBarTrack) this.drawHPBar();
     if (this.state === 'attack' || this.state === 'hurt') return;
 
     if (this.isChasing) {
@@ -428,16 +474,10 @@ export class Enemy {
     this.isChasing = false;
     this.state = 'death';
     this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
-    this.hpBarOutline?.destroy();
     this.hpBarTrack?.destroy();
     this.hpBarFill?.destroy();
-    this.hpBarHi?.destroy();
-    this.hpBarLo?.destroy();
-    this.hpBarOutline = null;
     this.hpBarTrack = null;
     this.hpBarFill = null;
-    this.hpBarHi = null;
-    this.hpBarLo = null;
 
     const center = this.sprite.getCenter();
     const type   = this.config.type;
@@ -484,43 +524,34 @@ export class Enemy {
   }
 
   private ensureHPBar(): void {
-    if (this.hpBarOutline) return;
-    const add = this.mainScene.add;
-    this.hpBarOutline = add.rectangle(0, 0, BAR_W + BAR_BORDER * 2, BAR_H + BAR_BORDER * 2, BAR_C_OUTLINE)
-      .setDepth(5000);
-    this.hpBarTrack = add.rectangle(0, 0, BAR_W, BAR_H, BAR_C_TRACK)
-      .setDepth(5000);
-    this.hpBarFill = add.rectangle(0, 0, BAR_W, BAR_H, BAR_C_FILL)
+    if (this.hpBarTrack) return;
+    ensureBarTextures(this.mainScene);
+    // setScale(1/BAR_RES): la textura de alta resolución vuelve a medidas de
+    // mundo y queda 1:1 con el píxel del canvas al renderizar
+    this.hpBarTrack = this.mainScene.add.image(0, 0, BAR_TEX_TRACK)
+      .setDepth(5000)
+      .setScale(1 / BAR_RES);
+    this.hpBarFill = this.mainScene.add.image(0, 0, BAR_TEX_FILL)
       .setDepth(5001)
-      .setOrigin(0, 0.5);
-    this.hpBarHi = add.rectangle(0, 0, BAR_W, BAR_EDGE_H, BAR_C_FILL_HI)
-      .setDepth(5002)
-      .setOrigin(0, 0);
-    this.hpBarLo = add.rectangle(0, 0, BAR_W, BAR_EDGE_H, BAR_C_FILL_LO)
-      .setDepth(5002)
-      .setOrigin(0, 1);
+      .setOrigin(0, 0.5)
+      .setScale(1 / BAR_RES);
   }
 
   private drawHPBar(): void {
-    if (!this.hpBarOutline || !this.hpBarTrack || !this.hpBarFill || !this.hpBarHi || !this.hpBarLo) return;
-    const pct  = Math.max(0, this.HP / this.maxHP);
-    const cx   = this.sprite.x;
-    const cy   = this.sprite.y - this.cachedDisplayHeight * BAR_ANCHOR - BAR_OFFSET;
-    const left = cx - BAR_W / 2;
+    if (!this.hpBarTrack || !this.hpBarFill) return;
+    const pct = Math.max(0, this.HP / this.maxHP);
+    const cx  = this.sprite.x;
+    const cy  = this.sprite.y - this.cachedDisplayHeight * BAR_ANCHOR - BAR_OFFSET;
 
-    this.hpBarOutline.setPosition(cx, cy);
     this.hpBarTrack.setPosition(cx, cy);
-    this.hpBarFill.setPosition(left, cy);
-    this.hpBarHi.setPosition(left, cy - BAR_H / 2);
-    this.hpBarLo.setPosition(left, cy + BAR_H / 2);
+    this.hpBarFill.setPosition(cx - BAR_W / 2, cy);
 
-    // setSize es costoso — solo actualizar cuando el HP cambia
+    // setCrop solo cuando cambia el HP: recorta el relleno por porcentaje
+    // (coordenadas de crop en px de textura, no de mundo)
     if (pct !== this.hpBarLastPct) {
       this.hpBarLastPct = pct;
-      const w = Math.max(0, BAR_W * pct);
-      this.hpBarFill.setSize(w, BAR_H);
-      this.hpBarHi.setSize(w, BAR_EDGE_H);
-      this.hpBarLo.setSize(w, BAR_EDGE_H);
+      this.hpBarFill.setCrop(0, 0, Math.round(BAR_W * BAR_RES * pct), Math.ceil(BAR_H * BAR_RES));
+      this.hpBarFill.setVisible(pct > 0);
     }
   }
 
