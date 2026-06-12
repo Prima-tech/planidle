@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import Phaser from 'phaser';
-import { TalentTreeScene, TALENT_TREE_DATA_KEY, TALENT_SERVICE_KEY, TALENT_NODE_TAP_KEY } from 'src/app/scenes/talent-tree.scene';
+import { TalentTreeScene, TALENT_TREE_DATA_KEY, TALENT_SERVICE_KEY, TALENT_NODE_TAP_KEY, TALENT_TREE_RES } from 'src/app/scenes/talent-tree.scene';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown, MagicDamageBreakdown, RegenBreakdown, DropRateBreakdown } from 'src/app/services/character-stats.service';
@@ -132,7 +132,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   private talentGame: Phaser.Game | null = null;
   private talentResizeObs: ResizeObserver | null = null;
-  private readonly talentDpr = Math.min(window.devicePixelRatio || 1, 3);
+  // Mismo factor de supersampling que usa la escena para sus medidas
+  private readonly talentDpr = TALENT_TREE_RES;
 
   private createTalentGame(): void {
     const parent = document.getElementById('talent-tree-view');
@@ -151,7 +152,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       height: parent.clientHeight * dpr,
       scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
       render: { antialias: true },
-      backgroundColor: '#0b0e1d',
+      backgroundColor: '#0c0908',
       scene: [TalentTreeScene],
     });
     this.talentGame.registry.set(TALENT_TREE_DATA_KEY, this.activeTreeNodes);
