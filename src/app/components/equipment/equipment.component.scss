@@ -48,7 +48,9 @@ $purple: #6e4a67;         // selección
 
 .eq-wrapper--wide {
   .eq-content {
-    width: calc(100dvw - 240px);
+    /* hasta el borde derecho de la pantalla dejando 10px:
+       25px (modal+marco izq.) + 40px (vtabs+gap) + 13px (marco dcho.) + 2px anillo + 10px */
+    width: calc(100dvw - 90px);
     height: 100%;
     max-height: none;
     overflow: hidden;
@@ -230,6 +232,28 @@ $metal-dark: #6b6357;
       0 0 0 1px $outline,
       inset 0 0 0 1px $outline,
       0 0 8px rgba(240, 192, 64, 0.45);
+  }
+}
+
+// Picker de nodo de talento: tarjeta oscura flotante sobre el árbol, arriba a
+// la derecha — mismo estilo que las info-cards del mapa (map-info-card)
+.talent-picker-flyout.talent-node-card {
+  left: auto;
+  right: 8px;
+  top: 36px;   /* bajo la barra de esferas, dentro del área del árbol */
+  width: 150px;
+  background: rgba($cell-bg, 0.95);
+  border: 2px solid $outline;
+  border-radius: 6px;
+  padding: 8px 10px;
+  backdrop-filter: blur(4px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.7);
+
+  .tpicker-name {
+    color: #ffd700;   /* sobre fondo oscuro, no el marrón de madera */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   }
 }
 
@@ -769,10 +793,10 @@ $metal-dark: #6b6357;
   }
 }
 
-// Botón de zoom del árbol Phaser (esquina del viewport)
+// Botón de zoom del árbol Phaser (esquina inferior derecha del viewport)
 .talent-zoom-btn {
   position: absolute;
-  top: 10px;
+  bottom: 10px;
   right: 10px;
   width: 26px;
   height: 26px;
