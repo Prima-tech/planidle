@@ -383,11 +383,7 @@ $metal-dark: #6b6357;
 
 // ── Tab 1: Stats ─────────────────────────────────────────────────────────────
 
-.eq-stats-panel {
-  width: 100%;
-  box-sizing: border-box;
-}
-
+// Estilos base de .stat-* — los usa el flyout de stats del tab 0
 .stats-grid {
   display: flex;
   flex-direction: column;

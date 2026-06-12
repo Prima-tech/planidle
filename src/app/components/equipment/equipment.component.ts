@@ -26,14 +26,14 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   set activeTab(v: number) {
     this._activeTab = v;
     this.panelState.set('equip.tab', v);
-    if (v === 3) {
+    if (v === 2) {
       // El contenedor entra al DOM con el *ngIf en este mismo ciclo
       setTimeout(() => this.createTalentGame());
     } else {
       this.destroyTalentGame();
     }
-    if (v === 4) this.initPan();
-    if (v !== 3 && v !== 4) {
+    if (v === 3) this.initPan();
+    if (v !== 2 && v !== 3) {
       this.selectedNodeId = null;
       this.talentExpanded = false;
     }
@@ -100,7 +100,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this._activeTalentTree = v;
     this.selectedNodeId = null;
     this.recreateTalentGame();
-    if (this._activeTab === 4) this.initPan();
+    if (this._activeTab === 3) this.initPan();
   }
 
   // ── Árbol HTML clásico (tab 4) ───────────────────────────────────────────────
@@ -312,7 +312,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   }
 
   private recreateTalentGame(): void {
-    if (this._activeTab !== 3) return;
+    if (this._activeTab !== 2) return;
     this.destroyTalentGame();
     // Espera a que el layout asiente el nuevo tamaño del viewport
     setTimeout(() => this.createTalentGame(), 60);
@@ -387,8 +387,10 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
-    if (this._activeTab === 3) setTimeout(() => this.createTalentGame());
-    if (this._activeTab === 4) this.initPan();
+    // El tab guardado puede venir de la numeración antigua (había 5 pestañas)
+    if (this._activeTab > 3) this._activeTab = 0;
+    if (this._activeTab === 2) setTimeout(() => this.createTalentGame());
+    if (this._activeTab === 3) this.initPan();
   }
 
   ngOnDestroy(): void {
