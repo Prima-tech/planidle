@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { GameScene } from 'src/app/scenes/gamescene/gamescene';
+import { NATIVE_DPR } from 'src/app/scenes/gamescene/constants';
 import { MobileHUDScene } from 'src/app/scenes/mobile-hud.scene';
 import { FakeApiService } from 'src/app/services/fakeapi';
 import { ProfileService } from 'src/app/services/profile';
@@ -139,16 +140,21 @@ export class LayoutComponent implements OnDestroy {
   }
 
   loadGame() {
+    // Canvas a resolución nativa (devicePixelRatio) reducido con zoom CSS:
+    // sin esto los sprites se ven borrosos en pantallas de alta densidad.
+    // roundPixels evita el temblor/deformación por posiciones fraccionarias.
+    const dpr = NATIVE_DPR;
     this.config = {
       title: "Sample",
-      render: { antialias: false },
+      render: { antialias: false, roundPixels: true },
       physics: { default: 'arcade' },
       type: Phaser.AUTO,
       input: { activePointers: 3 },
       scene: [GameScene, MobileHUDScene],
       scale: {
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: window.innerWidth * dpr,
+        height: window.innerHeight * dpr,
+        zoom: 1 / dpr,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       parent: "game",

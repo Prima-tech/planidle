@@ -1,5 +1,10 @@
 import { Direction } from "src/app/pnj/interfaces/Direction";
 
+// Factor de resolución nativa del canvas principal: el juego se renderiza a
+// devicePixelRatio y se reduce con zoom CSS. La cámara de GameScene y las
+// medidas de pantalla del HUD multiplican por esto (capado a 3 por rendimiento).
+export const NATIVE_DPR = Math.min(window.devicePixelRatio || 1, 3);
+
 
 export const playerAnimations = {
   IDLE :{

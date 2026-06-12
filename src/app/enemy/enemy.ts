@@ -8,6 +8,9 @@ import Phaser from 'phaser';
 const Vector2 = Phaser.Math.Vector2;
 type Vector2  = Phaser.Math.Vector2;
 
+// Multiplicador global sobre la escala de cada tipo (ENEMY_REGISTRY)
+const SCALE_BOOST = 1.15;
+
 const BAR_W      = 104;
 const BAR_H      = 11;
 const BAR_OFFSET = 4;
@@ -232,7 +235,7 @@ export class Enemy {
     const offsetX = GameScene.TILE_SIZE / 2;
     const offsetY = GameScene.TILE_SIZE / 2;
     this.sprite.setOrigin(0.5, 0.5);
-    this.sprite.setScale(this.config.scale);
+    this.sprite.setScale(this.config.scale * SCALE_BOOST);
     this.sprite.setPosition(
       this.tilePos.x * GameScene.TILE_SIZE + offsetX,
       this.tilePos.y * GameScene.TILE_SIZE + offsetY,

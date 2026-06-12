@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Direction } from '../pnj/interfaces/Direction';
 import { REGISTRY_KEYS } from './game-registry';
+import { NATIVE_DPR } from './gamescene/constants';
 import { Subscription } from 'rxjs';
 
 export interface MobileInput {
@@ -29,22 +30,24 @@ export interface MinimapData {
 
 export const MINIMAP_DATA_KEY = 'minimapData';
 
-// All dimensions in screen pixels — HUD camera runs at zoom=1.
+// Medidas en px CSS de pantalla × NATIVE_DPR: el canvas corre a resolución
+// nativa y se reduce con zoom CSS, así que en pantalla miden lo de siempre.
 // El botón de ataque ya no vive aquí: es HTML (AttackButtonComponent).
-const DEAD     = 12;
-const MAX_DRAG = 60;
-const BASE_R   = 65;
-const THUMB_R  = 26;
+const DPR      = NATIVE_DPR;
+const DEAD     = 12 * DPR;
+const MAX_DRAG = 60 * DPR;
+const BASE_R   = 65 * DPR;
+const THUMB_R  = 26 * DPR;
 
 // ── Minimap ──────────────────────────────────────────────────────────────────
-const MM_RADIUS     = 49;   // radio del minimapa circular en px de pantalla
-const MM_MARGIN     = 15;   // separación del borde derecho (aro HTML a 10px + 5px de bisel)
-const MM_TOP        = 15;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
-const MM_DOT_PLAYER = 4;
-const MM_DOT_ENEMY  = 3;
-const MM_DOT_ELITE  = 4;
-const MM_DOT_OBLIV  = 4.5;
-const MM_DOT_PORTAL = 3;
+const MM_RADIUS     = 49 * DPR;   // radio del minimapa circular (px CSS × DPR)
+const MM_MARGIN     = 15 * DPR;   // separación del borde derecho (aro HTML a 10px + 5px de bisel)
+const MM_TOP        = 15 * DPR;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
+const MM_DOT_PLAYER = 4   * DPR;
+const MM_DOT_ENEMY  = 3   * DPR;
+const MM_DOT_ELITE  = 4   * DPR;
+const MM_DOT_OBLIV  = 4.5 * DPR;
+const MM_DOT_PORTAL = 3   * DPR;
 const MM_COLOR_PLAYER = 0x2ecc71;
 const MM_COLOR_ENEMY  = 0xff4444;
 const MM_COLOR_ELITE  = 0xe67e22;  // mismos colores que el panel de mapa
@@ -81,11 +84,11 @@ export class MobileHUDScene extends Phaser.Scene {
     this.createMinimap(W);
 
     // ── Joystick ──────────────────────────────────────────────────────────────
-    const jx = 110, jy = H - 130;
+    const jx = 110 * DPR, jy = H - 130 * DPR;
 
     const base = this.add.circle(jx, jy, BASE_R, 0x000000, 0.25) as Phaser.GameObjects.Arc;
     const baseRing = this.add.circle(jx, jy, BASE_R, 0x000000, 0) as Phaser.GameObjects.Arc;
-    baseRing.setStrokeStyle(2.5, 0xffffff, 0.40);
+    baseRing.setStrokeStyle(2.5 * DPR, 0xffffff, 0.40);
     const thumb = this.add.circle(jx, jy, THUMB_R, 0xffffff, 0.65) as Phaser.GameObjects.Arc;
 
     // ── Joystick visibility ───────────────────────────────────────────────────
@@ -171,7 +174,7 @@ export class MobileHUDScene extends Phaser.Scene {
     this.mmOffY  = this.mmCY - (data.mapHeightPx * this.mmScale) / 2;
 
     const bg = this.add.circle(this.mmCX, this.mmCY, MM_RADIUS, 0x1a1a2e, 0.55);
-    bg.setStrokeStyle(1.5, 0x3498db, 0.5);
+    bg.setStrokeStyle(1.5 * DPR, 0x3498db, 0.5);
 
     // Portales: estáticos, se dibujan una sola vez
     for (const portal of data.portals) {
@@ -180,7 +183,7 @@ export class MobileHUDScene extends Phaser.Scene {
     }
 
     this.mmPlayerDot = this.add.circle(this.mmCX, this.mmCY, MM_DOT_PLAYER, MM_COLOR_PLAYER, 1);
-    this.mmPlayerDot.setStrokeStyle(1, 0xffffff, 0.9);
+    this.mmPlayerDot.setStrokeStyle(1 * DPR, 0xffffff, 0.9);
   }
 
   // Proyecta px de mundo al minimapa y retiene el punto dentro del círculo
@@ -188,7 +191,7 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmPlace(dot: Phaser.GameObjects.Arc, worldX: number, worldY: number): void {
     let dx = this.mmOffX + worldX * this.mmScale - this.mmCX;
     let dy = this.mmOffY + worldY * this.mmScale - this.mmCY;
-    const maxR = MM_RADIUS - dot.radius - 2;
+    const maxR = MM_RADIUS - dot.radius - 2 * DPR;
     const d = Math.sqrt(dx * dx + dy * dy);
     if (d > maxR) {
       dx = (dx / d) * maxR;

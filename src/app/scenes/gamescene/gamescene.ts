@@ -13,6 +13,7 @@ import { InventoryItem } from "src/app/services/inventory.service";
 import { EQUIP_LAYER_REGISTRY } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
+import { NATIVE_DPR } from "./constants";
 
 const SKILL_SPRITE_SOURCES: { key: string; path: string; count: number }[] = [
   { key: 'skill_fire',           path: 'assets/sprites/skills/fire/Fire/fire_',                     count: 6  },
@@ -635,7 +636,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     initCamera() {
-      this.cameras.main.setZoom(0.4);
+      // 0.4 de zoom de diseño × DPR: con el canvas a resolución nativa, la
+      // escala efectiva de los sprites queda alineada con el píxel físico
+      this.cameras.main.setZoom(0.4 * NATIVE_DPR);
     }
 
     createGameControls() {
