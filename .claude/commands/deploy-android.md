@@ -13,10 +13,16 @@ Ejecuta los siguientes comandos en orden, deteniéndote si alguno falla:
 2. **Sync Capacitor** — `npx cap sync android`
    - Si falla: reporta el error y para.
 
-3. **Build APK** — Desde `android/`, ejecutar `.\gradlew.bat assembleDebug`
+3. **Verificar ajustes nativos** — antes de compilar el APK, comprobar (y corregir si hace falta):
+   - `android/app/src/main/AndroidManifest.xml`: la activity debe llevar
+     `android:screenOrientation="sensorLandscape"` (NO `"landscape"`). Con `landscape` a secas
+     el juego no rota al girar el móvil 180° al otro landscape.
+   - `MainActivity.java` con el modo inmersivo (ver sección de bugs conocidos).
+
+4. **Build APK** — Desde `android/`, ejecutar `.\gradlew.bat assembleDebug`
    - El APK queda en `android/app/build/outputs/apk/debug/app-debug.apk`
 
-4. **Instalar en el móvil** — `adb -s <device-id> install -r <ruta-apk>`
+5. **Instalar en el móvil** — `adb -s <device-id> install -r <ruta-apk>`
    - Obtener device-id con `adb devices`
    - Si el móvil pide confirmación en pantalla, aceptarla y reintentar.
 
@@ -31,6 +37,14 @@ Ejecuta los siguientes comandos en orden, deteniéndote si alguno falla:
 - **Síntoma**: Error de compilación `TS2554: Expected 0 arguments, but got 3` en `app.module.ts`
 - **Causa**: `@ngx-translate/http-loader@17` instalado en lugar de `@16`. La v17 cambió el constructor.
 - **Solución**: `npm install @ngx-translate/http-loader@16.0.1`
+
+### El juego no rota al girar el móvil al otro landscape
+- **Síntoma**: La app queda fija en un solo sentido horizontal; al girar el móvil 180° la imagen no se voltea.
+- **Causa**: `android:screenOrientation="landscape"` en el AndroidManifest clava un único sentido.
+- **Solución**: Usar `android:screenOrientation="sensorLandscape"` en la activity de
+  `android/app/src/main/AndroidManifest.xml`. El `configChanges` de la activity ya incluye
+  `orientation|screenSize`, así que el giro no reinicia la app.
+- **Nota**: `android/` está en `.gitignore` — si se regenera con `cap add android`, reaplicar a mano (paso 3).
 
 ### Barras del sistema visibles encima de la app (status bar, nav bar)
 - **Síntoma**: La barra de notificaciones y/o los botones de navegación de Android se superponen al contenido de la app.
