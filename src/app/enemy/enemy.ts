@@ -10,7 +10,10 @@ type Vector2  = Phaser.Math.Vector2;
 
 const BAR_W      = 104;
 const BAR_H      = 11;
-const BAR_OFFSET = 18;
+const BAR_OFFSET = 4;
+// Los spritesheets traen aire transparente alrededor: la cabeza real queda muy
+// por debajo del borde superior del sprite, de ahí el factor < 0.5
+const BAR_ANCHOR = 0.32;
 
 type EnemyState = 'idle' | 'walk' | 'attack' | 'hurt' | 'death';
 
@@ -438,7 +441,7 @@ export class Enemy {
 
   private showDamageNumber(amount: number, isCrit = false): void {
     const x    = this.sprite.x + Phaser.Math.Between(-30, 30);
-    const y    = this.sprite.y - this.sprite.displayHeight * 0.6;
+    const y    = this.sprite.y - this.sprite.displayHeight * 0.38;
     const text = this.mainScene.add.text(x, y, `${amount}`, {
       fontSize:        isCrit ? '48px' : '28px',
       color:           isCrit ? '#b85c00' : '#ffd700',
@@ -473,7 +476,7 @@ export class Enemy {
     if (!this.hpBarBg || !this.hpBarFill) return;
     const pct = Math.max(0, this.HP / this.maxHP);
     const cx  = this.sprite.x;
-    const cy  = this.sprite.y - this.cachedDisplayHeight * 0.5 - BAR_OFFSET;
+    const cy  = this.sprite.y - this.cachedDisplayHeight * BAR_ANCHOR - BAR_OFFSET;
     this.hpBarBg.setPosition(cx, cy);
     this.hpBarFill.setPosition(cx - BAR_W / 2, cy);
 
