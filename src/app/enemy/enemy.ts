@@ -133,6 +133,8 @@ export class Enemy {
     this.playHurt();
   }
 
+  isChasingPlayer(): boolean { return this.isChasing; }
+
   getTilePos(): Vector2 { return this.tilePos.clone(); }
   getPixelPos(): Vector2 { return new Vector2(this.sprite.x, this.sprite.y); }
   getCollisionY(): number { return this.sprite.y + this.sprite.displayHeight * 0.1; }

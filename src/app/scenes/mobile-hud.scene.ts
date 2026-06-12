@@ -89,6 +89,8 @@ export class MobileHUDScene extends Phaser.Scene {
     const thumb = this.add.circle(jx, jy, THUMB_R, 0xffffff, 0.65) as Phaser.GameObjects.Arc;
 
     // ── Joystick visibility ───────────────────────────────────────────────────
+    // El toggle de ajustes solo oculta los gráficos: la entrada táctil en la
+    // mitad izquierda sigue funcionando igual con el joystick invisible.
     const joystickElements = [base, baseRing, thumb];
     const gameSettings = this.game.registry.get(REGISTRY_KEYS.GAME_SETTINGS);
     let joystickSub: Subscription | null = null;
@@ -106,8 +108,7 @@ export class MobileHUDScene extends Phaser.Scene {
     let joySrcX = 0, joySrcY = 0;
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
-      const joyEnabled = !gameSettings || gameSettings.showJoystick;
-      if (p.x < W * 0.5 && joyId === null && joyEnabled) {
+      if (p.x < W * 0.5 && joyId === null) {
         joyId   = p.id;
         joySrcX = p.x;
         joySrcY = p.y;

@@ -78,6 +78,12 @@ export class GameScene extends Phaser.Scene {
     private mobileInput: MobileInput | null = null;
     private pendingDashMoveDir: Direction | null = null;
     private pendingDashAnimDir: Direction | null = null;
+    // Auto-ataque: objetivo fijo + anti-atasco
+    private autoTarget: Enemy | null = null;
+    private autoStuckMs = 0;
+    private autoLastX = 0;
+    private autoLastY = 0;
+    private autoBlacklist = new Map<Enemy, number>(); // enemigo → time.now hasta el que se ignora
     currentMap: any;
 
       constructor(
@@ -152,6 +158,9 @@ export class GameScene extends Phaser.Scene {
       this.portalCooldown = false;
       this.sessionKills = {};
       this.eliteKills = 0;
+      this.autoTarget = null;
+      this.autoStuckMs = 0;
+      this.autoBlacklist.clear();
       this.currentMapConfig = this.reg.world.getCurrentMap();
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
@@ -205,7 +214,7 @@ export class GameScene extends Phaser.Scene {
 
     override update(_time: number, delta: number) {
       this.gridControls.update();
-      if (this.reg.autoAttack?.isEnabled) this.runAutoAttack();
+      if (this.reg.autoAttack?.isEnabled) this.runAutoAttack(delta);
       this.gridPhysics.update(delta);
 
       if (!this.reg.autoAttack?.isEnabled && this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
@@ -221,39 +230,111 @@ export class GameScene extends Phaser.Scene {
       this.player.getSprite().setDepth(playerPos.y);
     }
 
-    private runAutoAttack(): void {
+    private runAutoAttack(delta: number): void {
       const pos = this.player.getPosition();
-      let nearest: Enemy | null = null;
-      let nearestDistSq = Infinity;
 
-      for (const e of this.enemies) {
-        if (e.isDead) continue;
-        const ep = e.getPixelPos();
-        const dx = ep.x - pos.x;
-        const dy = ep.y - pos.y;
-        const dSq = dx * dx + dy * dy;
-        if (dSq < nearestDistSq) { nearestDistSq = dSq; nearest = e; }
+      // Objetivo inválido (muerto o de un mapa anterior) → re-seleccionar
+      if (this.autoTarget && (this.autoTarget.isDead || !this.enemies.includes(this.autoTarget))) {
+        this.autoTarget = null;
+      }
+      if (!this.autoTarget) {
+        this.autoTarget = this.pickAutoTarget(pos.x, pos.y);
+        this.autoStuckMs = 0;
+        if (!this.autoTarget) return;
       }
 
-      if (!nearest) return;
+      let target = this.autoTarget;
+      let ep = target.getPixelPos();
+      let dx = ep.x - pos.x;
+      let dy = ep.y - pos.y;
+      let distSq = dx * dx + dy * dy;
 
-      const ep = nearest.getPixelPos();
-      const dx = ep.x - pos.x;
-      const dy = ep.y - pos.y;
-      const dist = Math.sqrt(nearestDistSq);
+      // Si el objetivo queda lejos y tienes otro encima, no pases de largo: cambia
+      const FAR  = GameScene.TILE_SIZE * 4;
+      const NEAR = GameScene.TILE_SIZE * 2.2;
+      if (distSq > FAR * FAR) {
+        const close = this.pickCloseEnemy(pos.x, pos.y, NEAR);
+        if (close && close !== target) {
+          this.autoTarget = target = close;
+          ep = target.getPixelPos();
+          dx = ep.x - pos.x;
+          dy = ep.y - pos.y;
+          distSq = dx * dx + dy * dy;
+          this.autoStuckMs = 0;
+        }
+      }
+
+      const dist = Math.sqrt(distSq);
       const STOP_RANGE = GameScene.TILE_SIZE * 2;
-
       const cardinalDir = this.autoVecToCardinal(dx, dy);
 
       if (dist <= STOP_RANGE) {
+        this.autoStuckMs = 0;
         this.player.currentDirection = cardinalDir;
         if (!this.player.isAttacking) {
           this.strike();
         }
-      } else {
-        const moveDir = this.autoVecTo8Dir(dx, dy);
-        this.gridPhysics.movePlayer(moveDir, cardinalDir);
+        return;
       }
+
+      this.gridPhysics.movePlayer(this.autoVecTo8Dir(dx, dy), cardinalDir);
+
+      // Anti-atasco: si llevamos >1.2s sin avanzar (pared, esquina), descartamos
+      // este objetivo unos segundos y probamos con el siguiente
+      const movedSq = (pos.x - this.autoLastX) ** 2 + (pos.y - this.autoLastY) ** 2;
+      this.autoLastX = pos.x;
+      this.autoLastY = pos.y;
+      if (movedSq < 0.25) {
+        this.autoStuckMs += delta;
+        if (this.autoStuckMs > 1200) {
+          this.autoBlacklist.set(target, this.time.now + 4000);
+          this.autoTarget = null;
+          this.autoStuckMs = 0;
+        }
+      } else {
+        this.autoStuckMs = 0;
+      }
+    }
+
+    // Mejor objetivo: el más cercano, con fuerte preferencia por los que ya
+    // te persiguen (vienen hacia ti — matarlos primero evita daño gratis)
+    private pickAutoTarget(px: number, py: number): Enemy | null {
+      const now = this.time.now;
+      let best: Enemy | null = null;
+      let bestScore = Infinity;
+
+      for (const e of this.enemies) {
+        if (e.isDead) continue;
+        const until = this.autoBlacklist.get(e);
+        if (until && until > now) continue;
+        const ep = e.getPixelPos();
+        const ddx = ep.x - px;
+        const ddy = ep.y - py;
+        let score = ddx * ddx + ddy * ddy;
+        if (e.isChasingPlayer()) score *= 0.25;
+        if (score < bestScore) { bestScore = score; best = e; }
+      }
+
+      // Todos vetados → limpiar la lista y reintentar una vez
+      if (!best && this.autoBlacklist.size) {
+        this.autoBlacklist.clear();
+        return this.pickAutoTarget(px, py);
+      }
+      return best;
+    }
+
+    private pickCloseEnemy(px: number, py: number, radius: number): Enemy | null {
+      let best: Enemy | null = null;
+      let bestSq = radius * radius;
+      for (const e of this.enemies) {
+        if (e.isDead) continue;
+        const ep = e.getPixelPos();
+        const ddx = ep.x - px;
+        const ddy = ep.y - py;
+        const dSq = ddx * ddx + ddy * ddy;
+        if (dSq < bestSq) { bestSq = dSq; best = e; }
+      }
+      return best;
     }
 
     private autoVecToCardinal(dx: number, dy: number): Direction {
