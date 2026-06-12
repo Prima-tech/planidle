@@ -406,7 +406,12 @@
     </div>
 
     <!-- Árbol (canvas Phaser — TalentTreeScene) -->
-    <div class="talent-viewport" id="talent-tree-view"></div>
+    <div class="talent-tree-zone">
+      <div class="talent-viewport" id="talent-tree-view"></div>
+      <button class="talent-zoom-btn" (click)="toggleTalentZoom()">
+        <ion-icon [name]="talentZoomedOut ? 'remove-outline' : 'add-outline'"></ion-icon>
+      </button>
+    </div>
 
   </div><!-- talent-panel -->
 
@@ -423,14 +428,22 @@
     </div>
 
     <!-- Árbol -->
-    <div class="talent-viewport talent-viewport--classic"
+    <div class="talent-viewport talent-viewport--classic" #classicViewport
          (pointerdown)="onCanvasPointerDown($event)"
          (pointermove)="onCanvasPointerMove($event)"
          (pointerup)="onCanvasPointerUp()"
          (pointercancel)="onCanvasPointerUp()"
          (mouseleave)="onCanvasPointerUp()">
 
-      <div class="talent-canvas" [style.transform]="'translate(' + panX + 'px, ' + panY + 'px)'">
+      <button class="talent-zoom-btn"
+              (pointerdown)="$event.stopPropagation()"
+              (click)="toggleClassicZoom(classicViewport)">
+        <ion-icon [name]="classicZoomedOut ? 'remove-outline' : 'add-outline'"></ion-icon>
+      </button>
+
+      <div class="talent-canvas"
+           [style.transform]="'translate(' + panX + 'px, ' + panY + 'px) scale(' + classicZoom + ')'"
+           [style.transition]="panActive ? 'none' : null">
 
         <svg class="talent-svg" [attr.width]="canvasWidth" [attr.height]="canvasHeight">
           <line *ngFor="let l of treeLines"

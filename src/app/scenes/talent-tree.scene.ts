@@ -143,7 +143,7 @@ export class TalentTreeScene extends Phaser.Scene {
       cam.scrollY -= (p.position.y - p.prevPosition.y) / cam.zoom;
     });
     this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
-      cam.zoom = Phaser.Math.Clamp(cam.zoom - dy * 0.001, 0.6, 1.6);
+      cam.zoom = Phaser.Math.Clamp(cam.zoom - dy * 0.001, 0.3, 1.6);
     });
 
     this.changesSub = this.talent.changes$.subscribe(() => this.refresh());
@@ -172,6 +172,24 @@ export class TalentTreeScene extends Phaser.Scene {
       em.arc.y -= em.vy * delta;
       em.arc.x += em.drift * delta;
       em.arc.setAlpha(Math.sin(em.life * Math.PI) * 0.55);
+    }
+  }
+
+  /** Zoom del botón +/−: alejado se ve el árbol completo; cerca, zoom normal */
+  setZoomedOut(out: boolean): void {
+    if (!this.worldW || !this.worldH) return;
+    const cam = this.cameras.main;
+
+    if (out) {
+      // Encaja el mundo entero en el viewport (con un pelín de aire)
+      const fit = Math.min(cam.width / this.worldW, cam.height / this.worldH) * 0.95;
+      cam.zoomTo(fit, 350, 'Sine.easeInOut');
+      cam.pan(this.worldW / 2, this.worldH / 2, 350, 'Sine.easeInOut');
+    } else {
+      const hub = this.nodes.find(n => n.requires.length === 0) ?? this.nodes[0];
+      const p = this.nodeCenter(hub);
+      cam.zoomTo(1, 350, 'Sine.easeInOut');
+      cam.pan(p.x, p.y, 350, 'Sine.easeInOut');
     }
   }
 

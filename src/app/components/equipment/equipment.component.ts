@@ -102,6 +102,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   // ── Árbol HTML clásico (tab 4) ───────────────────────────────────────────────
 
   private initPan(): void {
+    this.classicZoom = 1;
+    this.classicZoomedOut = false;
     const nodes = this.activeTreeNodes;
     const root = nodes.find(n => n.requires.length === 0) ?? nodes[0];
     if (!root) { this.panX = 0; this.panY = 0; return; }
@@ -109,8 +111,28 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this.panY = 100 - (root.row * 48 + 22);  // nodo raíz a ~38% desde arriba
   }
 
+  // Zoom del árbol clásico: '+' encaja el árbol completo, '−' vuelve al hub
+  classicZoom = 1;
+  classicZoomedOut = false;
+
+  toggleClassicZoom(viewport: HTMLElement): void {
+    this.classicZoomedOut = !this.classicZoomedOut;
+    if (this.classicZoomedOut) {
+      const s = Math.min(
+        viewport.clientWidth  / this.canvasWidth,
+        viewport.clientHeight / this.canvasHeight,
+      );
+      this.classicZoom = s;
+      this.panX = (viewport.clientWidth  - this.canvasWidth  * s) / 2;
+      this.panY = (viewport.clientHeight - this.canvasHeight * s) / 2;
+    } else {
+      this.initPan();
+    }
+  }
+
   panX = 0;
   panY = 0;
+  get panActive(): boolean { return this._panActive; }
   private _panActive = false;
   private _panStartClientX = 0;
   private _panStartClientY = 0;
@@ -238,6 +260,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   private createTalentGame(): void {
     const parent = document.getElementById('talent-tree-view');
     if (!parent || this.talentGame) return;
+    this.talentZoomedOut = false;   // la escena arranca siempre a zoom 1
     // El modal puede no haber asentado su layout aún: reintenta hasta tener tamaño
     if (!parent.clientWidth || !parent.clientHeight) {
       setTimeout(() => this.createTalentGame(), 50);
@@ -294,6 +317,15 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   private syncTalentSelection(): void {
     const scene = this.talentGame?.scene.getScene('TalentTreeScene') as TalentTreeScene | undefined;
     scene?.setSelected(this.selectedNodeId);
+  }
+
+  // Zoom del árbol Phaser: '+' aleja (árbol completo), '−' vuelve al hub
+  talentZoomedOut = false;
+
+  toggleTalentZoom(): void {
+    this.talentZoomedOut = !this.talentZoomedOut;
+    const scene = this.talentGame?.scene.getScene('TalentTreeScene') as TalentTreeScene | undefined;
+    scene?.setZoomedOut(this.talentZoomedOut);
   }
 
   private onNodeTap(nodeId: string): void {
