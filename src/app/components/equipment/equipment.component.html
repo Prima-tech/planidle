@@ -402,46 +402,8 @@
       </div>
     </div>
 
-    <!-- Árbol -->
-    <div class="talent-viewport"
-         (pointerdown)="onCanvasPointerDown($event)"
-         (pointermove)="onCanvasPointerMove($event)"
-         (pointerup)="onCanvasPointerUp()"
-         (pointercancel)="onCanvasPointerUp()"
-         (mouseleave)="onCanvasPointerUp()">
-
-      <div class="talent-canvas" [style.transform]="'translate(' + panX + 'px, ' + panY + 'px)'">
-
-        <svg class="talent-svg" [attr.width]="canvasWidth" [attr.height]="canvasHeight">
-          <line *ngFor="let l of treeLines"
-                [attr.x1]="l.x1" [attr.y1]="l.y1"
-                [attr.x2]="l.x2" [attr.y2]="l.y2"
-                [class.tline--active]="l.active"
-                class="tline"
-          />
-        </svg>
-
-        <div *ngFor="let node of activeTreeNodes"
-             class="tnode"
-             [class.tnode--small]="node.small"
-             [class.tnode--locked]="nodeState(node) === 'locked'"
-             [class.tnode--available]="nodeState(node) === 'available'"
-             [class.tnode--slotted]="nodeState(node) === 'slotted'"
-             [class.tnode--selected]="selectedNodeId === node.id"
-             [style.left]="nodeStyle(node)['left']"
-             [style.top]="nodeStyle(node)['top']"
-             [style.border-color]="nodeColor(node) || null"
-             [title]="node.label"
-             (click)="onNodeClick(node)"
-        >
-          <span *ngIf="node.topLabel" class="tnode-toplabel">{{ node.topLabel }}</span>
-          <ion-icon *ngIf="!node.small" [name]="node.icon" class="tnode-icon"></ion-icon>
-          <span *ngIf="node.num" class="tnode-num">{{ node.num }}</span>
-          <span *ngIf="nodeState(node) === 'slotted'" class="tnode-sphere-dot" [style.background]="nodeColor(node)"></span>
-        </div>
-
-      </div>
-    </div><!-- talent-viewport -->
+    <!-- Árbol (canvas Phaser — TalentTreeScene) -->
+    <div class="talent-viewport" id="talent-tree-view"></div>
 
   </div><!-- talent-panel -->
 
@@ -449,7 +411,7 @@
 
   <!-- Picker flotante: aparece a la derecha del panel al seleccionar un talento -->
   <div class="talent-picker-flyout" *ngIf="activeTab === 3 && selectedNodeId">
-    <button class="tpicker-cancel" (click)="selectedNodeId = null">✕</button>
+    <button class="tpicker-cancel" (click)="clearTalentSelection()">✕</button>
     <div class="tpicker-name">{{ formatNodeLabel(selectedNode!) }}</div>
     <div class="tpicker-spheres">
       <button *ngFor="let s of sphereTypes"

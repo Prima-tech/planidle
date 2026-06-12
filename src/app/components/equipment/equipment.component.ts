@@ -1,5 +1,7 @@
-import { Component, ElementRef, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
+import Phaser from 'phaser';
+import { TalentTreeScene, TALENT_TREE_DATA_KEY, TALENT_SERVICE_KEY, TALENT_NODE_TAP_KEY } from 'src/app/scenes/talent-tree.scene';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown, MagicDamageBreakdown, RegenBreakdown, DropRateBreakdown } from 'src/app/services/character-stats.service';
@@ -13,10 +15,11 @@ import { PanelStateService } from 'src/app/services/panel-state.service';
   styleUrls: ['./equipment.component.scss'],
   standalone: false,
 })
-export class EquipmentComponent implements OnInit {
+export class EquipmentComponent implements OnInit, OnDestroy {
 
   private panelState = inject(PanelStateService);
   private el = inject(ElementRef);
+  private ngZone = inject(NgZone);
 
   private _activeTab = 0;
   get activeTab(): number { return this._activeTab; }
@@ -26,7 +29,11 @@ export class EquipmentComponent implements OnInit {
     if (v !== 3) {
       this.selectedNodeId = null;
       this.talentExpanded = false;
-    } else { this.initPan(); }
+      this.destroyTalentGame();
+    } else {
+      // El contenedor entra al DOM con el *ngIf en este mismo ciclo
+      setTimeout(() => this.createTalentGame());
+    }
   }
 
   showAtkBreakdown      = false;
@@ -85,15 +92,7 @@ export class EquipmentComponent implements OnInit {
   set activeTalentTree(v: number) {
     this._activeTalentTree = v;
     this.selectedNodeId = null;
-    this.initPan();
-  }
-
-  private initPan(): void {
-    const nodes = this.activeTreeNodes;
-    const root = nodes.find(n => n.requires.length === 0) ?? nodes[0];
-    if (!root) { this.panX = 0; this.panY = 0; return; }
-    this.panX = 113 - (root.col * 33 + 16);  // centra X en viewport 226px
-    this.panY = 100 - (root.row * 48 + 22);  // nodo raíz a ~38% desde arriba
+    this.recreateTalentGame();
   }
 
   get activeTreeNodes(): TalentNodeConfig[] {
@@ -126,100 +125,89 @@ export class EquipmentComponent implements OnInit {
     this._talentExpanded = v;
     const modal = this.el.nativeElement.closest('.modal-window') as HTMLElement;
     if (modal) modal.style.bottom = v ? '10px' : '';
+    // El cambio de tamaño del viewport lo recoge el ResizeObserver del juego
   }
 
-  // ── Pan libre del árbol ──────────────────────────────────────────────────────
+  // ── Árbol Phaser ─────────────────────────────────────────────────────────────
 
-  panX = 0;
-  panY = 0;
-  private _panActive = false;
-  private _panStartClientX = 0;
-  private _panStartClientY = 0;
-  private _panStartPanX = 0;
-  private _panStartPanY = 0;
-  panMoved = false;
+  private talentGame: Phaser.Game | null = null;
+  private talentResizeObs: ResizeObserver | null = null;
+  private readonly talentDpr = Math.min(window.devicePixelRatio || 1, 3);
 
-  get canvasWidth(): number {
-    const nodes = this.activeTreeNodes;
-    if (!nodes.length) return 220;
-    return (Math.max(...nodes.map(n => n.col)) + 1) * 33 + 33;
-  }
-
-  get canvasHeight(): number {
-    const nodes = this.activeTreeNodes;
-    if (!nodes.length) return 200;
-    return (Math.max(...nodes.map(n => n.row)) + 1) * 48 + 48;
-  }
-
-  onCanvasPointerDown(e: PointerEvent): void {
-    this._panActive = true;
-    this.panMoved = false;
-    this._panStartClientX = e.clientX;
-    this._panStartClientY = e.clientY;
-    this._panStartPanX = this.panX;
-    this._panStartPanY = this.panY;
-  }
-
-  onCanvasPointerMove(e: PointerEvent): void {
-    if (!this._panActive) return;
-    const dx = e.clientX - this._panStartClientX;
-    const dy = e.clientY - this._panStartClientY;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this.panMoved = true;
-    if (this.panMoved) {
-      this.panX = this._panStartPanX + dx;
-      this.panY = this._panStartPanY + dy;
+  private createTalentGame(): void {
+    const parent = document.getElementById('talent-tree-view');
+    if (!parent || this.talentGame) return;
+    // El modal puede no haber asentado su layout aún: reintenta hasta tener tamaño
+    if (!parent.clientWidth || !parent.clientHeight) {
+      setTimeout(() => this.createTalentGame(), 50);
+      return;
     }
+    // Canvas a resolución nativa + zoom CSS inverso: texto nítido (ver world-map-panel)
+    const dpr = this.talentDpr;
+    this.talentGame = new Phaser.Game({
+      type: Phaser.AUTO,
+      parent,
+      width:  parent.clientWidth * dpr,
+      height: parent.clientHeight * dpr,
+      scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
+      render: { antialias: true },
+      backgroundColor: '#0b0e1d',
+      scene: [TalentTreeScene],
+    });
+    this.talentGame.registry.set(TALENT_TREE_DATA_KEY, this.activeTreeNodes);
+    this.talentGame.registry.set(TALENT_SERVICE_KEY, this.talent);
+    // El tap llega desde Phaser (fuera de Angular): ngZone.run para el picker
+    this.talentGame.registry.set(TALENT_NODE_TAP_KEY, (nodeId: string) => {
+      this.ngZone.run(() => this.onNodeTap(nodeId));
+    });
+    // El viewport cambia de tamaño al abrir el modal o al expandir el panel:
+    // redimensiona el canvas en vez de recrear el juego
+    this.talentResizeObs = new ResizeObserver(() => this.resizeTalentGame(parent));
+    this.talentResizeObs.observe(parent);
   }
 
-  onCanvasPointerUp(): void {
-    this._panActive = false;
+  private resizeTalentGame(parent: HTMLElement): void {
+    if (!this.talentGame) return;
+    const w = Math.round(parent.clientWidth  * this.talentDpr);
+    const h = Math.round(parent.clientHeight * this.talentDpr);
+    if (!w || !h) return;
+    const scale = this.talentGame.scale;
+    if (scale.width !== w || scale.height !== h) scale.resize(w, h);
   }
 
-  get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
-    const nodes = this.activeTreeNodes;
-    const CW = 33, CH = 48;
-    const cx = (col: number) => col * CW + CW / 2;
-    const cy = (row: number) => row * CH + 21;
-    return nodes.flatMap(node =>
-      node.requires
-        .map(reqId => {
-          const parent = nodes.find(n => n.id === reqId);
-          if (!parent) return null;
-          return {
-            x1: cx(parent.col), y1: cy(parent.row),
-            x2: cx(node.col),   y2: cy(node.row),
-            active: !!this.talent.slotted[reqId] && !!this.talent.slotted[node.id],
-          };
-        })
-        .filter((l): l is NonNullable<typeof l> => l !== null)
-    );
+  private destroyTalentGame(): void {
+    this.talentResizeObs?.disconnect();
+    this.talentResizeObs = null;
+    this.talentGame?.destroy(true);
+    this.talentGame = null;
   }
 
-  nodeState(node: TalentNodeConfig): 'locked' | 'available' | 'slotted' {
-    if (!this.talent.isUnlocked(node.id)) return 'locked';
-    if (this.talent.slotted[node.id])     return 'slotted';
-    return 'available';
+  private recreateTalentGame(): void {
+    if (this._activeTab !== 3) return;
+    this.destroyTalentGame();
+    // Espera a que el layout asiente el nuevo tamaño del viewport
+    setTimeout(() => this.createTalentGame(), 60);
   }
 
-  nodeStyle(node: TalentNodeConfig): Record<string, string> {
-    return { left: `${node.col * 33 + 3}px`, top: `${node.row * 48 + 3}px` };
+  private syncTalentSelection(): void {
+    const scene = this.talentGame?.scene.getScene('TalentTreeScene') as TalentTreeScene | undefined;
+    scene?.setSelected(this.selectedNodeId);
   }
 
-  nodeColor(node: TalentNodeConfig): string {
-    const sphere = this.talent.slotted[node.id];
-    return sphere ? this.sphereColors[sphere] : '';
+  private onNodeTap(nodeId: string): void {
+    this.selectedNodeId = this.selectedNodeId === nodeId ? null : nodeId;
+    this.syncTalentSelection();
   }
 
-  onNodeClick(node: TalentNodeConfig): void {
-    if (this.panMoved) return;
-    if (!this.talent.isUnlocked(node.id)) return;
-    this.selectedNodeId = this.selectedNodeId === node.id ? null : node.id;
+  clearTalentSelection(): void {
+    this.selectedNodeId = null;
+    this.syncTalentSelection();
   }
 
   slotSphere(sphere: SphereType): void {
     if (!this.selectedNodeId) return;
     this.talent.slot(this.selectedNodeId, sphere);
-    this.selectedNodeId = null;
+    this.clearTalentSelection();
   }
 
   canUnslotSelected(): boolean {
@@ -230,7 +218,7 @@ export class EquipmentComponent implements OnInit {
 
   unslotSelected(): void {
     if (this.selectedNodeId) this.talent.unslot(this.selectedNodeId);
-    this.selectedNodeId = null;
+    this.clearTalentSelection();
   }
 
   nodeEffectLabel(node: TalentNodeConfig, sphere: SphereType): string {
@@ -261,6 +249,11 @@ export class EquipmentComponent implements OnInit {
 
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
+    if (this._activeTab === 3) setTimeout(() => this.createTalentGame());
+  }
+
+  ngOnDestroy(): void {
+    this.destroyTalentGame();
   }
 
   // Predicate: sólo acepta ítems compatibles con este slot

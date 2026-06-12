@@ -605,7 +605,7 @@ $purple: #6e4a67;         // selección
   font-weight: bold;
 }
 
-// Árbol (viewport con pan libre)
+// Árbol (canvas Phaser — TalentTreeScene)
 .talent-viewport {
   position: relative;
   overflow: hidden;
@@ -613,7 +613,7 @@ $purple: #6e4a67;         // selección
   touch-action: none;
   user-select: none;
   cursor: grab;
-  background: $cell-bg;
+  background: #0b0e1d;
   border: 2px solid $cell-border;
   border-radius: 5px;
   box-shadow:
@@ -621,6 +621,8 @@ $purple: #6e4a67;         // selección
     0 1px 0 rgba(255, 255, 255, 0.06);
 
   &:active { cursor: grabbing; }
+
+  canvas { display: block; }
 }
 
 .talent-expand-btn {
@@ -648,107 +650,6 @@ $purple: #6e4a67;         // selección
 
   &:hover  { background: $wood-btn-light; }
   &:active { background: $wood-btn-dark; color: $text-cream; }
-}
-
-.talent-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  will-change: transform;
-}
-
-.talent-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-}
-
-.tline {
-  stroke: #5a4636;
-  stroke-width: 2;
-
-  &--active { stroke: #f0c040; }
-}
-
-// Nodos
-.tnode {
-  position: absolute;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 2px solid #5a4636;
-  background: $cell-border;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-
-  &--small {
-    width: 19px;
-    height: 19px;
-    margin-left: 9px;
-    margin-top: 9px;
-  }
-
-  &--locked {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-
-  &--available {
-    border-color: $text-cream;
-    box-shadow: 0 0 6px rgba(236, 217, 180, 0.4);
-  }
-
-  &--slotted {
-    background: $cell-bg;
-  }
-
-  &--selected {
-    box-shadow: 0 0 10px rgba(110, 74, 103, 0.9);
-  }
-}
-
-.tnode-icon {
-  font-size: 1em;
-  color: $text-cream;
-  pointer-events: none;
-}
-
-.tnode-toplabel {
-  position: absolute;
-  top: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px;
-  font-weight: 700;
-  color: $text-cream;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.tnode-num {
-  position: absolute;
-  bottom: 1px;
-  left: 2px;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  color: #ff6b4a;
-  pointer-events: none;
-}
-
-.tnode-sphere-dot {
-  position: absolute;
-  bottom: 1px;
-  right: 1px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  border: 1px solid $outline;
-  pointer-events: none;
 }
 
 // Picker flotante (a la derecha del panel)
