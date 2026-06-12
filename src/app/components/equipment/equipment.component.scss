@@ -131,7 +131,7 @@ $purple: #6e4a67;         // selección
 
 .eq-layout {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;  /* el centro se estira a la altura de las columnas de items */
   gap: 6px;
   flex: 1;
 }
@@ -139,7 +139,7 @@ $purple: #6e4a67;         // selección
 .eq-col {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 7px;  /* +2px entre cada slot: las columnas crecen y dan aire a la pastilla */
   flex-shrink: 0;
   padding-top: 10px; /* alineado con la cabecera (badge flotante) */
 }
@@ -151,6 +151,7 @@ $purple: #6e4a67;         // selección
   gap: 8px;
   flex: 1;
   padding-top: 10px; /* aire para el badge de nivel flotante */
+  position: relative; /* ancla de la pastilla de stats (absoluta, abajo) */
 }
 
 .preview-frame {
@@ -172,6 +173,12 @@ $metal: #9b9285;
 $metal-dark: #6b6357;
 
 .base-stats-plaque {
+  /* clavada al fondo del centro: su base coincide con el último slot equipable
+     (las columnas definen la altura del layout y el centro se estira a ella) */
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px 10px;
