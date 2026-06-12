@@ -7,7 +7,7 @@
   &.menu {
     top: 10px;
     bottom: 53px;
-    right: 10px;
+    right: calc(10px + var(--safe-right, 0px));
     width: 265px;
     /* el marco lo pinta el :host del componente (tema madera + piedra) */
     background: transparent;
@@ -25,7 +25,7 @@
 &.inventory {
     top: 10px;
     bottom: 61px;  /* footer ~51px + 10px de aire */
-    right: 10px;
+    right: calc(10px + var(--safe-right, 0px));
     width: fit-content;
     /* El marco madera/piedra lo pinta el propio InventoryComponent (:host) */
     background: transparent;
@@ -34,7 +34,7 @@
   &.equipment {
     top: 10px;
     bottom: 61px;  /* footer ~51px + 10px de aire */
-    left: 10px;
+    left: calc(10px + var(--safe-left, 0px));
     width: fit-content;
     /* El marco madera/piedra lo pinta el propio EquipmentComponent (:host).
        Sin overflow: el flyout de talentos sobresale por la derecha del panel. */
@@ -43,7 +43,7 @@
   &.summon {
     top: 10px;
     bottom: 54px;
-    left: 10px;
+    left: calc(10px + var(--safe-left, 0px));
     width: fit-content;
     background: #1a1a2e;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
@@ -52,7 +52,7 @@
   &.skill-detail {
     top: 10px;
     bottom: 53px;
-    right: 280px;
+    right: calc(280px + var(--safe-right, 0px));
     width: 200px;
     border-radius: 12px 12px 0 0;
     background: #1a1a2e;
@@ -61,7 +61,7 @@
   &.game-settings {
     top: 10px;
     bottom: 61px;  /* footer ~51px + 10px de aire */
-    right: 10px;
+    right: calc(10px + var(--safe-right, 0px));
     width: 265px;
     /* el marco lo pinta el :host del componente (tema madera + piedra) */
     background: transparent;
@@ -70,7 +70,7 @@
   &.skill-slots {
     top: 10px;
     bottom: 53px;
-    right: 10px;
+    right: calc(10px + var(--safe-right, 0px));
     width: 265px;
     border-radius: 12px 12px 0 0;
     background: #1a1a2e;
@@ -80,8 +80,8 @@
   &.world-map {
     top: 10px;
     bottom: 54px;
-    left: 10px;
-    right: 10px;
+    left: calc(10px + var(--safe-left, 0px));
+    right: calc(10px + var(--safe-right, 0px));
     /* el marco lo pinta el componente (tema madera + piedra) */
     background: transparent;
     overflow: hidden;

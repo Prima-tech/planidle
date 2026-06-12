@@ -28,7 +28,7 @@ $icon-metal: #3a342c;     // iconos sobre acero
 .auto-attack-fab,
 .auto-skill-fab {
   position: fixed;
-  right: 12px;
+  right: calc(12px + var(--safe-right, 0px));
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -124,8 +124,8 @@ $icon-metal: #3a342c;     // iconos sobre acero
     /* Madera lisa + viga de piedra biselada arriba */
     --background: #{$wood-bg};
     --border-color: transparent;
-    --padding-start: 8px;
-    --padding-end: 8px;
+    --padding-start: calc(8px + var(--safe-left, 0px));
+    --padding-end: calc(8px + var(--safe-right, 0px));
     --padding-top: 3px;
     --padding-bottom: 3px;
     --min-height: 0;

@@ -79,6 +79,16 @@ ion-content::part(scroll)::-webkit-scrollbar {
   background-color: gray;
 }
 
+/* ── Safe areas (notch / cámara) ──────────────────────────────────────────────
+   La app dibuja bajo el notch (shortEdges en MainActivity + viewport-fit=cover).
+   La UI HTML anclada a los bordes suma estas variables a sus offsets. */
+:root {
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* ── Badge de notificación ("hay algo nuevo") ─────────────────────────────────
    Uso: el contenedor necesita position: relative; dentro, un
    <span class="notif-dot" *ngIf="badges.has('clave')"></span>

@@ -5,7 +5,7 @@
 // Centro en (W−90, H−115), radio 38
 .attack-btn {
   position: fixed;
-  right: 52px;
+  right: calc(52px + var(--safe-right, 0px));
   bottom: 77px;
   width: 76px;
   height: 76px;

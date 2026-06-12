@@ -18,6 +18,16 @@ Ejecuta los siguientes comandos en orden, deteniéndote si alguno falla:
      `android:screenOrientation="sensorLandscape"` (NO `"landscape"`). Con `landscape` a secas
      el juego no rota al girar el móvil 180° al otro landscape.
    - `MainActivity.java` con el modo inmersivo (ver sección de bugs conocidos).
+   - `MainActivity.java` con el modo cutout `shortEdges` en `hideSystemUI()` (notch):
+     ```java
+     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+         getWindow().getAttributes().layoutInDisplayCutoutMode =
+             WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+     }
+     ```
+     (requiere `import android.view.WindowManager;`). Sin esto Android mete una franja
+     negra en el lado del notch. La UI web se protege con `env(safe-area-inset-*)`
+     (variables `--safe-left/right` en `global.scss`).
 
 4. **Build APK** — Desde `android/`, ejecutar `.\gradlew.bat assembleDebug`
    - El APK queda en `android/app/build/outputs/apk/debug/app-debug.apk`

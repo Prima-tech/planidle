@@ -79,19 +79,19 @@
 // Arco alrededor del botón de ataque (radio ~84px desde su centro)
 // slot 0 — arriba del botón de ataque
 .hud-btn-slot-0 {
-  right: 64px;
+  right: calc(64px + var(--safe-right, 0px));
   bottom: 173px;
 }
 
 // slot 1 — diagonal
 .hud-btn-slot-1 {
-  right: 123px;
+  right: calc(123px + var(--safe-right, 0px));
   bottom: 148px;
 }
 
 // slot 2 — a la izquierda
 .hud-btn-slot-2 {
-  right: 148px;
+  right: calc(148px + var(--safe-right, 0px));
   bottom: 89px;
 }
 
