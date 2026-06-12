@@ -37,6 +37,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       this.selectedNodeId = null;
       this.talentExpanded = false;
     }
+    if (v !== 0) this.statsFlyoutOpen = false;
   }
 
   showAtkBreakdown      = false;
@@ -75,13 +76,16 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     potion:   'flask-outline',
   };
 
+  // Flyout de stats (tab 0): se abre al pinchar la pastilla, a la derecha del panel
+  statsFlyoutOpen = false;
+
   readonly statsList: { key: keyof BaseStats; label: string }[] = [
-    { key: 'STR',   label: 'Fuerza'        },
-    { key: 'DEX',   label: 'Destreza'      },
-    { key: 'CONST', label: 'Vitalidad'     },
-    { key: 'INT',   label: 'Inteligencia'  },
-    { key: 'MAG',   label: 'Magia'         },
-    { key: 'CHR',   label: 'Carisma'       },
+    { key: 'STR',   label: 'STR' },
+    { key: 'CONST', label: 'VIT' },
+    { key: 'DEX',   label: 'DEX' },
+    { key: 'INT',   label: 'INT' },
+    { key: 'MAG',   label: 'MAG' },
+    { key: 'CHR',   label: 'CHR' },
   ];
 
   // ── Talentos ─────────────────────────────────────────────────────────────────

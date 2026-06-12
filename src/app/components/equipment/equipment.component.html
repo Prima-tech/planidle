@@ -44,6 +44,15 @@
       <div class="preview-frame">
         <app-player-preview [size]="96"></app-player-preview>
       </div>
+      <!-- Pastilla con los 6 stats base: abre el flyout de reparto de puntos -->
+      <div class="base-stats-plaque"
+           [class.open]="statsFlyoutOpen"
+           (click)="statsFlyoutOpen = !statsFlyoutOpen">
+        <div class="bsp-cell" *ngFor="let s of statsList">
+          <span class="bsp-label">{{ s.label }}</span>
+          <span class="bsp-val">{{ charStats.stats[s.key] }}</span>
+        </div>
+      </div>
     </div>
 
     <!-- Columna derecha: collar, anillo1, anillo2, comida, poción -->
@@ -479,6 +488,24 @@
   </div><!-- talent-panel clásico -->
 
   </div><!-- eq-content -->
+
+  <!-- Flyout de stats: aparece a la derecha al pinchar la pastilla del tab 0 -->
+  <div class="talent-picker-flyout stats-flyout" *ngIf="activeTab === 0 && statsFlyoutOpen">
+    <ng-container *ngIf="{ pts: freePoints$ | async } as vm">
+      <div class="stat-points-bar" [class.empty]="vm.pts <= 0">
+        <span>Puntos libres</span>
+        <strong>{{ vm.pts }}</strong>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-row" *ngFor="let s of statsList">
+          <button class="stat-btn minus" (click)="charStats.decrement(s.key)">−</button>
+          <span class="stat-label">{{ s.label }}</span>
+          <span class="stat-val">{{ charStats.stats[s.key] }}</span>
+          <button class="stat-btn plus" [disabled]="vm.pts <= 0" (click)="charStats.increment(s.key)">+</button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
 
   <!-- Picker flotante: aparece a la derecha del panel al seleccionar un talento -->
   <div class="talent-picker-flyout" *ngIf="(activeTab === 3 || activeTab === 4) && selectedNodeId">

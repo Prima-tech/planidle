@@ -164,6 +164,80 @@ $purple: #6e4a67;         // selección
     inset 0 0 0 2px $outline;
 }
 
+// Pastilla con los 6 stats base bajo el preview (2 columnas × 3 filas).
+// Mismo ancho y estilo que la placa del nombre (char-stats header):
+// cara de madera oscura con bisel metálico
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
+
+.base-stats-plaque {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 10px;
+  width: 114px;
+  box-sizing: border-box;
+  padding: 5px 7px;
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.bsp-cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.62em;
+  line-height: 1.6;
+}
+
+.bsp-label {
+  color: rgba(236, 217, 180, 0.7);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bsp-val {
+  color: $text-cream;
+  font-weight: 800;
+}
+
+// La pastilla es clicable: abre el flyout de reparto de puntos
+.base-stats-plaque {
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+
+  &:hover { background: lighten($wood-btn-dark, 4%); }
+
+  &.open {
+    background: lighten($wood-btn-dark, 6%);
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 8px rgba(240, 192, 64, 0.45);
+  }
+}
+
+// Flyout de stats: mismo marco que el picker de talentos.
+// El wrapper queda 13px (padding 8 + borde 5) dentro del marco exterior de la
+// ventana: se compensa para alinear arriba/abajo con ella y dejar 10px de margen.
+// Selector compuesto: .talent-picker-flyout se define más abajo y con una sola
+// clase sus top/left pisarían estos overrides.
+.talent-picker-flyout.stats-flyout {
+  width: 180px;
+  top: -13px;
+  bottom: -13px;
+  left: calc(100% + 23px);  /* 13px hasta el borde exterior + 10px de margen */
+  box-sizing: border-box;
+}
+
 // ── Slots individuales ───────────────────────────────────────────────────────
 
 .equip-slot {
