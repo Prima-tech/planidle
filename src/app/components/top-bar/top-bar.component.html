@@ -10,6 +10,21 @@
         <!-- Pastilla flotante con el nombre (mismo estilo que la del minimapa) -->
         <div class="char-name-pill">{{ asgardService?.selectedPlayer?.name }}</div>
 
+        <!-- Selector de personaje: despliega el roster hacia la derecha -->
+        <button class="char-switch-btn" (click)="toggleCharList()">
+          <ion-icon [name]="charListOpen ? 'chevron-back-outline' : 'people-outline'"></ion-icon>
+        </button>
+
+        <div class="char-roster" *ngIf="charListOpen">
+          <button class="char-roster-item" *ngFor="let it of rosterItems"
+                  [class.current]="isCurrent(it.char)"
+                  (click)="pickCharacter(it.char)">
+            <app-character-sprite [size]="30" [equipmentSnapshot]="it.equipment"></app-character-sprite>
+            <span class="char-roster-name">{{ it.char.name }}</span>
+            <span class="char-roster-map">{{ it.mapName }}</span>
+          </button>
+        </div>
+
         <div class="char-panel">
           <div class="avatar-col">
             <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">

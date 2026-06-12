@@ -1,6 +1,8 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subscription, map, startWith } from 'rxjs';
 import { AsgardService } from 'src/app/services/asgard';
+import { StorageService } from 'src/app/services/storage.service';
+import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { ActiveBuff, BuffService } from 'src/app/services/buff.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { expNeeded, MAX_LEVEL, PlayerStateService } from 'src/app/services/player-state.service';
@@ -40,6 +42,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private mapStats     = inject(MapStatsService);
   private afkBonus     = inject(AfkBonusService);
   private offlineGains = inject(OfflineGainsService);
+  private storage      = inject(StorageService);
 
   valueHP$: any = null;
   valueMP$: any = null;
@@ -99,6 +102,46 @@ export class TopBarComponent implements OnInit, OnDestroy {
   );
 
   toggleMapPanel() { this.mapPanelOpen = !this.mapPanelOpen; }
+
+  // ── Selector de personaje (botón arriba-dcha de la pastilla) ────────────────
+
+  charListOpen = false;
+  // equipment null = personaje activo (sprite reactivo al equipo actual)
+  rosterItems: { char: any; equipment: EquipmentSnapshot | null; mapName: string }[] = [];
+
+  async toggleCharList(): Promise<void> {
+    this.charListOpen = !this.charListOpen;
+    if (!this.charListOpen) return;
+
+    const chars = (await this.asgardService.getCharacters()) ?? [];
+    const items: typeof this.rosterItems = [];
+    for (const c of chars) {
+      if (!c?.id) continue;
+      if (this.isCurrent(c)) {
+        const mapId = this.worldService.getCurrentMap()?.id;
+        items.push({ char: c, equipment: null, mapName: this.mapNameOf(mapId) });
+      } else {
+        const snap = await this.storage.get(`snapshot_char_${c.id}`);
+        items.push({ char: c, equipment: snap?.equipment ?? {}, mapName: this.mapNameOf(snap?.mapId) });
+      }
+    }
+    this.rosterItems = items;
+  }
+
+  private mapNameOf(mapId: string | undefined): string {
+    if (!mapId) return '—';
+    return MAP_REGISTRY[mapId]?.name ?? mapId;
+  }
+
+  isCurrent(c: any): boolean {
+    return String(c?.id) === String(this.asgardService.selectedPlayer?.id);
+  }
+
+  async pickCharacter(c: any): Promise<void> {
+    this.charListOpen = false;
+    if (this.isCurrent(c)) return;
+    await this.asgardService.setSelectedPlayer(c);
+  }
 
   spriteStyle(enemyType: string) { return enemySpriteStyle(enemyType, 32); }
   spriteClass(enemyType: string) { return enemySpriteClass(enemyType); }

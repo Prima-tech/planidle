@@ -86,6 +86,119 @@ $metal-dark: #6b6357;
   &:active { background: $wood-btn-dark; color: $text-cream; }
 }
 
+// ── Selector de personaje (botón arriba-dcha + roster desplegable) ───────────
+
+.char-switch-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  background: $wood-btn;
+  color: $text-brown;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 56;
+  font-size: 0.78em;
+  padding: 0;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    0 2px 6px rgba(0, 0, 0, 0.5);
+  transition: background 0.15s;
+
+  &:hover  { background: $wood-btn-light; }
+  &:active { background: $wood-btn-dark; color: $text-cream; }
+}
+
+.char-roster {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;           /* borde superior alineado con la pastilla de vida/maná */
+  bottom: -28px;    /* crece solo hacia abajo para que quepa sprite + nombre + mapa */
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 3px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    0 2px 8px rgba(0, 0, 0, 0.5);
+  z-index: 54;
+  transform-origin: left center;
+  animation: roster-open 0.18s ease-out both;
+}
+
+@keyframes roster-open {
+  from { transform: scaleX(0.5); opacity: 0; }
+  to   { transform: scaleX(1);   opacity: 1; }
+}
+
+.char-roster-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 64px;          /* todas las tarjetas al mismo ancho */
+  box-sizing: border-box;
+  flex-shrink: 0;
+  max-height: 100%;
+  padding: 1px 6px 2px;
+  background: $wood-btn-dark;   /* marrón claro, destaca sobre la madera */
+  border: 2px solid $outline;
+  border-radius: 6px;
+  color: $text-cream;
+  font-size: 0.6em;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: background 0.12s;
+
+  &:active { background: lighten($wood-btn-dark, 6%); }
+
+  &.current {
+    border-color: #f0c040;
+    color: #f0c040;
+  }
+}
+
+.char-roster-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.char-roster-map {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: rgba(236, 217, 180, 0.55);
+  margin-top: 2px;      /* aire con el nombre */
+  margin-bottom: 2px;   /* aire con el borde inferior */
+}
+
+.char-roster-item app-character-sprite {
+  transform: translateY(-3px);
+}
+
 // ── Tarjeta superior: solo char-panel ────────────────────────────────────────
 
 .char-widget {
