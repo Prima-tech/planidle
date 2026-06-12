@@ -108,12 +108,32 @@
   &--bag {
     left: -2px;
     bottom: 2px;
+    width: 32px;   /* igual que el de ajustes */
+    height: 32px;
   }
 
   &--settings {
     right: -2px;
     top: 2px;
+    width: 32px;   /* un poco más grande que el resto (26px) */
+    height: 32px;
   }
+}
+
+.minimap-btn-img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* Variante teñida: el PNG (--icon) hace de máscara y se pinta de un color
+   plano — blanco, como el icono de config */
+.minimap-btn-img--tint {
+  background: #ffffff;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
 }
 
 ::ng-deep {

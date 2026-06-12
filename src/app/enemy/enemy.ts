@@ -12,8 +12,17 @@ type Vector2  = Phaser.Math.Vector2;
 const SCALE_BOOST = 1.15;
 
 const BAR_W      = 104;
-const BAR_H      = 11;
+const BAR_H      = 12;
 const BAR_OFFSET = 4;
+// Estilo de la barra HP del HUD (top-bar): borde $outline + pista $cell-border
+// + relleno rojo con franja clara arriba y oscura abajo (degradado aproximado)
+const BAR_BORDER     = 5;          // ≈2px CSS con la cámara a 0.4
+const BAR_C_OUTLINE  = 0x3a2c20;
+const BAR_C_TRACK    = 0x21130e;
+const BAR_C_FILL     = 0xc0392b;
+const BAR_C_FILL_HI  = 0xe8604a;
+const BAR_C_FILL_LO  = 0x8e2418;
+const BAR_EDGE_H     = 3;          // alto de las franjas clara/oscura
 // Los spritesheets traen aire transparente alrededor: la cabeza real queda muy
 // por debajo del borde superior del sprite, de ahí el factor < 0.5
 const BAR_ANCHOR = 0.32;
@@ -35,8 +44,11 @@ export class Enemy {
 
   // HP bar: Rectangle objects en lugar de Graphics — setPosition/setSize es 10× más
   // barato que clear() + fillRoundedRect() cada frame.
-  private hpBarBg:       Phaser.GameObjects.Rectangle | null = null;
+  private hpBarOutline:  Phaser.GameObjects.Rectangle | null = null;
+  private hpBarTrack:    Phaser.GameObjects.Rectangle | null = null;
   private hpBarFill:     Phaser.GameObjects.Rectangle | null = null;
+  private hpBarHi:       Phaser.GameObjects.Rectangle | null = null;
+  private hpBarLo:       Phaser.GameObjects.Rectangle | null = null;
   private hpBarLastPct = -1;
 
   private attackTimer: number;
@@ -114,7 +126,7 @@ export class Enemy {
     }
 
     this.sprite.setDepth(this.sprite.y);
-    if (this.hpBarBg) this.drawHPBar();
+    if (this.hpBarOutline) this.drawHPBar();
     if (this.state === 'attack' || this.state === 'hurt') return;
 
     if (this.isChasing) {
@@ -416,10 +428,16 @@ export class Enemy {
     this.isChasing = false;
     this.state = 'death';
     this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
-    this.hpBarBg?.destroy();
+    this.hpBarOutline?.destroy();
+    this.hpBarTrack?.destroy();
     this.hpBarFill?.destroy();
-    this.hpBarBg = null;
+    this.hpBarHi?.destroy();
+    this.hpBarLo?.destroy();
+    this.hpBarOutline = null;
+    this.hpBarTrack = null;
     this.hpBarFill = null;
+    this.hpBarHi = null;
+    this.hpBarLo = null;
 
     const center = this.sprite.getCenter();
     const type   = this.config.type;
@@ -466,31 +484,43 @@ export class Enemy {
   }
 
   private ensureHPBar(): void {
-    if (this.hpBarBg) return;
-    this.hpBarBg = this.mainScene.add
-      .rectangle(0, 0, BAR_W + 2, BAR_H + 2, 0x000000, 0.55)
-      .setDepth(5000)
-      .setOrigin(0.5, 0.5);
-    this.hpBarFill = this.mainScene.add
-      .rectangle(0, 0, BAR_W, BAR_H, 0x44cc44, 1)
-      .setDepth(5000)
+    if (this.hpBarOutline) return;
+    const add = this.mainScene.add;
+    this.hpBarOutline = add.rectangle(0, 0, BAR_W + BAR_BORDER * 2, BAR_H + BAR_BORDER * 2, BAR_C_OUTLINE)
+      .setDepth(5000);
+    this.hpBarTrack = add.rectangle(0, 0, BAR_W, BAR_H, BAR_C_TRACK)
+      .setDepth(5000);
+    this.hpBarFill = add.rectangle(0, 0, BAR_W, BAR_H, BAR_C_FILL)
+      .setDepth(5001)
       .setOrigin(0, 0.5);
+    this.hpBarHi = add.rectangle(0, 0, BAR_W, BAR_EDGE_H, BAR_C_FILL_HI)
+      .setDepth(5002)
+      .setOrigin(0, 0);
+    this.hpBarLo = add.rectangle(0, 0, BAR_W, BAR_EDGE_H, BAR_C_FILL_LO)
+      .setDepth(5002)
+      .setOrigin(0, 1);
   }
 
   private drawHPBar(): void {
-    if (!this.hpBarBg || !this.hpBarFill) return;
-    const pct = Math.max(0, this.HP / this.maxHP);
-    const cx  = this.sprite.x;
-    const cy  = this.sprite.y - this.cachedDisplayHeight * BAR_ANCHOR - BAR_OFFSET;
-    this.hpBarBg.setPosition(cx, cy);
-    this.hpBarFill.setPosition(cx - BAR_W / 2, cy);
+    if (!this.hpBarOutline || !this.hpBarTrack || !this.hpBarFill || !this.hpBarHi || !this.hpBarLo) return;
+    const pct  = Math.max(0, this.HP / this.maxHP);
+    const cx   = this.sprite.x;
+    const cy   = this.sprite.y - this.cachedDisplayHeight * BAR_ANCHOR - BAR_OFFSET;
+    const left = cx - BAR_W / 2;
 
-    // setSize y setFillStyle son costosos — solo actualizar cuando el HP cambia
+    this.hpBarOutline.setPosition(cx, cy);
+    this.hpBarTrack.setPosition(cx, cy);
+    this.hpBarFill.setPosition(left, cy);
+    this.hpBarHi.setPosition(left, cy - BAR_H / 2);
+    this.hpBarLo.setPosition(left, cy + BAR_H / 2);
+
+    // setSize es costoso — solo actualizar cuando el HP cambia
     if (pct !== this.hpBarLastPct) {
       this.hpBarLastPct = pct;
-      const color = pct > 0.5 ? 0x44cc44 : pct > 0.25 ? 0xffcc00 : 0xff3333;
-      this.hpBarFill.setSize(BAR_W * pct, BAR_H);
-      this.hpBarFill.setFillStyle(color, 1);
+      const w = Math.max(0, BAR_W * pct);
+      this.hpBarFill.setSize(w, BAR_H);
+      this.hpBarHi.setSize(w, BAR_EDGE_H);
+      this.hpBarLo.setSize(w, BAR_EDGE_H);
     }
   }
 
