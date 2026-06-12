@@ -19,13 +19,8 @@ $purple: #6e4a67;         // selección
 :host {
   display: block;
   box-sizing: border-box;
-  /* mismo alto que el marco del inventario (304px medidos en runtime) */
-  height: min(304px, calc(100% - 4px));
-
-  /* Talentos expandidos: el marco crece hasta llenar el modal */
-  &:has(.eq-wrapper--wide) {
-    height: calc(100% - 4px);
-  }
+  /* llena el modal: el marco llega hasta 10px por encima del footer */
+  height: calc(100% - 4px);
   margin: 2px; /* deja sitio al contorno exterior dentro del modal */
   padding: 8px;
   color: $text-cream;

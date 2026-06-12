@@ -24,7 +24,7 @@
   }
 &.inventory {
     top: 10px;
-    bottom: 53px;
+    bottom: 61px;  /* footer ~51px + 10px de aire */
     right: 10px;
     width: fit-content;
     /* El marco madera/piedra lo pinta el propio InventoryComponent (:host) */
@@ -33,7 +33,7 @@
   }
   &.equipment {
     top: 10px;
-    bottom: 53px;
+    bottom: 61px;  /* footer ~51px + 10px de aire */
     left: 10px;
     width: fit-content;
     /* El marco madera/piedra lo pinta el propio EquipmentComponent (:host).
@@ -60,7 +60,7 @@
   }
   &.game-settings {
     top: 10px;
-    bottom: 53px;
+    bottom: 61px;  /* footer ~51px + 10px de aire */
     right: 10px;
     width: 265px;
     /* el marco lo pinta el :host del componente (tema madera + piedra) */
