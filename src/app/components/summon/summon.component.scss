@@ -1,36 +1,73 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;        // contorno oscuro de todos los marcos
+$stone: #8f8678;          // piedra base
+$stone-light: #a59c8d;    // piedra iluminada (arriba/izq)
+$stone-dark: #6b6357;     // piedra en sombra (abajo/dcha)
+$wood-bg: #a86f3e;        // madera del panel
+$wood-bg-dark: #935f34;   // madera oscura
+$wood-btn: #c08349;       // madera de botones/placas
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;        // interior de celdas
+$cell-border: #21130e;
+$grid-bg: #4a3023;        // fondo del área de grid
+$text-brown: #53301c;     // texto sobre madera clara
+$text-cream: #ecd9b4;     // texto sobre fondos oscuros
+$purple: #6e4a67;         // selección
+
 :host {
   display: block;
-  background: #1a1a2e;
-  padding: 10px 8px;
-  color: #fff;
-  min-width: 282px;
   box-sizing: border-box;
+  min-height: calc(100% - 4px);  /* llena el modal; crece y scrollea si hace falta */
+  margin: 2px; /* deja sitio al contorno exterior dentro del modal */
+  padding: 10px 8px 8px;
+  min-width: 282px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
 }
+
+// ── Tabs principales (enemigos / items) ──────────────────────────────────────
 
 .summon-tabs {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   margin-bottom: 10px;
 }
 
 .summon-tab {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid #444;
-  border-radius: 4px;
-  font-size: 1.1em;
-  text-align: center;
-  cursor: pointer;
-  color: #888;
-  user-select: none;
+  flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 4px 0;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+  user-select: none;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s, color 0.15s;
 
-  &.active {
-    background: #3498db;
-    border-color: #3498db;
-    color: #fff;
+  &.active,
+  &:hover {
+    background: $wood-btn;
+    color: $text-brown;
+    box-shadow:
+      inset 0 0 0 1px $wood-btn-light,
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -50,7 +87,8 @@
 
 .group-name {
   font-size: 0.65em;
-  color: #888;
+  font-weight: 700;
+  color: $text-brown;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding-left: 2px;
@@ -62,30 +100,31 @@
   gap: 4px;
 }
 
-// ── Botón de invocación ──────────────────────────────────────────────────────
+// ── Botón de invocación (placa oscura hundida) ───────────────────────────────
 
 .enemy-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  background: #2a2a3e;
-  border: 1px solid #444;
+  background: $cell-bg;
+  border: 2px solid $outline;
   border-radius: 6px;
   padding: 6px 4px 6px;
   cursor: pointer;
-  color: #fff;
+  color: $text-cream;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   transition: border-color 0.15s, background 0.15s;
 
-  &:active:not([disabled]) { background: #3a3a5e; }
+  &:active:not([disabled]) { background: lighten($cell-bg, 5%); }
 
   &[disabled] {
     opacity: 0.35;
     cursor: not-allowed;
   }
 
-  &.elite    { border-color: #ffcc00; }
-  &.oblivion { border-color: #cc00ff; }
+  &.elite    { border-color: #b8862a; }   /* dorado apagado del tema */
+  &.oblivion { border-color: #6e4a9e; }   /* púrpura */
 }
 
 // Caja exterior: 72×72, recorta el frame escalado
@@ -94,7 +133,8 @@
   height: 72px;
   overflow: hidden;
   border-radius: 4px;
-  background-color: #1a1a2e;
+  background-color: $cell-border;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
 }
 
@@ -108,7 +148,7 @@
 
 .tier-label {
   font-size: 0.65em;
-  color: #ccc;
+  color: $text-cream;
   text-align: center;
   line-height: 1.2;
   white-space: nowrap;
@@ -123,7 +163,7 @@
 }
 
 .accordion-section {
-  border: 1px solid #2a2a4a;
+  border: 2px solid $outline;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -132,14 +172,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
-  background: #22223a;
+  padding: 7px 10px;
+  background: $wood-btn-dark;
   cursor: pointer;
   user-select: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   transition: background 0.15s;
 
-  &:hover  { background: #2a2a52; }
-  &:active { background: #2d4a70; }
+  &:hover  { background: $wood-btn; }
+  &:active { background: $wood-btn; }
 }
 
 .accordion-title {
@@ -148,52 +189,60 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #99aacc;
+  color: $text-cream;
 }
 
 .accordion-count {
   font-size: 0.65em;
-  color: #556;
+  color: rgba(236, 217, 180, 0.55);
   min-width: 16px;
   text-align: right;
 }
 
 .accordion-chevron {
   font-size: 0.8em;
-  color: #556;
+  color: rgba(236, 217, 180, 0.55);
 }
 
 .accordion-body {
   padding: 8px;
-  background: #1a1a2e;
+  background: $grid-bg;
 }
 
 // ── Items ────────────────────────────────────────────────────────────────────
 
 .item-subtabs {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   margin-bottom: 8px;
 }
 
 .item-subtab {
-  flex: 1;
-  padding: 5px 4px;
-  border: 1px solid #444;
-  border-radius: 4px;
+  flex: 1 1 0;
+  padding: 4px 4px;
+  border: 2px solid $outline;
+  border-radius: 5px;
   font-size: 0.68em;
+  font-weight: 700;
   text-align: center;
   cursor: pointer;
-  color: #888;
+  color: $text-cream;
+  background: $wood-btn-dark;
   user-select: none;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s, color 0.15s;
 
-  &.active {
-    background: #3498db;
-    border-color: #3498db;
-    color: #fff;
+  &.active,
+  &:hover {
+    background: $wood-btn;
+    color: $text-brown;
+    box-shadow:
+      inset 0 0 0 1px $wood-btn-light,
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -204,7 +253,7 @@
 .item-empty {
   grid-column: 1 / -1;
   text-align: center;
-  color: #555;
+  color: rgba(236, 217, 180, 0.45);
   font-size: 0.75em;
   padding: 12px 0;
 }
@@ -220,15 +269,16 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  background: #2a2a3e;
-  border: 1px solid #444;
+  background: $cell-bg;
+  border: 2px solid $outline;
   border-radius: 6px;
   padding: 8px 4px 6px;
   cursor: pointer;
-  color: #fff;
+  color: $text-cream;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   transition: border-color 0.15s, background 0.15s;
 
-  &:active { background: #3a3a5e; }
+  &:active { background: lighten($cell-bg, 5%); }
 }
 
 .item-frame {
@@ -237,8 +287,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1a1a2e;
+  background: $cell-border;
   border-radius: 4px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -281,7 +332,7 @@
 
 .item-name {
   font-size: 0.65em;
-  color: #ccc;
+  color: $text-cream;
   text-align: center;
   line-height: 1.2;
   white-space: nowrap;
