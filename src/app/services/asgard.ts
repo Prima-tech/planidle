@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { PlayerStateService } from './player-state.service';
 import { SaveService } from './save.service';
 import { PlayerBridgeService } from './player-bridge.service';
+import { AutoAttackService } from './auto-attack.service';
 
 @Injectable({ providedIn: 'root' })
 export class AsgardService {
@@ -26,6 +27,7 @@ export class AsgardService {
     private playerState: PlayerStateService,
     private saveService: SaveService,
     private playerBridge: PlayerBridgeService,
+    private autoAttack: AutoAttackService,
   ) {}
 
   // ── Roster ────────────────────────────────────────────────────────────────
@@ -69,6 +71,9 @@ export class AsgardService {
   // ── Session ───────────────────────────────────────────────────────────────
 
   async setSelectedPlayer(player: any): Promise<void> {
+    // Cambiar de personaje apaga la automatización (auto-ataque y auto-skills)
+    this.autoAttack.isEnabled = false;
+    this.autoAttack.skillsEnabled = false;
     this.selectedPlayer = new Character(player);
     await this.storageService.set('selected_player', player);
     await this.saveService.loadCharacter(String(player.id));
