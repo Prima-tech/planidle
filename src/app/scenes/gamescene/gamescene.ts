@@ -467,8 +467,8 @@ export class GameScene extends Phaser.Scene {
       if (!this.anims.exists('portal_spin')) {
         this.anims.create({
           key: 'portal_spin',
-          frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 6 }),
-          frameRate: 12,
+          frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 7 }),
+          frameRate: 10,
           repeat: -1,
         });
       }
@@ -478,7 +478,7 @@ export class GameScene extends Phaser.Scene {
         const py = portal.tilePos.y * GameScene.TILE_SIZE + GameScene.TILE_SIZE / 2;
         const sprite = this.add.sprite(px, py, 'portal');
         sprite.setDepth(1);
-        sprite.setScale(3);
+        sprite.setScale(1.5);
         sprite.play('portal_spin');
       });
     }

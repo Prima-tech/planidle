@@ -1,4 +1,4 @@
-
+﻿
 .modal-window {
   position: fixed;
   z-index: 200;
@@ -6,7 +6,7 @@
   pointer-events: auto;
   &.menu {
     top: 10px;
-    bottom: 65px;
+    bottom: 53px;
     right: 10px;
     width: 265px;
     /* el marco lo pinta el :host del componente (tema madera + piedra) */
@@ -24,7 +24,7 @@
   }
 &.inventory {
     top: 10px;
-    bottom: 65px;
+    bottom: 53px;
     right: 10px;
     width: fit-content;
     /* El marco madera/piedra lo pinta el propio InventoryComponent (:host) */
@@ -33,7 +33,7 @@
   }
   &.equipment {
     top: 10px;
-    bottom: 65px;
+    bottom: 53px;
     left: 10px;
     width: fit-content;
     /* El marco madera/piedra lo pinta el propio EquipmentComponent (:host).
@@ -42,7 +42,7 @@
   }
   &.summon {
     top: 10px;
-    bottom: 66px;
+    bottom: 54px;
     left: 10px;
     width: fit-content;
     background: #1a1a2e;
@@ -51,7 +51,7 @@
   }
   &.skill-detail {
     top: 10px;
-    bottom: 65px;
+    bottom: 53px;
     right: 280px;
     width: 200px;
     border-radius: 12px 12px 0 0;
@@ -60,17 +60,16 @@
   }
   &.game-settings {
     top: 10px;
-    bottom: 65px;
+    bottom: 53px;
     right: 10px;
     width: 265px;
-    border-radius: 12px 12px 0 0;
-    background: #1a1a2e;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    /* el marco lo pinta el :host del componente (tema madera + piedra) */
+    background: transparent;
     overflow: hidden;
   }
   &.skill-slots {
     top: 10px;
-    bottom: 65px;
+    bottom: 53px;
     right: 10px;
     width: 265px;
     border-radius: 12px 12px 0 0;
@@ -80,7 +79,7 @@
   }
   &.world-map {
     top: 10px;
-    bottom: 66px;
+    bottom: 54px;
     left: 10px;
     right: 10px;
     border-radius: 12px;

@@ -4,87 +4,120 @@
 
 .hud-skills {
   position: fixed;
-  right: 14px;
-  bottom: 64px;
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
+  inset: 0;
   z-index: 150;
-  pointer-events: all;
-  align-items: center;
+  pointer-events: none;
 }
 
+// Mismo estilo "esfera" que AttackButtonComponent, en azul zafiro.
+// Se colocan en arco alrededor del botón de ataque (centro right:75 / bottom:115).
 .hud-btn {
-  position: relative;
-  width: 48px;
-  height: 48px;
+  position: fixed;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: #0f1a2e;
-  border: 2px solid #2a3a5e;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.6), inset 0 1px 3px rgba(0,0,0,0.4);
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  background: radial-gradient(circle at 35% 28%, #5fa8e8 0%, #2a64b8 40%, #143a78 75%, #0a1e48 100%);
+  border: 2px solid rgba(185, 220, 255, 0.35);
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.65),
+    0 0 0 2px rgba(0, 0, 0, 0.45),
+    inset 0 2px 5px rgba(255, 255, 255, 0.30),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.50);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   overflow: hidden;
-  user-select: none;
-  -webkit-user-select: none;
+  transition: transform 70ms ease-out, box-shadow 70ms ease-out, filter 70ms ease-out;
+
+  // Brillo superior tipo cristal
+  &::before {
+    content: '';
+    position: absolute;
+    top: 5%;
+    left: 14%;
+    width: 72%;
+    height: 38%;
+    border-radius: 50%;
+    background: linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0));
+    pointer-events: none;
+    z-index: 1;
+  }
 
   &:active {
-    transform: scale(0.92);
-    border-color: #3498db;
-    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+    transform: scale(0.88);
+    filter: brightness(1.25);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.6),
+      0 0 14px rgba(80, 160, 255, 0.85),
+      inset 0 2px 5px rgba(255, 255, 255, 0.35),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.45);
   }
 
   &.no-target {
-    opacity: 0.4;
+    opacity: 0.45;
     filter: grayscale(60%);
   }
 
   &.edit-mode {
-    border-color: #e67e22;
-    box-shadow: 0 0 8px rgba(230, 126, 34, 0.5), inset 0 1px 3px rgba(0,0,0,0.4);
+    border-color: rgba(255, 190, 110, 0.75);
+    box-shadow:
+      0 3px 10px rgba(0, 0, 0, 0.65),
+      0 0 12px rgba(230, 126, 34, 0.65),
+      inset 0 2px 5px rgba(255, 255, 255, 0.30),
+      inset 0 -4px 8px rgba(0, 0, 0, 0.50);
   }
 }
 
-// slot 2 — botón superior (visualmente arriba)
-.hud-btn-slot-2 {
- 
-
-}
-
-// slot 1 — botón central
-.hud-btn-slot-1 {
-    bottom: 80px;
-    right: 40px;
-}
-
-// slot 0 — botón inferior (visualmente abajo)
+// Arco alrededor del botón de ataque (radio ~84px desde su centro)
+// slot 0 — arriba del botón de ataque
 .hud-btn-slot-0 {
-  bottom: 100px;
-  right: 10px;
+  right: 49px;
+  bottom: 173px;
+}
+
+// slot 1 — diagonal
+.hud-btn-slot-1 {
+  right: 108px;
+  bottom: 148px;
+}
+
+// slot 2 — a la izquierda
+.hud-btn-slot-2 {
+  right: 133px;
+  bottom: 89px;
 }
 
 .hud-btn-icon {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
   object-fit: cover;
   image-rendering: pixelated;
   border-radius: 50%;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.7);
 }
 
 .hud-btn-ion-icon {
-  font-size: 22px;
-  color: #3498db;
+  font-size: 24px;
+  color: #cfe6ff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
 }
 
 .hud-btn-plus {
-  font-size: 22px;
-  color: #3a4a6e;
+  font-size: 24px;
+  color: rgba(210, 230, 255, 0.55);
   font-weight: 300;
   line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .hud-cd-overlay {
@@ -93,10 +126,11 @@
   border-radius: 50%;
   background: conic-gradient(
     from -90deg,
-    rgba(0,0,0,0.72) 0deg var(--cd-angle),
+    rgba(0, 0, 0, 0.72) 0deg var(--cd-angle),
     transparent var(--cd-angle) 360deg
   );
   pointer-events: none;
+  z-index: 2;
 }
 
 .hud-cd-text {
@@ -105,9 +139,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 0 4px rgba(0,0,0,1);
+  text-shadow: 0 0 4px rgba(0, 0, 0, 1);
   pointer-events: none;
+  z-index: 3;
 }

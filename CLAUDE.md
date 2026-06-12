@@ -107,7 +107,7 @@ interface GameSnapshot {
 
 - Abrir un panel cierra el del **mismo lado**. Método: `closeOtherOnSide(side, except)` en FooterBarComponent
 - Panel nuevo → registrarlo en `groups` de `closeOtherOnSide()`
-- `bottom: 56px` en paneles laterales (altura exacta del `ion-toolbar`)
+- `bottom: 53-54px` en paneles laterales (altura del footer: botones 40px + padding + viga de piedra 5px ≈ 51px)
 
 ## Convenciones
 

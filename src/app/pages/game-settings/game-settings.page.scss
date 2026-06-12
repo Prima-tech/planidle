@@ -1,58 +1,113 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;        // contorno oscuro de todos los marcos
+$stone: #8f8678;          // piedra base
+$stone-light: #a59c8d;    // piedra iluminada (arriba/izq)
+$stone-dark: #6b6357;     // piedra en sombra (abajo/dcha)
+$wood-bg: #a86f3e;        // madera del panel
+$wood-bg-dark: #935f34;   // madera oscura
+$wood-btn: #c08349;       // madera de botones/placas
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;        // interior de celdas
+$cell-border: #21130e;
+$grid-bg: #4a3023;        // fondo del área de grid
+$text-brown: #53301c;     // texto sobre madera clara
+$text-cream: #ecd9b4;     // texto sobre fondos oscuros
+$purple: #6e4a67;         // selección
+
+:host {
+  display: block;
+  height: 100%;
+}
+
 .gs-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  color: #ccc;
+  height: calc(100% - 4px);
+  margin: 2px; /* deja sitio al contorno exterior dentro del modal */
+  box-sizing: border-box;
+  padding: 10px 10px 8px;
+  color: $text-cream;
   font-size: 13px;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
 }
+
+// ── Pestañas ──────────────────────────────────────────────────────────────────
 
 .gs-tabs {
   display: flex;
-  border-bottom: 1px solid #2a2a4e;
+  gap: 5px;
+  margin-bottom: 10px;
   flex-shrink: 0;
 }
 
 .gs-tab {
-  flex: 1;
-  padding: 10px 4px;
-  background: transparent;
-  border: none;
-  color: #666;
-  font-size: 12px;
+  flex: 1 1 0;
+  text-align: center;
+  padding: 2px 0;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  font-size: 0.75em;
+  font-weight: 700;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
+  user-select: none;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s, color 0.15s;
 
-  &.active {
-    color: #3498db;
-    border-bottom-color: #3498db;
+  &.active,
+  &:hover {
+    background-color: $wood-btn;
+    color: $text-brown;
+    box-shadow:
+      inset 0 0 0 1px $wood-btn-light,
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   }
 }
+
+// ── Contenido ─────────────────────────────────────────────────────────────────
 
 .gs-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
 }
 
 .gs-section {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .gs-section-label {
-  font-size: 11px;
-  color: #555;
+  font-size: 10px;
+  color: #6b4226;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0 0 8px 0;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  margin: 0 0 6px 2px;
 }
 
 .gs-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #1e1e36;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .gs-row-info {
@@ -62,14 +117,17 @@
 }
 
 .gs-row-title {
-  font-size: 13px;
-  color: #ddd;
+  font-size: 12px;
+  font-weight: 700;
+  color: $text-cream;
 }
 
 .gs-row-desc {
-  font-size: 11px;
-  color: #555;
+  font-size: 10px;
+  color: rgba($text-cream, 0.55);
 }
+
+// ── Toggle (palanca sobre piedra) ─────────────────────────────────────────────
 
 .gs-toggle {
   width: 54px;
@@ -79,14 +137,19 @@
   position: relative;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-  border: 1px solid #8b2020;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 8px rgba(180,30,30,0.2);
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 
   &.on {
     background: #1a4a2a;
-    border-color: #2ecc71;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 10px rgba(46, 204, 113, 0.3);
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 2px 4px rgba(0, 0, 0, 0.4),
+      0 0 10px rgba(46, 204, 113, 0.3);
   }
 
   &:active { transform: scale(0.96); }
@@ -94,18 +157,18 @@
 
 .gs-toggle-thumb {
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: 3px;
+  left: 3px;
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  background: #c0392b;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(180deg, #d99a5c 0%, #c08349 60%, #8a5530 100%);
+  border: 1px solid $outline;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 
   .gs-toggle.on & {
     transform: translateX(26px);
-    background: #2ecc71;
-    box-shadow: 0 0 8px rgba(46, 204, 113, 0.8), 0 1px 4px rgba(0,0,0,0.4);
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.6), 0 1px 4px rgba(0, 0, 0, 0.4);
   }
 }
