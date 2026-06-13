@@ -53,6 +53,14 @@ const SKILL_SPRITE_SOURCES: { key: string; path: string; count: number }[] = [
   { key: 'skill_explosion_two_colors',  path: 'assets/sprites/skills/explosion/Explosion_two_colors/Explosion_two_colors',     count: 10 },
 ];
 
+interface ActiveChest {
+  sprite: Phaser.GameObjects.Sprite;
+  col: number;
+  blocked: string[];
+  opening: boolean;
+  isTownChest?: boolean;
+}
+
 export class GameScene extends Phaser.Scene {
 
     static readonly TILE_SIZE = 48;
@@ -76,6 +84,15 @@ export class GameScene extends Phaser.Scene {
     private dropToWorldSub: { unsubscribe(): void } | null = null;
     private chestSub:       { unsubscribe(): void } | null = null;
     private placementSub:   { unsubscribe(): void } | null = null;
+    private clearedSub:     { unsubscribe(): void } | null = null;
+    // Construcciones colocadas por el jugador (no el cofre fijo): para poder
+    // quitarlas en caliente al "borrar todo".
+    private placedBuildings: {
+      sprite: Phaser.GameObjects.Sprite;
+      blocked: string[];
+      chestEntry?: ActiveChest;
+      isOpenUnsub?: () => void;
+    }[] = [];
     // Estado del modo colocación de construcciones (ghost + botones confirmar/cancelar)
     private buildPlacement: {
       def: BuildableDef;
@@ -87,7 +104,7 @@ export class GameScene extends Phaser.Scene {
       valid: boolean;
     } | null = null;
     private collisionTiles: Set<string>                    = new Set();
-    private activeChests: { sprite: Phaser.GameObjects.Sprite; col: number; blocked: string[]; opening: boolean; isTownChest?: boolean }[] = [];
+    private activeChests: ActiveChest[] = [];
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
@@ -192,6 +209,7 @@ export class GameScene extends Phaser.Scene {
       this.autoTarget = null;
       this.autoStuckMs = 0;
       this.autoBlacklist.clear();
+      this.placedBuildings = [];
       this.currentMapConfig = this.reg.world.getCurrentMap();
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
@@ -217,8 +235,10 @@ export class GameScene extends Phaser.Scene {
         this.dropToWorldSub?.unsubscribe();
         this.chestSub?.unsubscribe();
         this.placementSub?.unsubscribe();
+        this.clearedSub?.unsubscribe();
         this.cancelBuildPlacement();
         this.reg.cityBuild?.cancelPlacement();
+        this.placedBuildings = [];
         this.activeChests = [];
         this.reg.interaction?.setContext('attack');
         this.statsSub?.unsubscribe();
@@ -248,6 +268,7 @@ export class GameScene extends Phaser.Scene {
         this.initSummonListener();
         this.initChestListener();
         this.initBuildPlacementListener();
+        this.initBuildClearedListener();
         if (this.currentMapConfig.id === 'hogar') this.initPlacedBuildings();
         this.initStatsListener();
         this.registerSkillAnimations();
@@ -1164,9 +1185,12 @@ export class GameScene extends Phaser.Scene {
     }
 
     /** Crea un cofre de ciudad (fijo o construido) en (x,y) px: sprite, colisión y
-     *  sincronización con la ventana compartida. Ambos abren el mismo almacén. */
-    private addTownChest(x: number, y: number): void {
-      const TS  = GameScene.TILE_SIZE;
+     *  sincronización con la ventana compartida. Ambos abren el mismo almacén.
+     *  Devuelve el entry y un unsub del sync de frame (para quitarlo en caliente). */
+    private addTownChest(x: number, y: number): {
+      entry: ActiveChest;
+      isOpenUnsub: () => void;
+    } {
       const col = 0;
 
       const sprite = this.add.sprite(x, y, 'chests', col);
@@ -1190,7 +1214,10 @@ export class GameScene extends Phaser.Scene {
       const isOpenSub = this.reg.summon.townChestIsOpen$.subscribe(isOpen => {
         sprite.setFrame(isOpen ? col + 27 : col);
       });
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => isOpenSub.unsubscribe());
+      const isOpenUnsub = () => isOpenSub.unsubscribe();
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, isOpenUnsub);
+
+      return { entry, isOpenUnsub };
     }
 
     // ─────────────────────────── Construcción de ciudad ───────────────────────────
@@ -1221,14 +1248,38 @@ export class GameScene extends Phaser.Scene {
       if (!def) { console.warn(`spawnBuilding: tipo "${b.type}" desconocido`); return; }
       const { x, y } = this.buildingCenterPx(b.tileX, b.tileY);
       if (def.isTownChest) {
-        this.addTownChest(x, y);
+        const { entry, isOpenUnsub } = this.addTownChest(x, y);
+        this.placedBuildings.push({ sprite: entry.sprite, blocked: entry.blocked, chestEntry: entry, isOpenUnsub });
       } else {
         const sprite = this.add.sprite(x, y, def.spriteKey, def.frame);
         sprite.setScale(def.scale);
         sprite.setDepth(2);
-        const blocked = this.computeFootprintTiles(x, y, (32 * def.scale) / 2);
+        const blocked = this.computeFootprintTiles(x, y, (def.frameSize * def.scale) / 2);
         for (const k of blocked) this.collisionTiles.add(k);
+        this.placedBuildings.push({ sprite, blocked });
       }
+    }
+
+    private initBuildClearedListener(): void {
+      const cityBuild = this.reg.cityBuild;
+      if (!cityBuild) return;
+      this.clearedSub = cityBuild.cleared$.subscribe(() => this.removePlacedBuildings());
+    }
+
+    /** Quita en caliente todo lo construido por el jugador (no el cofre fijo). */
+    private removePlacedBuildings(): void {
+      for (const pb of this.placedBuildings) {
+        pb.isOpenUnsub?.();
+        pb.sprite.destroy();
+        for (const k of pb.blocked) this.collisionTiles.delete(k);
+        if (pb.chestEntry) {
+          const i = this.activeChests.indexOf(pb.chestEntry);
+          if (i !== -1) this.activeChests.splice(i, 1);
+        }
+      }
+      this.placedBuildings = [];
+      // Si la ventana del cofre seguía abierta por un cofre construido, el loop
+      // de update() la cerrará al no encontrar ningún cofre de ciudad cercano.
     }
 
     private async initPlacedBuildings(): Promise<void> {
@@ -1297,11 +1348,13 @@ export class GameScene extends Phaser.Scene {
       const { x, y } = this.buildingCenterPx(bp.tileX, bp.tileY);
       bp.ghost.setPosition(x, y);
 
-      const half  = (32 * bp.def.scale) / 2;
+      const TS    = GameScene.TILE_SIZE;
+      const half  = (bp.def.frameSize * bp.def.scale) / 2;
       const tiles = this.computeFootprintTiles(x, y, half);
       const inBounds =
-        bp.tileX - 1 >= 0 && bp.tileY - 1 >= 0 &&
-        bp.tileX + 1 < this.currentMap.width && bp.tileY + 1 < this.currentMap.height;
+        Math.floor((x - half) / TS) >= 0 && Math.floor((y - half) / TS) >= 0 &&
+        Math.floor((x + half - 1) / TS) < this.currentMap.width &&
+        Math.floor((y + half - 1) / TS) < this.currentMap.height;
       const free = tiles.every(k => !this.collisionTiles.has(k));
       bp.valid = inBounds && free;
 

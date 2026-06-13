@@ -22,6 +22,7 @@ export interface BuildableDef {
   name: string;       // clave i18n para el panel
   spriteKey: string;  // textura Phaser ya cargada (p.ej. 'chests')
   frame: number;      // frame dentro del spritesheet
+  frameSize: number;  // lado en px de un frame (32 para 'chests'); define el footprint
   scale: number;      // escala del sprite en el mundo
   tilesW: number;     // footprint en tiles (ancho)
   tilesH: number;     // footprint en tiles (alto)
@@ -36,6 +37,7 @@ export const BUILDABLES: BuildableDef[] = [
     name: 'BUILD.TOWN_CHEST',
     spriteKey: 'chests',
     frame: 0,
+    frameSize: 32,
     scale: 4,
     tilesW: 3,
     tilesH: 3,
@@ -62,6 +64,8 @@ export class CityBuildService {
   readonly placementMode$ = new BehaviorSubject<BuildableDef | null>(null);
   /** Emite cuando Phaser confirma una colocación (para refrescar el menú). */
   readonly placed$ = new Subject<PlacedBuilding>();
+  /** Emite al borrar todas las construcciones (Phaser quita sprites y colisión). */
+  readonly cleared$ = new Subject<void>();
 
   private storage = inject(StorageService);
   private cache: PlacedBuilding[] | null = null;
@@ -86,6 +90,14 @@ export class CityBuildService {
   /** ¿Ya hay una construcción de este tipo? (para ocultar uniques del menú). */
   isBuilt(type: string): boolean {
     return !!this.cache?.some(b => b.type === type);
+  }
+
+  /** Borra TODAS las construcciones (storage compartido) y notifica a la escena. */
+  async clear(): Promise<void> {
+    this.cache = [];
+    await this.storage.remove(STORAGE_KEY);
+    this.cancelPlacement();
+    this.cleared$.next();
   }
 
   def(type: string): BuildableDef | undefined {

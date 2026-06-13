@@ -6,6 +6,7 @@ import { PlayerBridgeService } from "src/app/services/player-bridge.service";
 import { InventoryService } from "src/app/services/inventory.service";
 import { IAttack } from "src/app/pnj/player/player";
 import { SaveService, SaveStatus, LocalInfo, ChangeDelta, SupabasePayload } from "src/app/services/save.service";
+import { CityBuildService } from "src/app/services/city-build.service";
 
 @Component({
   selector: 'app-settings-page',
@@ -19,6 +20,7 @@ export class SettingsPageComponent {
   private playerBridge     = inject(PlayerBridgeService);
   private inventoryService = inject(InventoryService);
   private saveService      = inject(SaveService);
+  private cityBuild        = inject(CityBuildService);
 
   readonly saveStatus$ = this.saveService.status$;
   readonly saveLabel$  = this.saveStatus$.pipe(map(s => SAVE_LABELS[s]));
@@ -44,6 +46,9 @@ export class SettingsPageComponent {
 
   async clearAll() {
     await this.saveService.clearCurrentCharacter();
+    // Las construcciones de ciudad viven en una clave global compartida, fuera
+    // del snapshot por personaje: hay que borrarlas aparte para poder reconstruir.
+    await this.cityBuild.clear();
     // La barra de HP lee el sprite Phaser, no el playerState: sin esto el
     // reset no se refleja en la barra hasta revivir o recargar
     this.playerBridge.resetPlayerStatus(100, 100);
