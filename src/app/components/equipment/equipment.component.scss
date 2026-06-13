@@ -137,6 +137,7 @@ $purple: #6e4a67;         // selección
   align-items: stretch;  /* el centro se estira a la altura de las columnas de items */
   gap: 6px;
   flex: 1;
+  padding-bottom: 1px;
 }
 
 .eq-col {

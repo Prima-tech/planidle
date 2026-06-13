@@ -111,6 +111,12 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet('portal', 'assets/sprites/resources/portal.png', { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
+      // Bolsas (equipo secundario): iconos sueltos usados como sprite del drop al invocar.
+      this.load.image('bag_1', 'assets/icon/bags/bag_01.png');
+      this.load.image('bag_2', 'assets/icon/bags/bag_02.png');
+      this.load.image('bag_3', 'assets/icon/bags/bag_3.png');
+      this.load.image('bag_4', 'assets/icon/bags/bag_4.png');
+
       for (const s of SKILL_SPRITE_SOURCES) {
         for (let i = 1; i <= s.count; i++) {
           const k = `${s.key}_${i}`;

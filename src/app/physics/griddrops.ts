@@ -284,6 +284,27 @@ const WEAPON_CATALOG: LootEntry[] = [
   },
 ];
 
+// Bolsas: se equipan en el slot 'backpack' (categoría 'Mochila') de la pestaña de
+// equipo secundaria. Iconos sueltos en assets/icon/bags. La `texture` es la clave
+// Phaser precargada en gamescene (preload) para el sprite del drop al invocarlas.
+const _bag = (textureKey: string, file: string, name: string, desc: string): LootEntry => ({
+  name,
+  category: 'Mochila',
+  type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: textureKey,
+  icon: `assets/icon/bags/${file}`,
+  scale: 2, order: 4,
+  description: desc,
+});
+
+const BAGS_CATALOG: LootEntry[] = [
+  _bag('bag_1', 'bag_01.png', 'Bolsa de Cuero',          'Una bolsa sencilla de cuero curtido.'),
+  _bag('bag_2', 'bag_02.png', 'Morral del Viajero',      'Morral resistente para largas jornadas.'),
+  _bag('bag_3', 'bag_3.png',  'Zurrón Reforzado',        'Zurrón con costuras reforzadas.'),
+  _bag('bag_4', 'bag_4.png',  'Mochila del Aventurero',  'Amplia mochila para todo tipo de botín.'),
+];
+
 const _catalogSeen = new Set<string>();
 export const ITEM_CATALOG: LootEntry[] = [
   ...Object.values(LOOT_TABLES)
@@ -298,6 +319,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...ARMOUR_CATALOG,
   ...HELMET_CATALOG,
   ...WEAPON_CATALOG,
+  ...BAGS_CATALOG,
 ];
 
 export class GridDrops {

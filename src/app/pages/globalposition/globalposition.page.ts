@@ -15,7 +15,6 @@ import { UnlockService } from 'src/app/services/unlock.service';
 })
 export class GlobalpositionPage implements OnInit, OnDestroy {
   isSelected: any = null;
-  chestOpen = false;
   charMapNames:  Record<string, string>           = {};
   charLastSeen:  Record<string, string>           = {};
   charEquipment: Record<string, EquipmentSnapshot> = {};
