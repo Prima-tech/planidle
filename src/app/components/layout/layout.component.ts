@@ -34,6 +34,7 @@ import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService } from 'src/app/services/talent.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { InteractionService } from 'src/app/services/interaction.service';
+import { CityBuildService } from 'src/app/services/city-build.service';
 
 @Component({
   selector: 'app-layout',
@@ -85,6 +86,7 @@ export class LayoutComponent implements OnDestroy {
     private talentService: TalentService,
     private badges: NotificationBadgeService,
     private interactionService: InteractionService,
+    private cityBuildService: CityBuildService,
   ) {
     this.loadGame();
   }
@@ -201,6 +203,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.SKILL_EQUIP,     this.skillEquipService);
     this.phaserGame.registry.set(REGISTRY_KEYS.TALENT,          this.talentService);
     this.phaserGame.registry.set(REGISTRY_KEYS.INTERACTION,     this.interactionService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.CITY_BUILD,      this.cityBuildService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

@@ -14,6 +14,7 @@ import { EQUIP_LAYER_REGISTRY } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
 import { NATIVE_DPR } from "./constants";
+import { BuildableDef, PlacedBuilding } from "src/app/services/city-build.service";
 
 const SKILL_SPRITE_SOURCES: { key: string; path: string; count: number }[] = [
   { key: 'skill_fire',           path: 'assets/sprites/skills/fire/Fire/fire_',                     count: 6  },
@@ -74,6 +75,17 @@ export class GameScene extends Phaser.Scene {
     private itemDropSub: { unsubscribe(): void } | null = null;
     private dropToWorldSub: { unsubscribe(): void } | null = null;
     private chestSub:       { unsubscribe(): void } | null = null;
+    private placementSub:   { unsubscribe(): void } | null = null;
+    // Estado del modo colocación de construcciones (ghost + botones confirmar/cancelar)
+    private buildPlacement: {
+      def: BuildableDef;
+      ghost: Phaser.GameObjects.Sprite;
+      check: Phaser.GameObjects.Container;
+      cancel: Phaser.GameObjects.Container;
+      tileX: number;
+      tileY: number;
+      valid: boolean;
+    } | null = null;
     private collisionTiles: Set<string>                    = new Set();
     private activeChests: { sprite: Phaser.GameObjects.Sprite; col: number; blocked: string[]; opening: boolean; isTownChest?: boolean }[] = [];
     private statsSub:    { unsubscribe(): void } | null = null;
@@ -204,6 +216,9 @@ export class GameScene extends Phaser.Scene {
         this.itemDropSub?.unsubscribe();
         this.dropToWorldSub?.unsubscribe();
         this.chestSub?.unsubscribe();
+        this.placementSub?.unsubscribe();
+        this.cancelBuildPlacement();
+        this.reg.cityBuild?.cancelPlacement();
         this.activeChests = [];
         this.reg.interaction?.setContext('attack');
         this.statsSub?.unsubscribe();
@@ -232,6 +247,8 @@ export class GameScene extends Phaser.Scene {
         this.initEquipLayers();
         this.initSummonListener();
         this.initChestListener();
+        this.initBuildPlacementListener();
+        if (this.currentMapConfig.id === 'hogar') this.initPlacedBuildings();
         this.initStatsListener();
         this.registerSkillAnimations();
         this.initSkillListener();
@@ -257,17 +274,18 @@ export class GameScene extends Phaser.Scene {
       const nearChest = this.nearestOpenableChest();
       this.reg.interaction?.setContext(nearChest ? 'chest' : 'attack');
 
-      // Si la ventana de cofre de ciudad está abierta y el jugador se alejó → cerrar
+      // Si la ventana de cofre de ciudad está abierta y el jugador se alejó de
+      // TODOS los cofres de ciudad (fijo + construidos) → cerrar.
       if (this.reg.summon.townChestIsOpen$.value) {
-        const tc  = this.activeChests.find(c => c.isTownChest);
-        if (tc) {
-          const pos = this.player.getPosition();
-          const dx  = tc.sprite.x - pos.x;
-          const dy  = tc.sprite.y - pos.y;
-          if (dx * dx + dy * dy > GameScene.CHEST_INTERACT_RANGE * GameScene.CHEST_INTERACT_RANGE) {
-            this.reg.summon.townChestCloseRequest$.next();
-          }
-        }
+        const pos   = this.player.getPosition();
+        const range = GameScene.CHEST_INTERACT_RANGE;
+        const anyNear = this.activeChests.some(c => {
+          if (!c.isTownChest) return false;
+          const dx = c.sprite.x - pos.x;
+          const dy = c.sprite.y - pos.y;
+          return dx * dx + dy * dy <= range * range;
+        });
+        if (!anyNear) this.reg.summon.townChestCloseRequest$.next();
       }
 
       // Botón de acción: si hay cofre cerca → abrir; si no → golpear
@@ -748,6 +766,8 @@ export class GameScene extends Phaser.Scene {
 
     createGameControls() {
       this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        // En modo colocación el toque mueve el ghost / confirma / cancela.
+        if (this.buildPlacement) { this.handleBuildPointer(pointer); return; }
         this.reg.asgard.closeAllMenus();
         this.onGameClick(pointer);
       });
@@ -1139,29 +1159,23 @@ export class GameScene extends Phaser.Scene {
 
     private spawnTownChest(): void {
       const TS  = GameScene.TILE_SIZE;
-      const col = 0;
       // 4 tiles a la derecha del spawn del jugador (tile 30,30)
-      const x = 34 * TS + TS / 2;
-      const y = 30 * TS + TS / 2;
+      this.addTownChest(34 * TS + TS / 2, 30 * TS + TS / 2);
+    }
+
+    /** Crea un cofre de ciudad (fijo o construido) en (x,y) px: sprite, colisión y
+     *  sincronización con la ventana compartida. Ambos abren el mismo almacén. */
+    private addTownChest(x: number, y: number): void {
+      const TS  = GameScene.TILE_SIZE;
+      const col = 0;
 
       const sprite = this.add.sprite(x, y, 'chests', col);
       sprite.setScale(4);
       sprite.setDepth(2);
 
       // Colisión: el sprite ocupa 128×128 px centrado en (x, y)
-      const half = (32 * 4) / 2;
-      const tx0 = Math.floor((x - half) / TS);
-      const tx1 = Math.floor((x + half - 1) / TS);
-      const ty0 = Math.floor((y - half) / TS);
-      const ty1 = Math.floor((y + half - 1) / TS);
-      const blocked: string[] = [];
-      for (let tx = tx0; tx <= tx1; tx++) {
-        for (let ty = ty0; ty <= ty1; ty++) {
-          const k = `${tx},${ty}`;
-          blocked.push(k);
-          this.collisionTiles.add(k);
-        }
-      }
+      const blocked = this.computeFootprintTiles(x, y, (32 * 4) / 2);
+      for (const k of blocked) this.collisionTiles.add(k);
 
       const entry = { sprite, col, blocked, opening: false, isTownChest: true };
       this.activeChests.push(entry);
@@ -1177,6 +1191,157 @@ export class GameScene extends Phaser.Scene {
         sprite.setFrame(isOpen ? col + 27 : col);
       });
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => isOpenSub.unsubscribe());
+    }
+
+    // ─────────────────────────── Construcción de ciudad ───────────────────────────
+
+    /** Lista de tiles `${x},${y}` cubiertas por una caja de lado 2·half px centrada en (x,y). */
+    private computeFootprintTiles(centerX: number, centerY: number, half: number): string[] {
+      const TS  = GameScene.TILE_SIZE;
+      const tx0 = Math.floor((centerX - half) / TS);
+      const tx1 = Math.floor((centerX + half - 1) / TS);
+      const ty0 = Math.floor((centerY - half) / TS);
+      const ty1 = Math.floor((centerY + half - 1) / TS);
+      const tiles: string[] = [];
+      for (let tx = tx0; tx <= tx1; tx++) {
+        for (let ty = ty0; ty <= ty1; ty++) tiles.push(`${tx},${ty}`);
+      }
+      return tiles;
+    }
+
+    /** Centro en px de la construcción cuyo tile-ancla es (tileX, tileY). */
+    private buildingCenterPx(tileX: number, tileY: number): { x: number; y: number } {
+      const TS = GameScene.TILE_SIZE;
+      return { x: tileX * TS + TS / 2, y: tileY * TS + TS / 2 };
+    }
+
+    /** Coloca una construcción persistida (al entrar en la ciudad). */
+    private spawnBuilding(b: PlacedBuilding): void {
+      const def = this.reg.cityBuild?.def(b.type);
+      if (!def) { console.warn(`spawnBuilding: tipo "${b.type}" desconocido`); return; }
+      const { x, y } = this.buildingCenterPx(b.tileX, b.tileY);
+      if (def.isTownChest) {
+        this.addTownChest(x, y);
+      } else {
+        const sprite = this.add.sprite(x, y, def.spriteKey, def.frame);
+        sprite.setScale(def.scale);
+        sprite.setDepth(2);
+        const blocked = this.computeFootprintTiles(x, y, (32 * def.scale) / 2);
+        for (const k of blocked) this.collisionTiles.add(k);
+      }
+    }
+
+    private async initPlacedBuildings(): Promise<void> {
+      const list = await this.reg.cityBuild.load();
+      for (const b of list) this.spawnBuilding(b);
+    }
+
+    private initBuildPlacementListener(): void {
+      const cityBuild = this.reg.cityBuild;
+      if (!cityBuild) return;
+      this.placementSub = cityBuild.placementMode$.subscribe(def => {
+        if (def) this.startBuildPlacement(def);
+        else     this.cancelBuildPlacement();
+      });
+    }
+
+    private startBuildPlacement(def: BuildableDef): void {
+      this.cancelBuildPlacement();
+      if (this.currentMapConfig.id !== 'hogar') { this.reg.cityBuild.cancelPlacement(); return; }
+
+      // Ghost inicial sobre el tile del jugador
+      const pos   = this.player.getPosition();
+      const tileX = Math.floor(pos.x / GameScene.TILE_SIZE);
+      const tileY = Math.floor(pos.y / GameScene.TILE_SIZE);
+      const { x, y } = this.buildingCenterPx(tileX, tileY);
+
+      const ghost = this.add.sprite(x, y, def.spriteKey, def.frame);
+      ghost.setScale(def.scale);
+      ghost.setAlpha(0.6);
+      ghost.setDepth(9000);
+
+      const check  = this.makeBuildButton(0x2ecc40, '✓').setDepth(9001);
+      const cancel = this.makeBuildButton(0xff4136, '✕').setDepth(9001);
+
+      this.buildPlacement = { def, ghost, check, cancel, tileX, tileY, valid: false };
+      this.refreshGhost();
+    }
+
+    private cancelBuildPlacement(): void {
+      if (!this.buildPlacement) return;
+      this.buildPlacement.ghost.destroy();
+      this.buildPlacement.check.destroy();
+      this.buildPlacement.cancel.destroy();
+      this.buildPlacement = null;
+    }
+
+    /** Botón circular (✓ / ✕) como container para colocarlo en coordenadas de mundo. */
+    private makeBuildButton(color: number, symbol: string): Phaser.GameObjects.Container {
+      const R = 40;
+      const g = this.add.graphics();
+      g.fillStyle(color, 1);
+      g.fillCircle(0, 0, R);
+      g.lineStyle(5, 0x000000, 1);
+      g.strokeCircle(0, 0, R);
+      const t = this.add.text(0, 0, symbol, {
+        fontSize: '52px', fontStyle: 'bold', color: '#ffffff',
+        stroke: '#000000', strokeThickness: 6,
+      }).setOrigin(0.5);
+      return this.add.container(0, 0, [g, t]);
+    }
+
+    /** Recalcula validez (colisión + límites) y actualiza tinte + botones. */
+    private refreshGhost(): void {
+      const bp = this.buildPlacement;
+      if (!bp) return;
+      const { x, y } = this.buildingCenterPx(bp.tileX, bp.tileY);
+      bp.ghost.setPosition(x, y);
+
+      const half  = (32 * bp.def.scale) / 2;
+      const tiles = this.computeFootprintTiles(x, y, half);
+      const inBounds =
+        bp.tileX - 1 >= 0 && bp.tileY - 1 >= 0 &&
+        bp.tileX + 1 < this.currentMap.width && bp.tileY + 1 < this.currentMap.height;
+      const free = tiles.every(k => !this.collisionTiles.has(k));
+      bp.valid = inBounds && free;
+
+      bp.ghost.setTint(bp.valid ? 0x66ff66 : 0xff5555);
+
+      // Botones por encima del ghost: ✓ a la derecha, ✕ a la izquierda
+      const by = y - half - 50;
+      bp.check.setPosition(x + 70, by);
+      bp.cancel.setPosition(x - 70, by);
+      bp.check.setVisible(bp.valid);   // el check solo aparece si se puede colocar
+    }
+
+    private handleBuildPointer(pointer: Phaser.Input.Pointer): void {
+      const bp = this.buildPlacement;
+      if (!bp) return;
+      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+      // ¿Tocó un botón? (hit-test manual por distancia al centro en mundo)
+      const HIT = 55;
+      const onCheck  = bp.check.visible &&
+        Phaser.Math.Distance.Between(world.x, world.y, bp.check.x, bp.check.y)  <= HIT;
+      const onCancel =
+        Phaser.Math.Distance.Between(world.x, world.y, bp.cancel.x, bp.cancel.y) <= HIT;
+
+      if (onCancel) { this.reg.cityBuild.cancelPlacement(); return; }
+      if (onCheck && bp.valid) { this.confirmBuildPlacement(); return; }
+
+      // Si no, mover el ghost al tile tocado
+      bp.tileX = Math.floor(world.x / GameScene.TILE_SIZE);
+      bp.tileY = Math.floor(world.y / GameScene.TILE_SIZE);
+      this.refreshGhost();
+    }
+
+    private confirmBuildPlacement(): void {
+      const bp = this.buildPlacement;
+      if (!bp || !bp.valid) return;
+      const b: PlacedBuilding = { type: bp.def.type, tileX: bp.tileX, tileY: bp.tileY };
+      this.reg.cityBuild.add(b);   // persiste (global, compartido) + notifica a Angular
+      this.spawnBuilding(b);       // construcción permanente con colisión
+      this.reg.cityBuild.cancelPlacement();  // limpia ghost/botones vía el listener
     }
 
     private openChest(chest: typeof this.activeChests[0]): void {

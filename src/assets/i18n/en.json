@@ -211,6 +211,11 @@
   "SUMMON": {
     "NO_ITEMS": "No items"
   },
+  "BUILD": {
+    "TITLE": "Build",
+    "NONE": "Nothing to build",
+    "TOWN_CHEST": "Town chest"
+  },
   "OFFLINE": {
     "TITLE": "AFK gains",
     "AWAY_SUFFIX": "away",

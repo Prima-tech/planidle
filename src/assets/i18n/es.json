@@ -211,6 +211,11 @@
   "SUMMON": {
     "NO_ITEMS": "Sin items"
   },
+  "BUILD": {
+    "TITLE": "Construir",
+    "NONE": "Nada que construir",
+    "TOWN_CHEST": "Cofre de ciudad"
+  },
   "OFFLINE": {
     "TITLE": "Ganancias AFK",
     "AWAY_SUFFIX": "fuera",

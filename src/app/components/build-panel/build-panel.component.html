@@ -1,0 +1,12 @@
+<div class="build-title">{{ 'BUILD.TITLE' | translate }}</div>
+
+<div class="build-grid">
+  <button *ngFor="let def of buildables" class="build-card" (click)="select(def)">
+    <div class="build-frame">
+      <div [ngStyle]="frameStyle(def)"></div>
+    </div>
+    <span class="build-label">{{ def.name | translate }}</span>
+  </button>
+
+  <div class="build-empty" *ngIf="!buildables.length">{{ 'BUILD.NONE' | translate }}</div>
+</div>

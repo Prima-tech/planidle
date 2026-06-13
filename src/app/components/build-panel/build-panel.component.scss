@@ -1,0 +1,95 @@
+/* ===== Tema madera + piedra (pixel-art RPG) — clona summon.component ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$wood-btn: #c08349;
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;
+$cell-border: #21130e;
+$text-brown: #53301c;
+$text-cream: #ecd9b4;
+
+:host {
+  display: block;
+  box-sizing: border-box;
+  min-height: calc(100% - 4px);
+  margin: 2px;
+  padding: 10px 8px 8px;
+  min-width: 240px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.build-title {
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-brown;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.build-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.build-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  padding: 8px 4px 6px;
+  cursor: pointer;
+  color: $text-cream;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: border-color 0.15s, background 0.15s;
+
+  &:active { background: lighten($cell-bg, 5%); }
+}
+
+.build-frame {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $cell-border;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.build-label {
+  font-size: 0.62em;
+  color: $text-cream;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.build-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(236, 217, 180, 0.45);
+  font-size: 0.75em;
+  padding: 12px 0;
+}

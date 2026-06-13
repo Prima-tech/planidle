@@ -22,6 +22,9 @@ import { AutoAttackService } from 'src/app/services/auto-attack.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { SummonService } from 'src/app/services/summon.service';
+import { WorldService } from 'src/app/services/world.service';
+import { CityBuildService } from 'src/app/services/city-build.service';
+import { BuildPanelComponent } from '../build-panel/build-panel.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -41,6 +44,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('worldMapModal')    worldMapModal!:    ModalContainerComponent;
   @ViewChild('progressModal')    progressModal!:    ModalContainerComponent;
   @ViewChild('shopModal')        shopModal!:        ModalContainerComponent;
+  @ViewChild('buildModal')       buildModal!:       ModalContainerComponent;
 
   private detailSub:        Subscription;
   private closeSub:         Subscription;
@@ -48,12 +52,16 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private sceneStartingSub: Subscription;
   private townChestSub:      Subscription;
   private townChestCloseSub: Subscription;
+  private worldSub:          Subscription;
+  private placementSub:      Subscription;
   private inventoryOpenedByChest = false;
   private cdInterval:       ReturnType<typeof setInterval> | null = null;
 
   page: 'main' | 'skills' = 'main';
   activeSkillSlot: number | null = null;
   locked = true;
+  /** Id del mapa actual: el botón de construir solo aparece en 'hogar'. */
+  currentMapId = 'hogar';
 
   readonly skillSlots = [1,2,3,4,5,6,7,8,9,10];
   // grados 0-360 del arco de cooldown para cada slot
@@ -71,6 +79,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   badges                         = inject(NotificationBadgeService);
   unlocks                        = inject(UnlockService);
   private summonService          = inject(SummonService);
+  private worldService           = inject(WorldService);
+  private cityBuild              = inject(CityBuildService);
 
   constructor() { }
 
@@ -104,6 +114,20 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.inventoryOpenedByChest = false;
     });
 
+    this.worldSub = this.worldService.currentMap$.subscribe(map => {
+      this.currentMapId = map.id;
+      // Al salir de la ciudad: cierra el panel y cancela cualquier colocación en curso.
+      if (map.id !== 'hogar') {
+        if (this.buildModal?.isOpenModal()) this.buildModal.close();
+        this.cityBuild.cancelPlacement();
+      }
+    });
+
+    // Al seleccionar un construible, el panel se cierra (el ghost ya vive en Phaser).
+    this.placementSub = this.cityBuild.placementMode$.subscribe(def => {
+      if (def && this.buildModal?.isOpenModal()) this.buildModal.close();
+    });
+
     this.sceneStartingSub = this.playerBridge.sceneStarting$.subscribe(() => {
       this.page = 'main';
       this.locked = true;
@@ -127,6 +151,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.sceneStartingSub?.unsubscribe();
     this.townChestSub?.unsubscribe();
     this.townChestCloseSub?.unsubscribe();
+    this.worldSub?.unsubscribe();
+    this.placementSub?.unsubscribe();
     if (this.cdInterval) clearInterval(this.cdInterval);
   }
 
@@ -156,7 +182,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal],
+      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal],
       right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal, this.progressModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
@@ -173,7 +199,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   togglePage() {
     if (this.page === 'main') {
       [this.menuModal, this.inventoryModal, this.equipmentModal,
-       this.summonModal, this.chestModal, this.worldMapModal, this.progressModal]
+       this.summonModal, this.chestModal, this.worldMapModal, this.progressModal, this.buildModal]
         .forEach(m => { if (m?.isOpenModal()) m.close(); });
       this.page = 'skills';
     } else {
@@ -325,6 +351,15 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   onChestModalClosed() {
     this.summonService.townChestIsOpen$.next(false);
+  }
+
+  openBuild() {
+    if (this.buildModal.isOpenModal()) {
+      this.buildModal.close();
+    } else {
+      this.closeOtherOnSide('left', this.buildModal);
+      this.buildModal.open(BuildPanelComponent, 'build');
+    }
   }
 
   openShop() {

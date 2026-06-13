@@ -35,6 +35,7 @@ import { ProgressPanelComponent } from './progress-panel/progress-panel.componen
 import { AchievementToastComponent } from './achievement-toast/achievement-toast.component';
 import { QuestTrackerComponent } from './quest-tracker/quest-tracker.component';
 import { ShopComponent } from './shop/shop.component';
+import { BuildPanelComponent } from './build-panel/build-panel.component';
 
 @NgModule({
   declarations: [
@@ -69,6 +70,7 @@ import { ShopComponent } from './shop/shop.component';
     AchievementToastComponent,
     QuestTrackerComponent,
     ShopComponent,
+    BuildPanelComponent,
   ],
   imports: [
     CommonModule,
