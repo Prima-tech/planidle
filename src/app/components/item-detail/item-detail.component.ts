@@ -20,8 +20,6 @@ const STAT_LABELS: Record<string, string> = {
 export class ItemDetailComponent {
   @Input() item: InventoryItem | null = null;
   @Input() panelStyle: { [key: string]: string } = {};
-  /** Rótulo opcional sobre la cabecera (p.ej. "Equipado" en el comparador). */
-  @Input() heading?: string;
 
   statLabel(key: string): string {
     return STAT_LABELS[key] ?? key;

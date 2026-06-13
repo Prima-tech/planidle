@@ -1382,9 +1382,22 @@ $metal-dark: #6b6357;
   }
 
   &.expanded { border-color: #b8862a; }
+
+  // Objetivo cumplido, pendiente de cobrar: borde dorado con leve pulso
+  &--ready {
+    border-color: #f0c040;
+    box-shadow: 0 0 8px rgba(240, 192, 64, 0.35);
+    animation: quest-ready-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes quest-ready-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(240, 192, 64, 0.25); }
+  50%      { box-shadow: 0 0 12px rgba(240, 192, 64, 0.55); }
 }
 
 .quest-card-head {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -1415,6 +1428,8 @@ $metal-dark: #6b6357;
     font-weight: 700;
     color: #f0c040;
     flex-shrink: 0;
+
+    &.ready { color: #5fbf6a; }
   }
 
   .quest-card-pin {
@@ -1471,6 +1486,32 @@ $metal-dark: #6b6357;
   font-weight: 700;
   color: rgba(236, 217, 180, 0.7);
   text-align: right;
+}
+
+.quest-claim-btn {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border: 2px solid #b8862a;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f0c040, #d4a000);
+  color: #3a2c20;
+  font-size: 0.72em;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: filter 0.15s;
+
+  ion-icon { font-size: 15px; }
+
+  &:hover  { filter: brightness(1.08); }
+  &:active { filter: brightness(0.92); }
 }
 
 .quest-activate {

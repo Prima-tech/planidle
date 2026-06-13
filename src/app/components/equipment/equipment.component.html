@@ -614,14 +614,17 @@
 <!-- Template reutilizable: tarjeta-acordeón de misión -->
 <ng-template #questTpl let-q="q" let-done="done">
   <div class="quest-card" [class.quest-card--done]="done"
+       [class.quest-card--ready]="!done && quests.isClaimable(q)"
        [class.expanded]="expandedQuestId === q.id">
     <button class="quest-card-head" (click)="toggleQuest(q)">
       <ion-icon class="quest-card-icon" [name]="q.icon"></ion-icon>
       <span class="quest-card-name">{{ q.name }}</span>
-      <span class="quest-card-progress" *ngIf="!done">
+      <span class="quest-card-progress" *ngIf="!done"
+            [class.ready]="quests.isClaimable(q)">
         {{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}
       </span>
-      <ion-icon class="quest-card-pin" *ngIf="!done && quests.isActive(q)" name="pin"></ion-icon>
+      <span class="notif-dot" *ngIf="!done && questIsNew(q)"></span>
+      <ion-icon class="quest-card-pin" *ngIf="!done && !quests.isClaimable(q) && quests.isActive(q)" name="pin"></ion-icon>
       <ion-icon class="quest-card-check" *ngIf="done" name="checkmark-circle"></ion-icon>
       <ion-icon class="quest-card-chevron"
                 [name]="expandedQuestId === q.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
@@ -637,8 +640,14 @@
         {{ quests.progressOf(q) }} / {{ quests.goalOf(q) }}
       </span>
 
+      <!-- Objetivo cumplido: botón para cobrar la recompensa -->
+      <button class="quest-claim-btn" *ngIf="quests.isClaimable(q)" (click)="quests.claim(q)">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        {{ 'QUESTS.CLAIM' | translate }}
+      </button>
+
       <!-- Activar = fijar en el rastreador del HUD (máx 5) -->
-      <div class="quest-activate" *ngIf="!done">
+      <div class="quest-activate" *ngIf="!done && !quests.isClaimable(q)">
         <button class="quest-activate-btn"
                 [class.active]="quests.isActive(q)"
                 [disabled]="!quests.isActive(q) && !quests.canActivate()"

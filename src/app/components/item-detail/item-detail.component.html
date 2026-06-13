@@ -1,7 +1,5 @@
 <div class="detail-panel" *ngIf="item" [ngStyle]="panelStyle">
 
-  <div *ngIf="heading" class="detail-heading">{{ heading }}</div>
-
   <div class="detail-header">
     <span class="detail-icon-box" *ngIf="item.iconSheet != null"
           [style.background-image]="'url(' + item.iconSheet + ')'"
@@ -13,8 +11,7 @@
     <span class="detail-name">{{ item.name }}</span>
   </div>
 
-  <p *ngIf="item.description" class="detail-description">{{ item.description }}</p>
-
+  <!-- Stats primero -->
   <ng-container *ngIf="item.stats">
     <div class="detail-divider"></div>
     <div class="detail-stats">
@@ -39,5 +36,11 @@
   <div *ngIf="item.mergeable && item.sum !== undefined" class="detail-quantity">
     {{ 'INVENTORY.QUANTITY' | translate }} {{ item.sum }}
   </div>
+
+  <!-- Descripción al fondo del panel -->
+  <ng-container *ngIf="item.description">
+    <div class="detail-divider detail-divider--push"></div>
+    <p class="detail-description">{{ item.description }}</p>
+  </ng-container>
 
 </div>

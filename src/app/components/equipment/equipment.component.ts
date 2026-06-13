@@ -48,9 +48,18 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   showAvailableQuests = true;
   showCompletedQuests = false;
   expandedQuestId: string | null = null;
+  /** Misiones cuyo acordeón ya se abrió: ocultan el icono de novedad. */
+  private seenQuests = new Set<string>();
 
   toggleQuest(q: QuestDef): void {
-    this.expandedQuestId = this.expandedQuestId === q.id ? null : q.id;
+    const opening = this.expandedQuestId !== q.id;
+    this.expandedQuestId = opening ? q.id : null;
+    if (opening) this.seenQuests.add(q.id);  // al abrir, deja de ser "novedad"
+  }
+
+  /** Muestra el icono de novedad: reclamable y aún no abierta. */
+  questIsNew(q: QuestDef): boolean {
+    return this.quests.isClaimable(q) && !this.seenQuests.has(q.id);
   }
 
   // Vista de equipo (tab 0): combate ↔ recolección comparten el mismo preview

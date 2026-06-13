@@ -29,16 +29,27 @@ acumulativos), una misión **no se autocompleta con bajas previas**:
 
 - **Progreso**: se incrementa con cada evento real (`KillService.killDetail$`,
   que solo emite en bajas reales, nunca en `restoreCharKills`) y se persiste por
-  personaje en `quests_char_<id>` → `{ progress: {questId: n}, completed: [] }`.
-- **Completado**: al llegar al `goal` se entrega la recompensa una sola vez, se
-  marca en el set `completed` (persistido) y la misión pasa a *Completadas*. Como
-  el set está persistido, al recargar no se vuelve a entregar ni a lanzar el toast.
+  personaje en `quests_char_<id>` → `{ progress, completed, active }`. Al alcanzar
+  el `goal` el progreso **deja de contar** (no rebasa el objetivo).
+- **Reclamable, NO autocompletada**: al llegar al `goal` la misión sigue en
+  *Disponibles* con un botón **Completar**, y se enciende el aviso
+  `badges.flag('equip.quests')` (mismo notif-dot que el punto de stats al subir
+  de nivel).
+- **Completado**: el jugador pulsa **Completar** → `claim()` entrega la recompensa
+  una sola vez, marca el set `completed` (persistido), lanza el toast y la pasa a
+  *Completadas*. Como el set está persistido, al recargar no se re-entrega.
 
-### Dos estados, no tres
+### El cobro es MANUAL (flujo reclamable)
 
-El diseño tiene **solo** Disponibles / Completadas. La recompensa se entrega
-**automáticamente** al completar (con toast "Misión completada"); no hay paso de
-"reclamar".
+`claim(def)` solo actúa si `isClaimable(def)` (`progreso >= goal && !completada`).
+La recompensa **no** se entrega sola: el botón Completar aparece en la tarjeta
+cuando la misión está reclamable. Avisos (idénticos al sistema de stats):
+
+- `onKill` hace `badges.flag('equip.quests')` justo al cruzar el `goal`.
+- El notif-dot sube solo al botón de equipo del footer (`has('equip')`) y a la
+  pestaña Misiones (`has('equip.quests')`).
+- Se limpia al abrir la pestaña (tab 6): `badges.clear('equip.quests')`.
+- `hasClaimable()` está disponible por si quieres avisos en otro sitio.
 
 ## Receta: añadir una misión
 
@@ -136,10 +147,11 @@ Ejemplo: "alcanza nivel 10", "gasta 1000 monedas", "consigue X ítem".
 ## UI (referencia)
 
 - Tab 6 de la ventana de equipo (icono `reader-outline`); badge `equip.quests`
-  se enciende al completar y se limpia al abrir la pestaña.
+  se enciende al volverse **reclamable** una misión y se limpia al abrir la pestaña.
 - `.quest-section` (cabecera plegable Disponibles/Completadas) → `.quest-card`
-  (tarjeta-acordeón por misión, plantilla `#questTpl`). Pin dorado en la cabecera
-  si está activa; botón Activar/Quitar en el cuerpo.
+  (tarjeta-acordeón por misión, plantilla `#questTpl`). Pin dorado si está activa;
+  borde dorado pulsante + notif-dot + botón **Completar** (`.quest-claim-btn`) si
+  está reclamable; botón Activar/Quitar en el cuerpo si aún no lo está.
 - Rastreador del HUD: `app-quest-tracker` en `layout.component.html`, posición
   absoluta `top: 86px; left: 8px` (cuelga bajo el top-bar de 72px).
 - Toast de completado: `AchievementToastComponent` escucha `quests.completed$`.

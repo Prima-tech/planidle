@@ -167,6 +167,7 @@
     "AVAILABLE": "Available",
     "COMPLETED": "Completed",
     "REWARD": "Reward",
+    "CLAIM": "Complete",
     "ACTIVATE": "Activate",
     "DEACTIVATE": "Remove from HUD",
     "FULL": "Max 5 active",

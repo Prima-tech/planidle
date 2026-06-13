@@ -14,8 +14,12 @@ import { NotificationBadgeService } from './notification-badge.service';
 //
 // Estados:
 //   - DISPONIBLE: progreso < objetivo (en curso)
-//   - COMPLETADA: progreso >= objetivo (recompensa ya entregada)
-// Ortogonal a esos dos: una misión disponible puede estar ACTIVA (fijada). Las
+//   - RECLAMABLE: progreso >= objetivo pero aún NO cobrada (sigue en Disponibles
+//     con un botón "Completar"). Al llegar al objetivo NO se autocompleta: se
+//     enciende el aviso (notif-dot 'equip.quests', mismo sistema que el punto de
+//     stats al subir de nivel) para indicar que se puede cobrar.
+//   - COMPLETADA: el jugador pulsó "Completar" → recompensa entregada.
+// Ortogonal a esos: una misión no completada puede estar ACTIVA (fijada). Las
 // activas se muestran en el rastreador del HUD (arriba-izquierda); máximo 5.
 // Activar es solo fijar en el HUD: el progreso cuenta igual estés o no activa.
 //
@@ -145,6 +149,8 @@ export class QuestService implements OnDestroy {
     this.activeSet    = new Set(saved?.active ?? []);
     // Sanea: una completada no puede seguir activa (saves antiguos / coherencia)
     for (const id of [...this.activeSet]) if (this.completedSet.has(id)) this.activeSet.delete(id);
+    // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar.
+    if (this.hasClaimable()) this.badges.flag('equip.quests');
     this.notify();
   }
 
@@ -174,6 +180,16 @@ export class QuestService implements OnDestroy {
 
   isCompleted(def: QuestDef): boolean {
     return this.completedSet.has(def.id);
+  }
+
+  /** Objetivo alcanzado pero aún sin cobrar: muestra el botón "Completar". */
+  isClaimable(def: QuestDef): boolean {
+    return !this.completedSet.has(def.id) && (this.progress[def.id] ?? 0) >= def.objective.goal;
+  }
+
+  /** ¿Hay alguna misión lista para cobrar? (para avisos). */
+  hasClaimable(): boolean {
+    return QUESTS.some(q => this.isClaimable(q));
   }
 
   isActive(def: QuestDef): boolean {
@@ -232,11 +248,15 @@ export class QuestService implements OnDestroy {
     for (const def of QUESTS) {
       if (this.completedSet.has(def.id)) continue;
       if (def.objective.type !== 'kill') continue;
+      // Ya alcanzó el objetivo: no se autocompleta, espera a "Completar".
+      if ((this.progress[def.id] ?? 0) >= def.objective.goal) continue;
       if (!matchesKill(def.objective, enemyType)) continue;
 
       this.progress[def.id] = (this.progress[def.id] ?? 0) + 1;
       changed = true;
-      if (this.progress[def.id] >= def.objective.goal) this.complete(def);
+      // Justo al alcanzar el objetivo: enciende el aviso (mismo notif-dot que
+      // el punto de stats al subir de nivel) para indicar que se puede cobrar.
+      if (this.progress[def.id] >= def.objective.goal) this.badges.flag('equip.quests');
     }
     if (changed) {
       this.notify();
@@ -244,12 +264,14 @@ export class QuestService implements OnDestroy {
     }
   }
 
-  private complete(def: QuestDef): void {
+  /** Cobra una misión reclamable: entrega recompensa y la pasa a Completadas. */
+  claim(def: QuestDef): void {
+    if (!this.isClaimable(def)) return;
     this.completedSet.add(def.id);
     this.activeSet.delete(def.id);   // al completarse deja de estar fijada en el HUD
     this.grantReward(def.reward);
-    this.badges.flag('equip.quests');
     this.completed$.next(def);
+    this.notify();
     this.persistNow();  // los completados se guardan al momento (recompensa ya dada)
   }
 

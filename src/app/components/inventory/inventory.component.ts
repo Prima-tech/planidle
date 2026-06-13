@@ -228,10 +228,11 @@ export class InventoryComponent implements OnInit, OnDestroy {
     if (this.selectedItem) {
       const rect = (this.el.nativeElement as HTMLElement).getBoundingClientRect();
       const detailRight = window.innerWidth - rect.left + 8;
+      // bottom: 63px → alineado con la base del modal de inventario (footer + aire)
       this.detailPanelStyle = {
         top:    rect.top + 'px',
         right:  detailRight + 'px',
-        bottom: '56px',
+        bottom: '63px',
       };
       // Comparador pegado a la izquierda del de info: ancho del panel (170 + 24 padding
       // + 8 borde = 202px, content-box) + 10px de separación.
@@ -239,7 +240,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
       this.comparePanelStyle = {
         top:     rect.top + 'px',
         right:   (detailRight + 202 + 10) + 'px',
-        bottom:  '56px',
+        bottom:  '63px',
         'z-index': '210',
       };
     }

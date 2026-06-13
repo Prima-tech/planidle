@@ -15,10 +15,44 @@ $text-cream: #ecd9b4;
   left: calc(8px + var(--safe-left, 0px));
   z-index: 45;
   width: 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;   // botón pegado a la izquierda
+  gap: 4px;
   pointer-events: none;
 }
 
+// Botón de ocultar/mostrar (a la izquierda, sobre la lista)
+.qt-toggle {
+  pointer-events: all;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  background: $wood-bg;
+  color: $text-cream;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    0 2px 6px rgba(0, 0, 0, 0.5);
+
+  ion-icon { font-size: 14px; color: #f0c040; }
+
+  .qt-toggle-count {
+    font-size: 0.6em;
+    font-weight: 700;
+    color: #f0c040;
+  }
+
+  &:active { background: $cell-bg; }
+}
+
 .quest-tracker-inner {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -75,3 +109,12 @@ $text-cream: #ecd9b4;
   color: #f0c040;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
+
+.qt-ready {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #5fbf6a;
+}
+
+// Misión lista para cobrar: el nombre en verde
+.qt-row--ready .qt-task { color: #8fe09a; }

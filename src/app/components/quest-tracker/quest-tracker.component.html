@@ -1,9 +1,21 @@
 <div class="quest-tracker" *ngIf="(quests.active$ | async) as list">
-  <div class="quest-tracker-inner" *ngIf="list.length > 0">
-    <div class="qt-row" *ngFor="let q of list">
-      <ion-icon class="qt-icon" [name]="q.icon"></ion-icon>
-      <span class="qt-task">{{ q.track || q.name }}</span>
-      <span class="qt-count">{{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}</span>
+  <ng-container *ngIf="list.length > 0">
+
+    <!-- Botón para ocultar/mostrar la lista -->
+    <button class="qt-toggle" (click)="toggle()"
+            [title]="collapsed ? 'Mostrar misiones' : 'Ocultar misiones'">
+      <ion-icon [name]="collapsed ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+      <span class="qt-toggle-count" *ngIf="collapsed">{{ list.length }}</span>
+    </button>
+
+    <div class="quest-tracker-inner" *ngIf="!collapsed">
+      <div class="qt-row" *ngFor="let q of list" [class.qt-row--ready]="quests.isClaimable(q)">
+        <ion-icon class="qt-icon" [name]="q.icon"></ion-icon>
+        <span class="qt-task">{{ q.track || q.name }}</span>
+        <ion-icon class="qt-ready" *ngIf="quests.isClaimable(q)" name="checkmark-circle"></ion-icon>
+        <span class="qt-count" *ngIf="!quests.isClaimable(q)">{{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}</span>
+      </div>
     </div>
-  </div>
+
+  </ng-container>
 </div>
