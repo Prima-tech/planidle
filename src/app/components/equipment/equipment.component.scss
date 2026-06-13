@@ -1444,7 +1444,7 @@ $metal-dark: #6b6357;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2a1a12;
+  background: $wood-btn-dark;
   border: 2px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 6px;
@@ -1476,10 +1476,9 @@ $metal-dark: #6b6357;
   .quest-card-name {
     flex: 1;
     min-width: 0;
-    font-weight: 800;
+    font-weight: 400;
     font-size: 0.7em;
-    color: #2a1709;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.18);
+    color: #f0d890;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1488,9 +1487,9 @@ $metal-dark: #6b6357;
   .quest-card-progress {
     flex-shrink: 0;
     font-size: 0.6em;
-    font-weight: 800;
-    color: #2a1709;
-    &.ready { color: #155e22; }
+    font-weight: 400;
+    color: #f0d890;
+    &.ready { color: #7fe08a; }
   }
 
   .quest-card-pin {
@@ -1533,24 +1532,28 @@ $metal-dark: #6b6357;
   color: rgba(83, 48, 28, 0.55);
 }
 
-// Cuerpo = panel interior ligeramente hundido sobre la madera clara
+// Panel de info desplegado: maquetación estándar con marco metálico (placa "Guts")
 .quest-card-body {
-  margin: 1px 9px 9px;
+  margin: 2px 9px 9px;
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
   border-radius: 6px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .quest-card-desc {
   margin: 0;
   font-size: 0.65em;
   line-height: 1.5;
-  color: #3a2412;
+  color: rgba(236, 217, 180, 0.82);
 }
 
 .quest-claim-btn {
@@ -1626,26 +1629,55 @@ $metal-dark: #6b6357;
   gap: 6px;
 
   .quest-reward-label {
+    width: 100%;
     font-size: 0.58em;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: rgba(83, 48, 28, 0.65);
-    margin-right: 1px;
+    color: rgba(236, 217, 180, 0.6);
   }
 
-  // Píldoras de recompensa
+  // Cada recompensa = placa de madera con bisel de piedra (como las monedas
+  // del inventario)
   .quest-reward-item {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    gap: 5px;
+    height: 24px;
+    padding: 0 8px;
+    background: $wood-btn;
+    border: 2px solid;
+    border-color: $stone-light $stone-dark $stone-dark $stone;
+    border-radius: 6px;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline;
+  }
+
+  .qr-amount {
     font-size: 0.62em;
     font-weight: 700;
-    color: #f0d890;
-
-    ion-icon { font-size: 12px; color: #f0c040; }
+    color: $text-brown;
   }
+
+  // Moneda girando (mismo sprite que el contador del inventario)
+  .qr-coin {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    background-image: url('../../../assets/sprites/resources/coin.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    animation: spin-coin 0.6s steps(5) infinite;
+  }
+
+  .qr-xp {
+    font-size: 15px;
+    color: #6fb6ec;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes spin-coin {
+  from { background-position: 0; }
+  to   { background-position: -90px; }
 }

@@ -647,10 +647,12 @@
       <div class="quest-reward" *ngIf="q.reward">
         <span class="quest-reward-label">{{ 'QUESTS.REWARD' | translate }}</span>
         <span class="quest-reward-item" *ngIf="q.reward.coins">
-          <ion-icon name="cash-outline"></ion-icon>{{ q.reward.coins }}
+          <span class="qr-coin"></span>
+          <span class="qr-amount">{{ q.reward.coins | number }}</span>
         </span>
         <span class="quest-reward-item" *ngIf="q.reward.exp">
-          <ion-icon name="star-outline"></ion-icon>{{ q.reward.exp }} EXP
+          <ion-icon class="qr-xp" name="star"></ion-icon>
+          <span class="qr-amount">{{ q.reward.exp | number }} EXP</span>
         </span>
       </div>
 
