@@ -371,3 +371,41 @@ $purple: #6e4a67;         // selección
   line-height: 1.2;
   white-space: nowrap;
 }
+
+// ── Visor de iconos ───────────────────────────────────────────────────────────
+
+.icon-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.misc-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.misc-icon-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  padding: 6px 2px 5px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.misc-icon-name {
+  font-size: 0.52em;
+  color: $text-cream;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
