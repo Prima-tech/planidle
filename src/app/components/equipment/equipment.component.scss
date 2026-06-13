@@ -15,6 +15,9 @@ $grid-bg: #4a3023;        // fondo del área de grid
 $text-brown: #53301c;     // texto sobre madera clara
 $text-cream: #ecd9b4;     // texto sobre fondos oscuros
 $purple: #6e4a67;         // selección
+$metal-light: #cfc7b8;    // marco metálico (placa del nombre "Guts")
+$metal: #9b9285;
+$metal-dark: #6b6357;
 
 :host {
   display: block;
@@ -1326,41 +1329,55 @@ $metal-dark: #6b6357;
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 5px 8px;
-  border: 2px solid $outline;
-  border-radius: 6px;
+  padding: 7px 10px;
+  // Placa estilo "Guts": madera clara + marco metálico
   background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 6px;
   color: $text-cream;
   cursor: pointer;
+  user-select: none;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 
-  .qs-icon { font-size: 16px; color: #f0c040; flex-shrink: 0; }
+  &:active { background: lighten($wood-btn-dark, 4%); }
+
+  .qs-icon { font-size: 15px; color: #f0c040; flex-shrink: 0; }
 
   .qs-title {
-    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 0.7em;
     font-weight: 700;
-    font-size: 0.74em;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
   }
 
   .qs-count {
     margin-left: auto;
-    font-size: 0.66em;
+    font-size: 0.64em;
     font-weight: 700;
     min-width: 16px;
     padding: 1px 5px;
     text-align: center;
     border-radius: 8px;
+    color: rgba(236, 217, 180, 0.85);
     background: rgba(0, 0, 0, 0.3);
   }
 
-  .qs-chevron { font-size: 14px; opacity: 0.8; }
+  .qs-chevron {
+    font-size: 0.75em;
+    color: rgba(236, 217, 180, 0.45);
+    flex-shrink: 0;
+  }
 }
 
-.quest-list { display: flex; flex-direction: column; gap: 5px; }
+.quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 12px;   // tarjetas indentadas bajo el encabezado de sección
+}
 
 .quest-empty {
   margin: 0;
@@ -1370,15 +1387,25 @@ $metal-dark: #6b6357;
   color: rgba(236, 217, 180, 0.45);
 }
 
+// Tarjeta = madera clara del HUD (mismo look que el rastreador), con borde de
+// piedra. Más clara que los encabezados (madera oscura + marco metálico).
 .quest-card {
-  border: 2px solid $outline;
-  border-radius: 6px;
-  background: $cell-bg;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 7px;
   overflow: hidden;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.15s;
 
   &--done {
-    opacity: 0.85;
-    .quest-card-name { color: rgba(236, 217, 180, 0.6); }
+    opacity: 0.8;
+    .quest-card-name { color: rgba(83, 48, 28, 0.55); }
   }
 
   &.expanded { border-color: #b8862a; }
@@ -1400,92 +1427,130 @@ $metal-dark: #6b6357;
   position: relative;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   width: 100%;
-  padding: 7px 8px;
+  padding: 8px 9px;
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
+}
 
-  .quest-card-icon {
-    font-size: 18px;
-    color: #f0c040;
-    flex-shrink: 0;
-    filter: drop-shadow(0 0 3px rgba(240, 192, 64, 0.4));
+// Icono en placa de piedra (mismo bisel que el avatar del top-bar)
+.quest-card-icon-wrap {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2a1a12;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  .quest-card-icon { font-size: 16px; color: #f0c040; }
+
+  &.ready {
+    border-color: #f0c040 #b8862a #b8862a #d4a000;
+    .quest-card-icon { color: #fff0b8; }
   }
+}
+
+.quest-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.quest-card-titlerow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
   .quest-card-name {
-    font-weight: 700;
-    font-size: 0.72em;
-    color: $text-cream;
     flex: 1;
-    line-height: 1.2;
+    min-width: 0;
+    font-weight: 800;
+    font-size: 0.7em;
+    color: #2a1709;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.18);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .quest-card-progress {
-    font-size: 0.64em;
-    font-weight: 700;
-    color: #f0c040;
     flex-shrink: 0;
-
-    &.ready { color: #5fbf6a; }
+    font-size: 0.6em;
+    font-weight: 800;
+    color: #2a1709;
+    &.ready { color: #155e22; }
   }
 
   .quest-card-pin {
-    font-size: 14px;
-    color: #f0c040;
     flex-shrink: 0;
+    font-size: 13px;
+    color: #6b4226;
     transform: rotate(40deg);
   }
 
   .quest-card-check {
-    font-size: 18px;
-    color: #5fbf6a;
     flex-shrink: 0;
-  }
-
-  .quest-card-chevron {
-    font-size: 13px;
-    color: rgba(236, 217, 180, 0.6);
-    flex-shrink: 0;
+    font-size: 16px;
+    color: #1f7a2f;
   }
 }
 
+// Barra de progreso fina, siempre visible en la cabecera
+.quest-card-track {
+  height: 5px;
+  background: $cell-border;
+  border: 1px solid $outline;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.quest-card-track-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #d4a000, #f0c040);
+  transition: width 0.3s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+  &.ready { background: linear-gradient(90deg, #3f9d4a, #6fd07a); }
+}
+
+.quest-card-chevron {
+  flex-shrink: 0;
+  font-size: 0.75em;
+  color: rgba(83, 48, 28, 0.55);
+}
+
+// Cuerpo = panel interior ligeramente hundido sobre la madera clara
 .quest-card-body {
-  padding: 0 9px 9px;
+  margin: 1px 9px 9px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .quest-card-desc {
   margin: 0;
-  font-size: 0.66em;
-  line-height: 1.45;
-  color: rgba(236, 217, 180, 0.78);
-}
-
-.quest-bar {
-  height: 9px;
-  background: $cell-border;
-  border: 2px solid $outline;
-  border-radius: 5px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.quest-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #d4a000, #f0c040);
-  transition: width 0.3s ease;
-}
-
-.quest-card-count {
-  font-size: 0.62em;
-  font-weight: 700;
-  color: rgba(236, 217, 180, 0.7);
-  text-align: right;
+  font-size: 0.65em;
+  line-height: 1.5;
+  color: #3a2412;
 }
 
 .quest-claim-btn {
@@ -1558,25 +1623,29 @@ $metal-dark: #6b6357;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  padding-top: 4px;
-  border-top: 1px solid rgba(236, 217, 180, 0.12);
+  gap: 6px;
 
   .quest-reward-label {
-    font-size: 0.6em;
+    font-size: 0.58em;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: rgba(236, 217, 180, 0.5);
+    color: rgba(83, 48, 28, 0.65);
+    margin-right: 1px;
   }
 
+  // Píldoras de recompensa
   .quest-reward-item {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 0.66em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 0.62em;
     font-weight: 700;
     color: #f0d890;
 
-    ion-icon { font-size: 13px; color: #f0c040; }
+    ion-icon { font-size: 12px; color: #f0c040; }
   }
 }

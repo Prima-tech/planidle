@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { InventoryItem } from 'src/app/services/inventory.service';
 import { BAG_SLOTS_BY_NAME } from 'src/app/services/inventory-unlock.service';
 
@@ -20,15 +20,33 @@ const STAT_LABELS: Record<string, string> = {
 export class ItemDetailComponent {
   @Input() item: InventoryItem | null = null;
   @Input() panelStyle: { [key: string]: string } = {};
+  /** Ítem con el que comparar (el seleccionado en el inventario). Activa los deltas. */
+  @Input() compareWith?: InventoryItem | null;
+  /** Emite al pulsar "Equipar" (solo en modo comparador). */
+  @Output() equip = new EventEmitter<void>();
 
   statLabel(key: string): string {
     return STAT_LABELS[key] ?? key;
   }
 
+  /** Diferencia del ítem nuevo (compareWith) respecto a este, para un stat. */
+  statDelta(key: string): number {
+    return (this.compareWith?.stats?.[key] ?? 0) - (this.item?.stats?.[key] ?? 0);
+  }
+
+  private slotsOf(it: InventoryItem | null | undefined): number {
+    if (!it) return 0;
+    return it.inventorySlots ?? BAG_SLOTS_BY_NAME[it.name] ?? 0;
+  }
+
   /** Huecos de inventario que añade una mochila (con fallback por nombre para saves antiguos). */
   get bagSlots(): number {
-    if (!this.item) return 0;
-    return this.item.inventorySlots ?? BAG_SLOTS_BY_NAME[this.item.name] ?? 0;
+    return this.slotsOf(this.item);
+  }
+
+  /** Diferencia de huecos del ítem nuevo respecto a este. */
+  get bagSlotsDelta(): number {
+    return this.slotsOf(this.compareWith) - this.slotsOf(this.item);
   }
 
   getSheetPos(frame: number = 0, cols: number = 12, frameSize: number = 32, contentSize?: number): string {

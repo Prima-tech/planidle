@@ -617,28 +617,42 @@
        [class.quest-card--ready]="!done && quests.isClaimable(q)"
        [class.expanded]="expandedQuestId === q.id">
     <button class="quest-card-head" (click)="toggleQuest(q)">
-      <ion-icon class="quest-card-icon" [name]="q.icon"></ion-icon>
-      <span class="quest-card-name">{{ q.name }}</span>
-      <span class="quest-card-progress" *ngIf="!done"
-            [class.ready]="quests.isClaimable(q)">
-        {{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}
+      <span class="quest-card-icon-wrap" [class.ready]="!done && quests.isClaimable(q)">
+        <ion-icon class="quest-card-icon" [name]="q.icon"></ion-icon>
       </span>
-      <span class="notif-dot" *ngIf="!done && questIsNew(q)"></span>
-      <ion-icon class="quest-card-pin" *ngIf="!done && !quests.isClaimable(q) && quests.isActive(q)" name="pin"></ion-icon>
-      <ion-icon class="quest-card-check" *ngIf="done" name="checkmark-circle"></ion-icon>
+
+      <div class="quest-card-main">
+        <div class="quest-card-titlerow">
+          <span class="quest-card-name">{{ q.name }}</span>
+          <ion-icon class="quest-card-pin" *ngIf="!done && !quests.isClaimable(q) && quests.isActive(q)" name="pin"></ion-icon>
+          <ion-icon class="quest-card-check" *ngIf="done" name="checkmark-circle"></ion-icon>
+          <span class="quest-card-progress" *ngIf="!done" [class.ready]="quests.isClaimable(q)">
+            {{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}
+          </span>
+        </div>
+        <div class="quest-card-track" *ngIf="!done">
+          <div class="quest-card-track-fill" [class.ready]="quests.isClaimable(q)"
+               [style.width.%]="quests.ratio(q) * 100"></div>
+        </div>
+      </div>
+
       <ion-icon class="quest-card-chevron"
                 [name]="expandedQuestId === q.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      <span class="notif-dot" *ngIf="!done && questIsNew(q)"></span>
     </button>
 
     <div class="quest-card-body" *ngIf="expandedQuestId === q.id">
       <p class="quest-card-desc">{{ q.desc }}</p>
 
-      <div class="quest-bar" *ngIf="!done">
-        <div class="quest-bar-fill" [style.width.%]="quests.ratio(q) * 100"></div>
+      <div class="quest-reward" *ngIf="q.reward">
+        <span class="quest-reward-label">{{ 'QUESTS.REWARD' | translate }}</span>
+        <span class="quest-reward-item" *ngIf="q.reward.coins">
+          <ion-icon name="cash-outline"></ion-icon>{{ q.reward.coins }}
+        </span>
+        <span class="quest-reward-item" *ngIf="q.reward.exp">
+          <ion-icon name="star-outline"></ion-icon>{{ q.reward.exp }} EXP
+        </span>
       </div>
-      <span class="quest-card-count" *ngIf="!done">
-        {{ quests.progressOf(q) }} / {{ quests.goalOf(q) }}
-      </span>
 
       <!-- Objetivo cumplido: botón para cobrar la recompensa -->
       <button class="quest-claim-btn" *ngIf="quests.isClaimable(q)" (click)="quests.claim(q)">
@@ -658,16 +672,6 @@
         <span class="quest-activate-full"
               *ngIf="!quests.isActive(q) && !quests.canActivate()">
           {{ 'QUESTS.FULL' | translate }}
-        </span>
-      </div>
-
-      <div class="quest-reward" *ngIf="q.reward">
-        <span class="quest-reward-label">{{ 'QUESTS.REWARD' | translate }}</span>
-        <span class="quest-reward-item" *ngIf="q.reward.coins">
-          <ion-icon name="cash-outline"></ion-icon>{{ q.reward.coins }}
-        </span>
-        <span class="quest-reward-item" *ngIf="q.reward.exp">
-          <ion-icon name="star-outline"></ion-icon>{{ q.reward.exp }} EXP
         </span>
       </div>
     </div>

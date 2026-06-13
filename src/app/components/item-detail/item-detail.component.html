@@ -11,36 +11,47 @@
     <span class="detail-name">{{ item.name }}</span>
   </div>
 
-  <!-- Stats primero -->
-  <ng-container *ngIf="item.stats">
-    <div class="detail-divider"></div>
-    <div class="detail-stats">
-      <div *ngFor="let stat of item.stats | keyvalue" class="stat-row">
+  <!-- Stats primero (placa de madera, como el bloque de monedas del inventario) -->
+  <div class="detail-stats" *ngIf="item.stats">
+    <div class="stat-block" *ngFor="let stat of item.stats | keyvalue">
+      <div class="stat-row">
         <span class="stat-label">{{ statLabel(stat.key) | translate }}</span>
         <span class="stat-value">{{ stat.value }}</span>
       </div>
+      <div *ngIf="compareWith" class="stat-delta"
+           [class.up]="statDelta(stat.key) > 0"
+           [class.down]="statDelta(stat.key) < 0">
+        {{ statDelta(stat.key) > 0 ? '+' : '' }}{{ statDelta(stat.key) }}
+      </div>
     </div>
-  </ng-container>
+  </div>
 
   <!-- Mochilas: huecos de inventario que añade al equiparse -->
-  <ng-container *ngIf="bagSlots > 0">
-    <div class="detail-divider"></div>
-    <div class="detail-stats">
+  <div class="detail-stats" *ngIf="bagSlots > 0">
+    <div class="stat-block">
       <div class="stat-row">
         <span class="stat-label">{{ 'INVENTORY.BAG_SLOTS' | translate }}</span>
         <span class="stat-value">+{{ bagSlots }}</span>
       </div>
+      <div *ngIf="compareWith" class="stat-delta"
+           [class.up]="bagSlotsDelta > 0"
+           [class.down]="bagSlotsDelta < 0">
+        {{ bagSlotsDelta > 0 ? '+' : '' }}{{ bagSlotsDelta }}
+      </div>
     </div>
-  </ng-container>
+  </div>
 
   <div *ngIf="item.mergeable && item.sum !== undefined" class="detail-quantity">
     {{ 'INVENTORY.QUANTITY' | translate }} {{ item.sum }}
   </div>
 
   <!-- Descripción al fondo del panel -->
-  <ng-container *ngIf="item.description">
-    <div class="detail-divider detail-divider--push"></div>
-    <p class="detail-description">{{ item.description }}</p>
-  </ng-container>
+  <p *ngIf="item.description" class="detail-description">{{ item.description }}</p>
+
+  <!-- Botón equipar: solo en el comparador (sustituye lo equipado por el nuevo) -->
+  <button *ngIf="compareWith" class="detail-equip-btn"
+          (click)="equip.emit(); $event.stopPropagation()">
+    {{ 'INVENTORY.EQUIP' | translate }}
+  </button>
 
 </div>

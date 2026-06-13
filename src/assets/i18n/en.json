@@ -91,6 +91,7 @@
     },
     "QUANTITY": "Quantity:",
     "EQUIPPED": "Equipped",
+    "EQUIP": "Equip",
     "BAG_SLOTS": "Inventory slots",
     "CONFIRM_DELETE": "Delete this item? This cannot be undone.",
     "DELETE_TITLE": "Delete item?",

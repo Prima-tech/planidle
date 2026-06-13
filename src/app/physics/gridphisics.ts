@@ -164,6 +164,11 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     return (dx * vec.x + dy * vec.y) > 0;
   }
 
+  /** Check público de colisión en píxeles (lo usa el knockback del jugador). */
+  isTileBlocked(px: number, py: number): boolean {
+    return this.isTileBlockedXY(px, py);
+  }
+
   // Sin allocations: usa índice numérico de capa como Enemy.isTileBlocked()
   private isTileBlockedXY(px: number, py: number): boolean {
     const tileX = Math.floor(px / GameScene.TILE_SIZE);

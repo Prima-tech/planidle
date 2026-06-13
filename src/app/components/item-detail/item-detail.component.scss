@@ -4,6 +4,7 @@ $stone: #8f8678;
 $stone-light: #a59c8d;
 $stone-dark: #6b6357;
 $wood-bg: #a86f3e;
+$wood-btn: #c08349;   // madera de las placas (igual que el bloque de monedas)
 $cell-bg: #38241d;
 $text-brown: #53301c;
 $text-cream: #ecd9b4;
@@ -13,6 +14,7 @@ $text-cream: #ecd9b4;
   z-index: 60;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
     $wood-bg;
@@ -30,16 +32,24 @@ $text-cream: #ecd9b4;
   overflow-y: auto;
 }
 
-/* Empuja la descripción (y su separador) al fondo del panel */
-.detail-divider--push {
-  margin-top: auto;
+/* Placa de madera con bisel de piedra: misma maquetación que el bloque de
+   monedas del inventario. La comparten el nombre y el paquete de stats. */
+.detail-header,
+.detail-stats {
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
 }
 
 .detail-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  padding: 6px 8px;
 }
 
 /* Icono de sprite (sheet): el frame se normaliza a 32px, así que el box es 32px */
@@ -85,26 +95,62 @@ $text-cream: #ecd9b4;
 .detail-description {
   font-size: 0.72em;
   color: #6b4226;
-  margin: 0 0 6px 0;
+  margin: auto 0 0 0;  /* empuja la descripción al fondo del panel */
   line-height: 1.4;
 }
 
-.detail-divider {
-  height: 2px;
-  background: rgba(58, 44, 32, 0.45);
-  margin: 6px 0;
+/* Botón equipar (comparador): placa de madera a lo ancho, al fondo del panel.
+   El panel tiene pointer-events:none, así que el botón los reactiva. */
+.detail-equip-btn {
+  margin-top: auto;   /* al fondo aunque no haya descripción */
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.78em;
+  font-weight: bold;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: $text-cream;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:hover  { background: #d99a5c; }
+  &:active { background: #8a5530; }
 }
 
 .detail-stats {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding: 6px 8px;
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
 }
 
 .stat-row {
   display: flex;
   justify-content: space-between;
   font-size: 0.75em;
+}
+
+/* Delta del ítem nuevo respecto al equipado (verde mejora, rojo empeora) */
+.stat-delta {
+  align-self: flex-end;
+  font-size: 0.68em;
+  font-weight: bold;
+  line-height: 1.1;
+  color: #6b6357; /* neutro: sin cambio (0) */
+
+  &.up   { color: #2e7d32; }
+  &.down { color: #c62828; }
 }
 
 .stat-label {

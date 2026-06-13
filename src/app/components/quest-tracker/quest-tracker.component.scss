@@ -60,7 +60,7 @@ $text-cream: #ecd9b4;
   box-sizing: border-box;
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
-    rgba(58, 36, 29, 0.82);
+    rgba(168, 111, 62, 0.92);
   border: 2px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 7px;
@@ -85,36 +85,35 @@ $text-cream: #ecd9b4;
 
 .qt-icon {
   font-size: 14px;
-  color: #f0c040;
+  color: #5a3a1d;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 2px rgba(240, 192, 64, 0.4));
 }
 
 .qt-task {
   flex: 1;
   min-width: 0;
   font-size: 0.62em;
-  font-weight: 600;
-  color: $text-cream;
+  font-weight: 700;
+  color: #3d2417;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .qt-count {
   flex-shrink: 0;
   font-size: 0.6em;
-  font-weight: 700;
-  color: #f0c040;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+  font-weight: 800;
+  color: #5a3a1d;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .qt-ready {
   flex-shrink: 0;
   font-size: 13px;
-  color: #5fbf6a;
+  color: #1f7a2f;
 }
 
-// Misión lista para cobrar: el nombre en verde
-.qt-row--ready .qt-task { color: #8fe09a; }
+// Misión lista para cobrar: el nombre en verde oscuro
+.qt-row--ready .qt-task { color: #1f6b2a; }

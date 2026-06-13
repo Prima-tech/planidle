@@ -814,7 +814,7 @@ export class GameScene extends Phaser.Scene {
 
 
     initEnemyAttackListener() {
-      this.events.on('enemyAttackPlayer', ({ damage }: { damage: number }) => {
+      this.events.on('enemyAttackPlayer', ({ damage, isCrit, sourceX, sourceY }: { damage: number; isCrit?: boolean; sourceX?: number; sourceY?: number }) => {
         const now = this.time.now;
         if (now - this.lastDamageTime < 500) return;
         this.lastDamageTime = now;
@@ -833,7 +833,11 @@ export class GameScene extends Phaser.Scene {
         }
         this.reg.playerBridge.setAttackToPlayer({ HP: -effectiveDamage });
         this.flashPlayer();
-        this.showPlayerDamage(effectiveDamage);
+        this.showPlayerDamage(effectiveDamage, isCrit);
+        // Un crítico enemigo empuja al jugador hacia atrás, alejándolo del enemigo.
+        if (isCrit && sourceX != null && sourceY != null) {
+          this.knockbackPlayer(sourceX, sourceY);
+        }
       });
 
       this.events.on('enemyDied', ({ type, position }: { type: string, position: Phaser.Math.Vector2 }) => {
@@ -959,18 +963,42 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    private showPlayerDamage(amount: number): void {
+    private showPlayerDamage(amount: number, isCrit = false): void {
       const sprite = this.player.getSprite();
       const x = sprite.x + Phaser.Math.Between(-20, 20);
       const y = sprite.y - sprite.displayHeight * 0.5;
-      const text = this.add.text(x, y, `-${amount}`, {
-        fontSize: '28px', color: '#ff4444', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 6,
+      const text = this.add.text(x, y, isCrit ? `-${amount}!` : `-${amount}`, {
+        fontSize: isCrit ? '36px' : '28px',
+        color:    isCrit ? '#ff8800' : '#ff4444',   // crítico en naranja y más grande
+        fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: isCrit ? 7 : 6,
       });
       text.setOrigin(0.5, 1).setDepth(5000);
       this.tweens.add({
         targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
         onComplete: () => text.destroy(),
+      });
+    }
+
+    // Empujón corto del jugador alejándose del enemigo que ha hecho crítico.
+    // El movimiento del jugador es por píxeles (no snap a rejilla), así que un
+    // tween directo del sprite es seguro; se frena si el destino choca con tile.
+    private knockbackPlayer(fromX: number, fromY: number): void {
+      const sprite = this.player.getSprite();
+      const dx = sprite.x - fromX;
+      const dy = sprite.y - fromY;
+      const d  = Math.sqrt(dx * dx + dy * dy) || 1;
+      const push = 26;
+      const nx = sprite.x + (dx / d) * push;
+      const ny = sprite.y + (dy / d) * push;
+      if (this.gridPhysics.isTileBlocked(nx, ny)) return;
+
+      this.tweens.killTweensOf(sprite);
+      this.tweens.add({
+        targets: sprite,
+        x: nx, y: ny,
+        duration: 110,
+        ease: 'Power2',
       });
     }
 

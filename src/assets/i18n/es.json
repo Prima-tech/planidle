@@ -91,6 +91,7 @@
     },
     "QUANTITY": "Cantidad:",
     "EQUIPPED": "Equipado",
+    "EQUIP": "Equipar",
     "BAG_SLOTS": "Huecos de inventario",
     "CONFIRM_DELETE": "¿Quieres borrar el objeto? No se puede revertir.",
     "DELETE_TITLE": "¿Borrar objeto?",

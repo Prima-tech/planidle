@@ -12,6 +12,11 @@ type Vector2  = Phaser.Math.Vector2;
 // Multiplicador global sobre la escala de cada tipo (ENEMY_REGISTRY)
 const SCALE_BOOST = 1.15;
 
+// Crítico de los enemigos al pegar al jugador: probabilidad (%) y multiplicador.
+// El crítico empuja al jugador hacia atrás (knockback lo gestiona la GameScene).
+const ENEMY_CRIT_CHANCE = 15;   // %
+const ENEMY_CRIT_MULT   = 1.6;
+
 const BAR_W      = 104;
 const BAR_H      = 14;
 const BAR_OFFSET = 4;
@@ -387,11 +392,14 @@ export class Enemy {
         : (Object.values(framesAny)[0] as any).end - (Object.values(framesAny)[0] as any).start + 1;
     }
     const hitDelay  = Math.round(frameCount * 0.4 / frameRate * 1000);
-    const damage    = this.damage;
+    const isCrit    = Math.random() * 100 < ENEMY_CRIT_CHANCE;
+    const damage    = Math.round(this.damage * (isCrit ? ENEMY_CRIT_MULT : 1));
 
     this.mainScene.time.delayedCall(hitDelay, () => {
       if (this.isDead) return;
-      this.mainScene.events.emit('enemyAttackPlayer', { damage });
+      this.mainScene.events.emit('enemyAttackPlayer', {
+        damage, isCrit, sourceX: this.sprite.x, sourceY: this.sprite.y,
+      });
     });
 
     this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {

@@ -63,6 +63,19 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Slot equipable equivalente a un ítem: el primero ocupado que lo acepte (combate
+   * o recolección), o el primero libre si ninguno está ocupado. null si no es equipable.
+   */
+  private targetSlotFor(item: InventoryItem): { kind: 'equip' | 'gather'; id: string; item: InventoryItem | null } | null {
+    const key = item.category ?? item.name;
+    const eq = this.equipmentService.slots.filter(s => s.accepts.includes(key));
+    if (eq.length) { const s = eq.find(x => x.item) ?? eq[0]; return { kind: 'equip', id: s.id, item: s.item }; }
+    const ga = this.gatheringService.slots.filter(s => s.accepts.includes(key));
+    if (ga.length) { const s = ga.find(x => x.item) ?? ga[0]; return { kind: 'gather', id: s.id, item: s.item }; }
+    return null;
+  }
+
+  /**
    * Ítem equipado equivalente al seleccionado, para el comparador. Devuelve null
    * (panel oculto) si: el equipo no está abierto en la pestaña de personaje, el
    * ítem no es equipable, o no hay nada equipado en su slot.
@@ -71,12 +84,27 @@ export class InventoryComponent implements OnInit, OnDestroy {
     if (!this.equipPanel.onCharacterEquipTab) return null;
     const sel = this.selectedItemData;
     if (!sel) return null;
-    const key = sel.category ?? sel.name;
-    // Slots equivalentes en combate + recolección (la mochila vive aquí)
-    const slots = [...this.equipmentService.slots, ...this.gatheringService.slots]
-      .filter(s => s.accepts.includes(key));
-    if (slots.length === 0) return null;            // no equipable → nada
-    return slots.find(s => s.item)?.item ?? null;   // sin nada equipado → nada
+    return this.targetSlotFor(sel)?.item ?? null;   // no equipable / sin nada equipado → nada
+  }
+
+  /** Equipa el ítem seleccionado en su slot equivalente; el desplazado vuelve a su celda. */
+  equipSelected(): void {
+    if (!this.selectedItem) return;
+    const sel = this.selectedItemData;
+    if (!sel) return;
+    const target = this.targetSlotFor(sel);
+    if (!target) return;
+    const cdkId = (target.kind === 'equip' ? 'equip-' : 'gather-') + target.id;
+    const displaced = target.kind === 'equip'
+      ? this.equipmentService.equip(cdkId, sel)
+      : this.gatheringService.equip(cdkId, sel);
+    // El nuevo deja su celda; el equipado anterior ocupa ese hueco (o se vacía)
+    const { tabIndex, row, col } = this.selectedItem;
+    this.inventories[tabIndex][row][col] = displaced ?? null;
+    this.selectedItem = null;
+    this.splitMenuOpen = false;
+    this.deleteModalOpen = false;
+    this.triggerSave();
   }
 
   @HostListener('document:click', ['$event'])
