@@ -25,6 +25,17 @@
     </div>
   </ng-container>
 
+  <!-- Mochilas: huecos de inventario que añade al equiparse -->
+  <ng-container *ngIf="bagSlots > 0">
+    <div class="detail-divider"></div>
+    <div class="detail-stats">
+      <div class="stat-row">
+        <span class="stat-label">{{ 'INVENTORY.BAG_SLOTS' | translate }}</span>
+        <span class="stat-value">+{{ bagSlots }}</span>
+      </div>
+    </div>
+  </ng-container>
+
   <div *ngIf="item.mergeable && item.sum !== undefined" class="detail-quantity">
     {{ 'INVENTORY.QUANTITY' | translate }} {{ item.sum }}
   </div>

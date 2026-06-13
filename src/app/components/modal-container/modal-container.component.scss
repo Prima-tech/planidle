@@ -30,6 +30,9 @@
     /* El marco madera/piedra lo pinta el propio InventoryComponent (:host) */
     background: transparent;
     overflow-y: auto;
+    /* Por encima de los demás modales (200) para que el comparador de equipo
+       —panel flotante hijo del inventario— se dibuje sobre el modal de equipo. */
+    z-index: 201;
   }
   &.equipment {
     top: 10px;

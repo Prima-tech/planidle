@@ -9,7 +9,7 @@ import { SupabaseService } from './supabase.service';
 import { WorldService } from './world.service';
 import { KillService, KillMap } from './kill.service';
 import { OfflineGainsService, OfflineGains } from './offline-gains.service';
-import { TalentService, TalentSnapshot } from './talent.service';
+import { TalentService, TalentSnapshot, TalentLoadouts } from './talent.service';
 import { SkillEquipService, SkillSlotsSnapshot } from './skill-equip.service';
 import { AfkBonusService } from './afk-bonus.service';
 import { AchievementService } from './achievement.service';
@@ -37,7 +37,10 @@ export interface GameSnapshot {
   gatheringLoadouts?: EquipmentLoadouts;
   mapId: string;
   kills: KillMap;
+  /** Config activa de talentos (compat: saves antiguos de una sola config) */
   talents?: TalentSnapshot;
+  /** Las 3 configs de talentos, ligadas a los sets de equipo */
+  talentLoadouts?: TalentLoadouts;
   skillSlots?: SkillSlotsSnapshot;
   baseStats?: import('./character-stats.service').BaseStats;
   lastSeen: string;
@@ -170,7 +173,11 @@ export class SaveService {
       }
       this.world.setCurrentMap(snapshot.mapId ?? 'hogar');
       this.kills.restoreCharKills(snapshot.kills ?? {});
-      this.talent.restoreFromSnapshot(snapshot.talents ?? null);
+      this.talent.restoreLoadouts(snapshot.talentLoadouts, snapshot.talents ?? null);
+      // Sincronizar: si los saves divergen, los talentos siguen al combate
+      if (this.talent.activeLoadout !== this.equipment.activeLoadout) {
+        this.talent.switchLoadout(this.equipment.activeLoadout);
+      }
       this.skillEquip.restoreFromSnapshot(snapshot.skillSlots ?? null);
       if (snapshot.baseStats) this.charStats.restoreStats(snapshot.baseStats);
     } else {
@@ -180,7 +187,7 @@ export class SaveService {
       this.gathering.restoreLoadouts(null);
       this.world.setCurrentMap('hogar');
       this.kills.restoreCharKills({});
-      this.talent.restoreFromSnapshot(null);
+      this.talent.restoreLoadouts(null, null);
       this.skillEquip.restoreFromSnapshot(null);
     }
     await this.kills.loadGlobalKills();
@@ -211,7 +218,7 @@ export class SaveService {
     this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
     this.equipment.clearAll();
     this.gathering.clearAll();
-    this.talent.restoreFromSnapshot(null);
+    this.talent.restoreLoadouts(null, null);
     this.charStats.resetStats();
     await this.unlocks.clearAll();
     await this.kills.resetAll();
@@ -310,6 +317,7 @@ export class SaveService {
       mapId:        this.world.getCurrentMap().id,
       kills:        this.kills.getCharKillsSnapshot(),
       talents:      this.talent.getSnapshot(),
+      talentLoadouts: this.talent.getLoadoutsSnapshot(),
       skillSlots:   this.skillEquip.getSnapshot(),
       baseStats:    { ...this.charStats.stats },
       lastSeen:     now,

@@ -234,11 +234,11 @@ export class InventoryComponent implements OnInit, OnDestroy {
         bottom: '56px',
       };
       // Comparador pegado a la izquierda del de info: ancho del panel (170 + 24 padding
-      // + 8 borde = 202px, content-box) + 8px de separación. z-index por encima del
-      // modal de equipo (200) para que salga sobre él, no detrás.
+      // + 8 borde = 202px, content-box) + 10px de separación.
+      // z-index por encima del modal de equipo (200) para que salga sobre él, no detrás.
       this.comparePanelStyle = {
         top:     rect.top + 'px',
-        right:   (detailRight + 202 + 8) + 'px',
+        right:   (detailRight + 202 + 10) + 'px',
         bottom:  '56px',
         'z-index': '210',
       };

@@ -1,0 +1,77 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$cell-bg: #38241d;
+$cell-border: #21130e;
+$text-cream: #ecd9b4;
+
+// Cuelga bajo el widget de personaje (top-bar mide 72px + ~10px de margen).
+.quest-tracker {
+  position: absolute;
+  top: 86px;
+  left: calc(8px + var(--safe-left, 0px));
+  z-index: 45;
+  width: 190px;
+  pointer-events: none;
+}
+
+.quest-tracker-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px 7px;
+  box-sizing: border-box;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    rgba(58, 36, 29, 0.82);
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    0 2px 8px rgba(0, 0, 0, 0.55);
+  animation: qt-in 0.18s ease-out both;
+}
+
+@keyframes qt-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.qt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.1;
+}
+
+.qt-icon {
+  font-size: 14px;
+  color: #f0c040;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 2px rgba(240, 192, 64, 0.4));
+}
+
+.qt-task {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.62em;
+  font-weight: 600;
+  color: $text-cream;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+.qt-count {
+  flex-shrink: 0;
+  font-size: 0.6em;
+  font-weight: 700;
+  color: #f0c040;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+}

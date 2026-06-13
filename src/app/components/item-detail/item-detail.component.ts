@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { InventoryItem } from 'src/app/services/inventory.service';
+import { BAG_SLOTS_BY_NAME } from 'src/app/services/inventory-unlock.service';
 
 const STAT_LABELS: Record<string, string> = {
   damage:   'ITEM_STAT.DAMAGE',
@@ -24,6 +25,12 @@ export class ItemDetailComponent {
 
   statLabel(key: string): string {
     return STAT_LABELS[key] ?? key;
+  }
+
+  /** Huecos de inventario que añade una mochila (con fallback por nombre para saves antiguos). */
+  get bagSlots(): number {
+    if (!this.item) return 0;
+    return this.item.inventorySlots ?? BAG_SLOTS_BY_NAME[this.item.name] ?? 0;
   }
 
   getSheetPos(frame: number = 0, cols: number = 12, frameSize: number = 32, contentSize?: number): string {

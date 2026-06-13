@@ -1417,6 +1417,13 @@ $metal-dark: #6b6357;
     flex-shrink: 0;
   }
 
+  .quest-card-pin {
+    font-size: 14px;
+    color: #f0c040;
+    flex-shrink: 0;
+    transform: rotate(40deg);
+  }
+
   .quest-card-check {
     font-size: 18px;
     color: #5fbf6a;
@@ -1464,6 +1471,46 @@ $metal-dark: #6b6357;
   font-weight: 700;
   color: rgba(236, 217, 180, 0.7);
   text-align: right;
+}
+
+.quest-activate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quest-activate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  background: $wood-btn;
+  color: $text-brown;
+  font-size: 0.66em;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+
+  ion-icon { font-size: 14px; }
+
+  &:hover:not(:disabled) { background: $wood-btn-light; }
+
+  &.active {
+    background: $cell-bg;
+    color: #f0c040;
+    border-color: #b8862a;
+  }
+
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+.quest-activate-full {
+  font-size: 0.58em;
+  color: rgba(236, 217, 180, 0.5);
 }
 
 .quest-reward {

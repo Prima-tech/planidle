@@ -27,6 +27,14 @@ export interface TalentSnapshot {
   nodes:   Record<string, SphereType | null>;
 }
 
+/** Tres configuraciones de talentos por personaje, ligadas a los sets de equipo */
+export interface TalentLoadouts {
+  active: number;
+  sets: (TalentSnapshot | null)[];
+}
+
+export const TALENT_LOADOUT_COUNT = 3;
+
 export const SPHERE_MULT: Record<SphereType, number> = {
   normal: 2,
   rare:   4,
@@ -411,8 +419,53 @@ export class TalentService {
   readonly slotted: Record<string, SphereType | null> = {};
   readonly changes$ = new Subject<void>();
 
+  // ── Loadouts: 3 configuraciones por personaje, ligadas a los sets de equipo ──
+  // La config activa vive en `spheres`/`slotted` (estado de trabajo); las demás,
+  // como snapshots guardados.
+  activeLoadout = 0;
+  private storedSets: (TalentSnapshot | null)[] = [null, null, null];
+
   constructor() {
     for (const n of ALL_NODES) this.slotted[n.id] = null;
+  }
+
+  /** Cambia la config activa: guarda la actual y restaura la elegida.
+   *  changes$ (vía restoreFromSnapshot) propaga el cambio a stats y auto-save. */
+  switchLoadout(index: number): void {
+    if (index === this.activeLoadout || index < 0 || index >= TALENT_LOADOUT_COUNT) return;
+    this.storedSets[this.activeLoadout] = this.getSnapshot();
+    this.activeLoadout = index;
+    this.restoreFromSnapshot(this.storedSets[index]);
+  }
+
+  /** Para persistir: las 3 configs con la activa leída del estado vivo */
+  getLoadoutsSnapshot(): TalentLoadouts {
+    const sets = this.storedSets.map((s, i) =>
+      i === this.activeLoadout ? this.getSnapshot() : (s ? this.cloneSnapshot(s) : null),
+    );
+    return { active: this.activeLoadout, sets };
+  }
+
+  /** Restaura las 3 configs. `legacy` migra saves antiguos de una sola config:
+   *  como antes los talentos no estaban ligados al equipo, se duplica la config
+   *  en los 3 sets (migración no destructiva — cada uno lleva su propia esfera). */
+  restoreLoadouts(data: TalentLoadouts | null | undefined, legacy?: TalentSnapshot | null): void {
+    if (data && Array.isArray(data.sets)) {
+      this.storedSets = Array.from({ length: TALENT_LOADOUT_COUNT }, (_, i) =>
+        data.sets[i] ? this.cloneSnapshot(data.sets[i]!) : null,
+      );
+      this.activeLoadout = Math.min(Math.max(data.active ?? 0, 0), TALENT_LOADOUT_COUNT - 1);
+    } else {
+      this.storedSets = Array.from({ length: TALENT_LOADOUT_COUNT }, () =>
+        legacy ? this.cloneSnapshot(legacy) : null,
+      );
+      this.activeLoadout = 0;
+    }
+    this.restoreFromSnapshot(this.storedSets[this.activeLoadout]);
+  }
+
+  private cloneSnapshot(snap: TalentSnapshot): TalentSnapshot {
+    return { spheres: { ...snap.spheres }, nodes: { ...snap.nodes } };
   }
 
   isUnlocked(nodeId: string): boolean {

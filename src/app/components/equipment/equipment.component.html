@@ -621,6 +621,7 @@
       <span class="quest-card-progress" *ngIf="!done">
         {{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}
       </span>
+      <ion-icon class="quest-card-pin" *ngIf="!done && quests.isActive(q)" name="pin"></ion-icon>
       <ion-icon class="quest-card-check" *ngIf="done" name="checkmark-circle"></ion-icon>
       <ion-icon class="quest-card-chevron"
                 [name]="expandedQuestId === q.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
@@ -635,6 +636,21 @@
       <span class="quest-card-count" *ngIf="!done">
         {{ quests.progressOf(q) }} / {{ quests.goalOf(q) }}
       </span>
+
+      <!-- Activar = fijar en el rastreador del HUD (máx 5) -->
+      <div class="quest-activate" *ngIf="!done">
+        <button class="quest-activate-btn"
+                [class.active]="quests.isActive(q)"
+                [disabled]="!quests.isActive(q) && !quests.canActivate()"
+                (click)="quests.toggleActive(q)">
+          <ion-icon [name]="quests.isActive(q) ? 'remove-circle-outline' : 'add-circle-outline'"></ion-icon>
+          {{ (quests.isActive(q) ? 'QUESTS.DEACTIVATE' : 'QUESTS.ACTIVATE') | translate }}
+        </button>
+        <span class="quest-activate-full"
+              *ngIf="!quests.isActive(q) && !quests.canActivate()">
+          {{ 'QUESTS.FULL' | translate }}
+        </span>
+      </div>
 
       <div class="quest-reward" *ngIf="q.reward">
         <span class="quest-reward-label">{{ 'QUESTS.REWARD' | translate }}</span>

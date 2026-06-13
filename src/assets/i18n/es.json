@@ -91,6 +91,7 @@
     },
     "QUANTITY": "Cantidad:",
     "EQUIPPED": "Equipado",
+    "BAG_SLOTS": "Huecos de inventario",
     "CONFIRM_DELETE": "¿Quieres borrar el objeto? No se puede revertir.",
     "DELETE_TITLE": "¿Borrar objeto?",
     "DELETE_WARNING": "Esta acción no se puede deshacer."
@@ -166,6 +167,9 @@
     "AVAILABLE": "Disponibles",
     "COMPLETED": "Completadas",
     "REWARD": "Recompensa",
+    "ACTIVATE": "Activar",
+    "DEACTIVATE": "Quitar del HUD",
+    "FULL": "Máx. 5 activas",
     "NONE_AVAILABLE": "No hay misiones disponibles.",
     "NONE_COMPLETED": "Aún no has completado ninguna misión."
   },

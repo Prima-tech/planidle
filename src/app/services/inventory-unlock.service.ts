@@ -9,7 +9,7 @@ const PER_TAB    = ROWS * COLS;   // 20 celdas por pestaña
 const BASE_SLOTS = PER_TAB;       // de inicio: primera pestaña completa
 
 // Fallback por nombre para bolsas guardadas antes de que existiera `inventorySlots`.
-const BAG_SLOTS_BY_NAME: Record<string, number> = {
+export const BAG_SLOTS_BY_NAME: Record<string, number> = {
   'Bolsa de Cuero':         4,
   'Morral del Viajero':     8,
   'Zurrón Reforzado':       12,

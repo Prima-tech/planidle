@@ -111,6 +111,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   switchLoadout(index: number): void {
     this.equipmentService.switchLoadout(index);
     this.gatheringService.switchLoadout(index);
+    this.talent.switchLoadout(index);
   }
 
   // ── Logros (tab 4) ───────────────────────────────────────────────────────────

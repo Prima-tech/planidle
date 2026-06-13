@@ -1,0 +1,9 @@
+<div class="quest-tracker" *ngIf="(quests.active$ | async) as list">
+  <div class="quest-tracker-inner" *ngIf="list.length > 0">
+    <div class="qt-row" *ngFor="let q of list">
+      <ion-icon class="qt-icon" [name]="q.icon"></ion-icon>
+      <span class="qt-task">{{ q.track || q.name }}</span>
+      <span class="qt-count">{{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}</span>
+    </div>
+  </div>
+</div>

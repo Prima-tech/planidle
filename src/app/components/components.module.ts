@@ -33,6 +33,7 @@ import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
 import { ProgressPanelComponent } from './progress-panel/progress-panel.component';
 import { AchievementToastComponent } from './achievement-toast/achievement-toast.component';
+import { QuestTrackerComponent } from './quest-tracker/quest-tracker.component';
 import { ShopComponent } from './shop/shop.component';
 
 @NgModule({
@@ -66,6 +67,7 @@ import { ShopComponent } from './shop/shop.component';
     CharacterSpriteComponent,
     ProgressPanelComponent,
     AchievementToastComponent,
+    QuestTrackerComponent,
     ShopComponent,
   ],
   imports: [
@@ -99,6 +101,7 @@ import { ShopComponent } from './shop/shop.component';
     EnemyNamePipe,
     CharacterSpriteComponent,
     AchievementToastComponent,
+    QuestTrackerComponent,
   ]
 })
 export class ComponentModule {}

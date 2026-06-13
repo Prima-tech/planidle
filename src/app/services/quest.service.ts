@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { StorageService } from './storage.service';
 import { KillService } from './kill.service';
 import { PlayerStateService } from './player-state.service';
@@ -12,13 +12,16 @@ import { NotificationBadgeService } from './notification-badge.service';
 // autocompleta con bajas previas. Por eso el progreso se incrementa con cada
 // evento real (KillService.killDetail$) y se persiste por personaje.
 //
-// Estados (solo dos grupos, como pide el diseño):
+// Estados:
 //   - DISPONIBLE: progreso < objetivo (en curso)
 //   - COMPLETADA: progreso >= objetivo (recompensa ya entregada)
+// Ortogonal a esos dos: una misión disponible puede estar ACTIVA (fijada). Las
+// activas se muestran en el rastreador del HUD (arriba-izquierda); máximo 5.
+// Activar es solo fijar en el HUD: el progreso cuenta igual estés o no activa.
 //
 // Para añadir tipos nuevos de misión: extender QuestObjective con un nuevo
-// 'type', cubrirlo en matchesKill()/progressTowards() y enganchar la fuente
-// del evento en el constructor (igual que killDetail$ para 'kill').
+// 'type', cubrirlo en matchesKill() y enganchar la fuente del evento en el
+// constructor (igual que killDetail$ para 'kill').
 
 /** Objetivo de una misión. Discriminado por `type` para crecer con más clases. */
 export type QuestObjective =
@@ -46,20 +49,27 @@ export interface QuestDef {
   name: string;
   desc: string;
   icon: string;           // ion-icon
+  /** Etiqueta corta para el rastreador del HUD ("lo que hay que hacer").
+   *  Si se omite, el HUD usa `name`. */
+  track?: string;
   objective: QuestObjective;
   reward?: QuestReward;
 }
+
+/** Máximo de misiones activas (fijadas en el HUD) a la vez. */
+export const MAX_ACTIVE_QUESTS = 5;
 
 // ── Catálogo de misiones ──────────────────────────────────────────────────────
 // El orden aquí es el orden de presentación.
 
 export const QUESTS: QuestDef[] = [
   {
-    id: 'slimes_10',
+    id: 'plaga_babosas',
     name: 'Plaga de babosas',
-    desc: 'Las babosas han invadido los caminos. Acaba con 10 de ellas.',
+    desc: 'Algo se mueve entre la hierba. Acaba con tu primer enemigo.',
     icon: 'water-outline',
-    objective: { type: 'kill', family: 'slime', goal: 10 },
+    track: 'Mata 1 enemigo',
+    objective: { type: 'kill', goal: 1 },
     reward: { coins: 150, exp: 60 },
   },
   {
@@ -67,6 +77,7 @@ export const QUESTS: QuestDef[] = [
     name: 'Cazador novato',
     desc: 'Demuestra tu valía derrotando a 50 enemigos cualesquiera.',
     icon: 'skull-outline',
+    track: 'Mata enemigos',
     objective: { type: 'kill', goal: 50 },
     reward: { coins: 300, exp: 150 },
   },
@@ -75,6 +86,7 @@ export const QUESTS: QuestDef[] = [
     name: 'Limpieza de orcos',
     desc: 'Los orcos acechan la zona. Abate a 5 de ellos.',
     icon: 'flame-outline',
+    track: 'Mata orcos',
     objective: { type: 'kill', family: 'orc', goal: 5 },
     reward: { coins: 200, exp: 80 },
   },
@@ -83,6 +95,7 @@ export const QUESTS: QuestDef[] = [
 interface QuestSave {
   progress: Record<string, number>;
   completed: string[];
+  active: string[];
 }
 
 const charKey = (id: string) => `quests_char_${id}`;
@@ -92,12 +105,15 @@ export class QuestService implements OnDestroy {
 
   /** Emite cada vez que se completa una misión (para el toast). */
   readonly completed$ = new Subject<QuestDef>();
-  /** Emite en cualquier cambio de estado (progreso o completado) para refrescar UI. */
+  /** Emite en cualquier cambio de estado (progreso, completado, activación). */
   readonly changes$ = new Subject<void>();
+  /** Lista de misiones activas (fijadas en el HUD). Para el rastreador. */
+  readonly active$ = new BehaviorSubject<QuestDef[]>([]);
 
   private charId: string | null = null;
   private progress: Record<string, number> = {};
   private completedSet = new Set<string>();
+  private activeSet = new Set<string>();
   private killSub: Subscription;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -124,17 +140,21 @@ export class QuestService implements OnDestroy {
   async loadForChar(charId: string): Promise<void> {
     this.charId = charId;
     const saved: QuestSave | null = await this.storage.get(charKey(charId));
-    this.progress     = saved?.progress  ? { ...saved.progress } : {};
+    this.progress     = saved?.progress ? { ...saved.progress } : {};
     this.completedSet = new Set(saved?.completed ?? []);
-    this.changes$.next();
+    this.activeSet    = new Set(saved?.active ?? []);
+    // Sanea: una completada no puede seguir activa (saves antiguos / coherencia)
+    for (const id of [...this.activeSet]) if (this.completedSet.has(id)) this.activeSet.delete(id);
+    this.notify();
   }
 
   async clearAll(): Promise<void> {
     this.progress = {};
     this.completedSet.clear();
+    this.activeSet.clear();
     if (this.persistTimer) { clearTimeout(this.persistTimer); this.persistTimer = null; }
-    if (this.charId) await this.storage.set(charKey(this.charId), { progress: {}, completed: [] });
-    this.changes$.next();
+    if (this.charId) await this.storage.set(charKey(this.charId), { progress: {}, completed: [], active: [] });
+    this.notify();
   }
 
   // ── Consultas para la UI ────────────────────────────────────────────────────
@@ -147,8 +167,26 @@ export class QuestService implements OnDestroy {
     return QUESTS.filter(q => this.completedSet.has(q.id));
   }
 
+  /** Misiones fijadas en el HUD (siempre no completadas). */
+  active(): QuestDef[] {
+    return QUESTS.filter(q => this.activeSet.has(q.id) && !this.completedSet.has(q.id));
+  }
+
   isCompleted(def: QuestDef): boolean {
     return this.completedSet.has(def.id);
+  }
+
+  isActive(def: QuestDef): boolean {
+    return this.activeSet.has(def.id);
+  }
+
+  activeCount(): number {
+    return this.active().length;
+  }
+
+  /** ¿Se puede fijar una más? (hay hueco bajo el máximo) */
+  canActivate(): boolean {
+    return this.activeCount() < MAX_ACTIVE_QUESTS;
   }
 
   /** Progreso actual hacia el objetivo (recortado al objetivo). */
@@ -165,6 +203,28 @@ export class QuestService implements OnDestroy {
     return Math.min(1, (this.progress[def.id] ?? 0) / def.objective.goal);
   }
 
+  // ── Activación (fijar/desfijar en el HUD) ───────────────────────────────────
+
+  /** Fija la misión en el HUD. No hace nada si está completada o no hay hueco. */
+  activate(def: QuestDef): void {
+    if (this.completedSet.has(def.id)) return;
+    if (this.activeSet.has(def.id)) return;
+    if (!this.canActivate()) return;
+    this.activeSet.add(def.id);
+    this.notify();
+    this.persistNow();
+  }
+
+  deactivate(def: QuestDef): void {
+    if (!this.activeSet.delete(def.id)) return;
+    this.notify();
+    this.persistNow();
+  }
+
+  toggleActive(def: QuestDef): void {
+    this.isActive(def) ? this.deactivate(def) : this.activate(def);
+  }
+
   // ── Registro de progreso ────────────────────────────────────────────────────
 
   private onKill(enemyType: string): void {
@@ -179,13 +239,14 @@ export class QuestService implements OnDestroy {
       if (this.progress[def.id] >= def.objective.goal) this.complete(def);
     }
     if (changed) {
-      this.changes$.next();
+      this.notify();
       this.schedulePersist();
     }
   }
 
   private complete(def: QuestDef): void {
     this.completedSet.add(def.id);
+    this.activeSet.delete(def.id);   // al completarse deja de estar fijada en el HUD
     this.grantReward(def.reward);
     this.badges.flag('equip.quests');
     this.completed$.next(def);
@@ -196,6 +257,12 @@ export class QuestService implements OnDestroy {
     if (!reward) return;
     if (reward.coins) this.playerState.collectCoins(reward.coins);
     if (reward.exp)   this.playerState.addExp(reward.exp);
+  }
+
+  /** Notifica a la UI: refresca rastreador del HUD y suscriptores de changes$. */
+  private notify(): void {
+    this.active$.next(this.active());
+    this.changes$.next();
   }
 
   // ── Persistencia ────────────────────────────────────────────────────────────
@@ -212,7 +279,11 @@ export class QuestService implements OnDestroy {
   private persistNow(): void {
     if (!this.charId) return;
     if (this.persistTimer) { clearTimeout(this.persistTimer); this.persistTimer = null; }
-    const save: QuestSave = { progress: this.progress, completed: [...this.completedSet] };
+    const save: QuestSave = {
+      progress: this.progress,
+      completed: [...this.completedSet],
+      active: [...this.activeSet],
+    };
     this.storage.set(charKey(this.charId), save);
   }
 }

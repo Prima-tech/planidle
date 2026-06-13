@@ -91,6 +91,7 @@
     },
     "QUANTITY": "Quantity:",
     "EQUIPPED": "Equipped",
+    "BAG_SLOTS": "Inventory slots",
     "CONFIRM_DELETE": "Delete this item? This cannot be undone.",
     "DELETE_TITLE": "Delete item?",
     "DELETE_WARNING": "This action cannot be undone."
@@ -166,6 +167,9 @@
     "AVAILABLE": "Available",
     "COMPLETED": "Completed",
     "REWARD": "Reward",
+    "ACTIVATE": "Activate",
+    "DEACTIVATE": "Remove from HUD",
+    "FULL": "Max 5 active",
     "NONE_AVAILABLE": "No quests available.",
     "NONE_COMPLETED": "You haven't completed any quests yet."
   },
