@@ -354,6 +354,56 @@ export class GridDrops {
     });
   }
 
+  /**
+   * Suelta un item del inventario al suelo. Construye un LootEntry a partir del
+   * InventoryItem y, si su textura no está cargada, la carga al vuelo (la imagen
+   * suelta `icon`, o el spritesheet `iconSheet`) antes de spawnear.
+   */
+  dropInventoryItem(position: Phaser.Math.Vector2, item: InventoryItem): void {
+    const sheet     = item.iconSheet;
+    const frameSize = item.iconFrameSize ?? 32;
+    const key       = `invdrop:${sheet ?? item.icon ?? item.name}`;
+
+    const loot: LootEntry = {
+      name: item.name,
+      category: item.category,
+      type: 'item',
+      chance: 1,
+      minQty: item.sum ?? 1,
+      maxQty: item.sum ?? 1,
+      mergeable: !!item.mergeable,
+      texture: key,
+      frame: sheet ? (item.iconFrame ?? 0) : 0,
+      icon: item.icon,
+      iconSheet: item.iconSheet,
+      iconFrame: item.iconFrame,
+      iconFrameSize: item.iconFrameSize,
+      iconFrameCols: item.iconFrameCols,
+      iconContentSize: item.iconContentSize,
+      scale: frameSize >= 64 ? 1 : 2,
+      order: item.order ?? 5,
+      description: item.description,
+      stats: item.stats,
+      inventorySlots: item.inventorySlots,
+    };
+
+    if (this.mainScene.textures.exists(key)) {
+      this.spawnDrop(position, loot);
+      return;
+    }
+
+    if (sheet) {
+      this.mainScene.load.spritesheet(key, sheet, { frameWidth: frameSize, frameHeight: frameSize });
+    } else if (item.icon) {
+      this.mainScene.load.image(key, item.icon);
+    } else {
+      this.spawnDrop(position, loot);  // sin arte: usa el fallback del nombre
+      return;
+    }
+    this.mainScene.load.once('complete', () => this.spawnDrop(position, loot));
+    this.mainScene.load.start();
+  }
+
   spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry): void {
     const offsetX = Phaser.Math.Between(-40, 40);
     const offsetY = Phaser.Math.Between(-20, 20);

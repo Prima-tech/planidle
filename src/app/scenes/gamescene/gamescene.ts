@@ -72,6 +72,7 @@ export class GameScene extends Phaser.Scene {
     private equipSub:    { unsubscribe(): void } | null = null;
     private summonSub:   { unsubscribe(): void } | null = null;
     private itemDropSub: { unsubscribe(): void } | null = null;
+    private dropToWorldSub: { unsubscribe(): void } | null = null;
     private chestSub:       { unsubscribe(): void } | null = null;
     private collisionTiles: Set<string>                    = new Set();
     private activeChests: { sprite: Phaser.GameObjects.Sprite; col: number; blocked: string[]; opening: boolean; isTownChest?: boolean }[] = [];
@@ -201,6 +202,7 @@ export class GameScene extends Phaser.Scene {
         this.equipSub?.unsubscribe();
         this.summonSub?.unsubscribe();
         this.itemDropSub?.unsubscribe();
+        this.dropToWorldSub?.unsubscribe();
         this.chestSub?.unsubscribe();
         this.activeChests = [];
         this.reg.interaction?.setContext('attack');
@@ -1013,6 +1015,18 @@ export class GameScene extends Phaser.Scene {
           pos.y + Math.sin(angle) * dist,
         );
         this.gridDrops.spawnDrop(spawn, entry);
+      });
+
+      // Items que no caben al cambiar de mochila → al suelo, junto al jugador
+      this.dropToWorldSub = this.reg.inventory.dropToWorld$.subscribe(item => {
+        const pos   = this.player.getPosition();
+        const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+        const dist  = Phaser.Math.Between(40, 90);
+        const spawn = new Phaser.Math.Vector2(
+          pos.x + Math.cos(angle) * dist,
+          pos.y + Math.sin(angle) * dist,
+        );
+        this.gridDrops.dropInventoryItem(spawn, item);
       });
     }
 

@@ -33,6 +33,8 @@ export class InventoryService {
   readonly itemDropped$   = new Subject<InventoryItem>();
   readonly changes$       = new Subject<void>();
   readonly removeRequest$ = new Subject<{ tabIndex: number; row: number; col: number }>();
+  /** Item que no cabe en el inventario y debe soltarse al suelo (lo escucha la escena Phaser). */
+  readonly dropToWorld$   = new Subject<InventoryItem>();
 
   private mockGrid: (InventoryItem | null)[][][] = this.buildGrid();
 
@@ -58,6 +60,11 @@ export class InventoryService {
     this.addToGrid(this.mockGrid, item);
     this.itemDropped$.next(item);
     this.changes$.next();
+  }
+
+  /** Suelta un item al suelo del mapa (no cabe en el inventario). */
+  dropToWorld(item: InventoryItem): void {
+    this.dropToWorld$.next(item);
   }
 
   getSnapshot(): (InventoryItem | null)[][][] {

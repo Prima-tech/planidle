@@ -37,6 +37,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private dropSub: Subscription;
   private removeSub: Subscription;
   private unlockSub: Subscription;
+  private prevUnlocked = 0;
 
   private panelState = inject(PanelStateService);
   private playerState = inject(PlayerStateService);
@@ -78,6 +79,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
     // Cargar datos reales (mock o Supabase)
     this.inventoryService.load().then(grid => {
       this.inventories = grid;
+      // Por si se equipó una mochila menor con el inventario cerrado
+      this.reconcileLockedItems();
     });
 
     // Recibir items recogidos del suelo en tiempo real
@@ -92,7 +95,11 @@ export class InventoryComponent implements OnInit, OnDestroy {
     });
 
     // Al cambiar la mochila equipada cambian las celdas/pestañas disponibles
-    this.unlockSub = this.unlock.unlocked$.subscribe(() => {
+    this.prevUnlocked = this.unlock.unlocked;
+    this.unlockSub = this.unlock.unlocked$.subscribe(n => {
+      // La mochila nueva tiene menos huecos → reubicar/soltar lo que se queda fuera
+      if (n < this.prevUnlocked) this.reconcileLockedItems();
+      this.prevUnlocked = n;
       if (!this.unlock.isTabVisible(this.activeTabIndex)) this.selectTab(0);
     });
   }
@@ -109,6 +116,48 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   isCellUnlocked(tabIndex: number, row: number, col: number): boolean {
     return this.unlock.isUnlocked(tabIndex, row, col);
+  }
+
+  /** Items que quedaron en celdas ahora bloqueadas: se reubican; si no caben, al suelo. */
+  private reconcileLockedItems(): void {
+    const orphans: InventoryItem[] = [];
+    for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
+      for (let i = 0; i < this.ROWS; i++) {
+        for (let j = 0; j < this.COLUMNS; j++) {
+          if (!this.unlock.isUnlocked(t, i, j) && this.inventories[t][i][j]) {
+            orphans.push(this.inventories[t][i][j]!);
+            this.inventories[t][i][j] = null;
+          }
+        }
+      }
+    }
+    if (!orphans.length) return;
+    for (const item of orphans) this.placeOrDropToWorld(item);
+    this.triggerSave();
+  }
+
+  /** Coloca el item en un hueco desbloqueado (fusionando si aplica) o lo suelta al suelo. */
+  private placeOrDropToWorld(item: InventoryItem): void {
+    if (item.mergeable) {
+      for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
+        for (let i = 0; i < this.ROWS; i++) {
+          for (let j = 0; j < this.COLUMNS; j++) {
+            if (!this.unlock.isUnlocked(t, i, j)) continue;
+            const existing = this.inventories[t][i][j];
+            if (existing?.mergeable && existing.name === item.name) {
+              existing.sum = (existing.sum ?? 0) + (item.sum ?? 1);
+              return;
+            }
+          }
+        }
+      }
+    }
+    const cell = this.findFirstEmptyCell();
+    if (cell) {
+      this.inventories[cell.tabIndex][cell.row][cell.col] = item;
+      return;
+    }
+    this.inventoryService.dropToWorld(item);
   }
 
   isTabVisible(tabIndex: number): boolean {

@@ -1,6 +1,6 @@
-<div class="eq-wrapper" [class.eq-wrapper--wide]="talentExpanded && (activeTab === 3 || activeTab === 4)">
+<div class="eq-wrapper" [class.eq-wrapper--wide]="talentExpanded && activeTab === 4">
 
-  <button *ngIf="activeTab === 3 || activeTab === 4"
+  <button *ngIf="activeTab === 4"
           class="talent-expand-btn"
           (click)="talentExpanded = !talentExpanded">
     <ion-icon [name]="talentExpanded ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
@@ -12,9 +12,6 @@
     </button>
     <button class="eq-vtab" [class.active]="activeTab === 2" (click)="activeTab = 2">
       <ion-icon name="podium-outline"></ion-icon>
-    </button>
-    <button class="eq-vtab" [class.active]="activeTab === 3" (click)="activeTab = 3">
-      <ion-icon name="sparkles-outline"></ion-icon>
     </button>
     <button class="eq-vtab" [class.active]="activeTab === 4" (click)="activeTab = 4">
       <ion-icon name="git-network-outline"></ion-icon>
@@ -402,39 +399,6 @@
 
   </div>
 
-  <!-- Tab 3: Talentos -->
-  <div class="talent-panel" *ngIf="activeTab === 3">
-
-    <!-- Sub-tabs -->
-    <div class="talent-tree-tabs" *ngIf="talentTrees.length > 1">
-      <button *ngFor="let tree of talentTrees; let i = index"
-              class="talent-tree-tab"
-              [class.active]="i === activeTalentTree"
-              (click)="activeTalentTree = i">
-        <ion-icon [name]="tree.icon"></ion-icon>
-        <span>{{ tree.label }}</span>
-      </button>
-    </div>
-
-    <!-- Inventario de esferas -->
-    <div class="talent-sphere-bar">
-      <div *ngFor="let s of sphereTypes" class="tsphere" [title]="s">
-        <span class="tsphere-dot" [style.background]="sphereColors[s]"></span>
-        <span class="tsphere-label">{{ sphereLabels[s] }}</span>
-        <span class="tsphere-count">{{ talent.spheres[s] }}</span>
-      </div>
-    </div>
-
-    <!-- Árbol (canvas Phaser — TalentTreeScene) -->
-    <div class="talent-tree-zone">
-      <div class="talent-viewport" id="talent-tree-view"></div>
-      <button class="talent-zoom-btn" (click)="toggleTalentZoom()">
-        <ion-icon [name]="talentZoomedOut ? 'remove-outline' : 'add-outline'"></ion-icon>
-      </button>
-    </div>
-
-  </div><!-- talent-panel -->
-
   <!-- Tab 4: Árbol de habilidades clásico (HTML + SVG) -->
   <div class="talent-panel" *ngIf="activeTab === 4">
 
@@ -576,7 +540,7 @@
   </div>
 
   <!-- Picker flotante: aparece a la derecha del panel al seleccionar un talento -->
-  <div class="talent-picker-flyout talent-node-card" *ngIf="(activeTab === 3 || activeTab === 4) && selectedNodeId">
+  <div class="talent-picker-flyout talent-node-card" *ngIf="activeTab === 4 && selectedNodeId">
     <button class="tpicker-cancel" (click)="clearTalentSelection()">✕</button>
     <div class="tpicker-name">{{ formatNodeLabel(selectedNode!) }}</div>
     <div class="tpicker-spheres">

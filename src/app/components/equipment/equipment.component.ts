@@ -1,7 +1,5 @@
-import { Component, ElementRef, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import Phaser from 'phaser';
-import { TalentTreeScene, TALENT_TREE_DATA_KEY, TALENT_SERVICE_KEY, TALENT_NODE_TAP_KEY, TALENT_TREE_RES } from 'src/app/scenes/talent-tree.scene';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { GatheringEquipmentService, GatheringSlot } from 'src/app/services/gathering-equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
@@ -22,7 +20,6 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   private panelState = inject(PanelStateService);
   private el = inject(ElementRef);
-  private ngZone = inject(NgZone);
   badges = inject(NotificationBadgeService);
   achievements = inject(AchievementService);
 
@@ -31,14 +28,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   set activeTab(v: number) {
     this._activeTab = v;
     this.panelState.set('equip.tab', v);
-    if (v === 3) {
-      // El contenedor entra al DOM con el *ngIf en este mismo ciclo
-      setTimeout(() => this.createTalentGame());
-    } else {
-      this.destroyTalentGame();
-    }
     if (v === 4) this.initPan();
-    if (v !== 3 && v !== 4) {
+    if (v !== 4) {
       this.selectedNodeId = null;
       this.talentExpanded = false;
     }
@@ -149,8 +140,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   set activeTalentTree(v: number) {
     this._activeTalentTree = v;
     this.selectedNodeId = null;
-    this.recreateTalentGame();
-    if (this._activeTab === 3) this.initPan();
+    if (this._activeTab === 4) this.initPan();
   }
 
   // ── Árbol HTML clásico (tab 4) ───────────────────────────────────────────────
@@ -304,92 +294,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     // El cambio de tamaño del viewport lo recoge el ResizeObserver del juego
   }
 
-  // ── Árbol Phaser ─────────────────────────────────────────────────────────────
-
-  private talentGame: Phaser.Game | null = null;
-  private talentResizeObs: ResizeObserver | null = null;
-  // Mismo factor de supersampling que usa la escena para sus medidas
-  private readonly talentDpr = TALENT_TREE_RES;
-
-  private createTalentGame(): void {
-    const parent = document.getElementById('talent-tree-view');
-    if (!parent || this.talentGame) return;
-    this.talentZoomedOut = false;   // la escena arranca siempre a zoom 1
-    // El modal puede no haber asentado su layout aún: reintenta hasta tener tamaño
-    if (!parent.clientWidth || !parent.clientHeight) {
-      setTimeout(() => this.createTalentGame(), 50);
-      return;
-    }
-    // Canvas a resolución nativa + zoom CSS inverso: texto nítido (ver world-map-panel)
-    const dpr = this.talentDpr;
-    this.talentGame = new Phaser.Game({
-      type: Phaser.AUTO,
-      parent,
-      width:  parent.clientWidth * dpr,
-      height: parent.clientHeight * dpr,
-      scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
-      // roundPixels: el texto centrado cae en medios píxeles y se emborrona sin esto
-      render: { antialias: true, roundPixels: true },
-      backgroundColor: '#0c0908',
-      scene: [TalentTreeScene],
-    });
-    this.talentGame.registry.set(TALENT_TREE_DATA_KEY, this.activeTreeNodes);
-    this.talentGame.registry.set(TALENT_SERVICE_KEY, this.talent);
-    // El tap llega desde Phaser (fuera de Angular): ngZone.run para el picker
-    this.talentGame.registry.set(TALENT_NODE_TAP_KEY, (nodeId: string) => {
-      this.ngZone.run(() => this.onNodeTap(nodeId));
-    });
-    // El viewport cambia de tamaño al abrir el modal o al expandir el panel:
-    // redimensiona el canvas en vez de recrear el juego
-    this.talentResizeObs = new ResizeObserver(() => this.resizeTalentGame(parent));
-    this.talentResizeObs.observe(parent);
-  }
-
-  private resizeTalentGame(parent: HTMLElement): void {
-    if (!this.talentGame) return;
-    const w = Math.round(parent.clientWidth  * this.talentDpr);
-    const h = Math.round(parent.clientHeight * this.talentDpr);
-    if (!w || !h) return;
-    const scale = this.talentGame.scale;
-    if (scale.width !== w || scale.height !== h) scale.resize(w, h);
-  }
-
-  private destroyTalentGame(): void {
-    this.talentResizeObs?.disconnect();
-    this.talentResizeObs = null;
-    this.talentGame?.destroy(true);
-    this.talentGame = null;
-  }
-
-  private recreateTalentGame(): void {
-    if (this._activeTab !== 3) return;
-    this.destroyTalentGame();
-    // Espera a que el layout asiente el nuevo tamaño del viewport
-    setTimeout(() => this.createTalentGame(), 60);
-  }
-
-  private syncTalentSelection(): void {
-    const scene = this.talentGame?.scene.getScene('TalentTreeScene') as TalentTreeScene | undefined;
-    scene?.setSelected(this.selectedNodeId);
-  }
-
-  // Zoom del árbol Phaser: '+' aleja (árbol completo), '−' vuelve al hub
-  talentZoomedOut = false;
-
-  toggleTalentZoom(): void {
-    this.talentZoomedOut = !this.talentZoomedOut;
-    const scene = this.talentGame?.scene.getScene('TalentTreeScene') as TalentTreeScene | undefined;
-    scene?.setZoomedOut(this.talentZoomedOut);
-  }
-
-  private onNodeTap(nodeId: string): void {
-    this.selectedNodeId = this.selectedNodeId === nodeId ? null : nodeId;
-    this.syncTalentSelection();
-  }
-
   clearTalentSelection(): void {
     this.selectedNodeId = null;
-    this.syncTalentSelection();
   }
 
   slotSphere(sphere: SphereType): void {
@@ -438,15 +344,12 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
-    // Tab fuera de rango o la antigua pestaña de recolección (1, ya fusionada) → al primero
-    if (this._activeTab > 5 || this._activeTab === 1) this._activeTab = 0;
-    if (this._activeTab === 3) setTimeout(() => this.createTalentGame());
+    // Tabs ya retiradas (1 recolección fusionada, 3 árbol Phaser) o fuera de rango → al primero
+    if (this._activeTab > 5 || this._activeTab === 1 || this._activeTab === 3) this._activeTab = 0;
     if (this._activeTab === 4) this.initPan();
   }
 
-  ngOnDestroy(): void {
-    this.destroyTalentGame();
-  }
+  ngOnDestroy(): void {}
 
   canDropInSlot = (drag: CdkDrag, drop: CdkDropList): boolean => {
     return this.equipmentService.canEquip(drag.data?.item, drop.id);
