@@ -9,7 +9,7 @@ $wood-btn: #c08349;       // madera de botones/placas
 $wood-btn-light: #d99a5c;
 $wood-btn-dark: #8a5530;
 $cell-bg: #38241d;        // interior de celdas
-$cell-bg-light: #6e4c30;  // interior de casillas equipables (más claro)
+$cell-bg-light: #8a5e3c;  // interior de casillas equipables (marrón claro, tono de los items)
 $cell-border: #21130e;
 $grid-bg: #4a3023;        // fondo del área de grid
 $text-brown: #53301c;     // texto sobre madera clara
@@ -202,6 +202,7 @@ $purple: #6e4a67;         // selección
 }
 
 .preview-frame {
+  position: relative; /* ancla del botón de esquina */
   padding: 5px;
   background: $grid-bg;
   border: 4px solid;
@@ -210,6 +211,36 @@ $purple: #6e4a67;         // selección
   box-shadow:
     0 0 0 2px $outline,
     inset 0 0 0 2px $outline;
+}
+
+// Botón redondo de madera (mismo estilo que los del HUD de vida) que abre la
+// vista de recolección (bolsas + equipo secundario), arriba-dcha del sprite
+.preview-corner-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  background: $wood-btn;
+  color: $text-brown;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  font-size: 0.78em;
+  padding: 0;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    0 2px 6px rgba(0, 0, 0, 0.5);
+  transition: background 0.15s;
+
+  &:hover  { background: $wood-btn-light; }
+  &:active { background: $wood-btn-dark; color: $text-cream; }
 }
 
 // Pastilla con los 6 stats base bajo el preview (2 columnas × 3 filas).

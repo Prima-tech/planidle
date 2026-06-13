@@ -10,9 +10,6 @@
     <button class="eq-vtab" [class.active]="activeTab === 0" (click)="activeTab = 0">
       <ion-icon name="shield-outline"></ion-icon>
     </button>
-    <button class="eq-vtab" [class.active]="activeTab === 1" (click)="activeTab = 1">
-      <ion-icon name="construct-outline"></ion-icon>
-    </button>
     <button class="eq-vtab" [class.active]="activeTab === 2" (click)="activeTab = 2">
       <ion-icon name="podium-outline"></ion-icon>
     </button>
@@ -29,23 +26,40 @@
 
   <div class="eq-content">
 
-  <!-- Tab 0: Equipamiento de combate -->
+  <!-- Tab 0: Equipamiento (combate ↔ recolección comparten el mismo preview;
+       el botón de esquina alterna los slots sin re-renderizar el sprite) -->
   <div class="eq-layout" *ngIf="activeTab === 0">
 
-    <!-- Columna izquierda: casco, armadura, pantalones, botas, arma -->
+    <!-- Columna izquierda -->
     <div class="eq-col">
-      <ng-container *ngFor="let slot of equipmentService.slots">
-        <ng-container *ngIf="['helmet','armor','pants','boots','weapon'].includes(slot.id)">
-          <ng-container *ngTemplateOutlet="slotTpl; context: { slot: slot }"></ng-container>
+      <ng-container *ngIf="!showGathering">
+        <!-- Combate: casco, armadura, pantalones, botas, arma -->
+        <ng-container *ngFor="let slot of equipmentService.slots">
+          <ng-container *ngIf="['helmet','armor','pants','boots','weapon'].includes(slot.id)">
+            <ng-container *ngTemplateOutlet="slotTpl; context: { slot: slot }"></ng-container>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+      <ng-container *ngIf="showGathering">
+        <!-- Recolección: pico, hacha, caña, pala, linterna -->
+        <ng-container *ngFor="let slot of gatheringService.slots">
+          <ng-container *ngIf="['pickaxe','axe','fishing_rod','shovel','lantern'].includes(slot.id)">
+            <ng-container *ngTemplateOutlet="gatheringSlotTpl; context: { slot: slot }"></ng-container>
+          </ng-container>
         </ng-container>
       </ng-container>
     </div>
 
-    <!-- Centro: preview del personaje -->
+    <!-- Centro: preview del personaje (siempre montado) -->
     <div class="eq-center">
       <app-char-stats section="header"></app-char-stats>
       <div class="preview-frame">
         <app-player-preview [size]="96"></app-player-preview>
+        <!-- Alterna entre equipo de combate y de recolección (y vuelve) -->
+        <button class="preview-corner-btn" (click)="showGathering = !showGathering"
+                [title]="showGathering ? 'Equipo de combate' : 'Equipo de recolección'">
+          <ion-icon [name]="showGathering ? 'shield-outline' : 'bag-handle-outline'"></ion-icon>
+        </button>
       </div>
       <!-- Pastilla con los 6 stats base: abre el flyout de reparto de puntos -->
       <div class="base-stats-plaque"
@@ -59,48 +73,22 @@
       </div>
     </div>
 
-    <!-- Columna derecha: collar, anillo1, anillo2, comida, poción -->
+    <!-- Columna derecha -->
     <div class="eq-col">
-      <ng-container *ngFor="let slot of equipmentService.slots">
-        <ng-container *ngIf="['necklace','ring1','ring2','food','potion'].includes(slot.id)">
-          <ng-container *ngTemplateOutlet="slotTpl; context: { slot: slot }"></ng-container>
+      <ng-container *ngIf="!showGathering">
+        <!-- Combate: collar, anillo1, anillo2, comida, poción -->
+        <ng-container *ngFor="let slot of equipmentService.slots">
+          <ng-container *ngIf="['necklace','ring1','ring2','food','potion'].includes(slot.id)">
+            <ng-container *ngTemplateOutlet="slotTpl; context: { slot: slot }"></ng-container>
+          </ng-container>
         </ng-container>
       </ng-container>
-    </div>
-
-  </div>
-
-  <!-- Tab 1: Equipo de recolección -->
-  <div class="eq-layout" *ngIf="activeTab === 1">
-
-    <!-- Columna izquierda: pico, hacha, caña, pala, linterna -->
-    <div class="eq-col">
-      <ng-container *ngFor="let slot of gatheringService.slots">
-        <ng-container *ngIf="['pickaxe','axe','fishing_rod','shovel','lantern'].includes(slot.id)">
-          <ng-container *ngTemplateOutlet="gatheringSlotTpl; context: { slot: slot }"></ng-container>
-        </ng-container>
-      </ng-container>
-    </div>
-
-    <!-- Centro: preview del personaje -->
-    <div class="eq-center">
-      <app-char-stats section="header"></app-char-stats>
-      <div class="preview-frame">
-        <app-player-preview [size]="96"></app-player-preview>
-      </div>
-      <div class="base-stats-plaque">
-        <div class="bsp-cell" *ngFor="let s of statsList">
-          <span class="bsp-label">{{ s.label }}</span>
-          <span class="bsp-val">{{ charStats.stats[s.key] }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Columna derecha: mochila, guantes, cinturón, brújula, antorcha -->
-    <div class="eq-col">
-      <ng-container *ngFor="let slot of gatheringService.slots">
-        <ng-container *ngIf="['backpack','gloves','belt','compass','torch'].includes(slot.id)">
-          <ng-container *ngTemplateOutlet="gatheringSlotTpl; context: { slot: slot }"></ng-container>
+      <ng-container *ngIf="showGathering">
+        <!-- Recolección: mochila, guantes, cinturón, brújula, antorcha -->
+        <ng-container *ngFor="let slot of gatheringService.slots">
+          <ng-container *ngIf="['backpack','gloves','belt','compass','torch'].includes(slot.id)">
+            <ng-container *ngTemplateOutlet="gatheringSlotTpl; context: { slot: slot }"></ng-container>
+          </ng-container>
         </ng-container>
       </ng-container>
     </div>
@@ -539,7 +527,7 @@
   </div><!-- eq-content -->
 
   <!-- Sets de equipo (combate + recolección vinculados): 3 loadouts compartidos -->
-  <div class="loadout-tabs" *ngIf="(activeTab === 0 && !statsFlyoutOpen) || activeTab === 1">
+  <div class="loadout-tabs" *ngIf="activeTab === 0 && !statsFlyoutOpen">
     <button class="loadout-tab" *ngFor="let i of loadoutIndices"
             [class.active]="equipmentService.activeLoadout === i"
             (click)="switchLoadout(i)">

@@ -42,9 +42,13 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       this.selectedNodeId = null;
       this.talentExpanded = false;
     }
-    if (v !== 0) this.statsFlyoutOpen = false;
+    if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; }
     if (v !== 5) this.selectedAch = null;
   }
+
+  // Vista de equipo (tab 0): combate ↔ recolección comparten el mismo preview
+  // (no se re-renderiza el sprite); solo cambian los slots equipables.
+  showGathering = false;
 
   showAtkBreakdown      = false;
   showMagicAtkBreakdown = false;
@@ -434,8 +438,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
-    // Tab guardado fuera de rango (numeraciones antiguas) → al primero
-    if (this._activeTab > 5) this._activeTab = 0;
+    // Tab fuera de rango o la antigua pestaña de recolección (1, ya fusionada) → al primero
+    if (this._activeTab > 5 || this._activeTab === 1) this._activeTab = 0;
     if (this._activeTab === 3) setTimeout(() => this.createTalentGame());
     if (this._activeTab === 4) this.initPan();
   }
