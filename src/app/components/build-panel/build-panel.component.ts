@@ -19,8 +19,18 @@ export class BuildPanelComponent {
     return this.cityBuild.buildables.filter(d => !(d.unique && this.cityBuild.isBuilt(d.type)));
   }
 
+  /** ¿Hay edificios colocados que se puedan mover? */
+  get hasBuildings(): boolean {
+    return this.cityBuild.hasBuildings();
+  }
+
   select(def: BuildableDef): void {
     this.cityBuild.startPlacement(def);
+  }
+
+  /** Entra en modo "mover edificio": pinchar un edificio del mapa lo edita. */
+  startMove(): void {
+    this.cityBuild.startMoveMode();
   }
 
   /** Recorte del frame de un spritesheet 32×32 (mismo cálculo que summon). */

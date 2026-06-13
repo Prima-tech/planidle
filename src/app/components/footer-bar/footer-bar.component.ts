@@ -54,6 +54,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private townChestCloseSub: Subscription;
   private worldSub:          Subscription;
   private placementSub:      Subscription;
+  private moveModeSub:       Subscription;
   private inventoryOpenedByChest = false;
   private cdInterval:       ReturnType<typeof setInterval> | null = null;
 
@@ -120,6 +121,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       if (map.id !== 'hogar') {
         if (this.buildModal?.isOpenModal()) this.buildModal.close();
         this.cityBuild.cancelPlacement();
+        this.cityBuild.cancelMoveMode();
       }
     });
 
@@ -127,6 +129,12 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     // ghost sin paneles de por medio (el ghost ya vive en Phaser).
     this.placementSub = this.cityBuild.placementMode$.subscribe(def => {
       if (def) this.closeAllPanels();
+    });
+
+    // Al entrar en "mover edificio", cierra todas las ventanas para poder pinchar
+    // un edificio del mapa sin paneles de por medio.
+    this.moveModeSub = this.cityBuild.moveMode$.subscribe(active => {
+      if (active) this.closeAllPanels();
     });
 
     this.sceneStartingSub = this.playerBridge.sceneStarting$.subscribe(() => {
@@ -154,6 +162,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.townChestCloseSub?.unsubscribe();
     this.worldSub?.unsubscribe();
     this.placementSub?.unsubscribe();
+    this.moveModeSub?.unsubscribe();
     if (this.cdInterval) clearInterval(this.cdInterval);
   }
 

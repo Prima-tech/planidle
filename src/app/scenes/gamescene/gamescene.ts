@@ -85,9 +85,13 @@ export class GameScene extends Phaser.Scene {
     private chestSub:       { unsubscribe(): void } | null = null;
     private placementSub:   { unsubscribe(): void } | null = null;
     private clearedSub:     { unsubscribe(): void } | null = null;
+    private moveSub:        { unsubscribe(): void } | null = null;
+    // true tras pulsar "Mover edificio": el siguiente click sobre un edificio lo edita.
+    private moveSelecting = false;
     // Construcciones colocadas por el jugador (no el cofre fijo): para poder
-    // quitarlas en caliente al "borrar todo".
+    // quitarlas en caliente (borrar todo) o moverlas.
     private placedBuildings: {
+      building: PlacedBuilding;
       sprite: Phaser.GameObjects.Sprite;
       blocked: string[];
       chestEntry?: ActiveChest;
@@ -103,6 +107,7 @@ export class GameScene extends Phaser.Scene {
       tileY: number;
       valid: boolean;
       dragging: boolean;
+      moving?: PlacedBuilding;   // si está, es la reubicación de un edificio existente
     } | null = null;
     private collisionTiles: Set<string>                    = new Set();
     private activeChests: ActiveChest[] = [];
@@ -211,6 +216,7 @@ export class GameScene extends Phaser.Scene {
       this.autoStuckMs = 0;
       this.autoBlacklist.clear();
       this.placedBuildings = [];
+      this.moveSelecting = false;
       this.currentMapConfig = this.reg.world.getCurrentMap();
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
@@ -237,8 +243,13 @@ export class GameScene extends Phaser.Scene {
         this.chestSub?.unsubscribe();
         this.placementSub?.unsubscribe();
         this.clearedSub?.unsubscribe();
+        this.moveSub?.unsubscribe();
+        // No re-spawnear el original durante el teardown (la persistencia lo conserva).
+        if (this.buildPlacement) this.buildPlacement.moving = undefined;
         this.cancelBuildPlacement();
         this.reg.cityBuild?.cancelPlacement();
+        this.reg.cityBuild?.cancelMoveMode();
+        this.moveSelecting = false;
         this.placedBuildings = [];
         this.activeChests = [];
         this.reg.interaction?.setContext('attack');
@@ -790,6 +801,8 @@ export class GameScene extends Phaser.Scene {
       this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
         // En modo colocación el toque mueve el ghost / confirma / cancela.
         if (this.buildPlacement) { this.handleBuildPointer(pointer); return; }
+        // En modo "mover edificio" el toque selecciona el edificio a reubicar.
+        if (this.moveSelecting) { this.handleMoveSelect(pointer); return; }
         this.reg.asgard.closeAllMenus();
         this.onGameClick(pointer);
       });
@@ -1256,16 +1269,17 @@ export class GameScene extends Phaser.Scene {
       const def = this.reg.cityBuild?.def(b.type);
       if (!def) { console.warn(`spawnBuilding: tipo "${b.type}" desconocido`); return; }
       const { x, y } = this.buildingCenterPx(b.tileX, b.tileY);
+      const building = { ...b };
       if (def.isTownChest) {
         const { entry, isOpenUnsub } = this.addTownChest(x, y);
-        this.placedBuildings.push({ sprite: entry.sprite, blocked: entry.blocked, chestEntry: entry, isOpenUnsub });
+        this.placedBuildings.push({ building, sprite: entry.sprite, blocked: entry.blocked, chestEntry: entry, isOpenUnsub });
       } else {
         const sprite = this.add.sprite(x, y, def.spriteKey, def.frame);
         sprite.setScale(def.scale);
         sprite.setDepth(2);
         const blocked = this.computeFootprintTiles(x, y, (def.frameSize * def.scale) / 2);
         for (const k of blocked) this.collisionTiles.add(k);
-        this.placedBuildings.push({ sprite, blocked });
+        this.placedBuildings.push({ building, sprite, blocked });
       }
     }
 
@@ -1277,18 +1291,42 @@ export class GameScene extends Phaser.Scene {
 
     /** Quita en caliente todo lo construido por el jugador (no el cofre fijo). */
     private removePlacedBuildings(): void {
-      for (const pb of this.placedBuildings) {
-        pb.isOpenUnsub?.();
-        pb.sprite.destroy();
-        for (const k of pb.blocked) this.collisionTiles.delete(k);
-        if (pb.chestEntry) {
-          const i = this.activeChests.indexOf(pb.chestEntry);
-          if (i !== -1) this.activeChests.splice(i, 1);
-        }
-      }
-      this.placedBuildings = [];
+      for (const pb of [...this.placedBuildings]) this.detachPlacedBuilding(pb);
       // Si la ventana del cofre seguía abierta por un cofre construido, el loop
       // de update() la cerrará al no encontrar ningún cofre de ciudad cercano.
+    }
+
+    /** Quita de la escena UN edificio colocado (sprite + colisión + registro),
+     *  sin tocar la persistencia. Usado por "borrar todo" y por "mover edificio". */
+    private detachPlacedBuilding(pb: typeof this.placedBuildings[0]): void {
+      pb.isOpenUnsub?.();
+      pb.sprite.destroy();
+      for (const k of pb.blocked) this.collisionTiles.delete(k);
+      if (pb.chestEntry) {
+        const i = this.activeChests.indexOf(pb.chestEntry);
+        if (i !== -1) this.activeChests.splice(i, 1);
+      }
+      const j = this.placedBuildings.indexOf(pb);
+      if (j !== -1) this.placedBuildings.splice(j, 1);
+    }
+
+    /** Modo "mover edificio": al pinchar, busca un edificio bajo el puntero y lo edita. */
+    private handleMoveSelect(pointer: Phaser.Input.Pointer): void {
+      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const pb = this.placedBuildings.find(b => b.sprite.getBounds().contains(world.x, world.y));
+      this.moveSelecting = false;
+      this.reg.cityBuild.cancelMoveMode();
+      if (!pb) return;   // pinchó fuera de un edificio → salir del modo mover
+      this.beginMoveBuilding(pb);
+    }
+
+    /** Saca el edificio de la escena y arranca el ghost en su posición (modo reubicar). */
+    private beginMoveBuilding(pb: typeof this.placedBuildings[0]): void {
+      const def = this.reg.cityBuild.def(pb.building.type);
+      if (!def) return;
+      const original = { ...pb.building };
+      this.detachPlacedBuilding(pb);
+      this.startBuildPlacement(def, original);
     }
 
     private async initPlacedBuildings(): Promise<void> {
@@ -1303,16 +1341,28 @@ export class GameScene extends Phaser.Scene {
         if (def) this.startBuildPlacement(def);
         else     this.cancelBuildPlacement();
       });
+      this.moveSub = cityBuild.moveMode$.subscribe(active => {
+        // Solo se puede mover en la ciudad y sin un ghost ya activo.
+        this.moveSelecting = active && this.currentMapConfig.id === 'hogar' && !this.buildPlacement;
+      });
     }
 
-    private startBuildPlacement(def: BuildableDef): void {
+    /** Arranca el ghost de colocación. Si `moving` está, es la reubicación de un
+     *  edificio existente (arranca en su tile y al confirmar actualiza en vez de añadir). */
+    private startBuildPlacement(def: BuildableDef, moving?: PlacedBuilding): void {
       this.cancelBuildPlacement();
       if (this.currentMapConfig.id !== 'hogar') { this.reg.cityBuild.cancelPlacement(); return; }
 
-      // Ghost inicial sobre el tile del jugador
-      const pos   = this.player.getPosition();
-      const tileX = Math.floor(pos.x / GameScene.TILE_SIZE);
-      const tileY = Math.floor(pos.y / GameScene.TILE_SIZE);
+      // Ghost inicial: en el tile del edificio que se mueve, o sobre el jugador
+      let tileX: number, tileY: number;
+      if (moving) {
+        tileX = moving.tileX;
+        tileY = moving.tileY;
+      } else {
+        const pos = this.player.getPosition();
+        tileX = Math.floor(pos.x / GameScene.TILE_SIZE);
+        tileY = Math.floor(pos.y / GameScene.TILE_SIZE);
+      }
       const { x, y } = this.buildingCenterPx(tileX, tileY);
 
       const ghost = this.add.sprite(x, y, def.spriteKey, def.frame);
@@ -1323,16 +1373,25 @@ export class GameScene extends Phaser.Scene {
       const check  = this.makeBuildButton(0x2ecc40, '✓').setDepth(9001);
       const cancel = this.makeBuildButton(0xff4136, '✕').setDepth(9001);
 
-      this.buildPlacement = { def, ghost, check, cancel, tileX, tileY, valid: false, dragging: false };
+      this.buildPlacement = { def, ghost, check, cancel, tileX, tileY, valid: false, dragging: false, moving };
       this.refreshGhost();
     }
 
     private cancelBuildPlacement(): void {
-      if (!this.buildPlacement) return;
-      this.buildPlacement.ghost.destroy();
-      this.buildPlacement.check.destroy();
-      this.buildPlacement.cancel.destroy();
+      const bp = this.buildPlacement;
+      if (!bp) return;
       this.buildPlacement = null;
+      bp.ghost.destroy();
+      bp.check.destroy();
+      bp.cancel.destroy();
+      // Cancelar una reubicación sin confirmar → restaurar el edificio en su sitio.
+      if (bp.moving) this.spawnBuilding(bp.moving);
+    }
+
+    /** Cierra el ghost actual reseteando además el estado del servicio. */
+    private closePlacement(): void {
+      if (this.reg.cityBuild.placementMode$.value) this.reg.cityBuild.cancelPlacement();
+      this.cancelBuildPlacement();
     }
 
     /** Botón circular (✓ / ✕) como container para colocarlo en coordenadas de mundo. */
@@ -1388,7 +1447,7 @@ export class GameScene extends Phaser.Scene {
       const onCancel =
         Phaser.Math.Distance.Between(world.x, world.y, bp.cancel.x, bp.cancel.y) <= HIT;
 
-      if (onCancel) { this.reg.cityBuild.cancelPlacement(); return; }
+      if (onCancel) { this.closePlacement(); return; }
       if (onCheck && bp.valid) { this.confirmBuildPlacement(); return; }
 
       // Si no, mover el ghost al tile tocado e iniciar el arrastre (pointermove
@@ -1411,9 +1470,14 @@ export class GameScene extends Phaser.Scene {
       const bp = this.buildPlacement;
       if (!bp || !bp.valid) return;
       const b: PlacedBuilding = { type: bp.def.type, tileX: bp.tileX, tileY: bp.tileY };
-      this.reg.cityBuild.add(b);   // persiste (global, compartido) + notifica a Angular
-      this.spawnBuilding(b);       // construcción permanente con colisión
-      this.reg.cityBuild.cancelPlacement();  // limpia ghost/botones vía el listener
+      if (bp.moving) {
+        this.reg.cityBuild.move(bp.moving, { tileX: bp.tileX, tileY: bp.tileY });  // reubica
+      } else {
+        this.reg.cityBuild.add(b);   // persiste (global, compartido) + notifica a Angular
+      }
+      this.spawnBuilding(b);         // construcción permanente con colisión en su sitio nuevo
+      bp.moving = undefined;         // ya gestionado → que el cleanup no restaure el original
+      this.closePlacement();         // limpia ghost/botones
     }
 
     private openChest(chest: typeof this.activeChests[0]): void {

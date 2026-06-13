@@ -117,7 +117,12 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
 4. Pulsas **✓** (solo visible si es válido) para construir, o **✕** para cancelar.
 5. Lo construido **persiste y es compartido** entre personajes; reaparece al
    entrar en Asgard.
-6. El botón **🗑 Borrar todo** (ajustes) **borra también las construcciones**
+6. **Mover edificio**: botón al pie del panel Construir (`BUILD.MOVE`, deshabilitado
+   si no hay nada colocado). Al pulsarlo se cierran todas las ventanas y entras en
+   modo selección; pinchas un edificio del mapa y pasa a **modo edición** (mismo
+   ghost arrastrable verde/rojo). ✓ lo reubica, ✕ lo deja donde estaba. Solo son
+   movibles los edificios **construidos por el jugador** (el cofre fijo no).
+7. El botón **🗑 Borrar todo** (ajustes) **borra también las construcciones**
    (`CityBuildService.clear()` desde `settings.page.ts`), así que un `unique`
    vuelve a estar disponible para reconstruir.
 
@@ -126,26 +131,32 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
 ## Cómo funciona por dentro (referencia)
 
 - **Servicio**: `CityBuildService` (`city-build.service.ts`) — catálogo
-  `BUILDABLES`, persistencia (`load`/`add`/`isBuilt`/`clear`) y bridge de
-  colocación (`placementMode$`, `startPlacement`, `cancelPlacement`) +
-  notificaciones (`placed$`, `cleared$`).
+  `BUILDABLES`, persistencia (`load`/`add`/`isBuilt`/`clear`/`move`/`hasBuildings`) y
+  bridge de colocación (`placementMode$`, `startPlacement`, `cancelPlacement`),
+  de movimiento (`moveMode$`, `startMoveMode`, `cancelMoveMode`) y notificaciones
+  (`placed$`, `cleared$`).
 - **Panel UI**: `BuildPanelComponent` (`components/build-panel/`) — lista
-  `BUILDABLES` ocultando los `unique` ya construidos. Declarado en
-  `components.module.ts`.
+  `BUILDABLES` ocultando los `unique` ya construidos + botón **Mover edificio**
+  (`startMove()`, deshabilitado si `!hasBuildings`). Declarado en `components.module.ts`.
 - **Footer**: botón martillo en `footer-bar` (solo `currentMapId === 'hogar'`);
-  `openBuild()` abre el modal `'build'` (lado izquierdo). Al elegir item,
-  `placementMode$` dispara `closeAllPanels()` (cierra todos los modales).
+  `openBuild()` abre el modal `'build'` (lado izquierdo). Tanto `placementMode$`
+  (elegir item) como `moveMode$` (pulsar mover) disparan `closeAllPanels()`.
 - **Escena**: `gamescene.ts` →
   - `initPlacedBuildings()` pinta lo persistido al entrar en Asgard.
-  - `initBuildPlacementListener()` reacciona a `placementMode$`.
-  - `initBuildClearedListener()` → `removePlacedBuildings()` quita en caliente lo
-    construido (sprite + colisión + entry) al recibir `cleared$` (botón borrar todo).
-  - `startBuildPlacement()` / `refreshGhost()` gestionan ghost (verde/rojo) y botones ✓/✕.
+  - `initBuildPlacementListener()` reacciona a `placementMode$` (colocar) y a
+    `moveMode$` (activa `moveSelecting`).
+  - `initBuildClearedListener()` → `removePlacedBuildings()` (usa `detachPlacedBuilding`)
+    quita en caliente lo construido al recibir `cleared$` (botón borrar todo).
+  - `startBuildPlacement(def, moving?)` / `refreshGhost()` gestionan ghost (verde/rojo)
+    y botones ✓/✕. Con `moving` es una reubicación: arranca en el tile del edificio.
   - `handleBuildPointer()` (pointerdown: botones o iniciar arrastre) +
     `moveGhostToPointer()` (pointermove mientras `dragging`) + `pointerup` (fin de arrastre).
-  - `confirmBuildPlacement()` persiste y llama a `spawnBuilding()`.
-  - `spawnBuilding()` coloca la construcción definitiva con colisión y la registra
-    en `placedBuildings` (para poder quitarla en el borrado).
+  - `handleMoveSelect()` (en `moveSelecting`, pincha un edificio) → `beginMoveBuilding()`
+    lo saca de la escena (`detachPlacedBuilding`) y arranca el ghost en modo reubicar.
+  - `confirmBuildPlacement()` → `add()` (nuevo) o `move()` (reubicación) + `spawnBuilding()`.
+    Cancelar una reubicación restaura el original (`cancelBuildPlacement`).
+  - `spawnBuilding()` coloca la construcción definitiva con colisión y la registra en
+    `placedBuildings` (con su `PlacedBuilding`, para poder quitarla/moverla).
 - **Bridge**: registrado como `REGISTRY_KEYS.CITY_BUILD` en `game-registry.ts` y
   `layout.component.ts` → accesible en escena como `this.reg.cityBuild`.
 
@@ -161,7 +172,9 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
       ventanas, el ghost se **arrastra** y pinta verde/rojo, ✓ coloca, persiste al
       salir/entrar y entre personajes
 - [ ] `unique` puesto según corresponda (desaparece del menú tras construir)
+- [ ] **Mover edificio**: lo selecciona del mapa, lo arrastra y ✓ lo reubica; ✕ lo
+      deja donde estaba
 - [ ] Verificado que **🗑 Borrar todo** lo elimina y se puede reconstruir
 
-> No hace falta tocar el flujo de UX (cierre de ventanas, arrastre, borrado): es
-> genérico para cualquier entrada de `BUILDABLES`. Solo Pasos 1-3 (y 4-5 si aplica).
+> No hace falta tocar el flujo de UX (cierre de ventanas, arrastre, mover, borrado):
+> es genérico para cualquier entrada de `BUILDABLES`. Solo Pasos 1-3 (y 4-5 si aplica).

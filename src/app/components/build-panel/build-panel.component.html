@@ -10,3 +10,8 @@
 
   <div class="build-empty" *ngIf="!buildables.length">{{ 'BUILD.NONE' | translate }}</div>
 </div>
+
+<button class="build-move-btn" [disabled]="!hasBuildings" (click)="startMove()">
+  <ion-icon name="move-outline"></ion-icon>
+  <span>{{ 'BUILD.MOVE' | translate }}</span>
+</button>

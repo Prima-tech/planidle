@@ -214,6 +214,7 @@
   "BUILD": {
     "TITLE": "Build",
     "NONE": "Nothing to build",
+    "MOVE": "Move building",
     "TOWN_CHEST": "Town chest"
   },
   "OFFLINE": {

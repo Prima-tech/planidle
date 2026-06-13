@@ -214,6 +214,7 @@
   "BUILD": {
     "TITLE": "Construir",
     "NONE": "Nada que construir",
+    "MOVE": "Mover edificio",
     "TOWN_CHEST": "Cofre de ciudad"
   },
   "OFFLINE": {

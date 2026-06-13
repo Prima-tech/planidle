@@ -66,6 +66,8 @@ export class CityBuildService {
   readonly placed$ = new Subject<PlacedBuilding>();
   /** Emite al borrar todas las construcciones (Phaser quita sprites y colisión). */
   readonly cleared$ = new Subject<void>();
+  /** true tras pulsar "Mover edificio": la escena espera a que pinches un edificio. */
+  readonly moveMode$ = new BehaviorSubject<boolean>(false);
 
   private storage = inject(StorageService);
   private cache: PlacedBuilding[] | null = null;
@@ -92,6 +94,22 @@ export class CityBuildService {
     return !!this.cache?.some(b => b.type === type);
   }
 
+  /** ¿Hay alguna construcción colocada? (para habilitar "Mover edificio"). */
+  hasBuildings(): boolean {
+    return !!this.cache?.length;
+  }
+
+  /** Reubica una construcción ya colocada (mismo tipo, de su tile a otro). */
+  async move(from: PlacedBuilding, to: { tileX: number; tileY: number }): Promise<void> {
+    if (!this.cache) await this.load();
+    const idx = this.cache!.findIndex(
+      b => b.type === from.type && b.tileX === from.tileX && b.tileY === from.tileY,
+    );
+    if (idx !== -1) this.cache![idx] = { ...this.cache![idx], tileX: to.tileX, tileY: to.tileY };
+    else this.cache!.push({ type: from.type, tileX: to.tileX, tileY: to.tileY });
+    await this.storage.set(STORAGE_KEY, this.cache);
+  }
+
   /** Borra TODAS las construcciones (storage compartido) y notifica a la escena. */
   async clear(): Promise<void> {
     this.cache = [];
@@ -110,5 +128,13 @@ export class CityBuildService {
 
   cancelPlacement(): void {
     if (this.placementMode$.value) this.placementMode$.next(null);
+  }
+
+  startMoveMode(): void {
+    this.moveMode$.next(true);
+  }
+
+  cancelMoveMode(): void {
+    if (this.moveMode$.value) this.moveMode$.next(false);
   }
 }
