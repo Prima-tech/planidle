@@ -105,22 +105,47 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
 
 ---
 
+## Flujo de uso (UX, ya implementado)
+
+1. Botón **martillo** del footer (solo en Asgard) → abre el panel Construir.
+2. Eliges un item → **se cierran TODAS las ventanas abiertas** (`closeAllPanels()`
+   en `footer-bar`, disparado por la suscripción a `placementMode$`) y aparece el
+   **ghost** sobre el personaje.
+3. **Arrastras** el ghost por el mapa (mantén pulsado): sigue al dedo/ratón tile a
+   tile, pintándose **verde** (válido) o **rojo** (colisión / fuera de límites) en
+   tiempo real. Un toque simple lo teletransporta a ese tile.
+4. Pulsas **✓** (solo visible si es válido) para construir, o **✕** para cancelar.
+5. Lo construido **persiste y es compartido** entre personajes; reaparece al
+   entrar en Asgard.
+6. El botón **🗑 Borrar todo** (ajustes) **borra también las construcciones**
+   (`CityBuildService.clear()` desde `settings.page.ts`), así que un `unique`
+   vuelve a estar disponible para reconstruir.
+
+---
+
 ## Cómo funciona por dentro (referencia)
 
 - **Servicio**: `CityBuildService` (`city-build.service.ts`) — catálogo
-  `BUILDABLES`, persistencia (`load`/`add`/`isBuilt`) y bridge de colocación
-  (`placementMode$`, `startPlacement`, `cancelPlacement`).
+  `BUILDABLES`, persistencia (`load`/`add`/`isBuilt`/`clear`) y bridge de
+  colocación (`placementMode$`, `startPlacement`, `cancelPlacement`) +
+  notificaciones (`placed$`, `cleared$`).
 - **Panel UI**: `BuildPanelComponent` (`components/build-panel/`) — lista
   `BUILDABLES` ocultando los `unique` ya construidos. Declarado en
   `components.module.ts`.
 - **Footer**: botón martillo en `footer-bar` (solo `currentMapId === 'hogar'`);
-  `openBuild()` abre el modal `'build'` (lado izquierdo).
+  `openBuild()` abre el modal `'build'` (lado izquierdo). Al elegir item,
+  `placementMode$` dispara `closeAllPanels()` (cierra todos los modales).
 - **Escena**: `gamescene.ts` →
   - `initPlacedBuildings()` pinta lo persistido al entrar en Asgard.
   - `initBuildPlacementListener()` reacciona a `placementMode$`.
-  - `startBuildPlacement()` / `refreshGhost()` / `handleBuildPointer()` /
-    `confirmBuildPlacement()` gestionan ghost (verde/rojo), botones ✓/✕ y colisión.
-  - `spawnBuilding()` coloca la construcción definitiva con colisión.
+  - `initBuildClearedListener()` → `removePlacedBuildings()` quita en caliente lo
+    construido (sprite + colisión + entry) al recibir `cleared$` (botón borrar todo).
+  - `startBuildPlacement()` / `refreshGhost()` gestionan ghost (verde/rojo) y botones ✓/✕.
+  - `handleBuildPointer()` (pointerdown: botones o iniciar arrastre) +
+    `moveGhostToPointer()` (pointermove mientras `dragging`) + `pointerup` (fin de arrastre).
+  - `confirmBuildPlacement()` persiste y llama a `spawnBuilding()`.
+  - `spawnBuilding()` coloca la construcción definitiva con colisión y la registra
+    en `placedBuildings` (para poder quitarla en el borrado).
 - **Bridge**: registrado como `REGISTRY_KEYS.CITY_BUILD` en `game-registry.ts` y
   `layout.component.ts` → accesible en escena como `this.reg.cityBuild`.
 
@@ -132,6 +157,11 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
 - [ ] Entrada en `BUILDABLES` (`city-build.service.ts`) con `frameSize` y `scale` correctos
 - [ ] Clave i18n `BUILD.<KEY>` añadida en `es.json` **y** `en.json`
 - [ ] Si interactúa: `isTownChest: true` o rama nueva en `spawnBuilding()`
-- [ ] Verificado en Asgard: aparece en el panel, placeholder verde/rojo correcto,
-      check coloca, persiste al salir/entrar y entre personajes
+- [ ] Verificado en Asgard: aparece en el panel, al elegirlo se cierran las
+      ventanas, el ghost se **arrastra** y pinta verde/rojo, ✓ coloca, persiste al
+      salir/entrar y entre personajes
 - [ ] `unique` puesto según corresponda (desaparece del menú tras construir)
+- [ ] Verificado que **🗑 Borrar todo** lo elimina y se puede reconstruir
+
+> No hace falta tocar el flujo de UX (cierre de ventanas, arrastre, borrado): es
+> genérico para cualquier entrada de `BUILDABLES`. Solo Pasos 1-3 (y 4-5 si aplica).

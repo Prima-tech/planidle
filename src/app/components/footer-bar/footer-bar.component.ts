@@ -123,9 +123,10 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Al seleccionar un construible, el panel se cierra (el ghost ya vive en Phaser).
+    // Al seleccionar un construible, cierra TODAS las ventanas para colocar el
+    // ghost sin paneles de por medio (el ghost ya vive en Phaser).
     this.placementSub = this.cityBuild.placementMode$.subscribe(def => {
-      if (def && this.buildModal?.isOpenModal()) this.buildModal.close();
+      if (def) this.closeAllPanels();
     });
 
     this.sceneStartingSub = this.playerBridge.sceneStarting$.subscribe(() => {
@@ -186,6 +187,14 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal, this.progressModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
+  }
+
+  /** Cierra todas las ventanas/paneles del footer (ambos lados, incl. persistentes). */
+  private closeAllPanels() {
+    [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.equipmentModal,
+     this.summonModal, this.chestModal, this.skillSlotsModal, this.skillDetailModal,
+     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal]
+      .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
 
   toggleAutoAttack() {
