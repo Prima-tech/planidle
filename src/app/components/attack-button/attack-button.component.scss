@@ -63,3 +63,17 @@
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.8));
   pointer-events: none;
 }
+
+.attack-btn__ctx-icon {
+  font-size: 2rem;
+  color: #fff;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+}
+
+// Contexto cofre: botón dorado en vez de rojo
+.attack-btn.ctx-chest {
+  background: radial-gradient(circle at 35% 28%, #ffe066 0%, #c8960a 40%, #7a5b00 75%, #4a3800 100%);
+  border-color: rgba(255, 240, 150, 0.5);
+  transition: background 0.2s, border-color 0.2s, transform 70ms ease-out, box-shadow 70ms ease-out;
+}

@@ -33,6 +33,7 @@ import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService } from 'src/app/services/talent.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
+import { InteractionService } from 'src/app/services/interaction.service';
 
 @Component({
   selector: 'app-layout',
@@ -83,6 +84,7 @@ export class LayoutComponent implements OnDestroy {
     private skillEquipService: SkillEquipService,
     private talentService: TalentService,
     private badges: NotificationBadgeService,
+    private interactionService: InteractionService,
   ) {
     this.loadGame();
   }
@@ -198,6 +200,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.HUD_SKILL_SLOTS, this.hudSkillSlotsService);
     this.phaserGame.registry.set(REGISTRY_KEYS.SKILL_EQUIP,     this.skillEquipService);
     this.phaserGame.registry.set(REGISTRY_KEYS.TALENT,          this.talentService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.INTERACTION,     this.interactionService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

@@ -121,6 +121,13 @@
 
 </div>
 
+<div class="chest-grid" *ngIf="activeTab === 2">
+  <button *ngFor="let i of chestIndices" class="chest-card" (click)="summonChest(i)">
+    <div [ngStyle]="chestFrameStyle(i)"></div>
+    <span class="chest-label">Cofre {{ i + 1 }}</span>
+  </button>
+</div>
+
 <ng-template #itemCards let-entries>
   <button *ngFor="let entry of entries" class="item-card" (click)="giveItem(entry)" [title]="entry.name">
     <div class="item-frame">

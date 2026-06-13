@@ -1,4 +1,4 @@
-import { Component, inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, ViewChild, ViewContainerRef } from '@angular/core';
 import { AsgardService } from 'src/app/services/asgard';
 import { Subscription } from 'rxjs';
 
@@ -14,6 +14,7 @@ export class ModalContainerComponent {
 
   /** Si true, el modal no se cierra al tocar el canvas del juego (closeMenu$). */
   @Input() persistent = false;
+  @Output() closed = new EventEmitter<void>();
 
   private closeSub?: Subscription;
 
@@ -43,6 +44,7 @@ export class ModalContainerComponent {
     // 2. Limpiamos el contenido y cerramos
     this.modalContent.clear();
     this.isOpen = false;
+    this.closed.emit();
   }
 
   isOpenModal() {

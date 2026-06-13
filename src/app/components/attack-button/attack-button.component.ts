@@ -1,6 +1,8 @@
-import { Component, inject, OnDestroy } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { SceneManager } from 'src/app/scenes/scene-manager';
 import { MobileInput, MOBILE_INPUT_KEY } from 'src/app/scenes/mobile-hud.scene';
+import { InteractionService, InteractionContext } from 'src/app/services/interaction.service';
 
 @Component({
   selector: 'app-attack-button',
@@ -8,15 +10,20 @@ import { MobileInput, MOBILE_INPUT_KEY } from 'src/app/scenes/mobile-hud.scene';
   styleUrls: ['./attack-button.component.scss'],
   standalone: false,
 })
-export class AttackButtonComponent implements OnDestroy {
-  private sceneManager = inject(SceneManager);
+export class AttackButtonComponent implements OnInit, OnDestroy {
+  private sceneManager  = inject(SceneManager);
+  private interaction   = inject(InteractionService);
 
-  pressed = false;
+  pressed  = false;
+  context: InteractionContext = 'attack';
+  private ctxSub: Subscription;
 
-  // El objeto MobileInput se recrea en cada create() de GameScene,
-  // así que se lee del registry en cada evento en vez de cachearlo.
   private get input(): MobileInput | null {
     return this.sceneManager.game?.registry.get(MOBILE_INPUT_KEY) ?? null;
+  }
+
+  ngOnInit(): void {
+    this.ctxSub = this.interaction.context$.subscribe(ctx => this.context = ctx);
   }
 
   onPress(ev: PointerEvent): void {
@@ -35,5 +42,6 @@ export class AttackButtonComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.onRelease();
+    this.ctxSub?.unsubscribe();
   }
 }

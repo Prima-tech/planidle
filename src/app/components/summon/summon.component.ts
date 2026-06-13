@@ -38,7 +38,30 @@ export class SummonComponent {
   readonly tabs = [
     { icon: 'skull-outline',      title: 'Enemies' },
     { icon: 'bag-handle-outline', title: 'Items'   },
+    { icon: 'cube-outline',       title: 'Chests'  },
   ];
+
+  /** Índices 0-8, uno por columna del spritesheet chests.png (32×32 por frame, 9 cols). */
+  readonly chestIndices = [0,1,2,3,4,5,6,7,8];
+  readonly CHEST_FRAME_SIZE = 32;
+  readonly CHEST_COLS       = 9;
+
+  chestFrameStyle(col: number): Record<string, string> {
+    const scale = 2;
+    return {
+      'background-image':    `url(assets/sprites/resources/chests.png)`,
+      'background-repeat':   'no-repeat',
+      'background-size':     `${this.CHEST_COLS * this.CHEST_FRAME_SIZE * scale}px auto`,
+      'background-position': `-${col * this.CHEST_FRAME_SIZE * scale}px 0px`,
+      'image-rendering':     'pixelated',
+      'width':               `${this.CHEST_FRAME_SIZE * scale}px`,
+      'height':              `${this.CHEST_FRAME_SIZE * scale}px`,
+    };
+  }
+
+  summonChest(index: number): void {
+    this.summonService.spawnChest(index);
+  }
   private panelState = inject(PanelStateService);
 
   private _activeTab      = 0;

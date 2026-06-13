@@ -20,6 +20,7 @@ import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AutoAttackService } from 'src/app/services/auto-attack.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { UnlockService } from 'src/app/services/unlock.service';
+import { SummonService } from 'src/app/services/summon.service';
 
 @Component({
   selector: 'app-footer-bar',
@@ -43,6 +44,9 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeSub:         Subscription;
   private activateSub:      Subscription;
   private sceneStartingSub: Subscription;
+  private townChestSub:      Subscription;
+  private townChestCloseSub: Subscription;
+  private inventoryOpenedByChest = false;
   private cdInterval:       ReturnType<typeof setInterval> | null = null;
 
   page: 'main' | 'skills' = 'main';
@@ -64,6 +68,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   autoAttack                     = inject(AutoAttackService);
   badges                         = inject(NotificationBadgeService);
   unlocks                        = inject(UnlockService);
+  private summonService          = inject(SummonService);
 
   constructor() { }
 
@@ -81,6 +86,22 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.skillEquipService.activeSlot       = null;
       this.skillEquipService.selectedAbilityId = null;
     });
+    this.townChestSub = this.summonService.townChestOpen$.subscribe(() => {
+      if (!this.chestModal?.isOpenModal()) this.openChest();
+      if (!this.inventoryModal?.isOpenModal()) {
+        this.openInventory();
+        this.inventoryOpenedByChest = true;
+      }
+    });
+
+    this.townChestCloseSub = this.summonService.townChestCloseRequest$.subscribe(() => {
+      if (this.chestModal?.isOpenModal()) this.chestModal.close();
+      if (this.inventoryOpenedByChest && this.inventoryModal?.isOpenModal()) {
+        this.inventoryModal.close();
+      }
+      this.inventoryOpenedByChest = false;
+    });
+
     this.sceneStartingSub = this.playerBridge.sceneStarting$.subscribe(() => {
       this.page = 'main';
       this.locked = true;
@@ -102,6 +123,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.closeSub?.unsubscribe();
     this.activateSub?.unsubscribe();
     this.sceneStartingSub?.unsubscribe();
+    this.townChestSub?.unsubscribe();
+    this.townChestCloseSub?.unsubscribe();
     if (this.cdInterval) clearInterval(this.cdInterval);
   }
 
@@ -294,7 +317,12 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     } else {
       this.closeOtherOnSide('left', this.chestModal);
       this.chestModal.open(TownChestComponent, 'town-chest');
+      this.summonService.townChestIsOpen$.next(true);
     }
+  }
+
+  onChestModalClosed() {
+    this.summonService.townChestIsOpen$.next(false);
   }
 
   openProgress() {

@@ -337,3 +337,37 @@ $purple: #6e4a67;         // selección
   line-height: 1.2;
   white-space: nowrap;
 }
+
+// ── Cofres ───────────────────────────────────────────────────────────────────
+
+.chest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.chest-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  padding: 8px 4px 6px;
+  cursor: pointer;
+  color: $text-cream;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: border-color 0.15s, background 0.15s;
+
+  &:active { background: lighten($cell-bg, 5%); }
+}
+
+.chest-label {
+  font-size: 0.62em;
+  color: $text-cream;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}

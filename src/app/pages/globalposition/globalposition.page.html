@@ -12,6 +12,20 @@
         <ion-icon name="person-circle-outline"></ion-icon>
         <span>{{ asgardService._profile?.username }}</span>
       </div>
+
+      <!-- Cofre de ciudad -->
+      <button class="asgard-chest" (click)="chestOpen = true" title="Cofre de ciudad">
+        <div class="asgard-chest__sprite"></div>
+        <span class="asgard-chest__label">Cofre</span>
+      </button>
+    </div>
+
+    <!-- Overlay cofre de ciudad -->
+    <div class="chest-overlay" *ngIf="chestOpen" (click)="chestOpen = false">
+      <div class="chest-overlay__panel" (click)="$event.stopPropagation()">
+        <button class="chest-overlay__close" (click)="chestOpen = false">✕</button>
+        <app-town-chest></app-town-chest>
+      </div>
     </div>
 
     <!-- DIVIDER -->

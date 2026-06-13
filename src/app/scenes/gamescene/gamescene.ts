@@ -72,6 +72,9 @@ export class GameScene extends Phaser.Scene {
     private equipSub:    { unsubscribe(): void } | null = null;
     private summonSub:   { unsubscribe(): void } | null = null;
     private itemDropSub: { unsubscribe(): void } | null = null;
+    private chestSub:       { unsubscribe(): void } | null = null;
+    private collisionTiles: Set<string>                    = new Set();
+    private activeChests: { sprite: Phaser.GameObjects.Sprite; col: number; blocked: string[]; opening: boolean; isTownChest?: boolean }[] = [];
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
@@ -104,6 +107,7 @@ export class GameScene extends Phaser.Scene {
 
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
+      this.load.spritesheet('chests', 'assets/sprites/resources/chests.png', { frameWidth: 32, frameHeight: 32 });
       this.load.spritesheet('portal', 'assets/sprites/resources/portal.png', { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
@@ -191,6 +195,9 @@ export class GameScene extends Phaser.Scene {
         this.equipSub?.unsubscribe();
         this.summonSub?.unsubscribe();
         this.itemDropSub?.unsubscribe();
+        this.chestSub?.unsubscribe();
+        this.activeChests = [];
+        this.reg.interaction?.setContext('attack');
         this.statsSub?.unsubscribe();
         this.magicSub?.unsubscribe();
         this.skillSub?.unsubscribe();
@@ -216,6 +223,7 @@ export class GameScene extends Phaser.Scene {
         this.initMapStatsTimers();
         this.initEquipLayers();
         this.initSummonListener();
+        this.initChestListener();
         this.initStatsListener();
         this.registerSkillAnimations();
         this.initSkillListener();
@@ -237,10 +245,30 @@ export class GameScene extends Phaser.Scene {
       if (auto?.skillsEnabled && !autoPaused) this.runAutoSkills(delta);
       this.gridPhysics.update(delta);
 
-      // El golpe manual funciona siempre: con auto-ataque activo, este queda
-      // pausado mientras mantengas pulsado, así que no compiten
-      if (this.mobileInput?.isAttackHeld && !this.player.isAttacking) {
-        this.strike();
+      // Detecta si hay un cofre interactuable cerca y cambia el contexto del botón
+      const nearChest = this.nearestOpenableChest();
+      this.reg.interaction?.setContext(nearChest ? 'chest' : 'attack');
+
+      // Si la ventana de cofre de ciudad está abierta y el jugador se alejó → cerrar
+      if (this.reg.summon.townChestIsOpen$.value) {
+        const tc  = this.activeChests.find(c => c.isTownChest);
+        if (tc) {
+          const pos = this.player.getPosition();
+          const dx  = tc.sprite.x - pos.x;
+          const dy  = tc.sprite.y - pos.y;
+          if (dx * dx + dy * dy > GameScene.CHEST_INTERACT_RANGE * GameScene.CHEST_INTERACT_RANGE) {
+            this.reg.summon.townChestCloseRequest$.next();
+          }
+        }
+      }
+
+      // Botón de acción: si hay cofre cerca → abrir; si no → golpear
+      if (this.mobileInput?.isAttackHeld) {
+        if (nearChest) {
+          this.openChest(nearChest);
+        } else if (!this.player.isAttacking) {
+          this.strike();
+        }
       }
 
       const playerPos = this.player.getPosition();
@@ -716,13 +744,16 @@ export class GameScene extends Phaser.Scene {
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
         this.reg.autoAttack?.pauseAutomation();
+        const chest = this.nearestOpenableChest();
+        if (chest) { this.openChest(chest); return; }
         if (this.player.isAttacking) return;
         this.strike();
       });
     }
 
     createPhysics() {
-      this.gridPhysics  = new GridPhysics(this.player, this.currentMap, this.enemies, this.buildCollisionTiles());
+      this.collisionTiles = this.buildCollisionTiles();
+      this.gridPhysics  = new GridPhysics(this.player, this.currentMap, this.enemies, this.collisionTiles);
       this.gridControls = new GridControls(this.input, this.gridPhysics, this.mobileInput,
         (md, ad) => this.onDashDoubleTap(md, ad));
     }
@@ -974,6 +1005,135 @@ export class GameScene extends Phaser.Scene {
         );
         this.gridDrops.spawnDrop(spawn, entry);
       });
+    }
+
+    private initChestListener(): void {
+      // Registra las 9 animaciones de apertura (una por columna del spritesheet).
+      // chests.png: 9 cols × 4 rows, 32×32 px. Frames izq-dcha, arriba-abajo.
+      // Cofre col: idle=col, anim=[col+9, col+18, col+27]
+      for (let col = 0; col < 9; col++) {
+        const key = `chest_open_${col}`;
+        if (!this.anims.exists(key)) {
+          this.anims.create({
+            key,
+            frames: [
+              { key: 'chests', frame: col + 9  },
+              { key: 'chests', frame: col + 18 },
+              { key: 'chests', frame: col + 27 },
+            ],
+            frameRate: 6,
+            repeat: 0,
+          });
+        }
+      }
+
+      // Cofre fijo de ciudad en el mapa Asgard
+      if (this.currentMapConfig.id === 'hogar') {
+        this.spawnTownChest();
+      }
+
+      this.chestSub = this.reg.summon.chestSpawn$.subscribe(col => {
+        const pos = this.player.getPosition();
+        const TS  = GameScene.TILE_SIZE;
+        // Aparece 3 tiles a la derecha del jugador
+        const x = pos.x + TS * 3;
+        const y = pos.y;
+
+        const sprite = this.add.sprite(x, y, 'chests', col);
+        sprite.setScale(4);
+        sprite.setDepth(2);
+
+        // Calcular tiles bloqueadas (128×128 px centrado en x,y)
+        const half = (32 * 4) / 2;
+        const tx0 = Math.floor((x - half) / TS);
+        const tx1 = Math.floor((x + half - 1) / TS);
+        const ty0 = Math.floor((y - half) / TS);
+        const ty1 = Math.floor((y + half - 1) / TS);
+        const blocked: string[] = [];
+        for (let tx = tx0; tx <= tx1; tx++) {
+          for (let ty = ty0; ty <= ty1; ty++) {
+            const k = `${tx},${ty}`;
+            blocked.push(k);
+            this.collisionTiles.add(k);
+          }
+        }
+
+        const chest = { sprite, col, blocked, opening: false };
+        this.activeChests.push(chest);
+
+        // Al terminar la animación: vuelve al frame cerrado y se queda en el mapa.
+        // opening=true ya impide que vuelva a interactuarse.
+        sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+          sprite.setFrame(col);
+        });
+      });
+    }
+
+    /** Distancia a la que el jugador puede interactuar con un cofre (px). */
+    private static readonly CHEST_INTERACT_RANGE = 96;
+
+    private nearestOpenableChest(): typeof this.activeChests[0] | null {
+      const pos = this.player.getPosition();
+      const range = GameScene.CHEST_INTERACT_RANGE;
+      for (const chest of this.activeChests) {
+        if (chest.opening) continue;
+        if (chest.isTownChest && this.reg.summon.townChestIsOpen$.value) continue;
+        const sp = chest.sprite;
+        const dx = sp.x - pos.x;
+        const dy = sp.y - pos.y;
+        if (dx * dx + dy * dy <= range * range) return chest;
+      }
+      return null;
+    }
+
+    private spawnTownChest(): void {
+      const TS  = GameScene.TILE_SIZE;
+      const col = 0;
+      // 4 tiles a la derecha del spawn del jugador (tile 30,30)
+      const x = 34 * TS + TS / 2;
+      const y = 30 * TS + TS / 2;
+
+      const sprite = this.add.sprite(x, y, 'chests', col);
+      sprite.setScale(4);
+      sprite.setDepth(2);
+
+      // Colisión: el sprite ocupa 128×128 px centrado en (x, y)
+      const half = (32 * 4) / 2;
+      const tx0 = Math.floor((x - half) / TS);
+      const tx1 = Math.floor((x + half - 1) / TS);
+      const ty0 = Math.floor((y - half) / TS);
+      const ty1 = Math.floor((y + half - 1) / TS);
+      const blocked: string[] = [];
+      for (let tx = tx0; tx <= tx1; tx++) {
+        for (let ty = ty0; ty <= ty1; ty++) {
+          const k = `${tx},${ty}`;
+          blocked.push(k);
+          this.collisionTiles.add(k);
+        }
+      }
+
+      const entry = { sprite, col, blocked, opening: false, isTownChest: true };
+      this.activeChests.push(entry);
+
+      // Al terminar la animación: permite reabrir (la ventana ya controla el frame)
+      sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        entry.opening = false;
+      });
+
+      // Sincroniza el frame con el estado de la ventana Angular:
+      // col+27 = último frame (abierto), col = cerrado
+      const isOpenSub = this.reg.summon.townChestIsOpen$.subscribe(isOpen => {
+        sprite.setFrame(isOpen ? col + 27 : col);
+      });
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => isOpenSub.unsubscribe());
+    }
+
+    private openChest(chest: typeof this.activeChests[0]): void {
+      chest.opening = true;
+      chest.sprite.play(`chest_open_${chest.col}`);
+      if (chest.isTownChest) {
+        this.reg.summon.townChestOpen$.next();
+      }
     }
 
     private summonEnemyAt(enemyType: string, tileX: number, tileY: number): void {
