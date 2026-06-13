@@ -102,6 +102,7 @@ export class GameScene extends Phaser.Scene {
       tileX: number;
       tileY: number;
       valid: boolean;
+      dragging: boolean;
     } | null = null;
     private collisionTiles: Set<string>                    = new Set();
     private activeChests: ActiveChest[] = [];
@@ -793,6 +794,14 @@ export class GameScene extends Phaser.Scene {
         this.onGameClick(pointer);
       });
 
+      // Arrastrar el ghost por el mapa mientras se mantiene pulsado.
+      this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+        if (this.buildPlacement?.dragging && pointer.isDown) this.moveGhostToPointer(pointer);
+      });
+      this.input.on('pointerup', () => {
+        if (this.buildPlacement) this.buildPlacement.dragging = false;
+      });
+
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
         this.reg.autoAttack?.pauseAutomation();
@@ -1314,7 +1323,7 @@ export class GameScene extends Phaser.Scene {
       const check  = this.makeBuildButton(0x2ecc40, '✓').setDepth(9001);
       const cancel = this.makeBuildButton(0xff4136, '✕').setDepth(9001);
 
-      this.buildPlacement = { def, ghost, check, cancel, tileX, tileY, valid: false };
+      this.buildPlacement = { def, ghost, check, cancel, tileX, tileY, valid: false, dragging: false };
       this.refreshGhost();
     }
 
@@ -1382,7 +1391,17 @@ export class GameScene extends Phaser.Scene {
       if (onCancel) { this.reg.cityBuild.cancelPlacement(); return; }
       if (onCheck && bp.valid) { this.confirmBuildPlacement(); return; }
 
-      // Si no, mover el ghost al tile tocado
+      // Si no, mover el ghost al tile tocado e iniciar el arrastre (pointermove
+      // lo seguirá mientras se mantenga pulsado).
+      bp.dragging = true;
+      this.moveGhostToPointer(pointer);
+    }
+
+    /** Mueve el ghost al tile bajo el puntero y reevalúa validez. */
+    private moveGhostToPointer(pointer: Phaser.Input.Pointer): void {
+      const bp = this.buildPlacement;
+      if (!bp) return;
+      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       bp.tileX = Math.floor(world.x / GameScene.TILE_SIZE);
       bp.tileY = Math.floor(world.y / GameScene.TILE_SIZE);
       this.refreshGhost();
