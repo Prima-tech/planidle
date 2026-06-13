@@ -43,16 +43,14 @@ const THUMB_R  = 26 * DPR;
 const MM_RADIUS     = 49 * DPR;   // radio del minimapa circular (px CSS × DPR)
 const MM_MARGIN     = 15 * DPR;   // separación del borde derecho (aro HTML a 10px + 5px de bisel)
 const MM_TOP        = 15 * DPR;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
-const MM_DOT_PLAYER = 4   * DPR;
-const MM_DOT_ENEMY  = 3   * DPR;
-const MM_DOT_ELITE  = 4   * DPR;
-const MM_DOT_OBLIV  = 4.5 * DPR;
-const MM_DOT_PORTAL = 3   * DPR;
-const MM_COLOR_PLAYER = 0x2ecc71;
-const MM_COLOR_ENEMY  = 0xff4444;
-const MM_COLOR_ELITE  = 0xe67e22;  // mismos colores que el panel de mapa
-const MM_COLOR_OBLIV  = 0x9b59b6;
-const MM_COLOR_PORTAL = 0x48c4f8;
+const MM_DOT_PLAYER    = 4   * DPR;
+const MM_DOT_PORTAL    = 3   * DPR;
+const MM_COLOR_PLAYER  = 0x2ecc71;
+const MM_COLOR_PORTAL  = 0x48c4f8;
+const MM_ICON_ENEMY_KEY = 'mm_enemy';
+const MM_ICON_ELITE_KEY = 'mm_enemy_elite';
+const MM_ICON_HALF      = 8   * DPR;   // half-size regular
+const MM_ICON_HALF_EL   = 10  * DPR;   // half-size elite / oblivion
 
 const DIRS_8: Direction[] = [
   Direction.RIGHT, Direction.DOWN_RIGHT, Direction.DOWN, Direction.DOWN_LEFT,
@@ -69,10 +67,15 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmOffX = 0;     // origen del mapa proyectado (centrado en el círculo)
   private mmOffY = 0;
   private mmScale = 0;
-  private mmPlayerDot: Phaser.GameObjects.Arc | null = null;
-  private mmEnemyDots: Phaser.GameObjects.Arc[] = [];
+  private mmPlayerDot:  Phaser.GameObjects.Arc   | null = null;
+  private mmEnemyIcons: Phaser.GameObjects.Image[] = [];
 
   constructor() { super({ key: 'MobileHUDScene' }); }
+
+  preload(): void {
+    this.load.image(MM_ICON_ENEMY_KEY, 'assets/sprites/map/enemy.png');
+    this.load.image(MM_ICON_ELITE_KEY, 'assets/sprites/map/enemy_elite.png');
+  }
 
   create(): void {
     const W = this.scale.width;
@@ -161,7 +164,7 @@ export class MobileHUDScene extends Phaser.Scene {
     // anteriores ya fueron destruidos en el shutdown.
     this.mmData       = null;
     this.mmPlayerDot  = null;
-    this.mmEnemyDots  = [];
+    this.mmEnemyIcons = [];
 
     const data = this.registry.get(MINIMAP_DATA_KEY) as MinimapData | undefined;
     if (!data || !data.mapWidthPx || !data.mapHeightPx) return;
@@ -209,31 +212,39 @@ export class MobileHUDScene extends Phaser.Scene {
     let used = 0;
     for (const enemy of this.mmData.enemies) {
       if (enemy.isDead) continue;
-      const dot = this.getEnemyDot(used++);
-      const pos = enemy.getPixelPos();
-      this.mmPlace(dot, pos.x, pos.y);
+      const isElite = enemy.type.endsWith('_elite') || enemy.type.endsWith('_oblivion');
+      const texKey  = isElite ? MM_ICON_ELITE_KEY : MM_ICON_ENEMY_KEY;
+      const half    = isElite ? MM_ICON_HALF_EL   : MM_ICON_HALF;
 
-      const color  = enemy.type.endsWith('_oblivion') ? MM_COLOR_OBLIV
-                   : enemy.type.endsWith('_elite')    ? MM_COLOR_ELITE
-                   : MM_COLOR_ENEMY;
-      const radius = enemy.type.endsWith('_oblivion') ? MM_DOT_OBLIV
-                   : enemy.type.endsWith('_elite')    ? MM_DOT_ELITE
-                   : MM_DOT_ENEMY;
-      // setFillStyle/setRadius regeneran geometría — solo cuando cambia el tier
-      if (dot.fillColor !== color) dot.setFillStyle(color, 1);
-      if (dot.radius !== radius)   dot.setRadius(radius);
-      dot.setVisible(true);
+      const img = this.getEnemyIcon(used++);
+      if (img.texture.key !== texKey) img.setTexture(texKey);
+      const sz = half * 2;
+      if (img.displayWidth !== sz) img.setDisplaySize(sz, sz);
+
+      const pos = enemy.getPixelPos();
+      this.mmPlaceImg(img, half, pos.x, pos.y);
+      img.setVisible(true);
     }
-    // Oculta los puntos sobrantes del pool
-    for (let i = used; i < this.mmEnemyDots.length; i++) {
-      this.mmEnemyDots[i].setVisible(false);
+    for (let i = used; i < this.mmEnemyIcons.length; i++) {
+      this.mmEnemyIcons[i].setVisible(false);
     }
   }
 
-  private getEnemyDot(index: number): Phaser.GameObjects.Arc {
-    if (index >= this.mmEnemyDots.length) {
-      this.mmEnemyDots.push(this.add.circle(0, 0, MM_DOT_ENEMY, MM_COLOR_ENEMY, 1));
+  private getEnemyIcon(index: number): Phaser.GameObjects.Image {
+    if (index >= this.mmEnemyIcons.length) {
+      const img = this.add.image(0, 0, MM_ICON_ENEMY_KEY);
+      img.setDisplaySize(MM_ICON_HALF * 2, MM_ICON_HALF * 2);
+      this.mmEnemyIcons.push(img);
     }
-    return this.mmEnemyDots[index];
+    return this.mmEnemyIcons[index];
+  }
+
+  private mmPlaceImg(img: Phaser.GameObjects.Image, half: number, worldX: number, worldY: number): void {
+    let dx = this.mmOffX + worldX * this.mmScale - this.mmCX;
+    let dy = this.mmOffY + worldY * this.mmScale - this.mmCY;
+    const maxR = MM_RADIUS - half - 2 * DPR;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d > maxR) { dx = (dx / d) * maxR; dy = (dy / d) * maxR; }
+    img.setPosition(this.mmCX + dx, this.mmCY + dy);
   }
 }
