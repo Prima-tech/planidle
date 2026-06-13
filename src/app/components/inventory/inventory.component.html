@@ -7,6 +7,7 @@
     class="tab"
     [attr.data-tab-index]="index"
     [ngClass]="{ active: index === activeTabIndex }"
+    [hidden]="!isTabVisible(index)"
     (click)="selectTab(index); $event.stopPropagation()"
   >
     {{ tab }}
@@ -21,8 +22,9 @@
     [class.tab-inactive]="activeTabIndex !== tabIndex"
   >
     <div *ngFor="let row of inventory; let rowIndex = index" class="inventory-row">
+      <ng-container *ngFor="let cell of row; let colIndex = index">
       <div
-        *ngFor="let cell of row; let colIndex = index"
+        *ngIf="isCellUnlocked(tabIndex, rowIndex, colIndex)"
         class="inventory-cell"
         cdkDropList
         cdkDropListSortingDisabled
@@ -65,6 +67,11 @@
           </div>
         </ng-container>
       </div>
+      <!-- Celda bloqueada: invisible pero ocupa su sitio para que la rejilla
+           mantenga el mismo tamaño en todas las pestañas. No es zona de drop. -->
+      <div *ngIf="!isCellUnlocked(tabIndex, rowIndex, colIndex)"
+           class="inventory-cell inventory-cell--locked"></div>
+      </ng-container>
     </div>
   </div>
 </div>

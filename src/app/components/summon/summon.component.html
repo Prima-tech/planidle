@@ -141,7 +141,9 @@
 
   <div class="misc-icon-grid" *ngIf="activeIconTab === 0">
     <div class="misc-icon-cell" *ngFor="let icon of miscIcons">
-      <div [ngStyle]="miscIconStyle(icon.frame)"></div>
+      <div class="misc-icon-wrap">
+        <div [ngStyle]="miscIconStyle(icon.frame)"></div>
+      </div>
       <span class="misc-icon-name">{{ icon.name }}</span>
     </div>
   </div>

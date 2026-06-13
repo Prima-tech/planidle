@@ -25,6 +25,7 @@ export interface LootEntry {
   order: number;
   description?: string;
   stats?: Record<string, number>;
+  inventorySlots?: number;   // bolsas: celdas de inventario que desbloquea al equiparse
 }
 
 const EXP_REWARDS: Record<string, number> = {
@@ -287,7 +288,7 @@ const WEAPON_CATALOG: LootEntry[] = [
 // Bolsas: se equipan en el slot 'backpack' (categoría 'Mochila') de la pestaña de
 // equipo secundaria. Iconos sueltos en assets/icon/bags. La `texture` es la clave
 // Phaser precargada en gamescene (preload) para el sprite del drop al invocarlas.
-const _bag = (textureKey: string, file: string, name: string, desc: string): LootEntry => ({
+const _bag = (textureKey: string, file: string, name: string, slots: number, desc: string): LootEntry => ({
   name,
   category: 'Mochila',
   type: 'item',
@@ -295,14 +296,15 @@ const _bag = (textureKey: string, file: string, name: string, desc: string): Loo
   texture: textureKey,
   icon: `assets/icon/bags/${file}`,
   scale: 2, order: 4,
-  description: desc,
+  inventorySlots: slots,
+  description: `${desc} Desbloquea ${slots} slots de inventario.`,
 });
 
 const BAGS_CATALOG: LootEntry[] = [
-  _bag('bag_1', 'bag_01.png', 'Bolsa de Cuero',          'Una bolsa sencilla de cuero curtido.'),
-  _bag('bag_2', 'bag_02.png', 'Morral del Viajero',      'Morral resistente para largas jornadas.'),
-  _bag('bag_3', 'bag_3.png',  'Zurrón Reforzado',        'Zurrón con costuras reforzadas.'),
-  _bag('bag_4', 'bag_4.png',  'Mochila del Aventurero',  'Amplia mochila para todo tipo de botín.'),
+  _bag('bag_1', 'bag_01.png', 'Bolsa de Cuero',          4,  'Una bolsa sencilla de cuero curtido.'),
+  _bag('bag_2', 'bag_02.png', 'Morral del Viajero',      8,  'Morral resistente para largas jornadas.'),
+  _bag('bag_3', 'bag_3.png',  'Zurrón Reforzado',        12, 'Zurrón con costuras reforzadas.'),
+  _bag('bag_4', 'bag_4.png',  'Mochila del Aventurero',  16, 'Amplia mochila para todo tipo de botín.'),
 ];
 
 const _catalogSeen = new Set<string>();
@@ -434,6 +436,7 @@ export class GridDrops {
       order: loot.order,
       description: loot.description,
       stats: loot.stats,
+      inventorySlots: loot.inventorySlots,
     };
     this.inventoryService.addDroppedItem(item);
   }

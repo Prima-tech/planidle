@@ -126,6 +126,15 @@ $purple: #6e4a67;         // celda seleccionada
     0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
+/* Celda bloqueada: reserva el espacio (mismo tamaño) pero invisible y sin interacción.
+   Así el recuadro del inventario mide igual aunque la mochila desbloquee pocos huecos. */
+.inventory-cell--locked {
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
 /* Item */
 .inventory-item {
   position: relative;

@@ -1,6 +1,7 @@
 import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
+import { InventoryUnlockService } from 'src/app/services/inventory-unlock.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { GatheringEquipmentService } from 'src/app/services/gathering-equipment.service';
 import { TownChestService } from 'src/app/services/town-chest.service';
@@ -35,9 +36,11 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private saveTimer: any;
   private dropSub: Subscription;
   private removeSub: Subscription;
+  private unlockSub: Subscription;
 
   private panelState = inject(PanelStateService);
   private playerState = inject(PlayerStateService);
+  unlock = inject(InventoryUnlockService);
 
   coins$ = this.playerState.coins$;
 
@@ -63,6 +66,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.activeTabIndex = this.panelState.get('inv.tab', 0);
+    // Si la pestaña guardada ya no está desbloqueada (p.ej. sin mochila), vuelve a la 1ª
+    if (!this.unlock.isTabVisible(this.activeTabIndex)) this.activeTabIndex = 0;
     this.tabs = ['I', 'II', 'III', 'IV', 'V'].slice(0, this.NUMBER_OF_TABS);
     this.equipmentSlotIds = this.equipmentService.getEquipmentSlotIds();
     this.connectedDropIds = [...this.equipmentSlotIds, ...this.gatheringService.getSlotIds(), ...this.townChest.cellIds];
@@ -85,6 +90,11 @@ export class InventoryComponent implements OnInit, OnDestroy {
       this.inventories[tabIndex][row][col] = null;
       this.triggerSave();
     });
+
+    // Al cambiar la mochila equipada cambian las celdas/pestañas disponibles
+    this.unlockSub = this.unlock.unlocked$.subscribe(() => {
+      if (!this.unlock.isTabVisible(this.activeTabIndex)) this.selectTab(0);
+    });
   }
 
   ngOnDestroy() {
@@ -92,6 +102,17 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.inventoryService.save(this.inventories);
     this.dropSub?.unsubscribe();
     this.removeSub?.unsubscribe();
+    this.unlockSub?.unsubscribe();
+  }
+
+  // --- Desbloqueo por mochilas ---
+
+  isCellUnlocked(tabIndex: number, row: number, col: number): boolean {
+    return this.unlock.isUnlocked(tabIndex, row, col);
+  }
+
+  isTabVisible(tabIndex: number): boolean {
+    return this.unlock.isTabVisible(tabIndex);
   }
 
   ngAfterViewInit() {
@@ -315,11 +336,12 @@ export class InventoryComponent implements OnInit, OnDestroy {
   // --- Ordenar ---
 
   sortInventory() {
+    // Solo se reordenan las celdas desbloqueadas; las bloqueadas no se tocan
     const items: InventoryItem[] = [];
     for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
       for (let i = 0; i < this.ROWS; i++) {
         for (let j = 0; j < this.COLUMNS; j++) {
-          if (this.inventories[t][i][j]) items.push(this.inventories[t][i][j]!);
+          if (this.unlock.isUnlocked(t, i, j) && this.inventories[t][i][j]) items.push(this.inventories[t][i][j]!);
         }
       }
     }
@@ -334,6 +356,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
       for (let i = 0; i < this.ROWS; i++) {
         for (let j = 0; j < this.COLUMNS; j++) {
+          if (!this.unlock.isUnlocked(t, i, j)) continue;
           this.inventories[t][i][j] = index < items.length ? items[index++] : null;
         }
       }
@@ -351,6 +374,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
       for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
         for (let i = 0; i < this.ROWS; i++) {
           for (let j = 0; j < this.COLUMNS; j++) {
+            if (!this.unlock.isUnlocked(t, i, j)) continue;
             const existing = this.inventories[t][i][j];
             if (existing?.mergeable && existing.name === newItem.name) {
               existing.sum! += newItem.sum!;
@@ -376,7 +400,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
       for (let i = 0; i < this.ROWS; i++) {
         for (let j = 0; j < this.COLUMNS; j++) {
-          if (!this.inventories[t][i][j]) return { tabIndex: t, row: i, col: j };
+          if (this.unlock.isUnlocked(t, i, j) && !this.inventories[t][i][j]) return { tabIndex: t, row: i, col: j };
         }
       }
     }

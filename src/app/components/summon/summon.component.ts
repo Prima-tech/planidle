@@ -275,19 +275,20 @@ export class SummonComponent {
     return type.split('_').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
   }
 
+  get miscIconsSmall() { return this.miscIcons.filter(i => i.frame < 60); }
+  get miscIconsLarge() { return this.miscIcons.filter(i => i.frame >= 60); }
+
   miscIconStyle(frame: number): Record<string, string> {
-    const COLS = 15, FS = 32, SCALE = 2;
+    const COLS = 15, FS = 32;
     const col = frame % COLS;
     const row = Math.floor(frame / COLS);
     return {
       'background-image':    `url(assets/sprites/resources/misc.png)`,
       'background-repeat':   'no-repeat',
-      'background-size':     `${COLS * FS * SCALE}px auto`,
-      'background-position': `-${col * FS * SCALE}px -${row * FS * SCALE}px`,
+      'background-position': `-${col * FS}px -${row * FS}px`,
       'image-rendering':     'pixelated',
-      'width':               `${FS * SCALE}px`,
-      'height':              `${FS * SCALE}px`,
-      'flex-shrink':         '0',
+      'width':               `${FS}px`,
+      'height':              `${FS}px`,
     };
   }
 }

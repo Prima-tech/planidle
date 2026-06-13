@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { InventoryUnlockService } from './inventory-unlock.service';
 
 // Cambia a false cuando Supabase esté listo para inventario
 const USE_MOCK = true;
@@ -19,6 +20,7 @@ export interface InventoryItem {
   order?: number;
   description?: string;
   stats?: Record<string, number>;
+  inventorySlots?: number;   // bolsas: nº de celdas de inventario que desbloquea al equiparse
 }
 
 const TABS = 4;
@@ -33,6 +35,8 @@ export class InventoryService {
   readonly removeRequest$ = new Subject<{ tabIndex: number; row: number; col: number }>();
 
   private mockGrid: (InventoryItem | null)[][][] = this.buildGrid();
+
+  private unlock = inject(InventoryUnlockService);
 
   constructor() { }
 
@@ -71,6 +75,7 @@ export class InventoryService {
       for (let t = 0; t < TABS; t++) {
         for (let r = 0; r < ROWS; r++) {
           for (let c = 0; c < COLS; c++) {
+            if (!this.unlock.isUnlocked(t, r, c)) continue;
             const existing = grid[t][r][c];
             if (existing?.mergeable && existing.name === item.name) {
               existing.sum = (existing.sum ?? 0) + (item.sum ?? 1);
@@ -83,6 +88,7 @@ export class InventoryService {
     for (let t = 0; t < TABS; t++) {
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
+          if (!this.unlock.isUnlocked(t, r, c)) continue;
           if (!grid[t][r][c]) {
             grid[t][r][c] = item;
             return;
