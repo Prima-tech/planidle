@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '
 import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { GatheringEquipmentService } from 'src/app/services/gathering-equipment.service';
 import { TownChestService } from 'src/app/services/town-chest.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
@@ -43,6 +44,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   constructor(
     private inventoryService: InventoryService,
     public equipmentService: EquipmentService,
+    private gatheringService: GatheringEquipmentService,
     private townChest: TownChestService,
     private el: ElementRef,
   ) {}
@@ -63,7 +65,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.activeTabIndex = this.panelState.get('inv.tab', 0);
     this.tabs = ['I', 'II', 'III', 'IV', 'V'].slice(0, this.NUMBER_OF_TABS);
     this.equipmentSlotIds = this.equipmentService.getEquipmentSlotIds();
-    this.connectedDropIds = [...this.equipmentSlotIds, ...this.townChest.cellIds];
+    this.connectedDropIds = [...this.equipmentSlotIds, ...this.gatheringService.getSlotIds(), ...this.townChest.cellIds];
 
     // Grid vacío síncrono para que CDK registre los drop lists antes de cargar datos
     this.inventories = this.inventoryService.buildGrid();
@@ -161,6 +163,18 @@ export class InventoryComponent implements OnInit, OnDestroy {
       if (targetItem !== null) return; // celda ocupada: rechazar
       this.inventories[targetTabIndex][targetRow][targetCol] = data.item;
       this.equipmentService.unequip(data.slotId);
+      this.splitMenuOpen = false;
+      this.deleteModalOpen = false;
+      this.triggerSave();
+      return;
+    }
+
+    // Drop desde un slot de recolección → inventario
+    if (data.sourceContext === 'gathering') {
+      const targetItem = this.inventories[targetTabIndex][targetRow][targetCol];
+      if (targetItem !== null) return;
+      this.inventories[targetTabIndex][targetRow][targetCol] = data.item;
+      this.gatheringService.unequip(data.slotId);
       this.splitMenuOpen = false;
       this.deleteModalOpen = false;
       this.triggerSave();

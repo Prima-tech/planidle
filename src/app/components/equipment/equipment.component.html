@@ -1,6 +1,6 @@
-<div class="eq-wrapper" [class.eq-wrapper--wide]="talentExpanded && (activeTab === 2 || activeTab === 3)">
+<div class="eq-wrapper" [class.eq-wrapper--wide]="talentExpanded && (activeTab === 3 || activeTab === 4)">
 
-  <button *ngIf="activeTab === 2 || activeTab === 3"
+  <button *ngIf="activeTab === 3 || activeTab === 4"
           class="talent-expand-btn"
           (click)="talentExpanded = !talentExpanded">
     <ion-icon [name]="talentExpanded ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
@@ -11,22 +11,25 @@
       <ion-icon name="shield-outline"></ion-icon>
     </button>
     <button class="eq-vtab" [class.active]="activeTab === 1" (click)="activeTab = 1">
-      <ion-icon name="podium-outline"></ion-icon>
+      <ion-icon name="construct-outline"></ion-icon>
     </button>
     <button class="eq-vtab" [class.active]="activeTab === 2" (click)="activeTab = 2">
-      <ion-icon name="sparkles-outline"></ion-icon>
+      <ion-icon name="podium-outline"></ion-icon>
     </button>
     <button class="eq-vtab" [class.active]="activeTab === 3" (click)="activeTab = 3">
-      <ion-icon name="git-network-outline"></ion-icon>
+      <ion-icon name="sparkles-outline"></ion-icon>
     </button>
     <button class="eq-vtab" [class.active]="activeTab === 4" (click)="activeTab = 4">
+      <ion-icon name="git-network-outline"></ion-icon>
+    </button>
+    <button class="eq-vtab" [class.active]="activeTab === 5" (click)="activeTab = 5">
       <ion-icon name="trophy-outline"></ion-icon>
     </button>
   </div>
 
   <div class="eq-content">
 
-  <!-- Tab 0: Equipamiento -->
+  <!-- Tab 0: Equipamiento de combate -->
   <div class="eq-layout" *ngIf="activeTab === 0">
 
     <!-- Columna izquierda: casco, armadura, pantalones, botas, arma -->
@@ -67,8 +70,45 @@
 
   </div>
 
-  <!-- Tab 1: Resumen de stats -->
-  <div class="eq-overview-panel" *ngIf="activeTab === 1">
+  <!-- Tab 1: Equipo de recolección -->
+  <div class="eq-layout" *ngIf="activeTab === 1">
+
+    <!-- Columna izquierda: pico, hacha, caña, pala, linterna -->
+    <div class="eq-col">
+      <ng-container *ngFor="let slot of gatheringService.slots">
+        <ng-container *ngIf="['pickaxe','axe','fishing_rod','shovel','lantern'].includes(slot.id)">
+          <ng-container *ngTemplateOutlet="gatheringSlotTpl; context: { slot: slot }"></ng-container>
+        </ng-container>
+      </ng-container>
+    </div>
+
+    <!-- Centro: preview del personaje -->
+    <div class="eq-center">
+      <app-char-stats section="header"></app-char-stats>
+      <div class="preview-frame">
+        <app-player-preview [size]="96"></app-player-preview>
+      </div>
+      <div class="base-stats-plaque">
+        <div class="bsp-cell" *ngFor="let s of statsList">
+          <span class="bsp-label">{{ s.label }}</span>
+          <span class="bsp-val">{{ charStats.stats[s.key] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna derecha: mochila, guantes, cinturón, brújula, antorcha -->
+    <div class="eq-col">
+      <ng-container *ngFor="let slot of gatheringService.slots">
+        <ng-container *ngIf="['backpack','gloves','belt','compass','torch'].includes(slot.id)">
+          <ng-container *ngTemplateOutlet="gatheringSlotTpl; context: { slot: slot }"></ng-container>
+        </ng-container>
+      </ng-container>
+    </div>
+
+  </div>
+
+  <!-- Tab 2: Resumen de stats -->
+  <div class="eq-overview-panel" *ngIf="activeTab === 2">
 
     <ng-container *ngIf="playerState.state$ | async as st">
 
@@ -374,8 +414,8 @@
 
   </div>
 
-  <!-- Tab 2: Talentos -->
-  <div class="talent-panel" *ngIf="activeTab === 2">
+  <!-- Tab 3: Talentos -->
+  <div class="talent-panel" *ngIf="activeTab === 3">
 
     <!-- Sub-tabs -->
     <div class="talent-tree-tabs" *ngIf="talentTrees.length > 1">
@@ -407,8 +447,8 @@
 
   </div><!-- talent-panel -->
 
-  <!-- Tab 3: Árbol de habilidades clásico (HTML + SVG) -->
-  <div class="talent-panel" *ngIf="activeTab === 3">
+  <!-- Tab 4: Árbol de habilidades clásico (HTML + SVG) -->
+  <div class="talent-panel" *ngIf="activeTab === 4">
 
     <!-- Inventario de esferas -->
     <div class="talent-sphere-bar">
@@ -470,8 +510,8 @@
 
   </div><!-- talent-panel clásico -->
 
-  <!-- Tab 4: Logros -->
-  <div class="ach-panel" *ngIf="activeTab === 4">
+  <!-- Tab 5: Logros -->
+  <div class="ach-panel" *ngIf="activeTab === 5">
 
     <div class="talent-tree-tabs">
       <button class="talent-tree-tab" [class.active]="achScope === 'char'" (click)="setAchScope('char')">
@@ -498,17 +538,17 @@
 
   </div><!-- eq-content -->
 
-  <!-- Sets de equipo: 3 loadouts por personaje, en vertical a la derecha -->
-  <div class="loadout-tabs" *ngIf="activeTab === 0 && !statsFlyoutOpen">
+  <!-- Sets de equipo (combate + recolección vinculados): 3 loadouts compartidos -->
+  <div class="loadout-tabs" *ngIf="(activeTab === 0 && !statsFlyoutOpen) || activeTab === 1">
     <button class="loadout-tab" *ngFor="let i of loadoutIndices"
             [class.active]="equipmentService.activeLoadout === i"
-            (click)="equipmentService.switchLoadout(i)">
+            (click)="switchLoadout(i)">
       {{ i + 1 }}
     </button>
   </div>
 
   <!-- Info de logro: panel a la derecha al pinchar un logro -->
-  <div class="talent-picker-flyout stats-flyout ach-flyout" *ngIf="activeTab === 4 && selectedAch">
+  <div class="talent-picker-flyout stats-flyout ach-flyout" *ngIf="activeTab === 5 && selectedAch">
     <div class="ach-info-head">
       <ion-icon [name]="selectedAch.icon"
                 [class.unlocked]="achievements.isUnlocked(selectedAch)"></ion-icon>
@@ -548,7 +588,7 @@
   </div>
 
   <!-- Picker flotante: aparece a la derecha del panel al seleccionar un talento -->
-  <div class="talent-picker-flyout talent-node-card" *ngIf="(activeTab === 2 || activeTab === 3) && selectedNodeId">
+  <div class="talent-picker-flyout talent-node-card" *ngIf="(activeTab === 3 || activeTab === 4) && selectedNodeId">
     <button class="tpicker-cancel" (click)="clearTalentSelection()">✕</button>
     <div class="tpicker-name">{{ formatNodeLabel(selectedNode!) }}</div>
     <div class="tpicker-spheres">
@@ -570,7 +610,7 @@
 
 </div>
 
-<!-- Template reutilizable para cada slot -->
+<!-- Template reutilizable: slot de combate -->
 <ng-template #slotTpl let-slot="slot">
   <div
     class="equip-slot"
@@ -604,6 +644,40 @@
 
     <ng-template #emptySlot>
       <ion-icon class="slot-placeholder" [name]="slotPlaceholderIcons[slot.id]" [title]="slot.label"></ion-icon>
+    </ng-template>
+  </div>
+</ng-template>
+
+<!-- Template reutilizable: slot de recolección -->
+<ng-template #gatheringSlotTpl let-slot="slot">
+  <div
+    class="equip-slot"
+    [class.occupied]="slot.item !== null"
+    cdkDropList
+    cdkDropListSortingDisabled
+    [id]="'gather-' + slot.id"
+    [cdkDropListConnectedTo]="gatheringService.inventoryCellIds"
+    [cdkDropListEnterPredicate]="canDropInGatheringSlot"
+    (cdkDropListDropped)="onGatheringDrop($event, slot)"
+  >
+    <div *ngIf="slot.item; else gatheringEmptySlot"
+         class="equip-item"
+         cdkDrag
+         [cdkDragData]="{ sourceContext: 'gathering', slotId: 'gather-' + slot.id, item: slot.item }"
+         [title]="slot.item.name">
+      <div *ngIf="slot.item.iconSheet != null"
+           class="item-icon-sheet"
+           [class.item-icon-sheet--equip]="slot.item.iconFrameSize != null"
+           [style.background-image]="'url(' + slot.item.iconSheet + ')'"
+           [style.background-size]="getSheetBgSize(slot.item.iconFrameCols, slot.item.iconFrameSize, slot.item.iconContentSize)"
+           [style.background-position]="getSheetPos(slot.item.iconFrame, slot.item.iconFrameCols, slot.item.iconFrameSize, slot.item.iconContentSize)">
+      </div>
+      <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon">
+      <span *ngIf="!slot.item.icon && slot.item.iconSheet == null" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
+    </div>
+
+    <ng-template #gatheringEmptySlot>
+      <ion-icon class="slot-placeholder" [name]="gatheringPlaceholderIcons[slot.id]" [title]="slot.label"></ion-icon>
     </ng-template>
   </div>
 </ng-template>

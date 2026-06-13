@@ -3,6 +3,7 @@ import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import Phaser from 'phaser';
 import { TalentTreeScene, TALENT_TREE_DATA_KEY, TALENT_SERVICE_KEY, TALENT_NODE_TAP_KEY, TALENT_TREE_RES } from 'src/app/scenes/talent-tree.scene';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
+import { GatheringEquipmentService, GatheringSlot } from 'src/app/services/gathering-equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown, MagicDamageBreakdown, RegenBreakdown, DropRateBreakdown } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
@@ -30,19 +31,19 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   set activeTab(v: number) {
     this._activeTab = v;
     this.panelState.set('equip.tab', v);
-    if (v === 2) {
+    if (v === 3) {
       // El contenedor entra al DOM con el *ngIf en este mismo ciclo
       setTimeout(() => this.createTalentGame());
     } else {
       this.destroyTalentGame();
     }
-    if (v === 3) this.initPan();
-    if (v !== 2 && v !== 3) {
+    if (v === 4) this.initPan();
+    if (v !== 3 && v !== 4) {
       this.selectedNodeId = null;
       this.talentExpanded = false;
     }
     if (v !== 0) this.statsFlyoutOpen = false;
-    if (v !== 4) this.selectedAch = null;
+    if (v !== 5) this.selectedAch = null;
   }
 
   showAtkBreakdown      = false;
@@ -81,8 +82,25 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     potion:   'flask-outline',
   };
 
-  // Sets de equipo (loadouts) del tab 0
+  readonly gatheringPlaceholderIcons: Record<string, string> = {
+    pickaxe:     'hammer-outline',
+    axe:         'cut-outline',
+    fishing_rod: 'fish-outline',
+    shovel:      'trail-sign-outline',
+    lantern:     'sunny-outline',
+    backpack:    'bag-handle-outline',
+    gloves:      'hand-left-outline',
+    belt:        'link-outline',
+    compass:     'compass-outline',
+    torch:       'flame-outline',
+  };
+
   readonly loadoutIndices = [0, 1, 2];
+
+  switchLoadout(index: number): void {
+    this.equipmentService.switchLoadout(index);
+    this.gatheringService.switchLoadout(index);
+  }
 
   // ── Logros (tab 4) ───────────────────────────────────────────────────────────
 
@@ -340,7 +358,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   }
 
   private recreateTalentGame(): void {
-    if (this._activeTab !== 2) return;
+    if (this._activeTab !== 3) return;
     this.destroyTalentGame();
     // Espera a que el layout asiente el nuevo tamaño del viewport
     setTimeout(() => this.createTalentGame(), 60);
@@ -407,6 +425,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   constructor(
     public equipmentService: EquipmentService,
+    public gatheringService: GatheringEquipmentService,
     private inventoryService: InventoryService,
     public charStats: CharacterStatsService,
     public playerState: PlayerStateService,
@@ -416,19 +435,33 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
     // Tab guardado fuera de rango (numeraciones antiguas) → al primero
-    if (this._activeTab > 4) this._activeTab = 0;
-    if (this._activeTab === 2) setTimeout(() => this.createTalentGame());
-    if (this._activeTab === 3) this.initPan();
+    if (this._activeTab > 5) this._activeTab = 0;
+    if (this._activeTab === 3) setTimeout(() => this.createTalentGame());
+    if (this._activeTab === 4) this.initPan();
   }
 
   ngOnDestroy(): void {
     this.destroyTalentGame();
   }
 
-  // Predicate: sólo acepta ítems compatibles con este slot
   canDropInSlot = (drag: CdkDrag, drop: CdkDropList): boolean => {
     return this.equipmentService.canEquip(drag.data?.item, drop.id);
   };
+
+  canDropInGatheringSlot = (drag: CdkDrag, drop: CdkDropList): boolean => {
+    return this.gatheringService.canEquip(drag.data?.item, drop.id);
+  };
+
+  onGatheringDrop(event: CdkDragDrop<any>, slot: GatheringSlot): void {
+    const data = event.item.data;
+    const item: InventoryItem = data.item;
+    if (!this.gatheringService.canEquip(item, `gather-${slot.id}`)) return;
+    const displaced = this.gatheringService.equip(`gather-${slot.id}`, item);
+    if (data.sourceContext === 'inventory') {
+      this.inventoryService.removeRequest$.next({ tabIndex: data.tabIndex, row: data.row, col: data.col });
+      if (displaced) this.inventoryService.itemDropped$.next(displaced);
+    }
+  }
 
   onEquipDrop(event: CdkDragDrop<any>, slot: EquipmentSlot): void {
     const data = event.item.data;
