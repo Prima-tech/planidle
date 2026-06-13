@@ -39,7 +39,6 @@ export class SummonComponent {
     { icon: 'skull-outline',      title: 'Enemies' },
     { icon: 'bag-handle-outline', title: 'Items'   },
     { icon: 'cube-outline',       title: 'Chests'  },
-    { icon: 'images-outline',     title: 'Iconos'  },
   ];
 
   /** Índices 0-8, uno por columna del spritesheet chests.png (32×32 por frame, 9 cols). */
@@ -68,86 +67,17 @@ export class SummonComponent {
   private _activeTab      = 0;
   private _activeItemTab  = 0;
   private _activeEnemyTab = 0;
-  private _activeIconTab  = 0;
 
   get activeTab():      number { return this._activeTab; }
   get activeItemTab():  number { return this._activeItemTab; }
   get activeEnemyTab(): number { return this._activeEnemyTab; }
-  get activeIconTab():  number { return this._activeIconTab; }
 
   set activeTab(v: number)      { this._activeTab = v;      this.panelState.set('summon.tab', v); }
   set activeItemTab(v: number)  { this._activeItemTab = v;  this.panelState.set('summon.itemTab', v); }
   set activeEnemyTab(v: number) { this._activeEnemyTab = v; this.panelState.set('summon.enemyTab', v); }
-  set activeIconTab(v: number)  { this._activeIconTab = v;  this.panelState.set('summon.iconTab', v); }
   readonly itemSubTabs  = ['Armor', 'Weapons', 'Misc'];
   readonly enemySubTabs = ['Slimes', 'Misc'];
-  readonly iconSubTabs  = ['Misc', '···'];
 
-  readonly miscIcons: { frame: number; name: string }[] = [
-    // Row 0
-    { frame:  0, name: 'Hueso' },        { frame:  1, name: 'Varita' },
-    { frame:  2, name: 'Llave' },        { frame:  3, name: 'Flor Rosa' },
-    { frame:  4, name: 'Llave Inglesa'}, { frame:  5, name: 'Tijeras' },
-    { frame:  6, name: 'Aguja' },        { frame:  7, name: 'Arco' },
-    { frame:  8, name: 'Flecha' },       { frame:  9, name: 'Llave Azul' },
-    { frame: 10, name: 'Crista Cel.' },  { frame: 11, name: 'Piedra Osc.' },
-    { frame: 12, name: 'Pluma' },        { frame: 13, name: 'Llave Oro' },
-    { frame: 14, name: 'Frag. Azul' },
-    // Row 1
-    { frame: 15, name: 'Tierra' },       { frame: 16, name: 'Gravilla' },
-    { frame: 17, name: 'Guijarros' },    { frame: 18, name: 'Mon. Cobre' },
-    { frame: 19, name: 'Zafiro Sm' },    { frame: 20, name: 'Monedas' },
-    { frame: 21, name: 'Orbe Azul Sm'}, { frame: 22, name: 'Mon. Oro' },
-    { frame: 23, name: 'Rocas Grises'}, { frame: 24, name: 'Disco Azul' },
-    { frame: 25, name: 'Disco Plata' },  { frame: 26, name: 'Perla' },
-    { frame: 27, name: 'Frag. Gris' },  { frame: 28, name: 'Rubí Sm' },
-    { frame: 29, name: 'Gema Cel.' },
-    // Row 2
-    { frame: 30, name: 'Arcilla' },      { frame: 31, name: 'Barro' },
-    { frame: 32, name: 'Roca Marrón' },  { frame: 33, name: 'Mon. Bronce' },
-    { frame: 34, name: 'Zafiro' },       { frame: 35, name: 'Min. Hierro' },
-    { frame: 36, name: 'Orbe Azul' },    { frame: 37, name: 'Min. Bronce' },
-    { frame: 38, name: 'Piedra' },       { frame: 39, name: 'Mon. Azul' },
-    { frame: 40, name: 'Mon. Plata' },   { frame: 41, name: 'Perla Gde.' },
-    { frame: 42, name: 'Min. Oscuro' },  { frame: 43, name: 'Rubí' },
-    { frame: 44, name: 'Crist. Teal' },
-    // Row 3
-    { frame: 45, name: 'Shard Nar.' },   { frame: 46, name: 'Shard Azul' },
-    { frame: 47, name: 'Shard Blanc.' }, { frame: 48, name: 'Arcilla Sm' },
-    { frame: 49, name: 'Ópalo Nar.' },   { frame: 50, name: 'Barro Osc.' },
-    { frame: 51, name: 'Esf. Naranja'}, { frame: 52, name: 'Roca Redonda'},
-    { frame: 53, name: 'Bola Piedra' },  { frame: 54, name: 'Gema Naranja'},
-    { frame: 55, name: 'Jarra Azul' },   { frame: 56, name: 'Jarra Marr.' },
-    { frame: 57, name: 'Gema Teal' },    { frame: 58, name: 'Vial Naranja'},
-    { frame: 59, name: 'Vial Oscuro' },
-    // Row 4
-    { frame: 60, name: 'Llama' },        { frame: 61, name: 'Corona Orn.' },
-    { frame: 62, name: 'Corona Sm' },    { frame: 63, name: 'Corona Dor.' },
-    { frame: 64, name: 'Corona Fuego'}, { frame: 65, name: 'Llama Azul' },
-    { frame: 66, name: 'Gota Agua' },    { frame: 67, name: 'Huevo Roto' },
-    { frame: 68, name: 'Ojo Mágico' },   { frame: 69, name: 'Sello Rojo' },
-    { frame: 70, name: 'Gema Azul Gde'},{ frame: 71, name: 'Crist. Cel.' },
-    { frame: 72, name: 'Gema Púrp.' },   { frame: 73, name: 'Lágrima Az.'},
-    { frame: 74, name: 'Gota Azul' },
-    // Row 5
-    { frame: 75, name: 'Anillo Plata'}, { frame: 76, name: 'Anillo Orn.' },
-    { frame: 77, name: 'Círculo Mág.' },{ frame: 78, name: 'Anillo Dor.' },
-    { frame: 79, name: 'Estrella Dor.'},{ frame: 80, name: 'Semilla' },
-    { frame: 81, name: 'Lágrima Azul'}, { frame: 82, name: 'Pluma Blanc.' },
-    { frame: 83, name: 'Estrella Am.' }, { frame: 84, name: 'Medalla Oro' },
-    { frame: 85, name: 'Item 85' },      { frame: 86, name: 'Item 86' },
-    { frame: 87, name: 'Item 87' },      { frame: 88, name: 'Item 88' },
-    { frame: 89, name: 'Item 89' },
-    // Row 6
-    { frame: 90, name: 'Copa' },         { frame: 91, name: 'Cáliz' },
-    { frame: 92, name: 'Trofeo' },       { frame: 93, name: 'Lupa' },
-    { frame: 94, name: 'Flecha Roja' },  { frame: 95, name: 'Gema Verde' },
-    { frame: 96, name: 'Gema Azul' },    { frame: 97, name: 'Gema Púrp.' },
-    { frame: 98, name: 'Gema Naranja'}, { frame: 99, name: 'Crist. Rojo' },
-    { frame: 100,name: 'Crist. Verde'}, { frame: 101,name: 'Crist. Azul' },
-    { frame: 102,name: 'Crist. Viol.' },{ frame: 103,name: 'Crist. Ámbar'},
-    { frame: 104,name: 'Item 104' },
-  ];
   readonly slimeGroups: EnemyGroup[];
   readonly miscGroups:  EnemyGroup[];
   readonly armorCatalog:  LootEntry[];
@@ -201,7 +131,6 @@ export class SummonComponent {
     this._activeTab      = rawTab === 2 ? 1 : rawTab === 1 ? 0 : rawTab;
     this._activeItemTab  = this.panelState.get('summon.itemTab',  0);
     this._activeEnemyTab = this.panelState.get('summon.enemyTab', 0);
-    this._activeIconTab  = this.panelState.get('summon.iconTab',  0);
   }
 
   summon(type: string): void {
@@ -275,20 +204,4 @@ export class SummonComponent {
     return type.split('_').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
   }
 
-  get miscIconsSmall() { return this.miscIcons.filter(i => i.frame < 60); }
-  get miscIconsLarge() { return this.miscIcons.filter(i => i.frame >= 60); }
-
-  miscIconStyle(frame: number): Record<string, string> {
-    const COLS = 15, FS = 32;
-    const col = frame % COLS;
-    const row = Math.floor(frame / COLS);
-    return {
-      'background-image':    `url(assets/sprites/resources/misc.png)`,
-      'background-repeat':   'no-repeat',
-      'background-position': `-${col * FS}px -${row * FS}px`,
-      'image-rendering':     'pixelated',
-      'width':               `${FS}px`,
-      'height':              `${FS}px`,
-    };
-  }
 }

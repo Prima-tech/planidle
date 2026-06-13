@@ -128,30 +128,6 @@
   </button>
 </div>
 
-<div class="icon-viewer" *ngIf="activeTab === 3">
-
-  <div class="item-subtabs">
-    <div
-      *ngFor="let tab of iconSubTabs; let i = index"
-      class="item-subtab"
-      [class.active]="i === activeIconTab"
-      (click)="activeIconTab = i"
-    >{{ tab }}</div>
-  </div>
-
-  <div class="misc-icon-grid" *ngIf="activeIconTab === 0">
-    <div class="misc-icon-cell" *ngFor="let icon of miscIcons">
-      <div class="misc-icon-wrap">
-        <div [ngStyle]="miscIconStyle(icon.frame)"></div>
-      </div>
-      <span class="misc-icon-name">{{ icon.name }}</span>
-    </div>
-  </div>
-
-  <div class="item-empty" *ngIf="activeIconTab === 1">Próximamente</div>
-
-</div>
-
 <ng-template #itemCards let-entries>
   <button *ngFor="let entry of entries" class="item-card" (click)="giveItem(entry)" [title]="entry.name">
     <div class="item-frame">
