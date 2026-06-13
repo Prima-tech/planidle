@@ -26,6 +26,7 @@ export class ModalContainerComponent {
     this.isOpen = true;
 
     setTimeout(() => {
+      if (!this.modalContent) return;
       this.modalContent.clear();
       this.modalContent.createComponent(component);
     });
