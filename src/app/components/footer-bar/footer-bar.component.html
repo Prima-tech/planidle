@@ -7,6 +7,7 @@
 <app-modal-container #skillSlotsModal></app-modal-container>
 <app-modal-container #skillDetailModal></app-modal-container>
 <app-modal-container #worldMapModal></app-modal-container>
+<app-modal-container #progressModal></app-modal-container>
 
 <button class="auto-attack-fab" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
   <ion-icon name="infinite-outline"></ion-icon>
@@ -36,8 +37,15 @@
         <ion-icon name="flash-outline" class="footer-ion-icon"></ion-icon>
       </div>
 
-      <div class="icon-menu-wrapper" [class.active]="chestModal.isOpenModal()" (click)="openChest()">
+      <div class="icon-menu-wrapper"
+           *ngIf="unlocks.isVisible('panel.chest')"
+           [class.active]="chestModal.isOpenModal()"
+           (click)="openChest()">
         <ion-icon name="file-tray-stacked-outline" class="footer-ion-icon"></ion-icon>
+      </div>
+
+      <div class="icon-menu-wrapper" [class.active]="progressModal.isOpenModal()" (click)="openProgress()">
+        <ion-icon name="rocket-outline" class="footer-ion-icon"></ion-icon>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">

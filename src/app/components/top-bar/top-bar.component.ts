@@ -12,6 +12,7 @@ import { AfkBonusService, AFK_PASSIVE_REGISTRY, AfkPassiveDef } from 'src/app/se
 import { OfflineGainsService } from 'src/app/services/offline-gains.service';
 import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
+import { UnlockService } from 'src/app/services/unlock.service';
 
 export interface MapPanelData {
   mapId: string;
@@ -43,6 +44,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private afkBonus     = inject(AfkBonusService);
   private offlineGains = inject(OfflineGainsService);
   private storage      = inject(StorageService);
+  private unlocks      = inject(UnlockService);
 
   valueHP$: any = null;
   valueMP$: any = null;
@@ -117,6 +119,8 @@ export class TopBarComponent implements OnInit, OnDestroy {
     const items: typeof this.rosterItems = [];
     for (const c of chars) {
       if (!c?.id) continue;
+      // Solo personajes desbloqueados: el resto no aparece (sin candado)
+      if (!this.unlocks.isCharacterUnlocked(c.name)) continue;
       if (this.isCurrent(c)) {
         const mapId = this.worldService.getCurrentMap()?.id;
         items.push({ char: c, equipment: null, mapName: this.mapNameOf(mapId) });

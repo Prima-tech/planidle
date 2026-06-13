@@ -10,6 +10,7 @@ import { SummonComponent } from '../summon/summon.component';
 import { TownChestComponent } from '../town-chest/town-chest.component';
 import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel.component';
 import { WorldMapPanelComponent } from '../world-map-panel/world-map-panel.component';
+import { ProgressPanelComponent } from '../progress-panel/progress-panel.component';
 import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
@@ -18,6 +19,7 @@ import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AutoAttackService } from 'src/app/services/auto-attack.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
+import { UnlockService } from 'src/app/services/unlock.service';
 
 @Component({
   selector: 'app-footer-bar',
@@ -35,6 +37,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('skillSlotsModal')  skillSlotsModal!:  ModalContainerComponent;
   @ViewChild('skillDetailModal') skillDetailModal!: ModalContainerComponent;
   @ViewChild('worldMapModal')    worldMapModal!:    ModalContainerComponent;
+  @ViewChild('progressModal')    progressModal!:    ModalContainerComponent;
 
   private detailSub:        Subscription;
   private closeSub:         Subscription;
@@ -60,6 +63,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private playerBridge           = inject(PlayerBridgeService);
   autoAttack                     = inject(AutoAttackService);
   badges                         = inject(NotificationBadgeService);
+  unlocks                        = inject(UnlockService);
 
   constructor() { }
 
@@ -128,7 +132,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
       left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal],
-      right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal],
+      right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal, this.progressModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
   }
@@ -144,7 +148,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   togglePage() {
     if (this.page === 'main') {
       [this.menuModal, this.inventoryModal, this.equipmentModal,
-       this.summonModal, this.chestModal, this.worldMapModal]
+       this.summonModal, this.chestModal, this.worldMapModal, this.progressModal]
         .forEach(m => { if (m?.isOpenModal()) m.close(); });
       this.page = 'skills';
     } else {
@@ -290,6 +294,15 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     } else {
       this.closeOtherOnSide('left', this.chestModal);
       this.chestModal.open(TownChestComponent, 'town-chest');
+    }
+  }
+
+  openProgress() {
+    if (this.progressModal.isOpenModal()) {
+      this.progressModal.close();
+    } else {
+      this.closeOtherOnSide('right', this.progressModal);
+      this.progressModal.open(ProgressPanelComponent, 'progress');
     }
   }
 }

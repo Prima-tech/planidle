@@ -5,6 +5,7 @@ import { StorageService } from 'src/app/services/storage.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
 import { EquipmentSnapshot } from 'src/app/services/equipment.service';
+import { UnlockService } from 'src/app/services/unlock.service';
 
 @Component({
   selector: 'app-globalposition',
@@ -29,21 +30,26 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     const chars = this.asgardService._characters;
     if (!chars || !Array.isArray(chars)) return [];
     const order = SupabaseService.ROSTER_TEMPLATE.map(t => t.name);
-    return [...chars].sort((a, b) => {
-      const ai = order.indexOf(a.name);
-      const bi = order.indexOf(b.name);
-      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-    });
+    // Solo personajes desbloqueados: el resto no aparece (sin candado)
+    return [...chars]
+      .filter(c => this.unlocks.isCharacterUnlocked(c.name))
+      .sort((a, b) => {
+        const ai = order.indexOf(a.name);
+        const bi = order.indexOf(b.name);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      });
   }
 
   constructor(
     private router: Router,
     public asgardService: AsgardService,
     private storageService: StorageService,
-    private supabaseService: SupabaseService
+    private supabaseService: SupabaseService,
+    private unlocks: UnlockService,
   ) { }
 
   async ngOnInit() {
+    await this.unlocks.loadGlobal();
     await this.asgardService.refreshData();
     await this.fillLocalRosterIfIncomplete();
     await this.loadCharacterMaps();

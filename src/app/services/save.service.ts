@@ -12,6 +12,7 @@ import { TalentService, TalentSnapshot } from './talent.service';
 import { SkillEquipService, SkillSlotsSnapshot } from './skill-equip.service';
 import { AfkBonusService } from './afk-bonus.service';
 import { AchievementService } from './achievement.service';
+import { UnlockService } from './unlock.service';
 import { CharacterStatsService } from './character-stats.service';
 
 /**
@@ -117,6 +118,7 @@ export class SaveService {
     private skillEquip: SkillEquipService,
     private afkBonus: AfkBonusService,
     private achievements: AchievementService,
+    private unlocks: UnlockService,
     private charStats: CharacterStatsService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
@@ -173,6 +175,7 @@ export class SaveService {
     // load AFK passives before calculating gains so multipliers are applied
     await this.afkBonus.loadForChar(charId);
     await this.achievements.loadForChar(charId);
+    await this.unlocks.loadForChar(charId);
     const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
     this.pendingGains$.next(gains);
     this._isRestoring = false;
@@ -196,10 +199,12 @@ export class SaveService {
     this.equipment.clearAll();
     this.talent.restoreFromSnapshot(null);
     this.charStats.resetStats();
+    await this.unlocks.clearAll();
+    await this.kills.resetAll();
     // Al final, cuando ya no hay recálculos de equipo/stats que puedan parchear
     // el estado: resetea TODO el PlayerState (nivel 1, exp 0, monedas 0, hp/mp base)
     this.playerState.setFromProfile(EMPTY_STATE);
-    await this.achievements.clearForChar();
+    await this.achievements.clearAll();
     await this.saveLocal();
   }
 

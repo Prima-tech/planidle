@@ -1,0 +1,23 @@
+<div class="progress-header">Progreso</div>
+
+<div class="progress-section">
+  <div class="section-title">Personajes</div>
+  <div class="feature-row" *ngFor="let f of charFeatures">
+    <span class="feature-name">{{ label(f) }}</span>
+    <button class="unlock-btn" *ngIf="!isUnlocked(f)" (click)="unlock(f)">Desbloquear</button>
+    <span class="unlocked-tag" *ngIf="isUnlocked(f)">
+      <ion-icon name="checkmark-circle"></ion-icon>
+    </span>
+  </div>
+</div>
+
+<div class="progress-section" *ngIf="otherFeatures.length">
+  <div class="section-title">Funciones</div>
+  <div class="feature-row" *ngFor="let f of otherFeatures">
+    <span class="feature-name">{{ label(f) }}</span>
+    <button class="unlock-btn" *ngIf="!isUnlocked(f)" (click)="unlock(f)">Desbloquear</button>
+    <span class="unlocked-tag" *ngIf="isUnlocked(f)">
+      <ion-icon name="checkmark-circle"></ion-icon>
+    </span>
+  </div>
+</div>

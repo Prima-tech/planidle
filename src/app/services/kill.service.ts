@@ -26,6 +26,16 @@ export class KillService {
     this.charKills$.next({ ...this.charKills });
   }
 
+  /** Borra kills de personaje y globales (llamado desde clearCurrentCharacter). */
+  async resetAll(): Promise<void> {
+    this.charKills = {};
+    this.globalKills = {};
+    this.charKills$.next({});
+    this.globalKills$.next({});
+    if (this.persistTimer) { clearTimeout(this.persistTimer); this.persistTimer = null; }
+    await this.storage.set(GLOBAL_KEY, {});
+  }
+
   async loadGlobalKills(): Promise<void> {
     const saved: KillMap | null = await this.storage.get(GLOBAL_KEY);
     this.globalKills = saved ?? {};

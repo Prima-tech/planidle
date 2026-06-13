@@ -31,6 +31,7 @@ import { AttackButtonComponent } from './attack-button/attack-button.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
 import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
+import { ProgressPanelComponent } from './progress-panel/progress-panel.component';
 
 @NgModule({
   declarations: [
@@ -61,6 +62,7 @@ import { CharacterSpriteComponent } from './character-sprite/character-sprite.co
     WorldMapPanelComponent,
     EnemyNamePipe,
     CharacterSpriteComponent,
+    ProgressPanelComponent,
   ],
   imports: [
     CommonModule,

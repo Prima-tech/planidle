@@ -86,6 +86,15 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     overflow-y: auto;
   }
+  &.progress {
+    top: 10px;
+    bottom: 53px;
+    right: calc(10px + var(--safe-right, 0px));
+    width: 265px;
+    /* el marco lo pinta el :host del componente (tema madera + piedra) */
+    background: transparent;
+    overflow-y: auto;
+  }
   &.world-map {
     top: 10px;
     bottom: 54px;

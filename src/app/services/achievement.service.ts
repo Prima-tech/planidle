@@ -30,8 +30,8 @@ export interface AchievementDef {
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Personaje ──────────────────────────────────────────────────────────────
-  { id: 'kills_10',     name: 'Primer sangre', desc: 'Mata 10 enemigos con este personaje.',
-    scope: 'char', metric: 'kills', goal: 10, icon: 'flash-outline' },
+  { id: 'kills_10',     name: 'Primer sangre', desc: 'Mata tu primer enemigo.',
+    scope: 'char', metric: 'kills', goal: 1, icon: 'flash-outline' },
   { id: 'kills_100',    name: 'Cazador',      desc: 'Mata 100 enemigos con este personaje.',
     scope: 'char', metric: 'kills', goal: 100, icon: 'skull-outline' },
   { id: 'kills_1000',   name: 'Exterminador', desc: 'Mata 1000 enemigos con este personaje.',
@@ -111,12 +111,13 @@ export class AchievementService {
     this.syncRemote(def);
   }
 
-  /** Borra logros del personaje activo (llamado desde clearCurrentCharacter) */
-  async clearForChar(): Promise<void> {
+  /** Borra logros del personaje activo y los globales de cuenta. */
+  async clearAll(): Promise<void> {
     this.unlockedChar.clear();
-    if (this.charId) {
-      await this.storage.set(charKey(this.charId), []);
-    }
+    this.unlockedGlobal.clear();
+    const ops: Promise<any>[] = [this.storage.set(GLOBAL_KEY, [])];
+    if (this.charId) ops.push(this.storage.set(charKey(this.charId), []));
+    await Promise.all(ops);
   }
 
   private persist(scope: AchievementScope): void {
