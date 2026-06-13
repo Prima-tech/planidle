@@ -26,6 +26,7 @@ export interface MinimapData {
   mapWidthPx: number;
   mapHeightPx: number;
   portals: { x: number; y: number }[];  // posiciones en px de mundo
+  townChest?: { x: number; y: number }; // cofre de ciudad (solo en hogar)
 }
 
 export const MINIMAP_DATA_KEY = 'minimapData';
@@ -45,8 +46,10 @@ const MM_MARGIN     = 15 * DPR;   // separación del borde derecho (aro HTML a 1
 const MM_TOP        = 15 * DPR;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
 const MM_DOT_PLAYER    = 4   * DPR;
 const MM_DOT_PORTAL    = 3   * DPR;
+const MM_DOT_CHEST     = 4.5 * DPR;
 const MM_COLOR_PLAYER  = 0x2ecc71;
 const MM_COLOR_PORTAL  = 0x48c4f8;
+const MM_COLOR_CHEST   = 0xf1c40f;
 const MM_ICON_ENEMY_KEY = 'mm_enemy';
 const MM_ICON_ELITE_KEY = 'mm_enemy_elite';
 const MM_ICON_HALF      = 8   * DPR;   // half-size regular
@@ -183,6 +186,13 @@ export class MobileHUDScene extends Phaser.Scene {
     for (const portal of data.portals) {
       const dot = this.add.circle(0, 0, MM_DOT_PORTAL, MM_COLOR_PORTAL, 0.9);
       this.mmPlace(dot, portal.x, portal.y);
+    }
+
+    // Cofre de ciudad (solo en hogar): estático
+    if (data.townChest) {
+      const dot = this.add.circle(0, 0, MM_DOT_CHEST, MM_COLOR_CHEST, 1);
+      dot.setStrokeStyle(1 * DPR, 0xffffff, 0.6);
+      this.mmPlace(dot, data.townChest.x, data.townChest.y);
     }
 
     this.mmPlayerDot = this.add.circle(this.mmCX, this.mmCY, MM_DOT_PLAYER, MM_COLOR_PLAYER, 1);

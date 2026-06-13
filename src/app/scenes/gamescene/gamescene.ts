@@ -559,6 +559,9 @@ export class GameScene extends Phaser.Scene {
           x: p.tilePos.x * ts + ts / 2,
           y: p.tilePos.y * ts + ts / 2,
         })),
+        townChest: this.currentMapConfig.id === 'hogar'
+          ? { x: 34 * ts + ts / 2, y: 30 * ts + ts / 2 }
+          : undefined,
       };
     }
 

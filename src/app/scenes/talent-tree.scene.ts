@@ -340,6 +340,7 @@ export class TalentTreeScene extends Phaser.Scene {
   }
 
   private refresh(): void {
+    if (!this.sys?.isActive()) return;
     for (const view of this.views.values()) this.styleNode(view);
     this.redrawEdges();
     this.rebuildParticles();
