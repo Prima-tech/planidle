@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
+import { Subject, Subscription } from 'rxjs';
 import { StorageService } from './storage.service';
 import { KillService } from './kill.service';
 import { PlayerStateService } from './player-state.service';
@@ -54,17 +55,33 @@ const GLOBAL_KEY = 'achievements_global';
 const charKey = (id: string) => `achievements_char_${id}`;
 
 @Injectable({ providedIn: 'root' })
-export class AchievementService {
+export class AchievementService implements OnDestroy {
+
+  /** Emite cada vez que se desbloquea un logro (para la pastilla de notificación). */
+  readonly unlocked$ = new Subject<AchievementDef>();
 
   private charId: string | null = null;
   private unlockedChar   = new Set<string>();
   private unlockedGlobal = new Set<string>();
+  private killSub: Subscription;
 
   constructor(
     private storage: StorageService,
     private kills: KillService,
     private playerState: PlayerStateService,
-  ) {}
+  ) {
+    // kill$ solo emite en kills reales (no en restoreCharKills), así el toast
+    // nunca se dispara al recargar con logros ya conseguidos.
+    this.killSub = this.kills.kill$.subscribe(() => {
+      for (const def of ACHIEVEMENTS) {
+        if (def.metric === 'kills') this.checkAndUnlock(def);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.killSub?.unsubscribe();
+  }
 
   /** Llamado por SaveService al cargar un personaje */
   async loadForChar(charId: string): Promise<void> {
@@ -98,17 +115,27 @@ export class AchievementService {
     const set = def.scope === 'global' ? this.unlockedGlobal : this.unlockedChar;
     if (set.has(def.id)) return true;
     if (this.progress(def) >= def.goal) {
-      this.unlock(def);
+      // silent=true: el commit perezoso desde templates no muestra pastilla
+      this.unlock(def, true);
       return true;
     }
     return false;
   }
 
-  private unlock(def: AchievementDef): void {
+  /** Comprueba y desbloquea mostrando la pastilla. No llama a isUnlocked() para
+   *  evitar que el commit perezoso de esa función se adelante y suprima el toast. */
+  checkAndUnlock(def: AchievementDef): void {
+    const set = def.scope === 'global' ? this.unlockedGlobal : this.unlockedChar;
+    if (set.has(def.id)) return;
+    if (this.progress(def) >= def.goal) this.unlock(def, false);
+  }
+
+  private unlock(def: AchievementDef, silent: boolean): void {
     const set = def.scope === 'global' ? this.unlockedGlobal : this.unlockedChar;
     set.add(def.id);
     this.persist(def.scope);
     this.syncRemote(def);
+    if (!silent) this.unlocked$.next(def);
   }
 
   /** Borra logros del personaje activo y los globales de cuenta. */

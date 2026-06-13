@@ -32,6 +32,7 @@ import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.compon
 import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
 import { ProgressPanelComponent } from './progress-panel/progress-panel.component';
+import { AchievementToastComponent } from './achievement-toast/achievement-toast.component';
 
 @NgModule({
   declarations: [
@@ -63,6 +64,7 @@ import { ProgressPanelComponent } from './progress-panel/progress-panel.componen
     EnemyNamePipe,
     CharacterSpriteComponent,
     ProgressPanelComponent,
+    AchievementToastComponent,
   ],
   imports: [
     CommonModule,
@@ -94,6 +96,7 @@ import { ProgressPanelComponent } from './progress-panel/progress-panel.componen
     HudSkillButtonsComponent,
     EnemyNamePipe,
     CharacterSpriteComponent,
+    AchievementToastComponent,
   ]
 })
 export class ComponentModule {}

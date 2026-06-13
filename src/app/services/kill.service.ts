@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { StorageService } from './storage.service';
 
 export type KillRecord = Record<string, number>;  // enemyType → count
@@ -16,6 +16,8 @@ export class KillService {
 
   readonly charKills$   = new BehaviorSubject<KillMap>({});
   readonly globalKills$ = new BehaviorSubject<KillMap>({});
+  /** Emite solo en kills reales (no durante restoreCharKills). Úsalo para logros/toasts. */
+  readonly kill$ = new Subject<void>();
 
   constructor(private storage: StorageService) {}
 
@@ -53,6 +55,7 @@ export class KillService {
     if (!this.charKills[mapId])   this.charKills[mapId]   = {};
     this.charKills[mapId][enemyType] = (this.charKills[mapId][enemyType] ?? 0) + 1;
     this.charKills$.next({ ...this.charKills });
+    this.kill$.next();
 
     // Contador global
     if (!this.globalKills[mapId]) this.globalKills[mapId] = {};

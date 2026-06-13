@@ -1,0 +1,13 @@
+<div class="ach-toast-stack">
+  <div
+    *ngFor="let t of toasts"
+    class="ach-toast"
+    [class.ach-toast--leaving]="t.leaving"
+  >
+    <ion-icon [name]="t.def.icon" class="ach-toast-icon"></ion-icon>
+    <div class="ach-toast-body">
+      <span class="ach-toast-label">Logro desbloqueado</span>
+      <span class="ach-toast-name">{{ t.def.name }}</span>
+    </div>
+  </div>
+</div>
