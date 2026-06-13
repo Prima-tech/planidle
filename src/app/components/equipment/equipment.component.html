@@ -19,6 +19,9 @@
     <button class="eq-vtab" [class.active]="activeTab === 3" (click)="activeTab = 3">
       <ion-icon name="git-network-outline"></ion-icon>
     </button>
+    <button class="eq-vtab" [class.active]="activeTab === 4" (click)="activeTab = 4">
+      <ion-icon name="trophy-outline"></ion-icon>
+    </button>
   </div>
 
   <div class="eq-content">
@@ -71,7 +74,7 @@
 
       <div class="ov-level-card">
         <div class="ov-level-top">
-          <span class="ov-level-num">Nv. {{ st.lvl }}</span>
+          <span class="ov-level-num">{{ 'STAT.LEVEL_SHORT' | translate }} {{ st.lvl }}</span>
           <span class="ov-level-exp" *ngIf="st.lvl < maxLevel">{{ st.exp }} / {{ expNeeded(st.lvl) }} EXP</span>
           <span class="ov-level-exp" *ngIf="st.lvl >= maxLevel">MAX</span>
         </div>
@@ -85,7 +88,7 @@
     <!-- Acordeón: Vida -->
     <div class="ov-accordion" (click)="showHpBreakdown = !showHpBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Vida</span>
+        <span class="ov-label">{{ 'STAT.HP' | translate }}</span>
         <ng-container *ngIf="(hp$ | async) as hp">
           <ng-container *ngIf="playerState.state$ | async as st">
             <span class="ov-val ov-val--hp">{{ st.hp }} / {{ hp.total }}</span>
@@ -96,15 +99,15 @@
       <div class="ov-accordion-body" [class.open]="showHpBreakdown">
         <ng-container *ngIf="hp$ | async as hp">
           <div class="ov-bk-row">
-            <span>Vitalidad</span>
+            <span>{{ 'STAT.VITALITY' | translate }}</span>
             <span>{{ hp.base }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="hp.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ hp.equipment }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="hp.talents > 0">
-            <span>Talentos</span>
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ hp.talents }}</span>
           </div>
         </ng-container>
@@ -114,7 +117,7 @@
     <!-- Acordeón: Mana -->
     <div class="ov-accordion" (click)="showMpBreakdown = !showMpBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Mana</span>
+        <span class="ov-label">{{ 'STAT.MANA' | translate }}</span>
         <ng-container *ngIf="(mp$ | async) as mp">
           <ng-container *ngIf="playerState.state$ | async as st">
             <span class="ov-val ov-val--mp">{{ st.mp }} / {{ mp.total }}</span>
@@ -125,15 +128,15 @@
       <div class="ov-accordion-body" [class.open]="showMpBreakdown">
         <ng-container *ngIf="mp$ | async as mp">
           <div class="ov-bk-row">
-            <span>Magia</span>
+            <span>{{ 'STAT.MAGIC' | translate }}</span>
             <span>{{ mp.base }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="mp.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ mp.equipment }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="mp.talents > 0">
-            <span>Talentos</span>
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ mp.talents }}</span>
           </div>
         </ng-container>
@@ -142,20 +145,20 @@
 
     <!-- Rec. HP -->
     <div class="ov-row" *ngIf="hpRegen$ | async as hr">
-      <span class="ov-label">Rec. HP / 10s</span>
+      <span class="ov-label">{{ 'STAT.HP_REGEN' | translate }}</span>
       <span class="ov-val ov-val--highlight">{{ hr.min }}–{{ hr.total }}</span>
     </div>
 
     <!-- Rec. MP -->
     <div class="ov-row" *ngIf="mpRegen$ | async as mr">
-      <span class="ov-label">Rec. MP / 10s</span>
+      <span class="ov-label">{{ 'STAT.MP_REGEN' | translate }}</span>
       <span class="ov-val ov-val--mp">{{ mr.min }}–{{ mr.total }}</span>
     </div>
 
     <!-- Acordeón: Defensa -->
     <div class="ov-accordion" (click)="showDefBreakdown = !showDefBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Defensa</span>
+        <span class="ov-label">{{ 'STAT.DEFENSE' | translate }}</span>
         <ng-container *ngIf="defense$ | async as def">
           <span class="ov-val ov-val--def">{{ def.total }}</span>
         </ng-container>
@@ -164,23 +167,23 @@
       <div class="ov-accordion-body" [class.open]="showDefBreakdown">
         <ng-container *ngIf="defense$ | async as def">
           <div class="ov-bk-row" *ngIf="def.dex > 0">
-            <span>Destreza</span>
+            <span>{{ 'STAT.DEXTERITY' | translate }}</span>
             <span class="ov-bonus">+{{ def.dex }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="def.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ def.equipment }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="def.talents > 0">
-            <span>Talentos</span>
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ def.talents }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="def.buffs > 0">
-            <span>Habilidades</span>
+            <span>{{ 'STAT.SKILLS' | translate }}</span>
             <span class="ov-bonus">+{{ def.buffs }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="def.total === 0">
-            <span>Sin bonificaciones</span>
+            <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
             <span>0</span>
           </div>
         </ng-container>
@@ -190,7 +193,7 @@
     <!-- Acordeón: Evasión -->
     <div class="ov-accordion" (click)="showEvasionBreakdown = !showEvasionBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Evasión</span>
+        <span class="ov-label">{{ 'STAT.EVASION' | translate }}</span>
         <ng-container *ngIf="evasion$ | async as ev">
           <span class="ov-val ov-val--evasion">{{ ev.total }}%</span>
         </ng-container>
@@ -199,19 +202,19 @@
       <div class="ov-accordion-body" [class.open]="showEvasionBreakdown">
         <ng-container *ngIf="evasion$ | async as ev">
           <div class="ov-bk-row" *ngIf="ev.dex > 0">
-            <span>Destreza</span>
+            <span>{{ 'STAT.DEXTERITY' | translate }}</span>
             <span class="ov-bonus">+{{ ev.dex }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="ev.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ ev.equipment }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="ev.buffs > 0">
-            <span>Habilidades</span>
+            <span>{{ 'STAT.SKILLS' | translate }}</span>
             <span class="ov-bonus">+{{ ev.buffs }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="ev.total === 0">
-            <span>Sin bonificaciones</span>
+            <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
             <span>0%</span>
           </div>
         </ng-container>
@@ -221,7 +224,7 @@
     <!-- Acordeón: Ataque -->
     <div class="ov-accordion" (click)="showAtkBreakdown = !showAtkBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Ataque</span>
+        <span class="ov-label">{{ 'STAT.ATTACK' | translate }}</span>
         <ng-container *ngIf="damage$ | async as dmg">
           <span class="ov-val ov-val--highlight">{{ dmg.total }}</span>
         </ng-container>
@@ -230,15 +233,15 @@
       <div class="ov-accordion-body" [class.open]="showAtkBreakdown">
         <ng-container *ngIf="damage$ | async as dmg">
           <div class="ov-bk-row">
-            <span>Fuerza</span>
+            <span>{{ 'STAT.STRENGTH' | translate }}</span>
             <span>{{ dmg.base }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="dmg.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ dmg.equipment }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="dmg.talents > 0">
-            <span>Talentos</span>
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ dmg.talents }}</span>
           </div>
         </ng-container>
@@ -248,7 +251,7 @@
     <!-- Acordeón: Daño Mágico -->
     <div class="ov-accordion" (click)="showMagicAtkBreakdown = !showMagicAtkBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Daño Mágico</span>
+        <span class="ov-label">{{ 'STAT.MAGIC_DAMAGE' | translate }}</span>
         <ng-container *ngIf="magicDamage$ | async as mdmg">
           <span class="ov-val ov-val--mp">{{ mdmg.total }}</span>
         </ng-container>
@@ -257,15 +260,15 @@
       <div class="ov-accordion-body" [class.open]="showMagicAtkBreakdown">
         <ng-container *ngIf="magicDamage$ | async as mdmg">
           <div class="ov-bk-row">
-            <span>Inteligencia</span>
+            <span>{{ 'STAT.INTELLIGENCE' | translate }}</span>
             <span>{{ mdmg.base }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="mdmg.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ mdmg.equipment }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="mdmg.talents > 0">
-            <span>Talentos</span>
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ mdmg.talents }}</span>
           </div>
         </ng-container>
@@ -275,7 +278,7 @@
     <!-- Acordeón: Prob. Crítico -->
     <div class="ov-accordion" (click)="showCritBreakdown = !showCritBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Prob. Crítico</span>
+        <span class="ov-label">{{ 'STAT.CRIT_CHANCE' | translate }}</span>
         <ng-container *ngIf="critChance$ | async as cc">
           <span class="ov-val ov-val--crit">{{ cc.total }}%</span>
         </ng-container>
@@ -284,19 +287,19 @@
       <div class="ov-accordion-body" [class.open]="showCritBreakdown">
         <ng-container *ngIf="critChance$ | async as cc">
           <div class="ov-bk-row">
-            <span>Base</span>
+            <span>{{ 'STAT.BASE' | translate }}</span>
             <span>{{ cc.base }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="cc.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ cc.equipment }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="cc.talents > 0">
-            <span>Talentos</span>
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ cc.talents }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="cc.buffs > 0">
-            <span>Habilidades</span>
+            <span>{{ 'STAT.SKILLS' | translate }}</span>
             <span class="ov-bonus">+{{ cc.buffs }}%</span>
           </div>
         </ng-container>
@@ -306,7 +309,7 @@
     <!-- Acordeón: Daño Crítico -->
     <div class="ov-accordion" (click)="showCritBreakdown = !showCritBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Daño Crítico</span>
+        <span class="ov-label">{{ 'STAT.CRIT_DAMAGE' | translate }}</span>
         <ng-container *ngIf="critDamage$ | async as cd">
           <span class="ov-val ov-val--crit">{{ cd.total }}%</span>
         </ng-container>
@@ -315,19 +318,19 @@
       <div class="ov-accordion-body" [class.open]="showCritBreakdown">
         <ng-container *ngIf="critDamage$ | async as cd">
           <div class="ov-bk-row">
-            <span>Base</span>
+            <span>{{ 'STAT.BASE' | translate }}</span>
             <span>{{ cd.base }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="cd.str > 0">
-            <span>Fuerza</span>
+            <span>{{ 'STAT.STRENGTH' | translate }}</span>
             <span class="ov-bonus">+{{ cd.str }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="cd.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ cd.equipment }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="cd.buffs > 0">
-            <span>Habilidades</span>
+            <span>{{ 'STAT.SKILLS' | translate }}</span>
             <span class="ov-bonus">+{{ cd.buffs }}%</span>
           </div>
         </ng-container>
@@ -337,7 +340,7 @@
     <!-- Tasa de botín -->
     <div class="ov-accordion" (click)="showDropBreakdown = !showDropBreakdown">
       <div class="ov-accordion-header">
-        <span class="ov-label">Tasa de botín</span>
+        <span class="ov-label">{{ 'STAT.DROP_RATE' | translate }}</span>
         <ng-container *ngIf="dropRate$ | async as dr">
           <span class="ov-val ov-val--drop">+{{ dr.total }}%</span>
         </ng-container>
@@ -346,23 +349,23 @@
       <div class="ov-accordion-body" [class.open]="showDropBreakdown">
         <ng-container *ngIf="dropRate$ | async as dr">
           <div class="ov-bk-row" *ngIf="dr.chr > 0">
-            <span>Carisma</span>
+            <span>{{ 'STAT.CHARISMA' | translate }}</span>
             <span class="ov-bonus">+{{ dr.chr }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="dr.equipment > 0">
-            <span>Equipo</span>
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ dr.equipment }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="dr.talents > 0">
-            <span>Talentos</span>
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ dr.talents }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="dr.total === 0">
-            <span>Sin bonificaciones</span>
+            <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
             <span>0%</span>
           </div>
           <div class="ov-bk-row" *ngIf="dr.total > 0">
-            <span>Multiplicador efectivo</span>
+            <span>{{ 'STAT.EFFECTIVE_MULT' | translate }}</span>
             <span>×{{ (1 + dr.total / 100) | number:'1.2-2' }}</span>
           </div>
         </ng-container>
@@ -467,6 +470,32 @@
 
   </div><!-- talent-panel clásico -->
 
+  <!-- Tab 4: Logros -->
+  <div class="ach-panel" *ngIf="activeTab === 4">
+
+    <div class="talent-tree-tabs">
+      <button class="talent-tree-tab" [class.active]="achScope === 'char'" (click)="setAchScope('char')">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>{{ 'ACHIEVEMENTS.CHARACTER' | translate }}</span>
+      </button>
+      <button class="talent-tree-tab" [class.active]="achScope === 'global'" (click)="setAchScope('global')">
+        <ion-icon name="earth-outline"></ion-icon>
+        <span>{{ 'ACHIEVEMENTS.GLOBAL' | translate }}</span>
+      </button>
+    </div>
+
+    <div class="ach-grid">
+      <button class="ach-cell" *ngFor="let a of achievements.defs(achScope)"
+              [class.unlocked]="achievements.isUnlocked(a)"
+              [class.selected]="selectedAch?.id === a.id"
+              [title]="a.name"
+              (click)="selectAch(a)">
+        <ion-icon [name]="a.icon"></ion-icon>
+      </button>
+    </div>
+
+  </div><!-- ach-panel -->
+
   </div><!-- eq-content -->
 
   <!-- Sets de equipo: 3 loadouts por personaje, en vertical a la derecha -->
@@ -478,11 +507,33 @@
     </button>
   </div>
 
+  <!-- Info de logro: panel a la derecha al pinchar un logro -->
+  <div class="talent-picker-flyout stats-flyout ach-flyout" *ngIf="activeTab === 4 && selectedAch">
+    <div class="ach-info-head">
+      <ion-icon [name]="selectedAch.icon"
+                [class.unlocked]="achievements.isUnlocked(selectedAch)"></ion-icon>
+      <span class="ach-info-name">{{ selectedAch.name }}</span>
+    </div>
+    <p class="ach-info-desc">{{ selectedAch.desc }}</p>
+    <div class="ach-info-progress">
+      <div class="ach-bar">
+        <div class="ach-bar-fill" [style.width.%]="achievements.ratio(selectedAch) * 100"></div>
+      </div>
+      <span class="ach-info-count">
+        {{ achievements.progress(selectedAch) | number }} / {{ selectedAch.goal | number }}
+      </span>
+    </div>
+    <div class="ach-info-state"
+         [class.unlocked]="achievements.isUnlocked(selectedAch)">
+      {{ (achievements.isUnlocked(selectedAch) ? 'ACHIEVEMENTS.UNLOCKED' : 'ACHIEVEMENTS.PENDING') | translate }}
+    </div>
+  </div>
+
   <!-- Flyout de stats: aparece a la derecha al pinchar la pastilla del tab 0 -->
   <div class="talent-picker-flyout stats-flyout" *ngIf="activeTab === 0 && statsFlyoutOpen">
     <ng-container *ngIf="{ pts: freePoints$ | async } as vm">
       <div class="stat-points-bar" [class.empty]="vm.pts <= 0">
-        <span>Puntos libres</span>
+        <span>{{ 'STAT.FREE_POINTS' | translate }}</span>
         <strong>{{ vm.pts }}</strong>
       </div>
       <div class="stats-grid">
@@ -513,7 +564,7 @@
       </button>
     </div>
     <button class="tpicker-unslot" *ngIf="canUnslotSelected()" (click)="unslotSelected()">
-      Quitar esfera
+      {{ 'TALENT.REMOVE_SPHERE' | translate }}
     </button>
   </div>
 

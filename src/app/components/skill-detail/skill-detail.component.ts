@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { TalentService, TalentNodeConfig } from 'src/app/services/talent.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
@@ -12,6 +13,7 @@ import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 export class SkillDetailComponent {
   private talentService     = inject(TalentService);
   private skillEquipService = inject(SkillEquipService);
+  private translate         = inject(TranslateService);
 
   get ability(): TalentNodeConfig | null {
     const id = this.skillEquipService.selectedAbilityId;
@@ -23,19 +25,20 @@ export class SkillDetailComponent {
   }
 
   private readonly STAT_LABELS: Record<string, string> = {
-    defense: 'Defensa',
-    attack:  'Ataque',
-    hp:      'Vida',
-    mp:      'Maná',
+    defense: 'STAT.DEFENSE',
+    attack:  'STAT.ATTACK',
+    hp:      'STAT.HP',
+    mp:      'STAT.MANA',
   };
 
   get powerLabel(): string {
     const cfg = SKILL_REGISTRY[this.ability?.effect.ability ?? ''];
     if (cfg?.effectType === 'buff' && cfg.buff) {
-      const name = this.STAT_LABELS[cfg.buff.stat] ?? cfg.buff.stat;
+      const key  = this.STAT_LABELS[cfg.buff.stat];
+      const name = key ? this.translate.instant(key) : cfg.buff.stat;
       return `${name}: +${cfg.buff.value}`;
     }
-    return `Poder base: ${this.ability?.effect.base ?? 0}`;
+    return `${this.translate.instant('STAT.BASE_POWER')}: ${this.ability?.effect.base ?? 0}`;
   }
 
   get activeSlot(): number | null {

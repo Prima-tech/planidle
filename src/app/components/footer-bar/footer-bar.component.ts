@@ -7,6 +7,7 @@ import { GameSettingsPageComponent } from 'src/app/pages/game-settings/game-sett
 import { InventoryComponent } from '../inventory/inventory.component';
 import { EquipmentComponent } from '../equipment/equipment.component';
 import { SummonComponent } from '../summon/summon.component';
+import { TownChestComponent } from '../town-chest/town-chest.component';
 import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel.component';
 import { WorldMapPanelComponent } from '../world-map-panel/world-map-panel.component';
 import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
@@ -30,6 +31,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('inventoryModal')   inventoryModal!:   ModalContainerComponent;
   @ViewChild('equipmentModal')   equipmentModal!:   ModalContainerComponent;
   @ViewChild('summonModal')      summonModal!:      ModalContainerComponent;
+  @ViewChild('chestModal')       chestModal!:       ModalContainerComponent;
   @ViewChild('skillSlotsModal')  skillSlotsModal!:  ModalContainerComponent;
   @ViewChild('skillDetailModal') skillDetailModal!: ModalContainerComponent;
   @ViewChild('worldMapModal')    worldMapModal!:    ModalContainerComponent;
@@ -125,7 +127,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left:  [this.summonModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal],
+      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal],
       right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
@@ -142,7 +144,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   togglePage() {
     if (this.page === 'main') {
       [this.menuModal, this.inventoryModal, this.equipmentModal,
-       this.summonModal, this.worldMapModal]
+       this.summonModal, this.chestModal, this.worldMapModal]
         .forEach(m => { if (m?.isOpenModal()) m.close(); });
       this.page = 'skills';
     } else {
@@ -279,6 +281,15 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     } else {
       this.closeOtherOnSide('left', this.summonModal);
       this.summonModal.open(SummonComponent, 'summon');
+    }
+  }
+
+  openChest() {
+    if (this.chestModal.isOpenModal()) {
+      this.chestModal.close();
+    } else {
+      this.closeOtherOnSide('left', this.chestModal);
+      this.chestModal.open(TownChestComponent, 'town-chest');
     }
   }
 }

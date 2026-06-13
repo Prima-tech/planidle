@@ -2,8 +2,8 @@
 
   <ng-container *ngIf="section === 'all' || section === 'header'">
     <div class="cs-title-row">
-      <span class="cs-level-badge" title="Nivel">{{ vm.lvl }}</span>
-      <span class="cs-title">{{ asgard.selectedPlayer?.name ?? 'Personaje' }}</span>
+      <span class="cs-level-badge" [title]="'CHARACTER.LEVEL' | translate">{{ vm.lvl }}</span>
+      <span class="cs-title">{{ asgard.selectedPlayer?.name ?? ('CHARACTER.DEFAULT_NAME' | translate) }}</span>
     </div>
 
     <div class="cs-row">
@@ -20,17 +20,17 @@
     <div class="cs-divider" *ngIf="section === 'all'"></div>
 
     <div class="cs-row">
-      <span class="cs-label">Ataque</span>
+      <span class="cs-label">{{ 'STAT.ATTACK' | translate }}</span>
       <span class="cs-val cs-dmg">{{ vm.damage.total }}</span>
     </div>
 
     <div class="cs-breakdown">
       <div class="cs-bk-row">
-        <span>Fuerza</span>
+        <span>{{ 'STAT.STRENGTH' | translate }}</span>
         <span>{{ vm.damage.base }}</span>
       </div>
       <div class="cs-bk-row" *ngIf="vm.damage.equipment > 0">
-        <span>Equipo</span>
+        <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
         <span class="cs-bonus">+{{ vm.damage.equipment }}</span>
       </div>
     </div>

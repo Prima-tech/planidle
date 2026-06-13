@@ -5,7 +5,7 @@
   <div
     *ngFor="let tab of tabs; let index = index"
     class="tab"
-    [attr.data-tab-index]="index"
+    [attr.data-chest-tab-index]="index"
     [ngClass]="{ active: index === activeTabIndex }"
     (click)="selectTab(index); $event.stopPropagation()"
   >
@@ -16,7 +16,7 @@
 <!-- Los 4 grids siempre en el DOM. CDK los ve todos desde el inicio del drag. -->
 <div class="inventory-grid" cdkDropListGroup>
   <div
-    *ngFor="let inventory of inventories; let tabIndex = index"
+    *ngFor="let inventory of chest; let tabIndex = index"
     [class.tab-active]="activeTabIndex === tabIndex"
     [class.tab-inactive]="activeTabIndex !== tabIndex"
   >
@@ -26,8 +26,8 @@
         class="inventory-cell"
         cdkDropList
         cdkDropListSortingDisabled
-        [id]="'inv-' + tabIndex + '-' + rowIndex + '-' + colIndex"
-        [cdkDropListConnectedTo]="connectedDropIds"
+        [id]="'chest-' + tabIndex + '-' + rowIndex + '-' + colIndex"
+        [cdkDropListConnectedTo]="inventoryCellIds"
         [cdkDropListData]="{ tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
         (cdkDropListDropped)="onDrop($event, tabIndex, rowIndex, colIndex)"
         (click)="$event.stopPropagation()"
@@ -36,7 +36,7 @@
           <div
             class="inventory-item"
             cdkDrag
-            [cdkDragData]="{ sourceContext: 'inventory', tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
+            [cdkDragData]="{ sourceContext: 'chest', tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
             (cdkDragMoved)="onDragMoved($event)"
             (click)="selectItem(tabIndex, rowIndex, colIndex, $event)"
             [title]="cell.name"
@@ -69,7 +69,7 @@
   </div>
 </div>
 
-<!-- Botones + monedas -->
+<!-- Botones -->
 <div class="button-bar" (click)="$event.stopPropagation()">
   <button class="btn-action" (click)="openSplitMenu($event)" [title]="'INVENTORY.BTN.SPLIT' | translate">
     <ion-icon name="git-branch-outline"></ion-icon>
@@ -77,14 +77,9 @@
   <button class="btn-action btn-danger" (click)="openDeleteModal($event)" [title]="'INVENTORY.BTN.DELETE' | translate">
     <ion-icon name="trash-outline"></ion-icon>
   </button>
-  <button class="btn-action" (click)="sortInventory()" [title]="'INVENTORY.BTN.SORT' | translate">
+  <button class="btn-action" (click)="sortChest()" [title]="'INVENTORY.BTN.SORT' | translate">
     <ion-icon name="swap-vertical-outline"></ion-icon>
   </button>
-
-  <div class="coins-section">
-    <div class="coin-spinner"></div>
-    <span class="coin-amount">{{ coins$ | async | number }}</span>
-  </div>
 </div>
 
 <!-- Menú Split -->

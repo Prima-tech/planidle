@@ -278,6 +278,142 @@ $metal-dark: #6b6357;
   }
 }
 
+// ── Tab 4: Logros ─────────────────────────────────────────────────────────────
+
+.ach-panel {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  padding: 6px;
+  background: $grid-bg;
+  border: 4px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline;
+}
+
+.ach-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $cell-bg;
+  border: 2px solid $cell-border;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 0;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  ion-icon {
+    font-size: 22px;
+    color: rgba(236, 217, 180, 0.35);   // bloqueado: apagado
+  }
+
+  &.unlocked ion-icon {
+    color: #f0c040;                      // conseguido: dorado
+    filter: drop-shadow(0 0 4px rgba(240, 192, 64, 0.5));
+  }
+
+  &.selected {
+    border-color: lighten($purple, 14%);
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.4),
+      0 0 8px rgba(140, 95, 132, 0.9);
+  }
+}
+
+// Contenido del panel de info (usa el marco/posición de .stats-flyout)
+.ach-flyout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ach-info-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  ion-icon {
+    font-size: 26px;
+    color: rgba(83, 48, 28, 0.45);
+    &.unlocked { color: #b8862a; }
+  }
+}
+
+.ach-info-name {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $text-brown;
+}
+
+.ach-info-desc {
+  margin: 0;
+  font-size: 0.68em;
+  line-height: 1.45;
+  color: #6b4226;
+}
+
+.ach-info-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ach-bar {
+  height: 10px;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.ach-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d4a000, #f0c040);
+  transition: width 0.3s ease;
+}
+
+.ach-info-count {
+  font-size: 0.66em;
+  font-weight: 700;
+  color: $text-brown;
+  text-align: right;
+}
+
+.ach-info-state {
+  font-size: 0.7em;
+  font-weight: 800;
+  text-align: center;
+  padding: 4px 0;
+  border-radius: 5px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  color: rgba(236, 217, 180, 0.5);
+
+  &.unlocked {
+    color: #f0c040;
+    border-color: #b8862a;
+  }
+}
+
 // Picker de nodo de talento: tarjeta oscura flotante sobre el árbol, arriba a
 // la derecha — mismo estilo que las info-cards del mapa (map-info-card)
 .talent-picker-flyout.talent-node-card {

@@ -2,12 +2,12 @@ import { Component, Input } from '@angular/core';
 import { InventoryItem } from 'src/app/services/inventory.service';
 
 const STAT_LABELS: Record<string, string> = {
-  damage:   'Daño',
-  healing:  'Curación',
-  defense:  'Defensa',
-  speed:    'Velocidad',
-  critical: 'Crítico',
-  stamina:  'Resistencia',
+  damage:   'ITEM_STAT.DAMAGE',
+  healing:  'ITEM_STAT.HEALING',
+  defense:  'ITEM_STAT.DEFENSE',
+  speed:    'ITEM_STAT.SPEED',
+  critical: 'ITEM_STAT.CRITICAL',
+  stamina:  'ITEM_STAT.STAMINA',
 };
 
 @Component({

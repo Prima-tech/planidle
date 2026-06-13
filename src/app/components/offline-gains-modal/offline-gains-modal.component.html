@@ -4,12 +4,12 @@
     <div class="afk-header">
       <ion-icon name="time-outline" class="afk-header-icon"></ion-icon>
       <div>
-        <div class="afk-title">Ganancias AFK</div>
-        <div class="afk-subtitle">{{ gains.mapName }} · {{ elapsedText }} fuera</div>
+        <div class="afk-title">{{ 'OFFLINE.TITLE' | translate }}</div>
+        <div class="afk-subtitle">{{ gains.mapName }} · {{ elapsedText }} {{ 'OFFLINE.AWAY_SUFFIX' | translate }}</div>
       </div>
     </div>
 
-    <div class="afk-section-label">Enemigos eliminados</div>
+    <div class="afk-section-label">{{ 'OFFLINE.ENEMIES_KILLED' | translate }}</div>
 
     <div class="afk-rows">
       <div class="afk-row" *ngFor="let entry of gains.enemyGains">
@@ -18,20 +18,20 @@
       </div>
     </div>
 
-    <div class="afk-section-label">Recompensas</div>
+    <div class="afk-section-label">{{ 'OFFLINE.REWARDS' | translate }}</div>
 
     <div class="afk-rows">
       <div class="afk-row">
-        <span class="afk-label">Monedas</span>
+        <span class="afk-label">{{ 'OFFLINE.COINS' | translate }}</span>
         <span class="afk-value afk-value--coins">+{{ gains.coins | number }}</span>
       </div>
       <div class="afk-row">
-        <span class="afk-label">Experiencia</span>
+        <span class="afk-label">{{ 'OFFLINE.EXP' | translate }}</span>
         <span class="afk-value afk-value--exp">+{{ gains.exp | number }}</span>
       </div>
     </div>
 
-    <button class="afk-collect-btn" (click)="collect()">Recoger</button>
+    <button class="afk-collect-btn" (click)="collect()">{{ 'OFFLINE.COLLECT' | translate }}</button>
 
   </div>
 </div>

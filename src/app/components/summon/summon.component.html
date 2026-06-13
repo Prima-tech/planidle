@@ -139,5 +139,5 @@
     </div>
     <span class="item-name">{{ entry.name }}</span>
   </button>
-  <div class="item-empty" *ngIf="!entries.length">Sin items</div>
+  <div class="item-empty" *ngIf="!entries.length">{{ 'SUMMON.NO_ITEMS' | translate }}</div>
 </ng-template>

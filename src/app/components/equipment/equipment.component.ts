@@ -9,6 +9,7 @@ import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/playe
 import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES } from 'src/app/services/talent.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
+import { AchievementService, AchievementDef, AchievementScope } from 'src/app/services/achievement.service';
 
 @Component({
   selector: 'app-equipment',
@@ -22,6 +23,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   private el = inject(ElementRef);
   private ngZone = inject(NgZone);
   badges = inject(NotificationBadgeService);
+  achievements = inject(AchievementService);
 
   private _activeTab = 0;
   get activeTab(): number { return this._activeTab; }
@@ -40,6 +42,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       this.talentExpanded = false;
     }
     if (v !== 0) this.statsFlyoutOpen = false;
+    if (v !== 4) this.selectedAch = null;
   }
 
   showAtkBreakdown      = false;
@@ -80,6 +83,20 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   // Sets de equipo (loadouts) del tab 0
   readonly loadoutIndices = [0, 1, 2];
+
+  // ── Logros (tab 4) ───────────────────────────────────────────────────────────
+
+  achScope: AchievementScope = 'char';
+  selectedAch: AchievementDef | null = null;
+
+  setAchScope(scope: AchievementScope): void {
+    this.achScope = scope;
+    this.selectedAch = null;
+  }
+
+  selectAch(a: AchievementDef): void {
+    this.selectedAch = this.selectedAch?.id === a.id ? null : a;
+  }
 
   // Flyout de stats (tab 0): se abre al pinchar la pastilla, a la derecha del panel
   statsFlyoutOpen = false;
@@ -398,8 +415,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
-    // El tab guardado puede venir de la numeración antigua (había 5 pestañas)
-    if (this._activeTab > 3) this._activeTab = 0;
+    // Tab guardado fuera de rango (numeraciones antiguas) → al primero
+    if (this._activeTab > 4) this._activeTab = 0;
     if (this._activeTab === 2) setTimeout(() => this.createTalentGame());
     if (this._activeTab === 3) this.initPan();
   }

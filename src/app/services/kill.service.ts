@@ -67,4 +67,14 @@ export class KillService {
   getGlobalMapKills(mapId: string): KillRecord { return this.globalKills[mapId] ?? {}; }
   getTotalCharKills(mapId: string): number { return Object.values(this.getCharMapKills(mapId)).reduce((a, b) => a + b, 0); }
   getTotalGlobalKills(mapId: string): number { return Object.values(this.getGlobalMapKills(mapId)).reduce((a, b) => a + b, 0); }
+
+  /** Total de bajas del personaje en todos los mapas (logros) */
+  totalCharKills(): number {
+    return Object.keys(this.charKills).reduce((sum, mapId) => sum + this.getTotalCharKills(mapId), 0);
+  }
+
+  /** Total de bajas de la cuenta en todos los mapas (logros globales) */
+  totalGlobalKills(): number {
+    return Object.keys(this.globalKills).reduce((sum, mapId) => sum + this.getTotalGlobalKills(mapId), 0);
+  }
 }

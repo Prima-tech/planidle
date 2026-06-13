@@ -4,52 +4,46 @@ import { InventoryItem, InventoryService } from 'src/app/services/inventory.serv
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { TownChestService } from 'src/app/services/town-chest.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
-import { PlayerStateService } from 'src/app/services/player-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-inventory',
-  templateUrl: './inventory.component.html',
-  styleUrls: ['./inventory.component.scss'],
+  selector: 'app-town-chest',
+  templateUrl: './town-chest.component.html',
+  styleUrls: ['./town-chest.component.scss'],
   standalone: false
 })
-export class InventoryComponent implements OnInit, OnDestroy {
+export class TownChestComponent implements OnInit, OnDestroy {
   readonly NUMBER_OF_TABS = 4;
   readonly ROWS = 4;
   readonly COLUMNS = 5;
   activeTabIndex: number = 0;
   tabs: string[] = [];
-  inventories: ((InventoryItem | null)[][])[] = [];
+  chest: ((InventoryItem | null)[][])[] = [];
   selectedItem: { tabIndex: number; row: number; col: number } | null = null;
 
   splitMenuOpen: boolean = false;
   splitValue: number = 1;
   deleteModalOpen: boolean = false;
 
-  equipmentSlotIds: string[] = [];
-  /** IDs CDK a los que puede arrastrarse desde el inventario: slots de equipo + celdas del cofre. */
-  connectedDropIds: string[] = [];
+  /** Celdas del inventario del personaje a las que el cofre permite arrastrar. */
+  inventoryCellIds: string[] = [];
   detailPanelStyle: { [key: string]: string } = {};
 
   private saveTimer: any;
-  private dropSub: Subscription;
   private removeSub: Subscription;
 
   private panelState = inject(PanelStateService);
-  private playerState = inject(PlayerStateService);
-
-  coins$ = this.playerState.coins$;
+  private equipmentService = inject(EquipmentService);
 
   constructor(
-    private inventoryService: InventoryService,
-    public equipmentService: EquipmentService,
     private townChest: TownChestService,
+    private inventoryService: InventoryService,
     private el: ElementRef,
   ) {}
 
   get selectedItemData(): InventoryItem | null {
     if (!this.selectedItem) return null;
-    return this.inventories[this.selectedItem.tabIndex]?.[this.selectedItem.row]?.[this.selectedItem.col] ?? null;
+    return this.chest[this.selectedItem.tabIndex]?.[this.selectedItem.row]?.[this.selectedItem.col] ?? null;
   }
 
   @HostListener('document:click', ['$event'])
@@ -60,35 +54,28 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.activeTabIndex = this.panelState.get('inv.tab', 0);
+    this.activeTabIndex = this.panelState.get('chest.tab', 0);
     this.tabs = ['I', 'II', 'III', 'IV', 'V'].slice(0, this.NUMBER_OF_TABS);
-    this.equipmentSlotIds = this.equipmentService.getEquipmentSlotIds();
-    this.connectedDropIds = [...this.equipmentSlotIds, ...this.townChest.cellIds];
+    this.inventoryCellIds = this.equipmentService.inventoryCellIds;
 
     // Grid vacío síncrono para que CDK registre los drop lists antes de cargar datos
-    this.inventories = this.inventoryService.buildGrid();
+    this.chest = this.townChest.buildGrid();
 
-    // Cargar datos reales (mock o Supabase)
-    this.inventoryService.load().then(grid => {
-      this.inventories = grid;
+    // Cargar el cofre compartido
+    this.townChest.load().then(grid => {
+      this.chest = grid;
     });
 
-    // Recibir items recogidos del suelo en tiempo real
-    this.dropSub = this.inventoryService.itemDropped$.subscribe(item => {
-      this.addItemToInventory(item);
-    });
-
-    // Recibir solicitudes de borrado desde otros sistemas (p.ej. equipamiento)
-    this.removeSub = this.inventoryService.removeRequest$.subscribe(({ tabIndex, row, col }) => {
-      this.inventories[tabIndex][row][col] = null;
+    // Cuando el inventario retira un item del cofre, vaciar esa celda
+    this.removeSub = this.townChest.removeRequest$.subscribe(({ tabIndex, row, col }) => {
+      this.chest[tabIndex][row][col] = null;
       this.triggerSave();
     });
   }
 
   ngOnDestroy() {
     clearTimeout(this.saveTimer);
-    this.inventoryService.save(this.inventories);
-    this.dropSub?.unsubscribe();
+    this.townChest.save(this.chest);
     this.removeSub?.unsubscribe();
   }
 
@@ -101,9 +88,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
   onDragMoved(event: CdkDragMove): void {
     const { x, y } = event.pointerPosition;
     const el = document.elementFromPoint(x, y) as HTMLElement;
-    const tabEl = el?.closest('[data-tab-index]') as HTMLElement;
+    const tabEl = el?.closest('[data-chest-tab-index]') as HTMLElement;
     if (!tabEl) return;
-    const index = parseInt(tabEl.dataset['tabIndex']);
+    const index = parseInt(tabEl.dataset['chestTabIndex']);
     if (!isNaN(index) && index !== this.activeTabIndex) {
       this.selectTab(index);
     }
@@ -113,7 +100,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   selectTab(index: number): void {
     this.activeTabIndex = index;
-    this.panelState.set('inv.tab', index);
+    this.panelState.set('chest.tab', index);
     this.selectedItem = null;
     this.splitMenuOpen = false;
     this.deleteModalOpen = false;
@@ -123,7 +110,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   selectItem(tabIndex: number, row: number, col: number, event: MouseEvent): void {
     event.stopPropagation();
-    if (!this.inventories[tabIndex][row][col]) return;
+    if (!this.chest[tabIndex][row][col]) return;
 
     const isSame =
       this.selectedItem?.tabIndex === tabIndex &&
@@ -136,7 +123,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
       const rect = (this.el.nativeElement as HTMLElement).getBoundingClientRect();
       this.detailPanelStyle = {
         top:    rect.top + 'px',
-        right:  (window.innerWidth - rect.left + 8) + 'px',
+        left:   (rect.right + 8) + 'px',
         bottom: '56px',
       };
     }
@@ -155,32 +142,21 @@ export class InventoryComponent implements OnInit, OnDestroy {
   onDrop(event: CdkDragDrop<any>, targetTabIndex: number, targetRow: number, targetCol: number): void {
     const data = event.item.data;
 
-    // Drop desde un slot de equipamiento → inventario
-    if (data.sourceContext === 'equipment') {
-      const targetItem = this.inventories[targetTabIndex][targetRow][targetCol];
-      if (targetItem !== null) return; // celda ocupada: rechazar
-      this.inventories[targetTabIndex][targetRow][targetCol] = data.item;
-      this.equipmentService.unequip(data.slotId);
-      this.splitMenuOpen = false;
-      this.deleteModalOpen = false;
-      this.triggerSave();
-      return;
-    }
+    // Drop desde el inventario del personaje → cofre (depositar)
+    if (data.sourceContext === 'inventory') {
+      const targetItem = this.chest[targetTabIndex][targetRow][targetCol];
+      const draggedItem: InventoryItem = data.item;
 
-    // Drop desde el cofre de ciudad → inventario (retirar)
-    if (data.sourceContext === 'chest') {
-      const targetItem = this.inventories[targetTabIndex][targetRow][targetCol];
-      const incoming: InventoryItem = data.item;
-
-      if (targetItem?.mergeable && incoming.mergeable && targetItem.name === incoming.name) {
-        targetItem.sum! += incoming.sum!;
+      if (targetItem?.mergeable && draggedItem.mergeable && targetItem.name === draggedItem.name) {
+        targetItem.sum! += draggedItem.sum!;
       } else if (targetItem !== null) {
         return; // celda ocupada: rechazar
       } else {
-        this.inventories[targetTabIndex][targetRow][targetCol] = incoming;
+        this.chest[targetTabIndex][targetRow][targetCol] = draggedItem;
       }
 
-      this.townChest.removeRequest$.next({
+      // Quitar del inventario
+      this.inventoryService.removeRequest$.next({
         tabIndex: data.tabIndex,
         row: data.row,
         col: data.col,
@@ -191,29 +167,29 @@ export class InventoryComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Drop interno inventario → inventario
+    // Drop interno cofre → cofre
     const { tabIndex: srcTab, row: srcRow, col: srcCol, item: draggedItem } = data;
     if (srcTab === targetTabIndex && srcRow === targetRow && srcCol === targetCol) return;
 
-    const targetItem = this.inventories[targetTabIndex][targetRow][targetCol];
+    const targetItem = this.chest[targetTabIndex][targetRow][targetCol];
 
     if (targetItem?.mergeable && draggedItem.mergeable && targetItem.name === draggedItem.name) {
       targetItem.sum! += draggedItem.sum!;
-      this.inventories[srcTab][srcRow][srcCol] = null;
+      this.chest[srcTab][srcRow][srcCol] = null;
       if (this.selectedItem?.tabIndex === srcTab && this.selectedItem?.row === srcRow && this.selectedItem?.col === srcCol) {
         this.selectedItem = { tabIndex: targetTabIndex, row: targetRow, col: targetCol };
       }
     } else if (targetItem) {
-      this.inventories[targetTabIndex][targetRow][targetCol] = draggedItem;
-      this.inventories[srcTab][srcRow][srcCol] = targetItem;
+      this.chest[targetTabIndex][targetRow][targetCol] = draggedItem;
+      this.chest[srcTab][srcRow][srcCol] = targetItem;
       if (this.selectedItem?.tabIndex === srcTab && this.selectedItem?.row === srcRow && this.selectedItem?.col === srcCol) {
         this.selectedItem = { tabIndex: targetTabIndex, row: targetRow, col: targetCol };
       } else if (this.selectedItem?.tabIndex === targetTabIndex && this.selectedItem?.row === targetRow && this.selectedItem?.col === targetCol) {
         this.selectedItem = { tabIndex: srcTab, row: srcRow, col: srcCol };
       }
     } else {
-      this.inventories[targetTabIndex][targetRow][targetCol] = draggedItem;
-      this.inventories[srcTab][srcRow][srcCol] = null;
+      this.chest[targetTabIndex][targetRow][targetCol] = draggedItem;
+      this.chest[srcTab][srcRow][srcCol] = null;
       if (this.selectedItem?.tabIndex === srcTab && this.selectedItem?.row === srcRow && this.selectedItem?.col === srcCol) {
         this.selectedItem = { tabIndex: targetTabIndex, row: targetRow, col: targetCol };
       }
@@ -230,7 +206,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     if (!this.selectedItem) return;
     const { tabIndex, row, col } = this.selectedItem;
-    const item = this.inventories[tabIndex][row][col];
+    const item = this.chest[tabIndex][row][col];
     if (item?.mergeable && item.sum! > 1) {
       this.splitValue = 1;
       this.splitMenuOpen = true;
@@ -242,7 +218,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   increaseSplitValue() {
     if (!this.selectedItem) return;
     const { tabIndex, row, col } = this.selectedItem;
-    const item = this.inventories[tabIndex][row][col];
+    const item = this.chest[tabIndex][row][col];
     if (item && this.splitValue < item.sum! - 1) this.splitValue++;
   }
 
@@ -254,15 +230,15 @@ export class InventoryComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     if (!this.selectedItem) return;
     const { tabIndex, row, col } = this.selectedItem;
-    const item = this.inventories[tabIndex][row][col];
+    const item = this.chest[tabIndex][row][col];
     if (!item?.mergeable || item.sum! <= 1 || this.splitValue >= item.sum!) return;
 
     const emptyCell = this.findFirstEmptyCell();
     if (!emptyCell) return;
 
     item.sum! -= this.splitValue;
-    this.inventories[emptyCell.tabIndex][emptyCell.row][emptyCell.col] = {
-      id: this.inventoryService.generateId(),
+    this.chest[emptyCell.tabIndex][emptyCell.row][emptyCell.col] = {
+      id: this.townChest.generateId(),
       name: item.name,
       icon: item.icon,
       mergeable: item.mergeable,
@@ -287,7 +263,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     if (!this.selectedItem) return;
     const { tabIndex, row, col } = this.selectedItem;
-    this.inventories[tabIndex][row][col] = null;
+    this.chest[tabIndex][row][col] = null;
     this.selectedItem = null;
     this.deleteModalOpen = false;
     this.triggerSave();
@@ -300,12 +276,12 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   // --- Ordenar ---
 
-  sortInventory() {
+  sortChest() {
     const items: InventoryItem[] = [];
     for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
       for (let i = 0; i < this.ROWS; i++) {
         for (let j = 0; j < this.COLUMNS; j++) {
-          if (this.inventories[t][i][j]) items.push(this.inventories[t][i][j]!);
+          if (this.chest[t][i][j]) items.push(this.chest[t][i][j]!);
         }
       }
     }
@@ -320,7 +296,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
       for (let i = 0; i < this.ROWS; i++) {
         for (let j = 0; j < this.COLUMNS; j++) {
-          this.inventories[t][i][j] = index < items.length ? items[index++] : null;
+          this.chest[t][i][j] = index < items.length ? items[index++] : null;
         }
       }
     }
@@ -330,39 +306,13 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.triggerSave();
   }
 
-  // --- Añadir item desde fuera ---
-
-  public addItemToInventory(newItem: InventoryItem): void {
-    if (newItem.mergeable) {
-      for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
-        for (let i = 0; i < this.ROWS; i++) {
-          for (let j = 0; j < this.COLUMNS; j++) {
-            const existing = this.inventories[t][i][j];
-            if (existing?.mergeable && existing.name === newItem.name) {
-              existing.sum! += newItem.sum!;
-              this.triggerSave();
-              return;
-            }
-          }
-        }
-      }
-    }
-    const emptyCell = this.findFirstEmptyCell();
-    if (emptyCell) {
-      this.inventories[emptyCell.tabIndex][emptyCell.row][emptyCell.col] = newItem;
-      this.triggerSave();
-    } else {
-      console.error('[Inventory] No hay espacio disponible');
-    }
-  }
-
   // --- Utilidades ---
 
   private findFirstEmptyCell(): { tabIndex: number; row: number; col: number } | null {
     for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
       for (let i = 0; i < this.ROWS; i++) {
         for (let j = 0; j < this.COLUMNS; j++) {
-          if (!this.inventories[t][i][j]) return { tabIndex: t, row: i, col: j };
+          if (!this.chest[t][i][j]) return { tabIndex: t, row: i, col: j };
         }
       }
     }
@@ -371,7 +321,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   private triggerSave(): void {
     clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => this.inventoryService.save(this.inventories), 2000);
+    this.saveTimer = setTimeout(() => this.townChest.save(this.chest), 2000);
   }
 
   getSheetPos(frame: number = 0, cols: number = 12, frameSize: number = 32, contentSize?: number): string {

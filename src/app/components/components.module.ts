@@ -21,6 +21,7 @@ import { EquipmentComponent } from './equipment/equipment.component';
 import { ItemDetailComponent } from './item-detail/item-detail.component';
 import { CharStatsComponent } from './char-stats/char-stats.component';
 import { SummonComponent } from './summon/summon.component';
+import { TownChestComponent } from './town-chest/town-chest.component';
 import { PlayerPreviewComponent } from './player-preview/player-preview.component';
 import { SkillSlotsPanelComponent } from './skill-slots-panel/skill-slots-panel.component';
 import { SkillDetailComponent } from './skill-detail/skill-detail.component';
@@ -50,6 +51,7 @@ import { CharacterSpriteComponent } from './character-sprite/character-sprite.co
     ItemDetailComponent,
     CharStatsComponent,
     SummonComponent,
+    TownChestComponent,
     PlayerPreviewComponent,
     SkillSlotsPanelComponent,
     SkillDetailComponent,
@@ -86,6 +88,7 @@ import { CharacterSpriteComponent } from './character-sprite/character-sprite.co
     ItemDetailComponent,
     CharStatsComponent,
     SummonComponent,
+    TownChestComponent,
     HudSkillButtonsComponent,
     EnemyNamePipe,
     CharacterSpriteComponent,

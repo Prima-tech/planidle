@@ -3,31 +3,31 @@
 
     <div class="death-header">
       <span class="death-icon">💀</span>
-      <h2 class="death-title">Has muerto</h2>
-      <p class="death-subtitle">Tu aventura continúa...</p>
+      <h2 class="death-title">{{ 'DEATH.TITLE' | translate }}</h2>
+      <p class="death-subtitle">{{ 'DEATH.SUBTITLE' | translate }}</p>
     </div>
 
     <div class="death-divider"></div>
 
     <div class="death-body">
       <div class="death-row">
-        <span class="death-label">Experiencia del nivel</span>
-        <span class="death-value death-value--lost">Perdida</span>
+        <span class="death-label">{{ 'DEATH.EXP_LABEL' | translate }}</span>
+        <span class="death-value death-value--lost">{{ 'DEATH.EXP_VALUE' | translate }}</span>
       </div>
       <div class="death-row">
-        <span class="death-label">Vida</span>
-        <span class="death-value death-value--restored">Restaurada</span>
+        <span class="death-label">{{ 'DEATH.HP_LABEL' | translate }}</span>
+        <span class="death-value death-value--restored">{{ 'DEATH.HP_VALUE' | translate }}</span>
       </div>
       <div class="death-row">
-        <span class="death-label">Destino</span>
-        <span class="death-value">Ciudad</span>
+        <span class="death-label">{{ 'DEATH.DEST_LABEL' | translate }}</span>
+        <span class="death-value">{{ 'DEATH.DEST_VALUE' | translate }}</span>
       </div>
     </div>
 
     <div class="death-divider"></div>
 
     <button class="death-accept-btn" (click)="revive()">
-      Aceptar
+      {{ 'DEATH.ACCEPT' | translate }}
     </button>
 
   </div>

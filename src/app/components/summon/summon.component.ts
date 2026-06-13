@@ -36,8 +36,8 @@ interface ArmorGroup {
 export class SummonComponent {
 
   readonly tabs = [
-    { icon: 'skull-outline',      title: 'Enemigos' },
-    { icon: 'bag-handle-outline', title: 'Items'    },
+    { icon: 'skull-outline',      title: 'Enemies' },
+    { icon: 'bag-handle-outline', title: 'Items'   },
   ];
   private panelState = inject(PanelStateService);
 
@@ -52,8 +52,8 @@ export class SummonComponent {
   set activeTab(v: number)      { this._activeTab = v;      this.panelState.set('summon.tab', v); }
   set activeItemTab(v: number)  { this._activeItemTab = v;  this.panelState.set('summon.itemTab', v); }
   set activeEnemyTab(v: number) { this._activeEnemyTab = v; this.panelState.set('summon.enemyTab', v); }
-  readonly itemSubTabs  = ['Armaduras', 'Armas', 'Miscelánea'];
-  readonly enemySubTabs = ['Slimes', 'Miscelánea'];
+  readonly itemSubTabs  = ['Armor', 'Weapons', 'Misc'];
+  readonly enemySubTabs = ['Slimes', 'Misc'];
   readonly slimeGroups: EnemyGroup[];
   readonly miscGroups:  EnemyGroup[];
   readonly armorCatalog:  LootEntry[];

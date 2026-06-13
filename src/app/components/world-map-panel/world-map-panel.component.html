@@ -29,7 +29,7 @@
         </div>
       </ng-container>
       <ng-template #noEnemies>
-        <div class="info-no-enemies">Zona segura</div>
+        <div class="info-no-enemies">{{ 'MAP.SAFE_ZONE' | translate }}</div>
       </ng-template>
       <div class="info-chars" *ngIf="charsOnMap.length > 0">
         <div class="info-char" *ngFor="let c of charsOnMap">
@@ -63,9 +63,9 @@
           <span class="info-char-name">{{ c.name }}</span>
         </div>
       </div>
-      <div class="info-no-enemies" *ngIf="charsOnPlanet.length === 0">Sin personajes</div>
+      <div class="info-no-enemies" *ngIf="charsOnPlanet.length === 0">{{ 'MAP.NO_CHARACTERS' | translate }}</div>
 
-      <button class="teleport-btn" (click)="visitPlanet()" title="Ver planeta">
+      <button class="teleport-btn" (click)="visitPlanet()" [title]="'MAP.VIEW_PLANET' | translate">
         <ion-icon name="planet-outline"></ion-icon>
       </button>
     </div>

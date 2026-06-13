@@ -1,5 +1,5 @@
 <div class="loading-cover" [class.loading-cover--hidden]="dataLoaded && sceneVisible">
-  <span class="loading-cover__text">Cargando...</span>
+  <span class="loading-cover__text">{{ 'COMMON.LOADING_TEXT' | translate }}</span>
 </div>
 
 <app-top-bar *ngIf="dataLoaded && sceneVisible"></app-top-bar>

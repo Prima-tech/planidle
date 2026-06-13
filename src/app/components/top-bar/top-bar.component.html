@@ -93,9 +93,9 @@
           </ng-container>
 
           <div class="mip-rates" *ngIf="d.coinsPerHour > 0">
-            <div class="mip-rates-title">Producción AFK / hora</div>
+            <div class="mip-rates-title">{{ 'MAP.AFK_PRODUCTION' | translate }}</div>
             <div class="mip-rate">
-              <span class="mip-rate-label">Oro</span>
+              <span class="mip-rate-label">{{ 'MAP.GOLD' | translate }}</span>
               <span class="mip-rate-val">{{ d.coinsPerHour | number }}</span>
             </div>
             <div class="mip-rate">
@@ -103,7 +103,7 @@
               <span class="mip-rate-val">{{ d.expPerHour | number }}</span>
             </div>
           </div>
-          <div class="mip-no-spawn" *ngIf="d.coinsPerHour === 0">Sin enemigos activos</div>
+          <div class="mip-no-spawn" *ngIf="d.coinsPerHour === 0">{{ 'MAP.NO_ACTIVE_ENEMIES' | translate }}</div>
 
         </ng-container>
       </div>

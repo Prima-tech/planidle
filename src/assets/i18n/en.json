@@ -2,12 +2,14 @@
   "LOGIN": {
     "TITLE": "Welcome",
     "SUBTITLE": "Sign in to your account",
+    "TAGLINE": "Your adventure awaits",
     "EMAIL_PLACEHOLDER": "Email",
     "PASSWORD_PLACEHOLDER": "Password",
     "BUTTON": "SIGN IN"
   },
   "GLOBAL_POSITION": {
     "TITLE": "Select Character",
+    "CHOOSE_HERO": "Choose your hero",
     "NO_HEROES": "You have no created heroes.",
     "CONTINUE_BUTTON": "CONTINUE",
     "CREATE_PLAYER_BUTTON": "CREATE PLAYER"
@@ -69,6 +71,12 @@
       "NO_CHANGES": "No changes — nothing will be sent"
     }
   },
+  "GAME_SETTINGS": {
+    "GAME": "Game",
+    "INTERFACE": "Interface",
+    "SHOW_JOYSTICK": "Show joystick",
+    "SHOW_JOYSTICK_DESC": "Visual only: touch movement works the same"
+  },
   "INVENTORY": {
     "BTN": {
       "SPLIT": "Split",
@@ -79,10 +87,16 @@
       "CANCEL": "Cancel"
     },
     "QUANTITY": "Quantity:",
-    "CONFIRM_DELETE": "Delete this item? This cannot be undone."
+    "CONFIRM_DELETE": "Delete this item? This cannot be undone.",
+    "DELETE_TITLE": "Delete item?",
+    "DELETE_WARNING": "This action cannot be undone."
+  },
+  "CHEST": {
+    "TITLE": "Town Chest"
   },
   "CHARACTER": {
     "LEVEL": "Level",
+    "DEFAULT_NAME": "Character",
     "COMING_SOON": "Coming soon",
     "SLOTS": {
       "HELMET": "Helmet",
@@ -102,13 +116,98 @@
       "AGILITY": "Agility"
     }
   },
+  "STAT": {
+    "LEVEL_SHORT": "Lv.",
+    "FREE_POINTS": "Free points",
+    "HP": "Life",
+    "MANA": "Mana",
+    "ATTACK": "Attack",
+    "MAGIC_DAMAGE": "Magic Damage",
+    "DEFENSE": "Defense",
+    "EVASION": "Evasion",
+    "CRIT_CHANCE": "Crit Chance",
+    "CRIT_DAMAGE": "Crit Damage",
+    "DROP_RATE": "Loot rate",
+    "HP_REGEN": "HP regen / 10s",
+    "MP_REGEN": "MP regen / 10s",
+    "VITALITY": "Vitality",
+    "MAGIC": "Magic",
+    "STRENGTH": "Strength",
+    "INTELLIGENCE": "Intelligence",
+    "DEXTERITY": "Dexterity",
+    "CHARISMA": "Charisma",
+    "BASE": "Base",
+    "EQUIPMENT": "Equipment",
+    "TALENTS": "Talents",
+    "SKILLS": "Skills",
+    "NO_BONUSES": "No bonuses",
+    "EFFECTIVE_MULT": "Effective multiplier",
+    "BASE_POWER": "Base power"
+  },
+  "ITEM_STAT": {
+    "DAMAGE": "Damage",
+    "HEALING": "Healing",
+    "DEFENSE": "Defense",
+    "SPEED": "Speed",
+    "CRITICAL": "Critical",
+    "STAMINA": "Stamina"
+  },
+  "ACHIEVEMENTS": {
+    "CHARACTER": "Character",
+    "GLOBAL": "Global",
+    "UNLOCKED": "Unlocked!",
+    "PENDING": "Pending"
+  },
+  "TALENT": {
+    "REMOVE_SPHERE": "Remove sphere",
+    "TREE_COMBAT": "Combat"
+  },
+  "SKILLS": {
+    "TITLE": "Skills",
+    "CLEAR_SLOT": "Clear slot",
+    "FIRE": "Fire",
+    "WATER": "Water",
+    "OTHER": "Other",
+    "EMPTY": "No skills in this category"
+  },
+  "DEATH": {
+    "TITLE": "You died",
+    "SUBTITLE": "Your adventure continues...",
+    "EXP_LABEL": "Level experience",
+    "EXP_VALUE": "Lost",
+    "HP_LABEL": "Life",
+    "HP_VALUE": "Restored",
+    "DEST_LABEL": "Destination",
+    "DEST_VALUE": "City",
+    "ACCEPT": "Accept"
+  },
   "MAP": {
-    "EXPLORE": "Explore"
+    "EXPLORE": "Explore",
+    "SAFE_ZONE": "Safe zone",
+    "NO_CHARACTERS": "No characters",
+    "VIEW_PLANET": "View planet",
+    "AFK_PRODUCTION": "AFK production / hour",
+    "GOLD": "Gold",
+    "XP": "XP",
+    "NO_ACTIVE_ENEMIES": "No active enemies"
+  },
+  "SUMMON": {
+    "NO_ITEMS": "No items"
+  },
+  "OFFLINE": {
+    "TITLE": "AFK gains",
+    "AWAY_SUFFIX": "away",
+    "ENEMIES_KILLED": "Enemies defeated",
+    "REWARDS": "Rewards",
+    "COINS": "Coins",
+    "EXP": "Experience",
+    "COLLECT": "Collect"
   },
   "GAME_LOG": {
     "COINS": "Coins"
   },
   "COMMON": {
-    "LOADING": "..."
+    "LOADING": "...",
+    "LOADING_TEXT": "Loading..."
   }
 }

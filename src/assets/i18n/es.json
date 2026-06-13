@@ -2,12 +2,14 @@
   "LOGIN": {
     "TITLE": "Bienvenido",
     "SUBTITLE": "Ingresa a tu cuenta",
+    "TAGLINE": "Tu aventura te espera",
     "EMAIL_PLACEHOLDER": "Email",
     "PASSWORD_PLACEHOLDER": "Contraseña",
     "BUTTON": "INGRESAR"
   },
   "GLOBAL_POSITION": {
     "TITLE": "Selecciona Personaje",
+    "CHOOSE_HERO": "Elige tu héroe",
     "NO_HEROES": "No tienes héroes creados.",
     "CONTINUE_BUTTON": "CONTINUAR",
     "CREATE_PLAYER_BUTTON": "CREAR PLAYER"
@@ -69,6 +71,12 @@
       "NO_CHANGES": "Sin cambios — no se enviará nada"
     }
   },
+  "GAME_SETTINGS": {
+    "GAME": "Juego",
+    "INTERFACE": "Interfaz",
+    "SHOW_JOYSTICK": "Mostrar joystick",
+    "SHOW_JOYSTICK_DESC": "Solo visual: el movimiento táctil funciona igual"
+  },
   "INVENTORY": {
     "BTN": {
       "SPLIT": "Split",
@@ -79,10 +87,16 @@
       "CANCEL": "Cancelar"
     },
     "QUANTITY": "Cantidad:",
-    "CONFIRM_DELETE": "¿Quieres borrar el objeto? No se puede revertir."
+    "CONFIRM_DELETE": "¿Quieres borrar el objeto? No se puede revertir.",
+    "DELETE_TITLE": "¿Borrar objeto?",
+    "DELETE_WARNING": "Esta acción no se puede deshacer."
+  },
+  "CHEST": {
+    "TITLE": "Cofre de ciudad"
   },
   "CHARACTER": {
     "LEVEL": "Nivel",
+    "DEFAULT_NAME": "Personaje",
     "COMING_SOON": "Próximamente",
     "SLOTS": {
       "HELMET": "Casco",
@@ -102,13 +116,98 @@
       "AGILITY": "Agilidad"
     }
   },
+  "STAT": {
+    "LEVEL_SHORT": "Nv.",
+    "FREE_POINTS": "Puntos libres",
+    "HP": "Vida",
+    "MANA": "Mana",
+    "ATTACK": "Ataque",
+    "MAGIC_DAMAGE": "Daño Mágico",
+    "DEFENSE": "Defensa",
+    "EVASION": "Evasión",
+    "CRIT_CHANCE": "Prob. Crítico",
+    "CRIT_DAMAGE": "Daño Crítico",
+    "DROP_RATE": "Tasa de botín",
+    "HP_REGEN": "Rec. HP / 10s",
+    "MP_REGEN": "Rec. MP / 10s",
+    "VITALITY": "Vitalidad",
+    "MAGIC": "Magia",
+    "STRENGTH": "Fuerza",
+    "INTELLIGENCE": "Inteligencia",
+    "DEXTERITY": "Destreza",
+    "CHARISMA": "Carisma",
+    "BASE": "Base",
+    "EQUIPMENT": "Equipo",
+    "TALENTS": "Talentos",
+    "SKILLS": "Habilidades",
+    "NO_BONUSES": "Sin bonificaciones",
+    "EFFECTIVE_MULT": "Multiplicador efectivo",
+    "BASE_POWER": "Poder base"
+  },
+  "ITEM_STAT": {
+    "DAMAGE": "Daño",
+    "HEALING": "Curación",
+    "DEFENSE": "Defensa",
+    "SPEED": "Velocidad",
+    "CRITICAL": "Crítico",
+    "STAMINA": "Resistencia"
+  },
+  "ACHIEVEMENTS": {
+    "CHARACTER": "Personaje",
+    "GLOBAL": "Globales",
+    "UNLOCKED": "¡Conseguido!",
+    "PENDING": "Pendiente"
+  },
+  "TALENT": {
+    "REMOVE_SPHERE": "Quitar esfera",
+    "TREE_COMBAT": "Combate"
+  },
+  "SKILLS": {
+    "TITLE": "Habilidades",
+    "CLEAR_SLOT": "Vaciar slot",
+    "FIRE": "Fuego",
+    "WATER": "Agua",
+    "OTHER": "Otras",
+    "EMPTY": "No hay habilidades en esta categoría"
+  },
+  "DEATH": {
+    "TITLE": "Has muerto",
+    "SUBTITLE": "Tu aventura continúa...",
+    "EXP_LABEL": "Experiencia del nivel",
+    "EXP_VALUE": "Perdida",
+    "HP_LABEL": "Vida",
+    "HP_VALUE": "Restaurada",
+    "DEST_LABEL": "Destino",
+    "DEST_VALUE": "Ciudad",
+    "ACCEPT": "Aceptar"
+  },
   "MAP": {
-    "EXPLORE": "Explorar"
+    "EXPLORE": "Explorar",
+    "SAFE_ZONE": "Zona segura",
+    "NO_CHARACTERS": "Sin personajes",
+    "VIEW_PLANET": "Ver planeta",
+    "AFK_PRODUCTION": "Producción AFK / hora",
+    "GOLD": "Oro",
+    "XP": "XP",
+    "NO_ACTIVE_ENEMIES": "Sin enemigos activos"
+  },
+  "SUMMON": {
+    "NO_ITEMS": "Sin items"
+  },
+  "OFFLINE": {
+    "TITLE": "Ganancias AFK",
+    "AWAY_SUFFIX": "fuera",
+    "ENEMIES_KILLED": "Enemigos eliminados",
+    "REWARDS": "Recompensas",
+    "COINS": "Monedas",
+    "EXP": "Experiencia",
+    "COLLECT": "Recoger"
   },
   "GAME_LOG": {
     "COINS": "Monedas"
   },
   "COMMON": {
-    "LOADING": "..."
+    "LOADING": "...",
+    "LOADING_TEXT": "Cargando..."
   }
 }

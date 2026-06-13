@@ -3,6 +3,7 @@
 <app-modal-container #inventoryModal></app-modal-container>
 <app-modal-container #equipmentModal></app-modal-container>
 <app-modal-container #summonModal></app-modal-container>
+<app-modal-container #chestModal></app-modal-container>
 <app-modal-container #skillSlotsModal></app-modal-container>
 <app-modal-container #skillDetailModal></app-modal-container>
 <app-modal-container #worldMapModal></app-modal-container>
@@ -33,6 +34,10 @@
 
       <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
         <ion-icon name="flash-outline" class="footer-ion-icon"></ion-icon>
+      </div>
+
+      <div class="icon-menu-wrapper" [class.active]="chestModal.isOpenModal()" (click)="openChest()">
+        <ion-icon name="file-tray-stacked-outline" class="footer-ion-icon"></ion-icon>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">

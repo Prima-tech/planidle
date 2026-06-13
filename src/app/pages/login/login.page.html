@@ -7,7 +7,7 @@
           <ion-icon name="shield-half-outline" class="emblem-icon"></ion-icon>
         </div>
         <h1 class="game-title">IDLE RPG</h1>
-        <p class="game-subtitle">Tu aventura te espera</p>
+        <p class="game-subtitle">{{ 'LOGIN.TAGLINE' | translate }}</p>
       </div>
 
       <div class="login-divider"></div>
@@ -15,13 +15,13 @@
       <div class="login-form">
         <div class="input-wrapper">
           <ion-icon name="person-outline" class="input-icon"></ion-icon>
-          <ion-input [(ngModel)]="email" type="email" placeholder="Email" class="dark-input"></ion-input>
+          <ion-input [(ngModel)]="email" type="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" class="dark-input"></ion-input>
         </div>
         <div class="input-wrapper">
           <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-          <ion-input [(ngModel)]="password" type="password" placeholder="Contraseña" class="dark-input"></ion-input>
+          <ion-input [(ngModel)]="password" type="password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" class="dark-input"></ion-input>
         </div>
-        <button class="login-btn" (click)="login()">ENTRAR</button>
+        <button class="login-btn" (click)="login()">{{ 'LOGIN.BUTTON' | translate }}</button>
       </div>
 
     </div>

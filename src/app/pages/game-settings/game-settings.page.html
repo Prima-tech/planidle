@@ -1,7 +1,7 @@
 <div class="gs-panel">
 
   <div class="gs-tabs">
-    <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">Juego</button>
+    <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">{{ 'GAME_SETTINGS.GAME' | translate }}</button>
     <button class="gs-tab" [class.active]="tab === 1" (click)="tab = 1">Tab 2</button>
     <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">Tab 3</button>
   </div>
@@ -10,12 +10,12 @@
 
     <ng-container *ngIf="tab === 0">
       <div class="gs-section">
-        <p class="gs-section-label">Interfaz</p>
+        <p class="gs-section-label">{{ 'GAME_SETTINGS.INTERFACE' | translate }}</p>
 
         <div class="gs-row">
           <div class="gs-row-info">
-            <span class="gs-row-title">Mostrar joystick</span>
-            <span class="gs-row-desc">Solo visual: el movimiento táctil funciona igual</span>
+            <span class="gs-row-title">{{ 'GAME_SETTINGS.SHOW_JOYSTICK' | translate }}</span>
+            <span class="gs-row-desc">{{ 'GAME_SETTINGS.SHOW_JOYSTICK_DESC' | translate }}</span>
           </div>
           <div class="gs-toggle" [class.on]="gs.showJoystick" (click)="gs.setShowJoystick(!gs.showJoystick)">
             <div class="gs-toggle-thumb"></div>

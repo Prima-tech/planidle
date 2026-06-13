@@ -12,14 +12,14 @@
     <div class="detail-divider"></div>
     <div class="detail-stats">
       <div *ngFor="let stat of item.stats | keyvalue" class="stat-row">
-        <span class="stat-label">{{ statLabel(stat.key) }}</span>
+        <span class="stat-label">{{ statLabel(stat.key) | translate }}</span>
         <span class="stat-value">{{ stat.value }}</span>
       </div>
     </div>
   </ng-container>
 
   <div *ngIf="item.mergeable && item.sum !== undefined" class="detail-quantity">
-    Cantidad: {{ item.sum }}
+    {{ 'INVENTORY.QUANTITY' | translate }} {{ item.sum }}
   </div>
 
 </div>

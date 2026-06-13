@@ -19,7 +19,7 @@
 
     <!-- RIGHT PANEL: character selection -->
     <div class="right-panel">
-      <p class="choose-label">Elige tu héroe</p>
+      <p class="choose-label">{{ 'GLOBAL_POSITION.CHOOSE_HERO' | translate }}</p>
 
       <div class="loading-state" *ngIf="asgardService.isChecking">
         <ion-spinner name="crescent"></ion-spinner>
@@ -114,7 +114,7 @@
                   *ngIf="asgardService._characters?.length > 0"
                   (click)="continue()"
                   [disabled]="!isSelected">
-            CONTINUAR
+            {{ 'GLOBAL_POSITION.CONTINUE_BUTTON' | translate }}
             <ion-icon name="arrow-forward-outline"></ion-icon>
           </button>
         </div>
