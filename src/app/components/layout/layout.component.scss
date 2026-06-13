@@ -118,6 +118,18 @@
     width: 32px;   /* un poco más grande que el resto (26px) */
     height: 32px;
   }
+
+  /* Tienda: justo debajo de ajustes, sobre el borde derecho del aro */
+  &--shop {
+    right: -12px;
+    top: 38px;
+    width: 32px;
+    height: 32px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
 }
 
 .minimap-btn-img {

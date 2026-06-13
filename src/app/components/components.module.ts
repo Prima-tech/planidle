@@ -33,6 +33,7 @@ import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
 import { ProgressPanelComponent } from './progress-panel/progress-panel.component';
 import { AchievementToastComponent } from './achievement-toast/achievement-toast.component';
+import { ShopComponent } from './shop/shop.component';
 
 @NgModule({
   declarations: [
@@ -65,6 +66,7 @@ import { AchievementToastComponent } from './achievement-toast/achievement-toast
     CharacterSpriteComponent,
     ProgressPanelComponent,
     AchievementToastComponent,
+    ShopComponent,
   ],
   imports: [
     CommonModule,

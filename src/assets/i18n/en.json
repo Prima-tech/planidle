@@ -77,6 +77,9 @@
     "SHOW_JOYSTICK": "Show joystick",
     "SHOW_JOYSTICK_DESC": "Visual only: touch movement works the same"
   },
+  "SHOP": {
+    "TITLE": "Shop"
+  },
   "INVENTORY": {
     "BTN": {
       "SPLIT": "Split",
@@ -87,6 +90,7 @@
       "CANCEL": "Cancel"
     },
     "QUANTITY": "Quantity:",
+    "EQUIPPED": "Equipped",
     "CONFIRM_DELETE": "Delete this item? This cannot be undone.",
     "DELETE_TITLE": "Delete item?",
     "DELETE_WARNING": "This action cannot be undone."
@@ -157,6 +161,13 @@
     "GLOBAL": "Global",
     "UNLOCKED": "Unlocked!",
     "PENDING": "Pending"
+  },
+  "QUESTS": {
+    "AVAILABLE": "Available",
+    "COMPLETED": "Completed",
+    "REWARD": "Reward",
+    "NONE_AVAILABLE": "No quests available.",
+    "NONE_COMPLETED": "You haven't completed any quests yet."
   },
   "TALENT": {
     "REMOVE_SPHERE": "Remove sphere",

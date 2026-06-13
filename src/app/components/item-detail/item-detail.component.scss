@@ -28,11 +28,30 @@ $text-cream: #ecd9b4;
   overflow-y: auto;
 }
 
+.detail-heading {
+  font-size: 0.62em;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b4226;
+  opacity: 0.85;
+  margin-bottom: 5px;
+}
+
 .detail-header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+}
+
+/* Icono de sprite (sheet): el frame se normaliza a 32px, así que el box es 32px */
+.detail-icon-box {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
 }
 
 .detail-icon {

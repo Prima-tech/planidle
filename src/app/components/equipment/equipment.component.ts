@@ -7,8 +7,10 @@ import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, C
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
 import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES } from 'src/app/services/talent.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
+import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { AchievementService, AchievementDef, AchievementScope } from 'src/app/services/achievement.service';
+import { QuestService, QuestDef } from 'src/app/services/quest.service';
 
 @Component({
   selector: 'app-equipment',
@@ -19,15 +21,18 @@ import { AchievementService, AchievementDef, AchievementScope } from 'src/app/se
 export class EquipmentComponent implements OnInit, OnDestroy {
 
   private panelState = inject(PanelStateService);
+  private equipPanel = inject(EquipmentPanelService);
   private el = inject(ElementRef);
   badges = inject(NotificationBadgeService);
   achievements = inject(AchievementService);
+  quests = inject(QuestService);
 
   private _activeTab = 0;
   get activeTab(): number { return this._activeTab; }
   set activeTab(v: number) {
     this._activeTab = v;
     this.panelState.set('equip.tab', v);
+    this.equipPanel.tab = v;
     if (v === 4) this.initPan();
     if (v !== 4) {
       this.selectedNodeId = null;
@@ -35,6 +40,17 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     }
     if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; }
     if (v !== 5) this.selectedAch = null;
+    if (v === 6) this.badges.clear('equip.quests');
+  }
+
+  // ── Misiones (tab 6) ─────────────────────────────────────────────────────────
+
+  showAvailableQuests = true;
+  showCompletedQuests = false;
+  expandedQuestId: string | null = null;
+
+  toggleQuest(q: QuestDef): void {
+    this.expandedQuestId = this.expandedQuestId === q.id ? null : q.id;
   }
 
   // Vista de equipo (tab 0): combate ↔ recolección comparten el mismo preview
@@ -345,11 +361,16 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
     // Tabs ya retiradas (1 recolección fusionada, 3 árbol Phaser) o fuera de rango → al primero
-    if (this._activeTab > 5 || this._activeTab === 1 || this._activeTab === 3) this._activeTab = 0;
+    if (this._activeTab > 6 || this._activeTab === 1 || this._activeTab === 3) this._activeTab = 0;
     if (this._activeTab === 4) this.initPan();
+    // Publica el estado para el comparador del inventario
+    this.equipPanel.open = true;
+    this.equipPanel.tab = this._activeTab;
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.equipPanel.open = false;
+  }
 
   canDropInSlot = (drag: CdkDrag, drop: CdkDropList): boolean => {
     return this.equipmentService.canEquip(drag.data?.item, drop.id);

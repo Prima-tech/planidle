@@ -11,6 +11,7 @@ import { TownChestComponent } from '../town-chest/town-chest.component';
 import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel.component';
 import { WorldMapPanelComponent } from '../world-map-panel/world-map-panel.component';
 import { ProgressPanelComponent } from '../progress-panel/progress-panel.component';
+import { ShopComponent } from '../shop/shop.component';
 import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
@@ -39,6 +40,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('skillDetailModal') skillDetailModal!: ModalContainerComponent;
   @ViewChild('worldMapModal')    worldMapModal!:    ModalContainerComponent;
   @ViewChild('progressModal')    progressModal!:    ModalContainerComponent;
+  @ViewChild('shopModal')        shopModal!:        ModalContainerComponent;
 
   private detailSub:        Subscription;
   private closeSub:         Subscription;
@@ -155,7 +157,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
       left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal],
-      right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal, this.progressModal],
+      right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal, this.progressModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
   }
@@ -323,6 +325,15 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   onChestModalClosed() {
     this.summonService.townChestIsOpen$.next(false);
+  }
+
+  openShop() {
+    if (this.shopModal.isOpenModal()) {
+      this.shopModal.close();
+    } else {
+      this.closeOtherOnSide('right', this.shopModal);
+      this.shopModal.open(ShopComponent, 'shop');
+    }
   }
 
   openProgress() {

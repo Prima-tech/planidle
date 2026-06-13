@@ -81,6 +81,7 @@ $purple: #6e4a67;         // selección
 }
 
 .eq-vtab {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1304,4 +1305,190 @@ $metal-dark: #6b6357;
   line-height: 1;
   padding: 2px;
   &:hover { color: $text-brown; }
+}
+
+// ── Tab 6: Misiones ───────────────────────────────────────────────────────────
+
+.quest-panel {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.quest-section { display: flex; flex-direction: column; gap: 4px; }
+
+.quest-section-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  background: $wood-btn-dark;
+  color: $text-cream;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+
+  .qs-icon { font-size: 16px; color: #f0c040; flex-shrink: 0; }
+
+  .qs-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: 0.74em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .qs-count {
+    margin-left: auto;
+    font-size: 0.66em;
+    font-weight: 700;
+    min-width: 16px;
+    padding: 1px 5px;
+    text-align: center;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .qs-chevron { font-size: 14px; opacity: 0.8; }
+}
+
+.quest-list { display: flex; flex-direction: column; gap: 5px; }
+
+.quest-empty {
+  margin: 0;
+  padding: 8px 4px;
+  font-size: 0.66em;
+  text-align: center;
+  color: rgba(236, 217, 180, 0.45);
+}
+
+.quest-card {
+  border: 2px solid $outline;
+  border-radius: 6px;
+  background: $cell-bg;
+  overflow: hidden;
+
+  &--done {
+    opacity: 0.85;
+    .quest-card-name { color: rgba(236, 217, 180, 0.6); }
+  }
+
+  &.expanded { border-color: #b8862a; }
+}
+
+.quest-card-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 7px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+
+  .quest-card-icon {
+    font-size: 18px;
+    color: #f0c040;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 3px rgba(240, 192, 64, 0.4));
+  }
+
+  .quest-card-name {
+    font-weight: 700;
+    font-size: 0.72em;
+    color: $text-cream;
+    flex: 1;
+    line-height: 1.2;
+  }
+
+  .quest-card-progress {
+    font-size: 0.64em;
+    font-weight: 700;
+    color: #f0c040;
+    flex-shrink: 0;
+  }
+
+  .quest-card-check {
+    font-size: 18px;
+    color: #5fbf6a;
+    flex-shrink: 0;
+  }
+
+  .quest-card-chevron {
+    font-size: 13px;
+    color: rgba(236, 217, 180, 0.6);
+    flex-shrink: 0;
+  }
+}
+
+.quest-card-body {
+  padding: 0 9px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quest-card-desc {
+  margin: 0;
+  font-size: 0.66em;
+  line-height: 1.45;
+  color: rgba(236, 217, 180, 0.78);
+}
+
+.quest-bar {
+  height: 9px;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.quest-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d4a000, #f0c040);
+  transition: width 0.3s ease;
+}
+
+.quest-card-count {
+  font-size: 0.62em;
+  font-weight: 700;
+  color: rgba(236, 217, 180, 0.7);
+  text-align: right;
+}
+
+.quest-reward {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(236, 217, 180, 0.12);
+
+  .quest-reward-label {
+    font-size: 0.6em;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(236, 217, 180, 0.5);
+  }
+
+  .quest-reward-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.66em;
+    font-weight: 700;
+    color: #f0d890;
+
+    ion-icon { font-size: 13px; color: #f0c040; }
+  }
 }

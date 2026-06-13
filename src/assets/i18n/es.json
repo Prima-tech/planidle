@@ -77,6 +77,9 @@
     "SHOW_JOYSTICK": "Mostrar joystick",
     "SHOW_JOYSTICK_DESC": "Solo visual: el movimiento táctil funciona igual"
   },
+  "SHOP": {
+    "TITLE": "Tienda"
+  },
   "INVENTORY": {
     "BTN": {
       "SPLIT": "Split",
@@ -87,6 +90,7 @@
       "CANCEL": "Cancelar"
     },
     "QUANTITY": "Cantidad:",
+    "EQUIPPED": "Equipado",
     "CONFIRM_DELETE": "¿Quieres borrar el objeto? No se puede revertir.",
     "DELETE_TITLE": "¿Borrar objeto?",
     "DELETE_WARNING": "Esta acción no se puede deshacer."
@@ -157,6 +161,13 @@
     "GLOBAL": "Globales",
     "UNLOCKED": "¡Conseguido!",
     "PENDING": "Pendiente"
+  },
+  "QUESTS": {
+    "AVAILABLE": "Disponibles",
+    "COMPLETED": "Completadas",
+    "REWARD": "Recompensa",
+    "NONE_AVAILABLE": "No hay misiones disponibles.",
+    "NONE_COMPLETED": "Aún no has completado ninguna misión."
   },
   "TALENT": {
     "REMOVE_SPHERE": "Quitar esfera",

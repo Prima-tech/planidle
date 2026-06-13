@@ -6,6 +6,7 @@ import { EquipmentService } from 'src/app/services/equipment.service';
 import { GatheringEquipmentService } from 'src/app/services/gathering-equipment.service';
 import { TownChestService } from 'src/app/services/town-chest.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
+import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { Subscription } from 'rxjs';
 
@@ -32,6 +33,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
   /** IDs CDK a los que puede arrastrarse desde el inventario: slots de equipo + celdas del cofre. */
   connectedDropIds: string[] = [];
   detailPanelStyle: { [key: string]: string } = {};
+  /** Comparador: panel gemelo, pegado a la izquierda del de info, con el equipo equipado equivalente. */
+  comparePanelStyle: { [key: string]: string } = {};
 
   private saveTimer: any;
   private dropSub: Subscription;
@@ -40,6 +43,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private prevUnlocked = 0;
 
   private panelState = inject(PanelStateService);
+  private equipPanel = inject(EquipmentPanelService);
   private playerState = inject(PlayerStateService);
   unlock = inject(InventoryUnlockService);
 
@@ -56,6 +60,23 @@ export class InventoryComponent implements OnInit, OnDestroy {
   get selectedItemData(): InventoryItem | null {
     if (!this.selectedItem) return null;
     return this.inventories[this.selectedItem.tabIndex]?.[this.selectedItem.row]?.[this.selectedItem.col] ?? null;
+  }
+
+  /**
+   * Ítem equipado equivalente al seleccionado, para el comparador. Devuelve null
+   * (panel oculto) si: el equipo no está abierto en la pestaña de personaje, el
+   * ítem no es equipable, o no hay nada equipado en su slot.
+   */
+  get compareItemData(): InventoryItem | null {
+    if (!this.equipPanel.onCharacterEquipTab) return null;
+    const sel = this.selectedItemData;
+    if (!sel) return null;
+    const key = sel.category ?? sel.name;
+    // Slots equivalentes en combate + recolección (la mochila vive aquí)
+    const slots = [...this.equipmentService.slots, ...this.gatheringService.slots]
+      .filter(s => s.accepts.includes(key));
+    if (slots.length === 0) return null;            // no equipable → nada
+    return slots.find(s => s.item)?.item ?? null;   // sin nada equipado → nada
   }
 
   @HostListener('document:click', ['$event'])
@@ -206,10 +227,20 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
     if (this.selectedItem) {
       const rect = (this.el.nativeElement as HTMLElement).getBoundingClientRect();
+      const detailRight = window.innerWidth - rect.left + 8;
       this.detailPanelStyle = {
         top:    rect.top + 'px',
-        right:  (window.innerWidth - rect.left + 8) + 'px',
+        right:  detailRight + 'px',
         bottom: '56px',
+      };
+      // Comparador pegado a la izquierda del de info: ancho del panel (170 + 24 padding
+      // + 8 borde = 202px, content-box) + 8px de separación. z-index por encima del
+      // modal de equipo (200) para que salga sobre él, no detrás.
+      this.comparePanelStyle = {
+        top:     rect.top + 'px',
+        right:   (detailRight + 202 + 8) + 'px',
+        bottom:  '56px',
+        'z-index': '210',
       };
     }
 

@@ -95,6 +95,15 @@
     background: transparent;
     overflow-y: auto;
   }
+  &.shop {
+    top: 10px;
+    bottom: 61px;  /* footer ~51px + 10px de aire */
+    right: calc(10px + var(--safe-right, 0px));
+    width: 265px;
+    /* el marco lo pinta el :host del componente (tema madera + piedra) */
+    background: transparent;
+    overflow: hidden;
+  }
   &.world-map {
     top: 10px;
     bottom: 54px;

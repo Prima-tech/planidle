@@ -1,0 +1,50 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$wood-btn: #c08349;
+$text-cream: #ecd9b4;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.shop-panel {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 4px);
+  margin: 2px;
+  box-sizing: border-box;
+  padding: 10px 10px 8px;
+  color: $text-cream;
+  font-size: 13px;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.shop-header {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 4px 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.shop-content {
+  flex: 1;
+  overflow-y: auto;
+}

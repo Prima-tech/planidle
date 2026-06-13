@@ -1,8 +1,15 @@
 <div class="detail-panel" *ngIf="item" [ngStyle]="panelStyle">
 
+  <div *ngIf="heading" class="detail-heading">{{ heading }}</div>
+
   <div class="detail-header">
-    <img *ngIf="item.icon" [src]="item.icon" class="detail-icon">
-    <span *ngIf="!item.icon" class="detail-icon-fallback">{{ item.name.charAt(0) }}</span>
+    <span class="detail-icon-box" *ngIf="item.iconSheet != null"
+          [style.background-image]="'url(' + item.iconSheet + ')'"
+          [style.background-size]="getSheetBgSize(item.iconFrameCols, item.iconFrameSize, item.iconContentSize)"
+          [style.background-position]="getSheetPos(item.iconFrame, item.iconFrameCols, item.iconFrameSize, item.iconContentSize)">
+    </span>
+    <img *ngIf="item.icon && item.iconSheet == null" [src]="item.icon" class="detail-icon">
+    <span *ngIf="!item.icon && item.iconSheet == null" class="detail-icon-fallback">{{ item.name.charAt(0) }}</span>
     <span class="detail-name">{{ item.name }}</span>
   </div>
 

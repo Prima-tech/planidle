@@ -1,5 +1,9 @@
 <app-item-detail [item]="selectedItemData" [panelStyle]="detailPanelStyle"></app-item-detail>
 
+<!-- Comparador: equipo equipado equivalente, pegado a la izquierda del panel de info -->
+<app-item-detail [item]="compareItemData" [panelStyle]="comparePanelStyle"
+                 [heading]="'INVENTORY.EQUIPPED' | translate"></app-item-detail>
+
 <!-- Tabs -->
 <div class="tabs" (click)="$event.stopPropagation()">
   <div

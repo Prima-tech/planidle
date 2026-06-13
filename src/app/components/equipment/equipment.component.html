@@ -19,6 +19,10 @@
     <button class="eq-vtab" [class.active]="activeTab === 5" (click)="activeTab = 5">
       <ion-icon name="trophy-outline"></ion-icon>
     </button>
+    <button class="eq-vtab" [class.active]="activeTab === 6" (click)="activeTab = 6">
+      <ion-icon name="reader-outline"></ion-icon>
+      <span class="notif-dot" *ngIf="badges.has('equip.quests')"></span>
+    </button>
   </div>
 
   <div class="eq-content">
@@ -488,6 +492,51 @@
 
   </div><!-- ach-panel -->
 
+  <!-- Tab 6: Misiones -->
+  <div class="quest-panel" *ngIf="activeTab === 6">
+
+    <!-- Sección: Disponibles -->
+    <div class="quest-section">
+      <button class="quest-section-head" (click)="showAvailableQuests = !showAvailableQuests">
+        <ion-icon class="qs-icon" name="hourglass-outline"></ion-icon>
+        <span class="qs-title">{{ 'QUESTS.AVAILABLE' | translate }}</span>
+        <span class="qs-count">{{ quests.available().length }}</span>
+        <ion-icon class="qs-chevron"
+                  [name]="showAvailableQuests ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </button>
+
+      <div class="quest-list" *ngIf="showAvailableQuests">
+        <ng-container *ngFor="let q of quests.available()">
+          <ng-container *ngTemplateOutlet="questTpl; context: { q: q, done: false }"></ng-container>
+        </ng-container>
+        <p class="quest-empty" *ngIf="quests.available().length === 0">
+          {{ 'QUESTS.NONE_AVAILABLE' | translate }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Sección: Completadas -->
+    <div class="quest-section">
+      <button class="quest-section-head" (click)="showCompletedQuests = !showCompletedQuests">
+        <ion-icon class="qs-icon" name="checkmark-done-outline"></ion-icon>
+        <span class="qs-title">{{ 'QUESTS.COMPLETED' | translate }}</span>
+        <span class="qs-count">{{ quests.completed().length }}</span>
+        <ion-icon class="qs-chevron"
+                  [name]="showCompletedQuests ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </button>
+
+      <div class="quest-list" *ngIf="showCompletedQuests">
+        <ng-container *ngFor="let q of quests.completed()">
+          <ng-container *ngTemplateOutlet="questTpl; context: { q: q, done: true }"></ng-container>
+        </ng-container>
+        <p class="quest-empty" *ngIf="quests.completed().length === 0">
+          {{ 'QUESTS.NONE_COMPLETED' | translate }}
+        </p>
+      </div>
+    </div>
+
+  </div><!-- quest-panel -->
+
   </div><!-- eq-content -->
 
   <!-- Sets de equipo (combate + recolección vinculados): 3 loadouts compartidos -->
@@ -561,6 +610,44 @@
   </div>
 
 </div>
+
+<!-- Template reutilizable: tarjeta-acordeón de misión -->
+<ng-template #questTpl let-q="q" let-done="done">
+  <div class="quest-card" [class.quest-card--done]="done"
+       [class.expanded]="expandedQuestId === q.id">
+    <button class="quest-card-head" (click)="toggleQuest(q)">
+      <ion-icon class="quest-card-icon" [name]="q.icon"></ion-icon>
+      <span class="quest-card-name">{{ q.name }}</span>
+      <span class="quest-card-progress" *ngIf="!done">
+        {{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}
+      </span>
+      <ion-icon class="quest-card-check" *ngIf="done" name="checkmark-circle"></ion-icon>
+      <ion-icon class="quest-card-chevron"
+                [name]="expandedQuestId === q.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    </button>
+
+    <div class="quest-card-body" *ngIf="expandedQuestId === q.id">
+      <p class="quest-card-desc">{{ q.desc }}</p>
+
+      <div class="quest-bar" *ngIf="!done">
+        <div class="quest-bar-fill" [style.width.%]="quests.ratio(q) * 100"></div>
+      </div>
+      <span class="quest-card-count" *ngIf="!done">
+        {{ quests.progressOf(q) }} / {{ quests.goalOf(q) }}
+      </span>
+
+      <div class="quest-reward" *ngIf="q.reward">
+        <span class="quest-reward-label">{{ 'QUESTS.REWARD' | translate }}</span>
+        <span class="quest-reward-item" *ngIf="q.reward.coins">
+          <ion-icon name="cash-outline"></ion-icon>{{ q.reward.coins }}
+        </span>
+        <span class="quest-reward-item" *ngIf="q.reward.exp">
+          <ion-icon name="star-outline"></ion-icon>{{ q.reward.exp }} EXP
+        </span>
+      </div>
+    </div>
+  </div>
+</ng-template>
 
 <!-- Template reutilizable: slot de combate -->
 <ng-template #slotTpl let-slot="slot">

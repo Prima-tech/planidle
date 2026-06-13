@@ -18,6 +18,8 @@ export class KillService {
   readonly globalKills$ = new BehaviorSubject<KillMap>({});
   /** Emite solo en kills reales (no durante restoreCharKills). Úsalo para logros/toasts. */
   readonly kill$ = new Subject<void>();
+  /** Como kill$ pero con el detalle de la baja (mapa + tipo). Úsalo para misiones. */
+  readonly killDetail$ = new Subject<{ mapId: string; enemyType: string }>();
 
   constructor(private storage: StorageService) {}
 
@@ -56,6 +58,7 @@ export class KillService {
     this.charKills[mapId][enemyType] = (this.charKills[mapId][enemyType] ?? 0) + 1;
     this.charKills$.next({ ...this.charKills });
     this.kill$.next();
+    this.killDetail$.next({ mapId, enemyType });
 
     // Contador global
     if (!this.globalKills[mapId]) this.globalKills[mapId] = {};

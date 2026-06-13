@@ -1,9 +1,12 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AchievementDef, AchievementService } from 'src/app/services/achievement.service';
+import { AchievementService } from 'src/app/services/achievement.service';
+import { QuestService } from 'src/app/services/quest.service';
 
 interface Toast {
-  def: AchievementDef;
+  icon: string;
+  name: string;
+  label: string;   // texto pequeño superior ("Logro desbloqueado" / "Misión completada")
   id: number;
   leaving: boolean;
 }
@@ -19,21 +22,27 @@ const LEAVE_MS    = 400;
 })
 export class AchievementToastComponent implements OnInit, OnDestroy {
   private achievements = inject(AchievementService);
-  private sub: Subscription;
+  private quests = inject(QuestService);
+  private subs: Subscription[] = [];
   private nextId = 0;
 
   toasts: Toast[] = [];
 
   ngOnInit(): void {
-    this.sub = this.achievements.unlocked$.subscribe(def => this.show(def));
+    this.subs.push(
+      this.achievements.unlocked$.subscribe(def =>
+        this.show(def.icon, def.name, 'Logro desbloqueado')),
+      this.quests.completed$.subscribe(def =>
+        this.show(def.icon, def.name, 'Misión completada')),
+    );
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    this.subs.forEach(s => s.unsubscribe());
   }
 
-  private show(def: AchievementDef): void {
-    const toast: Toast = { def, id: this.nextId++, leaving: false };
+  private show(icon: string, name: string, label: string): void {
+    const toast: Toast = { icon, name, label, id: this.nextId++, leaving: false };
     this.toasts.push(toast);
 
     setTimeout(() => {

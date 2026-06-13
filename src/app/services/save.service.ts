@@ -13,6 +13,7 @@ import { TalentService, TalentSnapshot } from './talent.service';
 import { SkillEquipService, SkillSlotsSnapshot } from './skill-equip.service';
 import { AfkBonusService } from './afk-bonus.service';
 import { AchievementService } from './achievement.service';
+import { QuestService } from './quest.service';
 import { UnlockService } from './unlock.service';
 import { CharacterStatsService } from './character-stats.service';
 
@@ -122,6 +123,7 @@ export class SaveService {
     private skillEquip: SkillEquipService,
     private afkBonus: AfkBonusService,
     private achievements: AchievementService,
+    private quests: QuestService,
     private unlocks: UnlockService,
     private charStats: CharacterStatsService,
   ) {
@@ -185,6 +187,7 @@ export class SaveService {
     // load AFK passives before calculating gains so multipliers are applied
     await this.afkBonus.loadForChar(charId);
     await this.achievements.loadForChar(charId);
+    await this.quests.loadForChar(charId);
     await this.unlocks.loadForChar(charId);
     const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
     this.pendingGains$.next(gains);
@@ -216,6 +219,7 @@ export class SaveService {
     // el estado: resetea TODO el PlayerState (nivel 1, exp 0, monedas 0, hp/mp base)
     this.playerState.setFromProfile(EMPTY_STATE);
     await this.achievements.clearAll();
+    await this.quests.clearAll();
     await this.saveLocal();
   }
 
