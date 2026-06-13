@@ -1,0 +1,24 @@
+<div class="bd-backdrop" *ngIf="(pending$ | async) as pending">
+  <div class="bd-panel">
+
+    <div class="bd-header">
+      <span class="bd-icon">🗑</span>
+      <h2 class="bd-title">{{ 'BUILD.DELETE_TITLE' | translate }}</h2>
+    </div>
+
+    <div class="bd-divider"></div>
+
+    <div class="bd-body">
+      <p class="bd-msg">{{ 'BUILD.DELETE_MSG' | translate:{ name: (nameKey(pending.type) | translate) } }}</p>
+      <p class="bd-warn">{{ 'BUILD.DELETE_WARN' | translate }}</p>
+    </div>
+
+    <div class="bd-divider"></div>
+
+    <div class="bd-actions">
+      <button class="bd-btn bd-btn--cancel" (click)="cancel()">{{ 'BUILD.DELETE_NO' | translate }}</button>
+      <button class="bd-btn bd-btn--confirm" (click)="confirm()">{{ 'BUILD.DELETE_YES' | translate }}</button>
+    </div>
+
+  </div>
+</div>

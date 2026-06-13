@@ -95,6 +95,12 @@ sprite + registrar tu interacción. Patrones de interacción de cercanía reutil
 `activeChests`, `nearestOpenableChest()` y el contexto del botón de acción
 (`InteractionService.setContext()`).
 
+### c) Vaciar su "interior" al borrarlo
+
+Si el edificio guarda contenido (como el cofre vacía su almacén), añade el borrado
+en `CityBuildService.confirmDelete()`. Hoy hace `if (def?.isTownChest) await
+this.townChest.clear()`. Para otro tipo con interior, añade su limpieza ahí.
+
 ---
 
 ## Paso 5 — (Opcional) Mostrar en el minimapa
@@ -122,7 +128,12 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
    modo selección; pinchas un edificio del mapa y pasa a **modo edición** (mismo
    ghost arrastrable verde/rojo). ✓ lo reubica, ✕ lo deja donde estaba. Solo son
    movibles los edificios **construidos por el jugador** (el cofre fijo no).
-7. El botón **🗑 Borrar todo** (ajustes) **borra también las construcciones**
+7. **Borrar edificio**: botón rojo al pie del panel (`BUILD.DELETE`). Cierra ventanas
+   y entra en modo selección; pinchas un edificio y aparece un **modal de
+   confirmación** (`BuildDeleteModalComponent`). Al confirmar, el borrado es
+   **permanente** (sale del storage) y **su interior se vacía** (un cofre pierde
+   todos sus items vía `TownChestService.clear()`).
+8. El botón **🗑 Borrar todo** (ajustes) **borra también las construcciones**
    (`CityBuildService.clear()` desde `settings.page.ts`), así que un `unique`
    vuelve a estar disponible para reconstruir.
 
@@ -131,16 +142,19 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
 ## Cómo funciona por dentro (referencia)
 
 - **Servicio**: `CityBuildService` (`city-build.service.ts`) — catálogo
-  `BUILDABLES`, persistencia (`load`/`add`/`isBuilt`/`clear`/`move`/`hasBuildings`) y
-  bridge de colocación (`placementMode$`, `startPlacement`, `cancelPlacement`),
-  de movimiento (`moveMode$`, `startMoveMode`, `cancelMoveMode`) y notificaciones
-  (`placed$`, `cleared$`).
+  `BUILDABLES`, persistencia (`load`/`add`/`isBuilt`/`clear`/`move`/`hasBuildings`),
+  bridge de colocación (`placementMode$`), de movimiento (`moveMode$`) y de borrado
+  (`deleteMode$`, `pendingDelete$`, `requestDelete`, `confirmDelete`, `cancelDelete`),
+  + notificaciones (`placed$`, `cleared$`, `removed$`).
 - **Panel UI**: `BuildPanelComponent` (`components/build-panel/`) — lista
-  `BUILDABLES` ocultando los `unique` ya construidos + botón **Mover edificio**
-  (`startMove()`, deshabilitado si `!hasBuildings`). Declarado en `components.module.ts`.
+  `BUILDABLES` ocultando los `unique` ya construidos + botones **Mover edificio**
+  (`startMove()`) y **Borrar edificio** (`startDelete()`), ambos deshabilitados si
+  `!hasBuildings`. Declarado en `components.module.ts`.
+- **Modal de borrado**: `BuildDeleteModalComponent` (`components/build-delete-modal/`),
+  montado siempre en `layout.component.html`; se muestra con `pendingDelete$`.
 - **Footer**: botón martillo en `footer-bar` (solo `currentMapId === 'hogar'`);
-  `openBuild()` abre el modal `'build'` (lado izquierdo). Tanto `placementMode$`
-  (elegir item) como `moveMode$` (pulsar mover) disparan `closeAllPanels()`.
+  `openBuild()` abre el modal `'build'` (lado izquierdo). `placementMode$`,
+  `moveMode$` y `deleteMode$` disparan `closeAllPanels()`.
 - **Escena**: `gamescene.ts` →
   - `initPlacedBuildings()` pinta lo persistido al entrar en Asgard.
   - `initBuildPlacementListener()` reacciona a `placementMode$` (colocar) y a
@@ -153,6 +167,8 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
     `moveGhostToPointer()` (pointermove mientras `dragging`) + `pointerup` (fin de arrastre).
   - `handleMoveSelect()` (en `moveSelecting`, pincha un edificio) → `beginMoveBuilding()`
     lo saca de la escena (`detachPlacedBuilding`) y arranca el ghost en modo reubicar.
+  - `handleDeleteSelect()` (en `deleteSelecting`, pincha un edificio) → `requestDelete()`
+    (abre el modal). Al confirmar, `removed$` → `removeBuildingFromScene()` lo detacha.
   - `confirmBuildPlacement()` → `add()` (nuevo) o `move()` (reubicación) + `spawnBuilding()`.
     Cancelar una reubicación restaura el original (`cancelBuildPlacement`).
   - `spawnBuilding()` coloca la construcción definitiva con colisión y la registra en
@@ -174,7 +190,10 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
 - [ ] `unique` puesto según corresponda (desaparece del menú tras construir)
 - [ ] **Mover edificio**: lo selecciona del mapa, lo arrastra y ✓ lo reubica; ✕ lo
       deja donde estaba
+- [ ] **Borrar edificio**: lo selecciona, confirma en el modal y desaparece
+      (permanente); si tiene interior, se vacía (cofre → sin items)
 - [ ] Verificado que **🗑 Borrar todo** lo elimina y se puede reconstruir
 
-> No hace falta tocar el flujo de UX (cierre de ventanas, arrastre, mover, borrado):
-> es genérico para cualquier entrada de `BUILDABLES`. Solo Pasos 1-3 (y 4-5 si aplica).
+> No hace falta tocar el flujo de UX (cierre de ventanas, arrastre, mover, borrar,
+> borrar-todo): es genérico para cualquier entrada de `BUILDABLES`. Solo Pasos 1-3
+> (y 4-5 si aplica, incl. vaciar interior en `confirmDelete` para tipos con almacén).

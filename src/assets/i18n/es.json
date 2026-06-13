@@ -215,6 +215,12 @@
     "TITLE": "Construir",
     "NONE": "Nada que construir",
     "MOVE": "Mover edificio",
+    "DELETE": "Borrar edificio",
+    "DELETE_TITLE": "Borrar edificio",
+    "DELETE_MSG": "¿Seguro que quieres borrar {{name}}?",
+    "DELETE_WARN": "Es permanente. Todo lo que haya en su interior también desaparecerá.",
+    "DELETE_YES": "Borrar",
+    "DELETE_NO": "Cancelar",
     "TOWN_CHEST": "Cofre de ciudad"
   },
   "OFFLINE": {

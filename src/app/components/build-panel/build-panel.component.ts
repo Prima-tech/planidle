@@ -33,6 +33,11 @@ export class BuildPanelComponent {
     this.cityBuild.startMoveMode();
   }
 
+  /** Entra en modo "borrar edificio": pinchar un edificio pide confirmación. */
+  startDelete(): void {
+    this.cityBuild.startDeleteMode();
+  }
+
   /** Recorte del frame de un spritesheet 32×32 (mismo cálculo que summon). */
   frameStyle(def: BuildableDef): Record<string, string> {
     const scale = 2;

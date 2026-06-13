@@ -129,3 +129,14 @@ $text-cream: #ecd9b4;
     cursor: not-allowed;
   }
 }
+
+.build-delete-btn {
+  margin-top: 6px;
+  background: #7e2c1c;
+
+  &:not([disabled]):hover,
+  &:not([disabled]):active {
+    background: #a03325;
+    color: $text-cream;
+  }
+}

@@ -55,6 +55,12 @@ export class TownChestService {
     await this.storage.set(STORAGE_KEY, this.grid);
   }
 
+  /** Vacía por completo el cofre (al borrar el edificio que lo contiene). */
+  async clear(): Promise<void> {
+    this.grid = this.buildGrid();
+    await this.storage.set(STORAGE_KEY, this.grid);
+  }
+
   buildGrid(): (InventoryItem | null)[][][] {
     return Array.from({ length: TABS }, () =>
       Array.from({ length: ROWS }, () => Array(COLS).fill(null))

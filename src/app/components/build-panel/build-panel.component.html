@@ -15,3 +15,8 @@
   <ion-icon name="move-outline"></ion-icon>
   <span>{{ 'BUILD.MOVE' | translate }}</span>
 </button>
+
+<button class="build-move-btn build-delete-btn" [disabled]="!hasBuildings" (click)="startDelete()">
+  <ion-icon name="trash-outline"></ion-icon>
+  <span>{{ 'BUILD.DELETE' | translate }}</span>
+</button>

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { StorageService } from './storage.service';
+import { TownChestService } from './town-chest.service';
 
 /**
  * Sistema de construcción de la ciudad (mapa `hogar`/Asgard).
@@ -68,8 +69,15 @@ export class CityBuildService {
   readonly cleared$ = new Subject<void>();
   /** true tras pulsar "Mover edificio": la escena espera a que pinches un edificio. */
   readonly moveMode$ = new BehaviorSubject<boolean>(false);
+  /** true tras pulsar "Borrar edificio": la escena espera a que pinches un edificio. */
+  readonly deleteMode$ = new BehaviorSubject<boolean>(false);
+  /** Edificio pendiente de confirmación de borrado (alimenta el modal). */
+  readonly pendingDelete$ = new BehaviorSubject<PlacedBuilding | null>(null);
+  /** Emite el edificio borrado (la escena quita su sprite y colisión). */
+  readonly removed$ = new Subject<PlacedBuilding>();
 
   private storage = inject(StorageService);
+  private townChest = inject(TownChestService);
   private cache: PlacedBuilding[] | null = null;
 
   /** Carga (y cachea) la lista de construcciones compartida. */
@@ -136,5 +144,42 @@ export class CityBuildService {
 
   cancelMoveMode(): void {
     if (this.moveMode$.value) this.moveMode$.next(false);
+  }
+
+  startDeleteMode(): void {
+    this.deleteMode$.next(true);
+  }
+
+  cancelDeleteMode(): void {
+    if (this.deleteMode$.value) this.deleteMode$.next(false);
+  }
+
+  /** La escena pide confirmar el borrado de un edificio (abre el modal). */
+  requestDelete(b: PlacedBuilding): void {
+    this.pendingDelete$.next(b);
+  }
+
+  cancelDelete(): void {
+    this.pendingDelete$.next(null);
+  }
+
+  /** Borra definitivamente el edificio pendiente: storage + interior (cofre) +
+   *  notifica a la escena para quitar el sprite. */
+  async confirmDelete(): Promise<void> {
+    const b = this.pendingDelete$.value;
+    if (!b) return;
+    if (!this.cache) await this.load();
+    const idx = this.cache!.findIndex(
+      x => x.type === b.type && x.tileX === b.tileX && x.tileY === b.tileY,
+    );
+    if (idx !== -1) this.cache!.splice(idx, 1);
+    await this.storage.set(STORAGE_KEY, this.cache);
+
+    // Vaciar el interior si el edificio almacena items (cofre de ciudad)
+    const def = this.def(b.type);
+    if (def?.isTownChest) await this.townChest.clear();
+
+    this.pendingDelete$.next(null);
+    this.removed$.next(b);
   }
 }

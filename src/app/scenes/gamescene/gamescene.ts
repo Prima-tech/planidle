@@ -86,8 +86,12 @@ export class GameScene extends Phaser.Scene {
     private placementSub:   { unsubscribe(): void } | null = null;
     private clearedSub:     { unsubscribe(): void } | null = null;
     private moveSub:        { unsubscribe(): void } | null = null;
+    private deleteSub:      { unsubscribe(): void } | null = null;
+    private removedSub:     { unsubscribe(): void } | null = null;
     // true tras pulsar "Mover edificio": el siguiente click sobre un edificio lo edita.
     private moveSelecting = false;
+    // true tras pulsar "Borrar edificio": el siguiente click sobre un edificio pide confirmar.
+    private deleteSelecting = false;
     // Construcciones colocadas por el jugador (no el cofre fijo): para poder
     // quitarlas en caliente (borrar todo) o moverlas.
     private placedBuildings: {
@@ -217,6 +221,7 @@ export class GameScene extends Phaser.Scene {
       this.autoBlacklist.clear();
       this.placedBuildings = [];
       this.moveSelecting = false;
+      this.deleteSelecting = false;
       this.currentMapConfig = this.reg.world.getCurrentMap();
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
@@ -244,12 +249,16 @@ export class GameScene extends Phaser.Scene {
         this.placementSub?.unsubscribe();
         this.clearedSub?.unsubscribe();
         this.moveSub?.unsubscribe();
+        this.deleteSub?.unsubscribe();
+        this.removedSub?.unsubscribe();
         // No re-spawnear el original durante el teardown (la persistencia lo conserva).
         if (this.buildPlacement) this.buildPlacement.moving = undefined;
         this.cancelBuildPlacement();
         this.reg.cityBuild?.cancelPlacement();
         this.reg.cityBuild?.cancelMoveMode();
+        this.reg.cityBuild?.cancelDeleteMode();
         this.moveSelecting = false;
+        this.deleteSelecting = false;
         this.placedBuildings = [];
         this.activeChests = [];
         this.reg.interaction?.setContext('attack');
@@ -803,6 +812,8 @@ export class GameScene extends Phaser.Scene {
         if (this.buildPlacement) { this.handleBuildPointer(pointer); return; }
         // En modo "mover edificio" el toque selecciona el edificio a reubicar.
         if (this.moveSelecting) { this.handleMoveSelect(pointer); return; }
+        // En modo "borrar edificio" el toque selecciona el edificio a borrar.
+        if (this.deleteSelecting) { this.handleDeleteSelect(pointer); return; }
         this.reg.asgard.closeAllMenus();
         this.onGameClick(pointer);
       });
@@ -1329,6 +1340,24 @@ export class GameScene extends Phaser.Scene {
       this.startBuildPlacement(def, original);
     }
 
+    /** Modo "borrar edificio": al pinchar, pide confirmación para el edificio tocado. */
+    private handleDeleteSelect(pointer: Phaser.Input.Pointer): void {
+      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const pb = this.placedBuildings.find(b => b.sprite.getBounds().contains(world.x, world.y));
+      this.deleteSelecting = false;
+      this.reg.cityBuild.cancelDeleteMode();
+      if (!pb) return;   // pinchó fuera de un edificio → salir del modo borrar
+      this.reg.cityBuild.requestDelete({ ...pb.building });   // abre el modal de confirmación
+    }
+
+    /** Quita de la escena el edificio borrado (confirmado en el modal). */
+    private removeBuildingFromScene(b: PlacedBuilding): void {
+      const pb = this.placedBuildings.find(
+        x => x.building.type === b.type && x.building.tileX === b.tileX && x.building.tileY === b.tileY,
+      );
+      if (pb) this.detachPlacedBuilding(pb);
+    }
+
     private async initPlacedBuildings(): Promise<void> {
       const list = await this.reg.cityBuild.load();
       for (const b of list) this.spawnBuilding(b);
@@ -1345,6 +1374,11 @@ export class GameScene extends Phaser.Scene {
         // Solo se puede mover en la ciudad y sin un ghost ya activo.
         this.moveSelecting = active && this.currentMapConfig.id === 'hogar' && !this.buildPlacement;
       });
+      this.deleteSub = cityBuild.deleteMode$.subscribe(active => {
+        this.deleteSelecting = active && this.currentMapConfig.id === 'hogar' && !this.buildPlacement;
+      });
+      // Confirmado el borrado en el modal → quita el edificio de la escena.
+      this.removedSub = cityBuild.removed$.subscribe(b => this.removeBuildingFromScene(b));
     }
 
     /** Arranca el ghost de colocación. Si `moving` está, es la reubicación de un

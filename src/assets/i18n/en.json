@@ -215,6 +215,12 @@
     "TITLE": "Build",
     "NONE": "Nothing to build",
     "MOVE": "Move building",
+    "DELETE": "Delete building",
+    "DELETE_TITLE": "Delete building",
+    "DELETE_MSG": "Delete {{name}}?",
+    "DELETE_WARN": "This is permanent. Everything stored inside will be lost too.",
+    "DELETE_YES": "Delete",
+    "DELETE_NO": "Cancel",
     "TOWN_CHEST": "Town chest"
   },
   "OFFLINE": {

@@ -55,6 +55,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private worldSub:          Subscription;
   private placementSub:      Subscription;
   private moveModeSub:       Subscription;
+  private deleteModeSub:     Subscription;
   private inventoryOpenedByChest = false;
   private cdInterval:       ReturnType<typeof setInterval> | null = null;
 
@@ -122,6 +123,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
         if (this.buildModal?.isOpenModal()) this.buildModal.close();
         this.cityBuild.cancelPlacement();
         this.cityBuild.cancelMoveMode();
+        this.cityBuild.cancelDeleteMode();
+        this.cityBuild.cancelDelete();
       }
     });
 
@@ -134,6 +137,11 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     // Al entrar en "mover edificio", cierra todas las ventanas para poder pinchar
     // un edificio del mapa sin paneles de por medio.
     this.moveModeSub = this.cityBuild.moveMode$.subscribe(active => {
+      if (active) this.closeAllPanels();
+    });
+
+    // Igual al entrar en "borrar edificio": cierra las ventanas para pinchar el mapa.
+    this.deleteModeSub = this.cityBuild.deleteMode$.subscribe(active => {
       if (active) this.closeAllPanels();
     });
 
@@ -163,6 +171,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.worldSub?.unsubscribe();
     this.placementSub?.unsubscribe();
     this.moveModeSub?.unsubscribe();
+    this.deleteModeSub?.unsubscribe();
     if (this.cdInterval) clearInterval(this.cdInterval);
   }
 
