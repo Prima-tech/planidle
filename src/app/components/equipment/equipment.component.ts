@@ -268,17 +268,18 @@ export class EquipmentComponent implements OnInit, OnDestroy {
           return {
             x1: cx(parent.col), y1: cy(parent.row),
             x2: cx(node.col),   y2: cy(node.row),
-            active: !!this.talent.slotted[reqId] && !!this.talent.slotted[node.id],
+            active: this.talent.isUnlocked(reqId) && this.talent.isUnlocked(node.id),
           };
         })
         .filter((l): l is NonNullable<typeof l> => l !== null)
     );
   }
 
-  nodeState(node: TalentNodeConfig): 'locked' | 'available' | 'slotted' {
-    if (!this.talent.isUnlocked(node.id)) return 'locked';
-    if (this.talent.slotted[node.id])     return 'slotted';
-    return 'available';
+  nodeState(node: TalentNodeConfig): 'locked' | 'unlockable' | 'available' | 'slotted' {
+    if (this.talent.isUnlocked(node.id)) {
+      return this.talent.slotted[node.id] ? 'slotted' : 'available';
+    }
+    return this.talent.isReachable(node.id) ? 'unlockable' : 'locked';
   }
 
   nodeStyle(node: TalentNodeConfig): Record<string, string> {
@@ -292,7 +293,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   onNodeClick(node: TalentNodeConfig): void {
     if (this.panMoved) return;
-    if (!this.talent.isUnlocked(node.id)) return;
+    // Se abre si ya está desbloqueado (poner gema) o es alcanzable (desbloquear).
+    if (!this.talent.isUnlocked(node.id) && !this.talent.isReachable(node.id)) return;
     this.selectedNodeId = this.selectedNodeId === node.id ? null : node.id;
   }
 
@@ -333,6 +335,30 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this.selectedNodeId = null;
   }
 
+  // ── Puntos de talento ──────────────────────────────────────────────────────
+  get talentPointsAvailable(): number { return this.talent.pointsAvailable(); }
+  get talentPointsTotal(): number     { return this.talent.pointsTotal(); }
+
+  /** El nodo seleccionado está sin desbloquear pero es alcanzable (muestra botón) */
+  selectedIsReachable(): boolean {
+    return !!this.selectedNodeId && this.talent.isReachable(this.selectedNodeId);
+  }
+
+  /** Hay puntos para pagar el desbloqueo del nodo seleccionado (botón activo) */
+  canAffordUnlock(): boolean {
+    return !!this.selectedNodeId && this.talent.canUnlock(this.selectedNodeId);
+  }
+
+  /** El nodo seleccionado ya está desbloqueado (admite gemas) */
+  selectedIsUnlocked(): boolean {
+    return !!this.selectedNodeId && this.talent.isUnlocked(this.selectedNodeId);
+  }
+
+  unlockSelected(): void {
+    if (this.selectedNodeId) this.talent.unlock(this.selectedNodeId);
+    // No cerramos: tras desbloquear, el picker pasa a mostrar las gemas.
+  }
+
   slotSphere(sphere: SphereType): void {
     if (!this.selectedNodeId) return;
     this.talent.slot(this.selectedNodeId, sphere);
@@ -340,13 +366,20 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   }
 
   canUnslotSelected(): boolean {
-    return !!this.selectedNodeId &&
-           !!this.talent.slotted[this.selectedNodeId] &&
-           !this.talent.hasDependents(this.selectedNodeId);
+    return !!this.selectedNodeId && !!this.talent.slotted[this.selectedNodeId];
   }
 
   unslotSelected(): void {
     if (this.selectedNodeId) this.talent.unslot(this.selectedNodeId);
+    this.clearTalentSelection();
+  }
+
+  canLockSelected(): boolean {
+    return !!this.selectedNodeId && this.talent.canLock(this.selectedNodeId);
+  }
+
+  lockSelected(): void {
+    if (this.selectedNodeId) this.talent.lock(this.selectedNodeId);
     this.clearTalentSelection();
   }
 

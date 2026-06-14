@@ -276,14 +276,42 @@ const HELMET_CATALOG: LootEntry[] = [
 ];
 
 
+// Espadas: arte en assets/sprites/player/equip/weapons/swords. El icono del
+// panel/inventario usa un PNG recortado dedicado (icons/), mientras que el sprite
+// del drop en el mundo reutiliza la hoja LPC ya precargada (sword0X_main).
+const SWORD_ICONS = 'assets/sprites/player/equip/weapons/swords/icons';
 const WEAPON_CATALOG: LootEntry[] = [
   {
-    name: 'Cimitar', category: 'Arma', type: 'item',
+    name: 'Espada de Acero', category: 'Arma', type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
-    texture: 'cimitar_main', frame: 261, scale: 1.5, order: 2,
-    iconSheet: 'assets/sprites/player/equip/weapons1/cimitar.png',
-    iconFrame: 261, iconFrameSize: 128, iconFrameCols: 9, iconContentSize: 64,
-    stats: { damage: 9 },
+    texture: 'sword01_main', frame: 130, scale: 2.5, order: 2,
+    icon: `${SWORD_ICONS}/sword_01_icon.png`,
+    description: 'Espada recta de acero forjada en Asgard.',
+    stats: { damage: 12 },
+  },
+  {
+    name: 'Cimitarra Dorada', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'sword02_main', frame: 377, scale: 1.5, order: 2,
+    icon: `${SWORD_ICONS}/sword_02_icon.png`,
+    description: 'Sable curvo de filo dorado.',
+    stats: { damage: 16 },
+  },
+  {
+    name: 'Hoja Ardiente', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'sword03_main', frame: 377, scale: 1.5, order: 2,
+    icon: `${SWORD_ICONS}/sword_03_icon.png`,
+    description: 'Hoja curva forjada en brasas vivas.',
+    stats: { damage: 20 },
+  },
+  {
+    name: 'Sable Rúnico', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'sword04_main', frame: 377, scale: 1.5, order: 2,
+    icon: `${SWORD_ICONS}/sword_04_icon.png`,
+    description: 'Sable de acero grabado con runas antiguas.',
+    stats: { damage: 18 },
   },
 ];
 

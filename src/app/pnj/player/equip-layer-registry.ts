@@ -199,7 +199,77 @@ function helmetLayer(folder: string): EquipLayerConfig {
 }
 
 
+// Espada LPC universal de 64×64 (mismo grid que el cuerpo del jugador, 13 cols).
+// Filas: walk 8-11 (9 frames, up vacía en este arte), slash 12-15 (6 frames).
+// Se superpone 1:1 sobre el cuerpo → sin layerScale/offsetY.
+function swordLayer64(prefix: string, file: string): EquipLayerConfig {
+  const p = prefix;
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    depthWhenUp: 1.5,   // detrás del jugador salvo mirando hacia abajo
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [{
+      key: `${p}_main`,
+      path: `assets/sprites/player/equip/weapons/swords/${file}`,
+      frameWidth: 64, frameHeight: 64,
+      anims: [
+        { key: `${p}_idle_up`,      startFrame: 104, endFrame: 104, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_left`,    startFrame: 117, endFrame: 117, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_down`,    startFrame: 130, endFrame: 130, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_right`,   startFrame: 143, endFrame: 143, frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_up`,      startFrame: 104, endFrame: 112, frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_left`,    startFrame: 117, endFrame: 125, frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_down`,    startFrame: 130, endFrame: 138, frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_right`,   startFrame: 143, endFrame: 151, frameRate: 10, repeat: -1 },
+        { key: `${p}_attack_up`,    startFrame: 156, endFrame: 161, frameRate: 12, repeat: 0 },
+        { key: `${p}_attack_left`,  startFrame: 169, endFrame: 174, frameRate: 12, repeat: 0 },
+        { key: `${p}_attack_down`,  startFrame: 182, endFrame: 187, frameRate: 12, repeat: 0 },
+        { key: `${p}_attack_right`, startFrame: 195, endFrame: 200, frameRate: 12, repeat: 0 },
+      ],
+    }],
+  };
+}
+
+// Espada "oversize" LPC de 128×128 (13 cols). El personaje va centrado en el
+// frame → layerScale = escala del jugador (2.5) y layerOffsetY = 32×2.5 = 80.
+// Esta plantilla solo trae bloques de slash (rows 27-30 = 6 frames). No hay
+// ciclo de andar, así que idle/walk usan el primer frame (pose en guardia) y
+// attack reproduce el slash completo.
+function swordLayer128(prefix: string, file: string): EquipLayerConfig {
+  const p = prefix;
+  const hold = { up: 351, left: 364, down: 377, right: 390 };
+  return {
+    frameWidth: 128, frameHeight: 128, depth: 4, mode: 'anim',
+    layerScale: 2.5, layerOffsetY: 80, depthWhenUp: 1.5,
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [{
+      key: `${p}_main`,
+      path: `assets/sprites/player/equip/weapons/swords/${file}`,
+      frameWidth: 128, frameHeight: 128,
+      anims: [
+        { key: `${p}_idle_up`,      startFrame: hold.up,    endFrame: hold.up,    frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_left`,    startFrame: hold.left,  endFrame: hold.left,  frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_down`,    startFrame: hold.down,  endFrame: hold.down,  frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_right`,   startFrame: hold.right, endFrame: hold.right, frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_up`,      startFrame: hold.up,    endFrame: hold.up,    frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_left`,    startFrame: hold.left,  endFrame: hold.left,  frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_down`,    startFrame: hold.down,  endFrame: hold.down,  frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_right`,   startFrame: hold.right, endFrame: hold.right, frameRate: 2,  repeat: -1 },
+        { key: `${p}_attack_up`,    startFrame: 351, endFrame: 356, frameRate: 12, repeat: 0 },
+        { key: `${p}_attack_left`,  startFrame: 364, endFrame: 369, frameRate: 12, repeat: 0 },
+        { key: `${p}_attack_down`,  startFrame: 377, endFrame: 382, frameRate: 12, repeat: 0 },
+        { key: `${p}_attack_right`, startFrame: 390, endFrame: 395, frameRate: 12, repeat: 0 },
+      ],
+    }],
+  };
+}
+
 export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
+  // ── Espadas (assets/sprites/player/equip/weapons/swords) ────────────────────
+  'Espada de Acero':  swordLayer64('sword01', 'sword_01.png'),
+  'Cimitarra Dorada': swordLayer128('sword02', 'sword_02.png'),
+  'Hoja Ardiente':    swordLayer128('sword03', 'sword_03.png'),
+  'Sable Rúnico':     swordLayer128('sword04', 'sword_04.png'),
   // ── Sombra del jugador (capa permanente, depth < player) ──────────────────
   // ── Armas ─────────────────────────────────────────────────────────────────
   // weapons1/cimitar.png: 9c×35r a 128×128px. Contenido en filas 27-34.

@@ -938,6 +938,32 @@ $metal-dark: #6b6357;
   display: flex;
   gap: 3px;
   justify-content: center;
+  align-items: center;
+}
+
+/* Contador de puntos de talento disponibles */
+.tpoints {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  font-size: 0.65em;
+  user-select: none;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+
+  ion-icon { font-size: 1.1em; color: #f0d24a; }
+  &--empty { opacity: 0.5; }
+}
+
+.tpoints-count {
+  color: $text-cream;
+  font-weight: 800;
 }
 
 /* Cada esfera: placa de madera con bisel de piedra, como la placa de monedas */
@@ -1114,6 +1140,14 @@ $metal-dark: #6b6357;
     cursor: not-allowed;
   }
 
+  // Bloqueado pero alcanzable: hay padre desbloqueado y puntos disponibles
+  &--unlockable {
+    opacity: 0.85;
+    border-style: dashed;
+    border-color: lighten($stone-light, 8%);
+    animation: tnode-unlockable 1.4s ease-in-out infinite;
+  }
+
   &--available {
     background: radial-gradient(circle at 32% 28%, #6a4630, #46291d 72%);
     animation: tnode-glow 1.4s ease-in-out infinite;
@@ -1135,6 +1169,21 @@ $metal-dark: #6b6357;
       0 0 0 1px $outline,
       inset 0 0 0 1px $outline,
       0 0 12px rgba(140, 95, 132, 0.95);
+  }
+}
+
+@keyframes tnode-unlockable {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 4px rgba(120, 200, 255, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 10px rgba(120, 200, 255, 0.85);
   }
 }
 
@@ -1316,6 +1365,38 @@ $metal-dark: #6b6357;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
   transition: filter 0.1s;
   &:active { filter: brightness(0.85); }
+}
+
+.tpicker-unlock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: #2f6d4a;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  color: #f5e3c8;
+  font-size: 0.7em;
+  font-weight: 700;
+  padding: 7px 8px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  transition: filter 0.1s;
+  ion-icon { font-size: 1.1em; color: #f0d24a; }
+  &:active { filter: brightness(0.85); }
+  &:disabled {
+    background: #4a4036;
+    cursor: not-allowed;
+    opacity: 0.6;
+    ion-icon { color: #9a8c6a; }
+  }
+}
+
+.tpicker-hint {
+  font-size: 0.58em;
+  color: #d98b7a;
+  text-align: center;
+  margin-top: -2px;
 }
 
 .tpicker-cancel {

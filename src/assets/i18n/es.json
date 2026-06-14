@@ -178,6 +178,9 @@
   },
   "TALENT": {
     "REMOVE_SPHERE": "Quitar esfera",
+    "UNLOCK": "Desbloquear",
+    "NO_POINTS": "Sin puntos de talento",
+    "RELOCK": "Recuperar punto",
     "TREE_COMBAT": "Combate"
   },
   "SKILLS": {

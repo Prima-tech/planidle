@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { PlayerStateService } from './player-state.service';
 
 export type SphereType = 'normal' | 'rare' | 'epic';
+
+export const SPHERE_TYPES: SphereType[] = ['normal', 'rare', 'epic'];
+
+/** Nodo que siempre está desbloqueado (consume el punto del nivel 1) */
+export const ROOT_NODE_ID = 'c0';
 
 export interface TalentEffect {
   type:     'atk' | 'hp' | 'mp' | 'defense' | 'critChance' | 'hpRegen' | 'mpRegen' | 'dropRate' | 'ability';
@@ -23,14 +29,20 @@ export interface TalentNodeConfig {
 }
 
 export interface TalentSnapshot {
-  spheres: Record<SphereType, number>;
-  nodes:   Record<string, SphereType | null>;
+  /** Nodos desbloqueados (1 punto de talento gastado por cada uno) */
+  unlocked: Record<string, boolean>;
+  /** Esfera puesta en cada nodo (solo en nodos desbloqueados) */
+  nodes:    Record<string, SphereType | null>;
+  /** @deprecated Antes el conteo de esferas era por loadout; ahora es un pool global. Se conserva para migrar saves viejos. */
+  spheres?: Record<SphereType, number>;
 }
 
 /** Tres configuraciones de talentos por personaje, ligadas a los sets de equipo */
 export interface TalentLoadouts {
   active: number;
   sets: (TalentSnapshot | null)[];
+  /** Pool global de esferas del personaje, compartido entre los 3 sets */
+  ownedSpheres?: Record<SphereType, number>;
 }
 
 export const TALENT_LOADOUT_COUNT = 3;
@@ -41,7 +53,8 @@ export const SPHERE_MULT: Record<SphereType, number> = {
   epic:   8,
 };
 
-const DEFAULT_SPHERES: Record<SphereType, number> = {
+/** Pool global de esferas con el que arranca un personaje nuevo */
+const DEFAULT_OWNED_SPHERES: Record<SphereType, number> = {
   normal: 10, rare: 10, epic: 10,
 };
 
@@ -505,18 +518,30 @@ const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_WARRIOR, ...TALENT_NODES_SMO
 export class TalentService {
 
   readonly nodes   = ALL_NODES;
-  readonly spheres: Record<SphereType, number>        = { ...DEFAULT_SPHERES };
+  /** Pool global de esferas del personaje (compartido entre los 3 builds) */
+  readonly ownedSpheres: Record<SphereType, number>   = { ...DEFAULT_OWNED_SPHERES };
+  /** Nodos desbloqueados en el build activo */
+  readonly unlocked: Record<string, boolean>          = {};
+  /** Esfera puesta en cada nodo del build activo */
   readonly slotted: Record<string, SphereType | null> = {};
   readonly changes$ = new Subject<void>();
 
+  private readonly nodeById = new Map(ALL_NODES.map(n => [n.id, n]));
+
   // ── Loadouts: 3 configuraciones por personaje, ligadas a los sets de equipo ──
-  // La config activa vive en `spheres`/`slotted` (estado de trabajo); las demás,
-  // como snapshots guardados.
+  // La config activa vive en `unlocked`/`slotted` (estado de trabajo); las demás,
+  // como snapshots guardados. `ownedSpheres` es global a las tres.
   activeLoadout = 0;
   private storedSets: (TalentSnapshot | null)[] = [null, null, null];
 
-  constructor() {
-    for (const n of ALL_NODES) this.slotted[n.id] = null;
+  constructor(private playerState: PlayerStateService) {
+    for (const n of ALL_NODES) { this.slotted[n.id] = null; this.unlocked[n.id] = false; }
+    this.ensureBaseUnlocks();
+  }
+
+  /** El nodo central siempre está desbloqueado (consume el punto del nivel 1). */
+  private ensureBaseUnlocks(): void {
+    if (this.nodeById.has(ROOT_NODE_ID)) this.unlocked[ROOT_NODE_ID] = true;
   }
 
   /** Cambia la config activa: guarda la actual y restaura la elegida.
@@ -528,60 +553,163 @@ export class TalentService {
     this.restoreFromSnapshot(this.storedSets[index]);
   }
 
-  /** Para persistir: las 3 configs con la activa leída del estado vivo */
+  /** Para persistir: las 3 configs con la activa leída del estado vivo + pool global */
   getLoadoutsSnapshot(): TalentLoadouts {
     const sets = this.storedSets.map((s, i) =>
       i === this.activeLoadout ? this.getSnapshot() : (s ? this.cloneSnapshot(s) : null),
     );
-    return { active: this.activeLoadout, sets };
+    return { active: this.activeLoadout, sets, ownedSpheres: { ...this.ownedSpheres } };
   }
 
   /** Restaura las 3 configs. `legacy` migra saves antiguos de una sola config:
    *  como antes los talentos no estaban ligados al equipo, se duplica la config
-   *  en los 3 sets (migración no destructiva — cada uno lleva su propia esfera). */
+   *  en los 3 sets (migración no destructiva). */
   restoreLoadouts(data: TalentLoadouts | null | undefined, legacy?: TalentSnapshot | null): void {
     if (data && Array.isArray(data.sets)) {
       this.storedSets = Array.from({ length: TALENT_LOADOUT_COUNT }, (_, i) =>
         data.sets[i] ? this.cloneSnapshot(data.sets[i]!) : null,
       );
       this.activeLoadout = Math.min(Math.max(data.active ?? 0, 0), TALENT_LOADOUT_COUNT - 1);
+      this.setOwnedSpheres(data.ownedSpheres);
     } else {
       this.storedSets = Array.from({ length: TALENT_LOADOUT_COUNT }, () =>
         legacy ? this.cloneSnapshot(legacy) : null,
       );
       this.activeLoadout = 0;
+      // Save legacy: el pool global no existía. Arranca con el default.
+      this.setOwnedSpheres(legacy?.spheres);
     }
     this.restoreFromSnapshot(this.storedSets[this.activeLoadout]);
+    // El pool nunca puede ser menor que lo ya puesto en los builds.
+    this.reconcileOwnedFloor();
   }
 
-  private cloneSnapshot(snap: TalentSnapshot): TalentSnapshot {
-    return { spheres: { ...snap.spheres }, nodes: { ...snap.nodes } };
+  private setOwnedSpheres(owned: Record<SphereType, number> | null | undefined): void {
+    for (const t of SPHERE_TYPES) {
+      this.ownedSpheres[t] = owned?.[t] ?? DEFAULT_OWNED_SPHERES[t];
+    }
   }
+
+  /** Garantiza que el pool ≥ esferas ya gastadas en los 3 builds (saves viejos). */
+  private reconcileOwnedFloor(): void {
+    for (const t of SPHERE_TYPES) {
+      this.ownedSpheres[t] = Math.max(this.ownedSpheres[t], this.spheresUsed(t));
+    }
+  }
+
+  /** Normaliza un snapshot crudo (deriva `unlocked` en saves viejos). */
+  private cloneSnapshot(snap: TalentSnapshot): TalentSnapshot {
+    const nodes = { ...snap.nodes };
+    const unlocked = snap.unlocked ? { ...snap.unlocked } : this.deriveUnlocked(nodes);
+    return { unlocked, nodes };
+  }
+
+  /** Migración: reconstruye los desbloqueos de un save viejo a partir de las
+   *  esferas puestas (un nodo con esfera y todos sus ancestros estaban desbloqueados). */
+  private deriveUnlocked(slotted: Record<string, SphereType | null>): Record<string, boolean> {
+    const unlocked: Record<string, boolean> = {};
+    const markWithAncestors = (id: string) => {
+      const node = this.nodeById.get(id);
+      if (!node || unlocked[id]) return;
+      unlocked[id] = true;
+      node.requires.forEach(markWithAncestors);
+    };
+    for (const id in slotted) if (slotted[id]) markWithAncestors(id);
+    if (this.nodeById.has(ROOT_NODE_ID)) unlocked[ROOT_NODE_ID] = true;
+    return unlocked;
+  }
+
+  // ── Puntos de talento ────────────────────────────────────────────────────────
+  // Total = nivel del personaje · gastados = nº de nodos desbloqueados en el build.
+
+  pointsTotal(): number { return this.playerState.snapshot().lvl; }
+
+  pointsSpent(): number {
+    let n = 0;
+    for (const id in this.unlocked) if (this.unlocked[id]) n++;
+    return n;
+  }
+
+  pointsAvailable(): number {
+    return Math.max(0, this.pointsTotal() - this.pointsSpent());
+  }
+
+  // ── Desbloqueo de nodos ──────────────────────────────────────────────────────
 
   isUnlocked(nodeId: string): boolean {
-    const node = this.nodes.find(n => n.id === nodeId);
-    return !!node && node.requires.every(r => this.slotted[r] != null);
+    return !!this.unlocked[nodeId];
   }
 
-  hasDependents(nodeId: string): boolean {
-    return this.nodes.some(n => n.requires.includes(nodeId) && this.slotted[n.id] != null);
+  /** Alcanzable: aún sin desbloquear pero con los padres ya desbloqueados.
+   *  (Ignora los puntos — sirve para abrir la ventana y mostrar el botón.) */
+  isReachable(nodeId: string): boolean {
+    if (this.unlocked[nodeId]) return false;
+    const node = this.nodeById.get(nodeId);
+    if (!node) return false;
+    return node.requires.every(r => this.unlocked[r]);
+  }
+
+  /** Se puede gastar un punto YA: alcanzable y con puntos disponibles. */
+  canUnlock(nodeId: string): boolean {
+    return this.isReachable(nodeId) && this.pointsAvailable() > 0;
+  }
+
+  unlock(nodeId: string): void {
+    if (!this.canUnlock(nodeId)) return;
+    this.unlocked[nodeId] = true;
+    this.changes$.next();
+  }
+
+  /** Hijos directos ya desbloqueados (bloquean el re-encerrado del padre). */
+  hasUnlockedDependents(nodeId: string): boolean {
+    return this.nodes.some(n => n.requires.includes(nodeId) && this.unlocked[n.id]);
+  }
+
+  /** Re-encerrar para recuperar el punto: nunca el central, sin hijos desbloqueados
+   *  y sin esfera puesta. */
+  canLock(nodeId: string): boolean {
+    return nodeId !== ROOT_NODE_ID &&
+           !!this.unlocked[nodeId] &&
+           !this.slotted[nodeId] &&
+           !this.hasUnlockedDependents(nodeId);
+  }
+
+  lock(nodeId: string): void {
+    if (!this.canLock(nodeId)) return;
+    this.unlocked[nodeId] = false;
+    this.changes$.next();
+  }
+
+  // ── Esferas (pool global) ────────────────────────────────────────────────────
+
+  /** Esferas de un tipo puestas en TODOS los builds (activo + guardados). */
+  private spheresUsed(type: SphereType): number {
+    let used = 0;
+    for (const id in this.slotted) if (this.slotted[id] === type) used++;
+    this.storedSets.forEach((set, i) => {
+      if (i === this.activeLoadout || !set) return;
+      for (const id in set.nodes) if (set.nodes[id] === type) used++;
+    });
+    return used;
+  }
+
+  /** Esferas de un tipo disponibles en el pool (owned − usadas en todos los builds). */
+  spheresAvailable(type: SphereType): number {
+    return Math.max(0, this.ownedSpheres[type] - this.spheresUsed(type));
   }
 
   slot(nodeId: string, sphere: SphereType): void {
-    if (!this.isUnlocked(nodeId) || this.spheres[sphere] <= 0) return;
-    const prev = this.slotted[nodeId];
-    if (prev) this.spheres[prev]++;
+    if (!this.isUnlocked(nodeId)) return;
+    if (this.slotted[nodeId] === sphere) return;
+    // Si reemplazamos, la esfera previa vuelve al pool; valida la nueva.
+    if (this.spheresAvailable(sphere) <= 0) return;
     this.slotted[nodeId] = sphere;
-    this.spheres[sphere]--;
     this.changes$.next();
   }
 
   unslot(nodeId: string): void {
-    if (this.hasDependents(nodeId)) return;
-    const sphere = this.slotted[nodeId];
-    if (!sphere) return;
+    if (!this.slotted[nodeId]) return;
     this.slotted[nodeId] = null;
-    this.spheres[sphere]++;
     this.changes$.next();
   }
 
@@ -618,22 +746,18 @@ export class TalentService {
 
   getSnapshot(): TalentSnapshot {
     return {
-      spheres: { ...this.spheres },
-      nodes:   { ...this.slotted },
+      unlocked: { ...this.unlocked },
+      nodes:    { ...this.slotted },
     };
   }
 
   restoreFromSnapshot(snap: TalentSnapshot | null): void {
-    if (!snap) {
-      Object.assign(this.spheres, DEFAULT_SPHERES);
-      for (const n of ALL_NODES) this.slotted[n.id] = null;
-      this.changes$.next();
-      return;
-    }
-    Object.assign(this.spheres, snap.spheres);
+    const norm = snap ? this.cloneSnapshot(snap) : null;
     for (const n of ALL_NODES) {
-      this.slotted[n.id] = snap.nodes?.[n.id] ?? null;
+      this.slotted[n.id]  = norm?.nodes?.[n.id] ?? null;
+      this.unlocked[n.id] = !!norm?.unlocked?.[n.id];
     }
+    this.ensureBaseUnlocks();
     this.changes$.next();
   }
 }

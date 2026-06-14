@@ -178,6 +178,9 @@
   },
   "TALENT": {
     "REMOVE_SPHERE": "Remove sphere",
+    "UNLOCK": "Unlock",
+    "NO_POINTS": "No talent points",
+    "RELOCK": "Refund point",
     "TREE_COMBAT": "Combat"
   },
   "SKILLS": {
