@@ -290,35 +290,6 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   'Hoja Ardiente':    swordLayerArming('sword03', 'sword_03.png'),
   'Sable Rúnico':     swordLayerArming('sword04', 'sword_04.png'),
   // ── Sombra del jugador (capa permanente, depth < player) ──────────────────
-  // ── Armas ─────────────────────────────────────────────────────────────────
-  // weapons1/cimitar.png: 9c×35r a 128×128px. Contenido en filas 27-34.
-  // Filas 27-30 walk (9 frames), filas 31-34 slash (6 frames).
-  'Cimitar': {
-    frameWidth: 128, frameHeight: 128, depth: 4, mode: 'anim',
-    layerScale: 2.5,    // content 64px×2.5 = 160px display, same height as player (64×2.5)
-    layerOffsetY: 80,   // frame 128×2.5 top = y-160; need +80 to match original y-80 alignment
-    depthWhenUp: 1.5,   // behind player (depth 2) when facing up
-    playerPrefix: 'player_', layerPrefix: 'cimitar_', fallbackAnim: 'cimitar_idle_down',
-    sheets: [{
-      key: 'cimitar_main',
-      path: 'assets/sprites/player/equip/weapons1/cimitar.png',
-      frameWidth: 128, frameHeight: 128,
-      anims: [
-        { key: 'cimitar_idle_up',      startFrame: 243, endFrame: 243, frameRate: 2,  repeat: -1 },
-        { key: 'cimitar_idle_left',    startFrame: 252, endFrame: 252, frameRate: 2,  repeat: -1 },
-        { key: 'cimitar_idle_down',    startFrame: 261, endFrame: 261, frameRate: 2,  repeat: -1 },
-        { key: 'cimitar_idle_right',   startFrame: 270, endFrame: 270, frameRate: 2,  repeat: -1 },
-        { key: 'cimitar_walk_up',      startFrame: 243, endFrame: 251, frameRate: 10, repeat: -1 },
-        { key: 'cimitar_walk_left',    startFrame: 252, endFrame: 260, frameRate: 10, repeat: -1 },
-        { key: 'cimitar_walk_down',    startFrame: 261, endFrame: 269, frameRate: 10, repeat: -1 },
-        { key: 'cimitar_walk_right',   startFrame: 270, endFrame: 278, frameRate: 10, repeat: -1 },
-        { key: 'cimitar_attack_up',    startFrame: 279, endFrame: 284, frameRate: 10, repeat: 0 },
-        { key: 'cimitar_attack_left',  startFrame: 288, endFrame: 293, frameRate: 10, repeat: 0 },
-        { key: 'cimitar_attack_down',  startFrame: 297, endFrame: 302, frameRate: 10, repeat: 0 },
-        { key: 'cimitar_attack_right', startFrame: 306, endFrame: 311, frameRate: 10, repeat: 0 },
-      ],
-    }],
-  },
   'Shadow': {
     frameWidth: 64, frameHeight: 64, depth: 1, mode: 'anim',
     playerPrefix: 'player_', layerPrefix: 'shadow_', fallbackAnim: 'shadow_idle_down',
@@ -350,13 +321,6 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
         ],
       },
     ],
-  },
-  'Espada': {
-    key: 'equip_espada',
-    path: 'assets/sprites/player/equip/right-hand/long_knife.png',
-    frameWidth: 64,
-    frameHeight: 64,
-    depth: 4,
   },
   'Armour Boots':     bootsLayer('armour'),
   'Basic Boots':      bootsLayer('basic'),

@@ -16,7 +16,7 @@ import { SPHERE_MULT } from "src/app/services/talent.service";
 import { NATIVE_DPR } from "./constants";
 import { BuildableDef, PlacedBuilding } from "src/app/services/city-build.service";
 import { Pet } from "src/app/pnj/pet/pet";
-import { PET_REGISTRY } from "src/app/pnj/pet/pet-config";
+import { PET_REGISTRY, petPickupRange } from "src/app/pnj/pet/pet-config";
 
 const SKILL_SPRITE_SOURCES: { key: string; path: string; count: number }[] = [
   { key: 'skill_fire',           path: 'assets/sprites/skills/fire/Fire/fire_',                     count: 6  },
@@ -681,9 +681,9 @@ export class GameScene extends Phaser.Scene {
       this.pet = new Pet(this, cfg, pos.x - GameScene.TILE_SIZE, pos.y);
     }
 
-    // Radio en el que la mascota detecta drops del suelo · distancia a la que los recoge
-    // (generosa: la mascota se ancla en los pies y el drop en su centro, hay desfase)
-    private static readonly PET_SEEK_RADIUS  = 260;
+    // Distancia a la que la mascota recoge un drop (generosa: la mascota se ancla
+    // en los pies y el drop en su centro, hay desfase). El radio de DETECCIÓN es
+    // el stat "rango de recogida" de la mascota, que escala con su nivel.
     private static readonly PET_COLLECT_DIST = 44;
 
     /**
@@ -694,8 +694,11 @@ export class GameScene extends Phaser.Scene {
     private updatePet(delta: number, playerPos: Phaser.Math.Vector2): void {
       if (!this.pet) return;
 
+      const petItem = this.reg.gathering?.slots.find(s => s.id === 'pet')?.item ?? null;
+      const range   = petPickupRange(petItem?.petLevel ?? 1);
+
       const pp   = this.pet.getPosition();
-      const drop = this.gridDrops?.nearestCollectableDrop(pp.x, pp.y, GameScene.PET_SEEK_RADIUS) ?? null;
+      const drop = this.gridDrops?.nearestCollectableDrop(pp.x, pp.y, range) ?? null;
 
       if (drop) {
         // stopDist 0 → la mascota se acerca del todo; recoge en cuanto entra en radio

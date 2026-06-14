@@ -38,7 +38,6 @@ const DEFAULT_SELL_VALUE = 3;
 const SELL_VALUES: Record<string, number> = {
   'Madera':         5,
   'Bolsa de Cuero': 50,
-  'Espada':         8,
   'Poción':         4,
   'Armet':          30,
 };

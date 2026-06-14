@@ -179,6 +179,7 @@
   "PET": {
     "LEVEL": "Nivel",
     "MAX_LEVEL": "MÁX",
+    "PICKUP_RANGE": "Rango de recogida",
     "BIND_TITLE": "Vincular mascota",
     "BIND_MESSAGE": "¿Quieres vincular {{pet}} a {{char}}? Solo podrás equiparla en este personaje.",
     "BIND_CONFIRM": "Vincular",

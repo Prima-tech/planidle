@@ -179,6 +179,7 @@
   "PET": {
     "LEVEL": "Level",
     "MAX_LEVEL": "MAX",
+    "PICKUP_RANGE": "Pickup range",
     "BIND_TITLE": "Bind pet",
     "BIND_MESSAGE": "Do you want to bind {{pet}} to {{char}}? It will only be equippable on this character.",
     "BIND_CONFIRM": "Bind",

@@ -121,6 +121,14 @@ $text-cream: #ecd9b4;
   color: $cell-bg;
 }
 
+/* Fila de stat de la mascota (rango de recogida, etc.) bajo la barra de exp */
+.pet-stat-row {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(58, 44, 32, 0.4);
+  font-size: 0.72em;
+}
+
 /* Icono de sprite (sheet): el frame se normaliza a 32px, así que el box es 32px */
 .detail-icon-box {
   width: 32px;

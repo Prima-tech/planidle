@@ -32,7 +32,7 @@ export class EquipmentService {
     { id: 'armor',   label: 'Armadura',   accepts: ['Armadura'],   item: null },
     { id: 'pants',   label: 'Pantalones', accepts: ['Pantalones'], item: null },
     { id: 'boots',   label: 'Botas',      accepts: ['Botas'],      item: null },
-    { id: 'weapon',  label: 'Arma',       accepts: ['Espada', 'Arma'], item: null },
+    { id: 'weapon',  label: 'Arma',       accepts: ['Arma'],       item: null },
     // Columna derecha
     { id: 'necklace', label: 'Collar',    accepts: ['Collar'],     item: null },
     { id: 'ring1',    label: 'Anillo 1',  accepts: ['Anillo'],     item: null },

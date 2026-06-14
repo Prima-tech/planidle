@@ -29,6 +29,10 @@
     <div class="pet-exp-text">
       {{ petIsMaxLevel ? ('PET.MAX_LEVEL' | translate) : (petExp + ' / ' + petExpNeeded) }}
     </div>
+    <div class="pet-level-row pet-stat-row">
+      <span class="pet-level-label">{{ 'PET.PICKUP_RANGE' | translate }}</span>
+      <span class="pet-level-value">{{ petPickupRange }}</span>
+    </div>
   </div>
 
   <!-- El resto del panel solo para ítems que no son mascota -->

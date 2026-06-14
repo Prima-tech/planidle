@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { InventoryItem } from 'src/app/services/inventory.service';
 import { BAG_SLOTS_BY_NAME } from 'src/app/services/inventory-unlock.service';
-import { PET_MAX_LEVEL, petExpNeeded } from 'src/app/pnj/pet/pet-config';
+import { PET_MAX_LEVEL, petExpNeeded, petPickupRange } from 'src/app/pnj/pet/pet-config';
 
 const STAT_LABELS: Record<string, string> = {
   damage:   'ITEM_STAT.DAMAGE',
@@ -64,6 +64,11 @@ export class ItemDetailComponent {
   /** Exp necesaria para el siguiente nivel (0 si ya está al máximo). */
   get petExpNeeded(): number {
     return this.petIsMaxLevel ? 0 : petExpNeeded(this.petLevel);
+  }
+
+  /** Rango de recogida actual de la mascota (px) según su nivel. */
+  get petPickupRange(): number {
+    return petPickupRange(this.petLevel);
   }
 
   /** Progreso 0..1 de la barra de exp (lleno al nivel máximo). */

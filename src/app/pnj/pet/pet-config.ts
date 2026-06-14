@@ -69,3 +69,12 @@ export const PET_MAX_LEVEL = 10;
 export function petExpNeeded(level: number): number {
   return level * 100;
 }
+
+// ── Rango de recogida (px): a qué distancia detecta la mascota los drops ───────
+export const PET_PICKUP_RANGE_BASE      = 260;  // nivel 1
+export const PET_PICKUP_RANGE_PER_LEVEL = 20;   // +20 px por nivel
+
+/** Rango de recogida de drops según el nivel de la mascota. */
+export function petPickupRange(level: number): number {
+  return PET_PICKUP_RANGE_BASE + PET_PICKUP_RANGE_PER_LEVEL * (Math.max(1, level) - 1);
+}
