@@ -101,6 +101,46 @@ Si el edificio guarda contenido (como el cofre vacía su almacén), añade el bo
 en `CityBuildService.confirmDelete()`. Hoy hace `if (def?.isTownChest) await
 this.townChest.clear()`. Para otro tipo con interior, añade su limpieza ahí.
 
+### d) Abrir una ventana al pulsarlo (como la tienda)
+
+Pon `opensWindow: true` en su `BuildableDef`. Hay **dos formas** de abrir la ventana,
+ambas vía `cityBuild.requestOpenWindow(type)` → `openWindow$`:
+- **Tap** sobre el sprite (`handleBuildingWindowTap` en el pointerdown de la escena).
+- **Cercanía + botón de acción**: en `update()`, `nearestWindowBuilding()` detecta el
+  edificio cerca y pone el contexto `'shop'` (`InteractionService`), que cambia el
+  botón de atacar al icono de interacción (dorado, `attack-button`). Al mantener el
+  botón se abre una sola vez (latch `shopActionLatched`).
+
+En `footer-bar`, la suscripción a `openWindow$` mapea el `type` a la apertura del
+modal (p.ej. `'shop'` → `openBuildShop()`, abre `BuildShopComponent` en un modal
+`'build-shop'` a la izquierda). Para un tipo nuevo:
+1. Crea el componente de la ventana (`components/<x>/`, `standalone:false`, declarado
+   en `components.module.ts`).
+2. Añade su `&.<tipo>` en `modal-container.component.scss` (lado/tamaño).
+3. Añade `@ViewChild` + `<app-modal-container #xModal>` + método `openX()` en
+   `footer-bar`, e inclúyelo en `closeOtherOnSide`/`closeAllPanels`.
+4. Mapea el `type` en la suscripción a `openWindow$`.
+
+> El cofre de ciudad NO usa esto: se abre por cercanía + botón de acción
+> (`nearestOpenableChest`), no por tap.
+
+**Ejemplo — la tienda (`shop`)**: su ventana (`BuildShopComponent`) usa
+`BuildShopService` (clave global `build_shop`): oro propio (500 inicial), 6 slots de
+venta (`PRODUCTS`) con precio/stock. Pulsar un slot abre un **panel de detalle**
+(fijo, a la derecha de la ventana) con el botón **Comprar**; los items **apilables**
+(`entry.mergeable`) muestran un **selector de cantidad ±** (limitado por stock y oro).
+`buy(item, qty)` hace −oro jugador (`addCoins(-precio·qty)`), mete los items con
+`inventory.addOrDropToWorld()` (al inventario o **al suelo si está lleno**, apilables
+en una pila de qty), −stock y +oro tienda. Al abrir la tienda se abre también el
+inventario a la derecha (espeja el cofre); se cierran juntos al alejarse.
+La ventana tiene 2 pestañas: **Comprar** (lo anterior) y **Vender** — un inventario
+de venta (`sellGrid`, drag desde la mochila espejando el cofre: `sellCellIds` +
+`removeRequest$`/`sellRemoveRequest$`); el botón **Vender** paga desde el oro de la
+tienda (`sellValue`/`SELL_VALUES`, `sell(total)`) y los items desaparecen; lo no
+vendido vuelve a la mochila al cerrar (`addDroppedItem` en `ngOnDestroy`). El oro/maquetación clona
+`.coins-section` del inventario. `reset()` (oro 500 + restock) se llama desde
+`settings.page.clearAll()` ("borrar todo"). Precio/stock se editan en `PRODUCTS`.
+
 ---
 
 ## Paso 5 — (Opcional) Mostrar en el minimapa
@@ -134,8 +174,9 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
    **permanente** (sale del storage) y **su interior se vacía** (un cofre pierde
    todos sus items vía `TownChestService.clear()`).
 8. El botón **🗑 Borrar todo** (ajustes) **borra también las construcciones**
-   (`CityBuildService.clear()` desde `settings.page.ts`), así que un `unique`
-   vuelve a estar disponible para reconstruir.
+   (`CityBuildService.clear()` desde `settings.page.ts`) y **resetea la tienda**
+   (`BuildShopService.reset()` → oro 500 + restock), así que un `unique` vuelve a
+   estar disponible para reconstruir.
 
 ---
 
@@ -145,6 +186,7 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
   `BUILDABLES`, persistencia (`load`/`add`/`isBuilt`/`clear`/`move`/`hasBuildings`),
   bridge de colocación (`placementMode$`), de movimiento (`moveMode$`) y de borrado
   (`deleteMode$`, `pendingDelete$`, `requestDelete`, `confirmDelete`, `cancelDelete`),
+  de apertura de ventana (`openWindow$`, `requestOpenWindow`)
   + notificaciones (`placed$`, `cleared$`, `removed$`).
 - **Panel UI**: `BuildPanelComponent` (`components/build-panel/`) — lista
   `BUILDABLES` ocultando los `unique` ya construidos + botones **Mover edificio**
@@ -169,6 +211,9 @@ Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
     lo saca de la escena (`detachPlacedBuilding`) y arranca el ghost en modo reubicar.
   - `handleDeleteSelect()` (en `deleteSelecting`, pincha un edificio) → `requestDelete()`
     (abre el modal). Al confirmar, `removed$` → `removeBuildingFromScene()` lo detacha.
+  - `handleBuildingWindowTap()` (tap sobre un edificio con `opensWindow`) y
+    `nearestWindowBuilding()` (cercanía → contexto `'shop'` + botón de acción, con
+    latch `shopActionLatched`) → `requestOpenWindow(type)` → `openWindow$` → `footer-bar`.
   - `confirmBuildPlacement()` → `add()` (nuevo) o `move()` (reubicación) + `spawnBuilding()`.
     Cancelar una reubicación restaura el original (`cancelBuildPlacement`).
   - `spawnBuilding()` coloca la construcción definitiva con colisión y la registra en

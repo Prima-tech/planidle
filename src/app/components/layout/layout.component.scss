@@ -140,14 +140,6 @@
   pointer-events: none;
 }
 
-/* Variante teñida: el PNG (--icon) hace de máscara y se pinta de un color
-   plano — blanco, como el icono de config */
-.minimap-btn-img--tint {
-  background: #ffffff;
-  -webkit-mask: var(--icon) center / contain no-repeat;
-  mask: var(--icon) center / contain no-repeat;
-}
-
 ::ng-deep {
   ion-content {
       --padding-bottom: 120px;

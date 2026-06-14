@@ -37,6 +37,7 @@ import { QuestTrackerComponent } from './quest-tracker/quest-tracker.component';
 import { ShopComponent } from './shop/shop.component';
 import { BuildPanelComponent } from './build-panel/build-panel.component';
 import { BuildDeleteModalComponent } from './build-delete-modal/build-delete-modal.component';
+import { BuildShopComponent } from './build-shop/build-shop.component';
 
 @NgModule({
   declarations: [
@@ -73,6 +74,7 @@ import { BuildDeleteModalComponent } from './build-delete-modal/build-delete-mod
     ShopComponent,
     BuildPanelComponent,
     BuildDeleteModalComponent,
+    BuildShopComponent,
   ],
   imports: [
     CommonModule,

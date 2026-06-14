@@ -70,14 +70,23 @@
     background: transparent;
     overflow-y: auto;
   }
+  &.build-shop {
+    top: 10px;
+    bottom: 61px;  /* footer ~51px + 10px de aire, como build/summon */
+    left: calc(10px + var(--safe-left, 0px));
+    width: fit-content;
+    /* El marco madera/piedra lo pinta el propio BuildShopComponent (:host) */
+    background: transparent;
+    overflow-y: auto;
+  }
   &.skill-detail {
     top: 10px;
     bottom: 53px;
     right: calc(280px + var(--safe-right, 0px));
     width: 200px;
-    border-radius: 12px 12px 0 0;
-    background: #1a1a2e;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    /* el marco lo pinta el :host del componente (tema madera + piedra) */
+    background: transparent;
+    overflow: hidden;
   }
   &.game-settings {
     top: 10px;
@@ -93,10 +102,9 @@
     bottom: 53px;
     right: calc(10px + var(--safe-right, 0px));
     width: 265px;
-    border-radius: 12px 12px 0 0;
-    background: #1a1a2e;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    overflow-y: auto;
+    /* el marco lo pinta el :host del componente (tema madera + piedra) */
+    background: transparent;
+    overflow: hidden;
   }
   &.progress {
     top: 10px;

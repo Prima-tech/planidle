@@ -25,6 +25,7 @@ import { SummonService } from 'src/app/services/summon.service';
 import { WorldService } from 'src/app/services/world.service';
 import { CityBuildService } from 'src/app/services/city-build.service';
 import { BuildPanelComponent } from '../build-panel/build-panel.component';
+import { BuildShopComponent } from '../build-shop/build-shop.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -45,6 +46,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('progressModal')    progressModal!:    ModalContainerComponent;
   @ViewChild('shopModal')        shopModal!:        ModalContainerComponent;
   @ViewChild('buildModal')       buildModal!:       ModalContainerComponent;
+  @ViewChild('buildShopModal')   buildShopModal!:   ModalContainerComponent;
 
   private detailSub:        Subscription;
   private closeSub:         Subscription;
@@ -56,7 +58,10 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private placementSub:      Subscription;
   private moveModeSub:       Subscription;
   private deleteModeSub:     Subscription;
+  private openWindowSub:     Subscription;
+  private closeWindowSub:    Subscription;
   private inventoryOpenedByChest = false;
+  private inventoryOpenedByShop = false;
   private cdInterval:       ReturnType<typeof setInterval> | null = null;
 
   page: 'main' | 'skills' = 'main';
@@ -145,6 +150,16 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       if (active) this.closeAllPanels();
     });
 
+    // Pulsar un edificio con ventana en el mapa (p.ej. la tienda) la abre a la izquierda.
+    this.openWindowSub = this.cityBuild.openWindow$.subscribe(type => {
+      if (type === 'shop') this.openBuildShop();
+    });
+
+    // La escena pide cerrar la ventana del edificio (jugador se alejó de la tienda).
+    this.closeWindowSub = this.cityBuild.closeWindow$.subscribe(() => {
+      if (this.buildShopModal?.isOpenModal()) this.buildShopModal.close();
+    });
+
     this.sceneStartingSub = this.playerBridge.sceneStarting$.subscribe(() => {
       this.page = 'main';
       this.locked = true;
@@ -172,6 +187,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.placementSub?.unsubscribe();
     this.moveModeSub?.unsubscribe();
     this.deleteModeSub?.unsubscribe();
+    this.openWindowSub?.unsubscribe();
+    this.closeWindowSub?.unsubscribe();
     if (this.cdInterval) clearInterval(this.cdInterval);
   }
 
@@ -201,7 +218,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal],
+      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal],
       right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal, this.progressModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
@@ -211,7 +228,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeAllPanels() {
     [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.equipmentModal,
      this.summonModal, this.chestModal, this.skillSlotsModal, this.skillDetailModal,
-     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal]
+     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal]
       .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
 
@@ -380,12 +397,36 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.summonService.townChestIsOpen$.next(false);
   }
 
+  onBuildShopModalClosed() {
+    this.cityBuild.windowOpen$.next(false);
+    // Cierra el inventario si se abrió junto a la tienda.
+    if (this.inventoryOpenedByShop && this.inventoryModal?.isOpenModal()) {
+      this.inventoryModal.close();
+    }
+    this.inventoryOpenedByShop = false;
+  }
+
   openBuild() {
     if (this.buildModal.isOpenModal()) {
       this.buildModal.close();
     } else {
       this.closeOtherOnSide('left', this.buildModal);
       this.buildModal.open(BuildPanelComponent, 'build');
+    }
+  }
+
+  openBuildShop() {
+    if (this.buildShopModal.isOpenModal()) {
+      this.buildShopModal.close();
+    } else {
+      this.closeOtherOnSide('left', this.buildShopModal);
+      this.buildShopModal.open(BuildShopComponent, 'build-shop');
+      this.cityBuild.windowOpen$.next(true);
+      // Abre también el inventario (a la derecha) para gestionar lo comprado.
+      if (!this.inventoryModal?.isOpenModal()) {
+        this.openInventory();
+        this.inventoryOpenedByShop = true;
+      }
     }
   }
 

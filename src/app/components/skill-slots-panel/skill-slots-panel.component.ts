@@ -1,14 +1,15 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { TalentService, TalentNodeConfig, TALENT_NODES_FIRE, TALENT_NODES_WATER } from 'src/app/services/talent.service';
+import { TalentService, TalentNodeConfig, TALENT_NODES_WARRIOR, TALENT_NODES_SMOKE, TALENT_NODES_FLAME } from 'src/app/services/talent.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 
-export type SkillTab = 'fire' | 'water' | 'other';
+export type SkillTab = 'warrior' | 'smoker' | 'fire' | 'other';
 
-const FIRE_IDS  = new Set(TALENT_NODES_FIRE.map(n => n.id));
-const WATER_IDS = new Set(TALENT_NODES_WATER.map(n => n.id));
+const WARRIOR_IDS = new Set(TALENT_NODES_WARRIOR.map(n => n.id));
+const SMOKER_IDS  = new Set(TALENT_NODES_SMOKE.map(n => n.id));   // pestaña "Humo": solo los 4 assets nuevos
+const FIRE_IDS    = new Set(TALENT_NODES_FLAME.map(n => n.id));   // pestaña "Fuego": solo los assets nuevos
 
 @Component({
   selector: 'app-skill-slots-panel',
@@ -22,17 +23,21 @@ export class SkillSlotsPanelComponent implements OnInit {
   private panelState        = inject(PanelStateService);
   private hudSlots          = inject(HudSkillSlotsService);
 
-  activeTab: SkillTab = 'fire';
+  activeTab: SkillTab = 'warrior';
 
   ngOnInit(): void {
-    this.activeTab = this.panelState.get<SkillTab>('skillSlots.tab', 'fire');
+    const saved = this.panelState.get<SkillTab>('skillSlots.tab', 'warrior');
+    const valid: SkillTab[] = ['warrior', 'smoker', 'fire', 'other'];
+    this.activeTab = valid.includes(saved) ? saved : 'warrior';  // tolera valores antiguos
   }
 
   get abilities(): TalentNodeConfig[] {
     const all = this.talentService.nodes.filter(n => n.effect.type === 'ability');
-    if (this.activeTab === 'fire')  return all.filter(n => FIRE_IDS.has(n.id));
-    if (this.activeTab === 'water') return all.filter(n => WATER_IDS.has(n.id));
-    return all.filter(n => !FIRE_IDS.has(n.id) && !WATER_IDS.has(n.id));
+    if (this.activeTab === 'warrior') return all.filter(n => WARRIOR_IDS.has(n.id));
+    if (this.activeTab === 'smoker')  return all.filter(n => SMOKER_IDS.has(n.id));
+    if (this.activeTab === 'fire')    return all.filter(n => FIRE_IDS.has(n.id));
+    // "otras": todo lo que no está en una pestaña propia
+    return all.filter(n => !WARRIOR_IDS.has(n.id) && !SMOKER_IDS.has(n.id) && !FIRE_IDS.has(n.id));
   }
 
   get selectedId(): string | null {

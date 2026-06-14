@@ -1,0 +1,477 @@
+/* ===== Tema madera + piedra (pixel-art RPG) — clona build-panel ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$wood-btn: #c08349;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;
+$cell-border: #21130e;
+$text-brown: #53301c;
+$text-cream: #ecd9b4;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: calc(100% - 4px);
+  margin: 2px;
+  padding: 10px 8px 8px;
+  min-width: 282px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.shop-title {
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-brown;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* Pestañas Comprar / Vender */
+.shop-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.shop-tab {
+  flex: 1 1 0;
+  text-align: center;
+  padding: 5px 0;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  font-size: 0.7em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  user-select: none;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+
+  &.active {
+    background: $wood-btn;
+    color: $text-brown;
+    box-shadow: inset 0 0 0 1px #d99a5c, inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ── Vender ── */
+.sell-hint {
+  font-size: 0.62em;
+  color: rgba(236, 217, 180, 0.7);
+  text-align: center;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.sell-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.sell-row {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.sell-cell {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.sell-item {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+
+  .item-icon { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
+  .item-icon-sheet { width: 32px; height: 32px; image-rendering: pixelated; transform: scale(1.3); }
+  .item-fallback { font-size: 1.1em; font-weight: 700; color: $text-cream; }
+  .item-sum {
+    position: absolute;
+    right: 1px;
+    bottom: 0;
+    font-size: 0.6em;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 2px #000, 0 0 2px #000;
+  }
+}
+
+.sell-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sell-total {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7em;
+  font-weight: 700;
+  color: $text-cream;
+}
+
+.sell-btn {
+  padding: 8px 14px;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  color: $text-cream;
+  background: #3f7a32;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: filter 0.15s;
+
+  &:not([disabled]):hover, &:not([disabled]):active { filter: brightness(1.15); }
+  &[disabled] { opacity: 0.4; cursor: not-allowed; background: $wood-btn-dark; }
+}
+
+/* Rejilla de venta: tarjetas estilo panel de invocación (3 columnas) */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.shop-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 86px;
+  box-sizing: border-box;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  padding: 8px 4px 6px;
+  cursor: pointer;
+  color: $text-cream;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: border-color 0.15s, background 0.15s;
+
+  &:not(.shop-card--empty):active { background: lighten($cell-bg, 5%); }
+
+  &.sold-out { opacity: 0.5; }
+
+  &.selected {
+    border-color: #d99a5c;
+    box-shadow: inset 0 0 0 1px #d99a5c, 0 0 6px rgba(217, 154, 92, 0.5);
+  }
+
+  &--empty {
+    cursor: default;
+    background: rgba(0, 0, 0, 0.18);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.shop-card-frame {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $cell-border;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+}
+
+.shop-card-stock {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  font-size: 0.6em;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px #000, 0 0 2px #000;
+
+  &--out {
+    right: 0;
+    left: 0;
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    font-size: 0.5em;
+    color: #e0a0a0;
+  }
+}
+
+.shop-card-name {
+  font-size: 0.62em;
+  color: $text-cream;
+  text-align: center;
+  line-height: 1.15;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shop-card-price {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.62em;
+  font-weight: 700;
+  color: $text-cream;
+}
+
+.coin-mini {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  background-image: url('../../../assets/sprites/resources/coin.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* ── Oro de la tienda: misma maquetación que el oro del inventario ── */
+.coins-section {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+  margin-left: auto;
+  height: 26px;
+  padding: 0 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+}
+
+.coin-spinner {
+  width: 20px;
+  height: 20px;
+  transform: scale(0.85);
+  background-image: url('../../../assets/sprites/resources/coin.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  animation: spin-coin 0.6s steps(5) infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin-coin {
+  from { background-position: 0px; }
+  to   { background-position: -100px; }
+}
+
+.coin-amount {
+  font-size: 0.72em;
+  font-weight: bold;
+  color: $text-brown;
+}
+
+/* ── Panel de detalle (a la derecha de la ventana de tienda) ── */
+.shop-detail {
+  position: fixed;
+  z-index: 210;
+  width: 160px;
+  box-sizing: border-box;
+  padding: 14px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.shop-detail-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid $outline;
+  color: $text-cream;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.shop-detail-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $cell-border;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+}
+
+.shop-detail-name {
+  font-size: 0.78em;
+  font-weight: 700;
+  text-align: center;
+  color: $text-cream;
+}
+
+.shop-detail-desc {
+  font-size: 0.62em;
+  text-align: center;
+  line-height: 1.3;
+  color: rgba(236, 217, 180, 0.7);
+}
+
+.shop-qty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.shop-qty-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  background: $wood-btn-dark;
+  color: $text-cream;
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+
+  &:not([disabled]):active { background: $wood-btn; color: $text-brown; }
+
+  &[disabled] { opacity: 0.4; cursor: not-allowed; }
+}
+
+.shop-qty-val {
+  min-width: 28px;
+  text-align: center;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: $text-cream;
+}
+
+.shop-detail-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0 4px;
+  margin-top: 2px;
+}
+
+.shop-detail-price {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.78em;
+  font-weight: 700;
+  color: $text-cream;
+}
+
+.shop-detail-stock {
+  font-size: 0.68em;
+  color: rgba(236, 217, 180, 0.7);
+
+  &.out { color: #e0a0a0; }
+}
+
+.shop-buy-btn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 0;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  color: $text-cream;
+  background: #3f7a32;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: filter 0.15s;
+
+  &:not([disabled]):hover,
+  &:not([disabled]):active { filter: brightness(1.15); }
+
+  &[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: $wood-btn-dark;
+  }
+}

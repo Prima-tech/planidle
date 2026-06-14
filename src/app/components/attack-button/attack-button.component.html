@@ -1,6 +1,6 @@
 <button class="attack-btn"
         [class.pressed]="pressed"
-        [class.ctx-chest]="context === 'chest'"
+        [class.ctx-chest]="context === 'chest' || context === 'shop'"
         (pointerdown)="onPress($event)"
         (pointerup)="onRelease()"
         (pointercancel)="onRelease()"
@@ -9,4 +9,5 @@
   <span class="attack-btn__shine"></span>
   <img *ngIf="context === 'attack'" class="attack-btn__icon" src="assets/icon/weapons/icon_32_2_15.png" alt="" draggable="false" />
   <ion-icon *ngIf="context === 'chest'" name="cube-outline" class="attack-btn__ctx-icon"></ion-icon>
+  <ion-icon *ngIf="context === 'shop'" name="storefront-outline" class="attack-btn__ctx-icon"></ion-icon>
 </button>

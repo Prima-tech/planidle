@@ -182,6 +182,8 @@
   "SKILLS": {
     "TITLE": "Habilidades",
     "CLEAR_SLOT": "Vaciar slot",
+    "WARRIOR": "Guerrero",
+    "SMOKER": "Humo",
     "FIRE": "Fuego",
     "WATER": "Agua",
     "OTHER": "Otras",
@@ -221,7 +223,15 @@
     "DELETE_WARN": "Es permanente. Todo lo que haya en su interior también desaparecerá.",
     "DELETE_YES": "Borrar",
     "DELETE_NO": "Cancelar",
-    "TOWN_CHEST": "Cofre de ciudad"
+    "TOWN_CHEST": "Cofre de ciudad",
+    "SHOP": "Tienda",
+    "SHOP_TITLE": "Tienda",
+    "SHOP_SOON": "Próximamente",
+    "SOLD_OUT": "Agotado",
+    "BUY": "Comprar",
+    "SELL": "Vender",
+    "SELL_GET": "Te dan:",
+    "SELL_HINT": "Arrastra items de tu mochila aquí para venderlos."
   },
   "OFFLINE": {
     "TITLE": "Ganancias AFK",

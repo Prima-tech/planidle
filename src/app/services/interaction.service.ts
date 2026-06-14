@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type InteractionContext = 'attack' | 'chest';
+export type InteractionContext = 'attack' | 'chest' | 'shop';
 
 @Injectable({ providedIn: 'root' })
 export class InteractionService {

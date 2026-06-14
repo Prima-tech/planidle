@@ -30,6 +30,8 @@ export interface BuildableDef {
   unique: boolean;    // true → solo uno por tipo (desaparece del menú al construir)
   /** true → al colocarlo se comporta como cofre de ciudad (abre el almacén compartido). */
   isTownChest?: boolean;
+  /** true → al pulsar el edificio en el mapa abre su ventana (openWindow$). */
+  opensWindow?: boolean;
 }
 
 export const BUILDABLES: BuildableDef[] = [
@@ -44,6 +46,18 @@ export const BUILDABLES: BuildableDef[] = [
     tilesH: 3,
     unique: true,
     isTownChest: true,
+  },
+  {
+    type: 'shop',
+    name: 'BUILD.SHOP',
+    spriteKey: 'chests',
+    frame: 2,            // cofre 2 (placeholder; se cambiará a futuro)
+    frameSize: 32,
+    scale: 4,
+    tilesW: 3,
+    tilesH: 3,
+    unique: true,
+    opensWindow: true,
   },
 ];
 
@@ -75,6 +89,12 @@ export class CityBuildService {
   readonly pendingDelete$ = new BehaviorSubject<PlacedBuilding | null>(null);
   /** Emite el edificio borrado (la escena quita su sprite y colisión). */
   readonly removed$ = new Subject<PlacedBuilding>();
+  /** Emite el `type` de un edificio pulsado en el mapa para abrir su ventana. */
+  readonly openWindow$ = new Subject<string>();
+  /** true mientras una ventana de edificio (p.ej. la tienda) está abierta. */
+  readonly windowOpen$ = new BehaviorSubject<boolean>(false);
+  /** La escena pide cerrar la ventana abierta (el jugador se alejó del edificio). */
+  readonly closeWindow$ = new Subject<void>();
 
   private storage = inject(StorageService);
   private townChest = inject(TownChestService);
@@ -136,6 +156,16 @@ export class CityBuildService {
 
   cancelPlacement(): void {
     if (this.placementMode$.value) this.placementMode$.next(null);
+  }
+
+  /** La escena pide abrir la ventana de un edificio pulsado en el mapa. */
+  requestOpenWindow(type: string): void {
+    this.openWindow$.next(type);
+  }
+
+  /** La escena pide cerrar la ventana abierta (jugador fuera de rango). */
+  requestCloseWindow(): void {
+    if (this.windowOpen$.value) this.closeWindow$.next();
   }
 
   startMoveMode(): void {

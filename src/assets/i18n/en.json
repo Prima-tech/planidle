@@ -182,6 +182,8 @@
   "SKILLS": {
     "TITLE": "Skills",
     "CLEAR_SLOT": "Clear slot",
+    "WARRIOR": "Warrior",
+    "SMOKER": "Smoke",
     "FIRE": "Fire",
     "WATER": "Water",
     "OTHER": "Other",
@@ -221,7 +223,15 @@
     "DELETE_WARN": "This is permanent. Everything stored inside will be lost too.",
     "DELETE_YES": "Delete",
     "DELETE_NO": "Cancel",
-    "TOWN_CHEST": "Town chest"
+    "TOWN_CHEST": "Town chest",
+    "SHOP": "Shop",
+    "SHOP_TITLE": "Shop",
+    "SHOP_SOON": "Coming soon",
+    "SOLD_OUT": "Sold out",
+    "BUY": "Buy",
+    "SELL": "Sell",
+    "SELL_GET": "You get:",
+    "SELL_HINT": "Drag items from your bag here to sell them."
   },
   "OFFLINE": {
     "TITLE": "AFK gains",

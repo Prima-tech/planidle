@@ -3,14 +3,21 @@
   <button *ngIf="isHudSlot && hudSlotFilled" class="clear-slot-btn" (click)="clearSlot()">{{ 'SKILLS.CLEAR_SLOT' | translate }}</button>
 
   <div class="tabs">
-    <button class="tab-btn" [class.active]="activeTab === 'fire'"  (click)="setTab('fire')">
-      <ion-icon name="flame-outline"></ion-icon> {{ 'SKILLS.FIRE' | translate }}
+    <button class="tab-btn" [class.active]="activeTab === 'warrior'" (click)="setTab('warrior')"
+            [title]="'SKILLS.WARRIOR' | translate" [attr.aria-label]="'SKILLS.WARRIOR' | translate">
+      <ion-icon name="flash-outline"></ion-icon>
     </button>
-    <button class="tab-btn" [class.active]="activeTab === 'water'" (click)="setTab('water')">
-      <ion-icon name="water-outline"></ion-icon> {{ 'SKILLS.WATER' | translate }}
+    <button class="tab-btn" [class.active]="activeTab === 'smoker'" (click)="setTab('smoker')"
+            [title]="'SKILLS.SMOKER' | translate" [attr.aria-label]="'SKILLS.SMOKER' | translate">
+      <ion-icon name="cloud-outline"></ion-icon>
     </button>
-    <button class="tab-btn" [class.active]="activeTab === 'other'" (click)="setTab('other')">
-      <ion-icon name="ellipsis-horizontal-outline"></ion-icon> {{ 'SKILLS.OTHER' | translate }}
+    <button class="tab-btn" [class.active]="activeTab === 'fire'" (click)="setTab('fire')"
+            [title]="'SKILLS.FIRE' | translate" [attr.aria-label]="'SKILLS.FIRE' | translate">
+      <ion-icon name="flame-outline"></ion-icon>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'other'" (click)="setTab('other')"
+            [title]="'SKILLS.OTHER' | translate" [attr.aria-label]="'SKILLS.OTHER' | translate">
+      <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
     </button>
   </div>
 

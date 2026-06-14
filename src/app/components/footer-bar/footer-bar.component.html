@@ -10,6 +10,7 @@
 <app-modal-container #progressModal></app-modal-container>
 <app-modal-container #shopModal></app-modal-container>
 <app-modal-container #buildModal></app-modal-container>
+<app-modal-container #buildShopModal (closed)="onBuildShopModalClosed()"></app-modal-container>
 
 <button class="auto-attack-fab" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
   <ion-icon name="infinite-outline"></ion-icon>

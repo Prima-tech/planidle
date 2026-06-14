@@ -5,6 +5,7 @@ import { InventoryUnlockService } from 'src/app/services/inventory-unlock.servic
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { GatheringEquipmentService } from 'src/app/services/gathering-equipment.service';
 import { TownChestService } from 'src/app/services/town-chest.service';
+import { BuildShopService } from 'src/app/services/build-shop.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
@@ -54,6 +55,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     public equipmentService: EquipmentService,
     private gatheringService: GatheringEquipmentService,
     private townChest: TownChestService,
+    private buildShop: BuildShopService,
     private el: ElementRef,
   ) {}
 
@@ -120,7 +122,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     if (!this.unlock.isTabVisible(this.activeTabIndex)) this.activeTabIndex = 0;
     this.tabs = ['I', 'II', 'III', 'IV', 'V'].slice(0, this.NUMBER_OF_TABS);
     this.equipmentSlotIds = this.equipmentService.getEquipmentSlotIds();
-    this.connectedDropIds = [...this.equipmentSlotIds, ...this.gatheringService.getSlotIds(), ...this.townChest.cellIds];
+    this.connectedDropIds = [...this.equipmentSlotIds, ...this.gatheringService.getSlotIds(), ...this.townChest.cellIds, ...this.buildShop.sellCellIds];
 
     // Grid vacío síncrono para que CDK registre los drop lists antes de cargar datos
     this.inventories = this.inventoryService.buildGrid();
@@ -329,6 +331,26 @@ export class InventoryComponent implements OnInit, OnDestroy {
         row: data.row,
         col: data.col,
       });
+      this.splitMenuOpen = false;
+      this.deleteModalOpen = false;
+      this.triggerSave();
+      return;
+    }
+
+    // Drop desde el inventario de venta de la tienda → inventario (retirar)
+    if (data.sourceContext === 'shop-sell') {
+      const targetItem = this.inventories[targetTabIndex][targetRow][targetCol];
+      const incoming: InventoryItem = data.item;
+
+      if (targetItem?.mergeable && incoming.mergeable && targetItem.name === incoming.name) {
+        targetItem.sum! += incoming.sum!;
+      } else if (targetItem !== null) {
+        return; // celda ocupada: rechazar
+      } else {
+        this.inventories[targetTabIndex][targetRow][targetCol] = incoming;
+      }
+
+      this.buildShop.requestSellRemove(data.row, data.col);
       this.splitMenuOpen = false;
       this.deleteModalOpen = false;
       this.triggerSave();

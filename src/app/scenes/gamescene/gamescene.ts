@@ -53,6 +53,23 @@ const SKILL_SPRITE_SOURCES: { key: string; path: string; count: number }[] = [
   { key: 'skill_explosion_two_colors',  path: 'assets/sprites/skills/explosion/Explosion_two_colors/Explosion_two_colors',     count: 10 },
 ];
 
+// Skills cuyo arte es un único spritesheet (1 textura, frames numerados en rejilla).
+// Mejor que frames sueltos: menos texturas/cargas. El registro de animación lo detecta solo.
+const SKILL_SHEET_SOURCES: { key: string; path: string; frameWidth: number; frameHeight: number }[] = [
+  { key: 'skill_warrior_slash',   path: 'assets/sprites/skills/warrior/attack_01.png', frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_warrior_slash_2', path: 'assets/sprites/skills/warrior/attack_02.png', frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_warrior_slash_3', path: 'assets/sprites/skills/warrior/attack_03.png', frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_warrior_slash_4', path: 'assets/sprites/skills/warrior/attack_04.png', frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_warrior_slash_5', path: 'assets/sprites/skills/warrior/attack_05.png', frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_smoke_1',         path: 'assets/sprites/skills/warrior/smoke_01.png',  frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_smoke_2',         path: 'assets/sprites/skills/warrior/smoke_02.png',  frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_smoke_3',         path: 'assets/sprites/skills/warrior/smoke_03.png',  frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_smoke_4',         path: 'assets/sprites/skills/warrior/smoke_04.png',  frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_fire_1',          path: 'assets/sprites/skills/warrior/fire_01.png',   frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_fire_2',          path: 'assets/sprites/skills/warrior/fire_02.png',   frameWidth: 192, frameHeight: 128 },
+  { key: 'skill_fire_3',          path: 'assets/sprites/skills/warrior/fire_03.png',   frameWidth: 128, frameHeight: 128 },
+];
+
 interface ActiveChest {
   sprite: Phaser.GameObjects.Sprite;
   col: number;
@@ -92,6 +109,8 @@ export class GameScene extends Phaser.Scene {
     private moveSelecting = false;
     // true tras pulsar "Borrar edificio": el siguiente click sobre un edificio pide confirmar.
     private deleteSelecting = false;
+    // Evita reabrir la ventana de un edificio en cada frame mientras se mantiene el botón.
+    private shopActionLatched = false;
     // Construcciones colocadas por el jugador (no el cofre fijo): para poder
     // quitarlas en caliente (borrar todo) o moverlas.
     private placedBuildings: {
@@ -166,6 +185,11 @@ export class GameScene extends Phaser.Scene {
           if (!this.textures.exists(k)) this.load.image(k, `${s.path}${i}.png`);
         }
       }
+      for (const s of SKILL_SHEET_SOURCES) {
+        if (!this.textures.exists(s.key)) {
+          this.load.spritesheet(s.key, s.path, { frameWidth: s.frameWidth, frameHeight: s.frameHeight });
+        }
+      }
 
       for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
         if (cfg.mode === 'anim') {
@@ -225,6 +249,7 @@ export class GameScene extends Phaser.Scene {
       this.placedBuildings = [];
       this.moveSelecting = false;
       this.deleteSelecting = false;
+      this.shopActionLatched = false;
       this.currentMapConfig = this.reg.world.getCurrentMap();
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
@@ -315,9 +340,11 @@ export class GameScene extends Phaser.Scene {
       if (auto?.skillsEnabled && !autoPaused) this.runAutoSkills(delta);
       this.gridPhysics.update(delta);
 
-      // Detecta si hay un cofre interactuable cerca y cambia el contexto del botón
+      // Contexto del botón de acción: cofre cerca → abrir cofre; si no, tienda
+      // (u otro edificio con ventana) cerca → abrir ventana; si no → atacar.
       const nearChest = this.nearestOpenableChest();
-      this.reg.interaction?.setContext(nearChest ? 'chest' : 'attack');
+      const nearWindow = nearChest ? null : this.nearestWindowBuilding();
+      this.reg.interaction?.setContext(nearChest ? 'chest' : nearWindow ? 'shop' : 'attack');
 
       // Si la ventana de cofre de ciudad está abierta y el jugador se alejó de
       // TODOS los cofres de ciudad (fijo + construidos) → cerrar.
@@ -333,13 +360,27 @@ export class GameScene extends Phaser.Scene {
         if (!anyNear) this.reg.summon.townChestCloseRequest$.next();
       }
 
-      // Botón de acción: si hay cofre cerca → abrir; si no → golpear
+      // Si la ventana de un edificio (tienda) está abierta y el jugador se alejó
+      // del edificio → cerrarla.
+      if (this.reg.cityBuild?.windowOpen$.value && !this.nearestWindowBuilding()) {
+        this.reg.cityBuild.requestCloseWindow();
+      }
+
+      // Botón de acción: cofre cerca → abrir; tienda cerca → abrir su ventana
+      // (una sola vez por pulsación, vía latch); si no → golpear.
       if (this.mobileInput?.isAttackHeld) {
         if (nearChest) {
           this.openChest(nearChest);
+        } else if (nearWindow) {
+          if (!this.shopActionLatched) {
+            this.shopActionLatched = true;
+            this.reg.cityBuild.requestOpenWindow(nearWindow.building.type);
+          }
         } else if (!this.player.isAttacking) {
           this.strike();
         }
+      } else {
+        this.shopActionLatched = false;   // botón soltado → permite reabrir
       }
 
       const playerPos = this.player.getPosition();
@@ -817,6 +858,8 @@ export class GameScene extends Phaser.Scene {
         if (this.moveSelecting) { this.handleMoveSelect(pointer); return; }
         // En modo "borrar edificio" el toque selecciona el edificio a borrar.
         if (this.deleteSelecting) { this.handleDeleteSelect(pointer); return; }
+        // Pulsar un edificio con ventana propia (p.ej. la tienda) la abre.
+        if (this.handleBuildingWindowTap(pointer)) return;
         this.reg.asgard.closeAllMenus();
         this.onGameClick(pointer);
       });
@@ -834,6 +877,8 @@ export class GameScene extends Phaser.Scene {
         this.reg.autoAttack?.pauseAutomation();
         const chest = this.nearestOpenableChest();
         if (chest) { this.openChest(chest); return; }
+        const win = this.nearestWindowBuilding();
+        if (win) { this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
         if (this.player.isAttacking) return;
         this.strike();
       });
@@ -1353,6 +1398,31 @@ export class GameScene extends Phaser.Scene {
       this.reg.cityBuild.requestDelete({ ...pb.building });   // abre el modal de confirmación
     }
 
+    /** Edificio con ventana propia (p.ej. tienda) dentro del rango de interacción, o null. */
+    private nearestWindowBuilding(): typeof this.placedBuildings[0] | null {
+      const pos   = this.player.getPosition();
+      const range = GameScene.CHEST_INTERACT_RANGE;
+      for (const pb of this.placedBuildings) {
+        const def = this.reg.cityBuild?.def(pb.building.type);
+        if (!def?.opensWindow) continue;
+        const dx = pb.sprite.x - pos.x;
+        const dy = pb.sprite.y - pos.y;
+        if (dx * dx + dy * dy <= range * range) return pb;
+      }
+      return null;
+    }
+
+    /** Si el toque cae sobre un edificio con ventana propia, la abre. Devuelve true si lo gestionó. */
+    private handleBuildingWindowTap(pointer: Phaser.Input.Pointer): boolean {
+      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const pb = this.placedBuildings.find(b => b.sprite.getBounds().contains(world.x, world.y));
+      if (!pb) return false;
+      const def = this.reg.cityBuild.def(pb.building.type);
+      if (!def?.opensWindow) return false;
+      this.reg.cityBuild.requestOpenWindow(pb.building.type);
+      return true;
+    }
+
     /** Quita de la escena el edificio borrado (confirmado en el modal). */
     private removeBuildingFromScene(b: PlacedBuilding): void {
       const pb = this.placedBuildings.find(
@@ -1610,9 +1680,16 @@ export class GameScene extends Phaser.Scene {
       for (const cfg of Object.values(SKILL_REGISTRY)) {
         const animKey = cfg.spriteKey;
         if (this.anims.exists(animKey)) continue;
-        const frames = [];
-        for (let i = 1; i <= cfg.frameCount; i++) {
-          if (this.textures.exists(`${animKey}_${i}`)) frames.push({ key: `${animKey}_${i}` });
+        // Si existe una textura con la propia spriteKey → es un spritesheet (frames numerados 0..N-1).
+        // Si no → frames sueltos (una textura por frame: `${animKey}_${i}`).
+        let frames;
+        if (this.textures.exists(animKey)) {
+          frames = this.anims.generateFrameNumbers(animKey, { start: 0, end: cfg.frameCount - 1 });
+        } else {
+          frames = [];
+          for (let i = 1; i <= cfg.frameCount; i++) {
+            if (this.textures.exists(`${animKey}_${i}`)) frames.push({ key: `${animKey}_${i}` });
+          }
         }
         if (frames.length) {
           this.anims.create({ key: animKey, frames, frameRate: cfg.frameRate, repeat: -1 });
@@ -1670,6 +1747,8 @@ export class GameScene extends Phaser.Scene {
         this.reg.skillActivation?.refundCooldown(abilityId);
         return;
       }
+      // Skills melee: el personaje reproduce su animación de ataque al lanzar.
+      if (cfg.playerAnim) this.player.playerAttack();
       if (cfg.effectType === 'projectile') {
         this.launchProjectile(cfg, damage, target);
       } else {
@@ -1677,10 +1756,18 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    /** Crea el sprite de un efecto de skill con la textura inicial correcta:
+     *  spritesheet (textura única `spriteKey`, frame 0) o frames sueltos (`${spriteKey}_1`). */
+    private addSkillSprite(cfg: SkillConfig, x: number, y: number): Phaser.GameObjects.Sprite {
+      return this.textures.exists(cfg.spriteKey)
+        ? this.add.sprite(x, y, cfg.spriteKey, 0)
+        : this.add.sprite(x, y, `${cfg.spriteKey}_1`);
+    }
+
     private playImpactSelf(cfg: SkillConfig): void {
       const pos = this.player.getPosition();
       const playerSprite = this.player.getSprite();
-      const sprite = this.add.sprite(pos.x, pos.y - playerSprite.displayHeight * 0.5, `${cfg.spriteKey}_1`);
+      const sprite = this.addSkillSprite(cfg, pos.x, pos.y - playerSprite.displayHeight * 0.5);
       sprite.setDepth(6);
       sprite.setScale(cfg.scale);
       if (this.anims.exists(cfg.spriteKey)) sprite.play(cfg.spriteKey);
@@ -1718,7 +1805,7 @@ export class GameScene extends Phaser.Scene {
     private playImpact(cfg: SkillConfig, damage: number, target: Enemy): void {
       // sprite.y ya es el centro del enemigo (origin 0.5, 0.5)
       const pos = target.getPixelPos();
-      const sprite = this.add.sprite(pos.x, pos.y, `${cfg.spriteKey}_1`);
+      const sprite = this.addSkillSprite(cfg, pos.x, pos.y);
       sprite.setDepth(6);
       sprite.setScale(cfg.scale);
       if (this.anims.exists(cfg.spriteKey)) sprite.play(cfg.spriteKey);
@@ -1735,7 +1822,7 @@ export class GameScene extends Phaser.Scene {
     private launchProjectile(cfg: SkillConfig, damage: number, target: Enemy): void {
       const playerPos = this.player.getPosition();
       const targetPos = target.getPixelPos();
-      const proj = this.add.sprite(playerPos.x, playerPos.y, `${cfg.spriteKey}_1`);
+      const proj = this.addSkillSprite(cfg, playerPos.x, playerPos.y);
       proj.setDepth(5);
       proj.setScale(cfg.scale);
       if (this.anims.exists(cfg.spriteKey)) proj.play(cfg.spriteKey);

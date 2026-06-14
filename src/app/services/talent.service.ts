@@ -267,6 +267,36 @@ export const TALENT_NODES_FIRE: TalentNodeConfig[] = [
   },
 ];
 
+// ── Habilidades de guerrero (melee — primera pestaña del panel) ───────────────
+
+export const TALENT_NODES_WARRIOR: TalentNodeConfig[] = [
+  {
+    id: 'warrior_slash', label: 'Tajo de\nGuerrero', icon: 'flash-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 18, ability: 'warrior_slash' },
+  },
+  {
+    id: 'warrior_slash_2', label: 'Tajo de\nGuerrero II', icon: 'flash-outline',
+    col: 1, row: 0, requires: [],
+    effect: { type: 'ability', base: 20, ability: 'warrior_slash_2' },
+  },
+  {
+    id: 'warrior_slash_3', label: 'Tajo de\nGuerrero III', icon: 'flash-outline',
+    col: 2, row: 0, requires: [],
+    effect: { type: 'ability', base: 22, ability: 'warrior_slash_3' },
+  },
+  {
+    id: 'warrior_slash_4', label: 'Tajo de\nGuerrero IV', icon: 'flash-outline',
+    col: 3, row: 0, requires: [],
+    effect: { type: 'ability', base: 24, ability: 'warrior_slash_4' },
+  },
+  {
+    id: 'warrior_slash_5', label: 'Tajo de\nGuerrero V', icon: 'flash-outline',
+    col: 4, row: 0, requires: [],
+    effect: { type: 'ability', base: 26, ability: 'warrior_slash_5' },
+  },
+];
+
 // ── Habilidades de agua (disponibles sin desbloquear) ─────────────────────────
 
 export const TALENT_NODES_WATER: TalentNodeConfig[] = [
@@ -397,6 +427,51 @@ export const TALENT_NODES_SMOKER: TalentNodeConfig[] = [
   },
 ];
 
+// ── Humo (assets nuevos — pestaña "Humo" del panel) ───────────────────────────
+
+export const TALENT_NODES_SMOKE: TalentNodeConfig[] = [
+  {
+    id: 'smoke_1', label: 'Humo I', icon: 'cloud-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 8, ability: 'smoke_1' },
+  },
+  {
+    id: 'smoke_2', label: 'Humo II', icon: 'cloud-outline',
+    col: 1, row: 0, requires: [],
+    effect: { type: 'ability', base: 10, ability: 'smoke_2' },
+  },
+  {
+    id: 'smoke_3', label: 'Humo III', icon: 'cloud-outline',
+    col: 2, row: 0, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'smoke_3' },
+  },
+  {
+    id: 'smoke_4', label: 'Humo IV', icon: 'cloud-outline',
+    col: 3, row: 0, requires: [],
+    effect: { type: 'ability', base: 14, ability: 'smoke_4' },
+  },
+];
+
+// ── Fuego (assets nuevos — pestaña "Fuego" del panel) ─────────────────────────
+
+export const TALENT_NODES_FLAME: TalentNodeConfig[] = [
+  {
+    id: 'fire_1', label: 'Fuego I', icon: 'flame-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'fire_1' },
+  },
+  {
+    id: 'fire_2', label: 'Fuego II', icon: 'flame-outline',
+    col: 1, row: 0, requires: [],
+    effect: { type: 'ability', base: 15, ability: 'fire_2' },
+  },
+  {
+    id: 'fire_3', label: 'Fuego III', icon: 'flame-outline',
+    col: 2, row: 0, requires: [],
+    effect: { type: 'ability', base: 18, ability: 'fire_3' },
+  },
+];
+
 // ── Habilidades físicas (disponibles sin desbloquear) ─────────────────────────
 
 export const TALENT_NODES_PHYSICAL: TalentNodeConfig[] = [
@@ -409,7 +484,7 @@ export const TALENT_NODES_PHYSICAL: TalentNodeConfig[] = [
 
 // ── Registro global (todos los árboles) ──────────────────────────────────────
 
-const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION, ...TALENT_NODES_PHYSICAL];
+const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_WARRIOR, ...TALENT_NODES_SMOKE, ...TALENT_NODES_FLAME, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION, ...TALENT_NODES_PHYSICAL];
 
 @Injectable({ providedIn: 'root' })
 export class TalentService {

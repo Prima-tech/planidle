@@ -67,6 +67,16 @@ export class InventoryService {
     this.dropToWorld$.next(item);
   }
 
+  /** Mete el item en el inventario; si está lleno, lo suelta al suelo del mapa. */
+  addOrDropToWorld(item: InventoryItem): void {
+    if (this.addToGrid(this.mockGrid, item)) {
+      this.itemDropped$.next(item);
+      this.changes$.next();
+    } else {
+      this.dropToWorld(item);
+    }
+  }
+
   getSnapshot(): (InventoryItem | null)[][][] {
     return this.clone(this.mockGrid);
   }
@@ -77,7 +87,8 @@ export class InventoryService {
     this.changes$.next();
   }
 
-  private addToGrid(grid: (InventoryItem | null)[][][], item: InventoryItem): void {
+  /** Coloca/apila el item en el grid. Devuelve true si cupo, false si estaba lleno. */
+  private addToGrid(grid: (InventoryItem | null)[][][], item: InventoryItem): boolean {
     if (item.mergeable) {
       for (let t = 0; t < TABS; t++) {
         for (let r = 0; r < ROWS; r++) {
@@ -86,7 +97,7 @@ export class InventoryService {
             const existing = grid[t][r][c];
             if (existing?.mergeable && existing.name === item.name) {
               existing.sum = (existing.sum ?? 0) + (item.sum ?? 1);
-              return;
+              return true;
             }
           }
         }
@@ -98,11 +109,12 @@ export class InventoryService {
           if (!this.unlock.isUnlocked(t, r, c)) continue;
           if (!grid[t][r][c]) {
             grid[t][r][c] = item;
-            return;
+            return true;
           }
         }
       }
     }
+    return false;
   }
 
   generateId(): string {

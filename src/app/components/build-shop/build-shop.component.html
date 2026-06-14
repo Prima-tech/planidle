@@ -1,0 +1,97 @@
+<!-- Pestañas: Comprar / Vender -->
+<div class="shop-tabs">
+  <div class="shop-tab" [class.active]="tab === 'buy'" (click)="setTab('buy')">{{ 'BUILD.BUY' | translate }}</div>
+  <div class="shop-tab" [class.active]="tab === 'sell'" (click)="setTab('sell')">{{ 'BUILD.SELL' | translate }}</div>
+</div>
+
+<!-- ─────────── COMPRAR ─────────── -->
+<ng-container *ngIf="tab === 'buy'">
+  <ng-container *ngIf="{ coins: (playerCoins$ | async) ?? 0 } as ctx">
+    <div class="shop-grid">
+      <ng-container *ngFor="let item of slots">
+        <button *ngIf="item" class="shop-card"
+                [class.selected]="selected === item"
+                [class.sold-out]="item.stock <= 0"
+                (click)="select(item)" [title]="item.entry.name">
+          <div class="shop-card-frame">
+            <img [src]="item.entry.icon" alt="" draggable="false" />
+            <span class="shop-card-stock" *ngIf="item.stock > 0">x{{ item.stock }}</span>
+            <span class="shop-card-stock shop-card-stock--out" *ngIf="item.stock <= 0">{{ 'BUILD.SOLD_OUT' | translate }}</span>
+          </div>
+          <span class="shop-card-name">{{ item.entry.name }}</span>
+          <span class="shop-card-price"><span class="coin-mini"></span>{{ item.price }}</span>
+        </button>
+        <div *ngIf="!item" class="shop-card shop-card--empty"></div>
+      </ng-container>
+    </div>
+
+    <!-- Detalle de compra (a la derecha de la ventana) -->
+    <div class="shop-detail" *ngIf="selected as it" [ngStyle]="detailStyle">
+      <button class="shop-detail-close" (click)="closeDetail()">✕</button>
+      <div class="shop-detail-icon"><img [src]="it.entry.icon" alt="" draggable="false" /></div>
+      <div class="shop-detail-name">{{ it.entry.name }}</div>
+      <div class="shop-detail-desc" *ngIf="it.entry.description">{{ it.entry.description }}</div>
+
+      <div class="shop-qty" *ngIf="stackable(it) && it.stock > 0">
+        <button class="shop-qty-btn" (click)="dec()" [disabled]="quantity <= 1">−</button>
+        <span class="shop-qty-val">{{ quantity }}</span>
+        <button class="shop-qty-btn" (click)="inc(it, ctx.coins)" [disabled]="quantity >= maxQty(it, ctx.coins)">+</button>
+      </div>
+
+      <div class="shop-detail-meta">
+        <div class="shop-detail-price"><span class="coin-mini"></span><span>{{ totalPrice(it) }}</span></div>
+        <div class="shop-detail-stock" [class.out]="it.stock <= 0">
+          {{ it.stock > 0 ? ('x' + it.stock) : ('BUILD.SOLD_OUT' | translate) }}
+        </div>
+      </div>
+
+      <button class="shop-buy-btn" [disabled]="!affordable(it, ctx.coins)" (click)="buy()">
+        {{ 'BUILD.BUY' | translate }}
+      </button>
+    </div>
+  </ng-container>
+</ng-container>
+
+<!-- ─────────── VENDER ─────────── -->
+<ng-container *ngIf="tab === 'sell'">
+  <div class="sell-hint">{{ 'BUILD.SELL_HINT' | translate }}</div>
+
+  <div class="sell-grid" cdkDropListGroup>
+    <div *ngFor="let row of sellGrid; let r = index" class="sell-row">
+      <div *ngFor="let cell of row; let c = index"
+           class="sell-cell"
+           cdkDropList
+           cdkDropListSortingDisabled
+           [id]="'shop-sell-' + r + '-' + c"
+           [cdkDropListConnectedTo]="inventoryCellIds"
+           [cdkDropListData]="{ row: r, col: c, item: cell }"
+           (cdkDropListDropped)="onSellDrop($event, r, c)">
+        <div *ngIf="cell" class="sell-item" cdkDrag
+             [cdkDragData]="{ sourceContext: 'shop-sell', row: r, col: c, item: cell }"
+             [title]="cell.name">
+          <div *ngIf="cell.iconSheet != null" class="item-icon-sheet"
+               [style.background-image]="'url(' + cell.iconSheet + ')'"
+               [style.background-size]="getSheetBgSize(cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)"
+               [style.background-position]="getSheetPos(cell.iconFrame, cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)"></div>
+          <img *ngIf="cell.icon && cell.iconSheet == null" [src]="cell.icon" class="item-icon">
+          <span *ngIf="!cell.icon && cell.iconSheet == null" class="item-fallback">{{ cell.name.charAt(0) }}</span>
+          <div class="item-sum" *ngIf="cell.sum !== undefined">{{ cell.sum }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sell-foot">
+    <div class="sell-total">
+      <span>{{ 'BUILD.SELL_GET' | translate }}</span>
+      <span class="coin-mini"></span><span>{{ sellTotal() }}</span>
+    </div>
+    <button class="sell-btn" [disabled]="!canSell()" (click)="confirmSell()">{{ 'BUILD.SELL' | translate }}</button>
+  </div>
+</ng-container>
+
+<!-- Oro de la tienda (misma maquetación que el oro del inventario) -->
+<div class="coins-section">
+  <div class="coin-spinner"></div>
+  <span class="coin-amount">{{ shopGold$ | async | number }}</span>
+</div>
