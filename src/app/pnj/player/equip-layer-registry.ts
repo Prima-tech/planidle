@@ -25,7 +25,7 @@ export interface EquipLayerConfig {
   // mode 'anim':
   sheets?: EquipLayerSheet[];
   playerPrefix?: string;   // e.g. 'player_'
-  layerPrefix?: string;    // e.g. 'armet_'
+  layerPrefix?: string;    // e.g. 'helm01_'
   fallbackAnim?: string;
   /** Override scale for layers whose frameSize differs from the player's 64×64 base.
    *  If omitted, copies the player sprite's scale. */
@@ -163,43 +163,34 @@ function armourLayer(folder: string): EquipLayerConfig {
   };
 }
 
-function helmetLayer(folder: string): EquipLayerConfig {
-  const p = folder;
+// Cascos LPC en hoja universal combinada de 64×64 (13 cols), alineada 1:1 con el
+// cuerpo. walk filas 8-11 (9fr), slash 12-15 (6fr), idle 22-25 (2fr). depth 3
+// (siempre sobre el cuerpo; el casco va en la cabeza, no necesita depthWhenUp).
+function helmLayer(prefix: string, file: string): EquipLayerConfig {
+  const p = prefix;
+  const C = 13;
   return {
     frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
-    sheets: [
-      {
-        key: `${p}_idle`, path: `assets/sprites/player/equip/helmets/${p}/idle.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_idle_up`,    startFrame: 0, endFrame: 1, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_left`,  startFrame: 2, endFrame: 3, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_down`,  startFrame: 4, endFrame: 5, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_right`, startFrame: 6, endFrame: 7, frameRate: 2,  repeat: -1 },
-        ],
-      },
-      {
-        key: `${p}_walk`, path: `assets/sprites/player/equip/helmets/${p}/walk.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
-        ],
-      },
-      {
-        key: `${p}_slash`, path: `assets/sprites/player/equip/helmets/${p}/slash.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
-        ],
-      },
-    ],
+    sheets: [{
+      key: `${p}_main`,
+      path: `assets/sprites/player/equip/helms/${file}`,
+      frameWidth: 64, frameHeight: 64,
+      anims: [
+        { key: `${p}_idle_up`,      startFrame: 22 * C, endFrame: 22 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_left`,    startFrame: 23 * C, endFrame: 23 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_down`,    startFrame: 24 * C, endFrame: 24 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_right`,   startFrame: 25 * C, endFrame: 25 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_up`,      startFrame: 8 * C,  endFrame: 8 * C + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_left`,    startFrame: 9 * C,  endFrame: 9 * C + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_down`,    startFrame: 10 * C, endFrame: 10 * C + 8, frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_right`,   startFrame: 11 * C, endFrame: 11 * C + 8, frameRate: 10, repeat: -1 },
+        { key: `${p}_attack_up`,    startFrame: 12 * C, endFrame: 12 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_left`,  startFrame: 13 * C, endFrame: 13 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_down`,  startFrame: 14 * C, endFrame: 14 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_right`, startFrame: 15 * C, endFrame: 15 * C + 5, frameRate: 10, repeat: 0 },
+      ],
+    }],
   };
 }
 
@@ -335,75 +326,9 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   'Plate Armour':     armourLayer('plate'),
   'Tshirt':           armourLayer('tshirt'),
   'Tshirt Buttoned':  armourLayer('tshirt_buttoned'),
-  'Barbarian':        helmetLayer('barbarian'),
-  'Barbarian Nasal':  helmetLayer('barbarian_nasal'),
-  'Barbarian Viking': helmetLayer('barbarian_viking'),
-  'Barbuta':          helmetLayer('barbuta'),
-  'Barbuta Simple':   helmetLayer('barbuta_simple'),
-  'Bascinet':         helmetLayer('bascinet'),
-  'Bascinet Round':   helmetLayer('bascinet_round'),
-  'Close Helm':       helmetLayer('close'),
-  'Flattop':          helmetLayer('flattop'),
-  'Greathelm':        helmetLayer('greathelm'),
-  'Horned Helm':      helmetLayer('horned'),
-  'Kettle Helm':      helmetLayer('kettle'),
-  'Legion':           helmetLayer('legion'),
-  'Mail Coif':        helmetLayer('mail'),
-  'Maximus':          helmetLayer('maximus'),
-  'Morion':           helmetLayer('morion'),
-  'Nasal Helm':       helmetLayer('nasal'),
-  'Norman Helm':      helmetLayer('norman'),
-  'Pointed Helm':     helmetLayer('pointed'),
-  'Spangehelm':       helmetLayer('spangehelm'),
-  'Spangehelm Viking':helmetLayer('spangehelm_viking'),
-  'Sugarloaf':        helmetLayer('sugarloaf'),
-  'Sugarloaf Simple': helmetLayer('sugarloaf_simple'),
-  'Xeon':             helmetLayer('xeon'),
-  'Armet': {
-    frameWidth: 64,
-    frameHeight: 64,
-    depth: 3,
-    mode: 'anim',
-    playerPrefix: 'player_',
-    layerPrefix: 'armet_',
-    fallbackAnim: 'armet_idle_down',
-    sheets: [
-      {
-        key: 'armet_idle',
-        path: 'assets/sprites/player/equip/helmets/armet/idle.png',
-        frameWidth: 64,
-        frameHeight: 64,
-        anims: [
-          { key: 'armet_idle_up',    startFrame: 0, endFrame: 1, frameRate: 2,  repeat: -1 },
-          { key: 'armet_idle_left',  startFrame: 2, endFrame: 3, frameRate: 2,  repeat: -1 },
-          { key: 'armet_idle_down',  startFrame: 4, endFrame: 5, frameRate: 2,  repeat: -1 },
-          { key: 'armet_idle_right', startFrame: 6, endFrame: 7, frameRate: 2,  repeat: -1 },
-        ],
-      },
-      {
-        key: 'armet_walk',
-        path: 'assets/sprites/player/equip/helmets/armet/walk.png',
-        frameWidth: 64,
-        frameHeight: 64,
-        anims: [
-          { key: 'armet_walk_up',    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
-          { key: 'armet_walk_left',  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
-          { key: 'armet_walk_down',  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
-          { key: 'armet_walk_right', startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
-        ],
-      },
-      {
-        key: 'armet_slash',
-        path: 'assets/sprites/player/equip/helmets/armet/slash.png',
-        frameWidth: 64,
-        frameHeight: 64,
-        anims: [
-          { key: 'armet_attack_up',    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
-          { key: 'armet_attack_left',  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
-          { key: 'armet_attack_down',  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
-          { key: 'armet_attack_right', startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
-        ],
-      },
-    ],
-  },
+  // ── Cascos (assets/sprites/player/equip/helms) ──────────────────────────────
+  'Yelmo de Hierro':   helmLayer('helm01', 'helm_01.png'),
+  'Yelmo de Plata':    helmLayer('helm02', 'helm_02.png'),
+  'Casco de Cuero':    helmLayer('helm03', 'helm_03.png'),
+  'Capacete de Cuero': helmLayer('helm04', 'helm_04.png'),
 };

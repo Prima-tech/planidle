@@ -36,10 +36,13 @@ const PRODUCTS: { id: string; itemName: string; price: number; initialStock: num
 /** Oro que paga la tienda por unidad al vender (por nombre). Fallback: DEFAULT. */
 const DEFAULT_SELL_VALUE = 3;
 const SELL_VALUES: Record<string, number> = {
-  'Madera':         5,
-  'Bolsa de Cuero': 50,
-  'Poción':         4,
-  'Armet':          30,
+  'Madera':            5,
+  'Bolsa de Cuero':    50,
+  'Poción':            4,
+  'Yelmo de Hierro':   20,
+  'Yelmo de Plata':    25,
+  'Casco de Cuero':    12,
+  'Capacete de Cuero': 18,
 };
 
 @Injectable({ providedIn: 'root' })

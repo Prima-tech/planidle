@@ -3,6 +3,7 @@
   <div class="detail-header">
     <span class="detail-icon-box" *ngIf="item.iconSheet != null"
           [class.detail-icon-box--pet]="isPet"
+          [class.detail-icon-box--pet-sm]="item.petId === 'ferret'"
           [style.background-image]="'url(' + item.iconSheet + ')'"
           [style.background-size]="getSheetBgSize(item.iconFrameCols, item.iconFrameSize, item.iconContentSize)"
           [style.background-position]="getSheetPos(item.iconFrame, item.iconFrameCols, item.iconFrameSize, item.iconContentSize)">

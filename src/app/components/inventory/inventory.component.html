@@ -63,6 +63,7 @@
                  [class.item-icon-sheet--boots]="cell.category === 'Botas'"
                  [class.item-icon-sheet--weapon]="cell.category === 'Arma'"
                  [class.item-icon-sheet--pet]="cell.category === 'Mascota'"
+                 [class.item-icon-sheet--pet-sm]="cell.petId === 'ferret'"
                  [style.background-image]="'url(' + cell.iconSheet + ')'"
                  [style.background-size]="getSheetBgSize(cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)"
                  [style.background-position]="getSheetPos(cell.iconFrame, cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)">

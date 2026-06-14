@@ -76,6 +76,17 @@ arriba está vacía) → sin ajuste "sale muy abajo". Ya existe el modificador
 summon**, y `detail-icon-box--pet` en el panel de detalle. Si el arte de tu mascota está
 centrado distinto, ajusta el `translateY` de esas clases.
 
+### Escalar una mascota concreta (icono + animación)
+
+Si una mascota se ve más grande/pequeña que las demás:
+- **Animación** (sprite en el mapa): cambia su `scale` en `PET_REGISTRY` (p.ej. ferret usa
+  `2.475` = `3.3 × 0.75`, 25% más pequeño que el panda).
+- **Icono**: hay un modificador por-mascota `item-icon-sheet--pet-sm` (y
+  `detail-icon-box--pet-sm`) con la escala reducida, que se activa por `petId` concreto:
+  `[class.item-icon-sheet--pet-sm]="<item>.petId === 'ferret'"` en inventario/equipo/summon
+  y `detail-icon-box--pet-sm` en el panel. Para otra mascota, añade su `petId` a esos
+  bindings o crea un modificador nuevo.
+
 ---
 
 ## Sistema de mascotas (lo que YA hace — referencia)

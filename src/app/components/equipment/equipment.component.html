@@ -795,6 +795,7 @@
            class="item-icon-sheet"
            [class.item-icon-sheet--equip]="slot.item.iconFrameSize != null"
            [class.item-icon-sheet--pet]="slot.item.category === 'Mascota'"
+           [class.item-icon-sheet--pet-sm]="slot.item.petId === 'ferret'"
            [style.background-image]="'url(' + slot.item.iconSheet + ')'"
            [style.background-size]="getSheetBgSize(slot.item.iconFrameCols, slot.item.iconFrameSize, slot.item.iconContentSize)"
            [style.background-position]="getSheetPos(slot.item.iconFrame, slot.item.iconFrameCols, slot.item.iconFrameSize, slot.item.iconContentSize)">

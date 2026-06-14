@@ -143,6 +143,11 @@ $text-cream: #ecd9b4;
   transform: scale(1.2) translateY(-5px);
 }
 
+/* Mascotas con icono más pequeño (p.ej. ferret): 25% menos */
+.detail-icon-box--pet.detail-icon-box--pet-sm {
+  transform: scale(0.78) translateY(-5px);
+}
+
 .detail-icon {
   width: 28px;
   height: 28px;

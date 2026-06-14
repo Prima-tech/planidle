@@ -57,6 +57,25 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
       sleep:  { row: 6, frames: 8, frameRate: 6,  repeat: -1 },
     },
   },
+  ferret: {
+    id: 'ferret',
+    name: 'Hurón',
+    textureKey: 'pet_ferret',
+    sheetPath: 'assets/sprites/pets/ferret/ferret.png',
+    frameWidth: 32,
+    frameHeight: 32,
+    cols: 8,
+    scale: 2.8,   // algo más pequeño que el panda (3.3) pero no tanto
+    // Sheet 8×9: Idle, Idle2, Movement, Dig, Disappear, Jump, Emerge, Sleep, Death.
+    // La mascota solo usa idle + move; el resto queda listo para el futuro.
+    anims: {
+      idle:   { row: 0, frames: 8, frameRate: 8,  repeat: -1 },
+      idle2:  { row: 1, frames: 8, frameRate: 8,  repeat: -1 },
+      move:   { row: 2, frames: 8, frameRate: 12, repeat: -1 },
+      sleep:  { row: 7, frames: 8, frameRate: 6,  repeat: -1 },
+      death:  { row: 8, frames: 8, frameRate: 10, repeat: 0  },
+    },
+  },
 };
 
 /** Frame que se usa como icono fijo (idle 0). */
