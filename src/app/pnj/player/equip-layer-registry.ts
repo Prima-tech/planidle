@@ -43,85 +43,39 @@ export interface EquipLayerConfig {
   oversizeOffsetY?: number;
 }
 
-function bootsLayer(folder: string): EquipLayerConfig {
-  const p = folder;
+// Botas (foot) y pantalones (lets_final) LPC en hoja universal combinada de 64×64
+// (13 cols), igual que cascos/armaduras: walk 8-11, slash 12-15, idle 22-25. depth 3.
+function combinedLayer(prefix: string, path: string): EquipLayerConfig {
+  const p = prefix;
+  const C = 13;
   return {
     frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
-    sheets: [
-      {
-        key: `${p}_idle`, path: `assets/sprites/player/equip/boots/${p}/idle.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_idle_up`,    startFrame: 0, endFrame: 1, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_left`,  startFrame: 2, endFrame: 3, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_down`,  startFrame: 4, endFrame: 5, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_right`, startFrame: 6, endFrame: 7, frameRate: 2,  repeat: -1 },
-        ],
-      },
-      {
-        key: `${p}_walk`, path: `assets/sprites/player/equip/boots/${p}/walk.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
-        ],
-      },
-      {
-        key: `${p}_slash`, path: `assets/sprites/player/equip/boots/${p}/slash.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
-        ],
-      },
-    ],
+    sheets: [{
+      key: `${p}_main`, path, frameWidth: 64, frameHeight: 64,
+      anims: [
+        { key: `${p}_idle_up`,      startFrame: 22 * C, endFrame: 22 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_left`,    startFrame: 23 * C, endFrame: 23 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_down`,    startFrame: 24 * C, endFrame: 24 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_right`,   startFrame: 25 * C, endFrame: 25 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_up`,      startFrame: 8 * C,  endFrame: 8 * C + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_left`,    startFrame: 9 * C,  endFrame: 9 * C + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_down`,    startFrame: 10 * C, endFrame: 10 * C + 8, frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_right`,   startFrame: 11 * C, endFrame: 11 * C + 8, frameRate: 10, repeat: -1 },
+        { key: `${p}_attack_up`,    startFrame: 12 * C, endFrame: 12 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_left`,  startFrame: 13 * C, endFrame: 13 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_down`,  startFrame: 14 * C, endFrame: 14 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_right`, startFrame: 15 * C, endFrame: 15 * C + 5, frameRate: 10, repeat: 0 },
+      ],
+    }],
   };
 }
 
-function legsLayer(folder: string): EquipLayerConfig {
-  const p = folder;
-  return {
-    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
-    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
-    sheets: [
-      {
-        key: `${p}_idle`, path: `assets/sprites/player/equip/legs/${p}/idle.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_idle_up`,    startFrame: 0, endFrame: 1, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_left`,  startFrame: 2, endFrame: 3, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_down`,  startFrame: 4, endFrame: 5, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_right`, startFrame: 6, endFrame: 7, frameRate: 2,  repeat: -1 },
-        ],
-      },
-      {
-        key: `${p}_walk`, path: `assets/sprites/player/equip/legs/${p}/walk.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
-        ],
-      },
-      {
-        key: `${p}_slash`, path: `assets/sprites/player/equip/legs/${p}/slash.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
-        ],
-      },
-    ],
-  };
-}
+const bootsLayer = (prefix: string, file: string): EquipLayerConfig =>
+  combinedLayer(prefix, `assets/sprites/player/equip/foot/${file}`);
+
+const legsLayer = (prefix: string, file: string): EquipLayerConfig =>
+  combinedLayer(prefix, `assets/sprites/player/equip/lets_final/${file}`);
 
 // Armaduras (torso) LPC en hoja universal combinada de 64×64 (13 cols), igual que
 // los cascos: walk filas 8-11, slash 12-15, idle 22-25. depth 3 (sobre el cuerpo).
@@ -303,13 +257,16 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
       },
     ],
   },
-  'Armour Boots':     bootsLayer('armour'),
-  'Basic Boots':      bootsLayer('basic'),
-  'Fold Boots':       bootsLayer('fold'),
-  'Armour Pants':     legsLayer('armour'),
-  'Hose':             legsLayer('hose'),
-  'Leggings':         legsLayer('leggins'),
-  'Shorts':           legsLayer('shorts'),
+  // ── Botas (assets/sprites/player/equip/foot) ────────────────────────────────
+  'Botas de Marfil':   bootsLayer('foot01', 'foot_01.png'),
+  'Botas de Amatista': bootsLayer('foot02', 'foot_02.png'),
+  'Botas Carmesí':     bootsLayer('foot03', 'foot_03.png'),
+  'Botas de Cobalto':  bootsLayer('foot04', 'foot_04.png'),
+  // ── Pantalones (assets/sprites/player/equip/lets_final) ─────────────────────
+  'Grebas de Cuero':     legsLayer('legs01', 'legs_01.png'),
+  'Grebas de Obsidiana': legsLayer('legs02', 'legs_02.png'),
+  'Grebas Doradas':      legsLayer('legs03', 'legs_03.png'),
+  'Grebas de Cobalto':   legsLayer('legs04', 'legs_04.png'),
   // ── Armaduras / torsos (assets/sprites/player/equip/torso) ──────────────────
   'Coraza de Marfil':    armourLayer('torso01', 'torso_01.png'),
   'Coraza de Obsidiana': armourLayer('torso02', 'torso_02.png'),

@@ -34,7 +34,7 @@ export class Pet {
     for (const [name, anim] of Object.entries(cfg.anims)) {
       const key = `${cfg.textureKey}_${name}`;
       if (scene.anims.exists(key)) continue;
-      const start = anim.row * cfg.cols;
+      const start = anim.row * cfg.cols + (anim.startCol ?? 0);
       const frames = scene.anims.generateFrameNumbers(cfg.textureKey, { start, end: start + anim.frames - 1 });
       if (frames.length) {
         scene.anims.create({ key, frames, frameRate: anim.frameRate, repeat: anim.repeat });

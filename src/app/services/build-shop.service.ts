@@ -47,6 +47,14 @@ const SELL_VALUES: Record<string, number> = {
   'Coraza de Obsidiana': 35,
   'Coraza de Cobalto':   28,
   'Coraza Dorada':       32,
+  'Botas de Marfil':     10,
+  'Botas de Amatista':   16,
+  'Botas Carmesí':       14,
+  'Botas de Cobalto':    18,
+  'Grebas de Cuero':     12,
+  'Grebas de Obsidiana': 26,
+  'Grebas Doradas':      20,
+  'Grebas de Cobalto':   22,
 };
 
 @Injectable({ providedIn: 'root' })

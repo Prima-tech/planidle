@@ -158,39 +158,44 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
   ],
 };
 
-const _boots = (folder: string, name: string, hp: number): LootEntry => ({
+// Botas: hojas LPC universales en equip/foot. Icono dedicado en foot/icons; el
+// drop reutiliza la hoja precargada (foot0N_main) en idle_down (312).
+const FOOT_ICONS = 'assets/sprites/player/equip/foot/icons';
+const _boots = (prefix: string, file: string, name: string, hp: number): LootEntry => ({
   name,
   category: 'Botas',
   type: 'item',
   chance: 1, minQty: 1, maxQty: 1, mergeable: false,
-  texture: `${folder}_idle`, frame: 4, animKey: `${folder}_idle_down`,
-  iconSheet: `assets/sprites/player/equip/boots/${folder}/idle.png`,
-  iconFrame: 4, iconFrameSize: 64, iconFrameCols: 2,
-  scale: 1.5, order: 2, stats: { hp },
+  texture: `${prefix}_main`, frame: 312, scale: 2.5, order: 2,
+  icon: `${FOOT_ICONS}/${file}_icon.png`,
+  stats: { hp },
 });
 
 const BOOTS_CATALOG: LootEntry[] = [
-  _boots('basic',  'Basic Boots',  8),
-  _boots('fold',   'Fold Boots',  15),
-  _boots('armour', 'Armour Boots', 25),
+  _boots('foot01', 'foot_01', 'Botas de Marfil',   6),
+  _boots('foot02', 'foot_02', 'Botas de Amatista', 12),
+  _boots('foot03', 'foot_03', 'Botas Carmesí',     10),
+  _boots('foot04', 'foot_04', 'Botas de Cobalto',  14),
 ];
 
-const _legs = (folder: string, name: string, hp: number): LootEntry => ({
+// Pantalones: hojas LPC universales en equip/lets_final. Icono dedicado en
+// lets_final/icons; el drop reutiliza la hoja precargada (legs0N_main) idle_down.
+const LEGS_ICONS = 'assets/sprites/player/equip/lets_final/icons';
+const _legs = (prefix: string, file: string, name: string, hp: number): LootEntry => ({
   name,
   category: 'Pantalones',
   type: 'item',
   chance: 1, minQty: 1, maxQty: 1, mergeable: false,
-  texture: `${folder}_idle`, frame: 4, animKey: `${folder}_idle_down`,
-  iconSheet: `assets/sprites/player/equip/legs/${folder}/idle.png`,
-  iconFrame: 4, iconFrameSize: 64, iconFrameCols: 2,
-  scale: 1.5, order: 2, stats: { hp },
+  texture: `${prefix}_main`, frame: 312, scale: 2.5, order: 2,
+  icon: `${LEGS_ICONS}/${file}_icon.png`,
+  stats: { hp },
 });
 
 const PANTS_CATALOG: LootEntry[] = [
-  _legs('shorts',  'Shorts',       5),
-  _legs('hose',    'Hose',        10),
-  _legs('leggins', 'Leggings',    18),
-  _legs('armour',  'Armour Pants', 30),
+  _legs('legs01', 'legs_01', 'Grebas de Cuero',     8),
+  _legs('legs02', 'legs_02', 'Grebas de Obsidiana', 20),
+  _legs('legs03', 'legs_03', 'Grebas Doradas',      16),
+  _legs('legs04', 'legs_04', 'Grebas de Cobalto',   18),
 ];
 
 // Armaduras: hojas LPC universales en equip/torso. Icono dedicado recortado en

@@ -125,6 +125,17 @@ Si una mascota se ve más grande/pequeña que las demás:
   recoger la mascota llama `Pet.playPickup()` (jump → a los 500 ms emerge → sigue). Durante
   la secuencia `Pet.isBusy()` es true: `update()` no la mueve y `gamescene.updatePet`
   pausa la búsqueda/recogida. Las mascotas sin esas anims no hacen nada especial.
+  - ⚠️ **Frames vacíos o redundantes** en las filas de transición (dig/disappear/jump/
+    emerge) provocan "flashazo" o sensación de "frames de más". El JSON de Aseprite exporta
+    TODAS las celdas aunque estén transparentes o repetidas, así que NO basta con mirarlo:
+    inspecciona el sheet de verdad. Útil:
+    1. Alfa por celda (LockBits en PowerShell, técnica en `new-weapon`) → detecta celdas
+       vacías/casi vacías.
+    2. Genera una tira ampliada de la fila (DrawImage NearestNeighbor a ~6×, con separación)
+       y léela como imagen → detecta poses repetidas al final.
+    Luego recorta con `PetAnimDef.startCol` + `frames`. Ejemplos ferret: `emerge` col 0 vacía
+    y 1‑2 casi vacías → `startCol: 3, frames: 5`; `jump` es salto+agarre en cols 0‑4 y las
+    5‑7 son poses tumbadas casi iguales → `frames: 5`.
 
 ### Pantalla de info de la mascota (`app-item-detail`)
 

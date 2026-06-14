@@ -17,6 +17,9 @@ export interface PetAnimDef {
   frameRate: number;
   /** -1 = bucle, 0 = una vez. */
   repeat: number;
+  /** Columna de inicio dentro de la fila (por defecto 0). Sirve para saltar frames
+   *  vacíos al principio de una fila (p.ej. el "emerge" arranca bajo tierra). */
+  startCol?: number;
 }
 
 export interface PetConfig {
@@ -72,8 +75,12 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
       idle:   { row: 0, frames: 8, frameRate: 8,  repeat: -1 },
       idle2:  { row: 1, frames: 8, frameRate: 8,  repeat: -1 },
       move:   { row: 2, frames: 8, frameRate: 12, repeat: -1 },
-      jump:   { row: 5, frames: 8, frameRate: 14, repeat: 0  },
-      emerge: { row: 6, frames: 8, frameRate: 14, repeat: 0  },
+      // Jump: la fila es un "salto y agarre" (cols 0‑4); las cols 5‑7 son poses
+      // tumbadas casi idénticas (frames de más) → solo 0‑4.
+      jump:   { row: 5, frames: 5, frameRate: 14, repeat: 0  },
+      // Emerge: las cols 0‑2 están vacías/casi vacías (sale de bajo tierra) →
+      // empezamos en la col 3 para evitar el "flashazo" del frame en blanco.
+      emerge: { row: 6, startCol: 3, frames: 5, frameRate: 12, repeat: 0  },
       sleep:  { row: 7, frames: 8, frameRate: 6,  repeat: -1 },
       death:  { row: 8, frames: 8, frameRate: 10, repeat: 0  },
     },
