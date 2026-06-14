@@ -6,7 +6,7 @@ import { AsgardService } from "src/app/services/asgard";
 import { PlayerBridgeService } from "src/app/services/player-bridge.service";
 import { InventoryService } from "src/app/services/inventory.service";
 import { IAttack } from "src/app/pnj/player/player";
-import { SaveService, SaveStatus, LocalInfo, ChangeDelta, SupabasePayload } from "src/app/services/save.service";
+import { SaveService, SaveStatus, LocalInfo, ChangeDelta } from "src/app/services/save.service";
 import { CityBuildService } from "src/app/services/city-build.service";
 import { BuildShopService } from "src/app/services/build-shop.service";
 import { ConnectionService } from "src/app/services/connection.service";
@@ -49,10 +49,8 @@ export class SettingsPageComponent implements OnInit {
 
   localInfo: LocalInfo | null = null;
   delta: ChangeDelta | null = null;
-  payload: SupabasePayload | null = null;
   loadingInfo    = false;
   loadingDelta   = false;
-  loadingPayload = false;
 
   readonly FIELD_LABELS: Record<string, string> = {
     coins:        'SETTINGS.INFO.COINS',
@@ -78,7 +76,6 @@ export class SettingsPageComponent implements OnInit {
     // Refresca los paneles abiertos si los hay
     if (this.localInfo) this.localInfo = await this.saveService.getLocalInfo();
     if (this.delta)     this.delta     = await this.saveService.getDelta();
-    if (this.payload)   this.payload   = await this.saveService.getSupabasePayload();
   }
 
   async toggleLocalInfo() {
@@ -93,20 +90,6 @@ export class SettingsPageComponent implements OnInit {
     this.loadingDelta = true;
     this.delta = await this.saveService.getDelta();
     this.loadingDelta = false;
-  }
-
-  async togglePayload() {
-    if (this.payload) { this.payload = null; return; }
-    this.loadingPayload = true;
-    this.payload = await this.saveService.getSupabasePayload();
-    this.loadingPayload = false;
-  }
-
-  payloadFields(fields: Record<string, any>): { key: string; val: string }[] {
-    return Object.entries(fields).map(([key, val]) => ({
-      key,
-      val: typeof val === 'object' ? JSON.stringify(val) : String(val),
-    }));
   }
 
   deltaKeys(delta: ChangeDelta): (keyof ChangeDelta['playerState'])[] {

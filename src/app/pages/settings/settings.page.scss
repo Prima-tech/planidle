@@ -262,51 +262,6 @@ $red: #e07070;            // valores negativos
   &.muted-text { color: rgba($text-cream, 0.5); font-style: italic; }
 }
 
-// ── Payload Supabase ──────────────────────────────────────────────────────────
-
-.payload-skip  { color: rgba($text-cream, 0.55); font-style: italic; font-size: 11px; padding: 4px 0; }
-
-.payload-table {
-  margin-bottom: 10px;
-  border-radius: 4px;
-  overflow: hidden;
-  &.skip { opacity: 0.45; }
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 0;
-    border-bottom: 1px solid rgba($gold, 0.25);
-    margin-bottom: 4px;
-  }
-
-  &__name { font-size: 11px; font-weight: bold; color: $gold; font-family: monospace; }
-}
-
-.payload-badge {
-  font-size: 9px; font-weight: bold; letter-spacing: 1px; padding: 2px 6px; border-radius: 3px;
-  border: 1px solid $outline;
-  &.update { background: #3e6b34; color: #d9f0c8; }
-  &.skip   { background: rgba(0, 0, 0, 0.3); color: rgba($text-cream, 0.5); }
-}
-
-.payload-field {
-  display: flex; justify-content: space-between;
-  padding: 2px 0; font-family: monospace; font-size: 11px;
-}
-
-.payload-key { color: $gold; }
-.payload-val {
-  color: $text-cream; max-width: 60%;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;
-}
-
-.payload-note {
-  font-size: 10px; color: rgba($text-cream, 0.55); font-style: italic;
-  margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba($text-cream, 0.25);
-}
-
 // ── Delta / badges ────────────────────────────────────────────────────────────
 
 .item-type-badge {

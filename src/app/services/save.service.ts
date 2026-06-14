@@ -83,19 +83,6 @@ export interface ChangeDelta {
   inventoryDelta: InventoryItemDelta[];
 }
 
-export interface SupabaseTablePayload {
-  table: string;
-  operation: 'UPDATE' | 'SKIP';
-  fields: Record<string, any>;
-  note?: string;
-}
-
-export interface SupabasePayload {
-  willSync: boolean;
-  skipReason?: string;
-  tables: SupabaseTablePayload[];
-}
-
 export interface LocalInfo {
   playerState: PlayerState;
   itemCount: number;
@@ -307,13 +294,6 @@ export class SaveService {
     };
   }
 
-  async getSupabasePayload(): Promise<SupabasePayload> {
-    if (OFFLINE_MODE) return { willSync: false, skipReason: 'OFFLINE_MODE activo', tables: [] };
-    const current = this.buildSnapshot();
-    const synced: GameSnapshot | null = await this.storage.get(this.syncedKey());
-    return this.buildSupabasePayload(current, synced);
-  }
-
   // --- Internos ---
 
   private buildSnapshot(): GameSnapshot {
@@ -369,45 +349,6 @@ export class SaveService {
       this.status$.next('error');
       setTimeout(() => this.status$.next('idle'), 3000);
     }
-  }
-
-  private buildSupabasePayload(current: GameSnapshot, synced: GameSnapshot | null): SupabasePayload {
-    const tables: SupabaseTablePayload[] = [];
-
-    const psFields: Record<string, any> = {};
-    for (const key of (['coins', 'specialCoins', 'exp', 'lvl'] as (keyof PlayerState)[])) {
-      if (!synced || current.playerState[key] !== synced.playerState[key]) {
-        psFields[key] = current.playerState[key];
-      }
-    }
-    if (Object.keys(psFields).length > 0) {
-      psFields['last_modified'] = current.lastModified;
-      tables.push({ table: 'global_data', operation: 'UPDATE', fields: psFields });
-    } else {
-      tables.push({ table: 'global_data', operation: 'SKIP', fields: {}, note: 'Sin cambios' });
-    }
-
-    const inventoryChanged = !synced ||
-      JSON.stringify(current.inventory) !== JSON.stringify(synced.inventory);
-    if (inventoryChanged) {
-      const itemCount = current.inventory.flat(2).filter(Boolean).length;
-      tables.push({
-        table: 'inventory', operation: 'UPDATE', fields: { slots: itemCount },
-        note: `${itemCount} items (grid completo — tabla pendiente de normalizar)`,
-      });
-    } else {
-      tables.push({ table: 'inventory', operation: 'SKIP', fields: {}, note: 'Sin cambios' });
-    }
-
-    const lastSeenChanged = !synced || current.lastSeen !== synced.lastSeen;
-    if (lastSeenChanged) {
-      tables.push({ table: 'characters', operation: 'UPDATE', fields: { last_seen: current.lastSeen } });
-    } else {
-      tables.push({ table: 'characters', operation: 'SKIP', fields: {}, note: 'Sin cambios' });
-    }
-
-    const willSync = tables.some(t => t.operation === 'UPDATE');
-    return { willSync, skipReason: willSync ? undefined : 'Todo sincronizado', tables };
   }
 
   private summarizeInventory(grid: (InventoryItem | null)[][][]): InventorySummaryEntry[] {
