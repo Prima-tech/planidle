@@ -1168,11 +1168,15 @@ $metal-dark: #6b6357;
     cursor: not-allowed;
   }
 
-  // Bloqueado pero alcanzable: hay padre desbloqueado y puntos disponibles
+  // Alcanzable (padre desbloqueado): borde discontinuo, estático
   &--unlockable {
     opacity: 0.85;
     border-style: dashed;
     border-color: lighten($stone-light, 8%);
+  }
+
+  // Solo los que puedes desbloquear AHORA (alcanzable + hay puntos) parpadean
+  &--can-unlock {
     animation: tnode-unlockable 1.4s ease-in-out infinite;
   }
 

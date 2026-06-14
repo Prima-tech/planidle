@@ -335,6 +335,11 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     return { left: `${node.col * 33 + 3}px`, top: `${node.row * 48 + 3}px` };
   }
 
+  /** Parpadea solo si es alcanzable Y hay puntos para gastarlo ahora. */
+  nodeCanUnlock(node: TalentNodeConfig): boolean {
+    return this.nodeState(node) === 'unlockable' && this.talent.canUnlock(node.id);
+  }
+
   nodeColor(node: TalentNodeConfig): string {
     const sphere = this.talent.slotted[node.id];
     return sphere ? this.sphereColors[sphere] : '';

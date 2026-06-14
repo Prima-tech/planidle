@@ -455,6 +455,7 @@
              [class.tnode--small]="node.small"
              [class.tnode--locked]="nodeState(node) === 'locked'"
              [class.tnode--unlockable]="nodeState(node) === 'unlockable'"
+             [class.tnode--can-unlock]="nodeCanUnlock(node)"
              [class.tnode--available]="nodeState(node) === 'available'"
              [class.tnode--slotted]="nodeState(node) === 'slotted'"
              [class.tnode--selected]="selectedNodeId === node.id"
