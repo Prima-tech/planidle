@@ -123,43 +123,33 @@ function legsLayer(folder: string): EquipLayerConfig {
   };
 }
 
-function armourLayer(folder: string): EquipLayerConfig {
-  const p = folder;
+// Armaduras (torso) LPC en hoja universal combinada de 64×64 (13 cols), igual que
+// los cascos: walk filas 8-11, slash 12-15, idle 22-25. depth 3 (sobre el cuerpo).
+function armourLayer(prefix: string, file: string): EquipLayerConfig {
+  const p = prefix;
+  const C = 13;
   return {
     frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
-    sheets: [
-      {
-        key: `${p}_idle`, path: `assets/sprites/player/equip/armour/${p}/idle.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_idle_up`,    startFrame: 0, endFrame: 1, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_left`,  startFrame: 2, endFrame: 3, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_down`,  startFrame: 4, endFrame: 5, frameRate: 2,  repeat: -1 },
-          { key: `${p}_idle_right`, startFrame: 6, endFrame: 7, frameRate: 2,  repeat: -1 },
-        ],
-      },
-      {
-        key: `${p}_walk`, path: `assets/sprites/player/equip/armour/${p}/walk.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_walk_up`,    startFrame: 0,  endFrame: 8,  frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_left`,  startFrame: 9,  endFrame: 17, frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_down`,  startFrame: 18, endFrame: 26, frameRate: 10, repeat: -1 },
-          { key: `${p}_walk_right`, startFrame: 27, endFrame: 35, frameRate: 10, repeat: -1 },
-        ],
-      },
-      {
-        key: `${p}_slash`, path: `assets/sprites/player/equip/armour/${p}/slash.png`,
-        frameWidth: 64, frameHeight: 64,
-        anims: [
-          { key: `${p}_attack_up`,    startFrame: 0,  endFrame: 5,  frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_left`,  startFrame: 6,  endFrame: 11, frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_down`,  startFrame: 12, endFrame: 17, frameRate: 10, repeat: 0 },
-          { key: `${p}_attack_right`, startFrame: 18, endFrame: 23, frameRate: 10, repeat: 0 },
-        ],
-      },
-    ],
+    sheets: [{
+      key: `${p}_main`,
+      path: `assets/sprites/player/equip/torso/${file}`,
+      frameWidth: 64, frameHeight: 64,
+      anims: [
+        { key: `${p}_idle_up`,      startFrame: 22 * C, endFrame: 22 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_left`,    startFrame: 23 * C, endFrame: 23 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_down`,    startFrame: 24 * C, endFrame: 24 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_right`,   startFrame: 25 * C, endFrame: 25 * C + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_up`,      startFrame: 8 * C,  endFrame: 8 * C + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_left`,    startFrame: 9 * C,  endFrame: 9 * C + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_down`,    startFrame: 10 * C, endFrame: 10 * C + 8, frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_right`,   startFrame: 11 * C, endFrame: 11 * C + 8, frameRate: 10, repeat: -1 },
+        { key: `${p}_attack_up`,    startFrame: 12 * C, endFrame: 12 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_left`,  startFrame: 13 * C, endFrame: 13 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_down`,  startFrame: 14 * C, endFrame: 14 * C + 5, frameRate: 10, repeat: 0 },
+        { key: `${p}_attack_right`, startFrame: 15 * C, endFrame: 15 * C + 5, frameRate: 10, repeat: 0 },
+      ],
+    }],
   };
 }
 
@@ -320,12 +310,11 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   'Hose':             legsLayer('hose'),
   'Leggings':         legsLayer('leggins'),
   'Shorts':           legsLayer('shorts'),
-  'Chainmail':        armourLayer('chainmail'),
-  'Leather Armour':   armourLayer('leather'),
-  'Legion Armour':    armourLayer('legion'),
-  'Plate Armour':     armourLayer('plate'),
-  'Tshirt':           armourLayer('tshirt'),
-  'Tshirt Buttoned':  armourLayer('tshirt_buttoned'),
+  // ── Armaduras / torsos (assets/sprites/player/equip/torso) ──────────────────
+  'Coraza de Marfil':    armourLayer('torso01', 'torso_01.png'),
+  'Coraza de Obsidiana': armourLayer('torso02', 'torso_02.png'),
+  'Coraza de Cobalto':   armourLayer('torso03', 'torso_03.png'),
+  'Coraza Dorada':       armourLayer('torso04', 'torso_04.png'),
   // ── Cascos (assets/sprites/player/equip/helms) ──────────────────────────────
   'Yelmo de Hierro':   helmLayer('helm01', 'helm_01.png'),
   'Yelmo de Plata':    helmLayer('helm02', 'helm_02.png'),

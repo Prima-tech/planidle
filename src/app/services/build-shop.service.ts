@@ -43,6 +43,10 @@ const SELL_VALUES: Record<string, number> = {
   'Yelmo de Plata':    25,
   'Casco de Cuero':    12,
   'Capacete de Cuero': 18,
+  'Coraza de Marfil':    18,
+  'Coraza de Obsidiana': 35,
+  'Coraza de Cobalto':   28,
+  'Coraza Dorada':       32,
 };
 
 @Injectable({ providedIn: 'root' })

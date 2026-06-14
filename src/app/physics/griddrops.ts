@@ -193,33 +193,24 @@ const PANTS_CATALOG: LootEntry[] = [
   _legs('armour',  'Armour Pants', 30),
 ];
 
-const _armour = (folder: string, name: string, hp: number): LootEntry => ({
+// Armaduras: hojas LPC universales en equip/torso. Icono dedicado recortado en
+// torso/icons; el drop reutiliza la hoja precargada (torso0N_main) en idle_down (312).
+const TORSO_ICONS = 'assets/sprites/player/equip/torso/icons';
+const _armour = (prefix: string, file: string, name: string, hp: number): LootEntry => ({
   name,
   category: 'Armadura',
   type: 'item',
-  chance: 1,
-  minQty: 1,
-  maxQty: 1,
-  mergeable: false,
-  texture: `${folder}_idle`,
-  frame: 4,
-  animKey: `${folder}_idle_down`,
-  iconSheet: `assets/sprites/player/equip/armour/${folder}/idle.png`,
-  iconFrame: 4,
-  iconFrameSize: 64,
-  iconFrameCols: 2,
-  scale: 1.5,
-  order: 2,
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: `${prefix}_main`, frame: 312, scale: 2.5, order: 2,
+  icon: `${TORSO_ICONS}/${file}_icon.png`,
   stats: { hp },
 });
 
 const ARMOUR_CATALOG: LootEntry[] = [
-  _armour('tshirt',          'Tshirt',           5),
-  _armour('tshirt_buttoned', 'Tshirt Buttoned',  8),
-  _armour('leather',         'Leather Armour',  15),
-  _armour('chainmail',       'Chainmail',       25),
-  _armour('legion',          'Legion Armour',   30),
-  _armour('plate',           'Plate Armour',    45),
+  _armour('torso01', 'torso_01', 'Coraza de Marfil',    12),
+  _armour('torso02', 'torso_02', 'Coraza de Obsidiana', 28),
+  _armour('torso03', 'torso_03', 'Coraza de Cobalto',   20),
+  _armour('torso04', 'torso_04', 'Coraza Dorada',       24),
 ];
 
 // Cascos: hojas LPC universales en equip/helms. Icono dedicado recortado en

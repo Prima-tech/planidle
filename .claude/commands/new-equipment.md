@@ -13,11 +13,17 @@ Guía para crear cascos, armaduras, pantalones, botas y accesorios. Para armas u
 
 ---
 
-## ⭐ Cascos en hoja LPC combinada (`equip/helms/`) — flujo validado
+## ⭐ Cascos y armaduras en hoja LPC combinada — flujo validado
 
 El formato moderno (como el de las espadas en `/new-weapon`) es **una sola PNG por
-casco**, hoja LPC universal completa: **832×3456 = 13 cols × 54 filas a 64px**, alineada
+pieza**, hoja LPC universal completa: **832×3456 = 13 cols × 54 filas a 64px**, alineada
 1:1 con el cuerpo del jugador. NO son los `idle/walk/slash.png` separados de antes.
+
+- **Cascos** → carpeta `equip/helms/`, helper `helmLayer('helm01','helm_01.png')`.
+- **Armaduras/torsos** → carpeta `equip/torso/`, helper `armourLayer('torso01','torso_01.png')`.
+
+Todo lo de abajo (filas, frame 312 para icono/drop, catálogo, panel) es **idéntico** para
+ambos; solo cambian la carpeta, el helper y la `category` (`'Casco'` vs `'Armadura'`).
 
 ### Filas que usamos (frame index = `fila × 13`)
 | Animación | Filas | Frames/dir | up / left / down / right |
@@ -138,13 +144,15 @@ Archivo: `src/app/pnj/player/equip-layer-registry.ts`
 ### Muchos items del mismo tipo — usar helper existente
 
 Helpers en `equip-layer-registry.ts`:
-- **`helmLayer(prefix, file)`** — cascos en **hoja combinada** (`helms/`, ver sección ⭐ arriba). Es el actual.
-- `armourLayer`, `bootsLayer`, `legsLayer` — formato multi-archivo (idle/walk/slash separados).
+- **`helmLayer(prefix, file)`** — cascos en **hoja combinada** (`helms/`). Actual.
+- **`armourLayer(prefix, file)`** — armaduras/torsos en **hoja combinada** (`torso/`). Actual.
+- `bootsLayer(folder)`, `legsLayer(folder)` — formato multi-archivo (idle/walk/slash separados).
 
 ```typescript
 // En EQUIP_LAYER_REGISTRY:
-'Yelmo de Hierro': helmLayer('helm01', 'helm_01.png'),
-'Armour Boots':    bootsLayer('armour'),
+'Yelmo de Hierro':  helmLayer('helm01', 'helm_01.png'),
+'Coraza de Marfil': armourLayer('torso01', 'torso_01.png'),
+'Armour Boots':     bootsLayer('armour'),
 ```
 
 Cada helper genera el config completo con las rutas correctas. Si necesitas un tipo nuevo, crear un helper siguiendo el mismo patrón.
@@ -244,11 +252,11 @@ No hay que tocar `gamescene.ts`. Lee `EQUIP_LAYER_REGISTRY` en `preload()`, regi
 
 ## Checklist
 
-### Cascos hoja combinada (`helms/`, recomendado)
-- [ ] PNG en `equip/helms/` (832×3456 = 13 col × 54 fila, 64px)
-- [ ] Entrada con `helmLayer('helmNN', 'helm_NN.png')` en `EQUIP_LAYER_REGISTRY`
-- [ ] **Icono dedicado** en `helms/icons/` (frame 312) y `_helmet` con `icon:` (no `iconSheet:`) en `HELMET_CATALOG`
-- [ ] `category: 'Casco'` → aparece en el panel de invocación
+### Cascos/armaduras en hoja combinada (recomendado)
+- [ ] PNG en `equip/helms/` (casco) o `equip/torso/` (armadura) — 832×3456 = 13 col × 54 fila, 64px
+- [ ] Entrada con `helmLayer('helmNN','helm_NN.png')` o `armourLayer('torsoNN','torso_NN.png')`
+- [ ] **Icono dedicado** en `<carpeta>/icons/` (frame 312) y catálogo con `icon:` (no `iconSheet:`)
+- [ ] `category` correcta (`'Casco'` / `'Armadura'`) → aparece en el panel de invocación
 - [ ] Verificado en juego (`npm start`): equipar, andar, atacar, icono
 
 ### Items multi-archivo legacy (armour/legs/boots)
