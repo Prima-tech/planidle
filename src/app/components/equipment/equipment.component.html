@@ -57,7 +57,7 @@
       <div class="preview-frame">
         <app-player-preview [size]="96"></app-player-preview>
         <!-- Alterna entre equipo de combate y de recolección (y vuelve) -->
-        <button class="preview-corner-btn" (click)="showGathering = !showGathering"
+        <button class="preview-corner-btn" (click)="showGathering = !showGathering; clearEquippedSelection()"
                 [title]="showGathering ? 'Equipo de combate' : 'Equipo de recolección'">
           <ion-icon [name]="showGathering ? 'shield-outline' : 'bag-handle-outline'"></ion-icon>
         </button>
@@ -634,6 +634,11 @@
     </ng-container>
   </div>
 
+  <!-- Ficha del ítem equipado: aparece a la derecha al pinchar un slot ocupado -->
+  <app-item-detail *ngIf="activeTab === 0"
+                   [item]="selectedEquippedItem"
+                   [panelStyle]="equipDetailStyle"></app-item-detail>
+
 </div>
 
 <!-- Template reutilizable: tarjeta-acordeón de misión -->
@@ -719,8 +724,10 @@
   >
     <div *ngIf="slot.item; else emptySlot"
          class="equip-item"
+         [class.selected]="selectedEquippedItem === slot.item"
          cdkDrag
          [cdkDragData]="{ sourceContext: 'equipment', slotId: 'equip-' + slot.id, item: slot.item }"
+         (click)="selectEquippedItem(slot.item, $event)"
          [title]="slot.item.name">
       <div *ngIf="slot.item.iconSheet != null"
            class="item-icon-sheet"
@@ -764,8 +771,10 @@
   >
     <div *ngIf="slot.item; else gatheringEmptySlot"
          class="equip-item"
+         [class.selected]="selectedEquippedItem === slot.item"
          cdkDrag
          [cdkDragData]="{ sourceContext: 'gathering', slotId: 'gather-' + slot.id, item: slot.item }"
+         (click)="selectEquippedItem(slot.item, $event)"
          [title]="slot.item.name">
       <div *ngIf="slot.item.iconSheet != null"
            class="item-icon-sheet"

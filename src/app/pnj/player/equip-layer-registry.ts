@@ -230,35 +230,40 @@ function swordLayer64(prefix: string, file: string): EquipLayerConfig {
   };
 }
 
-// Espada "oversize" LPC de 128×128 (13 cols). El personaje va centrado en el
-// frame → layerScale = escala del jugador (2.5) y layerOffsetY = 32×2.5 = 80.
-// Esta plantilla solo trae bloques de slash (rows 27-30 = 6 frames). No hay
-// ciclo de andar, así que idle/walk usan el primer frame (pose en guardia) y
-// attack reproduce el slash completo.
-function swordLayer128(prefix: string, file: string): EquipLayerConfig {
+// Espadas tipo "Arming Sword" del set universal LPC (ElizaWy). Frame 64×64, pero
+// la hoja viene a 26 columnas (fg en cols 0-12 delante del cuerpo, bg en 13-25
+// detrás). Usamos solo la mitad fg (cols 0-8 contienen el arma visible).
+// Layout universal estándar: walk filas 8-11 (9 frames), idle filas 22-25 (2).
+// El slash 1h vive en filas 54+ pero ahí gran parte del arma queda detrás del
+// cuerpo (capa bg) y con una sola capa se ve roto → el "ataque" mantiene la pose
+// de guardia (idle) hasta poder componer bg+fg.
+function swordLayerArming(prefix: string, file: string): EquipLayerConfig {
   const p = prefix;
-  const hold = { up: 351, left: 364, down: 377, right: 390 };
+  const COLS = 26;
+  const walk = { up: 8 * COLS, left: 9 * COLS, down: 10 * COLS, right: 11 * COLS };
+  const idle = { up: 22 * COLS, left: 23 * COLS, down: 24 * COLS, right: 25 * COLS };
   return {
-    frameWidth: 128, frameHeight: 128, depth: 4, mode: 'anim',
-    layerScale: 2.5, layerOffsetY: 80, depthWhenUp: 1.5,
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    depthWhenUp: 1.5,   // detrás del jugador salvo mirando hacia abajo
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
     sheets: [{
       key: `${p}_main`,
       path: `assets/sprites/player/equip/weapons/swords/${file}`,
-      frameWidth: 128, frameHeight: 128,
+      frameWidth: 64, frameHeight: 64,
       anims: [
-        { key: `${p}_idle_up`,      startFrame: hold.up,    endFrame: hold.up,    frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_left`,    startFrame: hold.left,  endFrame: hold.left,  frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_down`,    startFrame: hold.down,  endFrame: hold.down,  frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_right`,   startFrame: hold.right, endFrame: hold.right, frameRate: 2,  repeat: -1 },
-        { key: `${p}_walk_up`,      startFrame: hold.up,    endFrame: hold.up,    frameRate: 2,  repeat: -1 },
-        { key: `${p}_walk_left`,    startFrame: hold.left,  endFrame: hold.left,  frameRate: 2,  repeat: -1 },
-        { key: `${p}_walk_down`,    startFrame: hold.down,  endFrame: hold.down,  frameRate: 2,  repeat: -1 },
-        { key: `${p}_walk_right`,   startFrame: hold.right, endFrame: hold.right, frameRate: 2,  repeat: -1 },
-        { key: `${p}_attack_up`,    startFrame: 351, endFrame: 356, frameRate: 12, repeat: 0 },
-        { key: `${p}_attack_left`,  startFrame: 364, endFrame: 369, frameRate: 12, repeat: 0 },
-        { key: `${p}_attack_down`,  startFrame: 377, endFrame: 382, frameRate: 12, repeat: 0 },
-        { key: `${p}_attack_right`, startFrame: 390, endFrame: 395, frameRate: 12, repeat: 0 },
+        { key: `${p}_idle_up`,      startFrame: idle.up,    endFrame: idle.up + 1,    frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_left`,    startFrame: idle.left,  endFrame: idle.left + 1,  frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_down`,    startFrame: idle.down,  endFrame: idle.down + 1,  frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_right`,   startFrame: idle.right, endFrame: idle.right + 1, frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_up`,      startFrame: walk.up,    endFrame: walk.up + 8,    frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_left`,    startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_down`,    startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_right`,   startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
+        // Ataque: pose de guardia (idle) — sin slash hasta componer bg+fg.
+        { key: `${p}_attack_up`,    startFrame: idle.up,    endFrame: idle.up,    frameRate: 1, repeat: 0 },
+        { key: `${p}_attack_left`,  startFrame: idle.left,  endFrame: idle.left,  frameRate: 1, repeat: 0 },
+        { key: `${p}_attack_down`,  startFrame: idle.down,  endFrame: idle.down,  frameRate: 1, repeat: 0 },
+        { key: `${p}_attack_right`, startFrame: idle.right, endFrame: idle.right, frameRate: 1, repeat: 0 },
       ],
     }],
   };
@@ -267,9 +272,9 @@ function swordLayer128(prefix: string, file: string): EquipLayerConfig {
 export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   // ── Espadas (assets/sprites/player/equip/weapons/swords) ────────────────────
   'Espada de Acero':  swordLayer64('sword01', 'sword_01.png'),
-  'Cimitarra Dorada': swordLayer128('sword02', 'sword_02.png'),
-  'Hoja Ardiente':    swordLayer128('sword03', 'sword_03.png'),
-  'Sable Rúnico':     swordLayer128('sword04', 'sword_04.png'),
+  'Cimitarra Dorada': swordLayerArming('sword02', 'sword_02.png'),
+  'Hoja Ardiente':    swordLayerArming('sword03', 'sword_03.png'),
+  'Sable Rúnico':     swordLayerArming('sword04', 'sword_04.png'),
   // ── Sombra del jugador (capa permanente, depth < player) ──────────────────
   // ── Armas ─────────────────────────────────────────────────────────────────
   // weapons1/cimitar.png: 9c×35r a 128×128px. Contenido en filas 27-34.

@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { GatheringEquipmentService, GatheringSlot } from 'src/app/services/gathering-equipment.service';
@@ -46,7 +46,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       this.selectedNodeId = null;
       this.talentExpanded = false;
     }
-    if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; }
+    if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; this.selectedEquippedItem = null; }
     if (v !== 5) this.selectedAch = null;
     if (v === 6) this.badges.clear('equip.quests');
   }
@@ -130,6 +130,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this.equipmentService.switchLoadout(index);
     this.gatheringService.switchLoadout(index);
     this.talent.switchLoadout(index);
+    this.selectedEquippedItem = null;   // el equipo cambió; cierra la ficha
   }
 
   // ── Logros (tab 4) ───────────────────────────────────────────────────────────
@@ -153,6 +154,40 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this.statsFlyoutOpen = !this.statsFlyoutOpen;
     // Al abrirla ya has "visto" el punto nuevo: se apaga el badge
     if (this.statsFlyoutOpen) this.badges.clear('equip.stats');
+  }
+
+  // ── Detalle de ítem equipado (panel a la derecha, reutiliza app-item-detail) ──
+  selectedEquippedItem: InventoryItem | null = null;
+  equipDetailStyle: { [key: string]: string } = {};
+
+  /** Pincha un slot equipado → muestra/oculta su ficha a la derecha del panel. */
+  selectEquippedItem(item: InventoryItem | null, event: MouseEvent): void {
+    event.stopPropagation();
+    if (!item || this.selectedEquippedItem === item) {
+      this.selectedEquippedItem = null;
+      return;
+    }
+    this.selectedEquippedItem = item;
+    const rect = (this.el.nativeElement as HTMLElement).getBoundingClientRect();
+    this.equipDetailStyle = {
+      top:       rect.top + 'px',
+      left:      (rect.right + 12) + 'px',
+      bottom:    '63px',
+      'z-index': '210',   // por encima del modal de equipo
+    };
+  }
+
+  clearEquippedSelection(): void {
+    this.selectedEquippedItem = null;
+  }
+
+  /** Cierra la ficha al pinchar fuera de un slot equipado o del propio panel. */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.selectedEquippedItem) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('.equip-item') || target.closest('.detail-panel')) return;
+    this.selectedEquippedItem = null;
   }
 
   readonly statsList: { key: keyof BaseStats; label: string }[] = [

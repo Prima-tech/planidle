@@ -292,7 +292,7 @@ const WEAPON_CATALOG: LootEntry[] = [
   {
     name: 'Cimitarra Dorada', category: 'Arma', type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
-    texture: 'sword02_main', frame: 377, scale: 1.5, order: 2,
+    texture: 'sword02_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_02_icon.png`,
     description: 'Sable curvo de filo dorado.',
     stats: { damage: 16 },
@@ -300,7 +300,7 @@ const WEAPON_CATALOG: LootEntry[] = [
   {
     name: 'Hoja Ardiente', category: 'Arma', type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
-    texture: 'sword03_main', frame: 377, scale: 1.5, order: 2,
+    texture: 'sword03_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_03_icon.png`,
     description: 'Hoja curva forjada en brasas vivas.',
     stats: { damage: 20 },
@@ -308,7 +308,7 @@ const WEAPON_CATALOG: LootEntry[] = [
   {
     name: 'Sable Rúnico', category: 'Arma', type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
-    texture: 'sword04_main', frame: 377, scale: 1.5, order: 2,
+    texture: 'sword04_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_04_icon.png`,
     description: 'Sable de acero grabado con runas antiguas.',
     stats: { damage: 18 },
