@@ -307,6 +307,22 @@ const BAGS_CATALOG: LootEntry[] = [
   _bag('bag_4', 'bag_4.png',  'Mochila del Aventurero',  16, 'Amplia mochila para todo tipo de botín.'),
 ];
 
+// ── Recursos (apilables) ─────────────────────────────────────────────────────
+// Imagen suelta como icono (no spritesheet). `texture` debe estar precargada en
+// gamescene.preload(); `icon` es la imagen para inventario/panel.
+const RESOURCES_CATALOG: LootEntry[] = [
+  {
+    name: 'Madera',
+    category: 'Recurso',
+    type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'wood',
+    icon: 'assets/icon/resources/wood.png',
+    scale: 0.15, order: 6,
+    description: 'Madera recolectada. Material de construcción.',
+  },
+];
+
 const _catalogSeen = new Set<string>();
 export const ITEM_CATALOG: LootEntry[] = [
   ...Object.values(LOOT_TABLES)
@@ -322,6 +338,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...HELMET_CATALOG,
   ...WEAPON_CATALOG,
   ...BAGS_CATALOG,
+  ...RESOURCES_CATALOG,
 ];
 
 export class GridDrops {

@@ -371,3 +371,52 @@ $purple: #6e4a67;         // selección
   line-height: 1.2;
   white-space: nowrap;
 }
+
+// ── Iconos (icons1.png) ──────────────────────────────────────────────────────
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.icon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  padding: 6px 3px 5px;
+  color: $text-cream;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.icon-frame {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $cell-border;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.icon-name {
+  font-size: 0.52em;
+  color: $text-cream;
+  text-align: center;
+  line-height: 1.15;
+  word-break: break-all;
+}
+
+.icon-num {
+  font-size: 0.55em;
+  font-weight: 700;
+  color: rgba(236, 217, 180, 0.5);
+}

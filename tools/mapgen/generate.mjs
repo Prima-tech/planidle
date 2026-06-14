@@ -33,7 +33,7 @@ export function generateMap(opts) {
       for (let x = cx - r; x <= cx + r; x++)
         if (x >= 0 && x < W && y >= 0 && y < H) clear.add(`${x},${y}`);
   };
-  reserve(opts.spawn.x, opts.spawn.y, 3);
+  reserve(opts.spawn.x, opts.spawn.y, 6);   // zona amplia de spawn (jugador + enemigos)
   for (const p of opts.portals) reserve(p.x, p.y, 3);
   // borde de 1 tile siempre transitable
   for (let x = 0; x < W; x++) { clear.add(`${x},0`); clear.add(`${x},${H - 1}`); }
@@ -89,14 +89,8 @@ export function generateMap(opts) {
     done++;
   }
 
-  // --- salpicar variantes de césped sobre celdas de césped libres ---
-  const vChance = opts.variantChance ?? 0.04;
-  for (let y = 0; y < H; y++)
-    for (let x = 0; x < W; x++) {
-      if (base[idx(x, y)] !== biome.base.fill) continue;
-      if (collision.has(`${x},${y}`)) continue;
-      if (rng.chance(vChance)) base[idx(x, y)] = rng.weighted(biome.base.variants).gid;
-    }
+  // Base = césped uniforme. NADA de esparcir tiles "al azar": toda la decoración
+  // viene de stamps deliberados (coherentes), nunca de adivinar índices de tile.
 
   // --- reparar conectividad: el spawn debe alcanzar todos los portales ---
   repairConnectivity({ W, H, collision, placed, spawn: opts.spawn, portals: opts.portals });

@@ -20,15 +20,12 @@ export const BIOMES = {
   grasslands: {
     tilesets: GRASSLANDS_TILESETS,
     base: {
-      fill: 23,                                   // gid de césped dominante (home01)
-      variants: [                                 // salpicaduras (flores/parches) sobre el césped
-        { gid: 2, weight: 3 }, { gid: 22, weight: 3 },
-        { gid: 24, weight: 3 }, { gid: 44, weight: 2 },
-      ],
+      fill: 23,                                   // gid de césped plano (home01). Base uniforme, sin esparcir nada.
     },
-    // Stamps (prefabs) que pueden aparecer. file = nombre en tools/mapgen/stamps/<file>.tmj
+    // Stamps (prefabs) que TÚ pintas en Tiled (tools/mapgen/stamps/<file>.tmj) y registras aquí.
+    // weight = probabilidad relativa de salir. Añade árboles, rocas, muros, lagos, etc.
     stamps: [
-      { file: 'pond01', weight: 1 },
+      { file: 'pond01', weight: 1 },              // charca de ejemplo (reemplázala/añade las tuyas)
     ],
   },
 };

@@ -46,14 +46,6 @@ export interface MapConfig {
   dropRateModifier?: number;  // multiplicador sobre la chance base de items (default 1.0)
 }
 
-const BASE_TILESET = {
-  tilemapKey:   'test-map',
-  tilemapJson:  'assets/tilemaps/test/test.tmj',
-  tilesetKey:   'ground-grasss',
-  tilesetImage: 'assets/tilemaps/test/ground_grasss.png',
-  tilesetName:  'ground_grasss',
-};
-
 const W1_HOME_TILESET = {
   tilemapKey:   'w1-home',
   tilemapJson:  'assets/tilemaps/W1/home01.tmj',
@@ -62,10 +54,48 @@ const W1_HOME_TILESET = {
   tilesetName:  'ground_grasss',
 };
 
+// Mapas generados por tools/mapgen (npm run gen:maps). Cada uno usa césped + agua (Water_coasts).
+const GEN_WATER: TilesetConfig = {
+  key: 'gen-water-coasts', name: 'Water_coasts',
+  image: 'assets/tilemaps/W1/Water_coasts.png',
+};
+/** Tileset/tilemap de un mapa generado. El portal de avance va en (width-3, 2): ver manifest.mjs. */
+const gen = (id: string) => ({
+  tilemapKey:   `gen-${id}`,
+  tilemapJson:  `assets/tilemaps/generated/${id}.tmj`,
+  tilesetKey:   'gen-ground-grasss',
+  tilesetImage: 'assets/tilemaps/W1/ground_grasss.png',
+  tilesetName:  'ground_grasss',
+  extraTilesets: [GEN_WATER],
+});
+
 /** Portal de retroceso (esquina superior-izquierda) */
 const backPortal  = (targetMapId: string): PortalConfig => ({ tilePos: { x: 2,  y: 2  }, targetMapId });
-/** Portal de avance (esquina superior-derecha) */
-const nextPortal  = (targetMapId: string): PortalConfig => ({ tilePos: { x: 17, y: 2  }, targetMapId });
+/** Portal de avance — x debe coincidir con width-3 del mapa generado (manifest.mjs) */
+const nextPortal  = (targetMapId: string, x = 17): PortalConfig => ({ tilePos: { x, y: 2 }, targetMapId });
+
+interface GenLevelOpts {
+  id: string; w: number; h: number;          // w/h DEBEN coincidir con manifest.mjs
+  back: string; next?: string;
+  enemyType: string; maxCount: number; behavior: EnemyBehavior; visionRadius: number;
+}
+/** Nivel generado: spawn en el centro (como el hogar) y enemigos alrededor del spawn. */
+const genLevel = (o: GenLevelOpts): MapConfig => {
+  const cx = Math.floor(o.w / 2), cy = Math.floor(o.h / 2);
+  const portals = [backPortal(o.back)];
+  if (o.next) portals.push(nextPortal(o.next, o.w - 3));
+  return {
+    ...gen(o.id),
+    id: o.id, name: o.id,
+    spawnPos: { x: cx, y: cy },
+    spawns: [{
+      enemyType: o.enemyType,
+      zone: { tileX: cx - 4, tileY: cy - 4, width: 8, height: 8 },
+      maxCount: o.maxCount, behavior: o.behavior, visionRadius: o.visionRadius,
+    }],
+    portals,
+  };
+};
 
 export const MAP_ELITE_THRESHOLD: Record<string, number> = {
   'hogar': 999,
@@ -105,83 +135,13 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     ],
   },
 
-  '1-1': {
-    ...BASE_TILESET,
-    id: '1-1', name: '1-1',
-    spawns: [{
-      enemyType: 'slime4', zone: { tileX: 7, tileY: 7, width: 4, height: 4 },
-      maxCount: 2, behavior: 'passive', visionRadius: 5,
-    }],
-    portals: [backPortal('hogar'), nextPortal('1-2')],
-  },
-
-  '1-2': {
-    ...BASE_TILESET,
-    id: '1-2', name: '1-2',
-    spawns: [{
-      enemyType: 'slime5', zone: { tileX: 6, tileY: 6, width: 5, height: 5 },
-      maxCount: 3, behavior: 'passive', visionRadius: 5,
-    }],
-    portals: [backPortal('1-1'), nextPortal('1-3')],
-  },
-
-  '1-3': {
-    ...BASE_TILESET,
-    id: '1-3', name: '1-3',
-    spawns: [{
-      enemyType: 'slime6', zone: { tileX: 6, tileY: 6, width: 6, height: 6 },
-      maxCount: 3, behavior: 'passive', visionRadius: 5,
-    }],
-    portals: [backPortal('1-2'), nextPortal('1-4')],
-  },
-
-  '1-4': {
-    ...BASE_TILESET,
-    id: '1-4', name: '1-4',
-    spawns: [{
-      enemyType: 'orc1', zone: { tileX: 5, tileY: 5, width: 7, height: 7 },
-      maxCount: 4, behavior: 'aggressive', visionRadius: 4,
-    }],
-    portals: [backPortal('1-3'), nextPortal('1-5')],
-  },
-
-  '1-5': {
-    ...BASE_TILESET,
-    id: '1-5', name: '1-5',
-    spawns: [{
-      enemyType: 'orc1', zone: { tileX: 5, tileY: 5, width: 7, height: 7 },
-      maxCount: 4, behavior: 'aggressive', visionRadius: 5,
-    }],
-    portals: [backPortal('1-4'), nextPortal('1-6')],
-  },
-
-  '1-6': {
-    ...BASE_TILESET,
-    id: '1-6', name: '1-6',
-    spawns: [{
-      enemyType: 'orc1', zone: { tileX: 4, tileY: 4, width: 9, height: 9 },
-      maxCount: 5, behavior: 'aggressive', visionRadius: 6,
-    }],
-    portals: [backPortal('1-5'), nextPortal('1-7')],
-  },
-
-  '1-7': {
-    ...BASE_TILESET,
-    id: '1-7', name: '1-7',
-    spawns: [{
-      enemyType: 'orc1', zone: { tileX: 4, tileY: 4, width: 9, height: 9 },
-      maxCount: 5, behavior: 'aggressive', visionRadius: 6,
-    }],
-    portals: [backPortal('1-6'), nextPortal('1-8')],
-  },
-
-  '1-8': {
-    ...BASE_TILESET,
-    id: '1-8', name: '1-8',
-    spawns: [{
-      enemyType: 'orc1', zone: { tileX: 3, tileY: 3, width: 11, height: 11 },
-      maxCount: 6, behavior: 'aggressive', visionRadius: 7,
-    }],
-    portals: [backPortal('1-7')],
-  },
+  // w/h DEBEN coincidir con tools/mapgen/manifest.mjs. Spawn = centro (derivado en genLevel).
+  '1-1': genLevel({ id: '1-1', w: 60, h: 50, back: 'hogar', next: '1-2', enemyType: 'slime4', maxCount: 2, behavior: 'passive',    visionRadius: 5 }),
+  '1-2': genLevel({ id: '1-2', w: 64, h: 54, back: '1-1',   next: '1-3', enemyType: 'slime5', maxCount: 3, behavior: 'passive',    visionRadius: 5 }),
+  '1-3': genLevel({ id: '1-3', w: 68, h: 56, back: '1-2',   next: '1-4', enemyType: 'slime6', maxCount: 3, behavior: 'passive',    visionRadius: 5 }),
+  '1-4': genLevel({ id: '1-4', w: 72, h: 60, back: '1-3',   next: '1-5', enemyType: 'orc1',   maxCount: 4, behavior: 'aggressive', visionRadius: 4 }),
+  '1-5': genLevel({ id: '1-5', w: 76, h: 62, back: '1-4',   next: '1-6', enemyType: 'orc1',   maxCount: 4, behavior: 'aggressive', visionRadius: 5 }),
+  '1-6': genLevel({ id: '1-6', w: 80, h: 66, back: '1-5',   next: '1-7', enemyType: 'orc1',   maxCount: 5, behavior: 'aggressive', visionRadius: 6 }),
+  '1-7': genLevel({ id: '1-7', w: 84, h: 68, back: '1-6',   next: '1-8', enemyType: 'orc1',   maxCount: 5, behavior: 'aggressive', visionRadius: 6 }),
+  '1-8': genLevel({ id: '1-8', w: 88, h: 72, back: '1-7',                enemyType: 'orc1',   maxCount: 6, behavior: 'aggressive', visionRadius: 7 }),
 };

@@ -157,6 +157,9 @@ export class GameScene extends Phaser.Scene {
       this.load.image('bag_3', 'assets/icon/bags/bag_3.png');
       this.load.image('bag_4', 'assets/icon/bags/bag_4.png');
 
+      // Recursos (drop al suelo desde el panel de invocación)
+      this.load.image('wood', 'assets/icon/resources/wood.png');
+
       for (const s of SKILL_SPRITE_SOURCES) {
         for (let i = 1; i <= s.count; i++) {
           const k = `${s.key}_${i}`;
