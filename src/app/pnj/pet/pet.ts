@@ -42,6 +42,11 @@ export class Pet {
     }
   }
 
+  // Movimiento mínimo (px) en un frame para considerar que la mascota "corre".
+  // Evita que al pararse quede atascada en la animación de correr por el jitter
+  // de punto flotante alrededor de la distancia de seguimiento.
+  private static readonly MOVE_EPS = 0.3;
+
   /** Mueve la mascota hacia `target` (posición del jugador en px). */
   update(delta: number, targetX: number, targetY: number): void {
     if (!this.sprite?.active) return;
@@ -49,15 +54,18 @@ export class Pet {
     const dy = targetY - this.sprite.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
+    let moved = 0;
     if (dist > Pet.FOLLOW_DIST) {
       const step = Math.min(Pet.SPEED * delta, dist - Pet.FOLLOW_DIST);
-      this.sprite.x += (dx / dist) * step;
-      this.sprite.y += (dy / dist) * step;
-      if (Math.abs(dx) > 1) this.sprite.setFlipX(dx < 0);
-      this.play('move');
-    } else {
-      this.play('idle');
+      if (step > Pet.MOVE_EPS) {
+        this.sprite.x += (dx / dist) * step;
+        this.sprite.y += (dy / dist) * step;
+        moved = step;
+        if (Math.abs(dx) > 1) this.sprite.setFlipX(dx < 0);
+      }
     }
+
+    this.play(moved > Pet.MOVE_EPS ? 'move' : 'idle');
     this.sprite.setDepth(this.sprite.y);
   }
 

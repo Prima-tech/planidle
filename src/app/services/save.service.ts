@@ -13,16 +13,17 @@ import { TalentService, TalentSnapshot, TalentLoadouts } from './talent.service'
 import { SkillEquipService, SkillSlotsSnapshot } from './skill-equip.service';
 import { AfkBonusService } from './afk-bonus.service';
 import { AchievementService } from './achievement.service';
-import { QuestService } from './quest.service';
+import { QuestService, QuestSave } from './quest.service';
 import { UnlockService } from './unlock.service';
 import { CharacterStatsService } from './character-stats.service';
+import { ConnectionService } from './connection.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
  * false → el botón "Guardar" escribe en local Y sincroniza con Supabase.
  * El auto-guardado (debounce) NUNCA llama a Supabase independientemente de este flag.
  */
-const OFFLINE_MODE = true;
+const OFFLINE_MODE = false;
 
 export type SaveStatus = 'idle' | 'local' | 'remote' | 'saved' | 'error';
 
@@ -43,6 +44,12 @@ export interface GameSnapshot {
   talentLoadouts?: TalentLoadouts;
   skillSlots?: SkillSlotsSnapshot;
   baseStats?: import('./character-stats.service').BaseStats;
+  /** Misiones del personaje (progreso, completadas, activas) */
+  quests?: QuestSave;
+  /** IDs de pasivas AFK desbloqueadas por el personaje */
+  afkPassives?: string[];
+  /** IDs de logros de PERSONAJE desbloqueados (los globales van en global_data) */
+  achievementsChar?: string[];
   lastSeen: string;
   lastModified: string;
 }
@@ -129,6 +136,7 @@ export class SaveService {
     private quests: QuestService,
     private unlocks: UnlockService,
     private charStats: CharacterStatsService,
+    private connection: ConnectionService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
@@ -191,10 +199,12 @@ export class SaveService {
       this.skillEquip.restoreFromSnapshot(null);
     }
     await this.kills.loadGlobalKills();
-    // load AFK passives before calculating gains so multipliers are applied
-    await this.afkBonus.loadForChar(charId);
-    await this.achievements.loadForChar(charId);
-    await this.quests.loadForChar(charId);
+    // load AFK passives before calculating gains so multipliers are applied.
+    // snapshot?.X = datos de la nube; si el save es antiguo y no los trae,
+    // loadForChar cae a la clave local (sin regresión).
+    await this.afkBonus.loadForChar(charId, snapshot?.afkPassives);
+    await this.achievements.loadForChar(charId, snapshot?.achievementsChar);
+    await this.quests.loadForChar(charId, snapshot?.quests);
     await this.unlocks.loadForChar(charId);
     const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
     this.pendingGains$.next(gains);
@@ -320,6 +330,9 @@ export class SaveService {
       talentLoadouts: this.talent.getLoadoutsSnapshot(),
       skillSlots:   this.skillEquip.getSnapshot(),
       baseStats:    { ...this.charStats.stats },
+      quests:           this.quests.getSnapshot(),
+      afkPassives:      this.afkBonus.getSnapshot(),
+      achievementsChar: this.achievements.getCharSnapshot(),
       lastSeen:     now,
       lastModified: now,
     };
@@ -334,29 +347,20 @@ export class SaveService {
   }
 
   private async saveRemote(): Promise<void> {
-    if (OFFLINE_MODE) {
-      console.log('[Save] Modo offline — guardado remoto omitido');
+    // Sube a la nube solo si el master switch lo permite Y el usuario eligió
+    // modo Supabase en el login. En modo local, el botón guarda solo en local.
+    if (OFFLINE_MODE || !this.connection.useSupabase) {
+      console.log('[Save] Modo local — guardado remoto omitido');
       return;
     }
+    if (!this.charId) return;
     try {
       this.status$.next('remote');
       const current = this.buildSnapshot();
-      const synced: GameSnapshot | null = await this.storage.get(this.syncedKey());
-      const payload = this.buildSupabasePayload(current, synced);
-
-      if (!payload.willSync) {
-        console.log('[Save] Sin cambios — sync omitida');
-        this.status$.next('saved');
-        setTimeout(() => this.status$.next('idle'), 2000);
-        return;
-      }
-
-      const globalDataTable = payload.tables.find(t => t.table === 'global_data');
-      const inventoryTable  = payload.tables.find(t => t.table === 'inventory');
-      await this.supabase.saveGameData(
-        globalDataTable?.fields ?? {},
-        inventoryTable ? current.inventory : null
-      );
+      // El botón es intención explícita del jugador: subimos el snapshot completo.
+      await this.supabase.saveCharacterSnapshot(this.charId, current);
+      // Logros de CUENTA (globales): viven en global_data, no en el personaje.
+      await this.supabase.saveAccountData({ achievementsGlobal: this.achievements.getGlobalSnapshot() });
       await this.storage.set(this.syncedKey(), current);
       this.status$.next('saved');
       setTimeout(() => this.status$.next('idle'), 2000);

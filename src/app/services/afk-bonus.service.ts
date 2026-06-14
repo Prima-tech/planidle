@@ -58,10 +58,18 @@ export class AfkBonusService {
 
   isUnlocked(id: string): boolean { return this.unlocked.has(id); }
 
-  async loadForChar(charId: string): Promise<void> {
+  async loadForChar(charId: string, override?: string[]): Promise<void> {
     this.charId = charId;
-    const saved: string[] = await this.storage.get(`afk_passives_${charId}`) ?? [];
+    // override = pasivas restauradas del snapshot (nube). Si no, lee la clave local.
+    const saved: string[] = override ?? (await this.storage.get(`afk_passives_${charId}`) ?? []);
     this.unlocked = new Set(saved);
+    // Si vino del snapshot, sincroniza la clave local para que coincida.
+    if (override) await this.storage.set(`afk_passives_${charId}`, [...this.unlocked]);
+  }
+
+  /** IDs de pasivas desbloqueadas para el GameSnapshot (sube a la nube). */
+  getSnapshot(): string[] {
+    return [...this.unlocked];
   }
 
   async unlock(id: string): Promise<void> {

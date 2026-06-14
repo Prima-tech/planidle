@@ -1,5 +1,10 @@
 <div class="settings-panel">
 
+  <div class="conn-status" [class.online]="connected" [class.offline]="!connected">
+    <span class="conn-dot"></span>
+    <span class="conn-text">{{ connected ? 'Conectado a Supabase' : 'No estás conectado (modo local)' }}</span>
+  </div>
+
   <div class="settings-body">
 
     <!-- PERSONAJE -->
@@ -8,6 +13,10 @@
       <button class="settings-btn wide" (click)="changePlayer()">
         <span class="btn-icon">🔄</span>
         <span>{{ 'SETTINGS.BTN.CHANGE_PLAYER' | translate }}</span>
+      </button>
+      <button class="settings-btn wide logout-btn" (click)="logout()">
+        <span class="btn-icon">🚪</span>
+        <span>Cerrar sesión</span>
       </button>
     </div>
 

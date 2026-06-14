@@ -1,4 +1,5 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
+import { Router } from "@angular/router";
 import { map } from "rxjs";
 import { SceneManager } from "src/app/scenes/scene-manager";
 import { AsgardService } from "src/app/services/asgard";
@@ -8,6 +9,7 @@ import { IAttack } from "src/app/pnj/player/player";
 import { SaveService, SaveStatus, LocalInfo, ChangeDelta, SupabasePayload } from "src/app/services/save.service";
 import { CityBuildService } from "src/app/services/city-build.service";
 import { BuildShopService } from "src/app/services/build-shop.service";
+import { ConnectionService } from "src/app/services/connection.service";
 
 @Component({
   selector: 'app-settings-page',
@@ -15,7 +17,7 @@ import { BuildShopService } from "src/app/services/build-shop.service";
   styleUrls: ['./settings.page.scss'],
   standalone: false
 })
-export class SettingsPageComponent {
+export class SettingsPageComponent implements OnInit {
   private sceneManager     = inject(SceneManager);
   private asgardService    = inject(AsgardService);
   private playerBridge     = inject(PlayerBridgeService);
@@ -23,6 +25,23 @@ export class SettingsPageComponent {
   private saveService      = inject(SaveService);
   private cityBuild        = inject(CityBuildService);
   private buildShop        = inject(BuildShopService);
+  private connection       = inject(ConnectionService);
+  private router           = inject(Router);
+
+  /** Estado de conexión mostrado en la cabecera del panel. */
+  connected = false;
+
+  async ngOnInit() {
+    this.connected = await this.connection.isConnected();
+  }
+
+  /** Cierra sesión de Supabase, vuelve a modo local y regresa al login. */
+  async logout() {
+    await this.connection.logout();
+    this.connected = false;
+    this.asgardService.triggerCloseMenu();
+    this.router.navigate(['/login']);
+  }
 
   readonly saveStatus$ = this.saveService.status$;
   readonly saveLabel$  = this.saveStatus$.pipe(map(s => SAVE_LABELS[s]));

@@ -36,6 +36,7 @@ import { TalentService } from 'src/app/services/talent.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { InteractionService } from 'src/app/services/interaction.service';
 import { CityBuildService } from 'src/app/services/city-build.service';
+import { ConnectionService } from 'src/app/services/connection.service';
 
 @Component({
   selector: 'app-layout',
@@ -89,11 +90,15 @@ export class LayoutComponent implements OnDestroy {
     private interactionService: InteractionService,
     private cityBuildService: CityBuildService,
     private gatheringEquipmentService: GatheringEquipmentService,
+    private connectionService: ConnectionService,
   ) {
     this.loadGame();
   }
 
   ngOnInit(): void {
+    // Restaura el modo de conexión (local/Supabase) elegido en el login, por si
+    // la app recarga directamente en el juego sin volver a pasar por el login.
+    this.connectionService.load();
     this.regenService.start();
     this.gainsSub = this.saveService.pendingGains$
       .pipe(filter(g => g !== null))

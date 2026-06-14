@@ -96,7 +96,7 @@ export const QUESTS: QuestDef[] = [
   },
 ];
 
-interface QuestSave {
+export interface QuestSave {
   progress: Record<string, number>;
   completed: string[];
   active: string[];
@@ -141,17 +141,29 @@ export class QuestService implements OnDestroy {
 
   // ── Ciclo de vida (SaveService) ─────────────────────────────────────────────
 
-  async loadForChar(charId: string): Promise<void> {
+  async loadForChar(charId: string, override?: QuestSave): Promise<void> {
     this.charId = charId;
-    const saved: QuestSave | null = await this.storage.get(charKey(charId));
+    // override = datos restaurados del snapshot (nube). Si no, lee la clave local.
+    const saved: QuestSave | null = override ?? await this.storage.get(charKey(charId));
     this.progress     = saved?.progress ? { ...saved.progress } : {};
     this.completedSet = new Set(saved?.completed ?? []);
     this.activeSet    = new Set(saved?.active ?? []);
     // Sanea: una completada no puede seguir activa (saves antiguos / coherencia)
     for (const id of [...this.activeSet]) if (this.completedSet.has(id)) this.activeSet.delete(id);
+    // Si vino del snapshot, sincroniza la clave local para que coincida.
+    if (override) this.persistNow();
     // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar.
     if (this.hasClaimable()) this.badges.flag('equip.quests');
     this.notify();
+  }
+
+  /** Estado serializable para el GameSnapshot (sube a la nube). */
+  getSnapshot(): QuestSave {
+    return {
+      progress: { ...this.progress },
+      completed: [...this.completedSet],
+      active: [...this.activeSet],
+    };
   }
 
   async clearAll(): Promise<void> {

@@ -26,6 +26,48 @@ $red: #e07070;            // valores negativos
   height: 100%;
 }
 
+// ── Estado de conexión (cabecera del panel) ───────────────────────────────────
+
+.conn-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 2px 0;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border: 3px solid $outline;
+  border-radius: 4px;
+
+  .conn-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  &.online {
+    background: rgba(126, 201, 106, 0.15);
+    color: $green;
+    .conn-dot { background: $green; }
+  }
+
+  &.offline {
+    background: rgba(224, 112, 112, 0.12);
+    color: $red;
+    .conn-dot { background: $red; }
+  }
+}
+
+// Botón de cerrar sesión: tono distinto al normal y al destructivo (rojo).
+.settings-btn.logout-btn {
+  margin-top: 6px;
+  filter: saturate(0.85) brightness(0.95);
+  opacity: 0.92;
+}
+
 .settings-panel {
   display: flex;
   flex-direction: column;

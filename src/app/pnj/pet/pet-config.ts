@@ -44,7 +44,7 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
     frameWidth: 32,
     frameHeight: 32,
     cols: 8,
-    scale: 4.4,
+    scale: 3.3,
     // Nº de frames real por fila (algunas filas tienen frames finales vacíos en el
     // spritesheet: idle 6/8, idle2 6/8, damage 5/8). Incluirlos provoca un parpadeo.
     anims: {

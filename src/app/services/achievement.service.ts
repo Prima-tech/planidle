@@ -83,11 +83,26 @@ export class AchievementService implements OnDestroy {
     this.killSub?.unsubscribe();
   }
 
-  /** Llamado por SaveService al cargar un personaje */
-  async loadForChar(charId: string): Promise<void> {
+  /** Llamado por SaveService al cargar un personaje.
+   *  `overrideChar` = logros de personaje restaurados del snapshot (nube).
+   *  Los globales se leen siempre de la clave local (fetchAndSaveLocalData ya
+   *  fusionó allí los de la cuenta al iniciar sesión). */
+  async loadForChar(charId: string, overrideChar?: string[]): Promise<void> {
     this.charId = charId;
-    this.unlockedChar   = new Set((await this.storage.get(charKey(charId))) ?? []);
+    this.unlockedChar   = new Set(overrideChar ?? ((await this.storage.get(charKey(charId))) ?? []));
     this.unlockedGlobal = new Set((await this.storage.get(GLOBAL_KEY)) ?? []);
+    // Si los de personaje vinieron del snapshot, sincroniza la clave local.
+    if (overrideChar) this.storage.set(charKey(charId), [...this.unlockedChar]);
+  }
+
+  /** Logros de PERSONAJE desbloqueados → van en el GameSnapshot del personaje. */
+  getCharSnapshot(): string[] {
+    return [...this.unlockedChar];
+  }
+
+  /** Logros de CUENTA (globales) desbloqueados → van en global_data.account. */
+  getGlobalSnapshot(): string[] {
+    return [...this.unlockedGlobal];
   }
 
   defs(scope: AchievementScope): AchievementDef[] {

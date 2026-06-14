@@ -13,15 +13,26 @@
       <div class="login-divider"></div>
 
       <div class="login-form">
-        <div class="input-wrapper">
-          <ion-icon name="person-outline" class="input-icon"></ion-icon>
-          <ion-input [(ngModel)]="email" type="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" class="dark-input"></ion-input>
+
+        <div class="mode-toggle">
+          <ion-icon [name]="useSupabase ? 'cloud-outline' : 'phone-portrait-outline'" class="input-icon"></ion-icon>
+          <span class="mode-label">{{ useSupabase ? 'Conectar a Supabase' : 'Jugar en local' }}</span>
+          <ion-toggle [(ngModel)]="useSupabase"></ion-toggle>
         </div>
-        <div class="input-wrapper">
-          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-          <ion-input [(ngModel)]="password" type="password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" class="dark-input"></ion-input>
-        </div>
-        <button class="login-btn" (click)="login()">{{ 'LOGIN.BUTTON' | translate }}</button>
+
+        <ng-container *ngIf="useSupabase">
+          <div class="input-wrapper">
+            <ion-icon name="person-outline" class="input-icon"></ion-icon>
+            <ion-input [(ngModel)]="email" type="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" class="dark-input"></ion-input>
+          </div>
+          <div class="input-wrapper">
+            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+            <ion-input [(ngModel)]="password" type="password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" class="dark-input"></ion-input>
+          </div>
+        </ng-container>
+
+        <button class="login-btn" (click)="login()" [disabled]="loading">{{ 'LOGIN.BUTTON' | translate }}</button>
+        <p class="login-error" *ngIf="error">{{ error }}</p>
       </div>
 
     </div>

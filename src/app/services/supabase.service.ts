@@ -15,9 +15,13 @@ export class SupabaseService {
       'sb_publishable_5Hs1VoKmBEEpK0dsAYpJ7g_CNAf0WGG',
       {
         auth: {
-          persistSession: false,
-          autoRefreshToken: false,
+          persistSession: true,
+          autoRefreshToken: true,
           detectSessionInUrl: false,
+          // Evita la Web Locks API (navigator.locks): en dev con HMR o varias
+          // pestañas lanza NavigatorLockAcquireTimeoutError. Como la app es
+          // offline-first y de una sola pestaña, ejecutamos la función directa.
+          lock: (_name, _acquireTimeout, fn) => fn(),
         },
         global: { fetch: offlineFetch }
       }
@@ -25,8 +29,19 @@ export class SupabaseService {
   }
 
   // --- AUTHENTICATION ---
+
+  /** ¿Hay sesión de Supabase activa (persistida o recién iniciada)? */
+  async hasSession(): Promise<boolean> {
+    const { data } = await this.supabase.auth.getSession();
+    return !!data.session;
+  }
+
   async signUp(email: string, pass: string) {
     return await this.supabase.auth.signUp({ email, password: pass });
+  }
+
+  async signOut() {
+    return await this.supabase.auth.signOut();
   }
 
   async signIn(email: string, pass: string) {
@@ -89,7 +104,32 @@ export class SupabaseService {
       }
 
       await this.storageService.set('user_data', data);
-      await this.storageService.set('characters', chars);
+
+      // Logros de CUENTA (globales): viven en global_data.account. Como son un
+      // Set monotónico (solo crece), fusionamos nube + local para no perder nada.
+      const cloudGlobalAch: string[] = (data as any).account?.achievementsGlobal ?? [];
+      const localGlobalAch: string[] = (await this.storageService.get('achievements_global')) ?? [];
+      const mergedGlobalAch = [...new Set([...cloudGlobalAch, ...localGlobalAch])];
+      await this.storageService.set('achievements_global', mergedGlobalAch);
+
+      // Offline-first: baja el snapshot de cada personaje a su clave local.
+      // Conflicto: si el local es más nuevo (el jugador siguió jugando offline),
+      // se respeta el local y NO se pisa con la nube.
+      for (const char of chars) {
+        if (!char.snapshot) continue;
+        const key = `snapshot_char_${char.id}`;
+        const local: any = await this.storageService.get(key);
+        const cloudTime = new Date(char.snapshot.lastModified ?? 0).getTime();
+        const localTime = new Date(local?.lastModified ?? 0).getTime();
+        if (!local || cloudTime > localTime) {
+          await this.storageService.set(key, char.snapshot);
+          await this.storageService.set(`${key}_synced`, char.snapshot);
+        }
+      }
+
+      // Roster ligero: el snapshot vive en su propia clave, no en el array del roster.
+      const roster = chars.map(({ snapshot, ...rest }: any) => rest);
+      await this.storageService.set('characters', roster);
       return data;
     } else if (error?.code === 'PGRST116') {
       this.createFullAccount(userId, 'vlodos');
@@ -212,6 +252,62 @@ export class SupabaseService {
 
     if (error || !data) return null;
     return { playerState: data };
+  }
+
+  // --- SAVE / LOAD POR PERSONAJE (snapshot JSONB) ---
+
+  /** Sube el GameSnapshot completo a la columna `snapshot` del personaje.
+   *  Las columnas espejo (lvl/coins/hp) permiten pintar el roster sin parsear el JSON. */
+  async saveCharacterSnapshot(charId: string, snapshot: any): Promise<void> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) throw new Error('No hay sesión activa');
+
+    const ps = snapshot?.playerState ?? {};
+    const { error } = await this.supabase
+      .from('characters')
+      .update({
+        snapshot,
+        lvl:           ps.lvl,
+        coins:         ps.coins,
+        current_hp:    ps.hp,
+        max_hp:        ps.hpMax,
+        last_modified: snapshot?.lastModified ?? new Date().toISOString(),
+      })
+      .eq('id', charId)
+      .eq('profile_id', user.id);
+
+    if (error) throw error;
+  }
+
+  /** Guarda datos a nivel de CUENTA (no por personaje) en global_data.account.
+   *  Hoy: logros globales. Aquí irán futuros sistemas de cuenta (kills globales,
+   *  ciudad, tienda…). */
+  async saveAccountData(account: any): Promise<void> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) throw new Error('No hay sesión activa');
+
+    const { error } = await this.supabase
+      .from('global_data')
+      .update({ account, last_modified: new Date().toISOString() })
+      .eq('id', user.id);
+
+    if (error) throw error;
+  }
+
+  /** Trae el snapshot de un personaje concreto (fallback si no se bajó en el login). */
+  async fetchCharacterSnapshot(charId: string): Promise<any | null> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await this.supabase
+      .from('characters')
+      .select('snapshot')
+      .eq('id', charId)
+      .eq('profile_id', user.id)
+      .single();
+
+    if (error || !data) return null;
+    return data.snapshot ?? null;
   }
 
   async createCharacter(characterData: { name: string, character_class: string }) {

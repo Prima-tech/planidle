@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { Capacitor } from '@capacitor/core';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
@@ -17,7 +18,13 @@ export function createTranslateLoader(http: HttpClient) {
   declarations: [AppComponent],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(),
+    // scrollAssist/scrollPadding desplazan la maquetación al enfocar un input
+    // (para subir el campo sobre el teclado). Fuera de app nativa no lo queremos:
+    // en web no hay teclado nativo y solo provoca que el login salte hacia arriba.
+    IonicModule.forRoot({
+      scrollAssist: Capacitor.isNativePlatform(),
+      scrollPadding: Capacitor.isNativePlatform(),
+    }),
     AppRoutingModule,
     IonicStorageModule.forRoot(),
     TranslateModule.forRoot({
