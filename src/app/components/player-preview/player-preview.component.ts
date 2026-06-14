@@ -4,7 +4,6 @@ import { debounceTime, startWith } from 'rxjs/operators';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { EQUIP_LAYER_REGISTRY } from 'src/app/pnj/player/equip-layer-registry';
 
-const SHEET_COLS     = 13;
 const FRAME_SIZE     = 64;
 const PREVIEW_START  = 130; // walk_down fila 10 del sheet LPC combinado
 const PREVIEW_FRAMES = 9;
@@ -13,8 +12,9 @@ const FRAME_MS       = 130;
 interface LayerSource {
   src: string;
   depth: number;
-  sheetStart?: number; // frame donde empieza walk_down en la hoja separada
-  sheetCols?: number;  // frames por fila en esa hoja
+  frameSize: number;   // px por frame en ESTA hoja (64 normal, 128 armas oversize)
+  startFrame: number;  // primer frame de walk_down (índice global en su propia rejilla)
+  frameCount: number;  // nº de frames del ciclo de andar (1 = pose estática)
 }
 
 @Component({
@@ -55,7 +55,8 @@ export class PlayerPreviewComponent implements OnInit, OnDestroy {
     this.frameIdx = 0;
 
     const sources: LayerSource[] = [
-      { src: 'assets/sprites/player/character/body/main.png', depth: 0 },
+      { src: 'assets/sprites/player/character/body/main.png',
+        depth: 0, frameSize: FRAME_SIZE, startFrame: PREVIEW_START, frameCount: PREVIEW_FRAMES },
     ];
 
     for (const slot of this.equipment.slots) {
@@ -68,18 +69,21 @@ export class PlayerPreviewComponent implements OnInit, OnDestroy {
         for (const sheet of cfg.sheets) {
           const walkDown = sheet.anims.find(a => a.key.includes('_walk_down'));
           if (walkDown) {
-            const framesPerRow = walkDown.endFrame - walkDown.startFrame + 1;
             sources.push({
               src: sheet.path,
               depth: cfg.depth,
-              sheetStart: walkDown.startFrame,
-              sheetCols: framesPerRow,
+              frameSize: sheet.frameWidth,
+              startFrame: walkDown.startFrame,
+              frameCount: walkDown.endFrame - walkDown.startFrame + 1,
             });
             break;
           }
         }
       } else if (cfg.path) {
-        sources.push({ src: cfg.path, depth: cfg.depth });
+        sources.push({
+          src: cfg.path, depth: cfg.depth,
+          frameSize: cfg.frameWidth ?? FRAME_SIZE, startFrame: PREVIEW_START, frameCount: PREVIEW_FRAMES,
+        });
       }
     }
 
@@ -100,6 +104,7 @@ export class PlayerPreviewComponent implements OnInit, OnDestroy {
   }
 
   private startLoop(sources: LayerSource[], imgs: HTMLImageElement[]): void {
+    const scale = this.size / FRAME_SIZE;   // el cuerpo (64px) llena el canvas
     const tick = () => {
       this.ctx.clearRect(0, 0, this.size, this.size);
 
@@ -108,22 +113,19 @@ export class PlayerPreviewComponent implements OnInit, OnDestroy {
         if (img.naturalWidth === 0) continue;
         const src = sources[i];
 
-        let sx: number;
-        let sy: number;
+        // Columnas reales de la hoja (no el nº de frames de walk) para mapear bien
+        // hojas LPC combinadas (13 cols) y oversize (128px). Cada capa cicla solo
+        // sus propios frames de walk: frameCount=1 → pose estática (sin slash).
+        const cols = Math.max(1, Math.round(img.naturalWidth / src.frameSize));
+        const frame = src.startFrame + (this.frameIdx % src.frameCount);
+        const sx = (frame % cols) * src.frameSize;
+        const sy = Math.floor(frame / cols) * src.frameSize;
 
-        if (src.sheetStart !== undefined && src.sheetCols !== undefined) {
-          // Sheet separado (mode:'anim'): calcular frame dentro de su propia cuadrícula
-          const absoluteFrame = src.sheetStart + this.frameIdx;
-          sx = (absoluteFrame % src.sheetCols) * FRAME_SIZE;
-          sy = Math.floor(absoluteFrame / src.sheetCols) * FRAME_SIZE;
-        } else {
-          // Sheet LPC combinado estándar (mode:'frame')
-          const frame = PREVIEW_START + this.frameIdx;
-          sx = (frame % SHEET_COLS) * FRAME_SIZE;
-          sy = Math.floor(frame / SHEET_COLS) * FRAME_SIZE;
-        }
-
-        this.ctx.drawImage(img, sx, sy, FRAME_SIZE, FRAME_SIZE, 0, 0, this.size, this.size);
+        // Centra el frame: las hojas oversize (128) tienen el personaje centrado,
+        // su región central de 64px se alinea con el cuerpo.
+        const dSize = src.frameSize * scale;
+        const dOff  = (this.size - dSize) / 2;
+        this.ctx.drawImage(img, sx, sy, src.frameSize, src.frameSize, dOff, dOff, dSize, dSize);
       }
 
       this.frameIdx = (this.frameIdx + 1) % PREVIEW_FRAMES;

@@ -447,9 +447,11 @@ $metal-dark: #6b6357;
 // Picker de nodo de talento: tarjeta oscura flotante sobre el árbol, arriba a
 // la derecha — mismo estilo que las info-cards del mapa (map-info-card)
 .talent-picker-flyout.talent-node-card {
-  left: auto;
-  right: 8px;
-  top: 36px;   /* bajo la barra de esferas, dentro del área del árbol */
+  /* Minimizado: la tarjeta sale FUERA de la ventana, adyacente por la derecha
+     (igual que el flyout de stats), para no tapar el árbol estrecho. */
+  left: calc(100% + 27px);
+  right: auto;
+  top: -13px;
   width: 150px;
   background: rgba($cell-bg, 0.95);
   border: 2px solid $outline;
@@ -464,6 +466,13 @@ $metal-dark: #6b6357;
     color: #ffd700;   /* sobre fondo oscuro, no el marrón de madera */
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   }
+}
+
+/* Expandido: como antes — la tarjeta flota DENTRO, arriba a la derecha del árbol */
+.eq-wrapper--wide .talent-picker-flyout.talent-node-card {
+  left: auto;
+  right: 8px;
+  top: 36px;
 }
 
 // Flyout de stats: mismo marco que el picker de talentos.
