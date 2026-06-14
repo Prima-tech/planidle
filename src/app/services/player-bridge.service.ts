@@ -57,12 +57,16 @@ export class PlayerBridgeService {
     }
   }
 
-  healPlayer(amount: number): void {
+  healPlayer(amount: number, showNumber = false): void {
     if (!this.player || amount <= 0) return;
     const { HP, HPMax } = this.player.status;
     const newHP = Math.min(HP + amount, HPMax);
     this.player.resetStatus(newHP, HPMax);
     this.playerState.setHp(newHP, HPMax);
+    if (showNumber) {
+      const healed = newHP - HP;            // lo realmente recuperado (capado a HPMax)
+      this.player.showHealNumber(healed);
+    }
   }
 
   resetPlayerStatus(currentHp: number, maxHp: number): void {

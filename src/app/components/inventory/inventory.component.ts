@@ -119,7 +119,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     const heal = item?.stats?.['healing'] ?? 0;
     if (!item || heal <= 0) return;
 
-    this.playerBridge.healPlayer(heal);
+    this.playerBridge.healPlayer(heal, true);
 
     if (item.mergeable && (item.sum ?? 1) > 1) {
       item.sum! -= 1;                       // gasta una del stack

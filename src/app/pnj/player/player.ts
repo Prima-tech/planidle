@@ -63,6 +63,54 @@ export class Player {
     this.sprite.play(playerTags.DEATH + this.getDirection());
   }
 
+  /** Muestra en verde el HP recuperado sobre el sprite, con '+' que flotan hacia arriba. */
+  showHealNumber(amount: number): void {
+    if (!this.mainScene || !this.sprite || amount <= 0) return;
+    const cx   = this.sprite.x;
+    const topY = this.sprite.y - this.sprite.displayHeight * 0.9;
+
+    // Número principal "+X"
+    const text = this.mainScene.add.text(cx, topY, `+${amount}`, {
+      fontSize:        '30px',
+      color:           '#3ad12f',
+      fontStyle:       'bold',
+      stroke:          '#0a3d08',
+      strokeThickness: 6,
+    });
+    text.setOrigin(0.5, 1).setDepth(5000);
+    this.mainScene.tweens.add({
+      targets:    text,
+      y:          topY - 42,
+      alpha:      0,
+      duration:   900,
+      ease:       'Power2',
+      onComplete: () => text.destroy(),
+    });
+
+    // Pequeñas '+' verdes que suben alrededor del sprite
+    for (let i = 0; i < 5; i++) {
+      const px = cx + Phaser.Math.Between(-22, 22);
+      const py = this.sprite.y - Phaser.Math.Between(0, 30);
+      const plus = this.mainScene.add.text(px, py, '+', {
+        fontSize:        `${Phaser.Math.Between(14, 22)}px`,
+        color:           '#7dff5a',
+        fontStyle:       'bold',
+        stroke:          '#0a3d08',
+        strokeThickness: 3,
+      });
+      plus.setOrigin(0.5, 1).setDepth(4999).setAlpha(0);
+      this.mainScene.tweens.add({
+        targets:    plus,
+        y:          py - Phaser.Math.Between(40, 70),
+        alpha:      { from: 0.9, to: 0 },
+        duration:   Phaser.Math.Between(700, 1100),
+        delay:      i * 80,
+        ease:       'Sine.easeOut',
+        onComplete: () => plus.destroy(),
+      });
+    }
+  }
+
   /* animations */
 
   setInitialSprites(sprites: any) {
