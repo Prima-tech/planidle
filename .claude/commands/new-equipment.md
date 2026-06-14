@@ -9,10 +9,64 @@ Guía para crear cascos, armaduras, pantalones, botas y accesorios. Para armas u
 - **Carpeta de sprites** (ej. `helmets/armet/`)
 - **Enemigos que lo dropean** y **% de drop**
 - **Stats** (ej. `hp: 15`)
+- **JSON del generador LPC** (opcional) — útil sobre todo para los **nombres** oficiales.
 
 ---
 
-## Paso 1 — Analizar los sprites
+## ⭐ Cascos en hoja LPC combinada (`equip/helms/`) — flujo validado
+
+El formato moderno (como el de las espadas en `/new-weapon`) es **una sola PNG por
+casco**, hoja LPC universal completa: **832×3456 = 13 cols × 54 filas a 64px**, alineada
+1:1 con el cuerpo del jugador. NO son los `idle/walk/slash.png` separados de antes.
+
+### Filas que usamos (frame index = `fila × 13`)
+| Animación | Filas | Frames/dir | up / left / down / right |
+|-----------|-------|-----------|--------------------------|
+| walk  | 8‑11  | 9 | 104 / 117 / 130 / 143 |
+| slash (attack) | 12‑15 | 6 | 156 / 169 / 182 / 195 |
+| idle  | 22‑25 | 2 | 286 / 299 / 312 / 325 |
+
+Coinciden frame a frame con `playerAnimations` del cuerpo → sincronía perfecta, sin
+trucos. (Verifica con un mapa de densidad .NET/PowerShell como en `/new-weapon` si dudas
+del formato; un casco tiene contenido en TODAS las filas.)
+
+### Helper `helmLayer` (ya existe en `equip-layer-registry.ts`)
+
+```typescript
+'Yelmo de Hierro':   helmLayer('helm01', 'helm_01.png'),
+'Yelmo de Plata':    helmLayer('helm02', 'helm_02.png'),
+```
+`helmLayer(prefix, file)` carga `equip/helms/<file>` a 64px, `depth: 3` (siempre sobre el
+cuerpo; el casco va en la cabeza → **no** necesita `depthWhenUp`), y genera idle/walk/attack
+con las filas de arriba. Reemplaza al viejo `helmetLayer` (multi-archivo idle/walk/slash).
+
+### Drop / catálogo en `griddrops.ts`
+
+El icono del panel es un **PNG dedicado** auto-recortado (el casco dentro del frame es
+pequeño). Genera `helms/icons/helm_0N_icon.png` (bbox + centrado 64×64, NearestNeighbor)
+desde el frame **312 (idle_down)** y úsalo con `icon:` (NO `iconSheet:`):
+
+```typescript
+const HELM_ICONS = 'assets/sprites/player/equip/helms/icons';
+const _helmet = (prefix: string, file: string, name: string, hp: number): LootEntry => ({
+  name, category: 'Casco', type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: `${prefix}_main`, frame: 312, scale: 2.5, order: 2,   // drop: hoja precargada, idle_down
+  icon: `${HELM_ICONS}/${file}_icon.png`,
+  stats: { hp },
+});
+const HELMET_CATALOG: LootEntry[] = [ _helmet('helm01','helm_01','Yelmo de Hierro',10), ... ];
+```
+
+`category: 'Casco'` ⇒ aparece en el panel de invocación (Items → Armor → acordeón Casco).
+Solo catálogo = no cae de enemigos; para que caiga, añadir la entrada en `LOOT_TABLES`.
+
+> El script para generar iconos dedicados (Make-Icon en PowerShell/.NET) está en el
+> historial de git de la feature de espadas; reutilízalo cambiando el frame a 312.
+
+---
+
+## Paso 1 — Analizar los sprites (formato multi-archivo legacy)
 
 Carpeta típica: `assets/sprites/player/equip/<tipo>/<nombre>/`
 
@@ -83,12 +137,14 @@ Archivo: `src/app/pnj/player/equip-layer-registry.ts`
 
 ### Muchos items del mismo tipo — usar helper existente
 
-Ya existen helpers en `equip-layer-registry.ts`: `helmetLayer`, `armourLayer`, `bootsLayer`, `legsLayer`.
+Helpers en `equip-layer-registry.ts`:
+- **`helmLayer(prefix, file)`** — cascos en **hoja combinada** (`helms/`, ver sección ⭐ arriba). Es el actual.
+- `armourLayer`, `bootsLayer`, `legsLayer` — formato multi-archivo (idle/walk/slash separados).
 
 ```typescript
 // En EQUIP_LAYER_REGISTRY:
-'Barbarian': helmetLayer('barbarian'),
-'Bascinet':  helmetLayer('bascinet'),
+'Yelmo de Hierro': helmLayer('helm01', 'helm_01.png'),
+'Armour Boots':    bootsLayer('armour'),
 ```
 
 Cada helper genera el config completo con las rutas correctas. Si necesitas un tipo nuevo, crear un helper siguiendo el mismo patrón.
@@ -188,7 +244,15 @@ No hay que tocar `gamescene.ts`. Lee `EQUIP_LAYER_REGISTRY` en `preload()`, regi
 
 ## Checklist
 
-- [ ] PNGs existen en `src/assets/sprites/player/equip/<tipo>/<nombre>/`
+### Cascos hoja combinada (`helms/`, recomendado)
+- [ ] PNG en `equip/helms/` (832×3456 = 13 col × 54 fila, 64px)
+- [ ] Entrada con `helmLayer('helmNN', 'helm_NN.png')` en `EQUIP_LAYER_REGISTRY`
+- [ ] **Icono dedicado** en `helms/icons/` (frame 312) y `_helmet` con `icon:` (no `iconSheet:`) en `HELMET_CATALOG`
+- [ ] `category: 'Casco'` → aparece en el panel de invocación
+- [ ] Verificado en juego (`npm start`): equipar, andar, atacar, icono
+
+### Items multi-archivo legacy (armour/legs/boots)
+- [ ] PNGs en `src/assets/sprites/player/equip/<tipo>/<nombre>/` (idle/walk/slash)
 - [ ] Entrada en `EQUIP_LAYER_REGISTRY` con claves en **minúsculas**
 - [ ] `startFrame`/`endFrame` correctos (fila 0=UP, 1=LEFT, 2=DOWN, 3=RIGHT)
 - [ ] `category` correcto en `griddrops.ts` (`'Casco'`, `'Armadura'`, `'Pantalones'`, `'Botas'`)

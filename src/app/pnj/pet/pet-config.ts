@@ -72,6 +72,8 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
       idle:   { row: 0, frames: 8, frameRate: 8,  repeat: -1 },
       idle2:  { row: 1, frames: 8, frameRate: 8,  repeat: -1 },
       move:   { row: 2, frames: 8, frameRate: 12, repeat: -1 },
+      jump:   { row: 5, frames: 8, frameRate: 14, repeat: 0  },
+      emerge: { row: 6, frames: 8, frameRate: 14, repeat: 0  },
       sleep:  { row: 7, frames: 8, frameRate: 6,  repeat: -1 },
       death:  { row: 8, frames: 8, frameRate: 10, repeat: 0  },
     },

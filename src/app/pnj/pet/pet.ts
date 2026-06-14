@@ -52,6 +52,30 @@ export class Pet {
     return { x: this.sprite.x, y: this.sprite.y };
   }
 
+  // Mientras reproduce la animación de recogida (jump → emerge) no se mueve ni recoge.
+  private busy = false;
+  isBusy(): boolean { return this.busy; }
+
+  /**
+   * Animación de recogida: si la mascota tiene `jump` + `emerge`, hace jump, a los
+   * 500 ms hace emerge y al terminar sigue su camino. Las mascotas sin esas anims
+   * (p.ej. el panda) no hacen nada.
+   */
+  playPickup(): void {
+    if (!this.sprite?.active || this.busy) return;
+    const jumpKey   = `${this.cfg.textureKey}_jump`;
+    const emergeKey = `${this.cfg.textureKey}_emerge`;
+    if (!this.scene.anims.exists(jumpKey) || !this.scene.anims.exists(emergeKey)) return;
+
+    this.busy = true;
+    this.sprite.play(jumpKey);
+    this.scene.time.delayedCall(500, () => {
+      if (!this.sprite?.active) { this.busy = false; return; }
+      this.sprite.play(emergeKey);
+      this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => { this.busy = false; });
+    });
+  }
+
   /**
    * Mueve la mascota hacia `target`. `stopDist` es la distancia a la que se
    * detiene: por defecto la de seguimiento al jugador, o casi 0 al ir a por un
@@ -59,6 +83,7 @@ export class Pet {
    */
   update(delta: number, targetX: number, targetY: number, stopDist: number = Pet.FOLLOW_DIST): void {
     if (!this.sprite?.active) return;
+    if (this.busy) { this.sprite.setDepth(this.sprite.y); return; }   // en animación de recogida
     const dx = targetX - this.sprite.x;
     const dy = targetY - this.sprite.y;
     const dist = Math.sqrt(dx * dx + dy * dy);

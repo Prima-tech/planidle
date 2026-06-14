@@ -121,6 +121,10 @@ Si una mascota se ve más grande/pequeña que las demás:
   (hay celda libre o pila apilable). Inventario lleno → la mascota deja de recoger objetos
   (los deja en el suelo); el oro lo sigue cogiendo.
 - Sin doble recogida: jugador y mascota comparten el guard `collected` por drop.
+- **Animación de recogida opcional**: si el `PetConfig` tiene anims `jump` + `emerge`, al
+  recoger la mascota llama `Pet.playPickup()` (jump → a los 500 ms emerge → sigue). Durante
+  la secuencia `Pet.isBusy()` es true: `update()` no la mueve y `gamescene.updatePet`
+  pausa la búsqueda/recogida. Las mascotas sin esas anims no hacen nada especial.
 
 ### Pantalla de info de la mascota (`app-item-detail`)
 

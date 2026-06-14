@@ -693,6 +693,7 @@ export class GameScene extends Phaser.Scene {
      */
     private updatePet(delta: number, playerPos: Phaser.Math.Vector2): void {
       if (!this.pet) return;
+      if (this.pet.isBusy()) return;   // reproduciendo la animación de recogida
 
       const petItem = this.reg.gathering?.slots.find(s => s.id === 'pet')?.item ?? null;
       const range   = petPickupRange(petItem?.petLevel ?? 1);
@@ -706,6 +707,7 @@ export class GameScene extends Phaser.Scene {
         const np = this.pet.getPosition();
         if (Phaser.Math.Distance.Between(np.x, np.y, drop.sprite.x, drop.sprite.y) <= GameScene.PET_COLLECT_DIST) {
           drop.collect();
+          this.pet.playPickup();   // jump → (500ms) → emerge → sigue
         }
       } else {
         this.pet.update(delta, playerPos.x, playerPos.y);
