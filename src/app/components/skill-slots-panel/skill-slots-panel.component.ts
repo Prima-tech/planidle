@@ -33,7 +33,8 @@ export class SkillSlotsPanelComponent implements OnInit {
   }
 
   get abilities(): TalentNodeConfig[] {
-    const all = this.talentService.nodes.filter(n => n.effect.type === 'ability');
+    // Juego normal: solo las habilidades desbloqueadas. Admin: todas (isUnlocked lo cubre).
+    const all = this.talentService.nodes.filter(n => n.effect.type === 'ability' && this.talentService.isUnlocked(n.id));
     if (this.activeTab === 'warrior') return all.filter(n => WARRIOR_IDS.has(n.id));
     if (this.activeTab === 'smoker')  return all.filter(n => SMOKER_IDS.has(n.id));
     if (this.activeTab === 'fire')    return all.filter(n => FIRE_IDS.has(n.id));

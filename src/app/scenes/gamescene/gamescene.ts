@@ -10,6 +10,7 @@ import { Player } from "src/app/pnj/player/player";
 import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
+import { InteractionContext } from "src/app/services/interaction.service";
 import { EQUIP_LAYER_REGISTRY } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
@@ -82,11 +83,43 @@ interface ActiveChest {
   isTownChest?: boolean;
 }
 
-// Roca minable. Ocupa una huella de 2×2 tiles (todas en `tileKeys` para la colisión).
-interface RockNode {
+// Recolección de recursos del mapa (rocas con pico, árboles con hacha…).
+type HarvestKindId = 'rock' | 'tree';
+
+interface HarvestKind {
+  texture: string;            // textura precargada del recurso
+  toolCategory: string;       // categoría del item-herramienta requerido
+  toolSlotId: string;         // slot de GatheringEquipment + slot de la capa LPC
+  context: InteractionContext;// contexto del botón de acción ('mine' | 'chop')
+  footprintW: number;         // ancho de la huella en tiles (colisión)
+  footprintH: number;         // alto de la huella en tiles (colisión)
+  scale: number;              // escala visual del sprite
+  offsetY: number;            // ajuste vertical (px) para asentar la base en la huella
+  count: number;              // cuántos generar por mapa
+  debris: number[];           // colores de los escombros al golpear
+}
+
+// Config por tipo de recurso. Añadir aquí nuevos recolectables (caña→peces, etc.).
+const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
+  rock: {
+    texture: 'rock_mine', toolCategory: 'Pico', toolSlotId: 'pickaxe', context: 'mine',
+    footprintW: 2, footprintH: 2, scale: 3, offsetY: 0, count: 3,
+    debris: [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080],
+  },
+  tree: {
+    texture: 'tree_chop', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',
+    footprintW: 2, footprintH: 2, scale: 1.6, offsetY: 40, count: 3,
+    debris: [0x6b4a2b, 0x8a5a2b, 0x4e7a32, 0x3c6b28],   // madera + hojas
+  },
+};
+
+// Nodo recolectable colocado en el mapa. Ocupa una huella de tiles (todas en
+// `tileKeys` para la colisión).
+interface HarvestNode {
   sprite: Phaser.GameObjects.Image;
   hits: number;
   tileKeys: string[];
+  kind: HarvestKindId;
 }
 
 export class GameScene extends Phaser.Scene {
@@ -149,10 +182,12 @@ export class GameScene extends Phaser.Scene {
     private collisionTiles: Set<string>                    = new Set();
     // Rocas minables: solo en mapas que no sean 'hogar'. Bloquean el paso y se
     // pican con el pico equipado (3 golpes → se destruyen).
-    private rocks: RockNode[] = [];
-    // Modo minería: activo cuando el jugador mira a una roca con el pico equipado.
-    // Mientras está activo se oculta el arma y se muestra el pico (capa 'pickaxe').
-    private miningMode = false;
+    // Recursos recolectables del mapa (rocas, árboles…). Bloquean el paso.
+    private nodes: HarvestNode[] = [];
+    // Herramienta de recolección actualmente "en mano" (o null = arma). Se activa al
+    // encarar un recurso con su herramienta y es PEGAJOSA: se mantiene aunque te alejes;
+    // solo se quita al hacer un ataque normal (enemigo/al aire) u otra acción.
+    private activeHarvest: HarvestKindId | null = null;
     private activeChests: ActiveChest[] = [];
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
@@ -211,8 +246,9 @@ export class GameScene extends Phaser.Scene {
       // Recursos (drop al suelo desde el panel de invocación)
       this.load.image('wood', 'assets/icon/resources/wood.png');
 
-      // Roca minable (se coloca en mapas que no son el hogar)
+      // Recursos recolectables (se colocan en mapas que no son el hogar)
       this.load.image('rock_mine', 'assets/sprites/map/skills/rocks/Rock1_3.png');
+      this.load.image('tree_chop', 'assets/sprites/map/skills/trees/Tree1.png');
 
       // Pociones (consumibles)
       this.load.image('heal_01', 'assets/icon/resources/potions/heal_01.png');
@@ -287,8 +323,8 @@ export class GameScene extends Phaser.Scene {
       this.autoStuckMs = 0;
       this.autoBlacklist.clear();
       this.placedBuildings = [];
-      this.rocks = [];
-      this.miningMode = false;
+      this.nodes = [];
+      this.activeHarvest = null;
       this.moveSelecting = false;
       this.deleteSelecting = false;
       this.shopActionLatched = false;
@@ -367,7 +403,7 @@ export class GameScene extends Phaser.Scene {
         this.initBuildPlacementListener();
         this.initBuildClearedListener();
         if (this.currentMapConfig.id === 'hogar') this.initPlacedBuildings();
-        this.initRocks();
+        this.initHarvestNodes();
         this.initStatsListener();
         this.registerSkillAnimations();
         this.initSkillListener();
@@ -394,10 +430,13 @@ export class GameScene extends Phaser.Scene {
       // (u otro edificio con ventana) cerca → abrir ventana; si no → atacar.
       const nearChest = this.nearestOpenableChest();
       const nearWindow = nearChest ? null : this.nearestWindowBuilding();
-      const nearRock = (!nearChest && !nearWindow) ? this.nearestMineableRock() : null;
-      this.setMiningMode(!!nearRock);   // muestra/oculta el pico según mire a una roca
+      const nearNode = (!nearChest && !nearWindow) ? this.nearestHarvestable() : null;
+      // La herramienta es "pegajosa": al encarar un recurso se muestra y se MANTIENE
+      // aunque te alejes. Solo se quita al atacar a un enemigo / otra acción (strike).
+      if (nearNode) this.setActiveHarvest(nearNode.kind);
       this.reg.interaction?.setContext(
-        nearChest ? 'chest' : nearWindow ? 'shop' : nearRock ? 'mine' : 'attack');
+        nearChest ? 'chest' : nearWindow ? 'shop'
+        : nearNode ? HARVEST_KINDS[nearNode.kind].context : 'attack');
 
       // Si la ventana de cofre de ciudad está abierta y el jugador se alejó de
       // TODOS los cofres de ciudad (fijo + construidos) → cerrar.
@@ -652,31 +691,35 @@ export class GameScene extends Phaser.Scene {
         this.refreshHeldLayer();
       });
 
-      // Al cambiar el equipo de recolección (p.ej. equipar/quitar el pico) se
-      // recalcula qué se sostiene (arma o pico) según el modo minería.
+      // Al cambiar el equipo de recolección (p.ej. equipar/quitar una herramienta) se
+      // recalcula qué se sostiene (arma o herramienta) según el recurso encarado.
       const gathering = this.reg.gathering;
       if (gathering) {
         this.gatherLayerSub = gathering.changes$.subscribe(() => this.refreshHeldLayer());
       }
     }
 
-    /** Muestra el pico (ocultando el arma) si está en modo minería con pico equipado;
-     *  en caso contrario muestra el arma equipada y oculta el pico. */
+    /** Muestra la herramienta "en mano" (`activeHarvest`) ocultando el arma y las demás
+     *  herramientas; si no hay ninguna (o no está equipada), muestra el arma. */
     private refreshHeldLayer(): void {
-      const weapon = this.reg.equipment?.slots.find(s => s.id === 'weapon')?.item ?? null;
-      const pick   = this.equippedPickaxe();
-      if (this.miningMode && pick) {
-        this.applyEquipLayer('weapon', null);
-        this.applyEquipLayer('pickaxe', pick);
-      } else {
-        this.applyEquipLayer('pickaxe', null);
-        this.applyEquipLayer('weapon', weapon);
+      // Oculta todas las capas de herramientas de recolección
+      for (const kind of Object.values(HARVEST_KINDS)) this.applyEquipLayer(kind.toolSlotId, null);
+
+      if (this.activeHarvest) {
+        const kind = HARVEST_KINDS[this.activeHarvest];
+        const tool = this.equippedTool(kind.toolCategory, kind.toolSlotId);
+        if (tool) {
+          this.applyEquipLayer('weapon', null);
+          this.applyEquipLayer(kind.toolSlotId, tool);
+          return;
+        }
       }
+      this.applyEquipLayer('weapon', this.reg.equipment?.slots.find(s => s.id === 'weapon')?.item ?? null);
     }
 
-    private setMiningMode(active: boolean): void {
-      if (active === this.miningMode) return;
-      this.miningMode = active;
+    private setActiveHarvest(kind: HarvestKindId | null): void {
+      if (kind === this.activeHarvest) return;
+      this.activeHarvest = kind;
       this.refreshHeldLayer();
     }
 
@@ -1192,16 +1235,19 @@ export class GameScene extends Phaser.Scene {
     // Golpe del jugador: lanza la animación y aplica el daño al ~40% de su
     // duración para que coincida con el frame de impacto (como los enemigos).
     private strike(): void {
-      // Si mira a una roca con el pico equipado → mina (el arma está oculta y la capa
-      // del pico hace el swing). En cualquier otro caso → ataque normal de arma.
-      const rock = this.nearestMineableRock();
-      if (rock) {
+      // Si mira a un recurso con la herramienta equipada → recolecta (el arma está
+      // oculta y la capa de la herramienta hace el swing). Si no → ataque normal.
+      const node = this.nearestHarvestable();
+      if (node) {
         this.player.playerAttack();
         this.time.delayedCall(140, () => {
-          if (rock.sprite.active && this.rocks.includes(rock)) this.mineRock(rock);
+          if (node.sprite.active && this.nodes.includes(node)) this.harvestNode(node);
         });
         return;
       }
+      // Ataque normal (enemigo / al aire): es "otra acción" → guarda la herramienta y
+      // vuelve a mostrar el arma.
+      this.setActiveHarvest(null);
       if (this.rangedWeapon) { this.rangedStrike(); return; }
       this.player.playerAttack();
       const anim  = this.player.getSprite().anims.currentAnim;
@@ -1214,118 +1260,136 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    // ── Minería ────────────────────────────────────────────────────────────────
-    // Rocas repartidas por los mapas (no en el hogar). Bloquean el paso y solo se
-    // dañan con el pico equipado en el slot de recolección. 3 golpes → destrucción.
+    // ── Recolección (minería / tala) ─────────────────────────────────────────────
+    // Recursos repartidos por los mapas (no en el hogar): rocas (pico) y árboles
+    // (hacha). Bloquean el paso y solo se dañan con su herramienta equipada en el slot
+    // de recolección. 3 golpes → destrucción. Config en HARVEST_KINDS.
 
-    private initRocks(): void {
+    private initHarvestNodes(): void {
       if (this.currentMapConfig.id === 'hogar') return;
+      for (const id of Object.keys(HARVEST_KINDS) as HarvestKindId[]) {
+        const kind = HARVEST_KINDS[id];
+        if (!this.textures.exists(kind.texture)) continue;   // sin sprite → no se genera
+        for (let placed = 0, tries = 0; placed < kind.count && tries < 400; tries++) {
+          if (this.trySpawnNode(id, kind)) placed++;
+        }
+      }
+    }
+
+    private trySpawnNode(id: HarvestKindId, kind: HarvestKind): boolean {
       const w = this.currentMap.width;
       const h = this.currentMap.height;
       const TS = GameScene.TILE_SIZE;
       const spawn = this.currentMapConfig.spawnPos ?? { x: 6, y: 6 };
-      let placed = 0;
-      for (let tries = 0; placed < 3 && tries < 400; tries++) {
-        // tx/ty = esquina superior izquierda del bloque 2×2 que ocupa la roca
-        const tx = Phaser.Math.Between(3, w - 5);
-        const ty = Phaser.Math.Between(3, h - 5);
-        const keys = [`${tx},${ty}`, `${tx + 1},${ty}`, `${tx},${ty + 1}`, `${tx + 1},${ty + 1}`];
-        // Las 4 tiles deben estar libres y ser pisables
-        if (keys.some(k => this.collisionTiles.has(k))) continue;
-        const cells: [number, number][] = [[tx, ty], [tx + 1, ty], [tx, ty + 1], [tx + 1, ty + 1]];
-        if (cells.some(([cx, cy]) => this.gridPhysics.isTileBlocked(cx * TS + TS / 2, cy * TS + TS / 2))) continue;
-        // No demasiado cerca del punto de aparición del jugador
-        if (Math.abs(tx - spawn.x) < 3 && Math.abs(ty - spawn.y) < 3) continue;
-        this.spawnRock(tx, ty);
-        placed++;
-      }
+      // tx/ty = esquina superior izquierda de la huella footprintW×footprintH
+      const tx = Phaser.Math.Between(3, w - kind.footprintW - 2);
+      const ty = Phaser.Math.Between(3, h - kind.footprintH - 2);
+      const cells: [number, number][] = [];
+      for (let dx = 0; dx < kind.footprintW; dx++)
+        for (let dy = 0; dy < kind.footprintH; dy++) cells.push([tx + dx, ty + dy]);
+      const keys = cells.map(([cx, cy]) => `${cx},${cy}`);
+      // Todas las tiles deben estar libres y ser pisables
+      if (keys.some(k => this.collisionTiles.has(k))) return false;
+      if (cells.some(([cx, cy]) => this.gridPhysics.isTileBlocked(cx * TS + TS / 2, cy * TS + TS / 2))) return false;
+      // No demasiado cerca del punto de aparición del jugador
+      if (Math.abs(tx - spawn.x) < 3 && Math.abs(ty - spawn.y) < 3) return false;
+      this.spawnNode(id, kind, tx, ty, keys);
+      return true;
     }
 
-    private spawnRock(tileX: number, tileY: number): void {
+    private spawnNode(id: HarvestKindId, kind: HarvestKind, tileX: number, tileY: number, tileKeys: string[]): void {
       const TS = GameScene.TILE_SIZE;
-      // Centro del bloque 2×2 = esquina compartida de las 4 tiles
-      const cx = (tileX + 1) * TS;
-      const cy = (tileY + 1) * TS;
-      const sprite = this.add.image(cx, cy, 'rock_mine');
-      sprite.setScale(3);       // 32px → 96px = 2×2 tiles
+      // Centrado horizontal sobre la huella; anclado por su base (origin abajo) a la
+      // fila inferior, + offsetY para asentar el tronco/base sobre el suelo.
+      const cx = (tileX + kind.footprintW / 2) * TS;
+      const cy = (tileY + kind.footprintH) * TS + kind.offsetY;
+      const sprite = this.add.image(cx, cy, kind.texture);
+      sprite.setOrigin(0.5, 1);
+      sprite.setScale(kind.scale);
       sprite.setDepth(2);       // igual que enemigos/jugador
-      const tileKeys = [`${tileX},${tileY}`, `${tileX + 1},${tileY}`, `${tileX},${tileY + 1}`, `${tileX + 1},${tileY + 1}`];
-      for (const k of tileKeys) this.collisionTiles.add(k);   // la roca bloquea las 4 tiles
-      this.rocks.push({ sprite, hits: 0, tileKeys });
+      for (const k of tileKeys) this.collisionTiles.add(k);   // bloquea su huella
+      this.nodes.push({ sprite, hits: 0, tileKeys, kind: id });
     }
 
-    /** Devuelve el item del pico equipado (slot de recolección) o null. */
-    private equippedPickaxe(): InventoryItem | null {
-      const item = this.reg.gathering?.slots.find(s => s.id === 'pickaxe')?.item ?? null;
-      return item && item.category === 'Pico' ? item : null;
+    /** Herramienta de la categoría dada equipada en su slot de recolección, o null. */
+    private equippedTool(category: string, slotId: string): InventoryItem | null {
+      const item = this.reg.gathering?.slots.find(s => s.id === slotId)?.item ?? null;
+      return item && item.category === category ? item : null;
     }
 
-    /** Roca más cercana en rango y en la dirección de mirada, si hay pico equipado.
-     *  Define tanto el modo minería (mostrar el pico + botón 'mine') como el objetivo
-     *  del golpe. Devuelve null si no hay pico o ninguna roca delante. */
-    private nearestMineableRock(): RockNode | null {
-      if (this.rocks.length === 0 || !this.equippedPickaxe()) return null;
+    /** Recurso más cercano en rango y en la dirección de mirada cuya herramienta esté
+     *  equipada. Define el contexto/capa de herramienta y el objetivo del golpe. */
+    private nearestHarvestable(): HarvestNode | null {
+      if (this.nodes.length === 0) return null;
       const pos = this.player.getPosition();
       const vec = this.dirVector(this.player.getDirection());
-      const RANGE = GameScene.TILE_SIZE * 2.5;   // roca 2×2: alcance algo mayor
-      let nearest: RockNode | null = null;
+      const RANGE = GameScene.TILE_SIZE * 2.5;   // huella 2×2: alcance algo mayor
+      let nearest: HarvestNode | null = null;
       let nearestDist = Infinity;
-      for (const rock of this.rocks) {
-        const dx = rock.sprite.x - pos.x;
-        const dy = rock.sprite.y - pos.y;
+      for (const node of this.nodes) {
+        const kind = HARVEST_KINDS[node.kind];
+        if (!this.equippedTool(kind.toolCategory, kind.toolSlotId)) continue;   // sin herramienta no surte efecto
+        // Punto de interacción = centro de la huella en el suelo (no la copa del árbol)
+        const baseY = node.sprite.y - kind.offsetY - (kind.footprintH / 2) * GameScene.TILE_SIZE;
+        const dx = node.sprite.x - pos.x;
+        const dy = baseY - pos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist > RANGE || dist === 0) continue;
         if ((dx * vec.x + dy * vec.y) <= 0) continue;   // no está en la dirección de mirada
-        if (dist < nearestDist) { nearestDist = dist; nearest = rock; }
+        if (dist < nearestDist) { nearestDist = dist; nearest = node; }
       }
       return nearest;
     }
 
-    private mineRock(rock: RockNode): void {
-      rock.hits++;
-      const s = rock.sprite;
+    private harvestNode(node: HarvestNode): void {
+      node.hits++;
+      const kind = HARVEST_KINDS[node.kind];
+      const s = node.sprite;
+      const baseScale = kind.scale;
 
       // Flash blanco de impacto
       s.setTintFill(0xffffff);
       this.time.delayedCall(70, () => { if (s.active) s.clearTint(); });
 
-      // Sacudida + aplastado breve de la roca (escala base 3)
+      // Sacudida + aplastado breve
       this.tweens.killTweensOf(s);
       const baseX = s.x;
       this.tweens.add({
-        targets: s, scaleX: 3.3, scaleY: 2.6, duration: 60, yoyo: true, ease: 'Quad.easeOut',
-        onComplete: () => { if (s.active) { s.setScale(3); s.x = baseX; } },
+        targets: s, scaleX: baseScale * 1.1, scaleY: baseScale * 0.88, duration: 60, yoyo: true, ease: 'Quad.easeOut',
+        onComplete: () => { if (s.active) { s.setScale(baseScale); s.x = baseX; } },
       });
       this.tweens.add({
         targets: s, x: baseX + Phaser.Math.Between(-5, 5), duration: 40, yoyo: true, repeat: 2,
         onComplete: () => { if (s.active) s.x = baseX; },
       });
 
-      // Chispa + escombros + temblor de cámara
-      this.spawnRockSpark(s.x, s.y - 6);
-      this.spawnRockDebris(s.x, s.y, 8);
+      // Chispa + escombros + temblor de cámara (en el punto de impacto, no en la copa)
+      const impactY = s.y - GameScene.TILE_SIZE * 0.8;
+      this.spawnImpactSpark(s.x, impactY);
+      this.spawnDebris(s.x, impactY, 8, kind.debris);
       this.cameras.main.shake(70, 0.0035);
 
-      if (rock.hits >= 3) this.destroyRock(rock);
+      if (node.hits >= 3) this.destroyNode(node);
     }
 
-    private destroyRock(rock: RockNode): void {
-      const idx = this.rocks.indexOf(rock);
-      if (idx !== -1) this.rocks.splice(idx, 1);
-      for (const k of rock.tileKeys) this.collisionTiles.delete(k);   // libera las 4 tiles
+    private destroyNode(node: HarvestNode): void {
+      const idx = this.nodes.indexOf(node);
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      for (const k of node.tileKeys) this.collisionTiles.delete(k);   // libera la huella
 
-      const s = rock.sprite;
-      this.spawnRockDebris(s.x, s.y, 16);   // estallido mayor al romperse
+      const kind = HARVEST_KINDS[node.kind];
+      const s = node.sprite;
+      this.spawnDebris(s.x, s.y - GameScene.TILE_SIZE * 0.8, 16, kind.debris);   // estallido mayor
       this.cameras.main.shake(120, 0.005);
       this.tweens.killTweensOf(s);
       this.tweens.add({
-        targets: s, scale: 3.6, alpha: 0, duration: 200, ease: 'Quad.easeOut',
+        targets: s, scaleX: kind.scale * 1.2, scaleY: kind.scale * 1.2, alpha: 0, duration: 220, ease: 'Quad.easeOut',
         onComplete: () => s.destroy(),
       });
     }
 
     /** Pequeño destello blanco que se expande y desvanece en el punto de impacto. */
-    private spawnRockSpark(x: number, y: number): void {
+    private spawnImpactSpark(x: number, y: number): void {
       const spark = this.add.circle(x, y, 8, 0xffffff, 0.9);
       spark.setDepth(6000);
       this.tweens.add({
@@ -1334,9 +1398,8 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    /** Trozos de piedra saliendo despedidos en arco y desvaneciéndose. */
-    private spawnRockDebris(x: number, y: number, count: number): void {
-      const colors = [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080];
+    /** Trozos (piedra/madera/hojas) saliendo despedidos en arco y desvaneciéndose. */
+    private spawnDebris(x: number, y: number, count: number, colors: number[]): void {
       for (let i = 0; i < count; i++) {
         const size = Phaser.Math.Between(4, 8);
         const chip = this.add.rectangle(x, y, size, size, colors[i % colors.length]);

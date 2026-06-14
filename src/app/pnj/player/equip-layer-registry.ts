@@ -269,18 +269,19 @@ function staffLayer(prefix: string, file: string): EquipLayerConfig {
   };
 }
 
-// Picos / herramientas de recolección (assets/sprites/player/equip/tools/picks).
-// Hoja LPC "smash" combinada de 832×3968 que mezcla dos tamaños de frame:
+// Herramientas de recolección (picos, hachas…) en assets/sprites/player/equip/tools.
+// Todas comparten la hoja LPC "smash" combinada de 832×3968 que mezcla dos tamaños:
 //   · walk/idle a 64×64 (rejilla 13 cols). walk filas 8-11 (9 frames). No trae idle
 //     propio → idle reutiliza el 1er frame del walk de cada dirección.
 //   · golpe ("smash") oversize a 128×128 (rejilla 6 cols). bloque filas 27-30, una
-//     por dirección (6 frames) → animación de ATAQUE al minar. (La col 2 va vacía: en
-//     ese frame el pico pasa por detrás del cuerpo; solo tenemos la capa fg. Aceptable.)
-// Cargamos el PNG con DOS claves (64 y 128); el ataque usa la de 128 con
-// oversizeOffsetY=80 (= (128-64)/2 × 2.5). El pico solo se pinta en modo minería.
-function pickLayer(prefix: string, file: string): EquipLayerConfig {
+//     por dirección (6 frames) → animación de ATAQUE al recolectar. (La col 2 va
+//     vacía: en ese frame la herramienta pasa por detrás del cuerpo; solo tenemos la
+//     capa fg. Aceptable.) Cargamos el PNG con DOS claves (64 y 128); el ataque usa la
+//     de 128 con oversizeOffsetY=80 (= (128-64)/2 × 2.5). Solo se pinta en su modo
+//     (minería para el pico, tala para el hacha).
+function toolLayer(prefix: string, subdir: string, file: string): EquipLayerConfig {
   const p = prefix;
-  const path = `assets/sprites/player/equip/tools/picks/${file}`;
+  const path = `assets/sprites/player/equip/tools/${subdir}/${file}`;
   const C = 13;
   const walk = { up: 8 * C, left: 9 * C, down: 10 * C, right: 11 * C }; // 104,117,130,143
   const C128 = 6;   // columnas a 128px
@@ -318,8 +319,9 @@ function pickLayer(prefix: string, file: string): EquipLayerConfig {
 }
 
 export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
-  // ── Picos (assets/sprites/player/equip/tools/picks) ─────────────────────────
-  'Pico de Hierro': pickLayer('pick01', 'pick_01.png'),
+  // ── Herramientas de recolección (assets/sprites/player/equip/tools) ─────────
+  'Pico de Hierro':  toolLayer('pick01', 'picks', 'pick_01.png'),
+  'Hacha de Hierro': toolLayer('axe01',  'axes',  'axe_01.png'),
   // ── Bastones de mago (assets/sprites/player/equip/weapons/staff/staff) ───────
   'Bastón Nudoso':   staffLayer('staff01', 'staff_01.png'),
   'Báculo de Roble': staffLayer('staff02', 'staff_02.png'),

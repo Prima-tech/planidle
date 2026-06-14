@@ -6,6 +6,8 @@ import { InventoryItem, InventoryService } from 'src/app/services/inventory.serv
 import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown, MagicDamageBreakdown, RegenBreakdown, DropRateBreakdown } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
 import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES } from 'src/app/services/talent.service';
+import { SKILL_REGISTRY } from 'src/app/services/skill-config';
+import { AdminService } from 'src/app/services/admin.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
@@ -30,6 +32,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   quests = inject(QuestService);
   private playerBridge = inject(PlayerBridgeService);
   private asgard = inject(AsgardService);
+  admin = inject(AdminService);
 
   // Cooldown de la poción auto-equipada (overlay sobre el slot)
   potionCdActive = false;
@@ -292,8 +295,17 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this._panActive = false;
   }
 
-  get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
+  /** Nodos que se pintan. Admin: todos. Juego normal: solo desbloqueados + alcanzables
+   *  (lo más profundo queda oculto). Como un alcanzable tiene siempre sus padres
+   *  desbloqueados, ningún nodo visible queda con líneas colgando. */
+  get visibleTreeNodes(): TalentNodeConfig[] {
     const nodes = this.activeTreeNodes;
+    if (this.admin.isAdmin) return nodes;
+    return nodes.filter(n => this.talent.isUnlocked(n.id) || this.talent.isReachable(n.id));
+  }
+
+  get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
+    const nodes = this.visibleTreeNodes;
     const CW = 33, CH = 48;
     const cx = (col: number) => col * CW + CW / 2;
     const cy = (row: number) => row * CH + 21;
@@ -326,6 +338,12 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   nodeColor(node: TalentNodeConfig): string {
     const sphere = this.talent.slotted[node.id];
     return sphere ? this.sphereColors[sphere] : '';
+  }
+
+  /** Imagen de la habilidad del nodo (icono del registro de skills), o null si no es habilidad. */
+  nodeImage(node: TalentNodeConfig): string | null {
+    const ability = node.effect.ability;
+    return ability ? (SKILL_REGISTRY[ability]?.iconPath ?? null) : null;
   }
 
   onNodeClick(node: TalentNodeConfig): void {
@@ -452,9 +470,11 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   private effectLabel(node: TalentNodeConfig, val: number): string {
     switch (node.effect.type) {
+      case 'magicAtk':   return `+${val} M.ATK`;
       case 'hp':         return `+${val} HP`;
       case 'mp':         return `+${val} MP`;
       case 'defense':    return `+${val} DEF`;
+      case 'evasion':    return `+${val}% EVA`;
       case 'critChance': return `+${val}% CRIT`;
       case 'hpRegen':    return `+${val} HP/regen`;
       case 'mpRegen':    return `+${val} MP/regen`;

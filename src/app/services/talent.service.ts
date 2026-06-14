@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { PlayerStateService } from './player-state.service';
+import { AdminService } from './admin.service';
 
 export type SphereType = 'normal' | 'rare' | 'epic';
 
@@ -10,9 +11,11 @@ export const SPHERE_TYPES: SphereType[] = ['normal', 'rare', 'epic'];
 export const ROOT_NODE_ID = 'c0';
 
 export interface TalentEffect {
-  type:     'atk' | 'hp' | 'mp' | 'defense' | 'critChance' | 'hpRegen' | 'mpRegen' | 'dropRate' | 'ability';
+  type:     'atk' | 'magicAtk' | 'hp' | 'mp' | 'defense' | 'evasion' | 'critChance' | 'hpRegen' | 'mpRegen' | 'dropRate' | 'ability';
   base:     number;
   ability?: string;
+  /** Solo para type 'ability': a qué daño suma su `base`. Por defecto 'magic'. */
+  school?:  'physical' | 'magic';
 }
 
 export interface TalentNodeConfig {
@@ -71,8 +74,8 @@ export const TALENT_NODES: TalentNodeConfig[] = [
   // ── Rama 1: Derecha (paso +2 cols) ──────────────────────────────
   { id: 'n1_1', label: '', icon: 'ellipse-outline', num: 1, small: true, topLabel: 'STR',
     col: 12, row: 5, requires: ['c0'],   effect: { type: 'atk', base: 1 } },
-  { id: 'n1_2', label: '', icon: 'ellipse-outline', num: 2,
-    col: 14, row: 5, requires: ['n1_1'], effect: { type: 'atk', base: 0 } },
+  { id: 'n1_2', label: 'Tajo de\nGuerrero III', icon: 'flash-outline', num: 2,
+    col: 14, row: 5, requires: ['n1_1'], effect: { type: 'ability', base: 22, ability: 'warrior_slash_3', school: 'physical' } },
   { id: 'n1_3', label: '', icon: 'ellipse-outline', num: 3,
     col: 16, row: 5, requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
   { id: 'n1_4', label: '', icon: 'ellipse-outline', num: 4,
@@ -82,7 +85,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
 
   // ── Rama 2: Abajo-derecha (paso +1 col, +1 row) ─────────────────
   { id: 'n2_1', label: '', icon: 'ellipse-outline', num: 6, small: true, topLabel: 'VIT',
-    col: 11, row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 11, row: 6,  requires: ['c0'],   effect: { type: 'hp', base: 5 } },
   { id: 'n2_2', label: '', icon: 'ellipse-outline', num: 7,
     col: 12, row: 7,  requires: ['n2_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n2_3', label: '', icon: 'ellipse-outline', num: 8,
@@ -94,7 +97,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
 
   // ── Rama 3: Abajo-izquierda (paso -1 col, +1 row) ───────────────
   { id: 'n3_1', label: '', icon: 'ellipse-outline', num: 11, small: true, topLabel: 'CHR',
-    col: 9,  row: 6,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 9,  row: 6,  requires: ['c0'],   effect: { type: 'dropRate', base: 1 } },
   { id: 'n3_2', label: '', icon: 'ellipse-outline', num: 12,
     col: 8,  row: 7,  requires: ['n3_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n3_3', label: '', icon: 'ellipse-outline', num: 13,
@@ -106,7 +109,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
 
   // ── Rama 4: Izquierda (paso -2 cols) ────────────────────────────
   { id: 'n4_1', label: '', icon: 'ellipse-outline', num: 16, small: true, topLabel: 'INT',
-    col: 8,  row: 5,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 8,  row: 5,  requires: ['c0'],   effect: { type: 'magicAtk', base: 1 } },
   { id: 'n4_2', label: '', icon: 'ellipse-outline', num: 17,
     col: 6,  row: 5,  requires: ['n4_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n4_3', label: '', icon: 'ellipse-outline', num: 18,
@@ -118,7 +121,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
 
   // ── Rama 5: Arriba-izquierda (paso -1 col, -1 row) ──────────────
   { id: 'n5_1', label: '', icon: 'ellipse-outline', num: 21, small: true, topLabel: 'MAG',
-    col: 9,  row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 9,  row: 4,  requires: ['c0'],   effect: { type: 'mp', base: 5 } },
   { id: 'n5_2', label: '', icon: 'ellipse-outline', num: 22,
     col: 8,  row: 3,  requires: ['n5_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n5_3', label: '', icon: 'ellipse-outline', num: 23,
@@ -130,7 +133,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
 
   // ── Rama 6: Arriba-derecha (paso +1 col, -1 row) ────────────────
   { id: 'n6_1', label: '', icon: 'ellipse-outline', num: 26, small: true, topLabel: 'DEX',
-    col: 11, row: 4,  requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 11, row: 4,  requires: ['c0'],   effect: { type: 'evasion', base: 1 } },
   { id: 'n6_2', label: '', icon: 'ellipse-outline', num: 27,
     col: 12, row: 3,  requires: ['n6_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n6_3', label: '', icon: 'ellipse-outline', num: 28,
@@ -288,27 +291,27 @@ export const TALENT_NODES_WARRIOR: TalentNodeConfig[] = [
   {
     id: 'warrior_slash', label: 'Tajo de\nGuerrero', icon: 'flash-outline',
     col: 0, row: 0, requires: [],
-    effect: { type: 'ability', base: 18, ability: 'warrior_slash' },
+    effect: { type: 'ability', base: 18, ability: 'warrior_slash', school: 'physical' },
   },
   {
     id: 'warrior_slash_2', label: 'Tajo de\nGuerrero II', icon: 'flash-outline',
     col: 1, row: 0, requires: [],
-    effect: { type: 'ability', base: 20, ability: 'warrior_slash_2' },
+    effect: { type: 'ability', base: 20, ability: 'warrior_slash_2', school: 'physical' },
   },
   {
     id: 'warrior_slash_3', label: 'Tajo de\nGuerrero III', icon: 'flash-outline',
     col: 2, row: 0, requires: [],
-    effect: { type: 'ability', base: 22, ability: 'warrior_slash_3' },
+    effect: { type: 'ability', base: 22, ability: 'warrior_slash_3', school: 'physical' },
   },
   {
     id: 'warrior_slash_4', label: 'Tajo de\nGuerrero IV', icon: 'flash-outline',
     col: 3, row: 0, requires: [],
-    effect: { type: 'ability', base: 24, ability: 'warrior_slash_4' },
+    effect: { type: 'ability', base: 24, ability: 'warrior_slash_4', school: 'physical' },
   },
   {
     id: 'warrior_slash_5', label: 'Tajo de\nGuerrero V', icon: 'flash-outline',
     col: 4, row: 0, requires: [],
-    effect: { type: 'ability', base: 26, ability: 'warrior_slash_5' },
+    effect: { type: 'ability', base: 26, ability: 'warrior_slash_5', school: 'physical' },
   },
 ];
 
@@ -508,7 +511,7 @@ export const TALENT_NODES_PHYSICAL: TalentNodeConfig[] = [
   {
     id: 'dash', label: 'Dash', icon: 'flash-outline',
     col: 0, row: 0, requires: [],
-    effect: { type: 'ability', base: 0, ability: 'dash' },
+    effect: { type: 'ability', base: 0, ability: 'dash', school: 'physical' },
   },
 ];
 
@@ -536,7 +539,7 @@ export class TalentService {
   activeLoadout = 0;
   private storedSets: (TalentSnapshot | null)[] = [null, null, null];
 
-  constructor(private playerState: PlayerStateService) {
+  constructor(private playerState: PlayerStateService, private admin: AdminService) {
     for (const n of ALL_NODES) { this.slotted[n.id] = null; this.unlocked[n.id] = false; }
     this.ensureBaseUnlocks();
   }
@@ -638,8 +641,10 @@ export class TalentService {
 
   // ── Desbloqueo de nodos ──────────────────────────────────────────────────────
 
+  /** En modo admin todo cuenta como desbloqueado (todo visible + todos los bonos).
+   *  El estado REAL vive en `this.unlocked` (lo usan puntos, isReachable, lock/unlock). */
   isUnlocked(nodeId: string): boolean {
-    return !!this.unlocked[nodeId];
+    return this.admin.isAdmin || !!this.unlocked[nodeId];
   }
 
   /** Alcanzable: aún sin desbloquear pero con los padres ya desbloqueados.
@@ -715,24 +720,28 @@ export class TalentService {
     this.changes$.next();
   }
 
-  getBonus(): { atk: number; hp: number; mp: number; defense: number; critChance: number; hpRegen: number; mpRegen: number; dropRate: number; abilities: string[] } {
-    let atk = 0, hp = 0, mp = 0, defense = 0, critChance = 0, hpRegen = 0, mpRegen = 0, dropRate = 0;
+  getBonus(): { atk: number; magicAtk: number; hp: number; mp: number; defense: number; evasion: number; critChance: number; hpRegen: number; mpRegen: number; dropRate: number; abilities: string[] } {
+    let atk = 0, magicAtk = 0, hp = 0, mp = 0, defense = 0, evasion = 0, critChance = 0, hpRegen = 0, mpRegen = 0, dropRate = 0;
     const abilities: string[] = [];
     for (const node of this.nodes) {
-      // Solo cuentan los nodos desbloqueados. Sin gema → ×1 (valor base);
+      // Solo cuentan los nodos desbloqueados (admin = todos). Sin gema → ×1 (valor base);
       // con gema → ×SPHERE_MULT (verde 2 / azul 3 / épica 5).
-      if (!this.unlocked[node.id]) continue;
+      if (!this.isUnlocked(node.id)) continue;
       const sphere = this.slotted[node.id];
       const mult = sphere ? SPHERE_MULT[sphere] : 1;
       const value = node.effect.base * mult;
       if (node.effect.type === 'atk') {
         atk += value;
+      } else if (node.effect.type === 'magicAtk') {
+        magicAtk += value;
       } else if (node.effect.type === 'hp') {
         hp += value;
       } else if (node.effect.type === 'mp') {
         mp += value;
       } else if (node.effect.type === 'defense') {
         defense += value;
+      } else if (node.effect.type === 'evasion') {
+        evasion += value;
       } else if (node.effect.type === 'critChance') {
         critChance += value;
       } else if (node.effect.type === 'hpRegen') {
@@ -742,11 +751,13 @@ export class TalentService {
       } else if (node.effect.type === 'dropRate') {
         dropRate += value;
       } else if (node.effect.type === 'ability') {
-        atk += value;
+        // El base de la habilidad suma a su escuela: físico (guerrero) o mágico (elementales, por defecto).
+        if ((node.effect.school ?? 'magic') === 'physical') atk += value;
+        else magicAtk += value;
         if (node.effect.ability) abilities.push(node.effect.ability);
       }
     }
-    return { atk, hp, mp, defense, critChance, hpRegen, mpRegen, dropRate, abilities };
+    return { atk, magicAtk, hp, mp, defense, evasion, critChance, hpRegen, mpRegen, dropRate, abilities };
   }
 
   getSnapshot(): TalentSnapshot {

@@ -1,62 +1,72 @@
 ---
-description: Sistema de minería del juego — rocas minables en los mapas, el pico, el modo minería contextual, animación de picado y efectos. Punto único donde se documenta TODO lo relacionado con minería. Se activa al hablar de minería, minar, rocas, pico, picar, recolección de mineral.
+description: Sistema de recolección de recursos del mapa (minería de rocas con pico, tala de árboles con hacha…) — nodos en el mapa, herramientas, modo contextual, animación de golpe y efectos. Punto único donde se documenta TODO lo de minería/recolección. Se activa al hablar de minería, minar, tala, talar, rocas, árboles, pico, hacha, recolección.
 triggers:
   - minería
   - mineria
   - mining
   - minar
   - picar
+  - tala
+  - talar
   - roca
   - rock
+  - árbol
+  - arbol
+  - tree
   - pico
   - pickaxe
-  - rock_mine
-  - miningMode
-  - nearestMineableRock
-  - mineral
-  - cantera
+  - hacha
+  - axe
+  - HARVEST_KINDS
+  - nearestHarvestable
+  - HarvestNode
+  - recolección
+  - recurso
 ---
 
-# Sistema de minería
+# Sistema de recolección (minería / tala)
 
-> Esta skill es el sitio donde se va metiendo **todo lo relacionado con minería**. Al añadir mecánicas nuevas (tipos de roca, drops de mineral, niveles de pico, profundidad/cantera, XP de minería…), documéntalas aquí.
+Sistema genérico de **nodos recolectables** en el mapa. Cada tipo (`HarvestKindId`) se pica con su herramienta: **roca → pico** (categoría `'Pico'`, slot `pickaxe`), **árbol → hacha** (categoría `'Hacha'`, slot `axe`). Es el sitio donde se mete TODO lo de minería/recolección; añadir tipos nuevos (caña→peces, pala…) = una entrada en `HARVEST_KINDS`.
 
 ## Archivos involucrados
 
 | Archivo | Responsabilidad |
 |---------|----------------|
-| `src/app/scenes/gamescene/gamescene.ts` | Spawn de rocas, modo minería, golpe, efectos. Métodos `initRocks`, `spawnRock`, `nearestMineableRock`, `mineRock`, `destroyRock`, `spawnRockDebris`, `spawnRockSpark`, `refreshHeldLayer`, `setMiningMode`, `equippedPickaxe`, `dirVector` |
-| `src/app/pnj/player/equip-layer-registry.ts` | `pickLayer()` — capa LPC del pico (walk/idle 64px + golpe "smash" oversize 128px) |
-| `src/app/physics/griddrops.ts` | `TOOLS_CATALOG` — ítem "Pico de Hierro" (categoría `'Pico'`) |
-| `src/app/services/gathering-equipment.service.ts` | Slot `pickaxe` (acepta categoría `'Pico'`) |
-| `src/app/services/interaction.service.ts` | Contexto `'mine'` del botón de acción |
-| `src/app/components/attack-button/attack-button.component.*` | Icono `hammer-outline` cuando el contexto es `'mine'` |
-| `assets/sprites/map/skills/rocks/` | Sprites de roca (textura `rock_mine` = `Rock1_3.png`, 32×32) |
-| `assets/sprites/player/equip/tools/picks/` | Hoja del pico (`pick_01.png`, 832×3968) + `icons/` |
+| `src/app/scenes/gamescene/gamescene.ts` | `HARVEST_KINDS`, `HarvestNode`. Métodos `initHarvestNodes`, `trySpawnNode`, `spawnNode`, `nearestHarvestable`, `harvestNode`, `destroyNode`, `spawnDebris`, `spawnImpactSpark`, `refreshHeldLayer`, `setActiveHarvest`, `equippedTool`, `dirVector` |
+| `src/app/pnj/player/equip-layer-registry.ts` | `toolLayer()` — capa LPC compartida de herramientas (walk/idle 64px + golpe "smash" oversize 128px). Items `'Pico de Hierro'`, `'Hacha de Hierro'` |
+| `src/app/physics/griddrops.ts` | `TOOLS_CATALOG` — picos (cat. `'Pico'`) y hachas (cat. `'Hacha'`) |
+| `src/app/services/gathering-equipment.service.ts` | Slots `pickaxe` (`'Pico'`) y `axe` (`'Hacha'`) |
+| `src/app/services/interaction.service.ts` | Contextos `'mine'` (roca) y `'chop'` (árbol) del botón de acción |
+| `src/app/components/attack-button/attack-button.component.*` | Iconos `hammer-outline` (mine) / `leaf-outline` (chop) |
+| `assets/sprites/map/skills/rocks/Rock1_3.png` (`rock_mine`, 32×32) · `assets/sprites/map/skills/trees/Tree1.png` (`tree_chop`, 128×128) | Sprites de los recursos |
+| `assets/sprites/player/equip/tools/{picks,axes}/` | Hojas LPC de las herramientas + `icons/` |
 
 ---
 
-## Cómo funciona (estado actual)
+## Cómo funciona
 
-### Rocas en el mapa
-- `initRocks()` (bloque diferido de `create()`) coloca **3 rocas** en mapas que **no sean `hogar`**, lejos del spawn del jugador. Se regeneran al reentrar al mapa (no se persisten).
-- Cada roca ocupa una **huella de 2×2 tiles** (escala 3 → 96 px). `tx,ty` es la esquina superior izquierda; el sprite se centra en la esquina compartida `((tx+1)*TS, (ty+1)*TS)`. `initRocks` exige que las 4 tiles estén libres y pisables (`gridPhysics.isTileBlocked`).
-- Cada roca **bloquea el paso en sus 4 tiles**: `spawnRock` añade las 4 keys a `collisionTiles` (mismo Set que usa GridPhysics); `destroyRock` las borra todas.
-- Estructura: `interface RockNode { sprite: Phaser.GameObjects.Image; hits: number; tileKeys: string[] }`; `rocks: RockNode[]`, reseteado en `create()`.
+### Config por tipo (`HARVEST_KINDS`)
+```ts
+rock: { texture:'rock_mine', toolCategory:'Pico', toolSlotId:'pickaxe', context:'mine',
+        footprintW:2, footprintH:2, scale:3,   offsetY:0,  count:3, debris:[grises] }
+tree: { texture:'tree_chop', toolCategory:'Hacha', toolSlotId:'axe',  context:'chop',
+        footprintW:2, footprintH:2, scale:1.6, offsetY:40, count:3, debris:[madera+hojas] }
+```
 
-### Modo minería (capa del pico contextual)
-- Cada frame, `update()` llama a `nearestMineableRock()`: devuelve la roca más cercana en rango (`TILE_SIZE*2`) y **en la dirección de mirada** (dot-product), **solo si hay pico equipado** (`equippedPickaxe()` → slot `pickaxe`, categoría `'Pico'`).
-- Si hay roca delante → `setMiningMode(true)` y el botón pasa a contexto `'mine'`. Si no → `'attack'`.
-- `refreshHeldLayer()` decide qué se sostiene: en modo minería con pico → **oculta el arma y muestra el pico**; si no → muestra el arma y oculta el pico. El slot `weapon` se gestiona SOLO aquí (el bucle de `initEquipLayers` lo salta).
+### Spawn
+- `initHarvestNodes()` (diferido en `create()`): solo fuera de `hogar`. Por cada kind cuyo `texture` esté precargado, intenta colocar `count` nodos con `trySpawnNode`.
+- Cada nodo ocupa una **huella `footprintW×footprintH` tiles** y **bloquea esas tiles** (`collisionTiles`). El sprite se ancla por su base (`origin (0.5,1)`) centrado sobre la huella, + `offsetY` para asentar el tronco/base en el suelo. `scale` ajusta el tamaño (roca 96px=2×2; árbol más alto con copa por encima).
+- `nodes: HarvestNode[]` (`{ sprite, hits, tileKeys, kind }`), reseteado en `create()`.
 
-### Golpe / picado
-- `strike()`: si `nearestMineableRock()` da una roca → `playerAttack()` (el cuerpo hace el swing y la capa del pico reproduce su animación `attack` = bloque **smash** 128px) y a **140 ms** aplica `mineRock`. Si no hay roca → ataque normal de arma.
-- La animación del pico (`pickLayer`) usa el bloque "smash" de `pick_01.png`: walk/idle 64px (13 cols, filas 8-11) + golpe oversize 128px (6 cols, filas 27-30, 6 frames/dir) con `oversizeSheetKey`/`oversizeOffsetY: 80`. (En 1 frame el pico va por detrás del cuerpo y no se ve: solo hay capa fg. Aceptable.)
-- Tras el swing vuelve a idle automáticamente (vía `syncLayers`); seguir pegando re-dispara el swing.
+### Modo recolección contextual (herramienta PEGAJOSA)
+- Cada frame, `update()` → `nearestHarvestable()`: nodo más cercano en rango (`TILE_SIZE*2.5`) y **en la dirección de mirada**, **cuya herramienta esté equipada** (`equippedTool(cat, slot)`). El punto de interacción es el **centro de la huella en el suelo** (no la copa).
+- `activeHarvest` (herramienta en mano) es **pegajoso**: `update()` solo lo **activa** al encarar un recurso (`setActiveHarvest(kind)`); NO lo limpia al alejarte. Así la herramienta se queda visible tras minar/talar (incluido tras destruir el recurso). Solo se limpia (`setActiveHarvest(null)`) en `strike()` cuando es un **ataque normal** (sin recurso delante → enemigo/al aire), que es "otra acción".
+- `refreshHeldLayer()`: si `activeHarvest` y su herramienta está equipada, **oculta el arma y muestra la capa de la herramienta** (`pickaxe`/`axe`); si no, muestra el arma. El slot `weapon` se gestiona SOLO ahí (el bucle de `initEquipLayers` lo salta).
+- El botón de acción toma el `context` del recurso encarado (`'mine'`/`'chop'`); al alejarte vuelve a `'attack'` aunque la herramienta siga visible.
 
-### Efectos RPG (`mineRock`)
-- Flash blanco (`setTintFill`), squash + sacudida con tweens, chispa (`spawnRockSpark`), escombros de piedra en arco (`spawnRockDebris`) y camera shake.
-- Al **3er golpe** (`hits >= 3`) → `destroyRock`: libera el tile de colisión, estallido mayor de escombros, temblor fuerte y fade-out.
+### Golpe
+- `strike()`: si `nearestHarvestable()` → `playerAttack()` (el cuerpo hace el swing y la capa de la herramienta reproduce su `attack` = bloque **smash** 128px de la hoja) y a 140ms `harvestNode`. Si no → ataque normal de arma.
+- `harvestNode`: flash blanco, squash/sacudida, `spawnImpactSpark`, `spawnDebris` (color según kind), camera shake. **3er golpe** → `destroyNode` (libera las tiles, estallido + fade).
 
 ---
 
@@ -64,24 +74,24 @@ triggers:
 
 | Qué | Valor | Dónde |
 |-----|-------|-------|
-| Rocas por mapa | 3 | `initRocks` |
-| Huella de la roca | 2×2 tiles (4 collision tiles) | `spawnRock` |
-| Golpes para destruir | 3 | `mineRock` (`hits >= 3`) |
-| Rango de minado | `TILE_SIZE * 2.5` (120 px) | `nearestMineableRock` |
+| Nodos por tipo y mapa | 3 (`count`) | `HARVEST_KINDS` |
+| Golpes para destruir | 3 | `harvestNode` (`hits >= 3`) |
+| Rango | `TILE_SIZE * 2.5` (120 px) | `nearestHarvestable` |
 | Delay del impacto | 140 ms | `strike` |
-| Escala de la roca | 3 (32→96 px = 2×2 tiles) | `spawnRock` |
-| Solo fuera del hogar | `id !== 'hogar'` | `initRocks` |
+| Huella | `footprintW×footprintH` tiles (colisión) | `HARVEST_KINDS` |
+| Solo fuera del hogar | `id !== 'hogar'` | `initHarvestNodes` |
 
 ---
 
 ## Cómo extender
 
-- **Nuevo tipo de roca:** añade el PNG en `assets/sprites/map/skills/rocks/`, cárgalo en `preload` (`this.load.image('clave', ...)`), y parametriza `spawnRock`/`rocks` con la textura y la dureza (nº de golpes).
-- **Drops al destruir (mineral):** hoy `destroyRock` no suelta nada. Para soltar, replica el patrón de drops de enemigos (`griddrops.ts` / `addDroppedItem`) dentro de `destroyRock`.
-- **Niveles/tier de pico:** `equippedPickaxe()` ya devuelve el item; lee `stats`/tier del pico para escalar golpes o daño. Más picos = más entradas en `TOOLS_CATALOG` + `pickLayer` (ver el command `/new-weapon` para el flujo de capas LPC oversize).
-- **Persistir rocas:** hoy se regeneran por mapa; si hace falta guardarlas, añadir al `GameSnapshot` (ver skill `save-pattern`).
+- **Nuevo recurso (caña→pez, pala→…):** añade el PNG, cárgalo en `preload` (`this.load.image('clave', ...)`), añade una entrada a `HARVEST_KINDS` con su textura/herramienta/slot/contexto/huella/escala. El slot debe existir en `GatheringEquipmentService` y, si quieres icono de herramienta sobre el personaje, registra la herramienta con `toolLayer(...)` en el registry + entrada en `TOOLS_CATALOG`. Añade el contexto a `InteractionContext` + icono en `attack-button`.
+- **Drops al destruir (mineral/madera):** hoy `destroyNode` no suelta nada. Para soltar, replica el patrón de drops (`griddrops.ts` / `addDroppedItem`) dentro de `destroyNode` según `node.kind`.
+- **Dureza por herramienta/tier:** `equippedTool` devuelve el item; lee `stats`/tier para escalar nº de golpes.
+- **Persistir nodos:** hoy se regeneran por mapa; para guardarlos, al `GameSnapshot` (ver skill `save-pattern`).
 
 ## Notas / a verificar
 
-- Orden de direcciones del smash asumido up/left/down/right (estándar LPC) — verificar minando en las 4 direcciones.
-- `oversizeOffsetY: 80` del pico puede necesitar ajuste fino de alineación vertical durante el golpe.
+- Orden de direcciones del smash asumido up/left/down/right (estándar LPC).
+- `offsetY`/`scale` del árbol (40 / 1.6) son aproximados — ajustar para que el tronco quede bien asentado y la copa no tape de más.
+- Los nodos usan `depth 2` (como jugador/enemigos): un árbol alto se dibuja sobre el jugador aunque esté delante (al sur). Aceptable; refinar con depth por-Y si molesta.

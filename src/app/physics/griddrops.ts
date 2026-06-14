@@ -319,11 +319,13 @@ const STAFF_CATALOG: LootEntry[] = [
   },
 ];
 
-// Picos: herramienta de recolección. Se equipan en el slot 'pickaxe' (categoría
-// 'Pico') de la pestaña de equipo secundaria. Icono recortado dedicado (icons/); el
-// sprite del drop reutiliza la hoja LPC ya precargada (pick0X_main) en un frame de
-// walk limpio (117 = walk_left). En el panel de invocación cae en la pestaña Misc.
+// Herramientas de recolección. Se equipan en su slot (categoría) de la pestaña de
+// equipo secundaria: pico → slot 'pickaxe' ('Pico'); hacha → slot 'axe' ('Hacha').
+// Icono recortado dedicado (icons/); el sprite del drop reutiliza la hoja LPC ya
+// precargada (tool0X_main) en un frame de walk limpio (117 = walk_left). En el panel
+// de invocación caen en la pestaña Misc.
 const PICK_ICONS = 'assets/sprites/player/equip/tools/picks/icons';
+const AXE_ICONS  = 'assets/sprites/player/equip/tools/axes/icons';
 const TOOLS_CATALOG: LootEntry[] = [
   {
     name: 'Pico de Hierro', category: 'Pico', type: 'item',
@@ -331,6 +333,13 @@ const TOOLS_CATALOG: LootEntry[] = [
     texture: 'pick01_main', frame: 117, scale: 2.5, order: 4,
     icon: `${PICK_ICONS}/pick_01_icon.png`,
     description: 'Un pico de hierro robusto para picar mineral.',
+  },
+  {
+    name: 'Hacha de Hierro', category: 'Hacha', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'axe01_main', frame: 117, scale: 2.5, order: 4,
+    icon: `${AXE_ICONS}/axe_01_icon.png`,
+    description: 'Un hacha de hierro afilada para talar árboles.',
   },
 ];
 

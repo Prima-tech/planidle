@@ -38,6 +38,7 @@ export interface DefenseBreakdown {
 export interface EvasionBreakdown {
   dex:       number;
   equipment: number;
+  talents:   number;
   buffs:     number;
   total:     number;
 }
@@ -219,7 +220,7 @@ export class CharacterStatsService {
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['magicDamage'] ?? 0), 0
     );
-    const talents = this.talent.getBonus().atk;  // magic tree atk nodes count too
+    const talents = this.talent.getBonus().magicAtk;  // nodos magicAtk + base de habilidades mágicas
     return { base, equipment, talents, total: base + equipment + talents };
   }
 
@@ -311,8 +312,9 @@ export class CharacterStatsService {
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['evasion'] ?? 0), 0
     );
-    const buffs = this.buff.getValue('evasion');
-    return { dex, equipment, buffs, total: dex + equipment + buffs };
+    const talents = this.talent.getBonus().evasion;
+    const buffs   = this.buff.getValue('evasion');
+    return { dex, equipment, talents, buffs, total: dex + equipment + talents + buffs };
   }
 
   private _calcDefense(): DefenseBreakdown {

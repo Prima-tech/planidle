@@ -20,6 +20,12 @@
           <ion-toggle [(ngModel)]="useSupabase"></ion-toggle>
         </div>
 
+        <div class="mode-toggle">
+          <ion-icon [name]="admin ? 'key-outline' : 'game-controller-outline'" class="input-icon"></ion-icon>
+          <span class="mode-label">{{ admin ? 'Modo admin (todo desbloqueado)' : 'Juego normal' }}</span>
+          <ion-toggle [(ngModel)]="admin"></ion-toggle>
+        </div>
+
         <ng-container *ngIf="useSupabase">
           <div class="input-wrapper">
             <ion-icon name="person-outline" class="input-icon"></ion-icon>

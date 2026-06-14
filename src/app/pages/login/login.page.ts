@@ -5,6 +5,7 @@ import { GameApiService } from 'src/app/services/game-api.service';
 import { StorageService } from 'src/app/services/storage.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { ConnectionService } from 'src/app/services/connection.service';
+import { AdminService } from 'src/app/services/admin.service';
 
 @Component({
     selector: 'app-login',
@@ -19,6 +20,8 @@ export class LoginPage implements OnInit {
     error = '';
     /** Toggle: true = conectar a Supabase · false = jugar en local. */
     useSupabase = false;
+    /** Toggle: true = modo admin (todo desbloqueado) · false = juego normal (oculta lo no desbloqueado). */
+    admin = true;
 
     constructor(
         private router: Router,
@@ -26,11 +29,13 @@ export class LoginPage implements OnInit {
         private storageService: StorageService,
         private supabaseService: SupabaseService,
         private connection: ConnectionService,
+        private adminService: AdminService,
     ) { }
 
     async ngOnInit() {
         await this.connection.load();
         this.useSupabase = this.connection.useSupabase;
+        this.admin = this.adminService.isAdmin;
     }
 
     async login() {
@@ -39,6 +44,8 @@ export class LoginPage implements OnInit {
 
         // Persiste el modo elegido (lo respeta el botón Guardar dentro del juego).
         await this.connection.setUseSupabase(this.useSupabase);
+        // Persiste el modo admin (lo lee TalentService/paneles para mostrar u ocultar lo no desbloqueado).
+        this.adminService.setAdmin(this.admin);
 
         // Modo local: sin autenticación, directo al juego (datos solo en local).
         if (!this.useSupabase) {
