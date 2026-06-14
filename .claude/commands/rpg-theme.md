@@ -33,6 +33,9 @@ $grid-bg: #4a3023;        // fondo del área de grid
 $text-brown: #53301c;     // texto sobre madera clara
 $text-cream: #ecd9b4;     // texto sobre fondos oscuros
 $purple: #6e4a67;         // selección
+$metal-light: #cfc7b8;    // bisel metálico iluminado (ventanas flotantes, placa del nombre)
+$metal: #9b9285;          // bisel metálico base
+$metal-dark: #6b6357;     // bisel metálico en sombra
 ```
 
 > Cada componente lleva su copia de las variables (no hay partial compartido).
@@ -68,6 +71,47 @@ fuera y por dentro de la piedra.
 ```
 
 El `repeating-linear-gradient` son las vetas de la madera — siempre encima del color base.
+
+### 1b. Ventana flotante / popover / ficha (marco metálico + madera clara) ⭐ POR DEFECTO
+
+**Usar SIEMPRE esta receta para popovers, flyouts, fichas de detalle y tooltips.**
+NO usar fondo oscuro `$cell-bg` ni borde fino `$outline` para estas ventanas — ese es el
+estilo viejo y se ve mal. El look correcto es **bisel metálico gris + cara de madera clara
+`$wood-btn-dark`**, idéntico a la pastilla del nombre del personaje (`char-stats`).
+
+```scss
+.floating-window {   // popover, flyout, ficha de detalle, tooltip
+  padding: 8px 10px;
+  color: $text-cream;
+  background: $wood-btn-dark;            // madera clara — NO $cell-bg
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;  // bisel metálico
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,                  // contorno exterior
+    inset 0 0 0 1px $outline,            // contorno interior
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),  // reflejo metálico superior
+    0 4px 16px rgba(0, 0, 0, 0.6);       // sombra de elevación
+}
+
+.fw-title {                             // título dentro de la ventana
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffd700;                       // dorado sobre la madera
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+```
+
+- Sin botón de cerrar (✕): estas ventanas se cierran al reseleccionar o pinchar fuera.
+- Para valores/datos dentro: enmárcalos como placa de monedas (receta 6b), no texto suelto.
+- Botón de acción compacto: solo icono, cuadrado ~28px, `margin-left: auto` para alinearlo
+  a la derecha de su fila.
+
+**Referencia:** `equipment.component.scss` → `.talent-node-card` (picker de talentos) y
+`char-stats.component.scss` → `:host` (pastilla del nombre).
 
 ### 2. Sección interior enmarcada (área de grid, sub-paneles)
 
@@ -228,6 +272,32 @@ activa = madera clara con texto marrón:
 }
 ```
 
+### 6b. Placa de valor estilo monedas (madera clara + bisel de piedra)
+
+Para mostrar un valor/dato dentro de una ventana flotante (receta 1b) o sobre madera.
+Es la misma placa que el contador de monedas del inventario (`.coins-section`):
+
+```scss
+.value-plaque {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  font-size: 0.66em;
+  font-weight: 700;
+  color: $text-brown;
+}
+```
+
+**Referencia:** `inventory.component.scss` → `.coins-section`.
+
 ### 7. Modal de confirmación
 
 Mismo marco que el panel principal (receta 1) sobre overlay oscuro. Título en serif
@@ -282,12 +352,14 @@ Y el `:host` del componente lleva `margin: 2px` para que el anillo exterior del
 3. **Madera siempre con vetas** (`repeating-linear-gradient` de la receta 1) en superficies grandes; en botones pequeños no hace falta.
 4. **Compacidad**: los paneles deben caber entre `top: 10px` y `bottom: 65px` — botones 32px, paddings ajustados, tabs con padding vertical 2px.
 5. **No tocar la lógica**: este tema es solo SCSS. Mantener clases, estructura HTML y bindings existentes (CDK drag&drop depende de ellas).
+6. **Popovers/flyouts/fichas = receta 1b** (marco metálico + madera clara `$wood-btn-dark`). NUNCA fondo oscuro `$cell-bg` con borde fino `$outline` — ese es el estilo viejo y queda mal. Sin botón ✕ de cerrar.
 
 ## Checklist
 
-- [ ] Paleta copiada al inicio del SCSS
+- [ ] Paleta copiada al inicio del SCSS (incluidas las `$metal-*`)
 - [ ] Panel principal con marco piedra + vetas (receta 1)
+- [ ] Popovers/flyouts/fichas con marco metálico + madera clara (receta 1b), sin ✕
 - [ ] Secciones interiores enmarcadas (receta 2)
-- [ ] Botones/tabs/placas con sus recetas
+- [ ] Botones/tabs/placas con sus recetas (valores con placa de monedas 6b)
 - [ ] Variante del modal-container en transparente (si aplica)
 - [ ] Comprobado que cabe a lo alto en el viewport del juego

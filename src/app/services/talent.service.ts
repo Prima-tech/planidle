@@ -47,10 +47,12 @@ export interface TalentLoadouts {
 
 export const TALENT_LOADOUT_COUNT = 3;
 
+// Multiplicador de la gema sobre el `base` del nodo.
+// Sin gema (solo desbloqueado) cuenta como ×1 — ver getBonus().
 export const SPHERE_MULT: Record<SphereType, number> = {
-  normal: 2,
-  rare:   4,
-  epic:   8,
+  normal: 2, // verde
+  rare:   3, // azul
+  epic:   5, // épica
 };
 
 /** Pool global de esferas con el que arranca un personaje nuevo */
@@ -68,7 +70,7 @@ export const TALENT_NODES: TalentNodeConfig[] = [
 
   // ── Rama 1: Derecha (paso +2 cols) ──────────────────────────────
   { id: 'n1_1', label: '', icon: 'ellipse-outline', num: 1, small: true, topLabel: 'STR',
-    col: 12, row: 5, requires: ['c0'],   effect: { type: 'atk', base: 0 } },
+    col: 12, row: 5, requires: ['c0'],   effect: { type: 'atk', base: 1 } },
   { id: 'n1_2', label: '', icon: 'ellipse-outline', num: 2,
     col: 14, row: 5, requires: ['n1_1'], effect: { type: 'atk', base: 0 } },
   { id: 'n1_3', label: '', icon: 'ellipse-outline', num: 3,
@@ -717,27 +719,30 @@ export class TalentService {
     let atk = 0, hp = 0, mp = 0, defense = 0, critChance = 0, hpRegen = 0, mpRegen = 0, dropRate = 0;
     const abilities: string[] = [];
     for (const node of this.nodes) {
+      // Solo cuentan los nodos desbloqueados. Sin gema → ×1 (valor base);
+      // con gema → ×SPHERE_MULT (verde 2 / azul 3 / épica 5).
+      if (!this.unlocked[node.id]) continue;
       const sphere = this.slotted[node.id];
-      if (!sphere) continue;
-      const mult = SPHERE_MULT[sphere];
+      const mult = sphere ? SPHERE_MULT[sphere] : 1;
+      const value = node.effect.base * mult;
       if (node.effect.type === 'atk') {
-        atk += node.effect.base * mult;
+        atk += value;
       } else if (node.effect.type === 'hp') {
-        hp += node.effect.base * mult;
+        hp += value;
       } else if (node.effect.type === 'mp') {
-        mp += node.effect.base * mult;
+        mp += value;
       } else if (node.effect.type === 'defense') {
-        defense += node.effect.base * mult;
+        defense += value;
       } else if (node.effect.type === 'critChance') {
-        critChance += node.effect.base * mult;
+        critChance += value;
       } else if (node.effect.type === 'hpRegen') {
-        hpRegen += node.effect.base * mult;
+        hpRegen += value;
       } else if (node.effect.type === 'mpRegen') {
-        mpRegen += node.effect.base * mult;
+        mpRegen += value;
       } else if (node.effect.type === 'dropRate') {
-        dropRate += node.effect.base * mult;
+        dropRate += value;
       } else if (node.effect.type === 'ability') {
-        atk += node.effect.base * mult;
+        atk += value;
         if (node.effect.ability) abilities.push(node.effect.ability);
       }
     }

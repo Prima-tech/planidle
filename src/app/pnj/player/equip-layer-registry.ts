@@ -270,32 +270,50 @@ function staffLayer(prefix: string, file: string): EquipLayerConfig {
 }
 
 // Picos / herramientas de recolección (assets/sprites/player/equip/tools/picks).
-// Hoja LPC universal de 13 cols 64×64, solo walk (yPos 512 = filas 8-11, 9 frames).
-// No trae idle propio → idle reutiliza el 1er frame del walk de cada dirección. Sin
-// animación de ataque: es una herramienta, no un arma de combate, así que durante un
-// ataque la capa cae a fallbackAnim (idle) y el pico se queda quieto en la mano.
+// Hoja LPC "smash" combinada de 832×3968 que mezcla dos tamaños de frame:
+//   · walk/idle a 64×64 (rejilla 13 cols). walk filas 8-11 (9 frames). No trae idle
+//     propio → idle reutiliza el 1er frame del walk de cada dirección.
+//   · golpe ("smash") oversize a 128×128 (rejilla 6 cols). bloque filas 27-30, una
+//     por dirección (6 frames) → animación de ATAQUE al minar. (La col 2 va vacía: en
+//     ese frame el pico pasa por detrás del cuerpo; solo tenemos la capa fg. Aceptable.)
+// Cargamos el PNG con DOS claves (64 y 128); el ataque usa la de 128 con
+// oversizeOffsetY=80 (= (128-64)/2 × 2.5). El pico solo se pinta en modo minería.
 function pickLayer(prefix: string, file: string): EquipLayerConfig {
   const p = prefix;
   const path = `assets/sprites/player/equip/tools/picks/${file}`;
   const C = 13;
   const walk = { up: 8 * C, left: 9 * C, down: 10 * C, right: 11 * C }; // 104,117,130,143
+  const C128 = 6;   // columnas a 128px
+  const smash = { up: 27 * C128, left: 28 * C128, down: 29 * C128, right: 30 * C128 };
   return {
     frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
     depthWhenUp: 1.5,   // detrás del jugador salvo mirando hacia abajo
+    oversizeSheetKey: `${p}_smash`, oversizeOffsetY: 80,
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
-    sheets: [{
-      key: `${p}_main`, path, frameWidth: 64, frameHeight: 64,
-      anims: [
-        { key: `${p}_idle_up`,    startFrame: walk.up,    endFrame: walk.up,        frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_left`,  startFrame: walk.left,  endFrame: walk.left,      frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_down`,  startFrame: walk.down,  endFrame: walk.down,      frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_right`, startFrame: walk.right, endFrame: walk.right,     frameRate: 2,  repeat: -1 },
-        { key: `${p}_walk_up`,    startFrame: walk.up,    endFrame: walk.up + 8,    frameRate: 10, repeat: -1 },
-        { key: `${p}_walk_left`,  startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
-        { key: `${p}_walk_down`,  startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
-        { key: `${p}_walk_right`, startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
-      ],
-    }],
+    sheets: [
+      {
+        key: `${p}_main`, path, frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_idle_up`,    startFrame: walk.up,    endFrame: walk.up,        frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_left`,  startFrame: walk.left,  endFrame: walk.left,      frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_down`,  startFrame: walk.down,  endFrame: walk.down,      frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_right`, startFrame: walk.right, endFrame: walk.right,     frameRate: 2,  repeat: -1 },
+          { key: `${p}_walk_up`,    startFrame: walk.up,    endFrame: walk.up + 8,    frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,  startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,  startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`, startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        key: `${p}_smash`, path, frameWidth: 128, frameHeight: 128,
+        anims: [
+          { key: `${p}_attack_up`,    startFrame: smash.up,    endFrame: smash.up + 5,    frameRate: 12, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: smash.left,  endFrame: smash.left + 5,  frameRate: 12, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: smash.down,  endFrame: smash.down + 5,  frameRate: 12, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: smash.right, endFrame: smash.right + 5, frameRate: 12, repeat: 0 },
+        ],
+      },
+    ],
   };
 }
 

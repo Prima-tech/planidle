@@ -82,6 +82,13 @@ interface ActiveChest {
   isTownChest?: boolean;
 }
 
+// Roca minable. Ocupa una huella de 2×2 tiles (todas en `tileKeys` para la colisión).
+interface RockNode {
+  sprite: Phaser.GameObjects.Image;
+  hits: number;
+  tileKeys: string[];
+}
+
 export class GameScene extends Phaser.Scene {
 
     static readonly TILE_SIZE = 48;
@@ -140,6 +147,12 @@ export class GameScene extends Phaser.Scene {
       moving?: PlacedBuilding;   // si está, es la reubicación de un edificio existente
     } | null = null;
     private collisionTiles: Set<string>                    = new Set();
+    // Rocas minables: solo en mapas que no sean 'hogar'. Bloquean el paso y se
+    // pican con el pico equipado (3 golpes → se destruyen).
+    private rocks: RockNode[] = [];
+    // Modo minería: activo cuando el jugador mira a una roca con el pico equipado.
+    // Mientras está activo se oculta el arma y se muestra el pico (capa 'pickaxe').
+    private miningMode = false;
     private activeChests: ActiveChest[] = [];
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
@@ -197,6 +210,9 @@ export class GameScene extends Phaser.Scene {
 
       // Recursos (drop al suelo desde el panel de invocación)
       this.load.image('wood', 'assets/icon/resources/wood.png');
+
+      // Roca minable (se coloca en mapas que no son el hogar)
+      this.load.image('rock_mine', 'assets/sprites/map/skills/rocks/Rock1_3.png');
 
       // Pociones (consumibles)
       this.load.image('heal_01', 'assets/icon/resources/potions/heal_01.png');
@@ -271,6 +287,8 @@ export class GameScene extends Phaser.Scene {
       this.autoStuckMs = 0;
       this.autoBlacklist.clear();
       this.placedBuildings = [];
+      this.rocks = [];
+      this.miningMode = false;
       this.moveSelecting = false;
       this.deleteSelecting = false;
       this.shopActionLatched = false;
@@ -349,6 +367,7 @@ export class GameScene extends Phaser.Scene {
         this.initBuildPlacementListener();
         this.initBuildClearedListener();
         if (this.currentMapConfig.id === 'hogar') this.initPlacedBuildings();
+        this.initRocks();
         this.initStatsListener();
         this.registerSkillAnimations();
         this.initSkillListener();
@@ -375,7 +394,10 @@ export class GameScene extends Phaser.Scene {
       // (u otro edificio con ventana) cerca → abrir ventana; si no → atacar.
       const nearChest = this.nearestOpenableChest();
       const nearWindow = nearChest ? null : this.nearestWindowBuilding();
-      this.reg.interaction?.setContext(nearChest ? 'chest' : nearWindow ? 'shop' : 'attack');
+      const nearRock = (!nearChest && !nearWindow) ? this.nearestMineableRock() : null;
+      this.setMiningMode(!!nearRock);   // muestra/oculta el pico según mire a una roca
+      this.reg.interaction?.setContext(
+        nearChest ? 'chest' : nearWindow ? 'shop' : nearRock ? 'mine' : 'attack');
 
       // Si la ventana de cofre de ciudad está abierta y el jugador se alejó de
       // TODOS los cofres de ciudad (fijo + construidos) → cerrar.
@@ -616,31 +638,46 @@ export class GameScene extends Phaser.Scene {
       const equipment = this.reg.equipment;
       if (!equipment) return;
       for (const slot of equipment.slots) {
+        if (slot.id === 'weapon') continue;   // arma/pico → los gestiona refreshHeldLayer
         this.applyEquipLayer(slot.id, slot.item);
       }
       this.refreshWeaponKind();
+      this.refreshHeldLayer();
       this.equipSub = equipment.changes$.subscribe(() => {
         for (const slot of this.reg.equipment.slots) {
+          if (slot.id === 'weapon') continue;
           this.applyEquipLayer(slot.id, slot.item);
         }
         this.refreshWeaponKind();
+        this.refreshHeldLayer();
       });
 
-      // Herramientas de recolección (pico, etc.): el slot vive en GatheringEquipment,
-      // pero las que tienen capa LPC (registradas en EQUIP_LAYER_REGISTRY) se pintan
-      // sobre el jugador igual que el equipo de combate. applyEquipLayer ignora las
-      // que no tienen capa (mochilas, mascota…) → removeLayer no-op.
+      // Al cambiar el equipo de recolección (p.ej. equipar/quitar el pico) se
+      // recalcula qué se sostiene (arma o pico) según el modo minería.
       const gathering = this.reg.gathering;
       if (gathering) {
-        for (const slot of gathering.slots) {
-          this.applyEquipLayer(slot.id, slot.item);
-        }
-        this.gatherLayerSub = gathering.changes$.subscribe(() => {
-          for (const slot of this.reg.gathering.slots) {
-            this.applyEquipLayer(slot.id, slot.item);
-          }
-        });
+        this.gatherLayerSub = gathering.changes$.subscribe(() => this.refreshHeldLayer());
       }
+    }
+
+    /** Muestra el pico (ocultando el arma) si está en modo minería con pico equipado;
+     *  en caso contrario muestra el arma equipada y oculta el pico. */
+    private refreshHeldLayer(): void {
+      const weapon = this.reg.equipment?.slots.find(s => s.id === 'weapon')?.item ?? null;
+      const pick   = this.equippedPickaxe();
+      if (this.miningMode && pick) {
+        this.applyEquipLayer('weapon', null);
+        this.applyEquipLayer('pickaxe', pick);
+      } else {
+        this.applyEquipLayer('pickaxe', null);
+        this.applyEquipLayer('weapon', weapon);
+      }
+    }
+
+    private setMiningMode(active: boolean): void {
+      if (active === this.miningMode) return;
+      this.miningMode = active;
+      this.refreshHeldLayer();
     }
 
     /** Lee el arma equipada y marca si su ataque básico es a distancia (bastón). */
@@ -1155,6 +1192,16 @@ export class GameScene extends Phaser.Scene {
     // Golpe del jugador: lanza la animación y aplica el daño al ~40% de su
     // duración para que coincida con el frame de impacto (como los enemigos).
     private strike(): void {
+      // Si mira a una roca con el pico equipado → mina (el arma está oculta y la capa
+      // del pico hace el swing). En cualquier otro caso → ataque normal de arma.
+      const rock = this.nearestMineableRock();
+      if (rock) {
+        this.player.playerAttack();
+        this.time.delayedCall(140, () => {
+          if (rock.sprite.active && this.rocks.includes(rock)) this.mineRock(rock);
+        });
+        return;
+      }
       if (this.rangedWeapon) { this.rangedStrike(); return; }
       this.player.playerAttack();
       const anim  = this.player.getSprite().anims.currentAnim;
@@ -1165,6 +1212,164 @@ export class GameScene extends Phaser.Scene {
         const hits = this.gridPhysics.attackEnemy(dmg, isCrit);
         if (hits > 0 && isCrit) this.critFeedback();
       });
+    }
+
+    // ── Minería ────────────────────────────────────────────────────────────────
+    // Rocas repartidas por los mapas (no en el hogar). Bloquean el paso y solo se
+    // dañan con el pico equipado en el slot de recolección. 3 golpes → destrucción.
+
+    private initRocks(): void {
+      if (this.currentMapConfig.id === 'hogar') return;
+      const w = this.currentMap.width;
+      const h = this.currentMap.height;
+      const TS = GameScene.TILE_SIZE;
+      const spawn = this.currentMapConfig.spawnPos ?? { x: 6, y: 6 };
+      let placed = 0;
+      for (let tries = 0; placed < 3 && tries < 400; tries++) {
+        // tx/ty = esquina superior izquierda del bloque 2×2 que ocupa la roca
+        const tx = Phaser.Math.Between(3, w - 5);
+        const ty = Phaser.Math.Between(3, h - 5);
+        const keys = [`${tx},${ty}`, `${tx + 1},${ty}`, `${tx},${ty + 1}`, `${tx + 1},${ty + 1}`];
+        // Las 4 tiles deben estar libres y ser pisables
+        if (keys.some(k => this.collisionTiles.has(k))) continue;
+        const cells: [number, number][] = [[tx, ty], [tx + 1, ty], [tx, ty + 1], [tx + 1, ty + 1]];
+        if (cells.some(([cx, cy]) => this.gridPhysics.isTileBlocked(cx * TS + TS / 2, cy * TS + TS / 2))) continue;
+        // No demasiado cerca del punto de aparición del jugador
+        if (Math.abs(tx - spawn.x) < 3 && Math.abs(ty - spawn.y) < 3) continue;
+        this.spawnRock(tx, ty);
+        placed++;
+      }
+    }
+
+    private spawnRock(tileX: number, tileY: number): void {
+      const TS = GameScene.TILE_SIZE;
+      // Centro del bloque 2×2 = esquina compartida de las 4 tiles
+      const cx = (tileX + 1) * TS;
+      const cy = (tileY + 1) * TS;
+      const sprite = this.add.image(cx, cy, 'rock_mine');
+      sprite.setScale(3);       // 32px → 96px = 2×2 tiles
+      sprite.setDepth(2);       // igual que enemigos/jugador
+      const tileKeys = [`${tileX},${tileY}`, `${tileX + 1},${tileY}`, `${tileX},${tileY + 1}`, `${tileX + 1},${tileY + 1}`];
+      for (const k of tileKeys) this.collisionTiles.add(k);   // la roca bloquea las 4 tiles
+      this.rocks.push({ sprite, hits: 0, tileKeys });
+    }
+
+    /** Devuelve el item del pico equipado (slot de recolección) o null. */
+    private equippedPickaxe(): InventoryItem | null {
+      const item = this.reg.gathering?.slots.find(s => s.id === 'pickaxe')?.item ?? null;
+      return item && item.category === 'Pico' ? item : null;
+    }
+
+    /** Roca más cercana en rango y en la dirección de mirada, si hay pico equipado.
+     *  Define tanto el modo minería (mostrar el pico + botón 'mine') como el objetivo
+     *  del golpe. Devuelve null si no hay pico o ninguna roca delante. */
+    private nearestMineableRock(): RockNode | null {
+      if (this.rocks.length === 0 || !this.equippedPickaxe()) return null;
+      const pos = this.player.getPosition();
+      const vec = this.dirVector(this.player.getDirection());
+      const RANGE = GameScene.TILE_SIZE * 2.5;   // roca 2×2: alcance algo mayor
+      let nearest: RockNode | null = null;
+      let nearestDist = Infinity;
+      for (const rock of this.rocks) {
+        const dx = rock.sprite.x - pos.x;
+        const dy = rock.sprite.y - pos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > RANGE || dist === 0) continue;
+        if ((dx * vec.x + dy * vec.y) <= 0) continue;   // no está en la dirección de mirada
+        if (dist < nearestDist) { nearestDist = dist; nearest = rock; }
+      }
+      return nearest;
+    }
+
+    private mineRock(rock: RockNode): void {
+      rock.hits++;
+      const s = rock.sprite;
+
+      // Flash blanco de impacto
+      s.setTintFill(0xffffff);
+      this.time.delayedCall(70, () => { if (s.active) s.clearTint(); });
+
+      // Sacudida + aplastado breve de la roca (escala base 3)
+      this.tweens.killTweensOf(s);
+      const baseX = s.x;
+      this.tweens.add({
+        targets: s, scaleX: 3.3, scaleY: 2.6, duration: 60, yoyo: true, ease: 'Quad.easeOut',
+        onComplete: () => { if (s.active) { s.setScale(3); s.x = baseX; } },
+      });
+      this.tweens.add({
+        targets: s, x: baseX + Phaser.Math.Between(-5, 5), duration: 40, yoyo: true, repeat: 2,
+        onComplete: () => { if (s.active) s.x = baseX; },
+      });
+
+      // Chispa + escombros + temblor de cámara
+      this.spawnRockSpark(s.x, s.y - 6);
+      this.spawnRockDebris(s.x, s.y, 8);
+      this.cameras.main.shake(70, 0.0035);
+
+      if (rock.hits >= 3) this.destroyRock(rock);
+    }
+
+    private destroyRock(rock: RockNode): void {
+      const idx = this.rocks.indexOf(rock);
+      if (idx !== -1) this.rocks.splice(idx, 1);
+      for (const k of rock.tileKeys) this.collisionTiles.delete(k);   // libera las 4 tiles
+
+      const s = rock.sprite;
+      this.spawnRockDebris(s.x, s.y, 16);   // estallido mayor al romperse
+      this.cameras.main.shake(120, 0.005);
+      this.tweens.killTweensOf(s);
+      this.tweens.add({
+        targets: s, scale: 3.6, alpha: 0, duration: 200, ease: 'Quad.easeOut',
+        onComplete: () => s.destroy(),
+      });
+    }
+
+    /** Pequeño destello blanco que se expande y desvanece en el punto de impacto. */
+    private spawnRockSpark(x: number, y: number): void {
+      const spark = this.add.circle(x, y, 8, 0xffffff, 0.9);
+      spark.setDepth(6000);
+      this.tweens.add({
+        targets: spark, scale: 3, alpha: 0, duration: 220, ease: 'Quad.easeOut',
+        onComplete: () => spark.destroy(),
+      });
+    }
+
+    /** Trozos de piedra saliendo despedidos en arco y desvaneciéndose. */
+    private spawnRockDebris(x: number, y: number, count: number): void {
+      const colors = [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080];
+      for (let i = 0; i < count; i++) {
+        const size = Phaser.Math.Between(4, 8);
+        const chip = this.add.rectangle(x, y, size, size, colors[i % colors.length]);
+        chip.setDepth(6000);
+        const ang  = Phaser.Math.FloatBetween(-Math.PI, 0);   // hacia arriba
+        const dist = Phaser.Math.Between(28, 70);
+        this.tweens.add({
+          targets: chip,
+          x: x + Math.cos(ang) * dist,
+          y: y + Math.sin(ang) * dist + 22,   // cae un poco al final
+          angle: Phaser.Math.Between(-180, 180),
+          alpha: 0,
+          duration: Phaser.Math.Between(300, 520),
+          ease: 'Quad.easeOut',
+          onComplete: () => chip.destroy(),
+        });
+      }
+    }
+
+    /** Vector unitario de la dirección de mirada del jugador. */
+    private dirVector(dir: Direction): { x: number; y: number } {
+      const D = 1 / Math.sqrt(2);
+      switch (dir) {
+        case Direction.UP:         return { x: 0,  y: -1 };
+        case Direction.DOWN:       return { x: 0,  y: 1 };
+        case Direction.LEFT:       return { x: -1, y: 0 };
+        case Direction.RIGHT:      return { x: 1,  y: 0 };
+        case Direction.UP_LEFT:    return { x: -D, y: -D };
+        case Direction.UP_RIGHT:   return { x: D,  y: -D };
+        case Direction.DOWN_LEFT:  return { x: -D, y: D };
+        case Direction.DOWN_RIGHT: return { x: D,  y: D };
+        default:                   return { x: 0,  y: 1 };
+      }
     }
 
     // Ataque básico a distancia (bastón equipado): dispara una bola de fuego al

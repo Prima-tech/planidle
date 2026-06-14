@@ -595,36 +595,51 @@
 
   <!-- Picker flotante: aparece a la derecha del panel al seleccionar un talento -->
   <div class="talent-picker-flyout talent-node-card" *ngIf="activeTab === 4 && selectedNodeId">
-    <button class="tpicker-cancel" (click)="clearTalentSelection()">✕</button>
     <div class="tpicker-name">{{ formatNodeLabel(selectedNode!) }}</div>
 
-    <!-- Nodo sin desbloquear: botón para gastar 1 punto (inactivo si no hay puntos) -->
+    <!-- Nodo sin desbloquear: qué dará al desbloquear + botón para gastar 1 punto -->
     <ng-container *ngIf="!selectedIsUnlocked() && selectedIsReachable()">
-      <button class="tpicker-unlock"
-              [disabled]="!canAffordUnlock()"
-              (click)="unlockSelected()">
-        <ion-icon name="star-outline"></ion-icon>
-        {{ 'TALENT.UNLOCK' | translate }} (1)
-      </button>
+      <div class="tpicker-row">
+        <div class="tpicker-active">{{ nodeActiveEffect(selectedNode!) }}</div>
+        <button class="tpicker-unlock"
+                [disabled]="!canAffordUnlock()"
+                (click)="unlockSelected()">
+          <ion-icon name="star-outline"></ion-icon>
+        </button>
+      </div>
       <div class="tpicker-hint" *ngIf="!canAffordUnlock()">
         {{ 'TALENT.NO_POINTS' | translate }}
       </div>
     </ng-container>
 
-    <!-- Nodo desbloqueado: elegir gema -->
+    <!-- Nodo desbloqueado: valor + ranura de esfera con acordeón -->
     <ng-container *ngIf="selectedIsUnlocked()">
-      <div class="tpicker-spheres">
-        <button *ngFor="let s of sphereTypes"
-                class="tpicker-sphere"
-                [style.border-color]="sphereColors[s]"
-                [disabled]="talent.spheresAvailable(s) === 0 && talent.slotted[selectedNodeId!] !== s"
-                (click)="slotSphere(s)"
-        >
-          <span class="tpicker-dot" [style.background]="sphereColors[s]"></span>
-          <span class="tpicker-effect">{{ nodeEffectLabel(selectedNode!, s) }}</span>
-          <span class="tpicker-count">×{{ talent.spheresAvailable(s) }}</span>
+      <div class="tpicker-active">{{ nodeActiveEffect(selectedNode!) }}</div>
+
+      <!-- Ranura: círculo vacío o con la esfera puesta; abre/cierra el acordeón -->
+      <button class="tpicker-slot"
+              [class.tpicker-slot--filled]="talent.slotted[selectedNodeId!]"
+              [class.tpicker-slot--open]="sphereAccordionOpen"
+              [style.background]="nodeColor(selectedNode!) || null"
+              (click)="toggleSphereAccordion()">
+        <ion-icon *ngIf="!talent.slotted[selectedNodeId!]" name="add-outline"></ion-icon>
+      </button>
+
+      <!-- Acordeón: una esfera por color disponible -->
+      <div class="tpicker-accordion" *ngIf="sphereAccordionOpen">
+        <button *ngFor="let s of availableSpheres()"
+                class="tpicker-gem"
+                [class.selected]="talent.slotted[selectedNodeId!] === s"
+                [style.background]="sphereColors[s]"
+                [title]="nodeEffectLabel(selectedNode!, s)"
+                (click)="slotSphere(s)">
+          <span class="tpicker-gem-count">×{{ talent.spheresAvailable(s) }}</span>
         </button>
+        <span class="tpicker-accordion-empty" *ngIf="availableSpheres().length === 0">
+          {{ 'TALENT.NO_SPHERES' | translate }}
+        </span>
       </div>
+
       <button class="tpicker-unslot" *ngIf="canUnslotSelected()" (click)="unslotSelected()">
         {{ 'TALENT.REMOVE_SPHERE' | translate }}
       </button>

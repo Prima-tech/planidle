@@ -333,6 +333,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     // Se abre si ya está desbloqueado (poner gema) o es alcanzable (desbloquear).
     if (!this.talent.isUnlocked(node.id) && !this.talent.isReachable(node.id)) return;
     this.selectedNodeId = this.selectedNodeId === node.id ? null : node.id;
+    this.sphereAccordionOpen = false;
   }
 
   get activeTreeNodes(): TalentNodeConfig[] {
@@ -368,8 +369,25 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     // El cambio de tamaño del viewport lo recoge el ResizeObserver del juego
   }
 
+  /** Acordeón de esferas abierto bajo la ranura del nodo seleccionado */
+  sphereAccordionOpen = false;
+
+  toggleSphereAccordion(): void {
+    this.sphereAccordionOpen = !this.sphereAccordionOpen;
+  }
+
+  /** Esferas elegibles para el nodo: una por color con stock (o la ya equipada). */
+  availableSpheres(): SphereType[] {
+    const id = this.selectedNodeId;
+    if (!id) return [];
+    return this.sphereTypes.filter(
+      s => this.talent.spheresAvailable(s) > 0 || this.talent.slotted[id] === s,
+    );
+  }
+
   clearTalentSelection(): void {
     this.selectedNodeId = null;
+    this.sphereAccordionOpen = false;
   }
 
   // ── Puntos de talento ──────────────────────────────────────────────────────
@@ -399,7 +417,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   slotSphere(sphere: SphereType): void {
     if (!this.selectedNodeId) return;
     this.talent.slot(this.selectedNodeId, sphere);
-    this.clearTalentSelection();
+    // No cerramos el picker: cierra solo el acordeón para ver el nuevo valor del efecto.
+    this.sphereAccordionOpen = false;
   }
 
   canUnslotSelected(): boolean {
@@ -408,7 +427,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   unslotSelected(): void {
     if (this.selectedNodeId) this.talent.unslot(this.selectedNodeId);
-    this.clearTalentSelection();
+    this.sphereAccordionOpen = false;
   }
 
   canLockSelected(): boolean {
@@ -421,7 +440,17 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   }
 
   nodeEffectLabel(node: TalentNodeConfig, sphere: SphereType): string {
-    const val = node.effect.base * SPHERE_MULT[sphere];
+    return this.effectLabel(node, node.effect.base * SPHERE_MULT[sphere]);
+  }
+
+  /** Lo que aporta el nodo AHORA mismo: ×mult de la gema puesta, o ×1 si solo está desbloqueado. */
+  nodeActiveEffect(node: TalentNodeConfig): string {
+    const sphere = this.talent.slotted[node.id];
+    const mult = sphere ? SPHERE_MULT[sphere] : 1;
+    return this.effectLabel(node, node.effect.base * mult);
+  }
+
+  private effectLabel(node: TalentNodeConfig, val: number): string {
     switch (node.effect.type) {
       case 'hp':         return `+${val} HP`;
       case 'mp':         return `+${val} MP`;
