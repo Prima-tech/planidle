@@ -2,6 +2,7 @@
 
   <div class="detail-header">
     <span class="detail-icon-box" *ngIf="item.iconSheet != null"
+          [class.detail-icon-box--pet]="isPet"
           [style.background-image]="'url(' + item.iconSheet + ')'"
           [style.background-size]="getSheetBgSize(item.iconFrameCols, item.iconFrameSize, item.iconContentSize)"
           [style.background-position]="getSheetPos(item.iconFrame, item.iconFrameCols, item.iconFrameSize, item.iconContentSize)">
@@ -9,6 +10,18 @@
     <img *ngIf="item.icon && item.iconSheet == null" [src]="item.icon" class="detail-icon">
     <span *ngIf="!item.icon && item.iconSheet == null" class="detail-icon-fallback">{{ item.name.charAt(0) }}</span>
     <span class="detail-name">{{ item.name }}</span>
+  </div>
+
+  <!-- Mascota: nivel propio (1..máx) con barra de casillas -->
+  <div class="detail-pet-level" *ngIf="isPet">
+    <div class="pet-level-row">
+      <span class="pet-level-label">{{ 'PET.LEVEL' | translate }}</span>
+      <span class="pet-level-value">{{ petLevel }} / {{ petMaxLevel }}</span>
+    </div>
+    <div class="pet-level-bar">
+      <span class="pet-level-pip" *ngFor="let p of petLevelPips"
+            [class.filled]="p <= petLevel"></span>
+    </div>
   </div>
 
   <!-- Stats primero (placa de madera, como el bloque de monedas del inventario) -->

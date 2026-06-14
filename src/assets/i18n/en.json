@@ -176,6 +176,9 @@
     "NONE_AVAILABLE": "No quests available.",
     "NONE_COMPLETED": "You haven't completed any quests yet."
   },
+  "PET": {
+    "LEVEL": "Level"
+  },
   "TALENT": {
     "REMOVE_SPHERE": "Remove sphere",
     "UNLOCK": "Unlock",

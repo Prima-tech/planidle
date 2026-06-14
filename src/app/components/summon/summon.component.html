@@ -152,6 +152,7 @@
            [class.item-icon-sheet--pants]="entry.category === 'Pantalones'"
            [class.item-icon-sheet--boots]="entry.category === 'Botas'"
            [class.item-icon-sheet--weapon]="entry.category === 'Arma'"
+           [class.item-icon-sheet--pet]="entry.category === 'Mascota'"
            [style.background-image]="'url(' + entry.iconSheet + ')'"
            [style.background-size]="getSheetBgSize(entry.iconFrameCols, entry.iconFrameSize, entry.iconContentSize)"
            [style.background-position]="getSheetPos(entry.iconFrame, entry.iconFrameCols, entry.iconFrameSize, entry.iconContentSize)">

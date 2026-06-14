@@ -176,6 +176,9 @@
     "NONE_AVAILABLE": "No hay misiones disponibles.",
     "NONE_COMPLETED": "Aún no has completado ninguna misión."
   },
+  "PET": {
+    "LEVEL": "Nivel"
+  },
   "TALENT": {
     "REMOVE_SPHERE": "Quitar esfera",
     "UNLOCK": "Desbloquear",

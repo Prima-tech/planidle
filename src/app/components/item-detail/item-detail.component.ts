@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { InventoryItem } from 'src/app/services/inventory.service';
 import { BAG_SLOTS_BY_NAME } from 'src/app/services/inventory-unlock.service';
+import { PET_MAX_LEVEL } from 'src/app/pnj/pet/pet-config';
 
 const STAT_LABELS: Record<string, string> = {
   damage:   'ITEM_STAT.DAMAGE',
@@ -32,6 +33,23 @@ export class ItemDetailComponent {
   /** Consumible: cualquier item con curación (poción de vida). */
   get consumable(): boolean {
     return !!this.item?.stats?.['healing'];
+  }
+
+  /** Mascota: tiene petId. Muestra el bloque de nivel propio. */
+  get isPet(): boolean {
+    return !!this.item?.petId;
+  }
+
+  /** Nivel actual de la mascota (1 por defecto). */
+  get petLevel(): number {
+    return this.item?.petLevel ?? 1;
+  }
+
+  readonly petMaxLevel = PET_MAX_LEVEL;
+
+  /** Casillas 1..PET_MAX_LEVEL para pintar la barra de nivel. */
+  get petLevelPips(): number[] {
+    return Array.from({ length: this.petMaxLevel }, (_, i) => i + 1);
   }
 
   statLabel(key: string): string {

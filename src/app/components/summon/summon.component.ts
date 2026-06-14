@@ -191,6 +191,7 @@ export class SummonComponent {
       description:     entry.description,
       stats:           entry.stats,
       petId:           entry.petId,
+      petLevel:        1,
     };
     this.inventoryService.addOrDropToWorld(item);
   }

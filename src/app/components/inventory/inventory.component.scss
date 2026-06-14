@@ -194,6 +194,11 @@ $purple: #6e4a67;         // celda seleccionada
   transform: scale(2) translateY(-5px);
 }
 
+/* Mascotas: el arte ocupa la mitad inferior del frame → subirlo para centrarlo */
+.item-icon-sheet--pet {
+  transform: scale(2) translateY(-8px);
+}
+
 .item-fallback {
   font-size: 1em;
   font-weight: bold;

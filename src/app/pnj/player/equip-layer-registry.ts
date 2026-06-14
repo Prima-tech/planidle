@@ -259,7 +259,8 @@ function swordLayerArming(prefix: string, file: string): EquipLayerConfig {
         { key: `${p}_walk_left`,    startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
         { key: `${p}_walk_down`,    startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
         { key: `${p}_walk_right`,   startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
-        // Ataque: pose de guardia (idle) — sin slash hasta componer bg+fg.
+        // Ataque: pose de guardia (idle). Este arma NO trae slash en su hoja
+        // (supportedAnimations: walk/hurt/idle/combat_idle), por eso no hay swing.
         { key: `${p}_attack_up`,    startFrame: idle.up,    endFrame: idle.up,    frameRate: 1, repeat: 0 },
         { key: `${p}_attack_left`,  startFrame: idle.left,  endFrame: idle.left,  frameRate: 1, repeat: 0 },
         { key: `${p}_attack_down`,  startFrame: idle.down,  endFrame: idle.down,  frameRate: 1, repeat: 0 },

@@ -61,3 +61,6 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
 
 /** Frame que se usa como icono fijo (idle 0). */
 export const PET_ICON_FRAME = 0;
+
+/** Nivel máximo que puede alcanzar una mascota. */
+export const PET_MAX_LEVEL = 10;
