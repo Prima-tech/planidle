@@ -22,6 +22,14 @@ export interface PetAnimDef {
   startCol?: number;
 }
 
+/** Un paso de la animación de recogida (al coger un item del suelo). */
+export interface PetPickupStep {
+  /** Nombre de la anim (clave en `PetConfig.anims`). */
+  anim: string;
+  /** Si se indica, pasa al siguiente paso tras estos ms; si no, espera a que la anim termine. */
+  durationMs?: number;
+}
+
 export interface PetConfig {
   id: string;
   name: string;
@@ -36,6 +44,8 @@ export interface PetConfig {
   /** Escala del sprite en el mapa. */
   scale: number;
   anims: Record<string, PetAnimDef>;
+  /** Secuencia de anims al recoger un item. Si falta, no hace nada especial. */
+  pickup?: PetPickupStep[];
 }
 
 export const PET_REGISTRY: Record<string, PetConfig> = {
@@ -59,6 +69,8 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
       death:  { row: 5, frames: 8, frameRate: 10, repeat: 0  },
       sleep:  { row: 6, frames: 8, frameRate: 6,  repeat: -1 },
     },
+    // Al recoger: hace su animación de ataque y sigue.
+    pickup: [{ anim: 'attack' }],
   },
   ferret: {
     id: 'ferret',
@@ -84,6 +96,8 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
       sleep:  { row: 7, frames: 8, frameRate: 6,  repeat: -1 },
       death:  { row: 8, frames: 8, frameRate: 10, repeat: 0  },
     },
+    // Al recoger: salto+agarre y, a los 500 ms, emerge.
+    pickup: [{ anim: 'jump', durationMs: 500 }, { anim: 'emerge' }],
   },
 };
 

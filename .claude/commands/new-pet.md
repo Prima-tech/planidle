@@ -121,10 +121,13 @@ Si una mascota se ve más grande/pequeña que las demás:
   (hay celda libre o pila apilable). Inventario lleno → la mascota deja de recoger objetos
   (los deja en el suelo); el oro lo sigue cogiendo.
 - Sin doble recogida: jugador y mascota comparten el guard `collected` por drop.
-- **Animación de recogida opcional**: si el `PetConfig` tiene anims `jump` + `emerge`, al
-  recoger la mascota llama `Pet.playPickup()` (jump → a los 500 ms emerge → sigue). Durante
-  la secuencia `Pet.isBusy()` es true: `update()` no la mueve y `gamescene.updatePet`
-  pausa la búsqueda/recogida. Las mascotas sin esas anims no hacen nada especial.
+- **Animación de recogida (configurable por mascota)**: define `PetConfig.pickup` como una
+  secuencia de pasos `{ anim, durationMs? }`. Al recoger, `Pet.playPickup()` la reproduce:
+  cada paso pasa al siguiente tras `durationMs` o, si no se indica, al terminar la anim
+  (`ANIMATION_COMPLETE`). Sin `pickup` no hace nada especial. Durante la secuencia
+  `Pet.isBusy()` es true: `update()` no la mueve y `gamescene.updatePet` pausa búsqueda/recogida.
+  - Ejemplos: panda rojo `pickup: [{ anim: 'attack' }]` (ataque y sigue); ferret
+    `pickup: [{ anim: 'jump', durationMs: 500 }, { anim: 'emerge' }]`.
   - ⚠️ **Frames vacíos o redundantes** en las filas de transición (dig/disappear/jump/
     emerge) provocan "flashazo" o sensación de "frames de más". El JSON de Aseprite exporta
     TODAS las celdas aunque estén transparentes o repetidas, así que NO basta con mirarlo:

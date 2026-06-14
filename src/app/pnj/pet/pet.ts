@@ -57,23 +57,30 @@ export class Pet {
   isBusy(): boolean { return this.busy; }
 
   /**
-   * Animación de recogida: si la mascota tiene `jump` + `emerge`, hace jump, a los
-   * 500 ms hace emerge y al terminar sigue su camino. Las mascotas sin esas anims
-   * (p.ej. el panda) no hacen nada.
+   * Animación de recogida (al coger un item): reproduce la secuencia `cfg.pickup`.
+   * Cada paso pasa al siguiente tras `durationMs` o, si no se indica, al terminar la
+   * anim. Mientras dura, la mascota no se mueve ni recoge. Sin `pickup` no hace nada.
    */
   playPickup(): void {
     if (!this.sprite?.active || this.busy) return;
-    const jumpKey   = `${this.cfg.textureKey}_jump`;
-    const emergeKey = `${this.cfg.textureKey}_emerge`;
-    if (!this.scene.anims.exists(jumpKey) || !this.scene.anims.exists(emergeKey)) return;
+    const seq = this.cfg.pickup;
+    if (!seq?.length) return;
+    // Todas las anims de la secuencia deben existir
+    if (!seq.every(s => this.scene.anims.exists(`${this.cfg.textureKey}_${s.anim}`))) return;
 
     this.busy = true;
-    this.sprite.play(jumpKey);
-    this.scene.time.delayedCall(500, () => {
-      if (!this.sprite?.active) { this.busy = false; return; }
-      this.sprite.play(emergeKey);
-      this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => { this.busy = false; });
-    });
+    this.runPickupStep(seq, 0);
+  }
+
+  private runPickupStep(seq: { anim: string; durationMs?: number }[], i: number): void {
+    if (!this.sprite?.active || i >= seq.length) { this.busy = false; return; }
+    const step = seq[i];
+    this.sprite.play(`${this.cfg.textureKey}_${step.anim}`);
+    if (step.durationMs != null) {
+      this.scene.time.delayedCall(step.durationMs, () => this.runPickupStep(seq, i + 1));
+    } else {
+      this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.runPickupStep(seq, i + 1));
+    }
   }
 
   /**
