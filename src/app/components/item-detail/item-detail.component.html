@@ -54,4 +54,10 @@
     {{ 'INVENTORY.EQUIP' | translate }}
   </button>
 
+  <!-- Botón usar: consumibles (pociones) desde el inventario -->
+  <button *ngIf="canUse && consumable" class="detail-use-btn"
+          (click)="use.emit(); $event.stopPropagation()">
+    {{ 'INVENTORY.USE' | translate }}
+  </button>
+
 </div>

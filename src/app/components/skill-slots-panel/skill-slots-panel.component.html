@@ -15,6 +15,10 @@
             [title]="'SKILLS.FIRE' | translate" [attr.aria-label]="'SKILLS.FIRE' | translate">
       <ion-icon name="flame-outline"></ion-icon>
     </button>
+    <button class="tab-btn" [class.active]="activeTab === 'blood'" (click)="setTab('blood')"
+            [title]="'SKILLS.BLOOD' | translate" [attr.aria-label]="'SKILLS.BLOOD' | translate">
+      <ion-icon name="water-outline"></ion-icon>
+    </button>
     <button class="tab-btn" [class.active]="activeTab === 'other'" (click)="setTab('other')"
             [title]="'SKILLS.OTHER' | translate" [attr.aria-label]="'SKILLS.OTHER' | translate">
       <ion-icon name="ellipsis-horizontal-outline"></ion-icon>

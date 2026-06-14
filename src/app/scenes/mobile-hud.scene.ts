@@ -26,7 +26,9 @@ export interface MinimapData {
   mapWidthPx: number;
   mapHeightPx: number;
   portals: { x: number; y: number }[];  // posiciones en px de mundo
-  townChest?: { x: number; y: number }; // cofre de ciudad (solo en hogar)
+  townChest?: { x: number; y: number }; // cofre de ciudad fijo (solo en hogar)
+  // Construcciones colocadas (cofre/tienda); referencia viva, cambian al construir/mover/borrar
+  getBuildings?: () => { x: number; y: number; kind: string }[];
 }
 
 export const MINIMAP_DATA_KEY = 'minimapData';
@@ -50,6 +52,7 @@ const MM_DOT_CHEST     = 4.5 * DPR;
 const MM_COLOR_PLAYER  = 0x2ecc71;
 const MM_COLOR_PORTAL  = 0x48c4f8;
 const MM_COLOR_CHEST   = 0xf1c40f;
+const MM_COLOR_SHOP    = 0x2ecc71;
 const MM_ICON_ENEMY_KEY = 'mm_enemy';
 const MM_ICON_ELITE_KEY = 'mm_enemy_elite';
 const MM_ICON_HALF      = 8   * DPR;   // half-size regular
@@ -72,6 +75,7 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmScale = 0;
   private mmPlayerDot:  Phaser.GameObjects.Arc   | null = null;
   private mmEnemyIcons: Phaser.GameObjects.Image[] = [];
+  private mmBuildingDots: Phaser.GameObjects.Arc[] = [];
 
   constructor() { super({ key: 'MobileHUDScene' }); }
 
@@ -165,9 +169,10 @@ export class MobileHUDScene extends Phaser.Scene {
   private createMinimap(screenW: number): void {
     // Reset: la escena se relanza en cada cambio de mapa y los GameObjects
     // anteriores ya fueron destruidos en el shutdown.
-    this.mmData       = null;
-    this.mmPlayerDot  = null;
-    this.mmEnemyIcons = [];
+    this.mmData         = null;
+    this.mmPlayerDot    = null;
+    this.mmEnemyIcons   = [];
+    this.mmBuildingDots = [];
 
     const data = this.registry.get(MINIMAP_DATA_KEY) as MinimapData | undefined;
     if (!data || !data.mapWidthPx || !data.mapHeightPx) return;
@@ -238,6 +243,28 @@ export class MobileHUDScene extends Phaser.Scene {
     for (let i = used; i < this.mmEnemyIcons.length; i++) {
       this.mmEnemyIcons[i].setVisible(false);
     }
+
+    // Construcciones colocadas (cofre/tienda): dinámicas (aparecen/cambian al construir)
+    const buildings = this.mmData.getBuildings?.() ?? [];
+    let bUsed = 0;
+    for (const b of buildings) {
+      const dot = this.getBuildingDot(bUsed++);
+      dot.setFillStyle(b.kind === 'shop' ? MM_COLOR_SHOP : MM_COLOR_CHEST, 1);
+      this.mmPlace(dot, b.x, b.y);
+      dot.setVisible(true);
+    }
+    for (let i = bUsed; i < this.mmBuildingDots.length; i++) {
+      this.mmBuildingDots[i].setVisible(false);
+    }
+  }
+
+  private getBuildingDot(index: number): Phaser.GameObjects.Arc {
+    if (index >= this.mmBuildingDots.length) {
+      const dot = this.add.circle(0, 0, MM_DOT_CHEST, MM_COLOR_CHEST, 1);
+      dot.setStrokeStyle(1 * DPR, 0xffffff, 0.6);
+      this.mmBuildingDots.push(dot);
+    }
+    return this.mmBuildingDots[index];
   }
 
   private getEnemyIcon(index: number): Phaser.GameObjects.Image {

@@ -1,15 +1,16 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { TalentService, TalentNodeConfig, TALENT_NODES_WARRIOR, TALENT_NODES_SMOKE, TALENT_NODES_FLAME } from 'src/app/services/talent.service';
+import { TalentService, TalentNodeConfig, TALENT_NODES_WARRIOR, TALENT_NODES_SMOKE, TALENT_NODES_FLAME, TALENT_NODES_BLOOD } from 'src/app/services/talent.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 
-export type SkillTab = 'warrior' | 'smoker' | 'fire' | 'other';
+export type SkillTab = 'warrior' | 'smoker' | 'fire' | 'blood' | 'other';
 
 const WARRIOR_IDS = new Set(TALENT_NODES_WARRIOR.map(n => n.id));
 const SMOKER_IDS  = new Set(TALENT_NODES_SMOKE.map(n => n.id));   // pestaña "Humo": solo los 4 assets nuevos
 const FIRE_IDS    = new Set(TALENT_NODES_FLAME.map(n => n.id));   // pestaña "Fuego": solo los assets nuevos
+const BLOOD_IDS   = new Set(TALENT_NODES_BLOOD.map(n => n.id));   // pestaña "Sangre": solo los assets nuevos
 
 @Component({
   selector: 'app-skill-slots-panel',
@@ -27,7 +28,7 @@ export class SkillSlotsPanelComponent implements OnInit {
 
   ngOnInit(): void {
     const saved = this.panelState.get<SkillTab>('skillSlots.tab', 'warrior');
-    const valid: SkillTab[] = ['warrior', 'smoker', 'fire', 'other'];
+    const valid: SkillTab[] = ['warrior', 'smoker', 'fire', 'blood', 'other'];
     this.activeTab = valid.includes(saved) ? saved : 'warrior';  // tolera valores antiguos
   }
 
@@ -36,8 +37,9 @@ export class SkillSlotsPanelComponent implements OnInit {
     if (this.activeTab === 'warrior') return all.filter(n => WARRIOR_IDS.has(n.id));
     if (this.activeTab === 'smoker')  return all.filter(n => SMOKER_IDS.has(n.id));
     if (this.activeTab === 'fire')    return all.filter(n => FIRE_IDS.has(n.id));
+    if (this.activeTab === 'blood')   return all.filter(n => BLOOD_IDS.has(n.id));
     // "otras": todo lo que no está en una pestaña propia
-    return all.filter(n => !WARRIOR_IDS.has(n.id) && !SMOKER_IDS.has(n.id) && !FIRE_IDS.has(n.id));
+    return all.filter(n => !WARRIOR_IDS.has(n.id) && !SMOKER_IDS.has(n.id) && !FIRE_IDS.has(n.id) && !BLOOD_IDS.has(n.id));
   }
 
   get selectedId(): string | null {

@@ -472,6 +472,21 @@ export const TALENT_NODES_FLAME: TalentNodeConfig[] = [
   },
 ];
 
+// ── Sangre (assets nuevos — pestaña "Sangre" del panel) ───────────────────────
+
+export const TALENT_NODES_BLOOD: TalentNodeConfig[] = [
+  {
+    id: 'blood_1', label: 'Sangre I', icon: 'water-outline',
+    col: 0, row: 0, requires: [],
+    effect: { type: 'ability', base: 16, ability: 'blood_1' },
+  },
+  {
+    id: 'blood_2', label: 'Sangre II', icon: 'water-outline',
+    col: 1, row: 0, requires: [],
+    effect: { type: 'ability', base: 12, ability: 'blood_2' },
+  },
+];
+
 // ── Habilidades físicas (disponibles sin desbloquear) ─────────────────────────
 
 export const TALENT_NODES_PHYSICAL: TalentNodeConfig[] = [
@@ -484,7 +499,7 @@ export const TALENT_NODES_PHYSICAL: TalentNodeConfig[] = [
 
 // ── Registro global (todos los árboles) ──────────────────────────────────────
 
-const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_WARRIOR, ...TALENT_NODES_SMOKE, ...TALENT_NODES_FLAME, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION, ...TALENT_NODES_PHYSICAL];
+const ALL_NODES = [...TALENT_NODES, ...TALENT_NODES_WARRIOR, ...TALENT_NODES_SMOKE, ...TALENT_NODES_FLAME, ...TALENT_NODES_BLOOD, ...TALENT_NODES_FIRE, ...TALENT_NODES_WATER, ...TALENT_NODES_SMOKER, ...TALENT_NODES_EXPLOSION, ...TALENT_NODES_PHYSICAL];
 
 @Injectable({ providedIn: 'root' })
 export class TalentService {

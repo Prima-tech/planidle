@@ -9,6 +9,7 @@ import { BuildShopService } from 'src/app/services/build-shop.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
+import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -46,6 +47,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private panelState = inject(PanelStateService);
   private equipPanel = inject(EquipmentPanelService);
   private playerState = inject(PlayerStateService);
+  private playerBridge = inject(PlayerBridgeService);
   unlock = inject(InventoryUnlockService);
 
   coins$ = this.playerState.coins$;
@@ -104,6 +106,27 @@ export class InventoryComponent implements OnInit, OnDestroy {
     const { tabIndex, row, col } = this.selectedItem;
     this.inventories[tabIndex][row][col] = displaced ?? null;
     this.selectedItem = null;
+    this.splitMenuOpen = false;
+    this.deleteModalOpen = false;
+    this.triggerSave();
+  }
+
+  /** Usa el consumible seleccionado (poción): cura al jugador y gasta una unidad. */
+  useSelected(): void {
+    if (!this.selectedItem) return;
+    const { tabIndex, row, col } = this.selectedItem;
+    const item = this.inventories[tabIndex][row][col];
+    const heal = item?.stats?.['healing'] ?? 0;
+    if (!item || heal <= 0) return;
+
+    this.playerBridge.healPlayer(heal);
+
+    if (item.mergeable && (item.sum ?? 1) > 1) {
+      item.sum! -= 1;                       // gasta una del stack
+    } else {
+      this.inventories[tabIndex][row][col] = null;   // última: vacía la celda
+      this.selectedItem = null;
+    }
     this.splitMenuOpen = false;
     this.deleteModalOpen = false;
     this.triggerSave();

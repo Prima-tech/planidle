@@ -323,6 +323,27 @@ const RESOURCES_CATALOG: LootEntry[] = [
   },
 ];
 
+// ── Pociones (consumibles) ───────────────────────────────────────────────────
+// Cualquier item con stats.healing es consumible: al usarlo cura esa vida.
+// Iconos 32×32 sueltos; `texture` precargada en gamescene.preload().
+const _potion = (texKey: string, file: string, name: string, heal: number): LootEntry => ({
+  name,
+  category: 'Poción',
+  type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+  texture: texKey,
+  icon: `assets/icon/resources/potions/${file}`,
+  scale: 2, order: 5,
+  description: `Restaura ${heal} de vida al usarla.`,
+  stats: { healing: heal },
+});
+
+const POTIONS_CATALOG: LootEntry[] = [
+  _potion('heal_01', 'heal_01.png', 'Poción de Vida Menor', 30),
+  _potion('heal_02', 'heal_02.png', 'Poción de Vida',       75),
+  _potion('heal_03', 'heal_03.png', 'Poción de Vida Mayor',  150),
+];
+
 const _catalogSeen = new Set<string>();
 export const ITEM_CATALOG: LootEntry[] = [
   ...Object.values(LOOT_TABLES)
@@ -339,6 +360,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...WEAPON_CATALOG,
   ...BAGS_CATALOG,
   ...RESOURCES_CATALOG,
+  ...POTIONS_CATALOG,
 ];
 
 export class GridDrops {

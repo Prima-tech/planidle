@@ -123,6 +123,28 @@ $text-cream: #ecd9b4;
   &:active { background: #8a5530; }
 }
 
+.detail-use-btn {
+  margin-top: auto;
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.78em;
+  font-weight: bold;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: $text-cream;
+  background: #3f7a32;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:hover  { filter: brightness(1.12); }
+  &:active { filter: brightness(0.9); }
+}
+
 .detail-stats {
   display: flex;
   flex-direction: column;

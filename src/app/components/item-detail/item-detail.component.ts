@@ -22,8 +22,17 @@ export class ItemDetailComponent {
   @Input() panelStyle: { [key: string]: string } = {};
   /** Ítem con el que comparar (el seleccionado en el inventario). Activa los deltas. */
   @Input() compareWith?: InventoryItem | null;
+  /** true → muestra el botón "Usar" para consumibles (solo desde el inventario). */
+  @Input() canUse = false;
   /** Emite al pulsar "Equipar" (solo en modo comparador). */
   @Output() equip = new EventEmitter<void>();
+  /** Emite al pulsar "Usar" (consumibles). */
+  @Output() use = new EventEmitter<void>();
+
+  /** Consumible: cualquier item con curación (poción de vida). */
+  get consumable(): boolean {
+    return !!this.item?.stats?.['healing'];
+  }
 
   statLabel(key: string): string {
     return STAT_LABELS[key] ?? key;

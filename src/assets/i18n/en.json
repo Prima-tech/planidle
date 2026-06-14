@@ -92,6 +92,7 @@
     "QUANTITY": "Quantity:",
     "EQUIPPED": "Equipped",
     "EQUIP": "Equip",
+    "USE": "Use",
     "BAG_SLOTS": "Inventory slots",
     "CONFIRM_DELETE": "Delete this item? This cannot be undone.",
     "DELETE_TITLE": "Delete item?",
@@ -185,6 +186,7 @@
     "WARRIOR": "Warrior",
     "SMOKER": "Smoke",
     "FIRE": "Fire",
+    "BLOOD": "Blood",
     "WATER": "Water",
     "OTHER": "Other",
     "EMPTY": "No skills in this category"

@@ -1,4 +1,5 @@
-<app-item-detail [item]="selectedItemData" [panelStyle]="detailPanelStyle"></app-item-detail>
+<app-item-detail [item]="selectedItemData" [panelStyle]="detailPanelStyle"
+                 [canUse]="true" (use)="useSelected()"></app-item-detail>
 
 <!-- Comparador: equipo equipado equivalente, con deltas del ítem nuevo (seleccionado) -->
 <app-item-detail [item]="compareItemData" [panelStyle]="comparePanelStyle"

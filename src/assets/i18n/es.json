@@ -92,6 +92,7 @@
     "QUANTITY": "Cantidad:",
     "EQUIPPED": "Equipado",
     "EQUIP": "Equipar",
+    "USE": "Usar",
     "BAG_SLOTS": "Huecos de inventario",
     "CONFIRM_DELETE": "¿Quieres borrar el objeto? No se puede revertir.",
     "DELETE_TITLE": "¿Borrar objeto?",
@@ -185,6 +186,7 @@
     "WARRIOR": "Guerrero",
     "SMOKER": "Humo",
     "FIRE": "Fuego",
+    "BLOOD": "Sangre",
     "WATER": "Agua",
     "OTHER": "Otras",
     "EMPTY": "No hay habilidades en esta categoría"

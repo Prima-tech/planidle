@@ -143,11 +143,13 @@ vendido vuelve a la mochila al cerrar (`addDroppedItem` en `ngOnDestroy`). El or
 
 ---
 
-## Paso 5 — (Opcional) Mostrar en el minimapa
+## Paso 5 — Minimapa (automático)
 
-Por defecto los construibles **no** salen en el minimapa. Para añadirlos, edita
-`buildMinimapData()` en `gamescene.ts` y emite sus posiciones (como hace
-`townChest`). Requiere también pintarlos en `MobileHUDScene`.
+Los construibles colocados **ya salen en el minimapa** sin tocar nada:
+`buildMinimapData().getBuildings()` (en `gamescene.ts`) devuelve `placedBuildings`
+(posición + `kind`), y `MobileHUDScene.updateMinimap()` los pinta dinámicamente
+(dot dorado para cofre, verde para tienda). Para un color nuevo por tipo, añade el
+`kind` en `getMinimapBuildings()` y un color en `MobileHUDScene`.
 
 ---
 

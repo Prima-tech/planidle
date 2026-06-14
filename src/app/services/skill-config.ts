@@ -27,6 +27,7 @@ export interface SkillConfig {
   buff?: BuffDef;       // si se define, aplica este buffo al jugador al activar la habilidad
   manaCost?: number;   // mana consumido al activar (0 = gratis)
   playerAnim?: boolean; // si true, al lanzar la skill el personaje reproduce su animación de ataque (melee)
+  projectileOnce?: boolean; // proyectil: animación una sola vez; el viaje no dura más que la animación
 }
 
 export const SKILL_REGISTRY: Record<string, SkillConfig> = {
@@ -497,7 +498,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     damage: 0,
     range: 3,
     cooldown: 2000,
-    spriteKey: 'skill_fire_1',
+    spriteKey: 'skill_warrior_fire_1',
     frameCount: 7,
     frameRate: 12,
     scale: 2.5,
@@ -508,13 +509,14 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     abilityId: 'fire_2',
     effectType: 'projectile',      // bola de fuego que sale del personaje y vuela al enemigo
     damage: 0,
-    range: 5,
+    range: 3,
     cooldown: 2000,
-    spriteKey: 'skill_fire_2',
+    spriteKey: 'skill_warrior_fire_2',
     frameCount: 12,
     frameRate: 14,
     scale: 2,
     speed: 350,
+    projectileOnce: true,          // no repite la animación mientras viaja
     iconPath: 'assets/sprites/skills/warrior/icon_fire_02.png',
   },
   fire_3: {
@@ -523,12 +525,37 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     damage: 0,
     range: 3,
     cooldown: 2000,
-    spriteKey: 'skill_fire_3',
+    spriteKey: 'skill_warrior_fire_3',
     frameCount: 12,
     frameRate: 12,
     scale: 2.5,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/warrior/icon_fire_03.png',
+  },
+  blood_1: {
+    abilityId: 'blood_1',
+    effectType: 'impact',          // estallido de sangre sobre el enemigo
+    damage: 0,
+    range: 3,
+    cooldown: 2000,
+    spriteKey: 'skill_blood_1',
+    frameCount: 12,
+    frameRate: 14,
+    scale: 2.5,
+    aoeRadius: 1.5,
+    iconPath: 'assets/sprites/skills/warrior/icon_blood_01.png',
+  },
+  blood_2: {
+    abilityId: 'blood_2',
+    effectType: 'impact',          // salpicadura sobre el enemigo
+    damage: 0,
+    range: 3,
+    cooldown: 1200,
+    spriteKey: 'skill_blood_2',
+    frameCount: 4,
+    frameRate: 12,
+    scale: 2,
+    iconPath: 'assets/sprites/skills/warrior/icon_blood_02.png',
   },
   phoenix: {
     abilityId: 'phoenix',

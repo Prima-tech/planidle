@@ -65,9 +65,11 @@ const SKILL_SHEET_SOURCES: { key: string; path: string; frameWidth: number; fram
   { key: 'skill_smoke_2',         path: 'assets/sprites/skills/warrior/smoke_02.png',  frameWidth: 128, frameHeight: 128 },
   { key: 'skill_smoke_3',         path: 'assets/sprites/skills/warrior/smoke_03.png',  frameWidth: 128, frameHeight: 128 },
   { key: 'skill_smoke_4',         path: 'assets/sprites/skills/warrior/smoke_04.png',  frameWidth: 128, frameHeight: 128 },
-  { key: 'skill_fire_1',          path: 'assets/sprites/skills/warrior/fire_01.png',   frameWidth: 128, frameHeight: 128 },
-  { key: 'skill_fire_2',          path: 'assets/sprites/skills/warrior/fire_02.png',   frameWidth: 192, frameHeight: 128 },
-  { key: 'skill_fire_3',          path: 'assets/sprites/skills/warrior/fire_03.png',   frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_warrior_fire_1',  path: 'assets/sprites/skills/warrior/fire_01.png',   frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_warrior_fire_2',  path: 'assets/sprites/skills/warrior/fire_02.png',   frameWidth: 192, frameHeight: 128 },
+  { key: 'skill_warrior_fire_3',  path: 'assets/sprites/skills/warrior/fire_03.png',   frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_blood_1',         path: 'assets/sprites/skills/warrior/blood_01.png',  frameWidth: 128, frameHeight: 128 },
+  { key: 'skill_blood_2',         path: 'assets/sprites/skills/warrior/blood_02.png',  frameWidth: 128, frameHeight: 128 },
 ];
 
 interface ActiveChest {
@@ -178,6 +180,11 @@ export class GameScene extends Phaser.Scene {
 
       // Recursos (drop al suelo desde el panel de invocación)
       this.load.image('wood', 'assets/icon/resources/wood.png');
+
+      // Pociones (consumibles)
+      this.load.image('heal_01', 'assets/icon/resources/potions/heal_01.png');
+      this.load.image('heal_02', 'assets/icon/resources/potions/heal_02.png');
+      this.load.image('heal_03', 'assets/icon/resources/potions/heal_03.png');
 
       for (const s of SKILL_SPRITE_SOURCES) {
         for (let i = 1; i <= s.count; i++) {
@@ -674,7 +681,17 @@ export class GameScene extends Phaser.Scene {
         townChest: this.currentMapConfig.id === 'hogar'
           ? { x: 34 * ts + ts / 2, y: 30 * ts + ts / 2 }
           : undefined,
+        getBuildings: () => this.getMinimapBuildings(),
       };
+    }
+
+    /** Construcciones colocadas (cofre/tienda) en px de mundo, para el minimapa. */
+    private getMinimapBuildings(): { x: number; y: number; kind: string }[] {
+      return this.placedBuildings.map(pb => ({
+        x: pb.sprite.x,
+        y: pb.sprite.y,
+        kind: pb.building.type === 'shop' ? 'shop' : 'chest',
+      }));
     }
 
     initSpawns() {
@@ -1825,10 +1842,15 @@ export class GameScene extends Phaser.Scene {
       const proj = this.addSkillSprite(cfg, playerPos.x, playerPos.y);
       proj.setDepth(5);
       proj.setScale(cfg.scale);
-      if (this.anims.exists(cfg.spriteKey)) proj.play(cfg.spriteKey);
+      if (this.anims.exists(cfg.spriteKey)) {
+        // projectileOnce: una sola pasada (no loop), para sprites con impacto al final
+        proj.play(cfg.projectileOnce ? { key: cfg.spriteKey, repeat: 0 } : cfg.spriteKey);
+      }
       proj.setRotation(Phaser.Math.Angle.Between(playerPos.x, playerPos.y, targetPos.x, targetPos.y));
       const dist = Phaser.Math.Distance.Between(playerPos.x, playerPos.y, targetPos.x, targetPos.y);
-      const duration = (dist / (cfg.speed ?? 400)) * 1000;
+      let duration = (dist / (cfg.speed ?? 400)) * 1000;
+      // El viaje no dura más que una pasada de la animación → no se repite mientras vuela
+      if (cfg.projectileOnce) duration = Math.min(duration, (cfg.frameCount / cfg.frameRate) * 1000);
       this.tweens.add({
         targets: proj, x: targetPos.x, y: targetPos.y, duration, ease: 'Linear',
         onComplete: () => {
