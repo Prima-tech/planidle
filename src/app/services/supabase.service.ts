@@ -180,19 +180,4 @@ export class SupabaseService {
     if (error) throw error;
   }
 
-  /** Trae el snapshot de un personaje concreto (fallback si no se bajó en el login). */
-  async fetchCharacterSnapshot(charId: string): Promise<any | null> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) return null;
-
-    const { data, error } = await this.supabase
-      .from('characters')
-      .select('snapshot')
-      .eq('id', charId)
-      .eq('profile_id', user.id)
-      .single();
-
-    if (error || !data) return null;
-    return data.snapshot ?? null;
-  }
 }

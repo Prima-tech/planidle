@@ -54,44 +54,6 @@ export interface GameSnapshot {
   lastModified: string;
 }
 
-export interface FieldChange {
-  from: number;
-  to: number;
-  diff: number;
-}
-
-export interface InventoryItemDelta {
-  name: string;
-  type: 'added' | 'removed' | 'changed';
-  from: number;
-  to: number;
-  diff: number;
-}
-
-export interface InventorySummaryEntry {
-  name: string;
-  total: number;
-}
-
-export interface ChangeDelta {
-  hasChanges: boolean;
-  isFirstSync: boolean;
-  lastSyncedAt: string | null;
-  currentLocalAt: string | null;
-  playerState: Partial<Record<keyof PlayerState, FieldChange>>;
-  inventoryChanged: boolean;
-  inventoryDelta: InventoryItemDelta[];
-}
-
-export interface LocalInfo {
-  playerState: PlayerState;
-  itemCount: number;
-  tabsUsed: number;
-  inventorySummary: InventorySummaryEntry[];
-  lastModified: string | null;
-  lastSynced: string | null;
-}
-
 const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0 };
 
 @Injectable({ providedIn: 'root' })
@@ -245,55 +207,6 @@ export class SaveService {
     return total;
   }
 
-  async getLocalInfo(): Promise<LocalInfo> {
-    const snap: GameSnapshot | null   = await this.storage.get(this.snapshotKey());
-    const synced: GameSnapshot | null = await this.storage.get(this.syncedKey());
-
-    const grid     = snap?.inventory ?? this.inventory.getSnapshot();
-    const flat     = grid.flat(2).filter(Boolean) as InventoryItem[];
-    const tabsUsed = grid.filter(tab => tab.flat().some(Boolean)).length;
-
-    return {
-      playerState:      snap?.playerState ?? this.playerState.snapshot(),
-      itemCount:        flat.length,
-      tabsUsed,
-      inventorySummary: this.summarizeInventory(grid),
-      lastModified:     snap?.lastModified  ?? null,
-      lastSynced:       synced?.lastModified ?? null,
-    };
-  }
-
-  async getDelta(): Promise<ChangeDelta> {
-    const current = this.buildSnapshot();
-    const synced: GameSnapshot | null = await this.storage.get(this.syncedKey());
-
-    if (!synced) {
-      const allItems = this.computeInventoryDelta([], current.inventory);
-      return {
-        hasChanges: true, isFirstSync: true,
-        lastSyncedAt: null, currentLocalAt: current.lastModified,
-        playerState: {}, inventoryChanged: allItems.length > 0, inventoryDelta: allItems,
-      };
-    }
-
-    const psChanges: ChangeDelta['playerState'] = {};
-    for (const key of (['coins', 'specialCoins', 'exp', 'lvl'] as (keyof PlayerState)[])) {
-      const from = synced.playerState[key] as number;
-      const to   = current.playerState[key] as number;
-      if (from !== to) psChanges[key] = { from, to, diff: to - from };
-    }
-
-    const inventoryDelta   = this.computeInventoryDelta(synced.inventory, current.inventory);
-    const inventoryChanged = inventoryDelta.length > 0;
-
-    return {
-      hasChanges: Object.keys(psChanges).length > 0 || inventoryChanged,
-      isFirstSync: false,
-      lastSyncedAt: synced.lastModified, currentLocalAt: current.lastModified,
-      playerState: psChanges, inventoryChanged, inventoryDelta,
-    };
-  }
-
   // --- Internos ---
 
   private buildSnapshot(): GameSnapshot {
@@ -351,37 +264,4 @@ export class SaveService {
     }
   }
 
-  private summarizeInventory(grid: (InventoryItem | null)[][][]): InventorySummaryEntry[] {
-    const totals: Record<string, number> = {};
-    grid.flat(2).filter(Boolean).forEach((item: InventoryItem) => {
-      totals[item.name] = (totals[item.name] ?? 0) + (item.sum ?? 1);
-    });
-    return Object.entries(totals)
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  private computeInventoryDelta(
-    from: (InventoryItem | null)[][][],
-    to:   (InventoryItem | null)[][][],
-  ): InventoryItemDelta[] {
-    const sum = (grid: (InventoryItem | null)[][][]) => {
-      const map: Record<string, number> = {};
-      grid.flat(2).filter(Boolean).forEach((item: InventoryItem) => {
-        map[item.name] = (map[item.name] ?? 0) + (item.sum ?? 1);
-      });
-      return map;
-    };
-    const fromMap = sum(from);
-    const toMap   = sum(to);
-    const names   = new Set([...Object.keys(fromMap), ...Object.keys(toMap)]);
-    const delta: InventoryItemDelta[] = [];
-    for (const name of names) {
-      const f = fromMap[name] ?? 0;
-      const t = toMap[name]   ?? 0;
-      if (f === t) continue;
-      delta.push({ name, type: f === 0 ? 'added' : t === 0 ? 'removed' : 'changed', from: f, to: t, diff: t - f });
-    }
-    return delta.sort((a, b) => a.name.localeCompare(b.name));
-  }
 }

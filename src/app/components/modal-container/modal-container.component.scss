@@ -6,7 +6,7 @@
   pointer-events: auto;
   &.menu {
     top: 10px;
-    bottom: 53px;
+    bottom: 61px;  /* footer ~51px + 10px de aire, igual que game-settings/shop */
     right: calc(10px + var(--safe-right, 0px));
     width: 265px;
     /* el marco lo pinta el :host del componente (tema madera + piedra) */
