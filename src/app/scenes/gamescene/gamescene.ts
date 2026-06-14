@@ -417,7 +417,7 @@ export class GameScene extends Phaser.Scene {
         this.lvlUpText.setPosition(playerPos.x, playerPos.y - 160);
       }
       this.checkPortals(playerPos);
-      this.pet?.update(delta, playerPos.x, playerPos.y);
+      this.updatePet(delta, playerPos);
       this.player.syncLayers();
       this.player.getSprite().setDepth(playerPos.y);
     }
@@ -679,6 +679,34 @@ export class GameScene extends Phaser.Scene {
       // Aparece un poco por detrás del jugador para que entre caminando hacia él.
       const pos = this.player.getPosition();
       this.pet = new Pet(this, cfg, pos.x - GameScene.TILE_SIZE, pos.y);
+    }
+
+    // Radio en el que la mascota detecta drops del suelo · distancia a la que los recoge
+    // (generosa: la mascota se ancla en los pies y el drop en su centro, hay desfase)
+    private static readonly PET_SEEK_RADIUS  = 260;
+    private static readonly PET_COLLECT_DIST = 44;
+
+    /**
+     * Mueve la mascota: si hay un drop recogible cerca va a por él y lo recoge
+     * (va al inventario del personaje); si no, sigue al jugador. Los items solo
+     * se buscan si hay hueco en el inventario (lo decide nearestCollectableDrop).
+     */
+    private updatePet(delta: number, playerPos: Phaser.Math.Vector2): void {
+      if (!this.pet) return;
+
+      const pp   = this.pet.getPosition();
+      const drop = this.gridDrops?.nearestCollectableDrop(pp.x, pp.y, GameScene.PET_SEEK_RADIUS) ?? null;
+
+      if (drop) {
+        // stopDist 0 → la mascota se acerca del todo; recoge en cuanto entra en radio
+        this.pet.update(delta, drop.sprite.x, drop.sprite.y, 0);
+        const np = this.pet.getPosition();
+        if (Phaser.Math.Distance.Between(np.x, np.y, drop.sprite.x, drop.sprite.y) <= GameScene.PET_COLLECT_DIST) {
+          drop.collect();
+        }
+      } else {
+        this.pet.update(delta, playerPos.x, playerPos.y);
+      }
     }
 
     initMap() {

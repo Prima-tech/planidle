@@ -47,16 +47,25 @@ export class Pet {
   // de punto flotante alrededor de la distancia de seguimiento.
   private static readonly MOVE_EPS = 0.3;
 
-  /** Mueve la mascota hacia `target` (posición del jugador en px). */
-  update(delta: number, targetX: number, targetY: number): void {
+  /** Posición actual de la mascota en píxeles del mundo. */
+  getPosition(): { x: number; y: number } {
+    return { x: this.sprite.x, y: this.sprite.y };
+  }
+
+  /**
+   * Mueve la mascota hacia `target`. `stopDist` es la distancia a la que se
+   * detiene: por defecto la de seguimiento al jugador, o casi 0 al ir a por un
+   * drop para poder alcanzarlo y recogerlo.
+   */
+  update(delta: number, targetX: number, targetY: number, stopDist: number = Pet.FOLLOW_DIST): void {
     if (!this.sprite?.active) return;
     const dx = targetX - this.sprite.x;
     const dy = targetY - this.sprite.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     let moved = 0;
-    if (dist > Pet.FOLLOW_DIST) {
-      const step = Math.min(Pet.SPEED * delta, dist - Pet.FOLLOW_DIST);
+    if (dist > stopDist) {
+      const step = Math.min(Pet.SPEED * delta, dist - stopDist);
       if (step > Pet.MOVE_EPS) {
         this.sprite.x += (dx / dist) * step;
         this.sprite.y += (dy / dist) * step;

@@ -92,6 +92,30 @@ export class InventoryService {
     this.changes$.next();
   }
 
+  /**
+   * ¿Cabe este item en el inventario? true si es apilable y ya hay una pila del
+   * mismo nombre, o si queda alguna celda desbloqueada vacía. Lo usa la mascota
+   * para decidir si recoge un drop del suelo.
+   */
+  hasSpaceFor(item: { name: string; mergeable?: boolean }): boolean {
+    if (item.mergeable) {
+      for (let t = 0; t < TABS; t++)
+        for (let r = 0; r < ROWS; r++)
+          for (let c = 0; c < COLS; c++) {
+            if (!this.unlock.isUnlocked(t, r, c)) continue;
+            const existing = this.mockGrid[t][r][c];
+            if (existing?.mergeable && existing.name === item.name) return true;
+          }
+    }
+    for (let t = 0; t < TABS; t++)
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++) {
+          if (!this.unlock.isUnlocked(t, r, c)) continue;
+          if (!this.mockGrid[t][r][c]) return true;
+        }
+    return false;
+  }
+
   /** Coloca/apila el item en el grid. Devuelve true si cupo, false si estaba lleno. */
   private addToGrid(grid: (InventoryItem | null)[][][], item: InventoryItem): boolean {
     if (item.mergeable) {

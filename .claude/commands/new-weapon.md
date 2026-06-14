@@ -8,10 +8,83 @@ Guía para crear un arma con sprites Phaser, drop de enemigos y slot de equipami
 - **Ruta del spritesheet** (ej. `weapons1/cimitar.png`)
 - **Enemigos que la dropean** y **% de drop**
 - **Stats** (ej. `damage: 9`)
+- **JSON del generador LPC** (si lo hay) — es CLAVE para saber el formato (ver abajo).
 
 ---
 
-## Paso 1 — Analizar el spritesheet
+## ⭐ Espadas LPC universales (`equip/weapons/swords/`) — flujo validado
+
+La mayoría de armas nuevas vienen del **Universal LPC Spritesheet Generator**
+(liberatedpixelcup). **Pide siempre el JSON del generador**: te dice el formato sin
+adivinar. Mira:
+- `layers[].source.spritePath` → p.ej. `weapon/sword/arming/universal/fg/walk/brass.png`
+- `layers[].yPos` → fila donde empieza el arma. **`yPos:512` ⇒ fila 8 ⇒ frame de 64px**
+  (512/64). Si fuera 128px, walk empezaría en y=1024.
+- `layers[].supportedAnimations` → qué animaciones trae la hoja (walk/idle/slash…).
+- Hay **dos capas**: `fg` (delante del cuerpo) y `bg` (detrás). En las hojas que nos
+  pasan suelen venir fusionadas: fg en cols 0‑12, bg en cols 13‑25 (de ahí 26 cols).
+
+### Cómo analizar una hoja desconocida (sin Python — usa .NET por PowerShell)
+
+```powershell
+Add-Type -AssemblyName System.Drawing
+$b=New-Object System.Drawing.Bitmap("ruta.png"); "$($b.Width)x$($b.Height)"
+# 1664x4992 ⇒ a 64px son 26 cols × 78 filas; a 128px son 13 cols × 39 filas
+```
+Mapa de densidad por celda (qué filas/cols tienen píxeles) para localizar walk/slash:
+recorre celdas leyendo el canal alfa con `LockBits` y marca `.`/`#`. (Ver historial de
+git de esta feature para el script completo.) Verifica visualmente recortando filas con
+`DrawImage` + rejilla y leyéndolas como imagen.
+
+### Dos formatos y sus helpers (`equip-layer-registry.ts`)
+
+**A) Hoja estándar 13 cols, todo 64px** (walk filas 8‑11, slash 12‑15, idle 22‑25).
+Usa `swordLayer64('swordNN', 'sword_NN.png')`. Es el caso limpio (camina y ataca bien
+de una). Frame index = `fila × 13`.
+
+**B) "Arming sword" oversize — frames MIXTOS en el mismo PNG:**
+- walk/idle a **64px** (rejilla 26 cols): walk filas 8‑11, idle filas 22‑25.
+- slash a **128px** (rejilla 13 cols, "oversize" porque el arco es grande): filas 27‑30.
+
+Usa `swordLayerArming('swordNN', 'sword_NN.png')`. Carga el MISMO PNG con **dos claves**
+(`swordNN_main` 64px para walk/idle, `swordNN_slash` 128px para attack) y marca:
+```typescript
+oversizeSheetKey: 'swordNN_slash',
+oversizeOffsetY: 80,   // = 32 × escala_jugador(2.5); el personaje va centrado en el frame de 128
+```
+El slash usa **5 frames** (cols 0‑4); la col 5 es follow-through y sobra.
+
+### Mecánica clave (ya implementada en `player.ts syncLayers`)
+
+- **Offset dinámico**: si el cuerpo está atacando y la capa tiene `oversizeSheetKey`,
+  aplica `oversizeOffsetY` (80). Se basa en `currentAnimKey.startsWith(playerTags.ATTACK)`,
+  NO en el frame ya pintado (si no, hay un salto de 1 frame al empezar/terminar).
+- **Sync por progreso en el ataque**: el ataque del CUERPO es de 6 frames; el slash del
+  arma puede tener 5. Durante el ataque, la capa se conduce con
+  `layer.anims.setProgress(sprite.anims.getProgress())` CADA frame (no a su propio ritmo),
+  así no se descuelga ni se reinicia el último frame. Walk/idle siguen el sync normal.
+- **bg/fg**: con una sola capa solo pintamos el fg; parte del slash que va detrás del
+  cuerpo no se ve. Es aceptable. Para perfección habría que componer bg+fg (dos capas).
+
+### Icono del panel de invocación (¡importante!)
+
+El arma dentro del frame LPC es pequeña y descentrada → un recorte directo de la hoja se
+ve diminuto. **Genera un PNG de icono dedicado** auto-recortado (bbox + centrado en 64×64,
+NearestNeighbor) en `equip/weapons/swords/icons/sword_NN_icon.png` y úsalo con `icon:`
+(NO `iconSheet:`). Frame bueno: una pose de perfil (espada recta) o el pico del slash
+(hoja curva). Inventario/equipo/summon/detalle soportan `icon` plano (`<img>`).
+
+### Previews del personaje (`player-preview` y `character-sprite`)
+
+Renderizan un loop de andar en `<canvas>`. DEBEN usar las **columnas reales** de la hoja
+(`img.naturalWidth / frameSize`), NO el nº de frames de walk, y el `frameSize` real de
+cada hoja (64 ó 128). Cada capa cicla solo sus frames de walk (`frameIdx % frameCount`).
+Si no, mapean mal las hojas combinadas/oversize y muestran frames de slash en la pantalla
+de equipo. Centran el frame: `dOff=(size - frameSize*scale)/2`.
+
+---
+
+## Paso 1 — Analizar el spritesheet (formato `weapons1/` legacy)
 
 Las armas suelen venir en **hojas combinadas** (ej. `weapons1.png`) con múltiples armas en distintas filas.
 
@@ -124,3 +197,12 @@ Repetir la entrada en `orc1_elite`, `orc1_oblivion`, etc. con sus propias chance
 - [ ] `iconContentSize: 64` en el drop de `griddrops.ts`
 - [ ] `category: 'Arma'` en la entrada de `griddrops.ts`
 - [ ] PNG existe en `src/assets/sprites/player/equip/weapons1/`
+
+### Checklist espadas LPC (`weapons/swords/`)
+
+- [ ] Pedido el **JSON** del generador y confirmado el formato (64px estándar vs arming oversize 64+128)
+- [ ] Usado `swordLayer64` (estándar) o `swordLayerArming` (mixto) según el caso
+- [ ] Si arming: `oversizeSheetKey` + `oversizeOffsetY: 80` y slash con 5 frames (cols 0‑4)
+- [ ] **Icono dedicado** generado en `swords/icons/` y referenciado con `icon:` (no `iconSheet:`)
+- [ ] Entrada en `WEAPON_CATALOG` (griddrops.ts) con `category: 'Arma'` → aparece en el panel de invocación (tab Items → Weapons). El drop usa `texture: 'swordNN_main'` + `frame` (idle_down) ya precargado por el registry
+- [ ] Verificado en juego (`npm start`): camina, ataca sincronizado, e icono correcto en el panel

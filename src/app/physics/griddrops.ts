@@ -416,7 +416,17 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...PETS_CATALOG,
 ];
 
+/** Drop activo en el suelo (sprite + datos + función para recogerlo). */
+export interface ActiveDrop {
+  sprite: Phaser.Physics.Arcade.Sprite;
+  loot: LootEntry;
+  collect: () => void;
+}
+
 export class GridDrops {
+
+  /** Drops que están ahora mismo en el suelo (para que la mascota los busque). */
+  private readonly activeDrops: ActiveDrop[] = [];
 
   constructor(
     private player: Player,
@@ -526,12 +536,16 @@ export class GridDrops {
       onComplete: () => {
         (sprite.body as Phaser.Physics.Arcade.Body).enable = true;
         let collected = false;
+        const entry: ActiveDrop = { sprite, loot, collect: () => {} };
         const collect = () => {
           if (collected) return;
           collected = true;
           this.mainScene.physics.world.removeCollider(collider);
+          const i = this.activeDrops.indexOf(entry);
+          if (i !== -1) this.activeDrops.splice(i, 1);
           this.collectDrop(sprite, loot);
         };
+        entry.collect = collect;
         const collider = this.mainScene.physics.add.overlap(
           this.player.getSprite(),
           sprite,
@@ -539,8 +553,26 @@ export class GridDrops {
         );
         sprite.setInteractive();
         sprite.on('pointerdown', collect);
+        this.activeDrops.push(entry);
       },
     });
+  }
+
+  /**
+   * Drop recogible más cercano a (x, y) dentro de `radius`, o null. La mascota lo
+   * usa para decidir a por cuál ir: el oro siempre cuenta; los items solo si hay
+   * hueco en el inventario (si no, la mascota los ignora).
+   */
+  nearestCollectableDrop(x: number, y: number, radius: number): ActiveDrop | null {
+    let best: ActiveDrop | null = null;
+    let bestDist = radius;
+    for (const d of this.activeDrops) {
+      if (!d.sprite.active) continue;
+      if (d.loot.type === 'item' && !this.inventoryService.hasSpaceFor(d.loot)) continue;
+      const dist = Phaser.Math.Distance.Between(x, y, d.sprite.x, d.sprite.y);
+      if (dist <= bestDist) { bestDist = dist; best = d; }
+    }
+    return best;
   }
 
   private collectDrop(sprite: Phaser.Physics.Arcade.Sprite, loot: LootEntry): void {

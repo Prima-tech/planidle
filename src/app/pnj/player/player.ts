@@ -259,10 +259,12 @@ export class Player {
     this.layers.forEach((layer, slotId) => {
       if (!layer?.active) return;
       const cfg = this.layerConfigs.get(slotId);
-      // Offset dinámico: si el frame actual proviene de una hoja "oversize" (128px),
-      // usa su offset (el personaje va centrado en ese frame mayor).
+      // Offset dinámico: el ataque de estas armas usa una hoja "oversize" (128px,
+      // personaje centrado) que necesita +80. Lo basamos en si el cuerpo está
+      // atacando (no en el frame ya pintado) para que el offset cambie EN el mismo
+      // frame que la textura y no haya salto al empezar/terminar el ataque.
       let offY = cfg?.layerOffsetY ?? 0;
-      if (cfg?.oversizeSheetKey && layer.anims.currentFrame?.textureKey === cfg.oversizeSheetKey) {
+      if (cfg?.oversizeSheetKey && currentAnimKey.startsWith(playerTags.ATTACK)) {
         offY = cfg.oversizeOffsetY ?? offY;
       }
       layer.setPosition(this.sprite.x, this.sprite.y + offY);
