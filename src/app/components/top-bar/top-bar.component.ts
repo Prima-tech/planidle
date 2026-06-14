@@ -164,6 +164,12 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private buffSub: Subscription;
   private tickInterval: any;
 
+  // Cooldown de la poción auto-equipada, mostrado junto a los buffos
+  potionCdActive = false;
+  potionCdRatio = 1;
+  potionCdSeconds = 0;
+  potionCdIcon: string | null = null;
+
   private readonly CLASS_ICONS: Record<string, string> = {
     Warrior:   'shield-outline',
     Mage:      'flash-outline',
@@ -220,6 +226,12 @@ export class TopBarComponent implements OnInit, OnDestroy {
       const ratios: Record<string, number> = {};
       for (const buff of this.activeBuffs) ratios[buff.id] = this.buffService.ratio(buff);
       this.buffRatios = ratios;
+
+      // Cooldown de poción: visible solo mientras corre y haya poción equipada
+      this.potionCdActive  = this.playerBridge.autoPotionOnCooldown && !!this.playerBridge.autoPotionItem;
+      this.potionCdRatio   = this.playerBridge.autoPotionReadyRatio;
+      this.potionCdSeconds = this.playerBridge.autoPotionCooldownSeconds;
+      this.potionCdIcon    = this.playerBridge.autoPotionItem?.icon ?? null;
     }, 100);
   }
 

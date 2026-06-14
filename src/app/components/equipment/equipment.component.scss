@@ -563,6 +563,28 @@ $metal-dark: #6b6357;
   pointer-events: none;
 }
 
+// Cooldown de auto-poción: barrido cónico oscuro + segundos restantes
+.slot-cooldown {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  pointer-events: none;
+  background: conic-gradient(
+    rgba(0, 0, 0, 0.6) calc((1 - var(--ratio, 0)) * 360deg),
+    transparent calc((1 - var(--ratio, 0)) * 360deg)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slot-cooldown-secs {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
 .equip-item {
   width: 32px;
   height: 32px;

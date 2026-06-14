@@ -110,12 +110,21 @@
 
     </div>
 
-    <!-- Buffos activos -->
-    <div class="buff-list" *ngIf="activeBuffs.length > 0">
+    <!-- Buffos activos + cooldown de poción -->
+    <div class="buff-list" *ngIf="activeBuffs.length > 0 || potionCdActive">
       <div class="buff-item" *ngFor="let buff of activeBuffs">
         <div class="buff-icon"
              [style.background-image]="'url(' + buff.icon + ')'"
              [style.--ratio]="buffRatios[buff.id]">
+        </div>
+      </div>
+
+      <div class="buff-item" *ngIf="potionCdActive">
+        <div class="buff-icon buff-icon--potion"
+             [style.background-image]="potionCdIcon ? 'url(' + potionCdIcon + ')' : null"
+             [style.--ratio]="potionCdRatio">
+          <ion-icon *ngIf="!potionCdIcon" name="flask" class="buff-potion-fallback"></ion-icon>
+          <span class="buff-potion-secs">{{ potionCdSeconds }}</span>
         </div>
       </div>
     </div>

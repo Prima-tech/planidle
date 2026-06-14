@@ -30,6 +30,8 @@ export class GatheringEquipmentService {
     { id: 'belt',        label: 'Cinturón',  accepts: ['Cinturón'],  item: null },
     { id: 'compass',     label: 'Brújula',   accepts: ['Brújula'],   item: null },
     { id: 'torch',       label: 'Antorcha',  accepts: ['Antorcha'],  item: null },
+    // Mascota: se renderiza aparte (no en las dos columnas de herramientas).
+    { id: 'pet',         label: 'Mascota',   accepts: ['Mascota'],   item: null },
   ];
 
   readonly changes$ = new Subject<void>();

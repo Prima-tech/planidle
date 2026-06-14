@@ -11,6 +11,7 @@ import { EquipmentPanelService } from 'src/app/services/equipment-panel.service'
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { AchievementService, AchievementDef, AchievementScope } from 'src/app/services/achievement.service';
 import { QuestService, QuestDef } from 'src/app/services/quest.service';
+import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 
 @Component({
   selector: 'app-equipment',
@@ -26,6 +27,13 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   badges = inject(NotificationBadgeService);
   achievements = inject(AchievementService);
   quests = inject(QuestService);
+  private playerBridge = inject(PlayerBridgeService);
+
+  // Cooldown de la poción auto-equipada (overlay sobre el slot)
+  potionCdActive = false;
+  potionCdRatio = 1;
+  potionCdSeconds = 0;
+  private potionCdInterval: any;
 
   private _activeTab = 0;
   get activeTab(): number { return this._activeTab; }
@@ -113,6 +121,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     belt:        'link-outline',
     compass:     'compass-outline',
     torch:       'flame-outline',
+    pet:         'paw-outline',
   };
 
   readonly loadoutIndices = [0, 1, 2];
@@ -376,10 +385,18 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     // Publica el estado para el comparador del inventario
     this.equipPanel.open = true;
     this.equipPanel.tab = this._activeTab;
+
+    // Refresca el overlay de cooldown de poción mientras el panel está abierto
+    this.potionCdInterval = setInterval(() => {
+      this.potionCdActive  = this.playerBridge.autoPotionOnCooldown && !!this.playerBridge.autoPotionItem;
+      this.potionCdRatio   = this.playerBridge.autoPotionReadyRatio;
+      this.potionCdSeconds = this.playerBridge.autoPotionCooldownSeconds;
+    }, 250);
   }
 
   ngOnDestroy(): void {
     this.equipPanel.open = false;
+    clearInterval(this.potionCdInterval);
   }
 
   canDropInSlot = (drag: CdkDrag, drop: CdkDropList): boolean => {

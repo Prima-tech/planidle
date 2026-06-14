@@ -18,6 +18,7 @@ import { SkillEquipService } from '../services/skill-equip.service';
 import { TalentService } from '../services/talent.service';
 import { InteractionService } from '../services/interaction.service';
 import { CityBuildService } from '../services/city-build.service';
+import { GatheringEquipmentService } from '../services/gathering-equipment.service';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
 export const REGISTRY_KEYS = {
@@ -41,6 +42,7 @@ export const REGISTRY_KEYS = {
   TALENT:           'talentService',
   INTERACTION:      'interactionService',
   CITY_BUILD:       'cityBuildService',
+  GATHERING:        'gatheringEquipmentService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -67,4 +69,5 @@ export class GameRegistry {
   get talent():          TalentService            { return this.game.registry.get(REGISTRY_KEYS.TALENT); }
   get interaction():     InteractionService        { return this.game.registry.get(REGISTRY_KEYS.INTERACTION); }
   get cityBuild():       CityBuildService          { return this.game.registry.get(REGISTRY_KEYS.CITY_BUILD); }
+  get gathering():       GatheringEquipmentService { return this.game.registry.get(REGISTRY_KEYS.GATHERING); }
 }

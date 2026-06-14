@@ -3,6 +3,7 @@ import { ENEMY_REGISTRY, EnemyTypeConfig } from 'src/app/enemy/enemy-config';
 import { ITEM_CATALOG, LootEntry } from 'src/app/physics/griddrops';
 import { SummonService } from 'src/app/services/summon.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { ICONS1, ICONS1_COLS, ICONS1_FRAME_SIZE } from 'src/assets/icon/icons/icons1';
 
@@ -41,7 +42,11 @@ export class SummonComponent {
     { icon: 'bag-handle-outline', title: 'Items'   },
     { icon: 'cube-outline',       title: 'Chests'  },
     { icon: 'apps-outline',       title: 'Icons'   },
+    { icon: 'paw-outline',        title: 'Pets'    },
   ];
+
+  /** Mascotas disponibles para invocar (categoría 'Mascota'). */
+  readonly petCatalog: LootEntry[] = ITEM_CATALOG.filter(e => e.category === 'Mascota');
 
   /** Catálogo de iconos de icons1.png (nombre → frame) para consultar cuáles hay. */
   readonly icons1List = Object.entries(ICONS1)
@@ -117,6 +122,7 @@ export class SummonComponent {
   constructor(
     private summonService: SummonService,
     private equipmentService: EquipmentService,
+    private inventoryService: InventoryService,
   ) {
     const ARMOR_SLOT_IDS  = new Set(['helmet', 'armor', 'pants', 'boots']);
     const WEAPON_SLOT_IDS = new Set(['weapon']);
@@ -163,7 +169,30 @@ export class SummonComponent {
   }
 
   giveItem(entry: LootEntry): void {
+    // Las mascotas van directas al inventario (no como drop al suelo), para
+    // poder equiparlas luego en el slot de la pestaña secundaria.
+    if (entry.category === 'Mascota') { this.givePet(entry); return; }
     this.summonService.dropItem(entry);
+  }
+
+  private givePet(entry: LootEntry): void {
+    const item: InventoryItem = {
+      id:              `pet-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name:            entry.name,
+      category:        entry.category,
+      icon:            entry.icon,
+      iconSheet:       entry.iconSheet,
+      iconFrame:       entry.iconFrame,
+      iconFrameSize:   entry.iconFrameSize,
+      iconFrameCols:   entry.iconFrameCols,
+      iconContentSize: entry.iconContentSize,
+      mergeable:       entry.mergeable,
+      order:           entry.order,
+      description:     entry.description,
+      stats:           entry.stats,
+      petId:           entry.petId,
+    };
+    this.inventoryService.addOrDropToWorld(item);
   }
 
   getSheetPos(frame = 0, cols = 12, frameSize = 32, contentSize?: number): string {

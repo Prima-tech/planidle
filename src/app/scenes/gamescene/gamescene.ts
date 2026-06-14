@@ -15,6 +15,8 @@ import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
 import { NATIVE_DPR } from "./constants";
 import { BuildableDef, PlacedBuilding } from "src/app/services/city-build.service";
+import { Pet } from "src/app/pnj/pet/pet";
+import { PET_REGISTRY } from "src/app/pnj/pet/pet-config";
 
 const SKILL_SPRITE_SOURCES: { key: string; path: string; count: number }[] = [
   { key: 'skill_fire',           path: 'assets/sprites/skills/fire/Fire/fire_',                     count: 6  },
@@ -156,6 +158,10 @@ export class GameScene extends Phaser.Scene {
     private lvlSub: { unsubscribe(): void } | null = null;
     private lastLvl: number | null = null;
     private lvlUpText: Phaser.GameObjects.Text | null = null;
+    // Mascota equipada que sigue al jugador (slot 'pet' de la pestaña secundaria)
+    private pet: Pet | null = null;
+    private petId: string | null = null;
+    private petSub: { unsubscribe(): void } | null = null;
     currentMap: any;
 
       constructor(
@@ -177,6 +183,13 @@ export class GameScene extends Phaser.Scene {
       this.load.image('bag_2', 'assets/icon/bags/bag_02.png');
       this.load.image('bag_3', 'assets/icon/bags/bag_3.png');
       this.load.image('bag_4', 'assets/icon/bags/bag_4.png');
+
+      // Mascotas: spritesheet por mascota (sprite que sigue al jugador + drop al invocar).
+      for (const cfg of Object.values(PET_REGISTRY)) {
+        if (!this.textures.exists(cfg.textureKey)) {
+          this.load.spritesheet(cfg.textureKey, cfg.sheetPath, { frameWidth: cfg.frameWidth, frameHeight: cfg.frameHeight });
+        }
+      }
 
       // Recursos (drop al suelo desde el panel de invocación)
       this.load.image('wood', 'assets/icon/resources/wood.png');
@@ -301,6 +314,11 @@ export class GameScene extends Phaser.Scene {
         this.magicSub?.unsubscribe();
         this.skillSub?.unsubscribe();
         this.player?.clearLayers();
+        this.petSub?.unsubscribe();
+        this.petSub = null;
+        this.pet?.destroy();
+        this.pet = null;
+        this.petId = null;
         this.lvlSub?.unsubscribe();
         this.lvlSub = null;
         this.lvlUpText = null;   // el shutdown de la escena ya destruye el texto
@@ -330,6 +348,7 @@ export class GameScene extends Phaser.Scene {
         this.registerSkillAnimations();
         this.initSkillListener();
         this.initSkillTargetChecker();
+        this.initPet();
         this.time.delayedCall(600, () => this.reg.playerBridge?.emitSceneReady());
       });
     }
@@ -398,6 +417,7 @@ export class GameScene extends Phaser.Scene {
         this.lvlUpText.setPosition(playerPos.x, playerPos.y - 160);
       }
       this.checkPortals(playerPos);
+      this.pet?.update(delta, playerPos.x, playerPos.y);
       this.player.syncLayers();
       this.player.getSprite().setDepth(playerPos.y);
     }
@@ -629,6 +649,36 @@ export class GameScene extends Phaser.Scene {
         if (!cfg.key || !this.textures.exists(cfg.key)) { this.player.removeLayer(slotId); return; }
         this.player.addLayer(slotId, cfg.key, cfg.depth);
       }
+    }
+
+    // ── Mascota ──────────────────────────────────────────────────────────────
+    // La mascota equipada (slot 'pet' de la pestaña secundaria) aparece en el mapa
+    // y sigue al jugador. Se sincroniza con el equipo: equipar/desequipar o cambiar
+    // de loadout la crea/destruye/cambia en caliente.
+
+    private initPet(): void {
+      const gathering = this.reg.gathering;
+      if (!gathering) return;
+      this.syncPet();
+      this.petSub = gathering.changes$.subscribe(() => this.syncPet());
+    }
+
+    private syncPet(): void {
+      const petItem = this.reg.gathering?.slots.find(s => s.id === 'pet')?.item ?? null;
+      const newId = petItem?.petId ?? null;
+      if (newId === this.petId) return;   // sin cambios
+
+      this.pet?.destroy();
+      this.pet = null;
+      this.petId = newId;
+
+      if (!newId) return;
+      const cfg = PET_REGISTRY[newId];
+      if (!cfg || !this.textures.exists(cfg.textureKey)) return;
+
+      // Aparece un poco por detrás del jugador para que entre caminando hacia él.
+      const pos = this.player.getPosition();
+      this.pet = new Pet(this, cfg, pos.x - GameScene.TILE_SIZE, pos.y);
     }
 
     initMap() {

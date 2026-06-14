@@ -3,6 +3,7 @@ import { PlayerStateService } from '../services/player-state.service';
 import { CharacterStatsService } from '../services/character-stats.service';
 import { WorldService } from '../services/world.service';
 import { Player } from '../pnj/player/player';
+import { PET_REGISTRY, PET_ICON_FRAME, PetConfig } from '../pnj/pet/pet-config';
 
 export interface LootEntry {
   name: string;
@@ -26,6 +27,7 @@ export interface LootEntry {
   description?: string;
   stats?: Record<string, number>;
   inventorySlots?: number;   // bolsas: celdas de inventario que desbloquea al equiparse
+  petId?: string;            // mascotas: id en PET_REGISTRY
 }
 
 const EXP_REWARDS: Record<string, number> = {
@@ -344,6 +346,28 @@ const POTIONS_CATALOG: LootEntry[] = [
   _potion('heal_03', 'heal_03.png', 'Poción de Vida Mayor',  150),
 ];
 
+// ── Mascotas ─────────────────────────────────────────────────────────────────
+// Se equipan en el slot 'pet' (categoría 'Mascota') de la pestaña secundaria.
+// `texture` es la clave del spritesheet precargado en gamescene (frame 0 = idle)
+// para el sprite del drop; `iconSheet` recorta ese mismo frame en el inventario.
+const _pet = (cfg: PetConfig): LootEntry => ({
+  name: cfg.name,
+  category: 'Mascota',
+  type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: cfg.textureKey,
+  frame: PET_ICON_FRAME,
+  iconSheet: cfg.sheetPath,
+  iconFrame: PET_ICON_FRAME,
+  iconFrameSize: cfg.frameWidth,
+  iconFrameCols: cfg.cols,
+  scale: 2.5, order: 7,
+  description: `Mascota: ${cfg.name}. Equípala en la pestaña secundaria para que te acompañe.`,
+  petId: cfg.id,
+});
+
+const PETS_CATALOG: LootEntry[] = Object.values(PET_REGISTRY).map(_pet);
+
 const _catalogSeen = new Set<string>();
 export const ITEM_CATALOG: LootEntry[] = [
   ...Object.values(LOOT_TABLES)
@@ -361,6 +385,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...BAGS_CATALOG,
   ...RESOURCES_CATALOG,
   ...POTIONS_CATALOG,
+  ...PETS_CATALOG,
 ];
 
 export class GridDrops {
@@ -424,6 +449,7 @@ export class GridDrops {
       description: item.description,
       stats: item.stats,
       inventorySlots: item.inventorySlots,
+      petId: item.petId,
     };
 
     if (this.mainScene.textures.exists(key)) {
@@ -526,6 +552,7 @@ export class GridDrops {
       description: loot.description,
       stats: loot.stats,
       inventorySlots: loot.inventorySlots,
+      petId: loot.petId,
     };
     this.inventoryService.addDroppedItem(item);
   }

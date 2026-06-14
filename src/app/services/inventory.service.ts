@@ -21,6 +21,7 @@ export interface InventoryItem {
   description?: string;
   stats?: Record<string, number>;
   inventorySlots?: number;   // bolsas: nº de celdas de inventario que desbloquea al equiparse
+  petId?: string;            // mascotas: id en PET_REGISTRY para renderizar/seguir al jugador
 }
 
 const TABS = 4;

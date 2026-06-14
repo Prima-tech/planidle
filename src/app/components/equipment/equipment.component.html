@@ -85,9 +85,9 @@
         </ng-container>
       </ng-container>
       <ng-container *ngIf="showGathering">
-        <!-- Recolección: mochila, guantes, cinturón, brújula, antorcha -->
+        <!-- Recolección: mochila, guantes, cinturón, brújula, mascota -->
         <ng-container *ngFor="let slot of gatheringService.slots">
-          <ng-container *ngIf="['backpack','gloves','belt','compass','torch'].includes(slot.id)">
+          <ng-container *ngIf="['backpack','gloves','belt','compass','pet'].includes(slot.id)">
             <ng-container *ngTemplateOutlet="gatheringSlotTpl; context: { slot: slot }"></ng-container>
           </ng-container>
         </ng-container>
@@ -715,6 +715,13 @@
     <ng-template #emptySlot>
       <ion-icon class="slot-placeholder" [name]="slotPlaceholderIcons[slot.id]" [title]="slot.label"></ion-icon>
     </ng-template>
+
+    <!-- Cooldown de auto-poción: barrido + segundos sobre el slot -->
+    <div *ngIf="slot.id === 'potion' && potionCdActive"
+         class="slot-cooldown"
+         [style.--ratio]="potionCdRatio">
+      <span class="slot-cooldown-secs">{{ potionCdSeconds }}</span>
+    </div>
   </div>
 </ng-template>
 

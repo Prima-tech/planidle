@@ -138,6 +138,10 @@
   </div>
 </div>
 
+<div class="item-grid" *ngIf="activeTab === 4">
+  <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: petCatalog }"></ng-container>
+</div>
+
 <ng-template #itemCards let-entries>
   <button *ngFor="let entry of entries" class="item-card" (click)="giveItem(entry)" [title]="entry.name">
     <div class="item-frame">
