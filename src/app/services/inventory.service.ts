@@ -23,6 +23,9 @@ export interface InventoryItem {
   inventorySlots?: number;   // bolsas: nº de celdas de inventario que desbloquea al equiparse
   petId?: string;            // mascotas: id en PET_REGISTRY para renderizar/seguir al jugador
   petLevel?: number;         // mascotas: nivel propio (1..PET_MAX_LEVEL)
+  petExp?: number;           // mascotas: exp acumulada hacia el siguiente nivel
+  boundCharId?: string;      // mascotas: id del personaje al que está vinculada (solo equipable ahí)
+  boundCharName?: string;    // mascotas: nombre del personaje vinculado (para mostrar en la ficha)
 }
 
 const TABS = 4;

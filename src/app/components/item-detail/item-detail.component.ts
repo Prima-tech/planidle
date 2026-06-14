@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { InventoryItem } from 'src/app/services/inventory.service';
 import { BAG_SLOTS_BY_NAME } from 'src/app/services/inventory-unlock.service';
-import { PET_MAX_LEVEL } from 'src/app/pnj/pet/pet-config';
+import { PET_MAX_LEVEL, petExpNeeded } from 'src/app/pnj/pet/pet-config';
 
 const STAT_LABELS: Record<string, string> = {
   damage:   'ITEM_STAT.DAMAGE',
@@ -40,6 +40,11 @@ export class ItemDetailComponent {
     return !!this.item?.petId;
   }
 
+  /** Nombre del personaje al que está vinculada la mascota (vacío si no lo está). */
+  get boundCharName(): string {
+    return this.item?.boundCharName ?? '';
+  }
+
   /** Nivel actual de la mascota (1 por defecto). */
   get petLevel(): number {
     return this.item?.petLevel ?? 1;
@@ -47,9 +52,25 @@ export class ItemDetailComponent {
 
   readonly petMaxLevel = PET_MAX_LEVEL;
 
-  /** Casillas 1..PET_MAX_LEVEL para pintar la barra de nivel. */
-  get petLevelPips(): number[] {
-    return Array.from({ length: this.petMaxLevel }, (_, i) => i + 1);
+  get petIsMaxLevel(): boolean {
+    return this.petLevel >= this.petMaxLevel;
+  }
+
+  /** Exp acumulada hacia el siguiente nivel. */
+  get petExp(): number {
+    return this.item?.petExp ?? 0;
+  }
+
+  /** Exp necesaria para el siguiente nivel (0 si ya está al máximo). */
+  get petExpNeeded(): number {
+    return this.petIsMaxLevel ? 0 : petExpNeeded(this.petLevel);
+  }
+
+  /** Progreso 0..1 de la barra de exp (lleno al nivel máximo). */
+  get petExpRatio(): number {
+    if (this.petIsMaxLevel) return 1;
+    const need = this.petExpNeeded;
+    return need > 0 ? Math.min(1, this.petExp / need) : 0;
   }
 
   statLabel(key: string): string {

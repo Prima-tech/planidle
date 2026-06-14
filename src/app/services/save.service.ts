@@ -117,6 +117,7 @@ export class SaveService {
   async loadCharacter(charId: string): Promise<void> {
     this._isRestoring = true;
     this.charId = charId;
+    this.gathering.currentCharId = charId;   // para validar el vínculo de mascotas
     const snapshot: GameSnapshot | null = await this.storage.get(this.snapshotKey());
 
     if (snapshot) {

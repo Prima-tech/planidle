@@ -36,6 +36,11 @@ export interface EquipLayerConfig {
   /** Depth to use when the player faces up (weapon goes behind the sprite).
    *  If omitted, depth stays constant for all directions. */
   depthWhenUp?: number;
+  /** Para armas con frames mezclados (walk 64px + slash 128px en hojas distintas):
+   *  clave de la hoja "oversize" 128px y el offsetY a aplicar cuando se reproduce
+   *  un frame de esa hoja. syncLayers lo aplica dinámicamente por frame. */
+  oversizeSheetKey?: string;
+  oversizeOffsetY?: number;
 }
 
 function bootsLayer(folder: string): EquipLayerConfig {
@@ -230,43 +235,51 @@ function swordLayer64(prefix: string, file: string): EquipLayerConfig {
   };
 }
 
-// Espadas tipo "Arming Sword" del set universal LPC (ElizaWy). Frame 64×64, pero
-// la hoja viene a 26 columnas (fg en cols 0-12 delante del cuerpo, bg en 13-25
-// detrás). Usamos solo la mitad fg (cols 0-8 contienen el arma visible).
-// Layout universal estándar: walk filas 8-11 (9 frames), idle filas 22-25 (2).
-// El slash 1h vive en filas 54+ pero ahí gran parte del arma queda detrás del
-// cuerpo (capa bg) y con una sola capa se ve roto → el "ataque" mantiene la pose
-// de guardia (idle) hasta poder componer bg+fg.
+// Espadas tipo "Arming Sword" del set universal LPC (ElizaWy). La hoja mezcla
+// dos tamaños de frame sobre el MISMO PNG:
+//   · walk/idle a 64×64 (rejilla de 26 cols). walk filas 8-11, idle filas 22-25.
+//   · slash "oversize" a 128×128 (rejilla de 13 cols). bloque filas 27-30 (6 fr).
+// Por eso cargamos el PNG con DOS claves (64 y 128) y el ataque usa la de 128,
+// con offsetY=80 (el personaje va centrado en el frame de 128). syncLayers aplica
+// ese offset dinámicamente cuando se reproduce un frame de la hoja oversize.
 function swordLayerArming(prefix: string, file: string): EquipLayerConfig {
   const p = prefix;
-  const COLS = 26;
-  const walk = { up: 8 * COLS, left: 9 * COLS, down: 10 * COLS, right: 11 * COLS };
-  const idle = { up: 22 * COLS, left: 23 * COLS, down: 24 * COLS, right: 25 * COLS };
+  const path = `assets/sprites/player/equip/weapons/swords/${file}`;
+  const C64 = 26;   // columnas a 64px
+  const walk = { up: 8 * C64, left: 9 * C64, down: 10 * C64, right: 11 * C64 };
+  const idle = { up: 22 * C64, left: 23 * C64, down: 24 * C64, right: 25 * C64 };
+  const C128 = 13;  // columnas a 128px
+  const slash = { up: 27 * C128, left: 28 * C128, down: 29 * C128, right: 30 * C128 };
   return {
     frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
     depthWhenUp: 1.5,   // detrás del jugador salvo mirando hacia abajo
+    oversizeSheetKey: `${p}_slash`, oversizeOffsetY: 80,
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
-    sheets: [{
-      key: `${p}_main`,
-      path: `assets/sprites/player/equip/weapons/swords/${file}`,
-      frameWidth: 64, frameHeight: 64,
-      anims: [
-        { key: `${p}_idle_up`,      startFrame: idle.up,    endFrame: idle.up + 1,    frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_left`,    startFrame: idle.left,  endFrame: idle.left + 1,  frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_down`,    startFrame: idle.down,  endFrame: idle.down + 1,  frameRate: 2,  repeat: -1 },
-        { key: `${p}_idle_right`,   startFrame: idle.right, endFrame: idle.right + 1, frameRate: 2,  repeat: -1 },
-        { key: `${p}_walk_up`,      startFrame: walk.up,    endFrame: walk.up + 8,    frameRate: 10, repeat: -1 },
-        { key: `${p}_walk_left`,    startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
-        { key: `${p}_walk_down`,    startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
-        { key: `${p}_walk_right`,   startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
-        // Ataque: pose de guardia (idle). Este arma NO trae slash en su hoja
-        // (supportedAnimations: walk/hurt/idle/combat_idle), por eso no hay swing.
-        { key: `${p}_attack_up`,    startFrame: idle.up,    endFrame: idle.up,    frameRate: 1, repeat: 0 },
-        { key: `${p}_attack_left`,  startFrame: idle.left,  endFrame: idle.left,  frameRate: 1, repeat: 0 },
-        { key: `${p}_attack_down`,  startFrame: idle.down,  endFrame: idle.down,  frameRate: 1, repeat: 0 },
-        { key: `${p}_attack_right`, startFrame: idle.right, endFrame: idle.right, frameRate: 1, repeat: 0 },
-      ],
-    }],
+    sheets: [
+      {
+        key: `${p}_main`, path, frameWidth: 64, frameHeight: 64,
+        anims: [
+          { key: `${p}_idle_up`,      startFrame: idle.up,    endFrame: idle.up + 1,    frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_left`,    startFrame: idle.left,  endFrame: idle.left + 1,  frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_down`,    startFrame: idle.down,  endFrame: idle.down + 1,  frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_right`,   startFrame: idle.right, endFrame: idle.right + 1, frameRate: 2,  repeat: -1 },
+          { key: `${p}_walk_up`,      startFrame: walk.up,    endFrame: walk.up + 8,    frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,    startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,    startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`,   startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        key: `${p}_slash`, path, frameWidth: 128, frameHeight: 128,
+        anims: [
+          // 5 frames (cols 0-4): se omite la col 5 (follow-through) que sobraba al final.
+          { key: `${p}_attack_up`,    startFrame: slash.up,    endFrame: slash.up + 4,    frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: slash.left,  endFrame: slash.left + 4,  frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: slash.down,  endFrame: slash.down + 4,  frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: slash.right, endFrame: slash.right + 4, frameRate: 14, repeat: 0 },
+        ],
+      },
+    ],
   };
 }
 

@@ -12,6 +12,7 @@ import { NotificationBadgeService } from 'src/app/services/notification-badge.se
 import { AchievementService, AchievementDef, AchievementScope } from 'src/app/services/achievement.service';
 import { QuestService, QuestDef } from 'src/app/services/quest.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
+import { AsgardService } from 'src/app/services/asgard';
 
 @Component({
   selector: 'app-equipment',
@@ -28,6 +29,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   achievements = inject(AchievementService);
   quests = inject(QuestService);
   private playerBridge = inject(PlayerBridgeService);
+  private asgard = inject(AsgardService);
 
   // Cooldown de la poción auto-equipada (overlay sobre el slot)
   potionCdActive = false;
@@ -479,11 +481,51 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     const data = event.item.data;
     const item: InventoryItem = data.item;
     if (!this.gatheringService.canEquip(item, `gather-${slot.id}`)) return;
+
+    // Mascota sin vincular: preguntar antes de equipar (se vincula a este personaje)
+    if (item.petId && !item.boundCharId) {
+      this.pendingPetEquip = { data, slot };
+      this.petBindModalOpen = true;
+      return;
+    }
+
+    this.doGatheringEquip(data, slot, item);
+  }
+
+  private doGatheringEquip(data: any, slot: GatheringSlot, item: InventoryItem): void {
     const displaced = this.gatheringService.equip(`gather-${slot.id}`, item);
     if (data.sourceContext === 'inventory') {
       this.inventoryService.removeRequest$.next({ tabIndex: data.tabIndex, row: data.row, col: data.col });
       if (displaced) this.inventoryService.itemDropped$.next(displaced);
     }
+  }
+
+  // ── Vínculo de mascota a personaje ───────────────────────────────────────────
+  petBindModalOpen = false;
+  private pendingPetEquip: { data: any; slot: GatheringSlot } | null = null;
+
+  get pendingPetName(): string {
+    return this.pendingPetEquip?.data?.item?.name ?? '';
+  }
+
+  get currentCharName(): string {
+    return this.asgard.selectedPlayer?.name ?? '';
+  }
+
+  confirmPetBind(): void {
+    if (!this.pendingPetEquip) return;
+    const { data, slot } = this.pendingPetEquip;
+    const item: InventoryItem = data.item;
+    item.boundCharId   = String(this.asgard.selectedPlayer?.id ?? '');
+    item.boundCharName = this.asgard.selectedPlayer?.name ?? '';
+    this.doGatheringEquip(data, slot, item);
+    this.petBindModalOpen = false;
+    this.pendingPetEquip = null;
+  }
+
+  cancelPetBind(): void {
+    this.petBindModalOpen = false;
+    this.pendingPetEquip = null;
   }
 
   onEquipDrop(event: CdkDragDrop<any>, slot: EquipmentSlot): void {

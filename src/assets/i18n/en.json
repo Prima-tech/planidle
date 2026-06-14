@@ -177,7 +177,13 @@
     "NONE_COMPLETED": "You haven't completed any quests yet."
   },
   "PET": {
-    "LEVEL": "Level"
+    "LEVEL": "Level",
+    "MAX_LEVEL": "MAX",
+    "BIND_TITLE": "Bind pet",
+    "BIND_MESSAGE": "Do you want to bind {{pet}} to {{char}}? It will only be equippable on this character.",
+    "BIND_CONFIRM": "Bind",
+    "BIND_CANCEL": "Cancel",
+    "BOUND_TO": "Bound to"
   },
   "TALENT": {
     "REMOVE_SPHERE": "Remove sphere",

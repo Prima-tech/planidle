@@ -52,6 +52,20 @@ $text-cream: #ecd9b4;
   padding: 6px 8px;
 }
 
+/* Mascota: personaje al que está vinculada (debajo del nombre) */
+.detail-bound {
+  margin-top: -2px;
+  font-size: 0.66em;
+  font-weight: 600;
+  color: $text-brown;
+  text-align: center;
+}
+
+.detail-bound-char {
+  color: $cell-bg;
+  font-weight: 800;
+}
+
 /* Nivel de mascota: placa de madera con fila de texto + barra de casillas */
 .detail-pet-level {
   background: $wood-btn;
@@ -86,21 +100,25 @@ $text-cream: #ecd9b4;
   font-weight: 800;
 }
 
-.pet-level-bar {
-  display: flex;
-  gap: 2px;
+.pet-exp-bar {
+  height: 8px;
+  border-radius: 3px;
+  background: rgba(56, 36, 29, 0.5);
+  box-shadow: inset 0 0 0 1px $outline;
+  overflow: hidden;
 }
 
-.pet-level-pip {
-  flex: 1;
-  height: 6px;
-  border-radius: 2px;
-  background: rgba(56, 36, 29, 0.45);
-  box-shadow: inset 0 0 0 1px $outline;
+.pet-exp-fill {
+  height: 100%;
+  background: linear-gradient(180deg, #8fe17a, #3fa84a);
+  transition: width 0.2s ease;
+}
 
-  &.filled {
-    background: linear-gradient(180deg, #f7d774, #e0a93a);
-  }
+.pet-exp-text {
+  text-align: center;
+  font-size: 0.62em;
+  font-weight: 700;
+  color: $cell-bg;
 }
 
 /* Icono de sprite (sheet): el frame se normaliza a 32px, así que el box es 32px */

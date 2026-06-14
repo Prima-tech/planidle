@@ -259,7 +259,13 @@ export class Player {
     this.layers.forEach((layer, slotId) => {
       if (!layer?.active) return;
       const cfg = this.layerConfigs.get(slotId);
-      layer.setPosition(this.sprite.x, this.sprite.y + (cfg?.layerOffsetY ?? 0));
+      // Offset dinámico: si el frame actual proviene de una hoja "oversize" (128px),
+      // usa su offset (el personaje va centrado en ese frame mayor).
+      let offY = cfg?.layerOffsetY ?? 0;
+      if (cfg?.oversizeSheetKey && layer.anims.currentFrame?.textureKey === cfg.oversizeSheetKey) {
+        offY = cfg.oversizeOffsetY ?? offY;
+      }
+      layer.setPosition(this.sprite.x, this.sprite.y + offY);
       const baseY = this.sprite.y;
       if (cfg?.depthWhenUp !== undefined) {
         const facingDown = currentAnimKey.endsWith('_down');
@@ -273,13 +279,23 @@ export class Player {
           : (cfg.fallbackAnim ?? '');
         const layerKey       = layer.anims.currentAnim?.key ?? '';
         const isSameKey      = layerKey === targetKey;
-        const isStillPlaying = layer.anims.isPlaying;
-        if (targetKey && (!isSameKey || !isStillPlaying)) {
-          const animKey = this.mainScene.anims.exists(targetKey) ? targetKey : (cfg.fallbackAnim ?? '');
-          if (animKey) {
-            layer.play(animKey);
-            if (!isSameKey) {
-              layer.anims.setProgress(this.sprite.anims.getProgress());
+        const isAttack       = currentAnimKey.startsWith(playerTags.ATTACK);
+        if (isAttack && targetKey && this.mainScene.anims.exists(targetKey)) {
+          // Durante el ataque, el arma puede tener distinto nº de frames que el
+          // cuerpo (ej. slash de 5 frames vs ataque de 6). En vez de dejar que
+          // corra a su ritmo (se queda colgada o se reinicia al final), la
+          // conducimos por el progreso del cuerpo cada frame → siempre sincronizada.
+          if (!isSameKey) layer.play(targetKey);
+          layer.anims.setProgress(this.sprite.anims.getProgress());
+        } else {
+          const isStillPlaying = layer.anims.isPlaying;
+          if (targetKey && (!isSameKey || !isStillPlaying)) {
+            const animKey = this.mainScene.anims.exists(targetKey) ? targetKey : (cfg.fallbackAnim ?? '');
+            if (animKey) {
+              layer.play(animKey);
+              if (!isSameKey) {
+                layer.anims.setProgress(this.sprite.anims.getProgress());
+              }
             }
           }
         }

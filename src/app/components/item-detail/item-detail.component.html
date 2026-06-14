@@ -12,17 +12,27 @@
     <span class="detail-name">{{ item.name }}</span>
   </div>
 
-  <!-- Mascota: nivel propio (1..máx) con barra de casillas -->
+  <!-- Mascota vinculada: a qué personaje -->
+  <div class="detail-bound" *ngIf="isPet && boundCharName">
+    {{ 'PET.BOUND_TO' | translate }}: <span class="detail-bound-char">{{ boundCharName }}</span>
+  </div>
+
+  <!-- Mascota: solo nivel + barra de experiencia hacia el siguiente nivel -->
   <div class="detail-pet-level" *ngIf="isPet">
     <div class="pet-level-row">
       <span class="pet-level-label">{{ 'PET.LEVEL' | translate }}</span>
       <span class="pet-level-value">{{ petLevel }} / {{ petMaxLevel }}</span>
     </div>
-    <div class="pet-level-bar">
-      <span class="pet-level-pip" *ngFor="let p of petLevelPips"
-            [class.filled]="p <= petLevel"></span>
+    <div class="pet-exp-bar">
+      <div class="pet-exp-fill" [style.width.%]="petExpRatio * 100"></div>
+    </div>
+    <div class="pet-exp-text">
+      {{ petIsMaxLevel ? ('PET.MAX_LEVEL' | translate) : (petExp + ' / ' + petExpNeeded) }}
     </div>
   </div>
+
+  <!-- El resto del panel solo para ítems que no son mascota -->
+  <ng-container *ngIf="!isPet">
 
   <!-- Stats primero (placa de madera, como el bloque de monedas del inventario) -->
   <div class="detail-stats" *ngIf="item.stats">
@@ -72,5 +82,7 @@
           (click)="use.emit(); $event.stopPropagation()">
     {{ 'INVENTORY.USE' | translate }}
   </button>
+
+  </ng-container>
 
 </div>

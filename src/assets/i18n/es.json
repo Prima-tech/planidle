@@ -177,7 +177,13 @@
     "NONE_COMPLETED": "Aún no has completado ninguna misión."
   },
   "PET": {
-    "LEVEL": "Nivel"
+    "LEVEL": "Nivel",
+    "MAX_LEVEL": "MÁX",
+    "BIND_TITLE": "Vincular mascota",
+    "BIND_MESSAGE": "¿Quieres vincular {{pet}} a {{char}}? Solo podrás equiparla en este personaje.",
+    "BIND_CONFIRM": "Vincular",
+    "BIND_CANCEL": "Cancelar",
+    "BOUND_TO": "Vinculado con"
   },
   "TALENT": {
     "REMOVE_SPHERE": "Quitar esfera",

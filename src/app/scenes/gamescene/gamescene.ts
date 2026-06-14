@@ -1032,6 +1032,7 @@ export class GameScene extends Phaser.Scene {
       this.events.on('enemyDied', ({ type, position }: { type: string, position: Phaser.Math.Vector2 }) => {
         const mapId = this.reg.world.getCurrentMap().id;
         this.reg.kill?.recordKill(mapId, type);
+        this.reg.gathering?.addEquippedPetExp(1);   // 1 exp por enemigo a la mascota equipada
 
         if (type.endsWith('_oblivion')) return;
 

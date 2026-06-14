@@ -639,6 +639,21 @@
                    [item]="selectedEquippedItem"
                    [panelStyle]="equipDetailStyle"></app-item-detail>
 
+  <!-- Modal: vincular mascota a este personaje (primera vez que se equipa) -->
+  <div class="pet-bind-overlay" *ngIf="petBindModalOpen" (click)="cancelPetBind()">
+    <div class="pet-bind-modal" (click)="$event.stopPropagation()">
+      <div class="pet-bind-icon"><ion-icon name="paw-outline"></ion-icon></div>
+      <div class="pet-bind-title">{{ 'PET.BIND_TITLE' | translate }}</div>
+      <p class="pet-bind-text">
+        {{ 'PET.BIND_MESSAGE' | translate:{ pet: pendingPetName, char: currentCharName } }}
+      </p>
+      <div class="pet-bind-buttons">
+        <button class="pet-bind-cancel" (click)="cancelPetBind()">{{ 'PET.BIND_CANCEL' | translate }}</button>
+        <button class="pet-bind-confirm" (click)="confirmPetBind()">{{ 'PET.BIND_CONFIRM' | translate }}</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Template reutilizable: tarjeta-acordeón de misión -->

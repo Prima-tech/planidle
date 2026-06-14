@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { InventoryItem } from './inventory.service';
 import { EquipmentLoadouts, EquipmentSnapshot, LOADOUT_COUNT } from './equipment.service';
+import { PET_MAX_LEVEL, petExpNeeded } from '../pnj/pet/pet-config';
 
 export interface GatheringSlot {
   id: string;
@@ -35,6 +36,10 @@ export class GatheringEquipmentService {
   ];
 
   readonly changes$ = new Subject<void>();
+
+  /** Personaje cargado actualmente (lo fija SaveService.loadCharacter). Sirve para
+   *  validar el vínculo de las mascotas. */
+  currentCharId: string | null = null;
 
   activeLoadout = 0;
   private storedSets: (EquipmentSnapshot | null)[] = [null, null, null];
@@ -83,8 +88,11 @@ export class GatheringEquipmentService {
 
   canEquip(item: InventoryItem, cdkSlotId: string): boolean {
     const slot = this.findSlot(cdkSlotId);
-    const key = item.category ?? item.name;
-    return !!slot && !!item && slot.accepts.includes(key);
+    const key = item?.category ?? item?.name;
+    if (!slot || !item || !slot.accepts.includes(key)) return false;
+    // Mascota vinculada a otro personaje: no se puede equipar aquí
+    if (item.boundCharId && this.currentCharId && item.boundCharId !== this.currentCharId) return false;
+    return true;
   }
 
   equip(cdkSlotId: string, item: InventoryItem): InventoryItem | null {
@@ -127,5 +135,29 @@ export class GatheringEquipmentService {
 
   private findSlot(cdkSlotId: string): GatheringSlot | undefined {
     return this.slots.find(s => `gather-${s.id}` === cdkSlotId);
+  }
+
+  /**
+   * Suma experiencia a la mascota equipada (1 por enemigo que mata el jugador).
+   * Sube de nivel automáticamente hasta `PET_MAX_LEVEL`. No hace nada si no hay
+   * mascota equipada o ya está al nivel máximo.
+   */
+  addEquippedPetExp(amount: number): void {
+    const pet = this.slots.find(s => s.id === 'pet')?.item;
+    if (!pet?.petId || amount <= 0) return;
+
+    let level = pet.petLevel ?? 1;
+    if (level >= PET_MAX_LEVEL) return;   // al máximo: ya no gana experiencia
+
+    let exp = (pet.petExp ?? 0) + amount;
+    while (level < PET_MAX_LEVEL && exp >= petExpNeeded(level)) {
+      exp -= petExpNeeded(level);
+      level++;
+    }
+    if (level >= PET_MAX_LEVEL) { level = PET_MAX_LEVEL; exp = 0; }
+
+    pet.petLevel = level;
+    pet.petExp   = exp;
+    this.changes$.next();   // refresca UI y dispara auto-save
   }
 }
