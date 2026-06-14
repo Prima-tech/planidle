@@ -85,6 +85,8 @@ interface ActiveChest {
 export class GameScene extends Phaser.Scene {
 
     static readonly TILE_SIZE = 48;
+    // Distancia (tiles) a la que el auto-ataque se detiene para disparar con bastón.
+    static readonly RANGED_STOP_TILES = 5;
     private gridControls: GridControls;
     private gridPhysics: GridPhysics;
     private gridDrops: GridDrops;
@@ -100,6 +102,7 @@ export class GameScene extends Phaser.Scene {
     private reg: GameRegistry;
     private animService: AnimationService;
     private equipSub:    { unsubscribe(): void } | null = null;
+    private gatherLayerSub: { unsubscribe(): void } | null = null;
     private summonSub:   { unsubscribe(): void } | null = null;
     private itemDropSub: { unsubscribe(): void } | null = null;
     private dropToWorldSub: { unsubscribe(): void } | null = null;
@@ -143,6 +146,7 @@ export class GameScene extends Phaser.Scene {
     private skillSub:    { unsubscribe(): void } | null = null;
     private playerDamage      = 10;
     private playerMagicDamage = 10;
+    private rangedWeapon      = false;   // arma equipada de tipo 'ranged' (bastón) → ataque básico a distancia
     private mobileInput: MobileInput | null = null;
     private pendingDashMoveDir: Direction | null = null;
     private pendingDashAnimDir: Direction | null = null;
@@ -290,6 +294,7 @@ export class GameScene extends Phaser.Scene {
         this.scene.stop('MobileHUDScene');
         this.mobileInput = null;
         this.equipSub?.unsubscribe();
+        this.gatherLayerSub?.unsubscribe();
         this.summonSub?.unsubscribe();
         this.itemDropSub?.unsubscribe();
         this.dropToWorldSub?.unsubscribe();
@@ -441,8 +446,13 @@ export class GameScene extends Phaser.Scene {
       let dy = ep.y - pos.y;
       let distSq = dx * dx + dy * dy;
 
-      // Si el objetivo queda lejos y tienes otro encima, no pases de largo: cambia
-      const FAR  = GameScene.TILE_SIZE * 4;
+      // Con bastón (ranged) el jugador se detiene lejos para disparar; en melee, pegado.
+      const stopTiles = this.rangedWeapon ? GameScene.RANGED_STOP_TILES : 2;
+      const STOP_RANGE = GameScene.TILE_SIZE * stopTiles;
+
+      // Si el objetivo queda más allá del rango de ataque y tienes otro encima, no
+      // pases de largo: cambia. El umbral escala con el rango de parada (melee 4, ranged +2).
+      const FAR  = GameScene.TILE_SIZE * (stopTiles + 2);
       const NEAR = GameScene.TILE_SIZE * 2.2;
       if (distSq > FAR * FAR) {
         const close = this.pickCloseEnemy(pos.x, pos.y, NEAR);
@@ -457,7 +467,6 @@ export class GameScene extends Phaser.Scene {
       }
 
       const dist = Math.sqrt(distSq);
-      const STOP_RANGE = GameScene.TILE_SIZE * 2;
       const cardinalDir = this.autoVecToCardinal(dx, dy);
 
       if (dist <= STOP_RANGE) {
@@ -609,11 +618,35 @@ export class GameScene extends Phaser.Scene {
       for (const slot of equipment.slots) {
         this.applyEquipLayer(slot.id, slot.item);
       }
+      this.refreshWeaponKind();
       this.equipSub = equipment.changes$.subscribe(() => {
         for (const slot of this.reg.equipment.slots) {
           this.applyEquipLayer(slot.id, slot.item);
         }
+        this.refreshWeaponKind();
       });
+
+      // Herramientas de recolección (pico, etc.): el slot vive en GatheringEquipment,
+      // pero las que tienen capa LPC (registradas en EQUIP_LAYER_REGISTRY) se pintan
+      // sobre el jugador igual que el equipo de combate. applyEquipLayer ignora las
+      // que no tienen capa (mochilas, mascota…) → removeLayer no-op.
+      const gathering = this.reg.gathering;
+      if (gathering) {
+        for (const slot of gathering.slots) {
+          this.applyEquipLayer(slot.id, slot.item);
+        }
+        this.gatherLayerSub = gathering.changes$.subscribe(() => {
+          for (const slot of this.reg.gathering.slots) {
+            this.applyEquipLayer(slot.id, slot.item);
+          }
+        });
+      }
+    }
+
+    /** Lee el arma equipada y marca si su ataque básico es a distancia (bastón). */
+    private refreshWeaponKind(): void {
+      const weapon = this.reg.equipment?.slots.find(s => s.id === 'weapon')?.item;
+      this.rangedWeapon = weapon?.weaponKind === 'ranged';
     }
 
     private initShadowLayer(): void {
@@ -1122,6 +1155,7 @@ export class GameScene extends Phaser.Scene {
     // Golpe del jugador: lanza la animación y aplica el daño al ~40% de su
     // duración para que coincida con el frame de impacto (como los enemigos).
     private strike(): void {
+      if (this.rangedWeapon) { this.rangedStrike(); return; }
       this.player.playerAttack();
       const anim  = this.player.getSprite().anims.currentAnim;
       const delay = anim ? Math.round(anim.duration * 0.4) : 150;
@@ -1130,6 +1164,25 @@ export class GameScene extends Phaser.Scene {
         const { dmg, isCrit } = this.rollAttack();
         const hits = this.gridPhysics.attackEnemy(dmg, isCrit);
         if (hits > 0 && isCrit) this.critFeedback();
+      });
+    }
+
+    // Ataque básico a distancia (bastón equipado): dispara una bola de fuego al
+    // enemigo más cercano usando el daño MÁGICO. NO consume maná (no pasa por
+    // executeSkill): es el golpe normal, solo que a distancia.
+    private rangedStrike(): void {
+      const cfg = SKILL_REGISTRY['fireball'];
+      const target = this.findNearestEnemy(cfg.range * 3);
+      if (!target) return;
+      this.player.playerAttack();
+      // El proyectil sale al ~60% de la animación de ataque.
+      const anim  = this.player.getSprite().anims.currentAnim;
+      const delay = anim ? Math.round(anim.duration * 0.6) : 250;
+      this.time.delayedCall(delay, () => {
+        if (this.reg.playerBridge?.isDead || target.isDead) return;
+        const { dmg, isCrit } = this.rollAttack(this.playerMagicDamage);
+        this.launchProjectile(cfg, dmg, target);
+        if (isCrit) this.critFeedback();
       });
     }
 
@@ -1143,11 +1196,11 @@ export class GameScene extends Phaser.Scene {
       }, 60);
     }
 
-    private rollAttack(): { dmg: number; isCrit: boolean } {
+    private rollAttack(baseDamage = this.playerDamage): { dmg: number; isCrit: boolean } {
       const critChance = this.reg.charStats?.currentCritChance ?? 10;
       const isCrit     = Math.random() * 100 < critChance;
       const critMult   = isCrit ? (this.reg.charStats?.currentCritDamage ?? 150) / 100 : 1;
-      return { dmg: Math.round(this.playerDamage * critMult), isCrit };
+      return { dmg: Math.round(baseDamage * critMult), isCrit };
     }
 
     private flashPlayer() {

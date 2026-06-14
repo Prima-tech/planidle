@@ -28,6 +28,7 @@ export interface LootEntry {
   stats?: Record<string, number>;
   inventorySlots?: number;   // bolsas: celdas de inventario que desbloquea al equiparse
   petId?: string;            // mascotas: id en PET_REGISTRY
+  weaponKind?: 'melee' | 'ranged';  // armas: 'ranged' (bastones) → ataque básico a distancia con proyectil
 }
 
 const EXP_REWARDS: Record<string, number> = {
@@ -285,7 +286,7 @@ const WEAPON_CATALOG: LootEntry[] = [
 const STAFF_ICONS = 'assets/sprites/player/equip/weapons/staff/staff/icons';
 const STAFF_CATALOG: LootEntry[] = [
   {
-    name: 'Bastón Nudoso', category: 'Arma', type: 'item',
+    name: 'Bastón Nudoso', category: 'Arma', type: 'item', weaponKind: 'ranged',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
     texture: 'staff01_main', frame: 240, scale: 2.5, order: 2,
     icon: `${STAFF_ICONS}/staff_01_icon.png`,
@@ -293,7 +294,7 @@ const STAFF_CATALOG: LootEntry[] = [
     stats: { magicDamage: 12 },
   },
   {
-    name: 'Báculo de Roble', category: 'Arma', type: 'item',
+    name: 'Báculo de Roble', category: 'Arma', type: 'item', weaponKind: 'ranged',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
     texture: 'staff02_main', frame: 240, scale: 2.5, order: 2,
     icon: `${STAFF_ICONS}/staff_02_icon.png`,
@@ -301,7 +302,7 @@ const STAFF_CATALOG: LootEntry[] = [
     stats: { magicDamage: 16 },
   },
   {
-    name: 'Cayado Arcano', category: 'Arma', type: 'item',
+    name: 'Cayado Arcano', category: 'Arma', type: 'item', weaponKind: 'ranged',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
     texture: 'staff03_main', frame: 240, scale: 2.5, order: 2,
     icon: `${STAFF_ICONS}/staff_03_icon.png`,
@@ -309,12 +310,27 @@ const STAFF_CATALOG: LootEntry[] = [
     stats: { magicDamage: 20 },
   },
   {
-    name: 'Vara de Cristal', category: 'Arma', type: 'item',
+    name: 'Vara de Cristal', category: 'Arma', type: 'item', weaponKind: 'ranged',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
     texture: 'staff04_main', frame: 240, scale: 2.5, order: 2,
     icon: `${STAFF_ICONS}/staff_04_icon.png`,
     description: 'Vara rematada con un cristal que amplifica el maná.',
     stats: { magicDamage: 18 },
+  },
+];
+
+// Picos: herramienta de recolección. Se equipan en el slot 'pickaxe' (categoría
+// 'Pico') de la pestaña de equipo secundaria. Icono recortado dedicado (icons/); el
+// sprite del drop reutiliza la hoja LPC ya precargada (pick0X_main) en un frame de
+// walk limpio (117 = walk_left). En el panel de invocación cae en la pestaña Misc.
+const PICK_ICONS = 'assets/sprites/player/equip/tools/picks/icons';
+const TOOLS_CATALOG: LootEntry[] = [
+  {
+    name: 'Pico de Hierro', category: 'Pico', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'pick01_main', frame: 117, scale: 2.5, order: 4,
+    icon: `${PICK_ICONS}/pick_01_icon.png`,
+    description: 'Un pico de hierro robusto para picar mineral.',
   },
 ];
 
@@ -414,6 +430,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...HELMET_CATALOG,
   ...WEAPON_CATALOG,
   ...STAFF_CATALOG,
+  ...TOOLS_CATALOG,
   ...BAGS_CATALOG,
   ...RESOURCES_CATALOG,
   ...POTIONS_CATALOG,
@@ -617,6 +634,7 @@ export class GridDrops {
       stats: loot.stats,
       inventorySlots: loot.inventorySlots,
       petId: loot.petId,
+      weaponKind: loot.weaponKind,
     };
     this.inventoryService.addDroppedItem(item);
   }

@@ -257,6 +257,8 @@ function staffLayer(prefix: string, file: string): EquipLayerConfig {
       {
         key: `${p}_cast`, path, frameWidth: 192, frameHeight: 192,
         anims: [
+          // El cuerpo reproduce 'player_attack_*' (golpe normal) → la capa del bastón
+          // usa su animación oversize de cast bajo claves '_attack_' para mapearla.
           { key: `${p}_attack_up`,    startFrame: cast.up,    endFrame: cast.up + 7,    frameRate: 14, repeat: 0 },
           { key: `${p}_attack_left`,  startFrame: cast.left,  endFrame: cast.left + 7,  frameRate: 14, repeat: 0 },
           { key: `${p}_attack_down`,  startFrame: cast.down,  endFrame: cast.down + 7,  frameRate: 14, repeat: 0 },
@@ -267,7 +269,39 @@ function staffLayer(prefix: string, file: string): EquipLayerConfig {
   };
 }
 
+// Picos / herramientas de recolección (assets/sprites/player/equip/tools/picks).
+// Hoja LPC universal de 13 cols 64×64, solo walk (yPos 512 = filas 8-11, 9 frames).
+// No trae idle propio → idle reutiliza el 1er frame del walk de cada dirección. Sin
+// animación de ataque: es una herramienta, no un arma de combate, así que durante un
+// ataque la capa cae a fallbackAnim (idle) y el pico se queda quieto en la mano.
+function pickLayer(prefix: string, file: string): EquipLayerConfig {
+  const p = prefix;
+  const path = `assets/sprites/player/equip/tools/picks/${file}`;
+  const C = 13;
+  const walk = { up: 8 * C, left: 9 * C, down: 10 * C, right: 11 * C }; // 104,117,130,143
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    depthWhenUp: 1.5,   // detrás del jugador salvo mirando hacia abajo
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [{
+      key: `${p}_main`, path, frameWidth: 64, frameHeight: 64,
+      anims: [
+        { key: `${p}_idle_up`,    startFrame: walk.up,    endFrame: walk.up,        frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_left`,  startFrame: walk.left,  endFrame: walk.left,      frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_down`,  startFrame: walk.down,  endFrame: walk.down,      frameRate: 2,  repeat: -1 },
+        { key: `${p}_idle_right`, startFrame: walk.right, endFrame: walk.right,     frameRate: 2,  repeat: -1 },
+        { key: `${p}_walk_up`,    startFrame: walk.up,    endFrame: walk.up + 8,    frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_left`,  startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_down`,  startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
+        { key: `${p}_walk_right`, startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
+      ],
+    }],
+  };
+}
+
 export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
+  // ── Picos (assets/sprites/player/equip/tools/picks) ─────────────────────────
+  'Pico de Hierro': pickLayer('pick01', 'pick_01.png'),
   // ── Bastones de mago (assets/sprites/player/equip/weapons/staff/staff) ───────
   'Bastón Nudoso':   staffLayer('staff01', 'staff_01.png'),
   'Báculo de Roble': staffLayer('staff02', 'staff_02.png'),
