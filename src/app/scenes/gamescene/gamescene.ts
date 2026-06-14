@@ -1442,7 +1442,7 @@ export class GameScene extends Phaser.Scene {
       const cfg = SKILL_REGISTRY['fireball'];
       const target = this.findNearestEnemy(cfg.range * 3);
       if (!target) return;
-      this.player.playerAttack();
+      this.player.playerAttack(true);   // bastón → estocada (thrust), sincroniza con su capa
       // El proyectil sale al ~60% de la animación de ataque.
       const anim  = this.player.getSprite().anims.currentAnim;
       const delay = anim ? Math.round(anim.duration * 0.6) : 250;

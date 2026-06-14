@@ -304,7 +304,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     return nodes.filter(n => this.talent.isUnlocked(n.id) || this.talent.isReachable(n.id));
   }
 
-  get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean }[] {
+  get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean; unlockable: boolean }[] {
     const nodes = this.visibleTreeNodes;
     const CW = 33, CH = 48;
     const cx = (col: number) => col * CW + CW / 2;
@@ -314,10 +314,14 @@ export class EquipmentComponent implements OnInit, OnDestroy {
         .map(reqId => {
           const parent = nodes.find(n => n.id === reqId);
           if (!parent) return null;
+          // Dorada SOLO si ambos extremos están desbloqueados DE VERDAD (no por el override
+          // de admin). Cualquier línea que toque un módulo bloqueado queda gris (base).
+          const unlockable = this.nodeCanUnlock(node);
           return {
             x1: cx(parent.col), y1: cy(parent.row),
             x2: cx(node.col),   y2: cy(node.row),
-            active: this.talent.isUnlocked(reqId) && this.talent.isUnlocked(node.id),
+            active: !unlockable && !!this.talent.unlocked[reqId] && !!this.talent.unlocked[node.id],
+            unlockable,
           };
         })
         .filter((l): l is NonNullable<typeof l> => l !== null)
@@ -335,9 +339,11 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     return { left: `${node.col * 33 + 3}px`, top: `${node.row * 48 + 3}px` };
   }
 
-  /** Parpadea solo si es alcanzable Y hay puntos para gastarlo ahora. */
+  /** Parpadea si está unido a un talento ya desbloqueado de verdad (tiene requisito
+   *  y su padre real está desbloqueado) Y hay un punto disponible. Usa el estado REAL,
+   *  no el override de admin: `canUnlock` = `isReachable` real + puntos. */
   nodeCanUnlock(node: TalentNodeConfig): boolean {
-    return this.nodeState(node) === 'unlockable' && this.talent.canUnlock(node.id);
+    return node.requires.length > 0 && this.talent.canUnlock(node.id);
   }
 
   nodeColor(node: TalentNodeConfig): string {

@@ -126,16 +126,18 @@ export class Player {
   initPlayerAnimation() {
     this.animationService.createTopDownRightLeftAnim('WALK', playerTags.WALK, 'player', playerAnimations.WALK);
     this.animationService.createTopDownRightLeftAnim('ATTACK', playerTags.ATTACK, 'player', playerAnimations.ATTACK, 0);
+    this.animationService.createTopDownRightLeftAnim('THRUST', playerTags.THRUST, 'player', playerAnimations.THRUST, 0, 13);
     this.animationService.createTopDownRightLeftAnim('IDLE', playerTags.IDLE, 'player', playerAnimations.IDLE, -1, 2);
     this.animationService.createTopDownRightLeftAnim('DEATH', playerTags.DEATH, 'player', playerAnimations.DEATH, 0);
     this.sprite.play(playerTags.IDLE + Direction.DOWN); // Animación por defecto
   }
 
-  public playerAttack() {
+  public playerAttack(useThrust = false) {
     if (this.isAttacking) return;
     this.isAttacking = true;
     const direction = this.getDirection();
-    this.sprite.play(playerTags.ATTACK + direction);
+    const tag = useThrust ? playerTags.THRUST : playerTags.ATTACK;
+    this.sprite.play(tag + direction);
     this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       this.isAttacking = false;
       if (this.isMoving) {
@@ -256,6 +258,9 @@ export class Player {
     if (!this.sprite?.active || !this.sprite.anims?.currentFrame) return;
     const currentAnimKey = this.sprite.anims.currentAnim?.key ?? '';
     const isIdle = currentAnimKey.startsWith(playerTags.IDLE);
+    // El ataque del cuerpo puede ser slash (armas) o thrust (bastones); ambos cuentan
+    // como "ataque" para el offset oversize y la sincronización por progreso.
+    const isAttackAnim = currentAnimKey.startsWith(playerTags.ATTACK) || currentAnimKey.startsWith(playerTags.THRUST);
     this.layers.forEach((layer, slotId) => {
       if (!layer?.active) return;
       const cfg = this.layerConfigs.get(slotId);
@@ -264,7 +269,7 @@ export class Player {
       // atacando (no en el frame ya pintado) para que el offset cambie EN el mismo
       // frame que la textura y no haya salto al empezar/terminar el ataque.
       let offY = cfg?.layerOffsetY ?? 0;
-      if (cfg?.oversizeSheetKey && currentAnimKey.startsWith(playerTags.ATTACK)) {
+      if (cfg?.oversizeSheetKey && isAttackAnim) {
         offY = cfg.oversizeOffsetY ?? offY;
       }
       layer.setPosition(this.sprite.x, this.sprite.y + offY);
@@ -281,8 +286,7 @@ export class Player {
           : (cfg.fallbackAnim ?? '');
         const layerKey       = layer.anims.currentAnim?.key ?? '';
         const isSameKey      = layerKey === targetKey;
-        const isAttack       = currentAnimKey.startsWith(playerTags.ATTACK);
-        if (isAttack && targetKey && this.mainScene.anims.exists(targetKey)) {
+        if (isAttackAnim && targetKey && this.mainScene.anims.exists(targetKey)) {
           // Durante el ataque, el arma puede tener distinto nº de frames que el
           // cuerpo (ej. slash de 5 frames vs ataque de 6). En vez de dejar que
           // corra a su ritmo (se queda colgada o se reinicia al final), la

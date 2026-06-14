@@ -26,6 +26,14 @@ export const playerAnimations = {
     [Direction.DOWN]: { start: 182, end: 187 },
     [Direction.RIGHT]: { start: 195, end: 200 },
   },
+  // Estocada (thrust) LPC: filas 4-7, 8 frames. La usan las armas tipo bastón, cuya
+  // capa de ataque está dibujada para superponerse a este movimiento del cuerpo.
+  THRUST: {
+    [Direction.UP]: { start: 52, end: 59 },
+    [Direction.LEFT]: { start: 65, end: 72 },
+    [Direction.DOWN]: { start: 78, end: 85 },
+    [Direction.RIGHT]: { start: 91, end: 98 },
+  },
   DEATH: {
     [Direction.UP]: { start: 260, end: 265 },
     [Direction.LEFT]: { start: 260, end: 265 },
@@ -38,6 +46,7 @@ export const playerTags = {
   WALK:'player_walk_',
   IDLE: 'player_idle_',
   ATTACK:'player_attack_',
+  THRUST:'player_thrust_',
   DEATH:'player_death_'
 }
 

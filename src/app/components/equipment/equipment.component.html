@@ -446,6 +446,7 @@
                 [attr.x1]="l.x1" [attr.y1]="l.y1"
                 [attr.x2]="l.x2" [attr.y2]="l.y2"
                 [class.tline--active]="l.active"
+                [class.tline--unlockable]="l.unlockable"
                 class="tline"
           />
         </svg>
@@ -456,6 +457,7 @@
              [class.tnode--locked]="nodeState(node) === 'locked'"
              [class.tnode--unlockable]="nodeState(node) === 'unlockable'"
              [class.tnode--can-unlock]="nodeCanUnlock(node)"
+             [class.tnode--dim]="!nodeCanUnlock(node) && nodeState(node) !== 'locked' && selectedNodeId !== node.id"
              [class.tnode--available]="nodeState(node) === 'available'"
              [class.tnode--slotted]="nodeState(node) === 'slotted'"
              [class.tnode--selected]="selectedNodeId === node.id"

@@ -1123,7 +1123,7 @@ $metal-dark: #6b6357;
 
 // Caminos punteados tipo mapa del tesoro; encendidos en dorado al activar
 .tline {
-  stroke: #6b4a30;
+  stroke: #6b6357;   // gris piedra: une módulos bloqueados
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 1 6;
@@ -1132,6 +1132,12 @@ $metal-dark: #6b6357;
     stroke: #f0c040;
     stroke-dasharray: none;
     filter: drop-shadow(0 0 3px rgba(240, 192, 64, 0.7));
+  }
+
+  // Línea hacia un módulo desbloqueable: gris piedra, sin brillo
+  &--unlockable {
+    stroke: #8f8678;
+    stroke-dasharray: none;
   }
 }
 
@@ -1180,9 +1186,9 @@ $metal-dark: #6b6357;
     animation: tnode-unlockable 1.4s ease-in-out infinite;
   }
 
+  // Desbloqueado sin gema: solo el fondo, sin brillo (mate, no parpadea)
   &--available {
     background: radial-gradient(circle at 32% 28%, #6a4630, #46291d 72%);
-    animation: tnode-glow 1.4s ease-in-out infinite;
   }
 
   &--slotted {
@@ -1201,6 +1207,12 @@ $metal-dark: #6b6357;
       0 0 0 1px $outline,
       inset 0 0 0 1px $outline,
       0 0 12px rgba(140, 95, 132, 0.95);
+  }
+
+  // No se puede desbloquear ahora: atenuado, se ve menos activo que los que parpadean
+  &--dim {
+    opacity: 0.55;
+    filter: saturate(55%);
   }
 }
 

@@ -257,12 +257,13 @@ function staffLayer(prefix: string, file: string): EquipLayerConfig {
       {
         key: `${p}_cast`, path, frameWidth: 192, frameHeight: 192,
         anims: [
-          // El cuerpo reproduce 'player_attack_*' (golpe normal) → la capa del bastón
-          // usa su animación oversize de cast bajo claves '_attack_' para mapearla.
-          { key: `${p}_attack_up`,    startFrame: cast.up,    endFrame: cast.up + 7,    frameRate: 14, repeat: 0 },
-          { key: `${p}_attack_left`,  startFrame: cast.left,  endFrame: cast.left + 7,  frameRate: 14, repeat: 0 },
-          { key: `${p}_attack_down`,  startFrame: cast.down,  endFrame: cast.down + 7,  frameRate: 14, repeat: 0 },
-          { key: `${p}_attack_right`, startFrame: cast.right, endFrame: cast.right + 7, frameRate: 14, repeat: 0 },
+          // El bloque del bastón (8 frames de 192px) está dibujado para superponerse al
+          // THRUST del cuerpo (filas 4-7, 8 frames). Por eso el bastón ataca con thrust
+          // (no slash) → estas claves son '_thrust_' y mapean 1:1 con 'player_thrust_*'.
+          { key: `${p}_thrust_up`,    startFrame: cast.up,    endFrame: cast.up + 7,    frameRate: 13, repeat: 0 },
+          { key: `${p}_thrust_left`,  startFrame: cast.left,  endFrame: cast.left + 7,  frameRate: 13, repeat: 0 },
+          { key: `${p}_thrust_down`,  startFrame: cast.down,  endFrame: cast.down + 7,  frameRate: 13, repeat: 0 },
+          { key: `${p}_thrust_right`, startFrame: cast.right, endFrame: cast.right + 7, frameRate: 13, repeat: 0 },
         ],
       },
     ],
