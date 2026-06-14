@@ -218,7 +218,61 @@ function swordLayerArming(prefix: string, file: string): EquipLayerConfig {
   };
 }
 
+// Bastones de mago (assets/sprites/player/equip/weapons/staff/staff). Hoja LPC
+// "magic" combinada de 1536×4224 que mezcla dos tamaños de frame sobre el MISMO PNG:
+//   · walk/idle a 64×64 (rejilla de 24 cols). walk filas 8-11 (9 frames, cols 0-8).
+//     No hay slash a 64px; el idle reutiliza el primer frame de cada walk.
+//   · cast "oversize" a 192×192 (rejilla de 8 cols). bloque filas 18-21 (8 frames),
+//     una por dirección (up/left/down/right) → se usa como animación de ataque.
+// Cargamos el PNG con DOS claves (64 y 192). El ataque usa la de 192 con
+// oversizeOffsetY=160 (= (192-64)/2 × 2.5; el personaje va centrado en el frame de
+// 192). syncLayers aplica ese offset dinámicamente al reproducir un frame oversize.
+function staffLayer(prefix: string, file: string): EquipLayerConfig {
+  const p = prefix;
+  const path = `assets/sprites/player/equip/weapons/staff/staff/${file}`;
+  const C64 = 24;   // columnas a 64px
+  const walk = { up: 8 * C64, left: 9 * C64, down: 10 * C64, right: 11 * C64 };
+  const C192 = 8;   // columnas a 192px
+  const cast = { up: 18 * C192, left: 19 * C192, down: 20 * C192, right: 21 * C192 };
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    depthWhenUp: 1.5,   // detrás del jugador salvo mirando hacia abajo
+    oversizeSheetKey: `${p}_cast`, oversizeOffsetY: 160,
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [
+      {
+        key: `${p}_main`, path, frameWidth: 64, frameHeight: 64,
+        anims: [
+          // idle = primer frame del walk de cada dirección (la hoja no trae idle propio)
+          { key: `${p}_idle_up`,      startFrame: walk.up,    endFrame: walk.up,        frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_left`,    startFrame: walk.left,  endFrame: walk.left,      frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_down`,    startFrame: walk.down,  endFrame: walk.down,      frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_right`,   startFrame: walk.right, endFrame: walk.right,     frameRate: 2,  repeat: -1 },
+          { key: `${p}_walk_up`,      startFrame: walk.up,    endFrame: walk.up + 8,    frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,    startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,    startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`,   startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        key: `${p}_cast`, path, frameWidth: 192, frameHeight: 192,
+        anims: [
+          { key: `${p}_attack_up`,    startFrame: cast.up,    endFrame: cast.up + 7,    frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: cast.left,  endFrame: cast.left + 7,  frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: cast.down,  endFrame: cast.down + 7,  frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: cast.right, endFrame: cast.right + 7, frameRate: 14, repeat: 0 },
+        ],
+      },
+    ],
+  };
+}
+
 export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
+  // ── Bastones de mago (assets/sprites/player/equip/weapons/staff/staff) ───────
+  'Bastón Nudoso':   staffLayer('staff01', 'staff_01.png'),
+  'Báculo de Roble': staffLayer('staff02', 'staff_02.png'),
+  'Cayado Arcano':   staffLayer('staff03', 'staff_03.png'),
+  'Vara de Cristal': staffLayer('staff04', 'staff_04.png'),
   // ── Espadas (assets/sprites/player/equip/weapons/swords) ────────────────────
   'Espada de Acero':  swordLayer64('sword01', 'sword_01.png'),
   'Cimitarra Dorada': swordLayerArming('sword02', 'sword_02.png'),

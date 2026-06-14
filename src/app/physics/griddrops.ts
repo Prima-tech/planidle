@@ -278,6 +278,46 @@ const WEAPON_CATALOG: LootEntry[] = [
   },
 ];
 
+// Bastones de mago: arte en assets/sprites/player/equip/weapons/staff/staff. Como
+// las espadas, el icono usa un PNG recortado dedicado (icons/) y el sprite del drop
+// en el mundo reutiliza la hoja LPC ya precargada (staff0X_main, idle_down = frame
+// 240 = 10×24cols). Otorgan daño mágico (magicDamage, escala con INT).
+const STAFF_ICONS = 'assets/sprites/player/equip/weapons/staff/staff/icons';
+const STAFF_CATALOG: LootEntry[] = [
+  {
+    name: 'Bastón Nudoso', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'staff01_main', frame: 240, scale: 2.5, order: 2,
+    icon: `${STAFF_ICONS}/staff_01_icon.png`,
+    description: 'Bastón retorcido de madera nudosa, canaliza maná básico.',
+    stats: { magicDamage: 12 },
+  },
+  {
+    name: 'Báculo de Roble', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'staff02_main', frame: 240, scale: 2.5, order: 2,
+    icon: `${STAFF_ICONS}/staff_02_icon.png`,
+    description: 'Báculo de roble macizo coronado con resina ambarina.',
+    stats: { magicDamage: 16 },
+  },
+  {
+    name: 'Cayado Arcano', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'staff03_main', frame: 240, scale: 2.5, order: 2,
+    icon: `${STAFF_ICONS}/staff_03_icon.png`,
+    description: 'Cayado grabado con sellos arcanos que arden en rojo.',
+    stats: { magicDamage: 20 },
+  },
+  {
+    name: 'Vara de Cristal', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'staff04_main', frame: 240, scale: 2.5, order: 2,
+    icon: `${STAFF_ICONS}/staff_04_icon.png`,
+    description: 'Vara rematada con un cristal que amplifica el maná.',
+    stats: { magicDamage: 18 },
+  },
+];
+
 // Bolsas: se equipan en el slot 'backpack' (categoría 'Mochila') de la pestaña de
 // equipo secundaria. Iconos sueltos en assets/icon/bags. La `texture` es la clave
 // Phaser precargada en gamescene (preload) para el sprite del drop al invocarlas.
@@ -373,6 +413,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...ARMOUR_CATALOG,
   ...HELMET_CATALOG,
   ...WEAPON_CATALOG,
+  ...STAFF_CATALOG,
   ...BAGS_CATALOG,
   ...RESOURCES_CATALOG,
   ...POTIONS_CATALOG,

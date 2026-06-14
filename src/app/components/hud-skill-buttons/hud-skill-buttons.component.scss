@@ -66,6 +66,13 @@
     filter: grayscale(60%);
   }
 
+  // Sin maná suficiente: botón desactivado (tinte azul apagado, no se puede lanzar)
+  &.no-mana {
+    opacity: 0.4;
+    filter: grayscale(80%) brightness(0.75);
+    cursor: not-allowed;
+  }
+
   &.edit-mode {
     border-color: rgba(255, 190, 110, 0.75);
     box-shadow:

@@ -42,6 +42,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2,
     iconPath: 'assets/icon/icons/46.png',
+    manaCost: 8,
   },
   ranged_attack: {
     abilityId: 'ranged_attack',
@@ -54,6 +55,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2,
     iconPath: 'assets/sprites/skills/fire/icons/fire.png',
+    manaCost: 5,
   },
   small_fire: {
     abilityId: 'small_fire',
@@ -66,6 +68,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 1.5,
     iconPath: 'assets/sprites/skills/fire/icons/fuego_pequeno.png',
+    manaCost: 4,
   },
   fire_flower: {
     abilityId: 'fire_flower',
@@ -79,6 +82,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1,
     iconPath: 'assets/sprites/skills/fire/icons/flor_de_fuego.png',
+    manaCost: 10,
   },
   fire_pillar: {
     abilityId: 'fire_pillar',
@@ -91,6 +95,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2.5,
     iconPath: 'assets/sprites/skills/fire/icons/pilar_de_fuego.png',
+    manaCost: 6,
   },
   fire_shield: {
     abilityId: 'fire_shield',
@@ -117,6 +122,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2,
     iconPath: 'assets/sprites/skills/fire/icons/paleta_de_lava.png',
+    manaCost: 5,
   },
   fireball: {
     abilityId: 'fireball',
@@ -130,6 +136,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2,
     speed: 350,
     iconPath: 'assets/sprites/skills/fire/icons/bola_de_fuego.png',
+    manaCost: 8,
   },
   fire_hurricane: {
     abilityId: 'fire_hurricane',
@@ -143,6 +150,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 3,
     aoeRadius: 2,
     iconPath: 'assets/sprites/skills/fire/icons/huracan_de_fuego.png',
+    manaCost: 18,
   },
   lava_drop: {
     abilityId: 'lava_drop',
@@ -156,6 +164,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1,
     iconPath: 'assets/sprites/skills/fire/icons/gota_de_lava.png',
+    manaCost: 10,
   },
   magma_geyser: {
     abilityId: 'magma_geyser',
@@ -169,6 +178,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 3,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/fire/icons/geiser_de_lava.png',
+    manaCost: 14,
   },
   water_drop: {
     abilityId: 'water_drop',
@@ -180,6 +190,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 19,
     frameRate: 14,
     scale: 1.5,
+    manaCost: 4,
   },
   ice_crystal: {
     abilityId: 'ice_crystal',
@@ -191,6 +202,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2,
+    manaCost: 5,
   },
   water_geyser: {
     abilityId: 'water_geyser',
@@ -202,6 +214,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 7,
     frameRate: 10,
     scale: 2.5,
+    manaCost: 7,
   },
   snowflake: {
     abilityId: 'snowflake',
@@ -213,6 +226,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 13,
     frameRate: 12,
     scale: 2.5,
+    manaCost: 8,
   },
   water_splash: {
     abilityId: 'water_splash',
@@ -225,6 +239,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2.5,
     aoeRadius: 1.5,
+    manaCost: 14,
   },
   ice_spike: {
     abilityId: 'ice_spike',
@@ -237,6 +252,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 14,
     scale: 2,
     speed: 380,
+    manaCost: 7,
   },
   waterball: {
     abilityId: 'waterball',
@@ -249,6 +265,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 14,
     scale: 2,
     speed: 350,
+    manaCost: 8,
   },
   kraken: {
     abilityId: 'kraken',
@@ -261,6 +278,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 3,
     aoeRadius: 2,
+    manaCost: 25,
   },
   circle_explosion: {
     abilityId: 'circle_explosion',
@@ -274,6 +292,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon1.png',
+    manaCost: 10,
   },
   explosion: {
     abilityId: 'explosion',
@@ -287,6 +306,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 3,
     aoeRadius: 2,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon2.png',
+    manaCost: 14,
   },
   explosion_blue_circle: {
     abilityId: 'explosion_blue_circle',
@@ -300,6 +320,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon3.png',
+    manaCost: 12,
   },
   explosion_blue_oval: {
     abilityId: 'explosion_blue_oval',
@@ -313,6 +334,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon4.png',
+    manaCost: 13,
   },
   explosion_gas: {
     abilityId: 'explosion_gas',
@@ -326,6 +348,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon5.png',
+    manaCost: 12,
   },
   explosion_gas_circle: {
     abilityId: 'explosion_gas_circle',
@@ -339,6 +362,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 3,
     aoeRadius: 2,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon6.png',
+    manaCost: 16,
   },
   explosion_two_colors: {
     abilityId: 'explosion_two_colors',
@@ -352,6 +376,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 3,
     aoeRadius: 2,
     iconPath: 'assets/sprites/skills/explosion/Icons/Icon7.png',
+    manaCost: 18,
   },
   circle_smoke: {
     abilityId: 'circle_smoke',
@@ -363,6 +388,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2,
+    manaCost: 5,
   },
   curved_smoke: {
     abilityId: 'curved_smoke',
@@ -375,6 +401,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 16,
     scale: 2,
     speed: 350,
+    manaCost: 8,
   },
   cycled_smoke: {
     abilityId: 'cycled_smoke',
@@ -386,6 +413,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 6,
     frameRate: 12,
     scale: 1.5,
+    manaCost: 4,
   },
   cycled_smoke_long: {
     abilityId: 'cycled_smoke_long',
@@ -397,6 +425,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 6,
     frameRate: 10,
     scale: 2,
+    manaCost: 7,
   },
   falling_smoke: {
     abilityId: 'falling_smoke',
@@ -408,6 +437,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 16,
     frameRate: 12,
     scale: 2.5,
+    manaCost: 8,
   },
   horisontal_smoke: {
     abilityId: 'horisontal_smoke',
@@ -420,6 +450,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 14,
     scale: 2,
     speed: 380,
+    manaCost: 7,
   },
   rising_smoke: {
     abilityId: 'rising_smoke',
@@ -431,6 +462,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 14,
     frameRate: 12,
     scale: 2,
+    manaCost: 7,
   },
   smoke_ghost: {
     abilityId: 'smoke_ghost',
@@ -442,6 +474,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 18,
     frameRate: 12,
     scale: 3,
+    manaCost: 20,
   },
   smoke_1: {
     abilityId: 'smoke_1',
@@ -455,6 +488,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2,
     iconPath: 'assets/sprites/skills/warrior/icon_smoke_01.png',
     playerAnim: true,
+    manaCost: 4,
   },
   smoke_2: {
     abilityId: 'smoke_2',
@@ -467,6 +501,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2,
     iconPath: 'assets/sprites/skills/warrior/icon_smoke_02.png',
+    manaCost: 5,
   },
   smoke_3: {
     abilityId: 'smoke_3',
@@ -479,6 +514,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2,
     iconPath: 'assets/sprites/skills/warrior/icon_smoke_03.png',
+    manaCost: 5,
   },
   smoke_4: {
     abilityId: 'smoke_4',
@@ -491,6 +527,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2,
     iconPath: 'assets/sprites/skills/warrior/icon_smoke_04.png',
+    manaCost: 5,
   },
   fire_1: {
     abilityId: 'fire_1',
@@ -504,6 +541,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/warrior/icon_fire_01.png',
+    manaCost: 12,
   },
   fire_2: {
     abilityId: 'fire_2',
@@ -518,6 +556,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     speed: 350,
     projectileOnce: true,          // no repite la animación mientras viaja
     iconPath: 'assets/sprites/skills/warrior/icon_fire_02.png',
+    manaCost: 8,
   },
   fire_3: {
     abilityId: 'fire_3',
@@ -531,6 +570,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/warrior/icon_fire_03.png',
+    manaCost: 12,
   },
   blood_1: {
     abilityId: 'blood_1',
@@ -544,6 +584,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 2.5,
     aoeRadius: 1.5,
     iconPath: 'assets/sprites/skills/warrior/icon_blood_01.png',
+    manaCost: 12,
   },
   blood_2: {
     abilityId: 'blood_2',
@@ -556,6 +597,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2,
     iconPath: 'assets/sprites/skills/warrior/icon_blood_02.png',
+    manaCost: 4,
   },
   phoenix: {
     abilityId: 'phoenix',
@@ -569,6 +611,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 3,
     speed: 300,
     iconPath: 'assets/sprites/skills/fire/icons/fenix.png',
+    manaCost: 25,
   },
   warrior_slash: {
     abilityId: 'warrior_slash',
@@ -582,6 +625,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 1.25,
     iconPath: 'assets/sprites/skills/warrior/icon_attack_01.png',
     playerAnim: true,
+    manaCost: 3,
   },
   warrior_slash_2: {
     abilityId: 'warrior_slash_2',
@@ -595,6 +639,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 1.25,
     iconPath: 'assets/sprites/skills/warrior/icon_attack_02.png',
     playerAnim: true,
+    manaCost: 3,
   },
   warrior_slash_3: {
     abilityId: 'warrior_slash_3',
@@ -608,6 +653,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 1.25,
     iconPath: 'assets/sprites/skills/warrior/icon_attack_03.png',
     playerAnim: true,
+    manaCost: 3,
   },
   warrior_slash_4: {
     abilityId: 'warrior_slash_4',
@@ -621,6 +667,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 1.25,
     iconPath: 'assets/sprites/skills/warrior/icon_attack_04.png',
     playerAnim: true,
+    manaCost: 3,
   },
   warrior_slash_5: {
     abilityId: 'warrior_slash_5',
@@ -634,5 +681,6 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     scale: 1.25,
     iconPath: 'assets/sprites/skills/warrior/icon_attack_05.png',
     playerAnim: true,
+    manaCost: 3,
   },
 };

@@ -1846,6 +1846,12 @@ export class GameScene extends Phaser.Scene {
       const target = this.findNearestEnemy(cfg.range * 3);
       if (!target) {
         this.reg.skillActivation?.refundCooldown(abilityId);
+        // No hubo objetivo: la skill no se lanza, así que devolvemos el maná gastado.
+        if (cfg.manaCost) {
+          const ps = this.reg.playerState;
+          const state = ps?.snapshot();
+          if (state) ps.setMp(Math.min(state.mp + cfg.manaCost, state.mpMax));
+        }
         return;
       }
       // Skills melee: el personaje reproduce su animación de ataque al lanzar.

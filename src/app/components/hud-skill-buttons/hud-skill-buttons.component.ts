@@ -4,6 +4,7 @@ import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
+import { PlayerStateService } from 'src/app/services/player-state.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { ModalContainerComponent } from '../modal-container/modal-container.component';
 import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel.component';
@@ -21,9 +22,12 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
   private talentService   = inject(TalentService);
   private skillActivation = inject(SkillActivationService);
   private skillEquip      = inject(SkillEquipService);
+  private playerState     = inject(PlayerStateService);
 
   readonly slots = this.hudSlots.slots;
   readonly INDICES = [0, 1, 2] as const;
+
+  private currentMp = 0;
 
   cdAngles:  number[] = [0, 0, 0];
   cdSeconds: string[] = ['', '', ''];
@@ -45,6 +49,9 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
     );
     this.subs.push(
       this.skillActivation.activate$.subscribe(() => this.startCdLoop())
+    );
+    this.subs.push(
+      this.playerState.state$.subscribe(s => this.currentMp = s.mp)
     );
     this.startCdLoop();
   }
@@ -111,6 +118,7 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
   private activate(index: number): void {
     const node = this.nodeAt(index);
     if (!node?.effect?.ability) return;
+    if (this.noMana(index)) return;   // sin maná suficiente → no se lanza
     const sphere = this.talentService.slotted[node.id];
     const damage = node.effect.base * (sphere ? SPHERE_MULT[sphere] : 1);
     this.skillActivation.request(node.effect.ability, damage);
@@ -120,6 +128,13 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
   noTarget(index: number): boolean {
     const ability = this.nodeAt(index)?.effect?.ability;
     return !!ability && this.cdAngles[index] === 0 && !this.skillActivation.hasTarget(ability);
+  }
+
+  /** true si la habilidad del slot tiene un coste de maná mayor que el maná actual. */
+  noMana(index: number): boolean {
+    const ability = this.nodeAt(index)?.effect?.ability;
+    const cost = ability ? SKILL_REGISTRY[ability]?.manaCost ?? 0 : 0;
+    return cost > 0 && this.currentMp < cost;
   }
 
   // ── Cooldown ─────────────────────────────────────────────────────────────────

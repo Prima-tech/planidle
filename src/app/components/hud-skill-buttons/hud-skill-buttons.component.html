@@ -6,6 +6,7 @@
        [class]="'hud-btn-slot-' + i"
        [class.edit-mode]="editMode"
        [class.no-target]="!editMode && noTarget(i)"
+       [class.no-mana]="!editMode && noMana(i)"
        [style.--cd-angle]="cdAngles[i] + 'deg'"
        (touchstart)="onTouchStart(i)"
        (touchend)="onTouchEnd(i)"
