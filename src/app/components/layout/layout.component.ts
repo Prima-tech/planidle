@@ -179,11 +179,11 @@ export class LayoutComponent implements OnDestroy {
       title: "Sample",
       render: { antialias: false, roundPixels: true },
       physics: { default: 'arcade' },
-      // Cap a 60 fps: el móvil va a 120Hz pero el juego no los sostiene (frame ~10ms),
-      // así que oscilaba 120↔60 (judder). A 60 estables el pacing es consistente, el
-      // movimiento es igual (todo va por delta) y se hace la MITAD de trabajo por
-      // segundo → mucho más margen cuando el SoC throttlea sin cable.
-      fps: { target: 60, forceSetTimeOut: true },
+      // Sin cap por setTimeout: usar requestAnimationFrame (sincronizado con el vsync
+      // de la pantalla). El cap con forceSetTimeOut daba 60fps en el número pero no
+      // alineados al vsync → judder constante (cable y batería). Con rAF y frames de
+      // ~10ms el juego se asienta solo en ~60fps consistentes (1 frame cada 2 vsyncs
+      // en pantallas de 120Hz), que es suave.
       type: Phaser.AUTO,
       input: { activePointers: 3 },
       scene: [GameScene, MobileHUDScene],

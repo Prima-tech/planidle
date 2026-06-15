@@ -79,12 +79,20 @@ ion-content::part(scroll)::-webkit-scrollbar {
   background-color: gray;
 }
 
-/* ── Safe areas (notch / cámara) ──────────────────────────────────────────────
+/* ── Safe areas (notch / cámara / bordes curvos) ──────────────────────────────
    La app dibuja bajo el notch (shortEdges en MainActivity + viewport-fit=cover).
-   La UI HTML anclada a los bordes suma estas variables a sus offsets. */
+   La UI HTML anclada a los bordes suma estas variables a sus offsets.
+
+   Bordes curvos: Android solo reporta env(safe-area-inset-*) cuando hay un
+   recorte REAL (notch/cámara). En un borde físicamente curvo (cristal curvado)
+   reporta 0px, así que la UI se ancla al filo y se "pierde" en la curva.
+   Por eso aplicamos un mínimo con max(): si hay inset real (el notch izquierdo)
+   se respeta tal cual; si reporta 0 (borde curvo derecho) se usa --edge-min
+   para separar la UI de la curva. */
 :root {
-  --safe-left:   env(safe-area-inset-left, 0px);
-  --safe-right:  env(safe-area-inset-right, 0px);
+  --edge-min: 14px;
+  --safe-left:   max(env(safe-area-inset-left, 0px),  var(--edge-min));
+  --safe-right:  max(env(safe-area-inset-right, 0px), var(--edge-min));
   --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
