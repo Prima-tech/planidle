@@ -90,8 +90,10 @@ ion-content::part(scroll)::-webkit-scrollbar {
    se respeta tal cual; si reporta 0 (borde curvo derecho) se usa --edge-min
    para separar la UI de la curva. */
 :root {
-  --edge-min: 14px;
-  --safe-left:   max(env(safe-area-inset-left, 0px),  var(--edge-min));
+  --edge-min: 32px;
+  /* Izquierda: notch real → env() basta (ya va bien). Derecha: borde curvo
+     reporta 0px, así que aplicamos el mínimo --edge-min para separar la UI de la curva. */
+  --safe-left:   env(safe-area-inset-left, 0px);
   --safe-right:  max(env(safe-area-inset-right, 0px), var(--edge-min));
   --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);

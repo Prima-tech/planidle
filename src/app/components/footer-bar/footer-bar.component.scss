@@ -124,7 +124,9 @@ $icon-metal: #3a342c;     // iconos sobre acero
     /* Madera lisa + viga de piedra biselada arriba */
     --background: #{$wood-bg};
     --border-color: transparent;
-    --padding-start: calc(8px + var(--safe-left, 0px));
+    /* Sin --safe-left: el notch izquierdo no llega a la barra inferior, así que
+       sumarlo dejaba los botones de abajo-izquierda demasiado metidos. */
+    --padding-start: 8px;
     --padding-end: calc(8px + var(--safe-right, 0px));
     --padding-top: 3px;
     --padding-bottom: 3px;

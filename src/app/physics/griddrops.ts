@@ -38,6 +38,9 @@ const EXP_REWARDS: Record<string, number> = {
   goobling2:       5,  goobling2_elite: 22,  goobling2_oblivion:  60,
   gnoll1:          6,  gnoll1_elite:    25,  gnoll1_oblivion:     65,
   golem1:         18,  golem1_elite:     75,  golem1_oblivion:     195,
+  rats1:           4,  rats1_elite:     20,  rats1_oblivion:      55,
+  lizard1:        12,  lizard1_elite:   50,  lizard1_oblivion:    130,
+  goobling1:       5,  goobling1_elite: 22,  goobling1_oblivion:  60,
 };
 
 const COIN = (min: number, max: number): LootEntry => ({
@@ -88,6 +91,15 @@ const LOOT_TABLES: Record<string, LootEntry[]> = {
   golem1:             [ COIN(4, 8)   ],
   golem1_elite:       [ COIN(10, 22) ],
   golem1_oblivion:    [ COIN(25, 55) ],
+  rats1:              [ COIN(1, 3)   ],
+  rats1_elite:        [ COIN(3, 8)   ],
+  rats1_oblivion:     [ COIN(10, 20) ],
+  lizard1:            [ COIN(2, 5)   ],
+  lizard1_elite:      [ COIN(6, 14)  ],
+  lizard1_oblivion:   [ COIN(18, 38) ],
+  goobling1:          [ COIN(1, 3)   ],
+  goobling1_elite:    [ COIN(3, 8)   ],
+  goobling1_oblivion: [ COIN(10, 20) ],
   default: [
     { name: 'Oro',    type: 'currency', chance: 0.4,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
   ],

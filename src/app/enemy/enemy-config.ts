@@ -398,6 +398,85 @@ const golem1: EnemyTypeConfig = {
 const golem1_elite: EnemyTypeConfig    = { ...golem1, type: 'golem1_elite',    hp: 240, scale: 5.5, speed: 77, damage: 32, attackCooldown: 1600, tint: 0xffcc00, spriteType: 'golem1' };
 const golem1_oblivion: EnemyTypeConfig = { ...golem1, type: 'golem1_oblivion', hp: 640, scale: 6, speed: 84, damage: 53, attackCooldown: 1340, tint: 0xcc00ff, spriteType: 'golem1' };
 
+// ── Definición del Rat1 ──────────────────────────────────────────────────────
+// Sprites 128×128 en enemy/rats1/. Rápida y frágil. Death direccional (4 filas).
+
+const RAT1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
+
+const rats1: EnemyTypeConfig = {
+  type: 'rats1',
+  displayName: 'Rata',
+  hp: 30,
+  scale: 3,
+  speed: 130,
+  damage: 5,
+  attackCooldown: 1500,
+  actions: {
+    idle:   { filename: 'Rat1_Idle_with_shadow',   frameWidth: 128, frameHeight: 128, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(6, RAT1_DIR) },
+    walk:   { filename: 'Rat1_Walk_with_shadow',   frameWidth: 128, frameHeight: 128, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, RAT1_DIR) },
+    run:    { filename: 'Rat1_Run_with_shadow',    frameWidth: 128, frameHeight: 128, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(6, RAT1_DIR) },
+    attack: { filename: 'Rat1_Attack_with_shadow', frameWidth: 128, frameHeight: 128, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(8, RAT1_DIR) },
+    hurt:   { filename: 'Rat1_Hurt_with_shadow',   frameWidth: 128, frameHeight: 128, frameRate: 10, repeat: 0,  directional: true, frames: dirFrames(4, RAT1_DIR) },
+    death:  { filename: 'Rat1_Death_with_shadow',  frameWidth: 128, frameHeight: 128, frameRate: 6,  repeat: 0,  directional: true, frames: dirFrames(5, RAT1_DIR) },
+  },
+};
+
+const rats1_elite: EnemyTypeConfig    = { ...rats1, type: 'rats1_elite',    hp: 90,  scale: 3.5, speed: 143, damage: 10, attackCooldown: 1200, tint: 0xffcc00, spriteType: 'rats1' };
+const rats1_oblivion: EnemyTypeConfig = { ...rats1, type: 'rats1_oblivion', hp: 240, scale: 4,   speed: 156, damage: 17, attackCooldown: 1000, tint: 0xcc00ff, spriteType: 'rats1' };
+
+// ── Definición del Lizardman1 ────────────────────────────────────────────────
+// Sprites 64×64 en enemy/lizard1/. Equilibrado, tipo orco fuerte. Death direccional.
+
+const LIZARD1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
+
+const lizard1: EnemyTypeConfig = {
+  type: 'lizard1',
+  displayName: 'Hombre Lagarto',
+  hp: 60,
+  scale: 3,
+  speed: 100,
+  damage: 10,
+  attackCooldown: 1400,
+  actions: {
+    idle:   { filename: 'Lizardman1_Idle_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, LIZARD1_DIR) },
+    walk:   { filename: 'Lizardman1_Walk_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, LIZARD1_DIR) },
+    run:    { filename: 'Lizardman1_Run_with_shadow',    frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(8, LIZARD1_DIR) },
+    attack: { filename: 'Lizardman1_Attack_with_shadow', frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(7, LIZARD1_DIR) },
+    hurt:   { filename: 'Lizardman1_Hurt_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true, frames: dirFrames(5, LIZARD1_DIR) },
+    death:  { filename: 'Lizardman1_Death_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true, frames: dirFrames(7, LIZARD1_DIR) },
+  },
+};
+
+const lizard1_elite: EnemyTypeConfig    = { ...lizard1, type: 'lizard1_elite',    hp: 180, scale: 3.5, speed: 110, damage: 20, attackCooldown: 1120, tint: 0xffcc00, spriteType: 'lizard1' };
+const lizard1_oblivion: EnemyTypeConfig = { ...lizard1, type: 'lizard1_oblivion', hp: 480, scale: 4,   speed: 120, damage: 33, attackCooldown: 938,  tint: 0xcc00ff, spriteType: 'lizard1' };
+
+// ── Definición del Goobling1 ─────────────────────────────────────────────────
+// Sprites 64×64 en enemy/goobling1/. Mismo set que goobling2 (con walk/run attack).
+
+const GOOBLING1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
+
+const goobling1: EnemyTypeConfig = {
+  type: 'goobling1',
+  hp: 30,
+  scale: 3,
+  speed: 110,
+  damage: 4,
+  attackCooldown: 1700,
+  actions: {
+    idle:            { filename: 'Idle0_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING1_DIR) },
+    walk:            { filename: 'Walk0_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, GOOBLING1_DIR) },
+    run:             { filename: 'Run0_with_shadow',          frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: -1, directional: true, frames: dirFrames(8, GOOBLING1_DIR) },
+    attack:          { filename: 'Attack0_with_shadow',       frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(5, GOOBLING1_DIR) },
+    hurt:            { filename: 'Hurt0_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true, frames: dirFrames(4, GOOBLING1_DIR) },
+    death:           { filename: 'Death0_with_shadow',        frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: 0,  directional: true, frames: dirFrames(6, GOOBLING1_DIR) },
+    walkAttackFront: { filename: 'Walk_Attack0_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: 0,  directional: true, frames: dirFrames(6, GOOBLING1_DIR) },
+    runAttackFront:  { filename: 'Run_Attack0_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 10, repeat: 0,  directional: true, frames: dirFrames(8, GOOBLING1_DIR) },
+  },
+};
+
+const goobling1_elite: EnemyTypeConfig    = { ...goobling1, type: 'goobling1_elite',    hp: 90,  scale: 3.5, speed: 121, damage: 8,  attackCooldown: 1360, tint: 0xffcc00, spriteType: 'goobling1' };
+const goobling1_oblivion: EnemyTypeConfig = { ...goobling1, type: 'goobling1_oblivion', hp: 240, scale: 4,   speed: 132, damage: 13, attackCooldown: 1140, tint: 0xcc00ff, spriteType: 'goobling1' };
+
 // ── Registro global de tipos de enemigo ──────────────────────────────────────
 // Para añadir un enemigo nuevo: agregar su config aquí.
 
@@ -420,4 +499,13 @@ export const ENEMY_REGISTRY: Record<string, EnemyTypeConfig> = {
   golem1,
   golem1_elite,
   golem1_oblivion,
+  rats1,
+  rats1_elite,
+  rats1_oblivion,
+  lizard1,
+  lizard1_elite,
+  lizard1_oblivion,
+  goobling1,
+  goobling1_elite,
+  goobling1_oblivion,
 };
