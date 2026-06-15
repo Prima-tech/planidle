@@ -122,6 +122,106 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
     // Al recoger: hace su animación de ataque y sigue.
     pickup: [{ anim: 'attack' }],
   },
+
+  // ── Mascotas sin JSON de Aseprite: rejilla y nº de frames REALES por fila
+  // deducidos por análisis de alfa del PNG; el orden de filas (idle/move/…) es
+  // INFERIDO por aspecto (idle = fila 0). La mascota solo usa idle + move; si
+  // alguna "camina" con una pose rara, ajustar la fila `move`. Sin `pickup`.
+  akaname: {
+    id: 'akaname', name: 'Akaname', textureKey: 'pet_akaname',
+    sheetPath: 'assets/sprites/pets/akaname.png',
+    frameWidth: 32, frameHeight: 32, cols: 8, scale: 3.3,
+    anims: {
+      idle:   { row: 0, frames: 5, frameRate: 8,  repeat: -1 },
+      move:   { row: 1, frames: 8, frameRate: 12, repeat: -1 },
+      attack: { row: 2, frames: 8, frameRate: 14, repeat: 0  },
+      damage: { row: 3, frames: 6, frameRate: 12, repeat: 0  },
+    },
+  },
+  brain: {
+    id: 'brain', name: 'Cerebro', textureKey: 'pet_brain',
+    sheetPath: 'assets/sprites/pets/brain.png',
+    frameWidth: 32, frameHeight: 32, cols: 7, scale: 3.3,
+    anims: {
+      idle:   { row: 0, frames: 4, frameRate: 8,  repeat: -1 },
+      move:   { row: 1, frames: 4, frameRate: 10, repeat: -1 },
+      attack: { row: 2, frames: 4, frameRate: 12, repeat: 0  },
+      damage: { row: 3, frames: 7, frameRate: 12, repeat: 0  },
+    },
+  },
+  erizo: {
+    id: 'erizo', name: 'Erizo', textureKey: 'pet_erizo',
+    sheetPath: 'assets/sprites/pets/erizo.png',
+    frameWidth: 32, frameHeight: 32, cols: 5, scale: 3.3,
+    anims: {
+      idle:   { row: 0, frames: 5, frameRate: 8,  repeat: -1 },
+      move:   { row: 1, frames: 5, frameRate: 12, repeat: -1 },
+      attack: { row: 2, frames: 3, frameRate: 12, repeat: 0  },
+      damage: { row: 3, frames: 5, frameRate: 12, repeat: 0  },
+      death:  { row: 4, frames: 2, frameRate: 8,  repeat: 0  },
+    },
+  },
+  fly: {
+    id: 'fly', name: 'Mosca', textureKey: 'pet_fly',
+    sheetPath: 'assets/sprites/pets/fly.png',
+    frameWidth: 32, frameHeight: 32, cols: 6, scale: 3.3,
+    anims: {
+      idle:   { row: 0, frames: 4, frameRate: 8,  repeat: -1 },
+      move:   { row: 1, frames: 4, frameRate: 12, repeat: -1 },
+      attack: { row: 2, frames: 4, frameRate: 12, repeat: 0  },
+      damage: { row: 3, frames: 5, frameRate: 12, repeat: 0  },
+    },
+  },
+  globo: {
+    id: 'globo', name: 'Globo', textureKey: 'pet_globo',
+    sheetPath: 'assets/sprites/pets/globo.png',
+    frameWidth: 32, frameHeight: 32, cols: 7, scale: 3.3,
+    anims: {
+      idle:   { row: 0, frames: 5, frameRate: 8,  repeat: -1 },
+      move:   { row: 1, frames: 5, frameRate: 12, repeat: -1 },
+      attack: { row: 2, frames: 5, frameRate: 12, repeat: 0  },
+      damage: { row: 3, frames: 6, frameRate: 12, repeat: 0  },
+      death:  { row: 4, frames: 3, frameRate: 8,  repeat: 0  },
+    },
+  },
+  rat: {
+    id: 'rat', name: 'Rata Azul', textureKey: 'pet_rat',
+    sheetPath: 'assets/sprites/pets/rat.png',
+    frameWidth: 32, frameHeight: 32, cols: 8, scale: 3.3,
+    // r0,r1 parecen idle + idle2 (ambas 8 frames) → move = fila 2.
+    anims: {
+      idle:   { row: 0, frames: 8, frameRate: 8,  repeat: -1 },
+      idle2:  { row: 1, frames: 8, frameRate: 8,  repeat: -1 },
+      move:   { row: 2, frames: 6, frameRate: 12, repeat: -1 },
+      attack: { row: 3, frames: 6, frameRate: 14, repeat: 0  },
+      damage: { row: 4, frames: 4, frameRate: 12, repeat: 0  },
+      death:  { row: 5, frames: 5, frameRate: 10, repeat: 0  },
+    },
+  },
+  rat2: {
+    id: 'rat2', name: 'Ratón Gris', textureKey: 'pet_rat2',
+    sheetPath: 'assets/sprites/pets/rat2.png',
+    frameWidth: 32, frameHeight: 32, cols: 24, scale: 3.3,
+    anims: {
+      idle:   { row: 0, frames: 8,  frameRate: 8,  repeat: -1 },
+      move:   { row: 1, frames: 16, frameRate: 14, repeat: -1 },
+      attack: { row: 2, frames: 24, frameRate: 14, repeat: 0  },
+      damage: { row: 3, frames: 8,  frameRate: 12, repeat: 0  },
+      death:  { row: 4, frames: 10, frameRate: 10, repeat: 0  },
+    },
+  },
+  rat3: {
+    id: 'rat3', name: 'Rata Carmesí', textureKey: 'pet_rat3',
+    sheetPath: 'assets/sprites/pets/rat3.png',
+    frameWidth: 32, frameHeight: 32, cols: 8, scale: 3.3,
+    anims: {
+      idle:   { row: 0, frames: 4, frameRate: 8,  repeat: -1 },
+      move:   { row: 1, frames: 8, frameRate: 12, repeat: -1 },
+      attack: { row: 2, frames: 8, frameRate: 14, repeat: 0  },
+      damage: { row: 3, frames: 4, frameRate: 12, repeat: 0  },
+      death:  { row: 4, frames: 7, frameRate: 10, repeat: 0  },
+    },
+  },
 };
 
 /** Frame que se usa como icono fijo (idle 0). */
