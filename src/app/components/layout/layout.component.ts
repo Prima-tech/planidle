@@ -179,6 +179,11 @@ export class LayoutComponent implements OnDestroy {
       title: "Sample",
       render: { antialias: false, roundPixels: true },
       physics: { default: 'arcade' },
+      // Cap a 60 fps: el móvil va a 120Hz pero el juego no los sostiene (frame ~10ms),
+      // así que oscilaba 120↔60 (judder). A 60 estables el pacing es consistente, el
+      // movimiento es igual (todo va por delta) y se hace la MITAD de trabajo por
+      // segundo → mucho más margen cuando el SoC throttlea sin cable.
+      fps: { target: 60, forceSetTimeOut: true },
       type: Phaser.AUTO,
       input: { activePointers: 3 },
       scene: [GameScene, MobileHUDScene],
@@ -194,6 +199,17 @@ export class LayoutComponent implements OnDestroy {
   }
 
   registerServices() {
+    // El tamaño del canvas se (re)calcula AQUÍ, no en el constructor. loadGame()
+    // corre muy pronto en el arranque en frío, antes de que se asienten landscape +
+    // modo inmersivo, y puede capturar un innerWidth/Height equivocado (más grande
+    // o en vertical). Con scale mode NONE y sin resize, ese tamaño se clava toda la
+    // sesión → más píxeles que rellenar → lag SOLO al reabrir. registerServices
+    // corre ≈1s después (tras cargar datos), con las dimensiones ya asentadas.
+    const dpr = NATIVE_DPR;
+    const scale = this.config!.scale as Phaser.Types.Core.ScaleConfig;
+    scale.width  = window.innerWidth  * dpr;
+    scale.height = window.innerHeight * dpr;
+
     // Phaser corre FUERA de la zona de Angular. Si no, zone.js parchea el
     // requestAnimationFrame del juego y dispara change detection en CADA frame
     // (~60-120/seg); ese coste crece con cada componente/binding que se añada.
@@ -206,7 +222,11 @@ export class LayoutComponent implements OnDestroy {
       // que ir por frame. Las interacciones del usuario (botones HTML) siguen
       // disparando CD al instante por su cuenta. El setInterval se crea aquí dentro
       // para que zone.js no lo parchee (si no, dispararía CD él mismo cada tick).
-      this.uiTick = setInterval(() => this.ngZone.run(() => {}), 33);
+      // Tick de change detection a 10Hz (antes 30Hz): cada CD de la UI del juego
+      // cuesta 2-5ms (HUD/inventario grandes), así que a 30Hz eran ~90ms/seg de CPU
+      // (×2 throttleado sin cable). A 10Hz la UI sigue refrescándose de sobra para
+      // contadores/barras y se libera mucho hilo principal para el render.
+      this.uiTick = setInterval(() => this.ngZone.run(() => {}), 100);
     });
     this.phaserGame.registry.set(REGISTRY_KEYS.PLAYER_BRIDGE, this.playerBridgeService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP,           this.mapService);

@@ -82,6 +82,7 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmEnemyIcons: Phaser.GameObjects.Image[] = [];
   private mmBuildingDots: Phaser.GameObjects.Arc[] = [];
   private mmNodeDots: Phaser.GameObjects.Arc[] = [];
+  private mmAccum = 0;   // acumulador para throttlear el redibujado del minimapa
 
   constructor() { super({ key: 'MobileHUDScene' }); }
 
@@ -166,7 +167,13 @@ export class MobileHUDScene extends Phaser.Scene {
     });
   }
 
-  override update(): void {
+  override update(_time: number, delta: number): void {
+    // El minimapa corría a 120 fps (recorriendo enemigos/edificios/nodos y
+    // reposicionando objetos cada frame). Un radar no necesita tanto: ~20 Hz basta
+    // y libera CPU del hilo principal (clave cuando el móvil throttlea sin cable).
+    this.mmAccum += delta;
+    if (this.mmAccum < 50) return;
+    this.mmAccum = 0;
     this.updateMinimap();
   }
 

@@ -192,12 +192,20 @@ export class GameScene extends Phaser.Scene {
     // repintan todas las capas una sola vez (evita apilar listeners 'complete').
     private equipReapplyQueued = false;
     private activeChests: ActiveChest[] = [];
+    // Cache del "qué tienes cerca" (cofre/tienda/recurso): son comprobaciones O(n)
+    // sobre cofres/edificios/nodos. Recalcularlas CADA frame (120/seg) es CPU
+    // tirada; se refrescan cada pocos frames (sigue siendo instantáneo en la práctica).
+    private interactFrame = 0;
+    private cachedNearChest:  typeof this.activeChests[0]    | null = null;
+    private cachedNearWindow: typeof this.placedBuildings[0] | null = null;
+    private cachedNearNode:   HarvestNode | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
     private playerDamage      = 10;
     private playerMagicDamage = 10;
     private rangedWeapon      = false;   // arma equipada de tipo 'ranged' (bastón) → ataque básico a distancia
+    private autoDbgMs = 0;   // TEMP: throttle del log de diagnóstico de auto-ataque
     private mobileInput: MobileInput | null = null;
     private pendingDashMoveDir: Direction | null = null;
     private pendingDashAnimDir: Direction | null = null;
@@ -427,9 +435,15 @@ export class GameScene extends Phaser.Scene {
 
       // Contexto del botón de acción: cofre cerca → abrir cofre; si no, tienda
       // (u otro edificio con ventana) cerca → abrir ventana; si no → atacar.
-      const nearChest = this.nearestOpenableChest();
-      const nearWindow = nearChest ? null : this.nearestWindowBuilding();
-      const nearNode = (!nearChest && !nearWindow) ? this.nearestHarvestable() : null;
+      // Refresca el "qué tienes cerca" cada 4 frames, no cada frame → menos CPU.
+      if ((this.interactFrame++ & 3) === 0) {
+        this.cachedNearChest  = this.nearestOpenableChest();
+        this.cachedNearWindow = this.cachedNearChest ? null : this.nearestWindowBuilding();
+        this.cachedNearNode   = (!this.cachedNearChest && !this.cachedNearWindow) ? this.nearestHarvestable() : null;
+      }
+      const nearChest = this.cachedNearChest;
+      const nearWindow = this.cachedNearWindow;
+      const nearNode = this.cachedNearNode;
       // La herramienta es "pegajosa": al encarar un recurso se muestra y se MANTIENE
       // aunque te alejes. Solo se quita al atacar a un enemigo / otra acción (strike).
       if (nearNode) this.setActiveHarvest(nearNode.kind);
@@ -528,6 +542,20 @@ export class GameScene extends Phaser.Scene {
 
       const dist = Math.sqrt(distSq);
       const cardinalDir = this.autoVecToCardinal(dx, dy);
+
+      // TEMP diagnóstico auto-ataque (espada): revela rama y estado cada ~700ms.
+      this.autoDbgMs -= delta;
+      if (this.autoDbgMs <= 0) {
+        this.autoDbgMs = 700;
+        console.log('[AUTODBG]', JSON.stringify({
+          ranged: this.rangedWeapon,
+          distTiles: +(dist / GameScene.TILE_SIZE).toFixed(2),
+          stopTiles,
+          willStrike: dist <= STOP_RANGE,
+          isAttacking: this.player.isAttacking,
+          enemies: this.enemies.length,
+        }));
+      }
 
       if (dist <= STOP_RANGE) {
         this.autoStuckMs = 0;
