@@ -969,14 +969,36 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    /** Elige un tile de spawn dentro de la zona evitando el entorno del jugador
+     *  (para que no aparezcan enemigos encima) y los tiles ocupados (nodos/edificios).
+     *  Si la zona es pequeña/saturada y no encuentra hueco, usa el último intento. */
+    private pickSpawnTile(cfg: SpawnConfig): { x: number; y: number } {
+      const z = cfg.zone;
+      const TS = GameScene.TILE_SIZE;
+      const MIN_DIST = 4;   // tiles mínimos de separación con el jugador
+      const ppos = this.player.getPosition();
+      const ptx = Math.floor(ppos.x / TS);
+      const pty = Math.floor(ppos.y / TS);
+      let last = { x: z.tileX, y: z.tileY };
+      for (let i = 0; i < 12; i++) {
+        const x = Phaser.Math.Between(z.tileX, z.tileX + z.width  - 1);
+        const y = Phaser.Math.Between(z.tileY, z.tileY + z.height - 1);
+        last = { x, y };
+        const dx = x - ptx, dy = y - pty;
+        if (dx * dx + dy * dy < MIN_DIST * MIN_DIST) continue;   // demasiado cerca del jugador
+        if (this.collisionTiles.has(`${x},${y}`)) continue;      // ocupado (nodo/edificio)
+        return { x, y };
+      }
+      return last;
+    }
+
     private spawnEnemy(cfg: SpawnConfig, tracker: SpawnTracker) {
       if (tracker.count >= cfg.maxCount) return;
 
       const enemyCfg = ENEMY_REGISTRY[cfg.enemyType];
       if (!enemyCfg) { console.warn(`Enemy type "${cfg.enemyType}" not in ENEMY_REGISTRY`); return; }
 
-      const tileX = Phaser.Math.Between(cfg.zone.tileX, cfg.zone.tileX + cfg.zone.width  - 1);
-      const tileY = Phaser.Math.Between(cfg.zone.tileY, cfg.zone.tileY + cfg.zone.height - 1);
+      const { x: tileX, y: tileY } = this.pickSpawnTile(cfg);
 
       // Sprite inicial con la textura idle del tipo de enemigo
       const idleKey = `${cfg.enemyType}_idle`;

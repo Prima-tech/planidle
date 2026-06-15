@@ -106,9 +106,9 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     const px = pos.x;
     const py = pos.y;
 
-    const enemyBlockFull = ignoreEnemies ? false : this.isEnemyBlockedXY(px + dx, py + dy);
-    const enemyBlockX    = ignoreEnemies ? false : this.isEnemyBlockedXY(px + dx, py     );
-    const enemyBlockY    = ignoreEnemies ? false : this.isEnemyBlockedXY(px,      py + dy);
+    const enemyBlockFull = ignoreEnemies ? false : this.isEnemyBlockedXY(px + dx, py + dy, px, py);
+    const enemyBlockX    = ignoreEnemies ? false : this.isEnemyBlockedXY(px + dx, py,      px, py);
+    const enemyBlockY    = ignoreEnemies ? false : this.isEnemyBlockedXY(px,      py + dy, px, py);
 
     const blockedFull = this.isTileBlockedXY(px + dx, py + dy) || enemyBlockFull;
     const blockedX    = this.isTileBlockedXY(px + dx, py     ) || enemyBlockX;
@@ -123,12 +123,18 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     }
   }
 
-  private isEnemyBlockedXY(px: number, py: number): boolean {
+  private isEnemyBlockedXY(px: number, py: number, fromX: number, fromY: number): boolean {
     const HW = GameScene.TILE_SIZE * 0.9;
     for (let i = 0; i < this.enemies.length; i++) {
       const e = this.enemies[i];
       if (e.isDead) continue;
-      if (Math.abs(e.sprite.x - px) < HW && Math.abs(e.getCollisionY() - py) < HW) return true;
+      const ex = e.sprite.x;
+      const ey = e.getCollisionY();
+      // Si el jugador YA está dentro de la caja de este enemigo (pegado/solapado),
+      // ese enemigo NO bloquea: si bloqueara, al quedar solapados te cerraría TODAS
+      // las direcciones y te quedarías atascado. Así siempre puedes despegarte.
+      if (Math.abs(ex - fromX) < HW && Math.abs(ey - fromY) < HW) continue;
+      if (Math.abs(ex - px) < HW && Math.abs(ey - py) < HW) return true;
     }
     return false;
   }
