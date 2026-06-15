@@ -108,7 +108,7 @@ const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
   },
   tree: {
     texture: 'tree_chop', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',
-    footprintW: 2, footprintH: 2, scale: 1.6, offsetY: 40, count: 3,
+    footprintW: 2, footprintH: 2, scale: 3.2, offsetY: 80, count: 3,
     debris: [0x6b4a2b, 0x8a5a2b, 0x4e7a32, 0x3c6b28],   // madera + hojas
   },
 };
@@ -878,6 +878,7 @@ export class GameScene extends Phaser.Scene {
           ? { x: 34 * ts + ts / 2, y: 30 * ts + ts / 2 }
           : undefined,
         getBuildings: () => this.getMinimapBuildings(),
+        getNodes: () => this.getMinimapNodes(),
       };
     }
 
@@ -888,6 +889,20 @@ export class GameScene extends Phaser.Scene {
         y: pb.sprite.y,
         kind: pb.building.type === 'shop' ? 'shop' : 'chest',
       }));
+    }
+
+    /** Recursos recolectables (rocas/árboles) en px de mundo, para el minimapa.
+     *  Usa el centro de la huella en el suelo (no el sprite, que en árboles sube mucho). */
+    private getMinimapNodes(): { x: number; y: number; kind: string }[] {
+      const TS = GameScene.TILE_SIZE;
+      return this.nodes.map(n => {
+        const kind = HARVEST_KINDS[n.kind];
+        return {
+          x: n.sprite.x,
+          y: n.sprite.y - kind.offsetY - (kind.footprintH / 2) * TS,
+          kind: n.kind,
+        };
+      });
     }
 
     initSpawns() {
@@ -1301,12 +1316,16 @@ export class GameScene extends Phaser.Scene {
       const TS = GameScene.TILE_SIZE;
       // Centrado horizontal sobre la huella; anclado por su base (origin abajo) a la
       // fila inferior, + offsetY para asentar el tronco/base sobre el suelo.
+      const baseY = (tileY + kind.footprintH) * TS;   // Y del suelo donde "se apoya"
       const cx = (tileX + kind.footprintW / 2) * TS;
-      const cy = (tileY + kind.footprintH) * TS + kind.offsetY;
+      const cy = baseY + kind.offsetY;
       const sprite = this.add.image(cx, cy, kind.texture);
       sprite.setOrigin(0.5, 1);
       sprite.setScale(kind.scale);
-      sprite.setDepth(2);       // igual que enemigos/jugador
+      // Depth por Y (como el jugador, que usa depth = su Y de pies): si el jugador está
+      // por encima (más al norte) que la base del recurso, el recurso lo tapa (copa del
+      // árbol); si está por debajo, el jugador pasa por delante.
+      sprite.setDepth(baseY);
       for (const k of tileKeys) this.collisionTiles.add(k);   // bloquea su huella
       this.nodes.push({ sprite, hits: 0, tileKeys, kind: id });
     }

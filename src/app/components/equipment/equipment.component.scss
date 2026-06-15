@@ -1094,7 +1094,8 @@ $metal-dark: #6b6357;
 .talent-viewport--classic {
   background:
     radial-gradient(circle at 50% 38%, rgba(240, 192, 64, 0.06), transparent 62%),
-    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 14px),
+    linear-gradient(rgba(12, 9, 8, 0.55), rgba(12, 9, 8, 0.55)),
+    url('../../../assets/images/talents.jpeg') center center / cover no-repeat,
     $cell-bg;
   border: 4px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;

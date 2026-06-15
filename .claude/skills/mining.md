@@ -37,6 +37,7 @@ Sistema genérico de **nodos recolectables** en el mapa. Cada tipo (`HarvestKind
 | `src/app/physics/griddrops.ts` | `TOOLS_CATALOG` — picos (cat. `'Pico'`) y hachas (cat. `'Hacha'`) |
 | `src/app/services/gathering-equipment.service.ts` | Slots `pickaxe` (`'Pico'`) y `axe` (`'Hacha'`) |
 | `src/app/services/interaction.service.ts` | Contextos `'mine'` (roca) y `'chop'` (árbol) del botón de acción |
+| `src/app/scenes/mobile-hud.scene.ts` | Minimapa: dibuja los nodos (`getNodes` de `MinimapData`) — punto gris (roca) / verde (árbol), dinámico |
 | `src/app/components/attack-button/attack-button.component.*` | Iconos `hammer-outline` (mine) / `leaf-outline` (chop) |
 | `assets/sprites/map/skills/rocks/Rock1_3.png` (`rock_mine`, 32×32) · `assets/sprites/map/skills/trees/Tree1.png` (`tree_chop`, 128×128) | Sprites de los recursos |
 | `assets/sprites/player/equip/tools/{picks,axes}/` | Hojas LPC de las herramientas + `icons/` |
@@ -50,7 +51,7 @@ Sistema genérico de **nodos recolectables** en el mapa. Cada tipo (`HarvestKind
 rock: { texture:'rock_mine', toolCategory:'Pico', toolSlotId:'pickaxe', context:'mine',
         footprintW:2, footprintH:2, scale:3,   offsetY:0,  count:3, debris:[grises] }
 tree: { texture:'tree_chop', toolCategory:'Hacha', toolSlotId:'axe',  context:'chop',
-        footprintW:2, footprintH:2, scale:1.6, offsetY:40, count:3, debris:[madera+hojas] }
+        footprintW:2, footprintH:2, scale:3.2, offsetY:80, count:3, debris:[madera+hojas] }
 ```
 
 ### Spawn
@@ -93,5 +94,5 @@ tree: { texture:'tree_chop', toolCategory:'Hacha', toolSlotId:'axe',  context:'c
 ## Notas / a verificar
 
 - Orden de direcciones del smash asumido up/left/down/right (estándar LPC).
-- `offsetY`/`scale` del árbol (40 / 1.6) son aproximados — ajustar para que el tronco quede bien asentado y la copa no tape de más.
-- Los nodos usan `depth 2` (como jugador/enemigos): un árbol alto se dibuja sobre el jugador aunque esté delante (al sur). Aceptable; refinar con depth por-Y si molesta.
+- `offsetY` del árbol = `25 (padding inferior) × scale`. A `scale 3.2` → `offsetY 80`. Si cambias la escala, recalcula el offsetY así para que el tronco siga asentado.
+- Los nodos usan **depth por-Y** = `(tileY + footprintH) * TILE_SIZE` (su base en el suelo), igual que el jugador (`depth = su Y de pies`). Así el árbol tapa al jugador cuando está detrás (al norte) y el jugador pasa por delante cuando está al sur.

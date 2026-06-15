@@ -29,6 +29,8 @@ export interface MinimapData {
   townChest?: { x: number; y: number }; // cofre de ciudad fijo (solo en hogar)
   // Construcciones colocadas (cofre/tienda); referencia viva, cambian al construir/mover/borrar
   getBuildings?: () => { x: number; y: number; kind: string }[];
+  // Recursos recolectables (rocas/árboles); referencia viva, desaparecen al destruirse
+  getNodes?: () => { x: number; y: number; kind: string }[];
 }
 
 export const MINIMAP_DATA_KEY = 'minimapData';
@@ -53,6 +55,9 @@ const MM_COLOR_PLAYER  = 0x2ecc71;
 const MM_COLOR_PORTAL  = 0x48c4f8;
 const MM_COLOR_CHEST   = 0xf1c40f;
 const MM_COLOR_SHOP    = 0x2ecc71;
+const MM_DOT_NODE      = 3.5 * DPR;   // recursos recolectables (rocas/árboles)
+const MM_COLOR_ROCK    = 0x9a9a9a;
+const MM_COLOR_TREE    = 0x3c8c3c;
 const MM_ICON_ENEMY_KEY = 'mm_enemy';
 const MM_ICON_ELITE_KEY = 'mm_enemy_elite';
 const MM_ICON_HALF      = 8   * DPR;   // half-size regular
@@ -76,6 +81,7 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmPlayerDot:  Phaser.GameObjects.Arc   | null = null;
   private mmEnemyIcons: Phaser.GameObjects.Image[] = [];
   private mmBuildingDots: Phaser.GameObjects.Arc[] = [];
+  private mmNodeDots: Phaser.GameObjects.Arc[] = [];
 
   constructor() { super({ key: 'MobileHUDScene' }); }
 
@@ -173,6 +179,7 @@ export class MobileHUDScene extends Phaser.Scene {
     this.mmPlayerDot    = null;
     this.mmEnemyIcons   = [];
     this.mmBuildingDots = [];
+    this.mmNodeDots     = [];
 
     const data = this.registry.get(MINIMAP_DATA_KEY) as MinimapData | undefined;
     if (!data || !data.mapWidthPx || !data.mapHeightPx) return;
@@ -256,6 +263,27 @@ export class MobileHUDScene extends Phaser.Scene {
     for (let i = bUsed; i < this.mmBuildingDots.length; i++) {
       this.mmBuildingDots[i].setVisible(false);
     }
+
+    // Recursos recolectables (rocas/árboles): dinámicos (desaparecen al destruirse)
+    const nodes = this.mmData.getNodes?.() ?? [];
+    let nUsed = 0;
+    for (const n of nodes) {
+      const dot = this.getNodeDot(nUsed++);
+      dot.setFillStyle(n.kind === 'tree' ? MM_COLOR_TREE : MM_COLOR_ROCK, 1);
+      this.mmPlace(dot, n.x, n.y);
+      dot.setVisible(true);
+    }
+    for (let i = nUsed; i < this.mmNodeDots.length; i++) {
+      this.mmNodeDots[i].setVisible(false);
+    }
+  }
+
+  private getNodeDot(index: number): Phaser.GameObjects.Arc {
+    if (index >= this.mmNodeDots.length) {
+      const dot = this.add.circle(0, 0, MM_DOT_NODE, MM_COLOR_ROCK, 1);
+      this.mmNodeDots.push(dot);
+    }
+    return this.mmNodeDots[index];
   }
 
   private getBuildingDot(index: number): Phaser.GameObjects.Arc {
