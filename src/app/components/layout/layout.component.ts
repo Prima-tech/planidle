@@ -58,6 +58,9 @@ export class LayoutComponent implements OnDestroy {
   private sceneReadySub: Subscription;
   private lvlSub: Subscription;
   private lastLvl: number | null = null;
+  // Tick de change detection throttleado (~30 Hz) para la UI bindeada al juego,
+  // ya que Phaser corre fuera de la zona de Angular (ver registerServices).
+  private uiTick: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private router: Router,
@@ -161,6 +164,7 @@ export class LayoutComponent implements OnDestroy {
     this.sceneStartingSub?.unsubscribe();
     this.sceneReadySub?.unsubscribe();
     this.lvlSub?.unsubscribe();
+    if (this.uiTick) { clearInterval(this.uiTick); this.uiTick = null; }
     this.phaserGame?.destroy(true);
     this.phaserGame = undefined;
     this.sceneManager.setGame(null);
@@ -190,7 +194,20 @@ export class LayoutComponent implements OnDestroy {
   }
 
   registerServices() {
-    this.phaserGame = new Phaser.Game(this.config);
+    // Phaser corre FUERA de la zona de Angular. Si no, zone.js parchea el
+    // requestAnimationFrame del juego y dispara change detection en CADA frame
+    // (~60-120/seg); ese coste crece con cada componente/binding que se añada.
+    // Fuera de zona, el bucle del juego no toca a Angular.
+    this.ngZone.runOutsideAngular(() => {
+      this.phaserGame = new Phaser.Game(this.config);
+      // Contrapartida: la UI bindeada a estado del juego (monedas, HP/MP,
+      // inventario…) ya no se refresca "gratis" cada frame. La refrescamos con un
+      // tick de CD throttleado a ~30 Hz: imperceptible en el HUD y ~4× más barato
+      // que ir por frame. Las interacciones del usuario (botones HTML) siguen
+      // disparando CD al instante por su cuenta. El setInterval se crea aquí dentro
+      // para que zone.js no lo parchee (si no, dispararía CD él mismo cada tick).
+      this.uiTick = setInterval(() => this.ngZone.run(() => {}), 33);
+    });
     this.phaserGame.registry.set(REGISTRY_KEYS.PLAYER_BRIDGE, this.playerBridgeService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP,           this.mapService);
     this.phaserGame.registry.set(REGISTRY_KEYS.INVENTORY,     this.inventoryService);

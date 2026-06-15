@@ -99,15 +99,20 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     // Canvas a resolución nativa del dispositivo (devicePixelRatio) y reducido
     // con zoom CSS — sin esto el texto se ve borroso en pantallas de alta densidad
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    this.planetGame = new Phaser.Game({
-      type: Phaser.AUTO,
-      parent,
-      width:  parent.clientWidth * dpr,
-      height: parent.clientHeight * dpr,
-      scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
-      render: { antialias: true },
-      backgroundColor: '#05060f',
-      scene: [PlanetViewScene],
+    // Fuera de la zona de Angular: si no, zone.js dispara change detection en cada
+    // frame del globo mientras el panel está abierto. Las actualizaciones de UI de
+    // este panel son discretas y ya van envueltas en ngZone.run (ver más abajo).
+    this.ngZone.runOutsideAngular(() => {
+      this.planetGame = new Phaser.Game({
+        type: Phaser.AUTO,
+        parent,
+        width:  parent.clientWidth * dpr,
+        height: parent.clientHeight * dpr,
+        scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
+        render: { antialias: true },
+        backgroundColor: '#05060f',
+        scene: [PlanetViewScene],
+      });
     });
     // Pin pulsado en el globo → misma tarjeta de info (y teleport) que la tab 0.
     // El click llega desde Phaser (fuera de Angular): hace falta ngZone.run
