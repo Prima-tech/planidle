@@ -148,6 +148,11 @@ $text-cream: #ecd9b4;
   transform: scale(0.78) translateY(-5px);
 }
 
+/* Cactus: su arte ya está centrado en el frame (no en la mitad inferior) → sin subida */
+.detail-icon-box--pet.detail-icon-box--pet-cactus {
+  transform: scale(1.2) translateY(0);
+}
+
 .detail-icon {
   width: 28px;
   height: 28px;

@@ -99,6 +99,29 @@ export const PET_REGISTRY: Record<string, PetConfig> = {
     // Al recoger: salto+agarre y, a los 500 ms, emerge.
     pickup: [{ anim: 'jump', durationMs: 500 }, { anim: 'emerge' }],
   },
+  cactus: {
+    id: 'cactus',
+    name: 'Cactus',
+    textureKey: 'pet_cactus',
+    sheetPath: 'assets/sprites/pets/cactus/cactus.png',
+    frameWidth: 32,
+    frameHeight: 32,
+    cols: 8,
+    scale: 3.3,
+    // Sheet 8×5 (sin Idle2 ni Sleep): Idle, Movement, Attack, Damage, Death.
+    // La mascota solo usa idle + move; el resto queda listo para el futuro.
+    // Nº de frames real por fila: Damage y Death tienen 3 celdas finales vacías
+    // (comprobado por alfa) → 5 reales; incluirlas provocaría parpadeo.
+    anims: {
+      idle:   { row: 0, frames: 8, frameRate: 8,  repeat: -1 },
+      move:   { row: 1, frames: 8, frameRate: 12, repeat: -1 },
+      attack: { row: 2, frames: 8, frameRate: 14, repeat: 0  },
+      damage: { row: 3, frames: 5, frameRate: 12, repeat: 0  },
+      death:  { row: 4, frames: 5, frameRate: 10, repeat: 0  },
+    },
+    // Al recoger: hace su animación de ataque y sigue.
+    pickup: [{ anim: 'attack' }],
+  },
 };
 
 /** Frame que se usa como icono fijo (idle 0). */

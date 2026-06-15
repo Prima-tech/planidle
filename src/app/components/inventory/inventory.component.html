@@ -64,6 +64,7 @@
                  [class.item-icon-sheet--weapon]="cell.category === 'Arma'"
                  [class.item-icon-sheet--pet]="cell.category === 'Mascota'"
                  [class.item-icon-sheet--pet-sm]="cell.petId === 'ferret'"
+                 [class.item-icon-sheet--pet-cactus]="cell.petId === 'cactus'"
                  [style.background-image]="'url(' + cell.iconSheet + ')'"
                  [style.background-size]="getSheetBgSize(cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)"
                  [style.background-position]="getSheetPos(cell.iconFrame, cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)">

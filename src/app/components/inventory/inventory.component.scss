@@ -204,6 +204,11 @@ $purple: #6e4a67;         // celda seleccionada
   transform: scale(1.3) translateY(-8px);
 }
 
+/* Cactus: su arte ya está centrado en el frame (no en la mitad inferior) → sin subida */
+.item-icon-sheet--pet.item-icon-sheet--pet-cactus {
+  transform: scale(2) translateY(0);
+}
+
 .item-fallback {
   font-size: 1em;
   font-weight: bold;
