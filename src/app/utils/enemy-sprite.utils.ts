@@ -6,7 +6,6 @@ interface EnemyFrameData { src: string; cols: number; fps: number; }
 export const ENEMY_FRAMES: Record<string, EnemyFrameData> = {
   slime4: { src: 'assets/sprites/enemy/slime4/Slime1_Idle_with_shadow.png', cols: 6, fps: 6 },
   slime5: { src: 'assets/sprites/enemy/slime5/Slime2_Idle_with_shadow.png', cols: 6, fps: 6 },
-  slime6: { src: 'assets/sprites/enemy/slime6/Slime3_Idle_with_shadow.png', cols: 6, fps: 6 },
   orc1:   { src: 'assets/sprites/enemy/orc1/orc1_idle_full.png',            cols: 4, fps: 4 },
 };
 
