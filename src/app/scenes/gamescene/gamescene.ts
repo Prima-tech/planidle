@@ -11,7 +11,7 @@ import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
 import { InteractionContext } from "src/app/services/interaction.service";
-import { EQUIP_LAYER_REGISTRY } from "src/app/pnj/player/equip-layer-registry";
+import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
 import { NATIVE_DPR } from "./constants";
@@ -188,6 +188,9 @@ export class GameScene extends Phaser.Scene {
     // encarar un recurso con su herramienta y es PEGAJOSA: se mantiene aunque te alejes;
     // solo se quita al hacer un ataque normal (enemigo/al aire) u otra acción.
     private activeHarvest: HarvestKindId | null = null;
+    // Hay una carga en caliente de texturas de equipo en curso → al completar se
+    // repintan todas las capas una sola vez (evita apilar listeners 'complete').
+    private equipReapplyQueued = false;
     private activeChests: ActiveChest[] = [];
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
@@ -267,17 +270,13 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
-        if (cfg.mode === 'anim') {
-          for (const sheet of cfg.sheets ?? []) {
-            if (!this.textures.exists(sheet.key)) {
-              this.load.spritesheet(sheet.key, sheet.path, { frameWidth: sheet.frameWidth, frameHeight: sheet.frameHeight });
-            }
-          }
-        } else if (cfg.key && !this.textures.exists(cfg.key)) {
-          this.load.spritesheet(cfg.key, cfg.path!, { frameWidth: cfg.frameWidth, frameHeight: cfg.frameHeight });
-        }
-      }
+      // Equipo: SOLO se precargan las texturas de lo que el jugador lleva puesto
+      // (+ la sombra). El registro completo son ~600 MB de textura descomprimida en
+      // GPU (hojas LPC de 832–1664 px de ancho, varias cargadas dos veces a 64 y a
+      // 128/192 px); subirlo entero satura la VRAM en móvil y provoca tirones. El
+      // resto se carga bajo demanda al equipar (ver ensureEquipTextures).
+      this.queueEquipSheets(EQUIP_LAYER_REGISTRY['Shadow']);
+      for (const cfg of this.equippedLayerConfigs()) this.queueEquipSheets(cfg);
 
       const mapCfg = this.reg.world.getCurrentMap();
       this.load.image(mapCfg.tilesetKey, mapCfg.tilesetImage);
@@ -676,20 +675,8 @@ export class GameScene extends Phaser.Scene {
       this.initShadowLayer();
       const equipment = this.reg.equipment;
       if (!equipment) return;
-      for (const slot of equipment.slots) {
-        if (slot.id === 'weapon') continue;   // arma/pico → los gestiona refreshHeldLayer
-        this.applyEquipLayer(slot.id, slot.item);
-      }
-      this.refreshWeaponKind();
-      this.refreshHeldLayer();
-      this.equipSub = equipment.changes$.subscribe(() => {
-        for (const slot of this.reg.equipment.slots) {
-          if (slot.id === 'weapon') continue;
-          this.applyEquipLayer(slot.id, slot.item);
-        }
-        this.refreshWeaponKind();
-        this.refreshHeldLayer();
-      });
+      this.syncAllEquipLayers();
+      this.equipSub = equipment.changes$.subscribe(() => this.syncAllEquipLayers());
 
       // Al cambiar el equipo de recolección (p.ej. equipar/quitar una herramienta) se
       // recalcula qué se sostiene (arma o herramienta) según el recurso encarado.
@@ -741,6 +728,7 @@ export class GameScene extends Phaser.Scene {
       for (const cfg of Object.values(EQUIP_LAYER_REGISTRY)) {
         if (cfg.mode !== 'anim' || !cfg.sheets) continue;
         for (const sheet of cfg.sheets) {
+          if (!this.textures.exists(sheet.key)) continue;   // hoja aún no cargada → se registrará tras su carga
           for (const anim of sheet.anims) {
             if (this.anims.exists(anim.key)) continue;
             const frames = this.anims.generateFrameNumbers(sheet.key, { start: anim.startFrame, end: anim.endFrame });
@@ -750,16 +738,80 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    /** Pone en cola (sin arrancar el loader) las hojas de `cfg` que aún no estén
+     *  cargadas. Devuelve true si encoló algo. */
+    private queueEquipSheets(cfg: EquipLayerConfig | undefined): boolean {
+      if (!cfg) return false;
+      let queued = false;
+      if (cfg.mode === 'anim') {
+        for (const sheet of cfg.sheets ?? []) {
+          if (!this.textures.exists(sheet.key)) {
+            this.load.spritesheet(sheet.key, sheet.path, { frameWidth: sheet.frameWidth, frameHeight: sheet.frameHeight });
+            queued = true;
+          }
+        }
+      } else if (cfg.key && !this.textures.exists(cfg.key)) {
+        this.load.spritesheet(cfg.key, cfg.path!, { frameWidth: cfg.frameWidth, frameHeight: cfg.frameHeight });
+        queued = true;
+      }
+      return queued;
+    }
+
+    /** Configs de capa de TODO lo que el jugador lleva equipado ahora (equipo +
+     *  herramientas de recolección). Base para precargar solo lo necesario. */
+    private equippedLayerConfigs(): EquipLayerConfig[] {
+      const names = new Set<string>();
+      for (const slot of this.reg.equipment?.slots ?? []) if (slot.item) names.add(slot.item.name);
+      for (const slot of this.reg.gathering?.slots ?? []) if (slot.item) names.add(slot.item.name);
+      const out: EquipLayerConfig[] = [];
+      for (const name of names) {
+        const cfg = EQUIP_LAYER_REGISTRY[name];
+        if (cfg) out.push(cfg);
+      }
+      return out;
+    }
+
+    /** Asegura cargadas las texturas de `cfg`. Si faltan (ítem equipado en caliente
+     *  que no se precargó), las carga en caliente y programa un repintado único de
+     *  todas las capas al completar. Devuelve true si ya estaban listas. */
+    private ensureEquipTextures(cfg: EquipLayerConfig): boolean {
+      if (!this.queueEquipSheets(cfg)) return true;
+      if (!this.equipReapplyQueued) {
+        this.equipReapplyQueued = true;
+        this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+          this.equipReapplyQueued = false;
+          this.registerEquipLayerAnims();
+          this.syncAllEquipLayers();
+        });
+        // Arranca el loader en el próximo tick: así varias piezas equipadas en el
+        // mismo frame (p.ej. cambio de loadout) se cargan en un único lote y se
+        // repintan de una sola vez al completar.
+        this.time.delayedCall(0, () => this.load.start());
+      }
+      return false;
+    }
+
+    /** Repinta todas las capas de equipo desde el estado actual (idempotente).
+     *  Se usa al iniciar y tras una carga perezosa de texturas. */
+    private syncAllEquipLayers(): void {
+      for (const slot of this.reg.equipment?.slots ?? []) {
+        if (slot.id === 'weapon') continue;   // arma/herramienta → refreshHeldLayer
+        this.applyEquipLayer(slot.id, slot.item);
+      }
+      this.refreshWeaponKind();
+      this.refreshHeldLayer();
+    }
+
     private applyEquipLayer(slotId: string, item: InventoryItem | null): void {
       if (!item) { this.player.removeLayer(slotId); return; }
       const cfg = EQUIP_LAYER_REGISTRY[item.name];
       if (!cfg) { this.player.removeLayer(slotId); return; }
+      if (!this.ensureEquipTextures(cfg)) return;   // cargando → se repintará al terminar
       if (cfg.mode === 'anim') {
-        const allLoaded = (cfg.sheets ?? []).every(s => this.textures.exists(s.key));
-        if (!allLoaded) { this.player.removeLayer(slotId); return; }
+        if (!(cfg.sheets ?? []).every(s => this.textures.exists(s.key))) return;
         this.player.addLayer(slotId, cfg.sheets![0].key, cfg.depth, cfg);
       } else {
-        if (!cfg.key || !this.textures.exists(cfg.key)) { this.player.removeLayer(slotId); return; }
+        if (!cfg.key || !this.textures.exists(cfg.key)) return;
         this.player.addLayer(slotId, cfg.key, cfg.depth);
       }
     }

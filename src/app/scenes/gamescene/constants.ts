@@ -1,10 +1,13 @@
 import { Direction } from "src/app/pnj/interfaces/Direction";
 
 // Factor de resolución nativa del canvas principal: el juego se renderiza a
-// devicePixelRatio (mínimo 2× — supersampling también en pantallas 1×, como el
-// árbol de talentos) y se reduce con zoom CSS. La cámara de GameScene y las
-// medidas de pantalla del HUD multiplican por esto (capado a 3 por rendimiento).
-export const NATIVE_DPR = Math.max(Math.min(window.devicePixelRatio || 1, 3), 2);
+// devicePixelRatio y se reduce con zoom CSS. La cámara de GameScene y las medidas
+// de pantalla del HUD multiplican por esto.
+// Capado a 2 (antes 3): a DPR 3 el canvas son ~3M px/frame y la GPU móvil no daba
+// abasto (draw calls + fillrate) → tirones. A 2 baja a ~1.3M px (~44%) con la misma
+// imagen en pantalla, solo algo menos de nitidez interna. Mín 1.5 = supersampling
+// suave en pantallas de baja densidad (árbol de talentos, etc.).
+export const NATIVE_DPR = Math.max(Math.min(window.devicePixelRatio || 1, 2), 1.5);
 
 
 export const playerAnimations = {
