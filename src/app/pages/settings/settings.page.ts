@@ -3,10 +3,7 @@ import { Router } from "@angular/router";
 import { map } from "rxjs";
 import { SceneManager } from "src/app/scenes/scene-manager";
 import { AsgardService } from "src/app/services/asgard";
-import { PlayerBridgeService } from "src/app/services/player-bridge.service";
 import { SaveService, SaveStatus } from "src/app/services/save.service";
-import { CityBuildService } from "src/app/services/city-build.service";
-import { BuildShopService } from "src/app/services/build-shop.service";
 import { ConnectionService } from "src/app/services/connection.service";
 
 @Component({
@@ -18,10 +15,7 @@ import { ConnectionService } from "src/app/services/connection.service";
 export class SettingsPageComponent implements OnInit {
   private sceneManager     = inject(SceneManager);
   private asgardService    = inject(AsgardService);
-  private playerBridge     = inject(PlayerBridgeService);
   private saveService      = inject(SaveService);
-  private cityBuild        = inject(CityBuildService);
-  private buildShop        = inject(BuildShopService);
   private connection       = inject(ConnectionService);
   private router           = inject(Router);
 
@@ -49,15 +43,14 @@ export class SettingsPageComponent implements OnInit {
   }
 
   async clearAll() {
-    await this.saveService.clearCurrentCharacter();
-    // Las construcciones de ciudad viven en una clave global compartida, fuera
-    // del snapshot por personaje: hay que borrarlas aparte para poder reconstruir.
-    await this.cityBuild.clear();
-    // La tienda guarda su oro/stock aparte (clave global): restablecer a 500.
-    await this.buildShop.reset();
-    // La barra de HP lee el sprite Phaser, no el playerState: sin esto el
-    // reset no se refleja en la barra hasta revivir o recargar
-    this.playerBridge.resetPlayerStatus(100, 100);
+    // Wipe TOTAL de la cuenta: borra todos los personajes y datos globales.
+    await this.saveService.wipeAllData();
+    this.asgardService.triggerCloseMenu();
+    // Recarga dura en el login: garantiza que TODOS los servicios singleton
+    // (asgard, unlocks, kills, talentos, ciudad…) arrancan limpios desde el
+    // storage ya vacío, sin estado en memoria obsoleto.
+    await this.router.navigateByUrl('/login');
+    window.location.reload();
   }
 
   changeScene(scene: string) {

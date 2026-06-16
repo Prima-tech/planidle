@@ -641,10 +641,17 @@ export class TalentService {
 
   // ── Desbloqueo de nodos ──────────────────────────────────────────────────────
 
-  /** En modo admin todo cuenta como desbloqueado (todo visible + todos los bonos).
-   *  El estado REAL vive en `this.unlocked` (lo usan puntos, isReachable, lock/unlock). */
+  /** En modo admin todo cuenta como desbloqueado *a efectos de visibilidad/UI*
+   *  (ver el árbol completo, poder pinchar nodos). Los bonos de combate NO usan
+   *  esto: ver isReallyUnlocked()/getBonus(). El estado REAL vive en `this.unlocked`. */
   isUnlocked(nodeId: string): boolean {
     return this.admin.isAdmin || !!this.unlocked[nodeId];
+  }
+
+  /** Desbloqueo REAL (ignora admin). Es lo que cuenta para los bonos de combate:
+   *  admin solo afecta a la visibilidad, no a las estadísticas del personaje. */
+  isReallyUnlocked(nodeId: string): boolean {
+    return !!this.unlocked[nodeId];
   }
 
   /** Alcanzable: aún sin desbloquear pero con los padres ya desbloqueados.
@@ -724,9 +731,9 @@ export class TalentService {
     let atk = 0, magicAtk = 0, hp = 0, mp = 0, defense = 0, evasion = 0, critChance = 0, hpRegen = 0, mpRegen = 0, dropRate = 0;
     const abilities: string[] = [];
     for (const node of this.nodes) {
-      // Solo cuentan los nodos desbloqueados (admin = todos). Sin gema → ×1 (valor base);
-      // con gema → ×SPHERE_MULT (verde 2 / azul 3 / épica 5).
-      if (!this.isUnlocked(node.id)) continue;
+      // Solo cuentan los nodos REALMENTE desbloqueados (admin NO suma bonos, solo
+      // afecta visibilidad). Sin gema → ×1 (valor base); con gema → ×SPHERE_MULT.
+      if (!this.isReallyUnlocked(node.id)) continue;
       const sphere = this.slotted[node.id];
       const mult = sphere ? SPHERE_MULT[sphere] : 1;
       const value = node.effect.base * mult;

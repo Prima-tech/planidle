@@ -17,6 +17,9 @@ const SCALE_BOOST = 1.15;
 const ENEMY_CRIT_CHANCE = 15;   // %
 const ENEMY_CRIT_MULT   = 1.6;
 
+// Distancia (en tiles) a la que el enemigo deja de perseguir y empieza a atacar.
+const ATTACK_RANGE_TILES = 2;
+
 const BAR_W      = 104;
 const BAR_H      = 14;
 const BAR_OFFSET = 4;
@@ -106,6 +109,7 @@ export class Enemy {
   private readonly speed: number;
   private readonly damage: number;
   private readonly attackCooldown: number;
+  private readonly attackRangeSq: number;
   private readonly layerCount: number;
   private readonly visionRadiusSq: number;
   private cachedDisplayHeight = 0;
@@ -138,6 +142,8 @@ export class Enemy {
     this.damage         = config.damage;
     this.attackCooldown = config.attackCooldown;
     this.attackTimer    = this.attackCooldown;
+    const attackRange   = ATTACK_RANGE_TILES * GameScene.TILE_SIZE;
+    this.attackRangeSq  = attackRange * attackRange;
     this.layerCount     = tileMap.layers.length;
     this.animService    = new AnimationService(mainScene);
     const visionPx      = visionRadius * GameScene.TILE_SIZE;
@@ -178,6 +184,27 @@ export class Enemy {
 
     this.sprite.setDepth(this.sprite.y);
     if (this.hpBarTrack) this.drawHPBar();
+
+    // El cooldown de ataque corre siempre que el jugador esté a rango, AUNQUE el
+    // enemigo esté en 'hurt'. Si solo corriera fuera de 'hurt', recibir golpes
+    // seguidos lo stun-lockearía y nunca llegaría a pegar.
+    if (this.isChasing) {
+      const adx = playerPos.x - this.sprite.x;
+      const ady = playerPos.y - this.sprite.y;
+      if (adx * adx + ady * ady < this.attackRangeSq) {
+        if (this.state !== 'attack') {
+          this.attackTimer -= delta;
+          if (this.attackTimer <= 0) {
+            this.attackTimer = this.attackCooldown;
+            this.performAttack();
+            return;
+          }
+        }
+      } else {
+        this.attackTimer = this.attackCooldown;
+      }
+    }
+
     if (this.state === 'attack' || this.state === 'hurt') return;
 
     if (this.isChasing) {
@@ -214,22 +241,17 @@ export class Enemy {
     const dy   = playerPos.y - sy;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist < GameScene.TILE_SIZE * 2) {
+    if (dist < ATTACK_RANGE_TILES * GameScene.TILE_SIZE) {
+      // En rango de ataque: el cooldown/ataque lo gestiona update(); aquí solo encarar.
       const dirToPlayer = this.cardinalDir(dx, dy);
       if (dirToPlayer !== this.currentDir) {
         this.currentDir = dirToPlayer;
         if (this.state === 'idle') this.playAnim('idle');
       }
       this.setState('idle');
-      this.attackTimer -= delta;
-      if (this.attackTimer <= 0) {
-        this.attackTimer = this.attackCooldown;
-        this.performAttack();
-      }
       return;
     }
 
-    this.attackTimer = this.attackCooldown;
     this.move(sx, sy, dx, dy, dist, delta);
   }
 
@@ -370,6 +392,9 @@ export class Enemy {
   private performAttack(): void {
     this.facePlayer();
     this.state = 'attack';
+    // El ataque puede arrancar mientras el enemigo estaba en 'hurt': descarta el
+    // handler de recuperación pendiente para que no compita con el del ataque.
+    this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
 
     const animName = this.resolveAttackAnim();
     const played   = this.playAnim(animName);
@@ -457,7 +482,9 @@ export class Enemy {
     // Solo actualizar preHurtState cuando entramos desde un estado no-hurt.
     // Si ya estamos en hurt (golpe spam), conservamos el estado original para
     // que el enemigo pueda recuperarse correctamente al terminar la animación.
-    if (this.state !== 'hurt') this.preHurtState = this.state;
+    // 'attack' nunca se conserva: recuperar a 'attack' dejaría al enemigo
+    // atascado reproduciendo el ataque sin handler de salida → vuelve a 'idle'.
+    if (this.state !== 'hurt') this.preHurtState = this.state === 'attack' ? 'idle' : this.state;
 
     this.state = 'hurt';
     this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);

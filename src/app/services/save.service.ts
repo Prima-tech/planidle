@@ -190,6 +190,22 @@ export class SaveService {
     await this.saveLocal();
   }
 
+  /**
+   * Botón "Borrar todo": WIPE TOTAL de la cuenta. Borra TODO el storage de Ionic
+   * (todos los personajes, snapshots y datos globales: ciudad, tienda, cofre,
+   * logros/desbloqueos globales, kills…) más los datos de juego en localStorage.
+   * Deja la app como recién instalada. El llamador debe recargar tras esto para
+   * que los servicios singleton (asgard, unlocks, kills, talentos…) relean limpio.
+   */
+  async wipeAllData(): Promise<void> {
+    this._isRestoring = true;                 // corta el auto-save mientras borramos
+    await this.storage.clear();               // personajes + snapshots + globales
+    try { localStorage.removeItem('hud_skill_slots'); } catch { /* sin storage */ }
+    this.charId = null;
+    // No reseteamos _isRestoring: dejarlo en true evita que cualquier emisión
+    // tardía re-escriba estado obsoleto antes de la recarga del llamador.
+  }
+
   /** Botón "Guardar": escribe local y luego intenta remoto */
   async forceSave(): Promise<void> {
     await this.saveLocal();
