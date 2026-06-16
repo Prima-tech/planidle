@@ -211,34 +211,48 @@ $metal-dark: #6b6357;
     inset 0 0 0 2px $outline;
 }
 
-// Botón redondo de madera (mismo estilo que los del HUD de vida) que abre la
-// vista de recolección (bolsas + equipo secundario), arriba-dcha del sprite
+// Pestaña que cuelga del borde superior del marco (esquina dcha), integrada con la
+// caja (redondeada arriba, sin línea inferior). Alterna la vista de recolección
+// (bolsas + equipo secundario). Mismo lenguaje madera+piedra que las pestañas del HUD.
 .preview-corner-btn {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  background: $wood-btn;
+  top: -11px;
+  right: -5px;
+  width: 28px;
+  height: 13px;
+  border-radius: 6px 6px 0 0;
+  border-top: 3px solid $stone-light;
+  border-left: 3px solid $stone;
+  border-right: 3px solid $stone-dark;
+  border-bottom: none;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
   color: $text-brown;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 5;
-  font-size: 0.78em;
+  font-size: 0.7em;
   padding: 0;
+  /* Contorno en izquierda, derecha y arriba (sin línea inferior); sombra que no se
+     derrama hacia abajo (lado que se funde con el marco). */
   box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    0 2px 6px rgba(0, 0, 0, 0.5);
+    -1px 0 0 $outline,
+     1px 0 0 $outline,
+     0 -1px 0 $outline,
+    inset  1px 0 0 $outline,
+    inset -1px 0 0 $outline,
+    inset  0  1px 0 $outline,
+    0 -3px 4px rgba(0, 0, 0, 0.35);
   transition: background 0.15s;
 
-  &:hover  { background: $wood-btn-light; }
-  &:active { background: $wood-btn-dark; color: $text-cream; }
+  // Solo en dispositivos con puntero real: evita el :hover "pegado" en táctil.
+  @media (hover: hover) {
+    &:hover { background-color: $wood-btn-light; }
+  }
+  &:active { background-color: $wood-btn-dark; color: $text-cream; }
 }
 
 // Pastilla con los 6 stats base bajo el preview (2 columnas × 3 filas).
