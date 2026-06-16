@@ -112,32 +112,45 @@ $metal-dark: #6b6357;
 
 // ── Selector de personaje (botón arriba-dcha + roster desplegable) ───────────
 
+/* Pestaña vertical en el borde derecho (redondeada hacia fuera, sin línea izquierda
+   para fundirse con el widget), apuntando hacia el roster que abre a la derecha. */
 .char-switch-btn {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  background: $wood-btn;
+  top: -3px;
+  right: -9px;
+  width: 13px;
+  height: 22px;
+  border-radius: 0 6px 6px 0;
+  border-top: 3px solid $stone-light;
+  border-right: 3px solid $stone-dark;
+  border-bottom: 3px solid $stone-dark;
+  border-left: none;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
   color: $text-brown;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 56;
-  font-size: 0.78em;
+  font-size: 0.7em;
   padding: 0;
+  /* Sin nada en el lado izquierdo: contorno a la derecha + sombra que no se derrama
+     hacia la izquierda (desplazamiento ≥ desenfoque). */
   box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    0 2px 6px rgba(0, 0, 0, 0.5);
+     1px 0 0 $outline,
+    inset -1px 0 0 $outline,
+    inset  0  1px 0 $outline,
+    inset  0 -1px 0 $outline,
+    4px 0 4px rgba(0, 0, 0, 0.35);
   transition: background 0.15s;
 
-  &:hover  { background: $wood-btn-light; }
-  &:active { background: $wood-btn-dark; color: $text-cream; }
+  // Solo en dispositivos con puntero real: evita el :hover "pegado" en táctil.
+  @media (hover: hover) {
+    &:hover { background-color: $wood-btn-light; }
+  }
+  &:active { background-color: $wood-btn-dark; color: $text-cream; }
 }
 
 .char-roster {
