@@ -12,7 +12,7 @@
 
         <!-- Selector de personaje: despliega el roster hacia la derecha -->
         <button class="char-switch-btn" (click)="toggleCharList()">
-          <ion-icon [name]="charListOpen ? 'chevron-back-outline' : 'people-outline'"></ion-icon>
+          <ion-icon [name]="charListOpen ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
         </button>
 
         <div class="char-roster" *ngIf="charListOpen">
