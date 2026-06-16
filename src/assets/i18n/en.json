@@ -75,7 +75,9 @@
     "GAME": "Game",
     "INTERFACE": "Interface",
     "SHOW_JOYSTICK": "Show joystick",
-    "SHOW_JOYSTICK_DESC": "Visual only: touch movement works the same"
+    "SHOW_JOYSTICK_DESC": "Visual only: touch movement works the same",
+    "SHOW_FPS": "Show FPS / performance",
+    "SHOW_FPS_DESC": "Overlay with FPS, worst frame and enemy count to diagnose stutters"
   },
   "SHOP": {
     "TITLE": "Shop"

@@ -22,6 +22,16 @@
           </div>
         </div>
 
+        <div class="gs-row">
+          <div class="gs-row-info">
+            <span class="gs-row-title">{{ 'GAME_SETTINGS.SHOW_FPS' | translate }}</span>
+            <span class="gs-row-desc">{{ 'GAME_SETTINGS.SHOW_FPS_DESC' | translate }}</span>
+          </div>
+          <div class="gs-toggle" [class.on]="gs.showFps" (click)="gs.setShowFps(!gs.showFps)">
+            <div class="gs-toggle-thumb"></div>
+          </div>
+        </div>
+
       </div>
     </ng-container>
 

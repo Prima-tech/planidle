@@ -3,21 +3,12 @@ import { Subscription } from 'rxjs';
 import { debounceTime, startWith } from 'rxjs/operators';
 import { EquipmentService, EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { EQUIP_LAYER_REGISTRY } from 'src/app/pnj/player/equip-layer-registry';
+import { LayerSource, loadDecoded, bakeStrip } from './sprite-strip.util';
 
 const FRAME_SIZE     = 64;
 const PREVIEW_START  = 130;
 const PREVIEW_FRAMES = 9;
 const FRAME_MS       = 130;
-
-const IMG_CACHE = new Map<string, HTMLImageElement>();
-
-interface LayerSource {
-  src: string;
-  depth: number;
-  frameSize: number;   // px por frame en ESTA hoja (64 normal, 128 armas oversize)
-  startFrame: number;  // primer frame de walk_down (índice global en su propia rejilla)
-  frameCount: number;  // nº de frames del ciclo de andar (1 = pose estática)
-}
 
 @Component({
   selector: 'app-character-sprite',
@@ -113,50 +104,21 @@ export class CharacterSpriteComponent implements OnInit, OnChanges, OnDestroy {
 
   private async reload(): Promise<void> {
     const sources = this.buildLayers();
-    const imgs = await Promise.all(sources.map(s => this.loadImg(s.src)));
-    // Detener el loop anterior solo cuando las nuevas imágenes ya están listas
+    const imgs = await Promise.all(sources.map(s => loadDecoded(s.src)));
+    const strip = bakeStrip(sources, imgs, this.size, PREVIEW_FRAMES, FRAME_SIZE);
+    // Detener el loop anterior solo cuando el strip nuevo ya está listo
     clearTimeout(this.timer);
     this.frameIdx = 0;
-    this.startLoop(sources, imgs);
+    this.startLoop(strip);
   }
 
-  private loadImg(src: string): Promise<HTMLImageElement> {
-    const cached = IMG_CACHE.get(src);
-    if (cached?.naturalWidth > 0) return Promise.resolve(cached);
-    return new Promise(resolve => {
-      const img = new Image();
-      img.onload  = () => { IMG_CACHE.set(src, img); resolve(img); };
-      img.onerror = () => resolve(img);
-      img.src = src;
-      if (img.complete && img.naturalWidth > 0) { IMG_CACHE.set(src, img); resolve(img); }
-    });
-  }
-
-  private startLoop(sources: LayerSource[], imgs: HTMLImageElement[]): void {
-    const scale = this.size / FRAME_SIZE;   // el cuerpo (64px) llena el canvas
+  // El tick solo copia la columna del frame actual del strip ya horneado: blit
+  // canvas→canvas, sin decode ni redibujado de capas.
+  private startLoop(strip: HTMLCanvasElement): void {
     const tick = () => {
       this.ctx.clearRect(0, 0, this.size, this.size);
-
-      for (let i = 0; i < imgs.length; i++) {
-        const img = imgs[i];
-        if (img.naturalWidth === 0) continue;
-        const src = sources[i];
-
-        // Columnas reales de la hoja (no el nº de frames de walk) para mapear bien
-        // hojas LPC combinadas (13 cols) y oversize (128px). Cada capa cicla solo
-        // sus propios frames de walk: frameCount=1 → pose estática (sin slash).
-        const cols = Math.max(1, Math.round(img.naturalWidth / src.frameSize));
-        const frame = src.startFrame + (this.frameIdx % src.frameCount);
-        const sx = (frame % cols) * src.frameSize;
-        const sy = Math.floor(frame / cols) * src.frameSize;
-
-        // Centra el frame: las hojas oversize (128) tienen el personaje centrado,
-        // su región central de 64px se alinea con el cuerpo.
-        const dSize = src.frameSize * scale;
-        const dOff  = (this.size - dSize) / 2;
-        this.ctx.drawImage(img, sx, sy, src.frameSize, src.frameSize, dOff, dOff, dSize, dSize);
-      }
-
+      this.ctx.drawImage(strip, this.frameIdx * this.size, 0, this.size, this.size,
+                                0, 0, this.size, this.size);
       this.frameIdx = (this.frameIdx + 1) % PREVIEW_FRAMES;
       this.timer = setTimeout(tick, FRAME_MS);
     };

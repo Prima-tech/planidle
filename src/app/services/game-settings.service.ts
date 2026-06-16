@@ -6,12 +6,14 @@ import { map, distinctUntilChanged } from 'rxjs/operators';
 
 export interface GameSettings {
   showJoystick: boolean;
+  showFps: boolean;
 }
 
 const STORAGE_KEY = 'idle_game_settings';
 
 const DEFAULTS: GameSettings = {
   showJoystick: true,
+  showFps: false,
 };
 
 // ── Servicio ───────────────────────────────────────────────────────────────────
@@ -45,6 +47,10 @@ export class GameSettingsService {
   get showJoystick():  boolean { return this._settings.showJoystick; }
   get showJoystick$()          { return this._subject.pipe(map(s => s.showJoystick), distinctUntilChanged()); }
   setShowJoystick(v: boolean)  { this.set('showJoystick', v); }
+
+  get showFps():  boolean { return this._settings.showFps; }
+  get showFps$()          { return this._subject.pipe(map(s => s.showFps), distinctUntilChanged()); }
+  setShowFps(v: boolean)  { this.set('showFps', v); }
 
   // ── Persistencia ────────────────────────────────────────────────────────────
 

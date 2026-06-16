@@ -84,6 +84,19 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmNodeDots: Phaser.GameObjects.Arc[] = [];
   private mmAccum = 0;   // acumulador para throttlear el redibujado del minimapa
 
+  // ── Overlay de rendimiento (toggle en ajustes: showFps) ─────────────────────
+  private fpsText: Phaser.GameObjects.Text | null = null;
+  private fpsSub: Subscription | null = null;
+  private fpsAccum  = 0;   // ms acumulados desde el último refresco del texto
+  private fpsFrames = 0;   // frames contados en esa ventana
+  private fpsWorst  = 0;   // peor frame (delta máx) en la ventana actual
+  private spikeHold  = 0;  // peor frame retenido (ms) — mantiene el tirón visible
+  private spikeHoldT = 0;  // tiempo restante (ms) reteniendo ese peor frame
+  private drawsMax   = 0;  // pico de draw calls en la ventana actual
+  private hasDrawCounter = false;
+  private logicMax   = 0;  // pico de tiempo de lógica (GameScene.update) en la ventana
+  private renderMax  = 0;  // pico de tiempo de CPU de render (emisión del batch) en la ventana
+
   constructor() { super({ key: 'MobileHUDScene' }); }
 
   preload(): void {
@@ -99,6 +112,7 @@ export class MobileHUDScene extends Phaser.Scene {
     const input = this.registry.get(MOBILE_INPUT_KEY) as MobileInput;
 
     this.createMinimap(W);
+    this.createFpsOverlay();
 
     // ── Joystick ──────────────────────────────────────────────────────────────
     const jx = 110 * DPR, jy = H - 130 * DPR;
@@ -168,6 +182,8 @@ export class MobileHUDScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
+    this.updateFps(delta);
+
     // El minimapa corría a 120 fps (recorriendo enemigos/edificios/nodos y
     // reposicionando objetos cada frame). Un radar no necesita tanto: ~20 Hz basta
     // y libera CPU del hilo principal (clave cuando el móvil throttlea sin cable).
@@ -175,6 +191,129 @@ export class MobileHUDScene extends Phaser.Scene {
     if (this.mmAccum < 50) return;
     this.mmAccum = 0;
     this.updateMinimap();
+  }
+
+  // ── Overlay de rendimiento ────────────────────────────────────────────────────
+
+  private createFpsOverlay(): void {
+    // Reset (la escena se relanza en cada cambio de mapa)
+    this.fpsAccum = this.fpsFrames = this.fpsWorst = 0;
+    this.spikeHold = this.spikeHoldT = this.drawsMax = this.logicMax = this.renderMax = 0;
+    this.setupDrawCounter();
+
+    // Abajo a la izquierda, justo encima del footer (~51px CSS). Origen inferior
+    // (0,1) → la y marca la BASE del texto, así crece hacia arriba sin tapar el footer.
+    const FOOTER_H = 51 * DPR;
+    this.fpsText = this.add.text(8 * DPR, this.scale.height - FOOTER_H - 8 * DPR, '', {
+      fontFamily: 'monospace',
+      fontSize: `${10 * DPR}px`,
+      color: '#9effa0',
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      padding: { x: 4 * DPR, y: 3 * DPR },
+      lineSpacing: 2 * DPR,
+    });
+    this.fpsText.setOrigin(0, 1);
+    this.fpsText.setScrollFactor(0);
+    this.fpsText.setDepth(10000);
+
+    const gameSettings = this.game.registry.get(REGISTRY_KEYS.GAME_SETTINGS);
+    if (gameSettings) {
+      this.fpsText.setVisible(gameSettings.showFps);
+      this.fpsSub = gameSettings.showFps$.subscribe((v: boolean) => this.fpsText?.setVisible(v));
+    } else {
+      this.fpsText.setVisible(false);
+    }
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.fpsSub?.unsubscribe());
+  }
+
+  // Cuenta draw calls reales envolviendo el contexto WebGL. Phaser no expone esta
+  // métrica, pero es la que mejor explica el lag por GPU en móvil (fillrate/batching).
+  // Se engancha una sola vez (gl persiste toda la vida del juego, aunque la escena
+  // se relance por cambio de mapa), por eso el guard __dcWrapped.
+  private setupDrawCounter(): void {
+    const r  = this.game.renderer as any;
+    const gl = r.gl;
+    if (!gl) { this.hasDrawCounter = false; return; }
+    this.hasDrawCounter = true;
+    if (gl.__dcWrapped) return;
+    gl.__dcWrapped = true;
+    r.__drawCalls = 0;
+    r.__drawCallsLast = 0;
+
+    const elements = gl.drawElements.bind(gl);
+    gl.drawElements = function (...a: any[]) { r.__drawCalls++; return elements(...a); };
+    const arrays = gl.drawArrays.bind(gl);
+    gl.drawArrays = function (...a: any[]) { r.__drawCalls++; return arrays(...a); };
+
+    // PRE_RENDER: marca de inicio del render (CPU que tarda Phaser en emitir el batch)
+    this.game.events.on(Phaser.Core.Events.PRE_RENDER, () => {
+      r.__renderT0 = performance.now();
+    });
+    // POST_RENDER: draws del frame + tiempo de CPU de render (NO incluye la GPU async)
+    this.game.events.on(Phaser.Core.Events.POST_RENDER, () => {
+      r.__drawCallsLast = r.__drawCalls;
+      r.__drawCalls = 0;
+      r.__renderMs = performance.now() - (r.__renderT0 || performance.now());
+    });
+  }
+
+  private updateFps(delta: number): void {
+    if (!this.fpsText || !this.fpsText.visible) return;
+
+    this.fpsAccum += delta;
+    this.fpsFrames++;
+    if (delta > this.fpsWorst) this.fpsWorst = delta;
+
+    const draws = this.hasDrawCounter ? ((this.game.renderer as any).__drawCallsLast || 0) : 0;
+    if (draws > this.drawsMax) this.drawsMax = draws;
+
+    const logic = (this.game as any).__logicMs || 0;
+    if (logic > this.logicMax) this.logicMax = logic;
+
+    const render = (this.game.renderer as any).__renderMs || 0;
+    if (render > this.renderMax) this.renderMax = render;
+
+    if (this.fpsAccum < 500) return;   // refrescar el texto ~2 veces/seg
+
+    const avgFps  = Math.round((this.fpsFrames * 1000) / this.fpsAccum);
+    const worstMs = this.fpsWorst;
+    const minFps  = Math.round(1000 / worstMs);
+
+    // Retiene el peor frame ~3s para que un tirón puntual no desaparezca al instante
+    this.spikeHoldT -= this.fpsAccum;
+    if (worstMs >= this.spikeHold || this.spikeHoldT <= 0) {
+      this.spikeHold  = worstMs;
+      this.spikeHoldT = 3000;
+    }
+
+    const enemies = this.mmData ? this.mmData.enemies.filter(e => !e.isDead).length : 0;
+
+    let heap = '';
+    const mem = (performance as any).memory;
+    if (mem) heap = `  heap ${Math.round(mem.usedJSHeapSize / 1048576)}MB`;
+
+    const drawsLine = this.hasDrawCounter
+      ? `draws ${draws}  (pico ${this.drawsMax})\n`
+      : 'render Canvas (sin WebGL!)\n';
+
+    this.fpsText.setText(
+      `FPS ${avgFps}   min ${minFps}\n` +
+      `worst ${worstMs.toFixed(0)}ms  (3s ${this.spikeHold.toFixed(0)}ms)\n` +
+      `logic ${logic.toFixed(1)}ms  (pico ${this.logicMax.toFixed(1)})\n` +
+      `render ${render.toFixed(1)}ms  (pico ${this.renderMax.toFixed(1)})\n` +
+      drawsLine +
+      `enemigos ${enemies}${heap}`,
+    );
+    // Verde si todo fluido; rojo si hubo un frame > 22ms (< ~45fps) en los últimos 3s,
+    // o si cayó a Canvas (sin GL es lag asegurado en móvil)
+    this.fpsText.setColor(this.spikeHold > 22 || !this.hasDrawCounter ? '#ff5555' : '#9effa0');
+
+    this.fpsAccum  = 0;
+    this.fpsFrames = 0;
+    this.fpsWorst  = 0;
+    this.drawsMax  = 0;
+    this.logicMax  = 0;
+    this.renderMax = 0;
   }
 
   // ── Minimap ─────────────────────────────────────────────────────────────────

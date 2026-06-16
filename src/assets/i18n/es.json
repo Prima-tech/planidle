@@ -75,7 +75,9 @@
     "GAME": "Juego",
     "INTERFACE": "Interfaz",
     "SHOW_JOYSTICK": "Mostrar joystick",
-    "SHOW_JOYSTICK_DESC": "Solo visual: el movimiento táctil funciona igual"
+    "SHOW_JOYSTICK_DESC": "Solo visual: el movimiento táctil funciona igual",
+    "SHOW_FPS": "Mostrar FPS / rendimiento",
+    "SHOW_FPS_DESC": "Overlay con FPS, peor frame y nº de enemigos para diagnosticar tirones"
   },
   "SHOP": {
     "TITLE": "Tienda"

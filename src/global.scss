@@ -36,6 +36,20 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
+/* ── Canvas del juego: sin gestos del navegador ───────────────────────────────
+   El joystick se maneja por toque SOBRE el canvas de Phaser (mitad izquierda).
+   Sin touch-action:none, el WebView interpreta cada touchmove del arrastre como un
+   posible scroll/zoom/pan y hace trabajo de compositor en el hilo principal → tira
+   frames SOLO mientras mueves el dedo (independiente de resolución y de CPU del
+   juego). Esto fija el render a 60 durante el arrastre. */
+#game,
+#game canvas {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 ion-content {
   scrollbar-width: none;
   /* Firefox */

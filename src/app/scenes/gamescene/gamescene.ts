@@ -421,6 +421,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     override update(_time: number, delta: number) {
+      const __t0 = performance.now();
       this.gridControls.update();
 
       // Input manual (ataque o movimiento) → pausa la automatización unos segundos
@@ -499,6 +500,9 @@ export class GameScene extends Phaser.Scene {
       this.updatePet(delta, playerPos);
       this.player.syncLayers();
       this.player.getSprite().setDepth(playerPos.y);
+      // Diagnóstico: tiempo de lógica de la escena (lo lee el overlay de FPS para
+      // separar coste de update vs render). Coste despreciable (2× performance.now).
+      (this.game as any).__logicMs = performance.now() - __t0;
     }
 
     private runAutoAttack(delta: number): void {
