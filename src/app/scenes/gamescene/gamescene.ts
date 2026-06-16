@@ -2,7 +2,7 @@ import { Enemy } from "src/app/enemy/enemy";
 import { ActionConfig, ENEMY_REGISTRY, EnemyTypeConfig } from "src/app/enemy/enemy-config";
 import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
-import { GridDrops } from "src/app/physics/griddrops";
+import { GridDrops, ITEM_CATALOG } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
 import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MINIMAP_DATA_KEY } from "src/app/scenes/mobile-hud.scene";
 import { Direction } from "src/app/pnj/interfaces/Direction";
@@ -11,6 +11,7 @@ import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
 import { InteractionContext } from "src/app/services/interaction.service";
+import { GatheringSkillId } from "src/app/services/gathering-skills.service";
 import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
@@ -97,6 +98,11 @@ interface HarvestKind {
   offsetY: number;            // ajuste vertical (px) para asentar la base en la huella
   count: number;              // cuántos generar por mapa
   debris: number[];           // colores de los escombros al golpear
+  skill: GatheringSkillId;    // skill de recolección que progresa
+  xp: number;                 // XP otorgada al recolectar (destruir) el nodo
+  // Recurso soltado al destruir el nodo (nombre en ITEM_CATALOG). A futuro la
+  // cantidad/probabilidad la escalarán talentos y variables de la skill.
+  drop?: { name: string; min: number; max: number };
 }
 
 // Config por tipo de recurso. Añadir aquí nuevos recolectables (caña→peces, etc.).
@@ -105,11 +111,14 @@ const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
     texture: 'rock_mine', toolCategory: 'Pico', toolSlotId: 'pickaxe', context: 'mine',
     footprintW: 2, footprintH: 2, scale: 3, offsetY: 0, count: 3,
     debris: [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080],
+    skill: 'mining', xp: 1,   // XP base por piedra (1 tipo por ahora); modificadores futuros la escalan
   },
   tree: {
     texture: 'tree_chop', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',
     footprintW: 2, footprintH: 2, scale: 3.2, offsetY: 80, count: 3,
     debris: [0x6b4a2b, 0x8a5a2b, 0x4e7a32, 0x3c6b28],   // madera + hojas
+    skill: 'woodcutting', xp: 1,   // XP base por árbol; modificadores futuros la escalan
+    drop: { name: 'Madera', min: 1, max: 1 },   // suelta 1 madera al talar
   },
 };
 
@@ -1503,7 +1512,17 @@ export class GameScene extends Phaser.Scene {
       for (const k of node.tileKeys) this.collisionTiles.delete(k);   // libera la huella
 
       const kind = HARVEST_KINDS[node.kind];
+      // Progresión de la skill de recolección (minería / tala): XP al recolectar.
+      this.reg.gatheringSkills?.addXp(kind.skill, kind.xp);
       const s = node.sprite;
+      // Suelta el recurso del nodo (árbol → madera) sobre su base, en el suelo.
+      if (kind.drop) {
+        const base = ITEM_CATALOG.find(e => e.name === kind.drop!.name);
+        if (base) {
+          const loot = { ...base, minQty: kind.drop.min, maxQty: kind.drop.max };
+          this.gridDrops?.spawnDrop(new Phaser.Math.Vector2(s.x, s.y - GameScene.TILE_SIZE), loot);
+        }
+      }
       this.spawnDebris(s.x, s.y - GameScene.TILE_SIZE * 0.8, 16, kind.debris);   // estallido mayor
       this.cameras.main.shake(120, 0.005);
       this.tweens.killTweensOf(s);

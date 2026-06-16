@@ -87,7 +87,7 @@ tree: { texture:'tree_chop', toolCategory:'Hacha', toolSlotId:'axe',  context:'c
 ## Cómo extender
 
 - **Nuevo recurso (caña→pez, pala→…):** añade el PNG, cárgalo en `preload` (`this.load.image('clave', ...)`), añade una entrada a `HARVEST_KINDS` con su textura/herramienta/slot/contexto/huella/escala. El slot debe existir en `GatheringEquipmentService` y, si quieres icono de herramienta sobre el personaje, registra la herramienta con `toolLayer(...)` en el registry + entrada en `TOOLS_CATALOG`. Añade el contexto a `InteractionContext` + icono en `attack-button`.
-- **Drops al destruir (mineral/madera):** hoy `destroyNode` no suelta nada. Para soltar, replica el patrón de drops (`griddrops.ts` / `addDroppedItem`) dentro de `destroyNode` según `node.kind`.
+- **Drops al destruir (mineral/madera):** `destroyNode` suelta el recurso definido en `HARVEST_KINDS[kind].drop` (`{ name, min, max }`, nombre en `ITEM_CATALOG`) vía `gridDrops.spawnDrop` sobre la base del nodo. Hoy: árbol → `Madera` (1). La roca aún no suelta nada (añade un `drop` a su entrada). La cantidad/probabilidad la escalarán a futuro talentos/variables de skill.
 - **Dureza por herramienta/tier:** `equippedTool` devuelve el item; lee `stats`/tier para escalar nº de golpes.
 - **Persistir nodos:** hoy se regeneran por mapa; para guardarlos, al `GameSnapshot` (ver skill `save-pattern`).
 

@@ -167,6 +167,12 @@
     "UNLOCKED": "Unlocked!",
     "PENDING": "Pending"
   },
+  "GATHER_SKILLS": {
+    "MINING": "Mining",
+    "WOODCUTTING": "Woodcutting",
+    "LEVEL": "Level",
+    "TOTAL_GATHERED": "Gathered"
+  },
   "QUESTS": {
     "AVAILABLE": "Available",
     "COMPLETED": "Completed",

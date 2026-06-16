@@ -72,15 +72,18 @@ fuera y por dentro de la piedra.
 
 El `repeating-linear-gradient` son las vetas de la madera — siempre encima del color base.
 
-### 1b. Ventana flotante / popover / ficha (marco metálico + madera clara) ⭐ POR DEFECTO
+### 1b. Ventana flotante / popover / ficha / tarjeta de info (marco metálico + madera clara) ⭐ POR DEFECTO
 
-**Usar SIEMPRE esta receta para popovers, flyouts, fichas de detalle y tooltips.**
-NO usar fondo oscuro `$cell-bg` ni borde fino `$outline` para estas ventanas — ese es el
-estilo viejo y se ve mal. El look correcto es **bisel metálico gris + cara de madera clara
-`$wood-btn-dark`**, idéntico a la pastilla del nombre del personaje (`char-stats`).
+**Usar SIEMPRE esta receta para popovers, flyouts, fichas de detalle, tooltips Y
+cualquier tarjeta de información** (ej. la caja de enemigos/aliados que sale al pinchar
+un mapa, paneles de detalle de skill, etc.).
+NO usar fondo oscuro `$cell-bg` ni borde fino `$outline` para estas ventanas/tarjetas —
+ese es el estilo viejo y se ve mal. El look correcto es **bisel metálico gris + cara de
+madera oscura `$wood-btn-dark`**, idéntico a la ficha de detalles de talentos
+(`equipment.component.scss` → `.talent-node-card`) y a la pastilla del nombre (`char-stats`).
 
 ```scss
-.floating-window {   // popover, flyout, ficha de detalle, tooltip
+.floating-window {   // popover, flyout, ficha de detalle, tooltip, tarjeta de info
   padding: 8px 10px;
   color: $text-cream;
   background: $wood-btn-dark;            // madera clara — NO $cell-bg
@@ -110,8 +113,9 @@ estilo viejo y se ve mal. El look correcto es **bisel metálico gris + cara de m
 - Botón de acción compacto: solo icono, cuadrado ~28px, `margin-left: auto` para alinearlo
   a la derecha de su fila.
 
-**Referencia:** `equipment.component.scss` → `.talent-node-card` (picker de talentos) y
-`char-stats.component.scss` → `:host` (pastilla del nombre).
+**Referencia:** `equipment.component.scss` → `.talent-node-card` (picker de talentos),
+`char-stats.component.scss` → `:host` (pastilla del nombre) y
+`world-map-panel.component.scss` → `.map-info-card` (caja de enemigos/aliados del mapa).
 
 ### 2. Sección interior enmarcada (área de grid, sub-paneles)
 
@@ -257,7 +261,11 @@ activa = madera clara con texto marrón:
 }
 ```
 
-### 6. Placa oscura (monedas, contadores, previews)
+### 6. Placa oscura (SOLO contadores pequeños inline: monedas, cantidades)
+
+> **No usar para fichas ni tarjetas de info** (popovers, detalle de skill, caja del
+> mapa…). Esas van con la receta 1b (marco metálico + madera). Esta placa es solo para
+> un valor corto embebido (un contador de monedas, una cantidad sobre fondo oscuro).
 
 ```scss
 .plaque {
@@ -352,13 +360,14 @@ Y el `:host` del componente lleva `margin: 2px` para que el anillo exterior del
 3. **Madera siempre con vetas** (`repeating-linear-gradient` de la receta 1) en superficies grandes; en botones pequeños no hace falta.
 4. **Compacidad**: los paneles deben caber entre `top: 10px` y `bottom: 65px` — botones 32px, paddings ajustados, tabs con padding vertical 2px.
 5. **No tocar la lógica**: este tema es solo SCSS. Mantener clases, estructura HTML y bindings existentes (CDK drag&drop depende de ellas).
-6. **Popovers/flyouts/fichas = receta 1b** (marco metálico + madera clara `$wood-btn-dark`). NUNCA fondo oscuro `$cell-bg` con borde fino `$outline` — ese es el estilo viejo y queda mal. Sin botón ✕ de cerrar.
+6. **Popovers/flyouts/fichas/tarjetas de info = receta 1b** (marco metálico + madera `$wood-btn-dark`). Incluye cualquier caja que muestre datos al seleccionar algo (p. ej. la caja de enemigos/aliados del panel de mapa). NUNCA fondo oscuro `$cell-bg` con borde fino `$outline` — ese es el estilo viejo y queda mal. La placa oscura (receta 6) es solo para contadores pequeños inline, no para tarjetas. Sin botón ✕ de cerrar.
 
 ## Checklist
 
 - [ ] Paleta copiada al inicio del SCSS (incluidas las `$metal-*`)
 - [ ] Panel principal con marco piedra + vetas (receta 1)
-- [ ] Popovers/flyouts/fichas con marco metálico + madera clara (receta 1b), sin ✕
+- [ ] Popovers/flyouts/fichas/tarjetas de info con marco metálico + madera (receta 1b), sin ✕
+- [ ] Ninguna tarjeta/ficha usa la placa oscura (receta 6) — esa es solo para contadores inline
 - [ ] Secciones interiores enmarcadas (receta 2)
 - [ ] Botones/tabs/placas con sus recetas (valores con placa de monedas 6b)
 - [ ] Variante del modal-container en transparente (si aplica)

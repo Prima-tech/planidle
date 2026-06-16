@@ -16,6 +16,9 @@
     <button class="eq-vtab" [class.active]="activeTab === 4" (click)="activeTab = 4">
       <ion-icon name="git-network-outline"></ion-icon>
     </button>
+    <button class="eq-vtab" [class.active]="activeTab === 7" (click)="activeTab = 7">
+      <ion-icon name="leaf-outline"></ion-icon>
+    </button>
     <button class="eq-vtab" [class.active]="activeTab === 5" (click)="activeTab = 5">
       <ion-icon name="trophy-outline"></ion-icon>
     </button>
@@ -504,6 +507,60 @@
     </div>
 
   </div><!-- ach-panel -->
+
+  <!-- Tab 7: Skills de recolección (sub-pestañas por skill: minería, tala…) -->
+  <div class="skills-panel" *ngIf="activeTab === 7">
+
+    <!-- Sub-pestañas: una por skill -->
+    <div class="talent-tree-tabs">
+      <button class="talent-tree-tab" *ngFor="let sk of gatheringSkillTabs"
+              [class.active]="activeSkillTab === sk.id"
+              (click)="selectSkillTab(sk.id)">
+        <ion-icon [name]="sk.icon"></ion-icon>
+        <span>{{ sk.labelKey | translate }}</span>
+      </button>
+    </div>
+
+    <!-- Contenido de la skill activa: nivel + barra de XP -->
+    <ng-container *ngFor="let sk of gatheringSkillTabs">
+      <div class="skill-detail" *ngIf="activeSkillTab === sk.id">
+        <ng-container *ngIf="(gatheringSkills.skills$ | async) as _all">
+          <ng-container *ngIf="gatheringSkills.progress(sk.id) as p">
+
+            <div class="skill-head">
+              <div class="skill-icon-badge">
+                <ion-icon [name]="sk.icon"></ion-icon>
+              </div>
+              <div class="skill-head-text">
+                <span class="skill-name">{{ sk.labelKey | translate }}</span>
+                <span class="skill-level">
+                  {{ 'GATHER_SKILLS.LEVEL' | translate }} {{ p.level }}
+                  <span class="skill-level-max" *ngIf="p.max">MAX</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="skill-xp">
+              <div class="skill-xp-track">
+                <div class="skill-xp-fill" [style.width.%]="p.ratio * 100"></div>
+              </div>
+              <span class="skill-xp-label">
+                <ng-container *ngIf="!p.max">{{ p.intoLevel }} / {{ p.needed }} XP</ng-container>
+                <ng-container *ngIf="p.max">{{ p.totalXp }} XP</ng-container>
+              </span>
+            </div>
+
+            <div class="skill-stat-row">
+              <span class="skill-stat-label">{{ 'GATHER_SKILLS.TOTAL_GATHERED' | translate }}</span>
+              <span class="skill-stat-val">{{ p.gathered | number }}</span>
+            </div>
+
+          </ng-container>
+        </ng-container>
+      </div>
+    </ng-container>
+
+  </div><!-- skills-panel -->
 
   <!-- Tab 6: Misiones -->
   <div class="quest-panel" *ngIf="activeTab === 6">

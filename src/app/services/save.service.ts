@@ -5,6 +5,7 @@ import { PlayerStateService, PlayerState } from './player-state.service';
 import { InventoryService, InventoryItem } from './inventory.service';
 import { EquipmentService, EquipmentSnapshot, EquipmentLoadouts } from './equipment.service';
 import { GatheringEquipmentService } from './gathering-equipment.service';
+import { GatheringSkillsService, GatheringSkillsSnapshot } from './gathering-skills.service';
 import { SupabaseService } from './supabase.service';
 import { WorldService } from './world.service';
 import { KillService, KillMap } from './kill.service';
@@ -36,6 +37,8 @@ export interface GameSnapshot {
   equipmentLoadouts?: EquipmentLoadouts;
   /** Los 3 sets de equipo de recolección (pico, hacha, mochila…) */
   gatheringLoadouts?: EquipmentLoadouts;
+  /** Progresión de skills de recolección (minería, tala): XP + nivel */
+  gatheringSkills?: GatheringSkillsSnapshot;
   mapId: string;
   kills: KillMap;
   /** Config activa de talentos (compat: saves antiguos de una sola config) */
@@ -74,6 +77,7 @@ export class SaveService {
     private inventory: InventoryService,
     private equipment: EquipmentService,
     private gathering: GatheringEquipmentService,
+    private gatheringSkills: GatheringSkillsService,
     private supabase: SupabaseService,
     private world: WorldService,
     private kills: KillService,
@@ -89,7 +93,7 @@ export class SaveService {
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
-    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.gathering.changes$, this.talent.changes$, this.skillEquip.changes$)
+    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.gathering.changes$, this.gatheringSkills.changes$, this.talent.changes$, this.skillEquip.changes$)
       .pipe(
         skip(1),
         filter(() => !this.isRestoring),
@@ -125,6 +129,7 @@ export class SaveService {
       this.inventory.restoreFromSnapshot(snapshot.inventory);
       this.equipment.restoreLoadouts(snapshot.equipmentLoadouts, snapshot.equipment ?? null);
       this.gathering.restoreLoadouts(snapshot.gatheringLoadouts ?? null);
+      this.gatheringSkills.restoreFromSnapshot(snapshot.gatheringSkills ?? null);
       // Sincronizar: si los saves divergen, gathering sigue al combate
       if (this.gathering.activeLoadout !== this.equipment.activeLoadout) {
         this.gathering.switchLoadout(this.equipment.activeLoadout);
@@ -143,6 +148,7 @@ export class SaveService {
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
       this.equipment.restoreLoadouts(null, null);
       this.gathering.restoreLoadouts(null);
+      this.gatheringSkills.restoreFromSnapshot(null);
       this.world.setCurrentMap('hogar');
       this.kills.restoreCharKills({});
       this.talent.restoreLoadouts(null, null);
@@ -178,6 +184,7 @@ export class SaveService {
     this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
     this.equipment.clearAll();
     this.gathering.clearAll();
+    this.gatheringSkills.clearAll();
     this.talent.restoreLoadouts(null, null);
     this.charStats.resetStats();
     await this.unlocks.clearAll();
@@ -234,6 +241,7 @@ export class SaveService {
       equipment:    this.equipment.getSnapshot(),
       equipmentLoadouts: this.equipment.getLoadoutsSnapshot(),
       gatheringLoadouts: this.gathering.getLoadoutsSnapshot(),
+      gatheringSkills: this.gatheringSkills.getSnapshot(),
       mapId:        this.world.getCurrentMap().id,
       kills:        this.kills.getCharKillsSnapshot(),
       talents:      this.talent.getSnapshot(),

@@ -23,6 +23,7 @@ import { REGISTRY_KEYS } from 'src/app/scenes/game-registry';
 import { CharacterStatsService } from 'src/app/services/character-stats.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { GatheringEquipmentService } from 'src/app/services/gathering-equipment.service';
+import { GatheringSkillsService } from 'src/app/services/gathering-skills.service';
 import { SummonService } from 'src/app/services/summon.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { BuffService } from 'src/app/services/buff.service';
@@ -95,6 +96,7 @@ export class LayoutComponent implements OnDestroy {
     private interactionService: InteractionService,
     private cityBuildService: CityBuildService,
     private gatheringEquipmentService: GatheringEquipmentService,
+    private gatheringSkillsService: GatheringSkillsService,
     private connectionService: ConnectionService,
   ) {
     this.loadGame();
@@ -251,6 +253,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.INTERACTION,     this.interactionService);
     this.phaserGame.registry.set(REGISTRY_KEYS.CITY_BUILD,      this.cityBuildService);
     this.phaserGame.registry.set(REGISTRY_KEYS.GATHERING,       this.gatheringEquipmentService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.GATHERING_SKILLS, this.gatheringSkillsService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

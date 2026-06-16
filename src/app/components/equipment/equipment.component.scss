@@ -365,7 +365,22 @@ $metal-dark: #6b6357;
   }
 }
 
-// Contenido del panel de info (usa el marco/posición de .stats-flyout)
+// Contenido del panel de info (usa la posición de .stats-flyout).
+// Ficha de detalle → receta 1b: marco metálico + madera oscura, igual que la
+// ficha de detalles de talentos (.talent-node-card). El selector compuesto sube
+// la especificidad para pisar el marco madera+piedra de .talent-picker-flyout base.
+.talent-picker-flyout.ach-flyout {
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
 .ach-flyout {
   display: flex;
   flex-direction: column;
@@ -379,8 +394,8 @@ $metal-dark: #6b6357;
 
   ion-icon {
     font-size: 26px;
-    color: rgba(83, 48, 28, 0.45);
-    &.unlocked { color: #b8862a; }
+    color: rgba(236, 217, 180, 0.4);   // bloqueado: crema apagado sobre madera oscura
+    &.unlocked { color: #f0c040; }
   }
 }
 
@@ -390,14 +405,15 @@ $metal-dark: #6b6357;
   font-size: 0.8em;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: $text-brown;
+  color: #ffd700;                       // dorado sobre la madera (como tpicker-name)
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .ach-info-desc {
   margin: 0;
   font-size: 0.68em;
   line-height: 1.45;
-  color: #6b4226;
+  color: rgba(236, 217, 180, 0.8);     // crema sobre madera oscura
 }
 
 .ach-info-progress {
@@ -424,7 +440,7 @@ $metal-dark: #6b6357;
 .ach-info-count {
   font-size: 0.66em;
   font-weight: 700;
-  color: $text-brown;
+  color: rgba(236, 217, 180, 0.85);    // crema sobre madera oscura
   text-align: right;
 }
 
@@ -1995,3 +2011,115 @@ $metal-dark: #6b6357;
 
 .pet-bind-cancel  { background: #7a4a2c; }
 .pet-bind-confirm { background: #2f6d4a; }
+
+// ── Tab 7: Skills de recolección (minería, tala…) ────────────────────────────
+.skills-panel {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skill-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.skill-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 8px;
+  padding: 9px 11px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.skill-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 2px solid $outline;
+  border-radius: 7px;
+  background: $wood-btn-dark;
+  box-shadow: inset 0 0 0 1px $wood-btn-light;
+
+  ion-icon { font-size: 1.3em; color: $text-cream; }
+}
+
+.skill-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.skill-name {
+  font-size: 0.82em;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.skill-level {
+  font-size: 0.7em;
+  color: $text-cream;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.skill-level-max {
+  font-size: 0.85em;
+  font-weight: 700;
+  color: #f0c040;
+}
+
+.skill-xp {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skill-xp-track {
+  width: 100%;
+  height: 9px;
+  background: $cell-border;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid $outline;
+}
+
+.skill-xp-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #5fae3a, #8fd45f);
+  transition: width 0.4s ease;
+}
+
+.skill-xp-label {
+  align-self: flex-end;
+  font-size: 0.66em;
+  font-weight: 700;
+  color: $text-cream;
+}
+
+.skill-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  padding: 7px 10px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.skill-stat-label { font-size: 0.7em;  color: $text-cream; }
+.skill-stat-val   { font-size: 0.8em;  font-weight: bold; color: #8fd45f; }

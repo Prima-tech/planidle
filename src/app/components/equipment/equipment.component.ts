@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { EquipmentService, EquipmentSlot } from 'src/app/services/equipment.service';
 import { GatheringEquipmentService, GatheringSlot } from 'src/app/services/gathering-equipment.service';
+import { GatheringSkillsService, GATHERING_SKILLS, GatheringSkillId } from 'src/app/services/gathering-skills.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown, MagicDamageBreakdown, RegenBreakdown, DropRateBreakdown } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
@@ -54,6 +55,16 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; this.selectedEquippedItem = null; }
     if (v !== 5) this.selectedAch = null;
     if (v === 6) this.badges.clear('equip.quests');
+  }
+
+  // ── Skills de recolección (tab 7) ────────────────────────────────────────────
+
+  /** Sub-pestañas: una por skill (minería, tala…). */
+  readonly gatheringSkillTabs = GATHERING_SKILLS;
+  activeSkillTab: GatheringSkillId = GATHERING_SKILLS[0].id;
+
+  selectSkillTab(id: GatheringSkillId): void {
+    this.activeSkillTab = id;
   }
 
   // ── Misiones (tab 6) ─────────────────────────────────────────────────────────
@@ -501,6 +512,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   constructor(
     public equipmentService: EquipmentService,
     public gatheringService: GatheringEquipmentService,
+    public gatheringSkills: GatheringSkillsService,
     private inventoryService: InventoryService,
     public charStats: CharacterStatsService,
     public playerState: PlayerStateService,
@@ -510,7 +522,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._activeTab = this.panelState.get('equip.tab', 0);
     // Tabs ya retiradas (1 recolección fusionada, 3 árbol Phaser) o fuera de rango → al primero
-    if (this._activeTab > 6 || this._activeTab === 1 || this._activeTab === 3) this._activeTab = 0;
+    if (this._activeTab > 7 || this._activeTab === 1 || this._activeTab === 3) this._activeTab = 0;
     if (this._activeTab === 4) this.initPan();
     // Publica el estado para el comparador del inventario
     this.equipPanel.open = true;
