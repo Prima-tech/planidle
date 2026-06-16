@@ -325,6 +325,16 @@ const RESOURCES_CATALOG: LootEntry[] = [
     scale: 0.15, order: 6,
     description: 'Madera recolectada. Material de construcción.',
   },
+  {
+    name: 'Piedra Molida',
+    category: 'Recurso',
+    type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'crushed_stone',
+    icon: 'assets/icon/resources/mining/polvo.png',
+    scale: 2, order: 6,
+    description: 'Piedra molida obtenida al minar. Material de construcción.',
+  },
 ];
 
 // ── Pociones (consumibles) ───────────────────────────────────────────────────

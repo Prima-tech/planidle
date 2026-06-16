@@ -112,6 +112,7 @@ const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
     footprintW: 2, footprintH: 2, scale: 3, offsetY: 0, count: 3,
     debris: [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080],
     skill: 'mining', xp: 1,   // XP base por piedra (1 tipo por ahora); modificadores futuros la escalan
+    drop: { name: 'Piedra Molida', min: 1, max: 1 },   // suelta 1 piedra molida al minar
   },
   tree: {
     texture: 'tree_chop', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',
@@ -265,6 +266,7 @@ export class GameScene extends Phaser.Scene {
 
       // Recursos (drop al suelo desde el panel de invocación)
       this.load.image('wood', 'assets/icon/resources/wood.png');
+      this.load.image('crushed_stone', 'assets/icon/resources/mining/polvo.png');
 
       // Recursos recolectables (se colocan en mapas que no son el hogar)
       this.load.image('rock_mine', 'assets/sprites/map/skills/rocks/Rock1_3.png');
@@ -1519,7 +1521,12 @@ export class GameScene extends Phaser.Scene {
       if (kind.drop) {
         const base = ITEM_CATALOG.find(e => e.name === kind.drop!.name);
         if (base) {
-          const loot = { ...base, minQty: kind.drop.min, maxQty: kind.drop.max };
+          // Talentos de minería multiplican el botín de las rocas: mult = 1 + suma de
+          // miningDrop (base 1 sin gema → ×2). Solo aplica a la skill 'mining'.
+          const dropMult = kind.skill === 'mining'
+            ? 1 + (this.reg.talent?.getBonus().miningDrop ?? 0)
+            : 1;
+          const loot = { ...base, minQty: kind.drop.min * dropMult, maxQty: kind.drop.max * dropMult };
           this.gridDrops?.spawnDrop(new Phaser.Math.Vector2(s.x, s.y - GameScene.TILE_SIZE), loot);
         }
       }

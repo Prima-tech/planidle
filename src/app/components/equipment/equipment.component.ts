@@ -53,7 +53,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       this.talentExpanded = false;
     }
     if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; this.selectedEquippedItem = null; }
-    if (v !== 5) this.selectedAch = null;
+    if (v !== 5) { this.selectedAch = null; this.expandedAchId = null; }
     if (v === 6) this.badges.clear('equip.quests');
   }
 
@@ -153,14 +153,21 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   achScope: AchievementScope = 'char';
   selectedAch: AchievementDef | null = null;
+  /** Logro con la tarjeta desplegada (formato tarjeta, como misiones). */
+  expandedAchId: string | null = null;
 
   setAchScope(scope: AchievementScope): void {
     this.achScope = scope;
     this.selectedAch = null;
+    this.expandedAchId = null;
   }
 
   selectAch(a: AchievementDef): void {
     this.selectedAch = this.selectedAch?.id === a.id ? null : a;
+  }
+
+  toggleAch(a: AchievementDef): void {
+    this.expandedAchId = this.expandedAchId === a.id ? null : a.id;
   }
 
   // Flyout de stats (tab 0): se abre al pinchar la pastilla, a la derecha del panel
@@ -444,9 +451,11 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     return !!this.selectedNodeId && this.talent.canUnlock(this.selectedNodeId);
   }
 
-  /** El nodo seleccionado ya está desbloqueado (admite gemas) */
+  /** El nodo seleccionado ya está desbloqueado (admite gemas). Usa el estado REAL,
+   *  no el override de admin: si no, en admin todos los nodos cuentan como
+   *  desbloqueados y nunca se mostraría el botón de desbloquear (la estrella). */
   selectedIsUnlocked(): boolean {
-    return !!this.selectedNodeId && this.talent.isUnlocked(this.selectedNodeId);
+    return !!this.selectedNodeId && this.talent.isReallyUnlocked(this.selectedNodeId);
   }
 
   unlockSelected(): void {
@@ -501,6 +510,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       case 'hpRegen':    return `+${val} HP/regen`;
       case 'mpRegen':    return `+${val} MP/regen`;
       case 'dropRate':   return `+${val}% DROP`;
+      case 'miningEfficiency': return `+${val}% MIN`;
+      case 'miningDrop':       return `×${1 + val} botín MIN`;
       default:           return `+${val} ATK`;
     }
   }

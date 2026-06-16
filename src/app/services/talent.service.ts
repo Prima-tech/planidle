@@ -11,7 +11,11 @@ export const SPHERE_TYPES: SphereType[] = ['normal', 'rare', 'epic'];
 export const ROOT_NODE_ID = 'c0';
 
 export interface TalentEffect {
-  type:     'atk' | 'magicAtk' | 'hp' | 'mp' | 'defense' | 'evasion' | 'critChance' | 'hpRegen' | 'mpRegen' | 'dropRate' | 'ability';
+  // 'miningEfficiency': eficiencia de minería (%). Efecto de juego pendiente de definir;
+  //   por ahora solo suma en getBonus() y se muestra en la ficha del talento.
+  // 'miningDrop': botín extra al minar. El multiplicador de drop de las rocas es
+  //   (1 + suma de miningDrop). base 1 sin gema → ×2 (doble); con gema escala.
+  type:     'atk' | 'magicAtk' | 'hp' | 'mp' | 'defense' | 'evasion' | 'critChance' | 'hpRegen' | 'mpRegen' | 'dropRate' | 'miningEfficiency' | 'miningDrop' | 'ability';
   base:     number;
   ability?: string;
   /** Solo para type 'ability': a qué daño suma su `base`. Por defecto 'magic'. */
@@ -152,10 +156,10 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 16, row: 4,  requires: ['s1a1'], effect: { type: 'atk', base: 0 } },
   { id: 's1a3', label: '', icon: 'ellipse-outline', num: 33,
     col: 17, row: 3,  requires: ['s1a2'], effect: { type: 'atk', base: 0 } },
-  { id: 's1b1', label: '', icon: 'ellipse-outline', num: 34,
-    col: 15, row: 6,  requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's1b2', label: '', icon: 'ellipse-outline', num: 35, small: true,
-    col: 15, row: 7,  requires: ['s1b1'], effect: { type: 'atk', base: 0 } },
+  { id: 's1b1', label: 'Eficiencia\nde Minería', icon: 'hammer-outline', num: 34, small: true,
+    col: 15, row: 6,  requires: ['n1_2'], effect: { type: 'miningEfficiency', base: 1 } },
+  { id: 's1b2', label: 'Doble Botín\nde Minería', icon: 'cube-outline', num: 35, small: true,
+    col: 15, row: 7,  requires: ['s1b1'], effect: { type: 'miningDrop', base: 1 } },
   { id: 's1b3', label: '', icon: 'ellipse-outline', num: 36,
     col: 16, row: 8,  requires: ['s1b2'], effect: { type: 'atk', base: 0 } },
 
@@ -727,8 +731,8 @@ export class TalentService {
     this.changes$.next();
   }
 
-  getBonus(): { atk: number; magicAtk: number; hp: number; mp: number; defense: number; evasion: number; critChance: number; hpRegen: number; mpRegen: number; dropRate: number; abilities: string[] } {
-    let atk = 0, magicAtk = 0, hp = 0, mp = 0, defense = 0, evasion = 0, critChance = 0, hpRegen = 0, mpRegen = 0, dropRate = 0;
+  getBonus(): { atk: number; magicAtk: number; hp: number; mp: number; defense: number; evasion: number; critChance: number; hpRegen: number; mpRegen: number; dropRate: number; miningEfficiency: number; miningDrop: number; abilities: string[] } {
+    let atk = 0, magicAtk = 0, hp = 0, mp = 0, defense = 0, evasion = 0, critChance = 0, hpRegen = 0, mpRegen = 0, dropRate = 0, miningEfficiency = 0, miningDrop = 0;
     const abilities: string[] = [];
     for (const node of this.nodes) {
       // Solo cuentan los nodos REALMENTE desbloqueados (admin NO suma bonos, solo
@@ -757,6 +761,10 @@ export class TalentService {
         mpRegen += value;
       } else if (node.effect.type === 'dropRate') {
         dropRate += value;
+      } else if (node.effect.type === 'miningEfficiency') {
+        miningEfficiency += value;
+      } else if (node.effect.type === 'miningDrop') {
+        miningDrop += value;
       } else if (node.effect.type === 'ability') {
         // El base de la habilidad suma a su escuela: físico (guerrero) o mágico (elementales, por defecto).
         if ((node.effect.school ?? 'magic') === 'physical') atk += value;
@@ -764,7 +772,7 @@ export class TalentService {
         if (node.effect.ability) abilities.push(node.effect.ability);
       }
     }
-    return { atk, magicAtk, hp, mp, defense, evasion, critChance, hpRegen, mpRegen, dropRate, abilities };
+    return { atk, magicAtk, hp, mp, defense, evasion, critChance, hpRegen, mpRegen, dropRate, miningEfficiency, miningDrop, abilities };
   }
 
   getSnapshot(): TalentSnapshot {

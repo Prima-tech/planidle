@@ -322,14 +322,18 @@ $metal-dark: #6b6357;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 5px;
-  padding: 6px;
-  background: $grid-bg;
-  border: 4px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 8px;
+  padding: 8px;
+  /* Marco metálico + madera oscura (receta 1b), igual que la ficha de detalle.
+     Las celdas oscuras hundidas quedan como slots sobre la madera. */
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
   box-shadow:
-    0 0 0 2px $outline,
-    inset 0 0 0 2px $outline;
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.7);
 }
 
 .ach-cell {
@@ -964,6 +968,26 @@ $metal-dark: #6b6357;
     box-shadow:
       inset 0 0 0 1px $wood-btn-light,
       inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+}
+
+// "Cambiar todo" en logros: sub-pestañas (char/global) con bisel metálico, en
+// línea con la rejilla y la ficha (receta 1b). Scoped a .ach-panel para NO tocar
+// estas mismas sub-pestañas en el árbol de talentos.
+.ach-panel .talent-tree-tab {
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+
+  &.active,
+  &:hover {
+    background: $wood-btn;
+    color: $text-brown;
+    border-color: $metal-light $metal-dark $metal-dark $metal;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $wood-btn-light;
   }
 }
 
