@@ -53,37 +53,68 @@ $metal-dark: #6b6357;
   min-width: 190px;
 }
 
-// ── Botón flotante para abrir panel del mapa ─────────────────────────────────
+// ── Tirador del panel del mapa: pestaña integrada en la caja ──────────────────
 
-/* Mismo estilo que .talent-expand-btn (equipamiento → talentos) */
+/* Pull-tab centrado en el borde inferior del widget. Mismo cuerpo de madera +
+   marco de piedra que la caja, así parece su asa. Al abrir, se posa sobre la
+   junta widget↔panel y los enlaza visualmente como una sola pieza. */
 .map-open-btn {
   position: absolute;
-  bottom: -8px;
-  left: 5px;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  background: $wood-btn;
+  bottom: -7px;
+  left: 0;
+  width: 34px;
+  height: 13px;
+  border-radius: 0 0 6px 6px;
+  border: 3px solid;
+  border-color: $stone $stone-dark $stone-dark $stone;
+  border-top: none;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
   color: $text-brown;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 55;
-  font-size: 0.78em;
+  font-size: 0.7em;
   padding: 0;
   flex-shrink: 0;
+  /* Contorno solo en izquierda, derecha y abajo (sin línea superior, para que el
+     tirador se funda con el cuerpo del widget cuando está cerrado). */
+  box-shadow:
+    -1px 0 0 $outline,
+     1px 0 0 $outline,
+     0 1px 0 $outline,
+    inset  1px 0 0 $outline,
+    inset -1px 0 0 $outline,
+    inset  0 -1px 0 $outline,
+    0 3px 5px rgba(0, 0, 0, 0.45);
+  transition: background 0.15s, border-radius 0.18s, bottom 0.18s;
+
+  ion-icon { transition: transform 0.18s; }
+
+  // Solo en dispositivos con puntero real: en táctil el :hover se queda "pegado"
+  // tras tocar y dejaría el tirador aclarado como si siguiera activo.
+  @media (hover: hover) {
+    &:hover { background-color: $wood-btn-light; }
+  }
+  &:active { background-color: $wood-btn-dark; color: $text-cream; }
+}
+
+/* Abierto: la pestaña se asienta sobre la junta (borde recto arriba y abajo) para
+   leer como un nexo entre el widget y el panel desplegado. */
+.char-block--open .map-open-btn {
+  bottom: -8px;
+  border-radius: 0;
+  border-top: 3px solid;
+  border-color: $stone $stone-dark $stone-dark $stone;
   box-shadow:
     0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    0 2px 6px rgba(0, 0, 0, 0.5);
-  transition: background 0.15s;
+    inset 0 0 0 1px $outline;
 
-  &:hover  { background: $wood-btn-light; }
-  &:active { background: $wood-btn-dark; color: $text-cream; }
+  /* Seleccionado (panel abierto): el hover no aclara el fondo. */
+  &:hover { background-color: $wood-bg; }
 }
 
 // ── Selector de personaje (botón arriba-dcha + roster desplegable) ───────────
@@ -226,7 +257,7 @@ $metal-dark: #6b6357;
   top: 100%;
   left: 0;
   right: 0;
-  padding: 8px 8px 8px;
+  padding: 12px 8px 8px;
   display: flex;
   flex-direction: column;
   gap: 5px;

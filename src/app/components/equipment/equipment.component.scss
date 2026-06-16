@@ -321,10 +321,10 @@ $metal-dark: #6b6357;
 .ach-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
+  gap: 7px;
   padding: 8px;
-  /* Marco metálico + madera oscura (receta 1b), igual que la ficha de detalle.
-     Las celdas oscuras hundidas quedan como slots sobre la madera. */
+  /* Agrupación: madera oscura ($wood-btn-dark #8a5530) + marco metálico.
+     Estándar de paneles — ver skill rpg-theme (receta "panel/agrupación"). */
   background: $wood-btn-dark;
   border: 3px solid;
   border-color: $metal-light $metal-dark $metal-dark $metal;
@@ -341,29 +341,36 @@ $metal-dark: #6b6357;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $cell-bg;
-  border: 2px solid $cell-border;
+  /* Casilla marrón clara con bisel metálico propio */
+  background: $cell-bg-light;
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
   border-radius: 5px;
   cursor: pointer;
   padding: 0;
   box-shadow:
+    0 0 0 1px $outline,
     inset 0 2px 4px rgba(0, 0, 0, 0.4),
     0 1px 0 rgba(255, 255, 255, 0.06);
   transition: border-color 0.15s, box-shadow 0.15s;
 
   ion-icon {
     font-size: 22px;
-    color: rgba(236, 217, 180, 0.35);   // bloqueado: apagado
+    color: #fceeb8;                      // crema brillante, igual que .slot-placeholder
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+    opacity: 0.65;                       // bloqueado: atenuado pero legible
   }
 
   &.unlocked ion-icon {
     color: #f0c040;                      // conseguido: dorado
+    opacity: 1;
     filter: drop-shadow(0 0 4px rgba(240, 192, 64, 0.5));
   }
 
   &.selected {
     border-color: lighten($purple, 14%);
     box-shadow:
+      0 0 0 1px $outline,
       inset 0 2px 4px rgba(0, 0, 0, 0.4),
       0 0 8px rgba(140, 95, 132, 0.9);
   }

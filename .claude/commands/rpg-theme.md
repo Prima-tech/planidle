@@ -27,7 +27,8 @@ $wood-bg-dark: #935f34;   // madera oscura
 $wood-btn: #c08349;       // madera de botones/placas
 $wood-btn-light: #d99a5c;
 $wood-btn-dark: #8a5530;
-$cell-bg: #38241d;        // interior de celdas
+$cell-bg: #38241d;        // interior de celdas (oscuro)
+$cell-bg-light: #8a5e3c;  // interior de casillas marrón claro (estándar de celdas)
 $cell-border: #21130e;
 $grid-bg: #4a3023;        // fondo del área de grid
 $text-brown: #53301c;     // texto sobre madera clara
@@ -117,38 +118,54 @@ madera oscura `$wood-btn-dark`**, idéntico a la ficha de detalles de talentos
 `char-stats.component.scss` → `:host` (pastilla del nombre) y
 `world-map-panel.component.scss` → `.map-info-card` (caja de enemigos/aliados del mapa).
 
-### 2. Sección interior enmarcada (área de grid, sub-paneles)
+### 2. Agrupación / sección interior enmarcada (área de grid, sub-paneles) ⭐ ESTÁNDAR
 
-Igual que el panel pero con borde 4px y fondo marrón oscuro:
+**Toda agrupación de elementos (rejilla de celdas, lista, sub-panel) va con marco
+metálico + cara de madera oscura `$wood-btn-dark` (#8a5530)** — mismo bisel que las
+ventanas flotantes (receta 1b). NO usar el viejo marco de piedra + `$grid-bg`: queda
+distinto al resto y rompe la coherencia. Todos los paneles deben verse iguales.
 
 ```scss
-.framed-section {
-  padding: 6px;
-  background: $grid-bg;
-  border: 4px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 8px;
+.framed-section {   // rejilla de logros, área de grid, cualquier agrupación
+  padding: 8px;
+  background: $wood-btn-dark;            // #8a5530 — NO $grid-bg
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;  // bisel metálico
+  border-radius: 7px;
   box-shadow:
-    0 0 0 2px $outline,
-    inset 0 0 0 2px $outline;
+    0 0 0 1px $outline,                  // contorno exterior
+    inset 0 0 0 1px $outline,            // contorno interior
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),  // reflejo metálico superior
+    0 4px 16px rgba(0, 0, 0, 0.7);       // sombra de elevación
 }
 ```
 
-### 3. Celdas de grid (hundidas)
+**Referencia:** `equipment.component.scss` → `.ach-grid` (rejilla de logros).
+
+### 3. Celdas de grid (hundidas, con bisel metálico)
+
+Cada celda lleva su propio **bisel metálico** (igual que la agrupación que las contiene),
+sobre cara marrón clara `$cell-bg-light`:
 
 ```scss
 .cell {
   width: 46px;
   height: 46px;
   margin: 2px;
-  background-color: $cell-bg;
-  border: 2px solid $cell-border;
+  background-color: $cell-bg-light;      // marrón claro
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;  // bisel metálico
   border-radius: 5px;
   box-shadow:
+    0 0 0 1px $outline,                   /* contorno oscuro */
     inset 0 2px 4px rgba(0, 0, 0, 0.4),   /* hundido */
     0 1px 0 rgba(255, 255, 255, 0.06);     /* brillo pixel en el borde inferior */
 }
 ```
+
+> `$cell-bg-light` (#8a5e3c) es el marrón claro de las casillas equipables.
+> El icono/placeholder dentro va en crema brillante `#fceeb8` (atenuado si está
+> bloqueado/vacío, dorado `#f0c040` si activo/conseguido).
 
 Selección (celda púrpura como en el mockup):
 
@@ -361,6 +378,7 @@ Y el `:host` del componente lleva `margin: 2px` para que el anillo exterior del
 4. **Compacidad**: los paneles deben caber entre `top: 10px` y `bottom: 65px` — botones 32px, paddings ajustados, tabs con padding vertical 2px.
 5. **No tocar la lógica**: este tema es solo SCSS. Mantener clases, estructura HTML y bindings existentes (CDK drag&drop depende de ellas).
 6. **Popovers/flyouts/fichas/tarjetas de info = receta 1b** (marco metálico + madera `$wood-btn-dark`). Incluye cualquier caja que muestre datos al seleccionar algo (p. ej. la caja de enemigos/aliados del panel de mapa). NUNCA fondo oscuro `$cell-bg` con borde fino `$outline` — ese es el estilo viejo y queda mal. La placa oscura (receta 6) es solo para contadores pequeños inline, no para tarjetas. Sin botón ✕ de cerrar.
+7. **Toda agrupación = marco metálico + `$wood-btn-dark` (#8a5530)** (receta 2). Rejillas, listas y sub-paneles van con bisel metálico y madera oscura, igual que las ventanas flotantes. NUNCA marco de piedra + `$grid-bg` para agrupaciones (estilo viejo). Las celdas dentro llevan su propio bisel metálico sobre `$cell-bg-light` (receta 3). **Todos los paneles iguales, sin excepciones.**
 
 ## Checklist
 
@@ -368,7 +386,8 @@ Y el `:host` del componente lleva `margin: 2px` para que el anillo exterior del
 - [ ] Panel principal con marco piedra + vetas (receta 1)
 - [ ] Popovers/flyouts/fichas/tarjetas de info con marco metálico + madera (receta 1b), sin ✕
 - [ ] Ninguna tarjeta/ficha usa la placa oscura (receta 6) — esa es solo para contadores inline
-- [ ] Secciones interiores enmarcadas (receta 2)
+- [ ] Agrupaciones (rejillas/listas/sub-paneles) con marco metálico + `$wood-btn-dark` (receta 2) — NUNCA piedra + `$grid-bg`
+- [ ] Celdas con bisel metálico sobre `$cell-bg-light` (receta 3)
 - [ ] Botones/tabs/placas con sus recetas (valores con placa de monedas 6b)
 - [ ] Variante del modal-container en transparente (si aplica)
 - [ ] Comprobado que cabe a lo alto en el viewport del juego
