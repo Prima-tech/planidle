@@ -108,8 +108,17 @@ export class TopBarComponent implements OnInit, OnDestroy {
   // ── Selector de personaje (botón arriba-dcha de la pastilla) ────────────────
 
   charListOpen = false;
+  // Botón del roster: solo visible con 2+ personajes desbloqueados.
+  hasMultipleChars = false;
   // equipment null = personaje activo (sprite reactivo al equipo actual)
   rosterItems: { char: any; equipment: EquipmentSnapshot | null; mapName: string }[] = [];
+
+  /** Recuenta personajes desbloqueados para mostrar/ocultar el selector. */
+  private async refreshCharCount(): Promise<void> {
+    const chars = (await this.asgardService.getCharacters()) ?? [];
+    const unlocked = chars.filter((c: any) => c?.id && this.unlocks.isCharacterUnlocked(c.name)).length;
+    this.hasMultipleChars = unlocked >= 2;
+  }
 
   async toggleCharList(): Promise<void> {
     this.charListOpen = !this.charListOpen;
@@ -162,6 +171,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   activeBuffs: ActiveBuff[] = [];
   buffRatios: Record<string, number> = {};
   private buffSub: Subscription;
+  private unlockSub: Subscription;
   private tickInterval: any;
 
   // Cooldown de la poción auto-equipada, mostrado junto a los buffos
@@ -217,6 +227,10 @@ export class TopBarComponent implements OnInit, OnDestroy {
 
     this.initStatusBar = true;
 
+    // Conteo inicial + recálculo cuando se desbloquea/bloquea algún personaje.
+    this.refreshCharCount();
+    this.unlockSub = this.unlocks.changes$.subscribe(() => this.refreshCharCount());
+
     this.buffSub = this.buffService.buffs$.subscribe(buffs => {
       this.activeBuffs = buffs;
     });
@@ -237,6 +251,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.buffSub?.unsubscribe();
+    this.unlockSub?.unsubscribe();
     clearInterval(this.tickInterval);
   }
 

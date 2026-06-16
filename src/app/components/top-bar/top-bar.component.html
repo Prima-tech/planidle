@@ -10,8 +10,9 @@
         <!-- Pastilla flotante con el nombre (mismo estilo que la del minimapa) -->
         <div class="char-name-pill">{{ asgardService?.selectedPlayer?.name }}</div>
 
-        <!-- Selector de personaje: despliega el roster hacia la derecha -->
-        <button class="char-switch-btn" (click)="toggleCharList()">
+        <!-- Selector de personaje: despliega el roster hacia la derecha.
+             Solo visible con 2+ personajes desbloqueados. -->
+        <button class="char-switch-btn" *ngIf="hasMultipleChars" (click)="toggleCharList()">
           <ion-icon [name]="charListOpen ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
         </button>
 
