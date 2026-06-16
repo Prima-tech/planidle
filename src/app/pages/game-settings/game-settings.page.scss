@@ -14,6 +14,9 @@ $grid-bg: #4a3023;        // fondo del área de grid
 $text-brown: #53301c;     // texto sobre madera clara
 $text-cream: #ecd9b4;     // texto sobre fondos oscuros
 $purple: #6e4a67;         // selección
+$metal-light: #cfc7b8;    // bisel metálico iluminado
+$metal: #9b9285;          // bisel metálico base
+$metal-dark: #6b6357;     // bisel metálico en sombra
 
 :host {
   display: block;
@@ -107,16 +110,23 @@ $purple: #6e4a67;         // selección
   margin: 0 0 6px 2px;
 }
 
+/* Fila de ajuste: marco metálico + cara de madera oscura (receta 2 de rpg-theme),
+   en lugar del viejo $cell-bg con borde fino. */
 .gs-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
   margin-bottom: 6px;
-  background: $cell-bg;
-  border: 2px solid $outline;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 .gs-row-info {
