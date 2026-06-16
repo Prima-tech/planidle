@@ -1,0 +1,3 @@
+#!/bin/sh
+# Sube el patch de la versión en cada commit. Ver tools/bump-version.mjs.
+node tools/bump-version.mjs || exit 1

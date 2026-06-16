@@ -21,6 +21,15 @@
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.4);
   }
+
+  &__version {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.4);
+  }
 }
 
 .dinamyc-area {

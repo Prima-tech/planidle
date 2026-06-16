@@ -30,6 +30,7 @@ import { AutoAttackService } from 'src/app/services/auto-attack.service';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { RegenService } from 'src/app/services/regen.service';
+import { APP_VERSION } from 'src/app/version';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { TalentService } from 'src/app/services/talent.service';
@@ -50,6 +51,7 @@ export class LayoutComponent implements OnDestroy {
   phaserGame: Phaser.Game | undefined;
   dataLoaded = false;
   sceneVisible = false;
+  readonly appVersion = APP_VERSION;
   pendingGains: OfflineGains | null = null;
   playerDead = false;
   private gainsSub: Subscription;
