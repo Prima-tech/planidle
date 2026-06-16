@@ -1526,8 +1526,17 @@ export class GameScene extends Phaser.Scene {
           const dropMult = kind.skill === 'mining'
             ? 1 + (this.reg.talent?.getBonus().miningDrop ?? 0)
             : 1;
-          const loot = { ...base, minQty: kind.drop.min * dropMult, maxQty: kind.drop.max * dropMult };
-          this.gridDrops?.spawnDrop(new Phaser.Math.Vector2(s.x, s.y - GameScene.TILE_SIZE), loot);
+          const qty = Phaser.Math.Between(kind.drop.min, kind.drop.max) * dropMult;
+          const baseY = s.y - GameScene.TILE_SIZE;
+          const origin = new Phaser.Math.Vector2(s.x, baseY);
+          // Cada unidad sale volando desde el centro del nodo hacia un punto de caída
+          // esparcido a su alrededor, en vez de nacer todas en el mismo sitio.
+          for (let i = 0; i < qty; i++) {
+            const loot = { ...base, minQty: 1, maxQty: 1 };
+            const px = s.x + Phaser.Math.Between(-GameScene.TILE_SIZE, GameScene.TILE_SIZE);
+            const py = baseY + Phaser.Math.Between(-GameScene.TILE_SIZE * 0.5, GameScene.TILE_SIZE * 0.5);
+            this.gridDrops?.spawnDrop(new Phaser.Math.Vector2(px, py), loot, origin);
+          }
         }
       }
       this.spawnDebris(s.x, s.y - GameScene.TILE_SIZE * 0.8, 16, kind.debris);   // estallido mayor

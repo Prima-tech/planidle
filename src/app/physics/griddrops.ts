@@ -493,13 +493,15 @@ export class GridDrops {
     this.mainScene.load.start();
   }
 
-  spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry): void {
+  spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry, from?: Phaser.Math.Vector2): void {
     const offsetX = Phaser.Math.Between(-40, 40);
     const offsetY = Phaser.Math.Between(-20, 20);
+    const targetX = position.x + offsetX;
+    const targetY = position.y + offsetY;
 
     const sprite = this.mainScene.physics.add.sprite(
-      position.x + offsetX,
-      position.y + offsetY,
+      from ? from.x : targetX,
+      from ? from.y : targetY,
       loot.texture,
       loot.frame ?? 0,
     );
@@ -509,6 +511,26 @@ export class GridDrops {
     (sprite.body as Phaser.Physics.Arcade.Body).enable = false;
 
     if (loot.animKey) sprite.play(loot.animKey);
+
+    // Si nace con un origen (`from`), sale volando hacia su punto de caída en un
+    // arco, en vez de aparecer ya en el sitio. X y Y se animan por separado para no
+    // pisarse: X avanza recto y Y describe una parábola (sube y aterriza).
+    if (from) {
+      this.mainScene.tweens.add({
+        targets: sprite,
+        x: targetX,
+        duration: 420,
+        ease: 'Quad.Out',
+      });
+      const peak = Math.min(from.y, targetY) - 48;
+      this.mainScene.tweens.chain({
+        targets: sprite,
+        tweens: [
+          { y: peak,    duration: 180, ease: 'Quad.Out' },   // expulsión hacia arriba
+          { y: targetY, duration: 240, ease: 'Quad.In'  },   // caída y aterrizaje
+        ],
+      });
+    }
 
     // Animación de aparición; collider activo solo al terminar para evitar
     // recogida instantánea cuando el jugador está encima del spawn point.
