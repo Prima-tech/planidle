@@ -102,17 +102,10 @@ $metal-dark: #6b6357;
   &:active { background-color: $wood-btn-dark; color: $text-cream; }
 }
 
-/* Abierto: la pestaña se asienta sobre la junta (borde recto arriba y abajo) para
-   leer como un nexo entre el widget y el panel desplegado. */
+/* Abierto: el tirador mantiene su forma de pestaña (redondeada abajo, sin línea
+   superior) y cuelga del widget sobre el panel, uniendo ambos. Solo cambia el
+   chevron (hacia arriba) vía el icono del HTML. */
 .char-block--open .map-open-btn {
-  bottom: -8px;
-  border-radius: 0;
-  border-top: 3px solid;
-  border-color: $stone $stone-dark $stone-dark $stone;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-
   /* Seleccionado (panel abierto): el hover no aclara el fondo. */
   &:hover { background-color: $wood-bg; }
 }

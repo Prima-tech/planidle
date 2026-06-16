@@ -403,10 +403,26 @@ $metal-dark: #6b6357;
   align-items: center;
   gap: 8px;
 
+  // Icono en casilla con bisel metálico, igual que los cuadrados de la rejilla (receta 3)
   ion-icon {
-    font-size: 26px;
-    color: rgba(236, 217, 180, 0.4);   // bloqueado: crema apagado sobre madera oscura
-    &.unlocked { color: #f0c040; }
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    color: #fceeb8;                      // crema brillante (bloqueado)
+    background: $cell-bg-light;
+    border: 2px solid;
+    border-color: $metal-light $metal-dark $metal-dark $metal;
+    border-radius: 5px;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 2px 4px rgba(0, 0, 0, 0.4),
+      0 1px 0 rgba(255, 255, 255, 0.06);
+
+    &.unlocked {
+      color: #f0c040;
+      filter: drop-shadow(0 0 4px rgba(240, 192, 64, 0.5));
+    }
   }
 }
 
@@ -461,14 +477,16 @@ $metal-dark: #6b6357;
   text-align: center;
   padding: 4px 0;
   border-radius: 5px;
-  background: $cell-bg;
-  border: 2px solid $outline;
-  color: rgba(236, 217, 180, 0.5);
+  // Pastilla con bisel metálico sobre casilla marrón clara (estándar)
+  background: $cell-bg-light;
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: rgba(236, 217, 180, 0.6);
 
-  &.unlocked {
-    color: #f0c040;
-    border-color: #b8862a;
-  }
+  &.unlocked { color: #f0c040; }
 }
 
 // Picker de nodo de talento: tarjeta oscura flotante sobre el árbol, arriba a
