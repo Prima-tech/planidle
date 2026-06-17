@@ -38,7 +38,7 @@ const blit = (gid, dx, dy) => {
 };
 
 const L = {}; for (const l of m.layers) if (l.type === 'tilelayer') L[l.name] = l.data;
-for (const name of ['Agua', 'Base']) {                 // mismo orden de dibujo que el juego
+for (const name of ['Base', 'Agua']) {                 // mismo orden de dibujo que el juego (Base abajo, Agua encima)
   const data = L[name]; if (!data) continue;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) blit(data[y * W + x], x * TILE, y * TILE);
 }

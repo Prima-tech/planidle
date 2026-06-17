@@ -210,6 +210,7 @@ export class GameScene extends Phaser.Scene {
     // dos capas que derivan a distinta velocidad → sensación de profundidad).
     private pxFar?:  Phaser.GameObjects.TileSprite;
     private pxNear?: Phaser.GameObjects.TileSprite;
+    private pxImage?: Phaser.GameObjects.Image;   // base de los temas 'scenic'
     private pxTime = 0;
     private pxTheme: ParallaxTheme = PARALLAX_THEMES['sea'];
     private pxSub?: Subscription;
@@ -276,6 +277,8 @@ export class GameScene extends Phaser.Scene {
       this.load.image('stations', 'assets/sprites/stations/stations.png');
       // Fragua apagada (textura propia 64×92, sin animación de fuego).
       this.load.spritesheet('forge_off', 'assets/sprites/stations/forge_off.png', { frameWidth: 64, frameHeight: 92 });
+      // Imagen escénica para los temas de parallax 'scenic_*' (vista de mundo).
+      this.load.image('paralax_scene', 'assets/sprites/resources/paralax.jpg');
       // portal_01.png: 4 col × 4 fila (128×192), cada fila es un portal de 4 frames
       // (32×48). Fila 0 azul (back), fila 2 naranja (next), fila 3 gris (bloqueado).
       this.load.spritesheet('portal', 'assets/sprites/resources/portal_01.png', { frameWidth: 32, frameHeight: 48 });
@@ -1219,8 +1222,9 @@ export class GameScene extends Phaser.Scene {
       this.currentMapConfig.portals.forEach(portal => {
         const px = portal.tilePos.x * TS + TS / 2;
         const py = portal.tilePos.y * TS + TS / 2;
-        // Volver al hogar es gratis: el portal que apunta al hogar nunca pide kills.
-        const requirement = portal.targetMapId === 'hogar' ? 0 : baseReq;
+        // Retroceder siempre es gratis: solo los portales de avance ('next') piden
+        // kills. Los de retroceso ('back') se abren sin matar nada.
+        const requirement = portal.direction === 'back' ? 0 : baseReq;
 
         const sprite = this.add.sprite(px, py, 'portal').setDepth(1).setScale(2.5);
 
@@ -1363,59 +1367,92 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.setBackgroundColor('#000000');
     }
 
-    /** Fondo de mar profundo con parallax detrás del mapa. Dos capas (mar de base
-     *  opaco + cáusticas de luz sutiles) que cubren el viewport y derivan a distinta
-     *  velocidad respecto a la cámara → el borde "azul" pasa a ser océano con vida. */
     /** Margen extra (world px) para que las capas sobren del viewport visible y
      *  nunca asomen bordes negros aunque la cámara/zoom cambien. */
     private static readonly PX_PAD = 256;
 
+    /** Fondo con parallax detrás del mapa. Soporta temas procedurales (dos capas
+     *  tileables) e imagen escénica (paralax.jpg teñida + overlay opcional). Las
+     *  tres piezas existen siempre; applyParallaxTheme alterna su visibilidad. */
     private initParallax(): void {
       this.pxTime = 0;
-      const id = (this.reg.gameSettings?.parallaxTheme ?? 'sea') as ParallaxThemeId;
-      const theme = PARALLAX_THEMES[id] ?? PARALLAX_THEMES['sea'];
-      this.makeLayerTexture(`px_far_${id}`,  theme.far);
-      this.makeLayerTexture(`px_near_${id}`, theme.near);
+      const sea = PARALLAX_THEMES['sea'];
+      if (sea.kind === 'procedural') {
+        this.makeLayerTexture('px_far_sea',  sea.far);
+        this.makeLayerTexture('px_near_sea', sea.near);
+      }
       // Tamaño/posición reales se fijan en updateParallax desde cam.worldView.
-      this.pxFar  = this.add.tileSprite(0, 0, 64, 64, `px_far_${id}`).setOrigin(0).setDepth(-100);
-      this.pxNear = this.add.tileSprite(0, 0, 64, 64, `px_near_${id}`).setOrigin(0).setDepth(-99);
-      this.pxTheme = theme;
+      this.pxFar   = this.add.tileSprite(0, 0, 64, 64, 'px_far_sea').setOrigin(0).setDepth(-100);
+      this.pxNear  = this.add.tileSprite(0, 0, 64, 64, 'px_near_sea').setOrigin(0).setDepth(-99);
+      this.pxImage = this.add.image(0, 0, 'paralax_scene').setOrigin(0.5).setDepth(-100).setVisible(false);
       // Cambio en caliente desde Ajustes (BehaviorSubject → aplica el actual ya).
       this.pxSub = this.reg.gameSettings?.parallaxTheme$
         .subscribe((tid: ParallaxThemeId) => this.applyParallaxTheme(tid));
+      if (!this.pxSub) this.applyParallaxTheme((this.reg.gameSettings?.parallaxTheme ?? 'sea') as ParallaxThemeId);
       this.updateParallax(0);   // cubre ya el primer frame
     }
 
-    /** Cambia el tema de parallax: genera (una vez) sus texturas y las aplica a las
-     *  dos capas, guardando factores/deriva para updateParallax. */
+    /** Cambia el tema: genera (una vez) sus texturas y alterna qué capas se ven. */
     private applyParallaxTheme(id: ParallaxThemeId): void {
-      if (!this.pxFar || !this.pxNear) return;
+      if (!this.pxFar || !this.pxNear || !this.pxImage) return;
       const theme = PARALLAX_THEMES[id] ?? PARALLAX_THEMES['sea'];
-      this.makeLayerTexture(`px_far_${id}`,  theme.far);
-      this.makeLayerTexture(`px_near_${id}`, theme.near);
-      this.pxFar.setTexture(`px_far_${id}`);
-      this.pxNear.setTexture(`px_near_${id}`);
       this.pxTheme = theme;
+      if (theme.kind === 'procedural') {
+        this.pxImage.setVisible(false);
+        this.makeLayerTexture(`px_far_${id}`,  theme.far);
+        this.makeLayerTexture(`px_near_${id}`, theme.near);
+        this.pxFar.setTexture(`px_far_${id}`).setVisible(true);
+        this.pxNear.setTexture(`px_near_${id}`).setVisible(true);
+      } else {
+        this.pxFar.setVisible(false);
+        this.pxImage.setTexture(theme.texture).setTint(theme.tint).setVisible(true);
+        if (theme.overlay) {
+          this.makeLayerTexture(`px_ovl_${id}`, theme.overlay);
+          this.pxNear.setTexture(`px_ovl_${id}`).setVisible(true);
+        } else {
+          this.pxNear.setVisible(false);
+        }
+      }
     }
 
-    /** Cada frame: ajusta las capas al área de mundo visible (cam.worldView) con un
-     *  margen, y desplaza su textura según el scroll de la cámara (factor < 1 = más
-     *  lento = más lejos) más una deriva temporal suave (oleaje aunque estés quieto). */
+    /** Cada frame: ajusta las capas al área de mundo visible (cam.worldView). */
     private updateParallax(delta: number): void {
-      if (!this.pxFar || !this.pxNear) return;
+      if (!this.pxFar || !this.pxNear || !this.pxImage) return;
       this.pxTime += delta;
-      const cam = this.cameras.main;
-      const v = cam.worldView;
+      const v = this.cameras.main.worldView;
+      const theme = this.pxTheme;
+      if (theme.kind === 'procedural') {
+        this.driveTileLayer(this.pxFar,  theme.far,  v);
+        this.driveTileLayer(this.pxNear, theme.near, v);
+      } else {
+        this.driveSceneImage(this.pxImage, theme, v);
+        if (theme.overlay && this.pxNear.visible) this.driveTileLayer(this.pxNear, theme.overlay, v);
+      }
+    }
+
+    /** Capa tileable: cubre el viewport (con margen) y desplaza su textura según el
+     *  scroll (factor < 1 = más lento = más lejos) + deriva temporal suave. */
+    private driveTileLayer(ts: Phaser.GameObjects.TileSprite, layer: ParallaxLayer, v: Phaser.Geom.Rectangle): void {
       const pad = GameScene.PX_PAD;
-      const x = v.x - pad, y = v.y - pad;
-      const w = v.width + pad * 2, h = v.height + pad * 2;
-      this.pxFar.setPosition(x, y).setSize(w, h);
-      this.pxNear.setPosition(x, y).setSize(w, h);
-      const { far, near } = this.pxTheme;
-      this.pxFar.tilePositionX  = v.x * far.factor  + this.pxTime * far.driftX;
-      this.pxFar.tilePositionY  = v.y * far.factor  + this.pxTime * far.driftY;
-      this.pxNear.tilePositionX = v.x * near.factor + this.pxTime * near.driftX;
-      this.pxNear.tilePositionY = v.y * near.factor + this.pxTime * near.driftY;
+      ts.setPosition(v.x - pad, v.y - pad).setSize(v.width + pad * 2, v.height + pad * 2);
+      ts.tilePositionX = v.x * layer.factor + this.pxTime * layer.driftX;
+      ts.tilePositionY = v.y * layer.factor + this.pxTime * layer.driftY;
+    }
+
+    /** Imagen escénica: la escala para CUBRIR el viewport con un 30% de margen y la
+     *  desplaza con un poco de parallax (scroll·factor) + un vaivén lento tipo Ken
+     *  Burns, todo acotado al margen para que nunca asomen los bordes de la imagen. */
+    private driveSceneImage(img: Phaser.GameObjects.Image, theme: { factor: number; drift: number }, v: Phaser.Geom.Rectangle): void {
+      const src = img.texture.getSourceImage() as { width: number; height: number };
+      const cover = Math.max(v.width / src.width, v.height / src.height) * 1.3;
+      img.setScale(cover);
+      const maxX = Math.max(0, (src.width  * cover - v.width)  / 2);
+      const maxY = Math.max(0, (src.height * cover - v.height) / 2);
+      const swayX = Math.sin(this.pxTime * 0.00004) * maxX * theme.drift;
+      const swayY = Math.cos(this.pxTime * 0.00003) * maxY * theme.drift;
+      const ox = Phaser.Math.Clamp(-v.x * theme.factor + swayX, -maxX, maxX);
+      const oy = Phaser.Math.Clamp(-v.y * theme.factor + swayY, -maxY, maxY);
+      img.setPosition(v.centerX + ox, v.centerY + oy);
     }
 
     /** Textura tileable de una capa de parallax: relleno opaco opcional + manchas

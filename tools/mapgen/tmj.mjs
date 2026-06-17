@@ -79,8 +79,10 @@ export function buildTmj({ width, height, tilesets, base, agua, collision }) {
         properties: [{ name: 'collides', type: 'bool', value: true }],
         objects,
       },
-      tileLayer(2, 'Agua', agua),
-      tileLayer(3, 'Base', base),
+      // Base (césped, mapa entero) ABAJO; Agua ENCIMA para que el agua se vea
+      // sobre la hierba. Antes iban al revés y la Base tapaba el mar por completo.
+      tileLayer(2, 'Base', base),
+      tileLayer(3, 'Agua', agua),
     ],
   };
 }
