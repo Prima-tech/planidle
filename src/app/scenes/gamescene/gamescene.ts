@@ -178,6 +178,7 @@ export class GameScene extends Phaser.Scene {
       blocked: string[];
       chestEntry?: ActiveChest;
       isOpenUnsub?: () => void;
+      lit?: boolean;            // fragua: true = encendida (animada), false = apagada
     }[] = [];
     // Estado del modo colocación de construcciones (ghost + botones confirmar/cancelar)
     private buildPlacement: {
@@ -192,6 +193,11 @@ export class GameScene extends Phaser.Scene {
       moving?: PlacedBuilding;   // si está, es la reubicación de un edificio existente
     } | null = null;
     private collisionTiles: Set<string>                    = new Set();
+    // Parallax de mar profundo detrás del mapa (cubre el borde azul del juego con
+    // dos capas que derivan a distinta velocidad → sensación de profundidad).
+    private pxFar?:  Phaser.GameObjects.TileSprite;
+    private pxNear?: Phaser.GameObjects.TileSprite;
+    private pxTime = 0;
     // Rocas minables: solo en mapas que no sean 'hogar'. Bloquean el paso y se
     // pican con el pico equipado (3 golpes → se destruyen).
     // Recursos recolectables del mapa (rocas, árboles…). Bloquean el paso.
@@ -253,6 +259,8 @@ export class GameScene extends Phaser.Scene {
       // Estaciones de oficio (construibles). Cargada como imagen: las filas miden
       // 70.4px, así que registramos los frames a mano en registerStationAnimations().
       this.load.image('stations', 'assets/sprites/stations/stations.png');
+      // Fragua apagada (textura propia 64×92, sin animación de fuego).
+      this.load.spritesheet('forge_off', 'assets/sprites/stations/forge_off.png', { frameWidth: 64, frameHeight: 92 });
       // portal_01.png: 4 col × 4 fila (128×192), cada fila es un portal de 4 frames
       // (32×48). De momento usamos el primero (fila 0 → frames 0-3).
       this.load.spritesheet('portal', 'assets/sprites/resources/portal_01.png', { frameWidth: 32, frameHeight: 48 });
@@ -361,6 +369,7 @@ export class GameScene extends Phaser.Scene {
       this.initMap();
       this.initPlayer();
       this.initCamera();
+      this.initParallax();
       this.mobileInput = { direction: Direction.NONE, lastCardinalDir: Direction.DOWN, isAttackHeld: false };
       this.registry.set(MOBILE_INPUT_KEY, this.mobileInput);
       this.registry.set(MINIMAP_DATA_KEY, this.buildMinimapData());
@@ -368,7 +377,11 @@ export class GameScene extends Phaser.Scene {
       this.createPhysics();
       this.createGameControls();
       this.initLevelUpWatcher();
-      this.cameras.main.fadeIn(250, 0, 0, 0);
+      // Entrada en negro: arrancamos opaco y revelamos cuando el trabajo pesado de
+      // la escena (el delayedCall de abajo) ya ha pasado, no a ciegas. Así el tirón
+      // de la carga ocurre con la pantalla quieta en negro y el fade-in sale suave.
+      // (El fade-OUT al salir por un portal es corto, 250ms, para que se sienta ágil.)
+      this.cameras.main.fadeOut(0, 0, 0, 0);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.scene.stop('MobileHUDScene');
         this.mobileInput = null;
@@ -435,6 +448,9 @@ export class GameScene extends Phaser.Scene {
         this.initSkillListener();
         this.initSkillTargetChecker();
         this.initPet();
+        // Pesado terminado → margen de un par de frames para que el stall de subida
+        // de texturas a GPU pase con la pantalla quieta en negro, y revelar suave.
+        this.time.delayedCall(60, () => this.cameras.main.fadeIn(400, 0, 0, 0));
         this.time.delayedCall(600, () => this.reg.playerBridge?.emitSceneReady());
       });
     }
@@ -453,6 +469,7 @@ export class GameScene extends Phaser.Scene {
       }
 
       this.gridControls.update();
+      this.updateParallax(delta);
 
       // Input manual (ataque o movimiento) → pausa la automatización unos segundos
       const auto = this.reg.autoAttack;
@@ -1131,6 +1148,16 @@ export class GameScene extends Phaser.Scene {
           repeat: -1,
         });
       }
+      // La fragua arranca apagada (textura forge_off, sin animKey), pero necesita
+      // su animación de fuego (frames 0-2 de stations) para encenderse al pulsarla.
+      if (!this.anims.exists('station_forge')) {
+        this.anims.create({
+          key: 'station_forge',
+          frames: this.anims.generateFrameNumbers('stations', { frames: [0, 1, 2] }),
+          frameRate: 4,
+          repeat: -1,
+        });
+      }
     }
 
     private registerDropTextures(): void {
@@ -1253,6 +1280,87 @@ export class GameScene extends Phaser.Scene {
       // 0.4 de zoom de diseño × DPR: con el canvas a resolución nativa, la
       // escala efectiva de los sprites queda alineada con el píxel físico
       this.cameras.main.setZoom(0.4 * NATIVE_DPR);
+      // Limpiar en NEGRO (no en el azul #48C4F8 del juego): durante el cambio de
+      // escena hay 1-2 frames en que el mapa aún no cubre y se veía un "frame azul"
+      // + parpadeos. Con la cámara en negro ese hueco y los parpadeos son
+      // negro-sobre-negro = invisibles. El mapa cubre todo en juego normal.
+      this.cameras.main.setBackgroundColor('#000000');
+    }
+
+    /** Fondo de mar profundo con parallax detrás del mapa. Dos capas (mar de base
+     *  opaco + cáusticas de luz sutiles) que cubren el viewport y derivan a distinta
+     *  velocidad respecto a la cámara → el borde "azul" pasa a ser océano con vida. */
+    /** Margen extra (world px) para que las capas sobren del viewport visible y
+     *  nunca asomen bordes negros aunque la cámara/zoom cambien. */
+    private static readonly PX_PAD = 256;
+
+    private initParallax(): void {
+      this.makeSeaTexture('px_sea', 256);
+      this.makeCausticTexture('px_caustic', 256);
+      // Tamaño/posición reales se fijan en updateParallax desde cam.worldView.
+      this.pxFar  = this.add.tileSprite(0, 0, 64, 64, 'px_sea').setOrigin(0).setDepth(-100);
+      this.pxNear = this.add.tileSprite(0, 0, 64, 64, 'px_caustic').setOrigin(0).setDepth(-99);
+      this.pxTime = 0;
+      this.updateParallax(0);   // cubre ya el primer frame
+    }
+
+    /** Cada frame: ajusta las capas al área de mundo visible (cam.worldView) con un
+     *  margen, y desplaza su textura según el scroll de la cámara (factor < 1 = más
+     *  lento = más lejos) más una deriva temporal suave (oleaje aunque estés quieto). */
+    private updateParallax(delta: number): void {
+      if (!this.pxFar || !this.pxNear) return;
+      this.pxTime += delta;
+      const cam = this.cameras.main;
+      const v = cam.worldView;
+      const pad = GameScene.PX_PAD;
+      const x = v.x - pad, y = v.y - pad;
+      const w = v.width + pad * 2, h = v.height + pad * 2;
+      this.pxFar.setPosition(x, y).setSize(w, h);
+      this.pxNear.setPosition(x, y).setSize(w, h);
+      this.pxFar.tilePositionX  = v.x * 0.30 + this.pxTime * 0.004;
+      this.pxFar.tilePositionY  = v.y * 0.30 + this.pxTime * 0.002;
+      this.pxNear.tilePositionX = v.x * 0.60 - this.pxTime * 0.010;
+      this.pxNear.tilePositionY = v.y * 0.60 + this.pxTime * 0.006;
+    }
+
+    /** Textura tileable de mar profundo: azul base + manchas claras/oscuras suaves
+     *  (dibujadas con copias envueltas en los bordes para que repita sin costura). */
+    private makeSeaTexture(key: string, size: number): void {
+      if (this.textures.exists(key)) return;
+      const t = this.textures.createCanvas(key, size, size);
+      if (!t) return;
+      const ctx = t.getContext();
+      ctx.fillStyle = '#11314e';
+      ctx.fillRect(0, 0, size, size);
+      this.paintBlobs(ctx, size, '38,86,128', 0.45, 18, 64);   // reflejos
+      this.paintBlobs(ctx, size, '8,26,46',   0.50, 14, 58);   // hondonadas
+      t.refresh();
+    }
+
+    /** Textura tileable de cáusticas: fondo transparente + destellos de luz fríos. */
+    private makeCausticTexture(key: string, size: number): void {
+      if (this.textures.exists(key)) return;
+      const t = this.textures.createCanvas(key, size, size);
+      if (!t) return;
+      this.paintBlobs(t.getContext(), size, '170,222,255', 0.10, 11, 46);
+      t.refresh();
+    }
+
+    /** Pinta `count` manchas radiales suaves del color `rgb` (alpha→0 en el borde),
+     *  repitiendo cada una en las 8 copias envueltas para que la textura tile sin junta. */
+    private paintBlobs(ctx: CanvasRenderingContext2D, size: number, rgb: string, alpha: number, count: number, maxR: number): void {
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * size, y = Math.random() * size;
+        const r = maxR * (0.4 + Math.random() * 0.6);
+        for (const ox of [-size, 0, size]) for (const oy of [-size, 0, size]) {
+          const cx = x + ox, cy = y + oy;
+          const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+          g.addColorStop(0, `rgba(${rgb},${alpha})`);
+          g.addColorStop(1, `rgba(${rgb},0)`);
+          ctx.fillStyle = g;
+          ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+        }
+      }
     }
 
     createGameControls() {
@@ -1263,6 +1371,8 @@ export class GameScene extends Phaser.Scene {
         if (this.moveSelecting) { this.handleMoveSelect(pointer); return; }
         // En modo "borrar edificio" el toque selecciona el edificio a borrar.
         if (this.deleteSelecting) { this.handleDeleteSelect(pointer); return; }
+        // Pulsar la fragua la enciende/apaga.
+        if (this.handleForgeTap(pointer)) return;
         // Pulsar un edificio con ventana propia (p.ej. la tienda) la abre.
         if (this.handleBuildingWindowTap(pointer)) return;
         this.reg.asgard.closeAllMenus();
@@ -1979,6 +2089,13 @@ export class GameScene extends Phaser.Scene {
         sprite.setScale(def.scale);
         sprite.setDepth(2);
         if (def.animKey && this.anims.exists(def.animKey)) sprite.play(def.animKey);
+        // La fragua se pulsa para encender/apagar: la marcamos interactiva para que
+        // los controles móviles (joystick/ataque ocupan media pantalla) ignoren el
+        // toque que cae sobre ella y no disparen un ataque al alternarla.
+        if (def.type === 'forge') {
+          sprite.setInteractive();
+          sprite.setData('blockControls', true);
+        }
         const blocked = this.computeFootprintTiles(x, y, (def.frameSize * def.scale) / 2);
         for (const k of blocked) this.collisionTiles.add(k);
         this.placedBuildings.push({ building, sprite, blocked });
@@ -2053,6 +2170,30 @@ export class GameScene extends Phaser.Scene {
         if (dx * dx + dy * dy <= range * range) return pb;
       }
       return null;
+    }
+
+    /** Si el toque cae sobre una fragua, alterna encendida/apagada. Devuelve true si lo gestionó. */
+    private handleForgeTap(pointer: Phaser.Input.Pointer): boolean {
+      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const pb = this.placedBuildings.find(
+        b => b.building.type === 'forge' && b.sprite.getBounds().contains(world.x, world.y),
+      );
+      if (!pb) return false;
+      this.setForgeLit(pb, !pb.lit);
+      return true;
+    }
+
+    /** Cambia la fragua entre encendida (animación de fuego en la hoja stations)
+     *  y apagada (textura estática forge_off). Ambos frames son 64×92. */
+    private setForgeLit(pb: typeof this.placedBuildings[0], lit: boolean): void {
+      pb.lit = lit;
+      if (lit) {
+        pb.sprite.setTexture('stations', 0);
+        if (this.anims.exists('station_forge')) pb.sprite.play('station_forge');
+      } else {
+        pb.sprite.stop();
+        pb.sprite.setTexture('forge_off', 0);
+      }
     }
 
     /** Si el toque cae sobre un edificio con ventana propia, la abre. Devuelve true si lo gestionó. */

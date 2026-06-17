@@ -105,6 +105,11 @@ export class MobileControls {
   }
 
   private readonly onDown = (p: Phaser.Input.Pointer): void => {
+    // Si el toque cae sobre un objeto interactivo que reclama el control (p.ej. la
+    // fragua, que se pulsa para encender/apagar), no muevas ni ataques.
+    const hits = this.scene.input.hitTestPointer(p);
+    if (hits.some(o => (o as Phaser.GameObjects.GameObject).getData?.('blockControls'))) return;
+
     if (p.x < this.W * 0.5 && this.joyId === null) {
       this.joyId   = p.id;
       this.joySrcX = p.x;

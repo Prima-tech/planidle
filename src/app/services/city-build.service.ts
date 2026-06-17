@@ -106,7 +106,18 @@ export const BUILDABLES: BuildableDef[] = [
   },
 
   // ── Estaciones de oficio (decorativas + animadas) ──
-  station('forge',            'BUILD.FORGE',            0, 0, 1.6),
+  // La fragua usa una textura propia "apagada" (sin fuego): forge_off.png (64×92),
+  // generada a partir del frame encendido. Es estática (sin animKey).
+  {
+    type: 'forge', name: 'BUILD.FORGE',
+    spriteKey: 'forge_off', frame: 0,
+    frameSize: 64, scale: 1.6,
+    tilesW: 3, tilesH: 3, unique: false,
+    previewUrl: 'assets/sprites/stations/forge_off.png',
+    previewSrc: { x: 0, y: 0, w: 64, h: 92 },
+    previewSheet: { w: 64, h: 92 },
+    previewScale: +(58 / 92).toFixed(3),
+  },
   station('smelter',          'BUILD.SMELTER',          0, 1),
   station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
   station('alembic',          'BUILD.ALEMBIC',          1, 1),
