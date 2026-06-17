@@ -691,6 +691,20 @@ $metal-dark: #6b6357;
   margin-top: 5px;
 }
 
+/* La comida (meat.png) a 30px y un pelín más abajo */
+.slot-placeholder-img--food {
+  width: 30px;
+  height: 30px;
+  margin-top: 3px;
+}
+
+/* La poción (potion.png) a 30px y un pelín más abajo */
+.slot-placeholder-img--potion {
+  width: 30px;
+  height: 30px;
+  margin-top: 3px;
+}
+
 // Cooldown de auto-poción: barrido cónico oscuro + segundos restantes
 .slot-cooldown {
   position: absolute;

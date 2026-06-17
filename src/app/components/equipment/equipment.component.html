@@ -911,6 +911,8 @@
            [class.slot-placeholder-img--pants]="slot.id === 'pants'"
            [class.slot-placeholder-img--ring]="slot.id === 'ring1' || slot.id === 'ring2'"
            [class.slot-placeholder-img--necklace]="slot.id === 'necklace'"
+           [class.slot-placeholder-img--food]="slot.id === 'food'"
+           [class.slot-placeholder-img--potion]="slot.id === 'potion'"
            [src]="ph.img"
            (error)="onPlaceholderImgError(slot.id)"
            [title]="slot.label">

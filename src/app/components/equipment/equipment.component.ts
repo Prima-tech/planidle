@@ -128,8 +128,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     necklace: { img: 'assets/icon/placeholder/neck.png', icon: 'diamond-outline' },
     ring1:    { img: 'assets/icon/placeholder/ring.png', icon: 'ellipse-outline' },
     ring2:    { img: 'assets/icon/placeholder/ring.png', icon: 'ellipse-outline' },
-    food:     { frame: ICONS1['food_apple'],    icon: 'restaurant-outline' },
-    potion:   { frame: ICONS1['potion_blue'],   icon: 'flask-outline' },
+    food:     { img: 'assets/icon/placeholder/meat.png',   icon: 'restaurant-outline' },
+    potion:   { img: 'assets/icon/placeholder/potion.png', icon: 'flask-outline' },
     // ── Recolección ──
     pickaxe:     { frame: ICONS1['tool_pick'],  icon: 'hammer-outline' },
     axe:         { img: 'assets/icon/slots/axe.png',      icon: 'cut-outline' },

@@ -166,8 +166,10 @@ export class GameScene extends Phaser.Scene {
     private moveSelecting = false;
     // true tras pulsar "Borrar edificio": el siguiente click sobre un edificio pide confirmar.
     private deleteSelecting = false;
-    // Evita reabrir la ventana de un edificio en cada frame mientras se mantiene el botón.
-    private shopActionLatched = false;
+    // true desde que ESTE apretón del botón de acción abrió un cofre o una ventana
+    // de edificio. Sirve para (a) no reabrir la ventana cada frame y (b) no soltar
+    // un golpe cuando el cofre/ventana deja de contar como "cercano" tras abrirse.
+    private interactLatched = false;
     // Construcciones colocadas por el jugador (no el cofre fijo): para poder
     // quitarlas en caliente (borrar todo) o moverlas.
     private placedBuildings: {
@@ -345,7 +347,7 @@ export class GameScene extends Phaser.Scene {
       this.activeHarvest = null;
       this.moveSelecting = false;
       this.deleteSelecting = false;
-      this.shopActionLatched = false;
+      this.interactLatched = false;
       this.currentMapConfig = this.reg.world.getCurrentMap();
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
@@ -485,19 +487,25 @@ export class GameScene extends Phaser.Scene {
 
       // Botón de acción: cofre cerca → abrir; tienda cerca → abrir su ventana
       // (una sola vez por pulsación, vía latch); si no → golpear.
+      // El latch marca que este apretón ya interactuó: así, cuando el cofre/ventana
+      // deja de contar como "cercano" tras abrirse (p.ej. el cofre de ciudad sale de
+      // nearestOpenableChest al abrirse), el botón aún pulsado NO suelta un golpe.
       if (this.mobileInput?.isAttackHeld) {
         if (nearChest) {
-          this.openChest(nearChest);
+          if (!this.interactLatched) {
+            this.interactLatched = true;
+            this.openChest(nearChest);
+          }
         } else if (nearWindow) {
-          if (!this.shopActionLatched) {
-            this.shopActionLatched = true;
+          if (!this.interactLatched) {
+            this.interactLatched = true;
             this.reg.cityBuild.requestOpenWindow(nearWindow.building.type);
           }
-        } else if (!this.player.isAttacking) {
+        } else if (!this.player.isAttacking && !this.interactLatched) {
           this.strike();
         }
       } else {
-        this.shopActionLatched = false;   // botón soltado → permite reabrir
+        this.interactLatched = false;   // botón soltado → permite reabrir
       }
 
       const playerPos = this.player.getPosition();
