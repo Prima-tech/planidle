@@ -662,6 +662,23 @@ $metal-dark: #6b6357;
   margin-top: 2px;
 }
 
+/* La espada (frame del sheet) baja un poco para centrarse en la casilla */
+.slot-placeholder-img--weapon {
+  margin-top: 7px;
+}
+
+/* El torso (torso.png) algo más bajo de alto y ligeramente más abajo */
+.slot-placeholder-img--armor {
+  height: 32px;
+  margin-top: 2px;
+}
+
+/* Los pantalones (pants.png) algo más pequeños y un pelín más abajo */
+.slot-placeholder-img--pants {
+  width: 35px;
+  margin-top: 3px;
+}
+
 // Cooldown de auto-poción: barrido cónico oscuro + segundos restantes
 .slot-cooldown {
   position: absolute;

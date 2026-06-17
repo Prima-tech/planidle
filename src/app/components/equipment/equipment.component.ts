@@ -118,13 +118,13 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   //   frame → recorta un frame de icons1.png (mismo estilo que los items)
   //   img   → PNG propio 32×32 en assets/icon/slots/ (slots sin frame en el sheet)
   //   icon  → ionicon de respaldo mientras el PNG no exista (evita imagen rota)
-  readonly slotPlaceholders: Record<string, { frame?: number; img?: string; icon: string }> = {
+  readonly slotPlaceholders: Record<string, { frame?: number; img?: string; icon: string; px?: number }> = {
     // ── Combate ──
     helmet:   { img: 'assets/icon/placeholder/helm.png', icon: 'shield-half-outline' },
-    armor:    { frame: ICONS1['armor_chest'],   icon: 'shirt-outline' },
-    pants:    { img: 'assets/icon/slots/pants.png',    icon: 'man-outline' },
+    armor:    { img: 'assets/icon/placeholder/torso.png', icon: 'shirt-outline' },
+    pants:    { img: 'assets/icon/placeholder/pants.png', icon: 'man-outline' },
     boots:    { img: 'assets/icon/placeholder/feet.png', icon: 'footsteps-outline' },
-    weapon:   { frame: ICONS1['weapon_sword'],  icon: 'flash-outline' },
+    weapon:   { frame: ICONS1['weapon_sword'],  icon: 'flash-outline', px: 48 },
     necklace: { frame: ICONS1['gem_jewel_blue'], icon: 'diamond-outline' },
     ring1:    { frame: ICONS1['item_ring'],     icon: 'ellipse-outline' },
     ring2:    { frame: ICONS1['item_ring'],     icon: 'ellipse-outline' },
@@ -150,14 +150,18 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   /** Tamaño de pintado del placeholder (px). El frame nativo es 32px → se escala. */
   readonly PLACEHOLDER_PX = 40;
 
-  /** Estilo de fondo que recorta el `frame` de icons1.png, escalado a PLACEHOLDER_PX. */
-  placeholderFrameStyle(frame: number): Record<string, string> {
+  /** Estilo de fondo que recorta el `frame` de icons1.png, escalado a `px` (por
+      defecto PLACEHOLDER_PX). El tamaño se controla aquí, no en el CSS, porque el
+      frame se pinta vía background-size (subir width/height en el SCSS no basta). */
+  placeholderFrameStyle(frame: number, px: number = this.PLACEHOLDER_PX): Record<string, string> {
     const size  = ICONS1_FRAME_SIZE;            // 32
     const cols  = ICONS1_COLS;                  // 12
-    const scale = this.PLACEHOLDER_PX / size;   // 40 / 32
+    const scale = px / size;
     const col   = frame % cols;
     const row   = Math.floor(frame / cols);
     return {
+      'width':               `${px}px`,
+      'height':              `${px}px`,
       'background-image':    'url(assets/icon/icons/icons1.png)',
       'background-repeat':   'no-repeat',
       'background-size':     `${cols * size * scale}px auto`,

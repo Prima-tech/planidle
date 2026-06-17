@@ -100,6 +100,18 @@ export class SaveService {
         auditTime(2000),
       )
       .subscribe(() => { if (!this.isRestoring) this.saveLocal(); })
+
+    // El auto-save tiene un colchón de 2s (auditTime). Al refrescar o cerrar la
+    // pestaña, los cambios de los últimos 2s no se habrían escrito → se perderían.
+    // Forzamos un guardado cuando la página se oculta (pagehide cubre el refresco;
+    // visibilitychange cubre cambiar de pestaña/minimizar en móvil).
+    if (typeof window !== 'undefined') {
+      const flush = () => { if (!this.isRestoring && this.charId) this.saveLocal(); };
+      window.addEventListener('pagehide', flush);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flush();
+      });
+    }
   }
 
   // --- Claves dinámicas por personaje ---

@@ -494,6 +494,23 @@ export class GridDrops {
   }
 
   spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry, from?: Phaser.Math.Vector2): void {
+    // Con la carga perezosa de equipo, la hoja LPC `*_main` que usa el drop puede no
+    // estar cargada (solo se carga lo equipado) → el sprite saldría en blanco. Si la
+    // textura falta pero hay un PNG `icon` (el mismo del inventario), se usa ese:
+    // se carga al vuelo y se re-spawnea con frame 0 y escala adecuada para 32×32.
+    if (!this.mainScene.textures.exists(loot.texture) && loot.icon) {
+      const key = `icondrop:${loot.icon}`;
+      const iconLoot: LootEntry = { ...loot, texture: key, frame: 0, scale: 2.5 };
+      if (this.mainScene.textures.exists(key)) {
+        this.spawnDrop(position, iconLoot, from);
+      } else {
+        this.mainScene.load.image(key, loot.icon);
+        this.mainScene.load.once('complete', () => this.spawnDrop(position, iconLoot, from));
+        this.mainScene.load.start();
+      }
+      return;
+    }
+
     const offsetX = Phaser.Math.Between(-40, 40);
     const offsetY = Phaser.Math.Between(-20, 20);
     const targetX = position.x + offsetX;
