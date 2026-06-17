@@ -125,9 +125,9 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     pants:    { img: 'assets/icon/placeholder/pants.png', icon: 'man-outline' },
     boots:    { img: 'assets/icon/placeholder/feet.png', icon: 'footsteps-outline' },
     weapon:   { frame: ICONS1['weapon_sword'],  icon: 'flash-outline', px: 48 },
-    necklace: { frame: ICONS1['gem_jewel_blue'], icon: 'diamond-outline' },
-    ring1:    { frame: ICONS1['item_ring'],     icon: 'ellipse-outline' },
-    ring2:    { frame: ICONS1['item_ring'],     icon: 'ellipse-outline' },
+    necklace: { img: 'assets/icon/placeholder/neck.png', icon: 'diamond-outline' },
+    ring1:    { img: 'assets/icon/placeholder/ring.png', icon: 'ellipse-outline' },
+    ring2:    { img: 'assets/icon/placeholder/ring.png', icon: 'ellipse-outline' },
     food:     { frame: ICONS1['food_apple'],    icon: 'restaurant-outline' },
     potion:   { frame: ICONS1['potion_blue'],   icon: 'flask-outline' },
     // ── Recolección ──

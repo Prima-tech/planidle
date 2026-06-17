@@ -679,6 +679,18 @@ $metal-dark: #6b6357;
   margin-top: 3px;
 }
 
+/* Los anillos (ring.png) más pequeños y un pelín más abajo */
+.slot-placeholder-img--ring {
+  width: 30px;
+  margin-top: 2px;
+}
+
+/* El collar (neck.png) más pequeño y algo más abajo */
+.slot-placeholder-img--necklace {
+  width: 30px;
+  margin-top: 5px;
+}
+
 // Cooldown de auto-poción: barrido cónico oscuro + segundos restantes
 .slot-cooldown {
   position: absolute;
