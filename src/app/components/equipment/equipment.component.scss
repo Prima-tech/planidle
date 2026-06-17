@@ -620,7 +620,7 @@ $metal-dark: #6b6357;
 }
 
 .equip-slot.occupied {
-  border-color: $wood-btn-dark;
+  border-color: $cell-border;
 }
 
 .equip-slot.cdk-drop-list-dragging {
@@ -658,8 +658,8 @@ $metal-dark: #6b6357;
 }
 
 .equip-item {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   background-color: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 4px;
