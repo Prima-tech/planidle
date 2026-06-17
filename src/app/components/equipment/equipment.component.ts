@@ -120,10 +120,10 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   //   icon  → ionicon de respaldo mientras el PNG no exista (evita imagen rota)
   readonly slotPlaceholders: Record<string, { frame?: number; img?: string; icon: string }> = {
     // ── Combate ──
-    helmet:   { frame: ICONS1['helmet_dark'],   icon: 'shield-half-outline' },
+    helmet:   { img: 'assets/icon/placeholder/helm.png', icon: 'shield-half-outline' },
     armor:    { frame: ICONS1['armor_chest'],   icon: 'shirt-outline' },
     pants:    { img: 'assets/icon/slots/pants.png',    icon: 'man-outline' },
-    boots:    { img: 'assets/icon/slots/boots.png',    icon: 'footsteps-outline' },
+    boots:    { img: 'assets/icon/placeholder/feet.png', icon: 'footsteps-outline' },
     weapon:   { frame: ICONS1['weapon_sword'],  icon: 'flash-outline' },
     necklace: { frame: ICONS1['gem_jewel_blue'], icon: 'diamond-outline' },
     ring1:    { frame: ICONS1['item_ring'],     icon: 'ellipse-outline' },

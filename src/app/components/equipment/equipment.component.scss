@@ -648,6 +648,20 @@ $metal-dark: #6b6357;
   margin-top: 8px;
 }
 
+/* Las botas (feet.png) van un pelín más arriba y algo más pequeñas */
+.slot-placeholder-img--boots {
+  width: 35px;
+  height: 35px;
+  margin-top: 1px;
+}
+
+/* El casco (helm.png) algo más pequeño y ligeramente más abajo */
+.slot-placeholder-img--helmet {
+  width: 30px;
+  height: 30px;
+  margin-top: 2px;
+}
+
 // Cooldown de auto-poción: barrido cónico oscuro + segundos restantes
 .slot-cooldown {
   position: absolute;

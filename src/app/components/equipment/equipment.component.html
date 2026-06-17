@@ -898,11 +898,14 @@
   <ng-container *ngIf="slotPlaceholders[slot.id] as ph">
     <div *ngIf="ph.frame != null; else phImgOrIcon"
          class="slot-placeholder-img"
+         [class.slot-placeholder-img--boots]="slot.id === 'boots'"
          [ngStyle]="placeholderFrameStyle(ph.frame)"
          [title]="slot.label"></div>
     <ng-template #phImgOrIcon>
       <img *ngIf="ph.img && !placeholderImgFailed.has(slot.id); else phIcon"
            class="slot-placeholder-img"
+           [class.slot-placeholder-img--boots]="slot.id === 'boots'"
+           [class.slot-placeholder-img--helmet]="slot.id === 'helmet'"
            [src]="ph.img"
            (error)="onPlaceholderImgError(slot.id)"
            [title]="slot.label">
