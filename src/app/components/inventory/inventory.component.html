@@ -69,7 +69,8 @@
                  [style.background-size]="getSheetBgSize(cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)"
                  [style.background-position]="getSheetPos(cell.iconFrame, cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)">
             </div>
-            <img *ngIf="cell.icon && cell.iconSheet == null" [src]="cell.icon" class="item-icon">
+            <img *ngIf="cell.icon && cell.iconSheet == null" [src]="cell.icon" class="item-icon"
+                 [class.item-icon--pants]="cell.category === 'Pantalones'">
             <span *ngIf="!cell.icon && cell.iconSheet == null" class="item-fallback">{{ cell.name.charAt(0) }}</span>
             <div class="item-sum" *ngIf="cell.sum !== undefined">{{ cell.sum }}</div>
           </div>

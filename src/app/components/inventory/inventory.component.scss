@@ -165,6 +165,11 @@ $purple: #6e4a67;         // celda seleccionada
   pointer-events: none;
 }
 
+/* El icono de pantalones se baja un pelín para centrarse mejor en la celda */
+.item-icon--pants {
+  margin-top: 2px;
+}
+
 .item-icon-sheet {
   width: 32px;
   height: 32px;

@@ -836,7 +836,8 @@
            [style.background-size]="getSheetBgSize(slot.item.iconFrameCols, slot.item.iconFrameSize, slot.item.iconContentSize)"
            [style.background-position]="getSheetPos(slot.item.iconFrame, slot.item.iconFrameCols, slot.item.iconFrameSize, slot.item.iconContentSize)">
       </div>
-      <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon">
+      <img *ngIf="slot.item.icon && slot.item.iconSheet == null" [src]="slot.item.icon" class="item-icon"
+           [class.item-icon--pants]="slot.item.category === 'Pantalones'">
       <span *ngIf="!slot.item.icon && slot.item.iconSheet == null" class="item-fallback">{{ slot.item.name.charAt(0) }}</span>
     </div>
 

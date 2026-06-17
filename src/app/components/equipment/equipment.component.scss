@@ -728,6 +728,11 @@ $metal-dark: #6b6357;
   pointer-events: none;
 }
 
+/* El icono de pantalones se baja un pelín para centrarse mejor en la casilla */
+.item-icon--pants {
+  margin-top: 2px;
+}
+
 .item-icon-sheet {
   width: 32px;
   height: 32px;
