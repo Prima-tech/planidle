@@ -89,6 +89,10 @@
     "PARALLAX_SKY": "Cielo",
     "PARALLAX_SPACE": "Espacio",
     "PARALLAX_WARP": "Hipervelocidad",
+    "PARALLAX_WARP_LAUNCH": "Despegue",
+    "PARALLAX_WARP_METEOR": "Meteoros",
+    "PARALLAX_WARP_MATRIX": "Lluvia digital",
+    "PARALLAX_WARP_NEON": "Neón",
     "PARALLAX_LAVA": "Lava",
     "PARALLAX_FOG": "Niebla",
     "PARALLAX_MAGIC": "Mágico"

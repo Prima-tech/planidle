@@ -212,7 +212,8 @@ export class GameScene extends Phaser.Scene {
     private pxNear?: Phaser.GameObjects.TileSprite;
     private pxImage?: Phaser.GameObjects.Image;   // base de los temas 'scenic'
     private pxWarp?: Phaser.GameObjects.Graphics; // estelas del tema 'warp'
-    private pxWarpP: { nx: number; fy: number; spd: number }[] = [];
+    private pxWarpP: { nx: number; fy: number; spd: number; ci: number }[] = [];
+    private pxWarpStart = 0;   // pxTime al activar el warp (para la rampa de despegue)
     private pxTime = 0;
     private pxTheme: ParallaxTheme = PARALLAX_THEMES['sea'];
     private pxSub?: Subscription;
@@ -491,6 +492,16 @@ export class GameScene extends Phaser.Scene {
         this.reg.autoAttack?.pauseAutomation();
         this.gridPhysics.stop();
         this.player.syncLayers();
+        return;
+      }
+
+      // Colocando/moviendo/borrando un edificio: el PJ se queda quieto (el toque y el
+      // arrastre son para el ghost, no para mover). El fondo sí sigue animándose.
+      if (this.buildPlacement || this.moveSelecting || this.deleteSelecting) {
+        this.reg.autoAttack?.pauseAutomation();
+        this.gridPhysics.stop();
+        this.player.syncLayers();
+        this.updateParallax(delta);
         return;
       }
 
@@ -1416,9 +1427,14 @@ export class GameScene extends Phaser.Scene {
           this.makeLayerTexture(`px_far_${id}`, theme.far);
           this.pxFar.setTexture(`px_far_${id}`).setVisible(true);
           this.pxWarp.setVisible(true);
-          this.pxWarpP = Array.from({ length: theme.count }, () => ({
-            nx: Math.random() - 0.5, fy: Math.random(), spd: 0.4 + Math.random() * 0.9,
-          }));
+          this.pxWarpStart = this.pxTime;
+          {
+            const nColors = theme.colors?.length ?? 0;
+            this.pxWarpP = Array.from({ length: theme.count }, () => ({
+              nx: Math.random() - 0.5, fy: Math.random(), spd: 0.4 + Math.random() * 0.9,
+              ci: nColors ? Math.floor(Math.random() * nColors) : 0,
+            }));
+          }
           break;
         case 'image':
           this.pxFar.setVisible(false);
@@ -1469,19 +1485,29 @@ export class GameScene extends Phaser.Scene {
     }
 
     /** Redibuja las estelas de hipervelocidad: caen en vertical de arriba abajo. La
-     *  velocidad/grosor varía por estela (capas), pero el movimiento es recto. */
-    private updateWarp(theme: { color: number; speed: number }, v: Phaser.Geom.Rectangle, delta: number): void {
+     *  velocidad/grosor varía por estela (capas), pero el movimiento es recto. Con
+     *  `rampMs` arranca casi parado (puntos = estrellas) y acelera a estelas largas. */
+    private updateWarp(theme: { color: number; colors?: number[]; speed: number; startSpeed?: number; rampMs?: number }, v: Phaser.Geom.Rectangle, delta: number): void {
       const g = this.pxWarp!;
       g.clear();
       const vh = v.height;
+      // Velocidad efectiva: con rampa, acelera (ease-in) de startSpeed a speed y se queda.
+      let s = theme.speed;
+      if (theme.rampMs) {
+        const from = theme.startSpeed ?? 0.04;
+        const t = Math.min(1, (this.pxTime - this.pxWarpStart) / theme.rampMs);
+        s = from + (theme.speed - from) * (t * t);
+      }
+      const norm = theme.speed > 0 ? s / theme.speed : 1;   // 0 = parado, 1 = a tope
       for (const p of this.pxWarpP) {
         // avance en fracciones de alto/ms → velocidad constante sea cual sea el zoom
-        p.fy += (p.spd * theme.speed * 0.0014) * delta;
-        const len = (0.06 + p.spd * 0.14) * vh;       // estela más larga si va rápida
+        p.fy += (p.spd * s * 0.0014) * delta;
+        const len = (0.012 + p.spd * 0.14 * norm) * vh;     // corto (punto) parado → largo a tope
         if (p.fy * vh > vh + len) { p.fy = -len / vh; p.nx = Math.random() - 0.5; }
         const x  = v.x + (0.5 + p.nx) * v.width;
         const y2 = v.y + p.fy * vh;
-        g.lineStyle(2 + p.spd * 4, theme.color, Math.min(1, 0.30 + p.spd * 0.6));
+        const color = theme.colors ? theme.colors[p.ci] : theme.color;
+        g.lineStyle(2 + p.spd * 4, color, Math.min(1, 0.30 + p.spd * 0.6));
         g.lineBetween(x, y2 - len, x, y2);
       }
     }
