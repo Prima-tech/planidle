@@ -153,8 +153,11 @@ $purple: #6e4a67;         // celda seleccionada
 }
 
 .inventory-item.selected {
-  background-color: $purple;
-  border: 2px solid lighten($purple, 14%);
+  background-color: rgba(232, 200, 110, 0.16);
+  border: 2px solid #e8c86e;
+  box-shadow:
+    0 0 8px rgba(232, 200, 110, 0.55),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
 .item-icon {

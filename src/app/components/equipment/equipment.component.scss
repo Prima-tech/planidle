@@ -382,11 +382,11 @@ $metal-dark: #6b6357;
   }
 
   &.selected {
-    border-color: lighten($purple, 14%);
+    border-color: #e8c86e;
     box-shadow:
       0 0 0 1px $outline,
       inset 0 2px 4px rgba(0, 0, 0, 0.4),
-      0 0 8px rgba(140, 95, 132, 0.9);
+      0 0 8px rgba(232, 200, 110, 0.7);
   }
 }
 
@@ -742,8 +742,8 @@ $metal-dark: #6b6357;
 .equip-item:active { cursor: grabbing; }
 
 .equip-item.selected {
-  border-color: lighten($purple, 14%);
-  box-shadow: 0 0 7px rgba(140, 95, 132, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  border-color: #e8c86e;
+  box-shadow: 0 0 7px rgba(232, 200, 110, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
 .item-icon {
@@ -1362,11 +1362,11 @@ $metal-dark: #6b6357;
 
   &--selected {
     transform: scale(1.1);
-    border-color: lighten($purple, 14%);
+    border-color: #e8c86e;
     box-shadow:
       0 0 0 1px $outline,
       inset 0 0 0 1px $outline,
-      0 0 12px rgba(140, 95, 132, 0.95);
+      0 0 12px rgba(232, 200, 110, 0.85);
   }
 
   // No se puede desbloquear ahora: atenuado, se ve menos activo que los que parpadean
