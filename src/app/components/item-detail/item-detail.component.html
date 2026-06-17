@@ -14,6 +14,9 @@
     <span class="detail-name">{{ item.name }}</span>
   </div>
 
+  <!-- TEMPORAL (debug): nombre real del icono. Quitar a futuro. -->
+  <div class="detail-icon-name" *ngIf="iconName">{{ iconName }}</div>
+
   <!-- Mascota vinculada: a qué personaje -->
   <div class="detail-bound" *ngIf="isPet && boundCharName">
     {{ 'PET.BOUND_TO' | translate }}: <span class="detail-bound-char">{{ boundCharName }}</span>

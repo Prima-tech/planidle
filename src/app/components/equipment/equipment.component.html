@@ -841,7 +841,7 @@
     </div>
 
     <ng-template #emptySlot>
-      <ion-icon class="slot-placeholder" [name]="slotPlaceholderIcons[slot.id]" [title]="slot.label"></ion-icon>
+      <ng-container *ngTemplateOutlet="placeholderTpl; context: { slot: slot }"></ng-container>
     </ng-template>
 
     <!-- Cooldown de auto-poción: barrido + segundos sobre el slot -->
@@ -887,7 +887,28 @@
     </div>
 
     <ng-template #gatheringEmptySlot>
-      <ion-icon class="slot-placeholder" [name]="gatheringPlaceholderIcons[slot.id]" [title]="slot.label"></ion-icon>
+      <ng-container *ngTemplateOutlet="placeholderTpl; context: { slot: slot }"></ng-container>
     </ng-template>
   </div>
+</ng-template>
+
+<!-- Placeholder pixel-art compartido por todos los slots vacíos.
+     Prioridad: frame del spritesheet → PNG propio → ionicon de respaldo. -->
+<ng-template #placeholderTpl let-slot="slot">
+  <ng-container *ngIf="slotPlaceholders[slot.id] as ph">
+    <div *ngIf="ph.frame != null; else phImgOrIcon"
+         class="slot-placeholder-img"
+         [ngStyle]="placeholderFrameStyle(ph.frame)"
+         [title]="slot.label"></div>
+    <ng-template #phImgOrIcon>
+      <img *ngIf="ph.img && !placeholderImgFailed.has(slot.id); else phIcon"
+           class="slot-placeholder-img"
+           [src]="ph.img"
+           (error)="onPlaceholderImgError(slot.id)"
+           [title]="slot.label">
+      <ng-template #phIcon>
+        <ion-icon class="slot-placeholder" [name]="ph.icon" [title]="slot.label"></ion-icon>
+      </ng-template>
+    </ng-template>
+  </ng-container>
 </ng-template>

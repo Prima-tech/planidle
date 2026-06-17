@@ -635,6 +635,19 @@ $metal-dark: #6b6357;
   pointer-events: none;
 }
 
+/* Placeholder pixel-art del slot vacío (frame de icons1.png o PNG propio).
+   Silueta negra/gris oscuro, centrada, para leerse como "hueco libre", no como item.
+   brightness(0) → pinta de negro conservando el alfa; opacity lo aclara a gris oscuro. */
+.slot-placeholder-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;       /* centra/escala el PNG en su caja */
+  pointer-events: none;
+  filter: brightness(0);
+  opacity: 0.5;
+  margin-top: 8px;
+}
+
 // Cooldown de auto-poción: barrido cónico oscuro + segundos restantes
 .slot-cooldown {
   position: absolute;

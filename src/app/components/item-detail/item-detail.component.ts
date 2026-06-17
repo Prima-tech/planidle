@@ -78,6 +78,13 @@ export class ItemDetailComponent {
     return need > 0 ? Math.min(1, this.petExp / need) : 0;
   }
 
+  /** TEMPORAL (debug): nombre del fichero del icono para identificarlo. Quitar a futuro. */
+  get iconName(): string {
+    const src = this.item?.iconSheet || this.item?.icon || '';
+    if (!src) return '';
+    return src.split('/').pop() ?? src;
+  }
+
   statLabel(key: string): string {
     return STAT_LABELS[key] ?? key;
   }

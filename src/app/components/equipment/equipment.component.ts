@@ -16,6 +16,7 @@ import { AchievementService, AchievementDef, AchievementScope } from 'src/app/se
 import { QuestService, QuestDef } from 'src/app/services/quest.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
+import { ICONS1, ICONS1_COLS, ICONS1_FRAME_SIZE } from 'src/assets/icon/icons/icons1';
 
 @Component({
   selector: 'app-equipment',
@@ -113,32 +114,56 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   readonly expNeeded = expNeeded;
   readonly maxLevel  = MAX_LEVEL;
 
-  readonly slotPlaceholderIcons: Record<string, string> = {
-    helmet:   'skull-outline',
-    armor:    'shirt-outline',
-    pants:    'man-outline',
-    boots:    'footsteps-outline',
-    weapon:   'hammer-outline',
-    necklace: 'link-outline',
-    ring1:    'diamond-outline',
-    ring2:    'diamond-outline',
-    food:     'restaurant-outline',
-    potion:   'flask-outline',
+  // Placeholder pixel-art de cada slot vacío.
+  //   frame → recorta un frame de icons1.png (mismo estilo que los items)
+  //   img   → PNG propio 32×32 en assets/icon/slots/ (slots sin frame en el sheet)
+  //   icon  → ionicon de respaldo mientras el PNG no exista (evita imagen rota)
+  readonly slotPlaceholders: Record<string, { frame?: number; img?: string; icon: string }> = {
+    // ── Combate ──
+    helmet:   { frame: ICONS1['helmet_dark'],   icon: 'shield-half-outline' },
+    armor:    { frame: ICONS1['armor_chest'],   icon: 'shirt-outline' },
+    pants:    { img: 'assets/icon/slots/pants.png',    icon: 'man-outline' },
+    boots:    { img: 'assets/icon/slots/boots.png',    icon: 'footsteps-outline' },
+    weapon:   { frame: ICONS1['weapon_sword'],  icon: 'flash-outline' },
+    necklace: { frame: ICONS1['gem_jewel_blue'], icon: 'diamond-outline' },
+    ring1:    { frame: ICONS1['item_ring'],     icon: 'ellipse-outline' },
+    ring2:    { frame: ICONS1['item_ring'],     icon: 'ellipse-outline' },
+    food:     { frame: ICONS1['food_apple'],    icon: 'restaurant-outline' },
+    potion:   { frame: ICONS1['potion_blue'],   icon: 'flask-outline' },
+    // ── Recolección ──
+    pickaxe:     { frame: ICONS1['tool_pick'],  icon: 'hammer-outline' },
+    axe:         { img: 'assets/icon/slots/axe.png',      icon: 'cut-outline' },
+    fishing_rod: { frame: ICONS1['item_hook'],  icon: 'fish-outline' },
+    shovel:      { img: 'assets/icon/slots/shovel.png',   icon: 'trail-sign-outline' },
+    lantern:     { img: 'assets/icon/slots/lantern.png',  icon: 'flashlight-outline' },
+    backpack:    { img: 'assets/icon/slots/backpack.png', icon: 'bag-handle-outline' },
+    gloves:      { img: 'assets/icon/slots/gloves.png',   icon: 'hand-left-outline' },
+    belt:        { img: 'assets/icon/slots/belt.png',     icon: 'remove-outline' },
+    compass:     { img: 'assets/icon/slots/compass.png',  icon: 'compass-outline' },
+    pet:         { img: 'assets/icon/slots/pet.png',      icon: 'paw-outline' },
   };
 
-  readonly gatheringPlaceholderIcons: Record<string, string> = {
-    pickaxe:     'hammer-outline',
-    axe:         'cut-outline',
-    fishing_rod: 'fish-outline',
-    shovel:      'trail-sign-outline',
-    lantern:     'sunny-outline',
-    backpack:    'bag-handle-outline',
-    gloves:      'hand-left-outline',
-    belt:        'link-outline',
-    compass:     'compass-outline',
-    torch:       'flame-outline',
-    pet:         'paw-outline',
-  };
+  /** Slots cuyo PNG aún no existe → caen al ionicon de respaldo. */
+  readonly placeholderImgFailed = new Set<string>();
+  onPlaceholderImgError(slotId: string): void { this.placeholderImgFailed.add(slotId); }
+
+  /** Tamaño de pintado del placeholder (px). El frame nativo es 32px → se escala. */
+  readonly PLACEHOLDER_PX = 40;
+
+  /** Estilo de fondo que recorta el `frame` de icons1.png, escalado a PLACEHOLDER_PX. */
+  placeholderFrameStyle(frame: number): Record<string, string> {
+    const size  = ICONS1_FRAME_SIZE;            // 32
+    const cols  = ICONS1_COLS;                  // 12
+    const scale = this.PLACEHOLDER_PX / size;   // 40 / 32
+    const col   = frame % cols;
+    const row   = Math.floor(frame / cols);
+    return {
+      'background-image':    'url(assets/icon/icons/icons1.png)',
+      'background-repeat':   'no-repeat',
+      'background-size':     `${cols * size * scale}px auto`,
+      'background-position': `-${col * size * scale}px -${row * size * scale}px`,
+    };
+  }
 
   readonly loadoutIndices = [0, 1, 2];
 

@@ -32,6 +32,17 @@ $text-cream: #ecd9b4;
   overflow-y: auto;
 }
 
+/* TEMPORAL (debug): nombre real del fichero del icono. Quitar a futuro. */
+.detail-icon-name {
+  margin-top: -4px;
+  font-size: 10px;
+  font-family: monospace;
+  color: $text-cream;
+  opacity: 0.8;
+  word-break: break-all;
+  text-align: center;
+}
+
 /* Placa de madera con bisel de piedra: misma maquetación que el bloque de
    monedas del inventario. La comparten el nombre y el paquete de stats. */
 .detail-header,
