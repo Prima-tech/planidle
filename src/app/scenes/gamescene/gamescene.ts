@@ -211,6 +211,8 @@ export class GameScene extends Phaser.Scene {
     private pxFar?:  Phaser.GameObjects.TileSprite;
     private pxNear?: Phaser.GameObjects.TileSprite;
     private pxImage?: Phaser.GameObjects.Image;   // base de los temas 'scenic'
+    private pxWarp?: Phaser.GameObjects.Graphics; // estelas del tema 'warp'
+    private pxWarpP: { nx: number; fy: number; spd: number }[] = [];
     private pxTime = 0;
     private pxTheme: ParallaxTheme = PARALLAX_THEMES['sea'];
     private pxSub?: Subscription;
@@ -419,6 +421,7 @@ export class GameScene extends Phaser.Scene {
         this.deleteSub?.unsubscribe();
         this.removedSub?.unsubscribe();
         this.pxSub?.unsubscribe();
+        this.pxWarpP.length = 0;
         // No re-spawnear el original durante el teardown (la persistencia lo conserva).
         if (this.buildPlacement) this.buildPlacement.moving = undefined;
         this.cancelBuildPlacement();
@@ -1372,10 +1375,11 @@ export class GameScene extends Phaser.Scene {
     private static readonly PX_PAD = 256;
 
     /** Fondo con parallax detrás del mapa. Soporta temas procedurales (dos capas
-     *  tileables) e imagen escénica (paralax.jpg teñida + overlay opcional). Las
-     *  tres piezas existen siempre; applyParallaxTheme alterna su visibilidad. */
+     *  tileables), imagen escénica (paralax.jpg teñida) e hipervelocidad (estelas).
+     *  Las piezas existen siempre; el tema activo decide cuáles se ven y qué se anima. */
     private initParallax(): void {
       this.pxTime = 0;
+      this.pxWarpP.length = 0;
       const sea = PARALLAX_THEMES['sea'];
       if (sea.kind === 'procedural') {
         this.makeLayerTexture('px_far_sea',  sea.far);
@@ -1385,6 +1389,7 @@ export class GameScene extends Phaser.Scene {
       this.pxFar   = this.add.tileSprite(0, 0, 64, 64, 'px_far_sea').setOrigin(0).setDepth(-100);
       this.pxNear  = this.add.tileSprite(0, 0, 64, 64, 'px_near_sea').setOrigin(0).setDepth(-99);
       this.pxImage = this.add.image(0, 0, 'paralax_scene').setOrigin(0.5).setDepth(-100).setVisible(false);
+      this.pxWarp  = this.add.graphics().setDepth(-98).setBlendMode(Phaser.BlendModes.ADD).setVisible(false);
       // Cambio en caliente desde Ajustes (BehaviorSubject → aplica el actual ya).
       this.pxSub = this.reg.gameSettings?.parallaxTheme$
         .subscribe((tid: ParallaxThemeId) => this.applyParallaxTheme(tid));
@@ -1392,41 +1397,92 @@ export class GameScene extends Phaser.Scene {
       this.updateParallax(0);   // cubre ya el primer frame
     }
 
-    /** Cambia el tema: genera (una vez) sus texturas y alterna qué capas se ven. */
+    /** Cambia el tema: genera (una vez) sus texturas, alterna qué capas se ven y
+     *  prepara el efecto animado (estelas) según corresponda. */
     private applyParallaxTheme(id: ParallaxThemeId): void {
-      if (!this.pxFar || !this.pxNear || !this.pxImage) return;
+      if (!this.pxFar || !this.pxNear || !this.pxImage || !this.pxWarp) return;
       const theme = PARALLAX_THEMES[id] ?? PARALLAX_THEMES['sea'];
       this.pxTheme = theme;
-      if (theme.kind === 'procedural') {
-        this.pxImage.setVisible(false);
-        this.makeLayerTexture(`px_far_${id}`,  theme.far);
-        this.makeLayerTexture(`px_near_${id}`, theme.near);
-        this.pxFar.setTexture(`px_far_${id}`).setVisible(true);
-        this.pxNear.setTexture(`px_near_${id}`).setVisible(true);
-      } else {
-        this.pxFar.setVisible(false);
-        this.pxImage.setTexture(theme.texture).setTint(theme.tint).setVisible(true);
-        if (theme.overlay) {
-          this.makeLayerTexture(`px_ovl_${id}`, theme.overlay);
-          this.pxNear.setTexture(`px_ovl_${id}`).setVisible(true);
-        } else {
+      this.clearParallaxFx();
+      switch (theme.kind) {
+        case 'procedural':
+          this.pxImage.setVisible(false);
+          this.pxWarp.setVisible(false);
+          this.setProceduralLayers(id, theme.far, theme.near);
+          break;
+        case 'warp':
+          this.pxImage.setVisible(false);
           this.pxNear.setVisible(false);
-        }
+          this.makeLayerTexture(`px_far_${id}`, theme.far);
+          this.pxFar.setTexture(`px_far_${id}`).setVisible(true);
+          this.pxWarp.setVisible(true);
+          this.pxWarpP = Array.from({ length: theme.count }, () => ({
+            nx: Math.random() - 0.5, fy: Math.random(), spd: 0.4 + Math.random() * 0.9,
+          }));
+          break;
+        case 'image':
+          this.pxFar.setVisible(false);
+          this.pxWarp.setVisible(false);
+          this.pxImage.setTexture(theme.texture).setTint(theme.tint).setVisible(true);
+          if (theme.overlay) {
+            this.makeLayerTexture(`px_ovl_${id}`, theme.overlay);
+            this.pxNear.setTexture(`px_ovl_${id}`).setVisible(true);
+          } else {
+            this.pxNear.setVisible(false);
+          }
+          break;
       }
+    }
+
+    private setProceduralLayers(id: string, far: ParallaxLayer, near: ParallaxLayer): void {
+      this.makeLayerTexture(`px_far_${id}`,  far);
+      this.makeLayerTexture(`px_near_${id}`, near);
+      this.pxFar!.setTexture(`px_far_${id}`).setVisible(true);
+      this.pxNear!.setTexture(`px_near_${id}`).setVisible(true);
+    }
+
+    /** Limpia las estelas de hipervelocidad (al cambiar de tema). */
+    private clearParallaxFx(): void {
+      this.pxWarp?.clear();
     }
 
     /** Cada frame: ajusta las capas al área de mundo visible (cam.worldView). */
     private updateParallax(delta: number): void {
-      if (!this.pxFar || !this.pxNear || !this.pxImage) return;
+      if (!this.pxFar || !this.pxNear || !this.pxImage || !this.pxWarp) return;
       this.pxTime += delta;
       const v = this.cameras.main.worldView;
       const theme = this.pxTheme;
-      if (theme.kind === 'procedural') {
-        this.driveTileLayer(this.pxFar,  theme.far,  v);
-        this.driveTileLayer(this.pxNear, theme.near, v);
-      } else {
-        this.driveSceneImage(this.pxImage, theme, v);
-        if (theme.overlay && this.pxNear.visible) this.driveTileLayer(this.pxNear, theme.overlay, v);
+      switch (theme.kind) {
+        case 'procedural':
+          this.driveTileLayer(this.pxFar,  theme.far,  v);
+          this.driveTileLayer(this.pxNear, theme.near, v);
+          break;
+        case 'warp':
+          this.driveTileLayer(this.pxFar, theme.far, v);
+          this.updateWarp(theme, v, delta);
+          break;
+        case 'image':
+          this.driveSceneImage(this.pxImage, theme, v);
+          if (theme.overlay && this.pxNear.visible) this.driveTileLayer(this.pxNear, theme.overlay, v);
+          break;
+      }
+    }
+
+    /** Redibuja las estelas de hipervelocidad: caen en vertical de arriba abajo. La
+     *  velocidad/grosor varía por estela (capas), pero el movimiento es recto. */
+    private updateWarp(theme: { color: number; speed: number }, v: Phaser.Geom.Rectangle, delta: number): void {
+      const g = this.pxWarp!;
+      g.clear();
+      const vh = v.height;
+      for (const p of this.pxWarpP) {
+        // avance en fracciones de alto/ms → velocidad constante sea cual sea el zoom
+        p.fy += (p.spd * theme.speed * 0.0014) * delta;
+        const len = (0.06 + p.spd * 0.14) * vh;       // estela más larga si va rápida
+        if (p.fy * vh > vh + len) { p.fy = -len / vh; p.nx = Math.random() - 0.5; }
+        const x  = v.x + (0.5 + p.nx) * v.width;
+        const y2 = v.y + p.fy * vh;
+        g.lineStyle(2 + p.spd * 4, theme.color, Math.min(1, 0.30 + p.spd * 0.6));
+        g.lineBetween(x, y2 - len, x, y2);
       }
     }
 

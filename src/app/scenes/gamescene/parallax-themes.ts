@@ -5,7 +5,7 @@
 
 export type ParallaxThemeId =
   | 'scenic' | 'scenic_dusk' | 'scenic_night' | 'scenic_mystic'
-  | 'sea' | 'sky' | 'space' | 'lava' | 'fog' | 'magic';
+  | 'sea' | 'sky' | 'space' | 'warp' | 'lava' | 'fog' | 'magic';
 
 /** Una mancha radial suave: color rgb "r,g,b", alpha en el centro (→0 al borde),
  *  cuántas pintar y su radio máximo en px (cada una se reparte aleatoriamente). */
@@ -38,7 +38,16 @@ export interface ImageTheme {
   overlay?: ParallaxLayer;
 }
 
-export type ParallaxTheme = ProceduralTheme | ImageTheme;
+/** Hipervelocidad: estelas de estrellas saliendo del centro (sensación de nave). */
+export interface WarpTheme {
+  kind: 'warp';
+  far: ParallaxLayer;   // fondo casi negro
+  count: number;        // nº de estelas
+  color: number;        // 0xRRGGBB de las estelas
+  speed: number;        // multiplicador de velocidad
+}
+
+export type ParallaxTheme = ProceduralTheme | ImageTheme | WarpTheme;
 
 const scenic = (tint: number, overlay?: ParallaxLayer): ImageTheme =>
   ({ kind: 'image', texture: 'paralax_scene', tint, factor: 0.05, drift: 0.55, overlay });
@@ -87,6 +96,14 @@ export const PARALLAX_THEMES: Record<ParallaxThemeId, ParallaxTheme> = {
       { rgb: '190,210,255', alpha: 0.60, count: 30, maxR: 1.6 },
     ] },
   },
+  // Hipervelocidad / nave: estelas saliendo del centro
+  warp: {
+    kind: 'warp',
+    far: { baseFill: '#02030a', factor: 0.0, driftX: 0.0, driftY: 0.0, blobs: [
+      { rgb: '20,30,70', alpha: 0.18, count: 4, maxR: 90 },
+    ] },
+    count: 150, color: 0xcfe2ff, speed: 1.0,
+  },
   lava: {
     kind: 'procedural',
     far:  { baseFill: '#1a0a08', factor: 0.25, driftX: 0.003, driftY: 0.0015, blobs: [
@@ -129,7 +146,8 @@ export const PARALLAX_THEME_LIST: { id: ParallaxThemeId; labelKey: string }[] = 
   { id: 'scenic_mystic', labelKey: 'GAME_SETTINGS.PARALLAX_SCENIC_MYSTIC' },
   { id: 'sea',   labelKey: 'GAME_SETTINGS.PARALLAX_SEA'   },
   { id: 'sky',   labelKey: 'GAME_SETTINGS.PARALLAX_SKY'   },
-  { id: 'space', labelKey: 'GAME_SETTINGS.PARALLAX_SPACE' },
+  { id: 'space',  labelKey: 'GAME_SETTINGS.PARALLAX_SPACE'  },
+  { id: 'warp',   labelKey: 'GAME_SETTINGS.PARALLAX_WARP'   },
   { id: 'lava',  labelKey: 'GAME_SETTINGS.PARALLAX_LAVA'  },
   { id: 'fog',   labelKey: 'GAME_SETTINGS.PARALLAX_FOG'   },
   { id: 'magic', labelKey: 'GAME_SETTINGS.PARALLAX_MAGIC' },

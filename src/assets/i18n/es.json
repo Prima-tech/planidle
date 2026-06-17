@@ -88,6 +88,7 @@
     "PARALLAX_SEA": "Mar",
     "PARALLAX_SKY": "Cielo",
     "PARALLAX_SPACE": "Espacio",
+    "PARALLAX_WARP": "Hipervelocidad",
     "PARALLAX_LAVA": "Lava",
     "PARALLAX_FOG": "Niebla",
     "PARALLAX_MAGIC": "Mágico"

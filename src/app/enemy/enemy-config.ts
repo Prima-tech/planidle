@@ -77,10 +77,10 @@ const ORC1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 const orc1: EnemyTypeConfig = {
   type: 'orc1',
   displayName: 'Orco',
-  hp: 50,
+  hp: 52,                  // mapa 1-3
   scale: 3,
   speed: 96,
-  damage: 8,
+  damage: 6,
   attackCooldown: 1500,
   actions: {
     idle: {
@@ -135,10 +135,10 @@ const orc1_elite: EnemyTypeConfig = {
   ...orc1,
   type: 'orc1_elite',
   displayName: 'Orco',
-  hp: 150,
+  hp: orc1.hp * 3,
   scale: 3.5,
   speed: 110,
-  damage: 15,
+  damage: orc1.damage * 2,
   attackCooldown: 1200,
   tint: 0xffcc00,
   spriteType: 'orc1',
@@ -148,10 +148,10 @@ const orc1_oblivion: EnemyTypeConfig = {
   ...orc1,
   type: 'orc1_oblivion',
   displayName: 'Orco',
-  hp: 400,
+  hp: orc1.hp * 8,
   scale: 4,
   speed: 130,
-  damage: 25,
+  damage: orc1.damage * 3,
   attackCooldown: 1000,
   tint: 0xcc00ff,
   spriteType: 'orc1',
@@ -164,10 +164,10 @@ const SLIME4_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const slime4: EnemyTypeConfig = {
   type: 'slime4',
   displayName: 'Slime',
-  hp: 50,
+  hp: 30,                  // mapa 1-1
   scale: 3,
   speed: 150,
-  damage: 6,
+  damage: 4,
   attackCooldown: 1500,
   actions: {
     idle: {
@@ -302,10 +302,10 @@ const slime4_elite: EnemyTypeConfig = {
   ...slime4,
   type: 'slime4_elite',
   displayName: 'Slime',
-  hp: 150,
+  hp: slime4.hp * 3,
   scale: 3.5,
   speed: 165,
-  damage: 12,
+  damage: slime4.damage * 2,
   attackCooldown: 1200,
   tint: 0xffcc00,
   spriteType: 'slime4',
@@ -315,10 +315,10 @@ const slime4_oblivion: EnemyTypeConfig = {
   ...slime4,
   type: 'slime4_oblivion',
   displayName: 'Slime',
-  hp: 400,
+  hp: slime4.hp * 8,
   scale: 4,
   speed: 180,
-  damage: 20,
+  damage: slime4.damage * 3,
   attackCooldown: 1000,
   tint: 0xcc00ff,
   spriteType: 'slime4',
@@ -330,10 +330,10 @@ const GOOBLING2_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 
 const goobling2: EnemyTypeConfig = {
   type: 'goobling2',
-  hp: 35,
+  hp: 145,                 // mapa 1-7
   scale: 3,
   speed: 115,
-  damage: 5,
+  damage: 16,
   attackCooldown: 1700,
   actions: {
     idle:            { filename: 'Idle_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING2_DIR) },
@@ -347,8 +347,8 @@ const goobling2: EnemyTypeConfig = {
   },
 };
 
-const goobling2_elite: EnemyTypeConfig    = { ...goobling2, type: 'goobling2_elite',    hp: 105, scale: 3.5, speed: 127, damage: 10, attackCooldown: 1360, tint: 0xffcc00, spriteType: 'goobling2' };
-const goobling2_oblivion: EnemyTypeConfig = { ...goobling2, type: 'goobling2_oblivion', hp: 280, scale: 4,   speed: 138, damage: 17, attackCooldown: 1140, tint: 0xcc00ff, spriteType: 'goobling2' };
+const goobling2_elite: EnemyTypeConfig    = { ...goobling2, type: 'goobling2_elite',    hp: goobling2.hp * 3, scale: 3.5, speed: 127, damage: goobling2.damage * 2, attackCooldown: 1360, tint: 0xffcc00, spriteType: 'goobling2' };
+const goobling2_oblivion: EnemyTypeConfig = { ...goobling2, type: 'goobling2_oblivion', hp: goobling2.hp * 8, scale: 4,   speed: 138, damage: goobling2.damage * 3, attackCooldown: 1140, tint: 0xcc00ff, spriteType: 'goobling2' };
 
 // ── Definición del Gnoll1 ────────────────────────────────────────────────────
 
@@ -356,10 +356,10 @@ const GNOLL1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 
 const gnoll1: EnemyTypeConfig = {
   type: 'gnoll1',
-  hp: 40,
+  hp: 86,                  // mapa 1-5
   scale: 3,
   speed: 110,
-  damage: 6,
+  damage: 10,
   attackCooldown: 1600,
   actions: {
     idle:   { filename: 'Gnoll1_Idle_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GNOLL1_DIR) },
@@ -371,8 +371,8 @@ const gnoll1: EnemyTypeConfig = {
   },
 };
 
-const gnoll1_elite: EnemyTypeConfig    = { ...gnoll1, type: 'gnoll1_elite',    hp: 120, scale: 3.5, speed: 121, damage: 12, attackCooldown: 1280, tint: 0xffcc00, spriteType: 'gnoll1' };
-const gnoll1_oblivion: EnemyTypeConfig = { ...gnoll1, type: 'gnoll1_oblivion', hp: 320, scale: 4,   speed: 132, damage: 20, attackCooldown: 1072, tint: 0xcc00ff, spriteType: 'gnoll1' };
+const gnoll1_elite: EnemyTypeConfig    = { ...gnoll1, type: 'gnoll1_elite',    hp: gnoll1.hp * 3, scale: 3.5, speed: 121, damage: gnoll1.damage * 2, attackCooldown: 1280, tint: 0xffcc00, spriteType: 'gnoll1' };
+const gnoll1_oblivion: EnemyTypeConfig = { ...gnoll1, type: 'gnoll1_oblivion', hp: gnoll1.hp * 8, scale: 4,   speed: 132, damage: gnoll1.damage * 3, attackCooldown: 1072, tint: 0xcc00ff, spriteType: 'gnoll1' };
 
 // ── Definición del Golem1 ────────────────────────────────────────────────────
 
@@ -380,10 +380,10 @@ const GOLEM1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 
 const golem1: EnemyTypeConfig = {
   type: 'golem1',
-  hp: 80,
+  hp: 190,                 // mapa 1-8
   scale: 4.5,
   speed: 70,
-  damage: 16,
+  damage: 20,
   attackCooldown: 2000,
   actions: {
     idle:   { filename: 'Golem1_Idle_with_shadow',  frameWidth: 128, frameHeight: 128, frameRate: 4,  repeat: -1, directional: true, frames: dirFrames(4, GOLEM1_DIR) },
@@ -395,8 +395,8 @@ const golem1: EnemyTypeConfig = {
   },
 };
 
-const golem1_elite: EnemyTypeConfig    = { ...golem1, type: 'golem1_elite',    hp: 240, scale: 5.5, speed: 77, damage: 32, attackCooldown: 1600, tint: 0xffcc00, spriteType: 'golem1' };
-const golem1_oblivion: EnemyTypeConfig = { ...golem1, type: 'golem1_oblivion', hp: 640, scale: 6, speed: 84, damage: 53, attackCooldown: 1340, tint: 0xcc00ff, spriteType: 'golem1' };
+const golem1_elite: EnemyTypeConfig    = { ...golem1, type: 'golem1_elite',    hp: golem1.hp * 3, scale: 5.5, speed: 77, damage: golem1.damage * 2, attackCooldown: 1600, tint: 0xffcc00, spriteType: 'golem1' };
+const golem1_oblivion: EnemyTypeConfig = { ...golem1, type: 'golem1_oblivion', hp: golem1.hp * 8, scale: 6, speed: 84, damage: golem1.damage * 3, attackCooldown: 1340, tint: 0xcc00ff, spriteType: 'golem1' };
 
 // ── Definición del Rat1 ──────────────────────────────────────────────────────
 // Sprites 128×128 en enemy/rats1/. Rápida y frágil. Death direccional (4 filas).
@@ -406,7 +406,7 @@ const RAT1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 const rats1: EnemyTypeConfig = {
   type: 'rats1',
   displayName: 'Rata',
-  hp: 30,
+  hp: 40,                  // mapa 1-2
   scale: 3,
   speed: 130,
   damage: 5,
@@ -421,8 +421,8 @@ const rats1: EnemyTypeConfig = {
   },
 };
 
-const rats1_elite: EnemyTypeConfig    = { ...rats1, type: 'rats1_elite',    hp: 90,  scale: 3.5, speed: 143, damage: 10, attackCooldown: 1200, tint: 0xffcc00, spriteType: 'rats1' };
-const rats1_oblivion: EnemyTypeConfig = { ...rats1, type: 'rats1_oblivion', hp: 240, scale: 4,   speed: 156, damage: 17, attackCooldown: 1000, tint: 0xcc00ff, spriteType: 'rats1' };
+const rats1_elite: EnemyTypeConfig    = { ...rats1, type: 'rats1_elite',    hp: rats1.hp * 3,  scale: 3.5, speed: 143, damage: rats1.damage * 2, attackCooldown: 1200, tint: 0xffcc00, spriteType: 'rats1' };
+const rats1_oblivion: EnemyTypeConfig = { ...rats1, type: 'rats1_oblivion', hp: rats1.hp * 8, scale: 4,   speed: 156, damage: rats1.damage * 3, attackCooldown: 1000, tint: 0xcc00ff, spriteType: 'rats1' };
 
 // ── Definición del Lizardman1 ────────────────────────────────────────────────
 // Sprites 64×64 en enemy/lizard1/. Equilibrado, tipo orco fuerte. Death direccional.
@@ -432,10 +432,10 @@ const LIZARD1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dir
 const lizard1: EnemyTypeConfig = {
   type: 'lizard1',
   displayName: 'Hombre Lagarto',
-  hp: 60,
+  hp: 112,                 // mapa 1-6
   scale: 3,
   speed: 100,
-  damage: 10,
+  damage: 13,
   attackCooldown: 1400,
   actions: {
     idle:   { filename: 'Lizardman1_Idle_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, LIZARD1_DIR) },
@@ -447,8 +447,8 @@ const lizard1: EnemyTypeConfig = {
   },
 };
 
-const lizard1_elite: EnemyTypeConfig    = { ...lizard1, type: 'lizard1_elite',    hp: 180, scale: 3.5, speed: 110, damage: 20, attackCooldown: 1120, tint: 0xffcc00, spriteType: 'lizard1' };
-const lizard1_oblivion: EnemyTypeConfig = { ...lizard1, type: 'lizard1_oblivion', hp: 480, scale: 4,   speed: 120, damage: 33, attackCooldown: 938,  tint: 0xcc00ff, spriteType: 'lizard1' };
+const lizard1_elite: EnemyTypeConfig    = { ...lizard1, type: 'lizard1_elite',    hp: lizard1.hp * 3, scale: 3.5, speed: 110, damage: lizard1.damage * 2, attackCooldown: 1120, tint: 0xffcc00, spriteType: 'lizard1' };
+const lizard1_oblivion: EnemyTypeConfig = { ...lizard1, type: 'lizard1_oblivion', hp: lizard1.hp * 8, scale: 4,   speed: 120, damage: lizard1.damage * 3, attackCooldown: 938,  tint: 0xcc00ff, spriteType: 'lizard1' };
 
 // ── Definición del Goobling1 ─────────────────────────────────────────────────
 // Sprites 64×64 en enemy/goobling1/. Mismo set que goobling2 (con walk/run attack).
@@ -457,10 +457,10 @@ const GOOBLING1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 
 const goobling1: EnemyTypeConfig = {
   type: 'goobling1',
-  hp: 30,
+  hp: 66,                  // mapa 1-4
   scale: 3,
   speed: 110,
-  damage: 4,
+  damage: 8,
   attackCooldown: 1700,
   actions: {
     idle:            { filename: 'Idle0_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING1_DIR) },
@@ -474,8 +474,8 @@ const goobling1: EnemyTypeConfig = {
   },
 };
 
-const goobling1_elite: EnemyTypeConfig    = { ...goobling1, type: 'goobling1_elite',    hp: 90,  scale: 3.5, speed: 121, damage: 8,  attackCooldown: 1360, tint: 0xffcc00, spriteType: 'goobling1' };
-const goobling1_oblivion: EnemyTypeConfig = { ...goobling1, type: 'goobling1_oblivion', hp: 240, scale: 4,   speed: 132, damage: 13, attackCooldown: 1140, tint: 0xcc00ff, spriteType: 'goobling1' };
+const goobling1_elite: EnemyTypeConfig    = { ...goobling1, type: 'goobling1_elite',    hp: goobling1.hp * 3,  scale: 3.5, speed: 121, damage: goobling1.damage * 2,  attackCooldown: 1360, tint: 0xffcc00, spriteType: 'goobling1' };
+const goobling1_oblivion: EnemyTypeConfig = { ...goobling1, type: 'goobling1_oblivion', hp: goobling1.hp * 8, scale: 4,   speed: 132, damage: goobling1.damage * 3, attackCooldown: 1140, tint: 0xcc00ff, spriteType: 'goobling1' };
 
 // ── Registro global de tipos de enemigo ──────────────────────────────────────
 // Para añadir un enemigo nuevo: agregar su config aquí.
