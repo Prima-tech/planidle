@@ -146,6 +146,52 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   color: rgba($text-cream, 0.55);
 }
 
+// ── Fila con opciones apiladas (label arriba, botones debajo) ────────────────
+
+.gs-row-stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+
+  .gs-row-info { width: 100%; }
+}
+
+.gs-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gs-option-btn {
+  flex: 1 0 auto;
+  min-width: 64px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: $text-cream;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+
+  &:active { transform: scale(0.96); }
+
+  &.active {
+    background: #1a4a2a;
+    color: #fff;
+    border-color: $stone-light $stone-dark $stone-dark $stone;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 0 10px rgba(46, 204, 113, 0.35);
+  }
+}
+
 // ── Toggle (palanca sobre piedra) ─────────────────────────────────────────────
 
 .gs-toggle {

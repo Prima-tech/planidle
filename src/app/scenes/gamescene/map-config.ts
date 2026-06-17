@@ -23,6 +23,8 @@ export interface SpawnTracker {
 export interface PortalConfig {
   tilePos: { x: number; y: number };
   targetMapId: string;
+  /** 'next' = avanza al mapa futuro (portal naranja); 'back' = retrocede (portal azul). */
+  direction: 'next' | 'back';
 }
 
 export interface TilesetConfig {
@@ -69,10 +71,10 @@ const gen = (id: string) => ({
   extraTilesets: [GEN_WATER],
 });
 
-/** Portal de retroceso (esquina superior-izquierda) */
-const backPortal  = (targetMapId: string): PortalConfig => ({ tilePos: { x: 2,  y: 2  }, targetMapId });
-/** Portal de avance — x debe coincidir con width-3 del mapa generado (manifest.mjs) */
-const nextPortal  = (targetMapId: string, x = 17): PortalConfig => ({ tilePos: { x, y: 2 }, targetMapId });
+/** Portal de retroceso (esquina superior-izquierda) — azul */
+const backPortal  = (targetMapId: string): PortalConfig => ({ tilePos: { x: 2,  y: 2  }, targetMapId, direction: 'back' });
+/** Portal de avance — x debe coincidir con width-3 del mapa generado (manifest.mjs) — naranja */
+const nextPortal  = (targetMapId: string, x = 17): PortalConfig => ({ tilePos: { x, y: 2 }, targetMapId, direction: 'next' });
 
 interface GenLevelOpts {
   id: string; w: number; h: number;          // w/h DEBEN coincidir con manifest.mjs
@@ -126,7 +128,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     ...W1_HOME_TILESET,
     id: 'hogar', name: 'Asgard',
     spawns: [],
-    portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1' }],
+    portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1', direction: 'next' }],
     spawnPos: { x: 30, y: 30 },
     extraTilesets: [
       { key: 'w1-water-detail', name: 'Water_detilazation', image: 'assets/tilemaps/W1/water_detilazation.png' },

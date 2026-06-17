@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
+import { PARALLAX_THEME_LIST } from 'src/app/scenes/gamescene/parallax-themes';
 import { APP_VERSION } from 'src/app/version';
 
 @Component({
@@ -12,4 +13,5 @@ export class GameSettingsPageComponent {
   tab: 0 | 1 | 2 = 0;
   gs = inject(GameSettingsService);
   readonly appVersion = APP_VERSION;
+  readonly parallaxThemes = PARALLAX_THEME_LIST;
 }

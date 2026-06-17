@@ -77,7 +77,16 @@
     "SHOW_JOYSTICK": "Mostrar joystick",
     "SHOW_JOYSTICK_DESC": "Solo visual: el movimiento táctil funciona igual",
     "SHOW_FPS": "Mostrar FPS / rendimiento",
-    "SHOW_FPS_DESC": "Overlay con FPS, peor frame y nº de enemigos para diagnosticar tirones"
+    "SHOW_FPS_DESC": "Overlay con FPS, peor frame y nº de enemigos para diagnosticar tirones",
+    "BACKGROUND": "Fondo",
+    "PARALLAX": "Estilo de parallax",
+    "PARALLAX_DESC": "Fondo con movimiento detrás del mapa (se aplica al instante)",
+    "PARALLAX_SEA": "Mar",
+    "PARALLAX_SKY": "Cielo",
+    "PARALLAX_SPACE": "Espacio",
+    "PARALLAX_LAVA": "Lava",
+    "PARALLAX_FOG": "Niebla",
+    "PARALLAX_MAGIC": "Mágico"
   },
   "SHOP": {
     "TITLE": "Tienda"

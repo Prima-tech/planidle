@@ -7,7 +7,7 @@ import { GridPhysics } from "src/app/physics/gridphisics";
 import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MINIMAP_DATA_KEY } from "src/app/scenes/mobile-hud.scene";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
-import { MapConfig, SpawnConfig, SpawnTracker, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
+import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
 import { InteractionContext } from "src/app/services/interaction.service";
@@ -17,6 +17,8 @@ import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
 import { NATIVE_DPR } from "./constants";
 import { BuildableDef, PlacedBuilding, stationFrameRect } from "src/app/services/city-build.service";
+import { PARALLAX_THEMES, ParallaxThemeId, ParallaxLayer, ParallaxTheme } from "./parallax-themes";
+import { Subscription } from "rxjs";
 import { Pet } from "src/app/pnj/pet/pet";
 import { PET_REGISTRY, petPickupRange } from "src/app/pnj/pet/pet-config";
 
@@ -148,6 +150,17 @@ export class GameScene extends Phaser.Scene {
     private lastDamageTime = -Infinity;
     private sessionKills: Record<string, number> = {};
     private eliteKills = 0;
+    // Kills totales en la sesión del mapa (cualquier enemigo). Desbloquean los portales.
+    private mapKills = 0;
+    // Portales vivos en la escena + sus adornos (nº que falta y calavera) y estado.
+    private activePortals: {
+      config: PortalConfig;
+      sprite: Phaser.GameObjects.Sprite;
+      label: Phaser.GameObjects.Text;
+      skull: Phaser.GameObjects.Image;
+      requirement: number;
+      unlocked: boolean;
+    }[] = [];
     private currentMapConfig: MapConfig;
     private reg: GameRegistry;
     private animService: AnimationService;
@@ -198,6 +211,8 @@ export class GameScene extends Phaser.Scene {
     private pxFar?:  Phaser.GameObjects.TileSprite;
     private pxNear?: Phaser.GameObjects.TileSprite;
     private pxTime = 0;
+    private pxTheme: ParallaxTheme = PARALLAX_THEMES['sea'];
+    private pxSub?: Subscription;
     // Rocas minables: solo en mapas que no sean 'hogar'. Bloquean el paso y se
     // pican con el pico equipado (3 golpes → se destruyen).
     // Recursos recolectables del mapa (rocas, árboles…). Bloquean el paso.
@@ -262,8 +277,10 @@ export class GameScene extends Phaser.Scene {
       // Fragua apagada (textura propia 64×92, sin animación de fuego).
       this.load.spritesheet('forge_off', 'assets/sprites/stations/forge_off.png', { frameWidth: 64, frameHeight: 92 });
       // portal_01.png: 4 col × 4 fila (128×192), cada fila es un portal de 4 frames
-      // (32×48). De momento usamos el primero (fila 0 → frames 0-3).
+      // (32×48). Fila 0 azul (back), fila 2 naranja (next), fila 3 gris (bloqueado).
       this.load.spritesheet('portal', 'assets/sprites/resources/portal_01.png', { frameWidth: 32, frameHeight: 48 });
+      // Calavera del minimapa: la mostramos junto al nº de kills que falta sobre un portal bloqueado.
+      this.load.image('mm_enemy', 'assets/sprites/map/enemy.png');
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
       // Bolsas (equipo secundario): iconos sueltos usados como sprite del drop al invocar.
@@ -352,6 +369,8 @@ export class GameScene extends Phaser.Scene {
       this.portalCooldown = false;
       this.sessionKills = {};
       this.eliteKills = 0;
+      this.mapKills = 0;
+      this.activePortals = [];
       this.autoTarget = null;
       this.autoStuckMs = 0;
       this.autoBlacklist.clear();
@@ -396,6 +415,7 @@ export class GameScene extends Phaser.Scene {
         this.moveSub?.unsubscribe();
         this.deleteSub?.unsubscribe();
         this.removedSub?.unsubscribe();
+        this.pxSub?.unsubscribe();
         // No re-spawnear el original durante el teardown (la persistencia lo conserva).
         if (this.buildPlacement) this.buildPlacement.moving = undefined;
         this.cancelBuildPlacement();
@@ -1173,23 +1193,78 @@ export class GameScene extends Phaser.Scene {
     }
 
     initPortals() {
-      if (!this.anims.exists('portal_spin')) {
-        this.anims.create({
-          key: 'portal_spin',
-          frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 3 }),
-          frameRate: 10,
-          repeat: -1,
-        });
+      // Tres variantes del portal — cada fila del sprite es un color:
+      //   azul = back (frames 0-3) · naranja = next (8-11) · gris = bloqueado (12-15)
+      const portalAnims: [string, number, number][] = [
+        ['portal_blue',   0,  3],
+        ['portal_orange', 8,  11],
+        ['portal_gray',   12, 15],
+      ];
+      for (const [key, start, end] of portalAnims) {
+        if (!this.anims.exists(key)) {
+          this.anims.create({
+            key,
+            frames: this.anims.generateFrameNumbers('portal', { start, end }),
+            frameRate: 10,
+            repeat: -1,
+          });
+        }
       }
 
+      const TS = GameScene.TILE_SIZE;
+      const baseReq = this.portalKillRequirement();
+      // La calavera es 16×16: con filtrado nearest (el juego ya va con antialias off,
+      // pero lo forzamos) y tamaño 3× se ve grande y limpia en vez de borrosa.
+      this.textures.get('mm_enemy').setFilter(Phaser.Textures.FilterMode.NEAREST);
       this.currentMapConfig.portals.forEach(portal => {
-        const px = portal.tilePos.x * GameScene.TILE_SIZE + GameScene.TILE_SIZE / 2;
-        const py = portal.tilePos.y * GameScene.TILE_SIZE + GameScene.TILE_SIZE / 2;
-        const sprite = this.add.sprite(px, py, 'portal');
-        sprite.setDepth(1);
-        sprite.setScale(2.5);
-        sprite.play('portal_spin');
+        const px = portal.tilePos.x * TS + TS / 2;
+        const py = portal.tilePos.y * TS + TS / 2;
+        // Volver al hogar es gratis: el portal que apunta al hogar nunca pide kills.
+        const requirement = portal.targetMapId === 'hogar' ? 0 : baseReq;
+
+        const sprite = this.add.sprite(px, py, 'portal').setDepth(1).setScale(2.5);
+
+        // Cartel sobre el portal (solo visible mientras está bloqueado): nº de kills
+        // que faltan a la izquierda + la calavera del minimapa a la derecha.
+        const top = py - 84;
+        const label = this.add.text(px - 8, top, '', {
+          fontSize: '46px',
+          fontStyle: 'bold',
+          color: '#ffffff',
+          stroke: '#000000',
+          strokeThickness: 8,
+          resolution: Math.ceil(NATIVE_DPR * 2),   // bitmap a más densidad → número nítido
+        }).setOrigin(1, 0.5).setDepth(6000);
+        const skull = this.add.image(px + 10, top, 'mm_enemy')
+          .setOrigin(0, 0.5).setDisplaySize(48, 48).setDepth(6000);
+
+        this.activePortals.push({ config: portal, sprite, label, skull, requirement, unlocked: false });
       });
+
+      this.updatePortalLocks();
+    }
+
+    /** Kills necesarios para abrir los portales del mapa actual: 1-1→1, 1-2→2 … hogar→0. */
+    private portalKillRequirement(): number {
+      const id = this.currentMapConfig.id;
+      if (id === 'hogar') return 0;
+      const n = parseInt(id.split('-')[1], 10);
+      return Number.isNaN(n) ? 1 : n;
+    }
+
+    /** Refresca color/animación de cada portal y su cartel (nº que falta + calavera). */
+    private updatePortalLocks(): void {
+      for (const p of this.activePortals) {
+        const remaining = Math.max(0, p.requirement - this.mapKills);
+        p.unlocked = remaining <= 0;
+
+        const animKey = !p.unlocked ? 'portal_gray'
+          : p.config.direction === 'next' ? 'portal_orange' : 'portal_blue';
+        if (p.sprite.anims.currentAnim?.key !== animKey) p.sprite.play(animKey);
+
+        p.label.setText(p.unlocked ? '' : String(remaining)).setVisible(!p.unlocked);
+        p.skull.setVisible(!p.unlocked);
+      }
     }
 
     checkPortals(playerPos: Phaser.Math.Vector2) {
@@ -1204,16 +1279,17 @@ export class GameScene extends Phaser.Scene {
       const range = TS * 1.1;
       const r2 = range * range;
 
-      for (const portal of this.currentMapConfig.portals) {
-        const cx = portal.tilePos.x * TS + TS / 2;
-        const cy = portal.tilePos.y * TS + TS / 2;
+      for (const p of this.activePortals) {
+        if (!p.unlocked) continue;   // portal gris bloqueado: aún faltan kills
+        const cx = p.config.tilePos.x * TS + TS / 2;
+        const cy = p.config.tilePos.y * TS + TS / 2;
         const dx = px - cx;
         const dy = py - cy;
         if (dx * dx + dy * dy <= r2) {
           this.portalCooldown = true;
           this.cameras.main.fadeOut(250, 0, 0, 0);
           this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-            this.reg.world.setCurrentMap(portal.targetMapId);
+            this.reg.world.setCurrentMap(p.config.targetMapId);
             this.scene.restart();
           });
           break;
@@ -1295,13 +1371,31 @@ export class GameScene extends Phaser.Scene {
     private static readonly PX_PAD = 256;
 
     private initParallax(): void {
-      this.makeSeaTexture('px_sea', 256);
-      this.makeCausticTexture('px_caustic', 256);
-      // Tamaño/posición reales se fijan en updateParallax desde cam.worldView.
-      this.pxFar  = this.add.tileSprite(0, 0, 64, 64, 'px_sea').setOrigin(0).setDepth(-100);
-      this.pxNear = this.add.tileSprite(0, 0, 64, 64, 'px_caustic').setOrigin(0).setDepth(-99);
       this.pxTime = 0;
+      const id = (this.reg.gameSettings?.parallaxTheme ?? 'sea') as ParallaxThemeId;
+      const theme = PARALLAX_THEMES[id] ?? PARALLAX_THEMES['sea'];
+      this.makeLayerTexture(`px_far_${id}`,  theme.far);
+      this.makeLayerTexture(`px_near_${id}`, theme.near);
+      // Tamaño/posición reales se fijan en updateParallax desde cam.worldView.
+      this.pxFar  = this.add.tileSprite(0, 0, 64, 64, `px_far_${id}`).setOrigin(0).setDepth(-100);
+      this.pxNear = this.add.tileSprite(0, 0, 64, 64, `px_near_${id}`).setOrigin(0).setDepth(-99);
+      this.pxTheme = theme;
+      // Cambio en caliente desde Ajustes (BehaviorSubject → aplica el actual ya).
+      this.pxSub = this.reg.gameSettings?.parallaxTheme$
+        .subscribe((tid: ParallaxThemeId) => this.applyParallaxTheme(tid));
       this.updateParallax(0);   // cubre ya el primer frame
+    }
+
+    /** Cambia el tema de parallax: genera (una vez) sus texturas y las aplica a las
+     *  dos capas, guardando factores/deriva para updateParallax. */
+    private applyParallaxTheme(id: ParallaxThemeId): void {
+      if (!this.pxFar || !this.pxNear) return;
+      const theme = PARALLAX_THEMES[id] ?? PARALLAX_THEMES['sea'];
+      this.makeLayerTexture(`px_far_${id}`,  theme.far);
+      this.makeLayerTexture(`px_near_${id}`, theme.near);
+      this.pxFar.setTexture(`px_far_${id}`);
+      this.pxNear.setTexture(`px_near_${id}`);
+      this.pxTheme = theme;
     }
 
     /** Cada frame: ajusta las capas al área de mundo visible (cam.worldView) con un
@@ -1317,32 +1411,27 @@ export class GameScene extends Phaser.Scene {
       const w = v.width + pad * 2, h = v.height + pad * 2;
       this.pxFar.setPosition(x, y).setSize(w, h);
       this.pxNear.setPosition(x, y).setSize(w, h);
-      this.pxFar.tilePositionX  = v.x * 0.30 + this.pxTime * 0.004;
-      this.pxFar.tilePositionY  = v.y * 0.30 + this.pxTime * 0.002;
-      this.pxNear.tilePositionX = v.x * 0.60 - this.pxTime * 0.010;
-      this.pxNear.tilePositionY = v.y * 0.60 + this.pxTime * 0.006;
+      const { far, near } = this.pxTheme;
+      this.pxFar.tilePositionX  = v.x * far.factor  + this.pxTime * far.driftX;
+      this.pxFar.tilePositionY  = v.y * far.factor  + this.pxTime * far.driftY;
+      this.pxNear.tilePositionX = v.x * near.factor + this.pxTime * near.driftX;
+      this.pxNear.tilePositionY = v.y * near.factor + this.pxTime * near.driftY;
     }
 
-    /** Textura tileable de mar profundo: azul base + manchas claras/oscuras suaves
-     *  (dibujadas con copias envueltas en los bordes para que repita sin costura). */
-    private makeSeaTexture(key: string, size: number): void {
+    /** Textura tileable de una capa de parallax: relleno opaco opcional + manchas
+     *  radiales suaves (dibujadas con copias envueltas en los bordes → repite sin
+     *  costura). Se cachea por `key`, así que cada tema se genera una sola vez. */
+    private makeLayerTexture(key: string, layer: ParallaxLayer): void {
       if (this.textures.exists(key)) return;
+      const size = 256;
       const t = this.textures.createCanvas(key, size, size);
       if (!t) return;
       const ctx = t.getContext();
-      ctx.fillStyle = '#11314e';
-      ctx.fillRect(0, 0, size, size);
-      this.paintBlobs(ctx, size, '38,86,128', 0.45, 18, 64);   // reflejos
-      this.paintBlobs(ctx, size, '8,26,46',   0.50, 14, 58);   // hondonadas
-      t.refresh();
-    }
-
-    /** Textura tileable de cáusticas: fondo transparente + destellos de luz fríos. */
-    private makeCausticTexture(key: string, size: number): void {
-      if (this.textures.exists(key)) return;
-      const t = this.textures.createCanvas(key, size, size);
-      if (!t) return;
-      this.paintBlobs(t.getContext(), size, '170,222,255', 0.10, 11, 46);
+      if (layer.baseFill) {
+        ctx.fillStyle = layer.baseFill;
+        ctx.fillRect(0, 0, size, size);
+      }
+      for (const b of layer.blobs) this.paintBlobs(ctx, size, b.rgb, b.alpha, b.count, b.maxR);
       t.refresh();
     }
 
@@ -1481,6 +1570,10 @@ export class GameScene extends Phaser.Scene {
         const mapId = this.reg.world.getCurrentMap().id;
         this.reg.kill?.recordKill(mapId, type);
         this.reg.gathering?.addEquippedPetExp(1);   // 1 exp por enemigo a la mascota equipada
+
+        // Cualquier enemigo cuenta para abrir los portales del mapa.
+        this.mapKills++;
+        this.updatePortalLocks();
 
         if (type.endsWith('_oblivion')) return;
 
