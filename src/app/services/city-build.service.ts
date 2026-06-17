@@ -32,6 +32,51 @@ export interface BuildableDef {
   isTownChest?: boolean;
   /** true → al pulsar el edificio en el mapa abre su ventana (openWindow$). */
   opensWindow?: boolean;
+  /** Animación a reproducir en bucle (ghost + sprite colocado). Sus frames son
+   *  [frame, frame+1, frame+2]. La crea/registra `gamescene` en `create()`. */
+  animKey?: string;
+
+  // ── Render del preview en el panel (DOM). Por defecto: hoja 'chests'
+  //    (assets/sprites/resources/<spriteKey>.png, 9 cols, 32×32, ×2). ──
+  /** URL del PNG para el preview (si la hoja no está en resources/). */
+  previewUrl?: string;
+  /** Recorte explícito (px) del frame dentro de la hoja `previewUrl`. */
+  previewSrc?: { x: number; y: number; w: number; h: number };
+  /** Tamaño total (px) de la hoja `previewUrl` (para el background-size). */
+  previewSheet?: { w: number; h: number };
+  /** Escala del recorte en el preview. Default 2 (hoja chests). */
+  previewScale?: number;
+}
+
+/** Hoja stations.png: 6 columnas (64px) × 5 filas de ALTO IRREGULAR. La fila de
+ *  fraguas (0) es más alta y se solapa con la fila 1, así que no se puede partir
+ *  con una altura uniforme: estos son los topes reales de cada fila (+ el final). */
+export const STATION_SHEET = { url: 'assets/sprites/stations/stations.png', w: 384, h: 352 };
+const STATION_ROW_TOP = [0, 92, 161, 226, 291, 352];
+
+/** Rect (px) del frame `index` (0..29) en stations.png. Cada estación ocupa 3
+ *  columnas consecutivas (su animación): base = fila·6 + lado·3. */
+export function stationFrameRect(index: number): { x: number; y: number; w: number; h: number } {
+  const col = index % 6, row = Math.floor(index / 6);
+  return { x: col * 64, y: STATION_ROW_TOP[row], w: 64, h: STATION_ROW_TOP[row + 1] - STATION_ROW_TOP[row] };
+}
+
+function station(type: string, name: string, row: number, side: 0 | 1, scale = 2): BuildableDef {
+  const frame = row * 6 + side * 3;
+  const rect = stationFrameRect(frame);
+  return {
+    type, name,
+    spriteKey: 'stations', frame,
+    frameSize: 64, scale,
+    tilesW: 3, tilesH: 3,
+    unique: false,
+    animKey: `station_${type}`,
+    previewUrl: STATION_SHEET.url,
+    previewSrc: rect,
+    previewSheet: { w: STATION_SHEET.w, h: STATION_SHEET.h },
+    // Normaliza la altura en la ficha a ~58px (la fila irregular se ve pareja).
+    previewScale: +(58 / rect.h).toFixed(3),
+  };
 }
 
 export const BUILDABLES: BuildableDef[] = [
@@ -59,6 +104,17 @@ export const BUILDABLES: BuildableDef[] = [
     unique: true,
     opensWindow: true,
   },
+
+  // ── Estaciones de oficio (decorativas + animadas) ──
+  station('forge',            'BUILD.FORGE',            0, 0, 1.6),
+  station('smelter',          'BUILD.SMELTER',          0, 1),
+  station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
+  station('alembic',          'BUILD.ALEMBIC',          1, 1),
+  station('workbench',        'BUILD.WORKBENCH',        2, 0),
+  station('loom',             'BUILD.LOOM',             2, 1),
+  station('enchanting_table', 'BUILD.ENCHANTING_TABLE', 3, 0),
+  station('drying_rack',      'BUILD.DRYING_RACK',      3, 1),
+  station('butcher_table',    'BUILD.BUTCHER_TABLE',    4, 0),
 ];
 
 /** Una construcción ya colocada en el mapa de la ciudad. */

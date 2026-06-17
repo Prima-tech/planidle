@@ -255,7 +255,16 @@
     "BUY": "Buy",
     "SELL": "Sell",
     "SELL_GET": "You get:",
-    "SELL_HINT": "Drag items from your bag here to sell them."
+    "SELL_HINT": "Drag items from your bag here to sell them.",
+    "FORGE": "Forge",
+    "SMELTER": "Smelter",
+    "ALCHEMY_TABLE": "Alchemy table",
+    "ALEMBIC": "Alembic",
+    "WORKBENCH": "Workbench",
+    "LOOM": "Loom",
+    "ENCHANTING_TABLE": "Enchanting table",
+    "DRYING_RACK": "Drying rack",
+    "BUTCHER_TABLE": "Butcher table"
   },
   "OFFLINE": {
     "TITLE": "AFK gains",

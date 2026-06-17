@@ -16,7 +16,7 @@ import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
 import { NATIVE_DPR } from "./constants";
-import { BuildableDef, PlacedBuilding } from "src/app/services/city-build.service";
+import { BuildableDef, PlacedBuilding, stationFrameRect } from "src/app/services/city-build.service";
 import { Pet } from "src/app/pnj/pet/pet";
 import { PET_REGISTRY, petPickupRange } from "src/app/pnj/pet/pet-config";
 
@@ -250,7 +250,12 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
       this.load.spritesheet('chests', 'assets/sprites/resources/chests.png', { frameWidth: 32, frameHeight: 32 });
-      this.load.spritesheet('portal', 'assets/sprites/resources/portal.png', { frameWidth: 64, frameHeight: 64 });
+      // Estaciones de oficio (construibles). Cargada como imagen: las filas miden
+      // 70.4px, así que registramos los frames a mano en registerStationAnimations().
+      this.load.image('stations', 'assets/sprites/stations/stations.png');
+      // portal_01.png: 4 col × 4 fila (128×192), cada fila es un portal de 4 frames
+      // (32×48). De momento usamos el primero (fila 0 → frames 0-3).
+      this.load.spritesheet('portal', 'assets/sprites/resources/portal_01.png', { frameWidth: 32, frameHeight: 48 });
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
       // Bolsas (equipo secundario): iconos sueltos usados como sprite del drop al invocar.
@@ -363,7 +368,7 @@ export class GameScene extends Phaser.Scene {
       this.createPhysics();
       this.createGameControls();
       this.initLevelUpWatcher();
-      this.cameras.main.fadeIn(500, 0, 0, 0);
+      this.cameras.main.fadeIn(250, 0, 0, 0);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.scene.stop('MobileHUDScene');
         this.mobileInput = null;
@@ -410,6 +415,7 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(0, () => {
         this.registerEnemyAnimations();
         this.registerDropTextures();
+        this.registerStationAnimations();
         this.initSpawns();
         this.reg.mapStats?.setTrackers(this.spawnTrackers);
         this.initEnemyAttackListener();
@@ -435,6 +441,17 @@ export class GameScene extends Phaser.Scene {
 
     override update(_time: number, delta: number) {
       const __t0 = performance.now();
+
+      // Tras tocar un portal: el jugador frena en seco y se queda quieto durante el
+      // fundido (sin input, sin automatización, sin físicas), en vez de seguir
+      // andando mientras la cámara hace fade. Da sensación de "entrar" al portal.
+      if (this.portalCooldown) {
+        this.reg.autoAttack?.pauseAutomation();
+        this.gridPhysics.stop();
+        this.player.syncLayers();
+        return;
+      }
+
       this.gridControls.update();
 
       // Input manual (ataque o movimiento) → pausa la automatización unos segundos
@@ -1092,6 +1109,30 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    /** Hoja stations.png: 6 columnas × 5 filas de ALTO IRREGULAR (la fila de
+     *  fraguas es más alta y se solapa con la de abajo). Registramos cada frame
+     *  con su rect real (stationFrameRect) para no cortar los sprites, y creamos
+     *  una animación en bucle por estación (3 columnas = sus 3 frames). */
+    private registerStationAnimations(): void {
+      if (!this.textures.exists('stations')) return;
+      const tex = this.textures.get('stations');
+      if (!tex.has('0')) {
+        for (let i = 0; i < 30; i++) {
+          const r = stationFrameRect(i);
+          tex.add(i, 0, r.x, r.y, r.w, r.h);
+        }
+      }
+      for (const def of this.reg.cityBuild?.buildables ?? []) {
+        if (!def.animKey || this.anims.exists(def.animKey)) continue;
+        this.anims.create({
+          key: def.animKey,
+          frames: this.anims.generateFrameNumbers('stations', { frames: [def.frame, def.frame + 1, def.frame + 2] }),
+          frameRate: 4,
+          repeat: -1,
+        });
+      }
+    }
+
     private registerDropTextures(): void {
       if (!this.anims.exists('coin_spin')) {
         this.anims.create({
@@ -1108,7 +1149,7 @@ export class GameScene extends Phaser.Scene {
       if (!this.anims.exists('portal_spin')) {
         this.anims.create({
           key: 'portal_spin',
-          frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 7 }),
+          frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 3 }),
           frameRate: 10,
           repeat: -1,
         });
@@ -1119,20 +1160,31 @@ export class GameScene extends Phaser.Scene {
         const py = portal.tilePos.y * GameScene.TILE_SIZE + GameScene.TILE_SIZE / 2;
         const sprite = this.add.sprite(px, py, 'portal');
         sprite.setDepth(1);
-        sprite.setScale(1.5);
+        sprite.setScale(2.5);
         sprite.play('portal_spin');
       });
     }
 
     checkPortals(playerPos: Phaser.Math.Vector2) {
       if (this.portalCooldown) return;
-      const tileX = Math.floor(playerPos.x / GameScene.TILE_SIZE);
-      const tileY = Math.floor((playerPos.y - GameScene.TILE_SIZE / 2) / GameScene.TILE_SIZE);
+      const TS = GameScene.TILE_SIZE;
+      // Posición del jugador en el MISMO espacio que el centro del portal (mismo
+      // offset de -TS/2 en Y que usaba el cálculo de tile original).
+      const px = playerPos.x;
+      const py = playerPos.y - TS / 2;
+      // Radio de activación: un poco más de un tile, para que salte al tocar el
+      // portal (o un pelín antes) en lugar de exigir el tile central exacto.
+      const range = TS * 1.1;
+      const r2 = range * range;
 
       for (const portal of this.currentMapConfig.portals) {
-        if (tileX === portal.tilePos.x && tileY === portal.tilePos.y) {
+        const cx = portal.tilePos.x * TS + TS / 2;
+        const cy = portal.tilePos.y * TS + TS / 2;
+        const dx = px - cx;
+        const dy = py - cy;
+        if (dx * dx + dy * dy <= r2) {
           this.portalCooldown = true;
-          this.cameras.main.fadeOut(500, 0, 0, 0);
+          this.cameras.main.fadeOut(250, 0, 0, 0);
           this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
             this.reg.world.setCurrentMap(portal.targetMapId);
             this.scene.restart();
@@ -1926,6 +1978,7 @@ export class GameScene extends Phaser.Scene {
         const sprite = this.add.sprite(x, y, def.spriteKey, def.frame);
         sprite.setScale(def.scale);
         sprite.setDepth(2);
+        if (def.animKey && this.anims.exists(def.animKey)) sprite.play(def.animKey);
         const blocked = this.computeFootprintTiles(x, y, (def.frameSize * def.scale) / 2);
         for (const k of blocked) this.collisionTiles.add(k);
         this.placedBuildings.push({ building, sprite, blocked });
@@ -2066,6 +2119,7 @@ export class GameScene extends Phaser.Scene {
       ghost.setScale(def.scale);
       ghost.setAlpha(0.6);
       ghost.setDepth(9000);
+      if (def.animKey && this.anims.exists(def.animKey)) ghost.play(def.animKey);
 
       const check  = this.makeBuildButton(0x2ecc40, '✓').setDepth(9001);
       const cancel = this.makeBuildButton(0xff4136, '✕').setDepth(9001);

@@ -23,6 +23,10 @@ $metal-face: linear-gradient(180deg, $metal-light 0%, $metal 45%, #847b6e 75%, $
 $metal-face-pressed: linear-gradient(180deg, $metal-dark 0%, #847b6e 25%, $metal 60%, $metal-light 100%);
 $icon-metal: #3a342c;     // iconos sobre acero
 
+// Acento dorado del botón activo (halo + subrayado)
+$gold: #f0c040;
+$gold-light: #ffe9a8;
+
 // ── FABs de automatización (auto-ataque + auto-skills) ───────────────────────
 
 .auto-attack-fab,
@@ -50,6 +54,10 @@ $icon-metal: #3a342c;     // iconos sobre acero
 
   &:active {
     transform: scale(0.9);
+  }
+
+  ion-icon {
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.3));
   }
 }
 
@@ -83,46 +91,50 @@ $icon-metal: #3a342c;     // iconos sobre acero
 
 :host {
 
-  .left-stack {
+  /* Botón único de cambio de página (principal ⇄ skills). Más estrecho que las
+     placas y separado por una pequeña franja, para leerse como "modo", no acción. */
+  .page-toggle {
     float: left;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    width: 34px;
     height: 40px;
-    justify-content: center;
-    margin-right: 12px;
-  }
-
-  .stack-btn {
-    width: 30px;
-    height: 18px;
-    border: 2px solid;
+    margin-right: 10px;
+    padding: 0;
+    border: 3px solid;
     border-color: $stone-light $stone-dark $stone-dark $stone;
-    border-radius: 3px;
+    border-radius: 4px;
     background: $metal-face;
+    color: $icon-metal;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: $icon-metal;
-    font-size: 11px;
     box-shadow:
       0 0 0 1px $outline,
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      inset 0 2px 0 rgba(255, 255, 255, 0.3);
     transition: background 0.15s, color 0.15s;
 
+    ion-icon {
+      font-size: 18px;
+      display: block;
+      filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35));
+    }
+
     &:active {
-      background: $metal-dark;
-      color: $text-cream;
+      background: $metal-face-pressed;
       box-shadow:
         0 0 0 1px $outline,
-        inset 0 2px 3px rgba(0, 0, 0, 0.3);
+        inset 0 2px 4px rgba(0, 0, 0, 0.35);
     }
   }
 
   ion-toolbar {
-    /* Madera lisa + viga de piedra biselada arriba */
-    --background: #{$wood-bg};
+    /* Madera CON VETAS (receta 1 del tema: superficies grandes siempre con veta) +
+       viga de piedra biselada arriba. --background acepta capas, así que la veta
+       (repeating-linear-gradient) va encima del color de madera base. */
+    --background:
+      repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 15px),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.04) 0 1px, transparent 1px 7px),
+      #{$wood-bg};
     --border-color: transparent;
     /* Sin --safe-left: el notch izquierdo no llega a la barra inferior, así que
        sumarlo dejaba los botones de abajo-izquierda demasiado metidos. */
@@ -145,10 +157,13 @@ $icon-metal: #3a342c;     // iconos sobre acero
   }
 
   .footer-ion-icon {
-    font-size: 20px;
+    font-size: 21px;
     color: $icon-metal;
     display: block;
-    transition: color 0.15s;
+    /* "grabado en el acero": una línea de luz justo debajo del icono oscuro da
+       sensación de relieve estampado, en vez de un glifo pegado encima. */
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35));
+    transition: color 0.15s, filter 0.15s;
   }
 
   .icon-menu-wrapper {
@@ -177,13 +192,44 @@ $icon-metal: #3a342c;     // iconos sobre acero
       float: right;
     }
 
-    &:active, &.active {
+    &:active {
       /* placa pulsada: degradado invertido + cara hundida */
       background: $metal-face-pressed;
       box-shadow:
         0 0 0 1px $outline,
         inset 0 0 0 1px $outline,
         inset 0 2px 4px rgba(0, 0, 0, 0.35);
+    }
+
+    &.active {
+      /* panel ABIERTO: cara hundida + halo ámbar para que se vea de un vistazo cuál está abierto */
+      background: $metal-face-pressed;
+      box-shadow:
+        0 0 0 1px $outline,
+        inset 0 0 0 1px $outline,
+        inset 0 0 9px rgba(240, 192, 64, 0.5),
+        0 0 9px rgba(240, 192, 64, 0.4);
+
+      /* icono dorado y encendido cuando su panel está abierto */
+      .footer-ion-icon {
+        color: $gold;
+        filter: drop-shadow(0 0 3px rgba(240, 192, 64, 0.75));
+      }
+    }
+
+    /* subrayado dorado del botón activo */
+    &.active::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      bottom: 2px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, $gold-light 25%, $gold 50%, $gold-light 75%, transparent);
+      border-radius: 1px;
+      box-shadow: 0 0 4px rgba(240, 192, 64, 0.8);
+      pointer-events: none;
+      z-index: 3;
     }
 
   }

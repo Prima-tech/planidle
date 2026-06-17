@@ -255,7 +255,16 @@
     "BUY": "Comprar",
     "SELL": "Vender",
     "SELL_GET": "Te dan:",
-    "SELL_HINT": "Arrastra items de tu mochila aquí para venderlos."
+    "SELL_HINT": "Arrastra items de tu mochila aquí para venderlos.",
+    "FORGE": "Fragua",
+    "SMELTER": "Fundición",
+    "ALCHEMY_TABLE": "Mesa de alquimia",
+    "ALEMBIC": "Alambique",
+    "WORKBENCH": "Banco de trabajo",
+    "LOOM": "Telar",
+    "ENCHANTING_TABLE": "Mesa de encantamientos",
+    "DRYING_RACK": "Secadero",
+    "BUTCHER_TABLE": "Mesa de carnicero"
   },
   "OFFLINE": {
     "TITLE": "Ganancias AFK",

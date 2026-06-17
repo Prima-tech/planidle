@@ -13,44 +13,41 @@
 <app-modal-container #buildShopModal (closed)="onBuildShopModalClosed()"></app-modal-container>
 
 <button class="auto-attack-fab" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
-  <ion-icon name="infinite-outline"></ion-icon>
+  <ion-icon name="infinite"></ion-icon>
 </button>
 <button class="auto-skill-fab" [class.active]="autoAttack.skillsEnabled" (click)="toggleAutoSkills()">
-  <ion-icon name="sparkles-outline"></ion-icon>
+  <ion-icon name="sparkles"></ion-icon>
 </button>
 
 <ion-footer>
   <ion-toolbar>
 
-    <div class="left-stack">
-      <button class="stack-btn"></button>
-      <button class="stack-btn" (click)="togglePage()">
-        <ion-icon [name]="page === 'main' ? 'swap-horizontal-outline' : 'arrow-back-outline'"></ion-icon>
-      </button>
-    </div>
+    <button class="page-toggle" (click)="togglePage()">
+      <ion-icon [name]="page === 'main' ? 'swap-horizontal' : 'arrow-back'"></ion-icon>
+    </button>
 
     <!-- Página principal -->
     <ng-container *ngIf="page === 'main'">
       <div class="icon-menu-wrapper" [class.active]="equipmentModal.isOpenModal()" (click)="openEquipment()">
-        <ion-icon name="shirt-outline" class="footer-ion-icon"></ion-icon>
+        <ion-icon name="shirt" class="footer-ion-icon"></ion-icon>
         <span class="notif-dot" *ngIf="badges.has('equip')"></span>
       </div>
 
       <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
-        <ion-icon name="flash-outline" class="footer-ion-icon"></ion-icon>
+        <ion-icon name="flash" class="footer-ion-icon"></ion-icon>
       </div>
 
       <div class="icon-menu-wrapper" [class.active]="progressModal.isOpenModal()" (click)="openProgress()">
-        <ion-icon name="rocket-outline" class="footer-ion-icon"></ion-icon>
+        <ion-icon name="rocket" class="footer-ion-icon"></ion-icon>
       </div>
 
       <div class="icon-menu-wrapper" *ngIf="currentMapId === 'hogar'"
            [class.active]="buildModal.isOpenModal()" (click)="openBuild()">
-        <ion-icon name="hammer-outline" class="footer-ion-icon"></ion-icon>
+        <ion-icon name="hammer" class="footer-ion-icon"></ion-icon>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">
-        <ion-icon name="settings-outline" class="footer-ion-icon"></ion-icon>
+        <ion-icon name="settings" class="footer-ion-icon"></ion-icon>
       </div>
 
     </ng-container>
@@ -58,7 +55,7 @@
     <!-- Página de habilidades -->
     <ng-container *ngIf="page === 'skills'">
       <div class="icon-menu-wrapper lock-btn" [class.active]="!locked" (click)="toggleLock()">
-        <ion-icon [name]="locked ? 'lock-closed-outline' : 'lock-open-outline'" class="footer-ion-icon"></ion-icon>
+        <ion-icon [name]="locked ? 'lock-closed' : 'lock-open'" class="footer-ion-icon"></ion-icon>
       </div>
       <div class="skill-slots-row">
         <div *ngFor="let slot of skillSlots"

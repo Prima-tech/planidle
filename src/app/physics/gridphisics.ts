@@ -51,6 +51,20 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     this.animDirection = animDir;
   }
 
+  /** Corta cualquier movimiento o dash en curso y deja al jugador parado en idle.
+   *  Usado al tocar un portal: el personaje frena en seco durante el fundido. */
+  stop(): void {
+    if (this.isDashing) {
+      this.isDashing = false;
+      this.player.endDash();
+    }
+    this.movementIntent = Direction.NONE;
+    if (this.isWalking) {
+      this.player.stopAnimation(this.currentAnimDirection);
+      this.isWalking = false;
+    }
+  }
+
   dash(moveDir: Direction, animDir: Direction): void {
     if (this.isDashing || moveDir === Direction.NONE) return;
     this.isDashing     = true;

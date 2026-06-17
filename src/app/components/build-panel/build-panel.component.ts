@@ -38,9 +38,24 @@ export class BuildPanelComponent {
     this.cityBuild.startDeleteMode();
   }
 
-  /** Recorte del frame de un spritesheet 32×32 (mismo cálculo que summon). */
+  /** Recorte del frame para el preview de la ficha.
+   *  - Con `previewSrc` (estaciones): recorte explícito en px de la hoja `previewUrl`.
+   *  - Sin él (cofre/tienda): rejilla por defecto de la hoja 'chests' (9 cols, 32×32, ×2). */
   frameStyle(def: BuildableDef): Record<string, string> {
-    const scale = 2;
+    if (def.previewSrc && def.previewSheet) {
+      const s = def.previewScale ?? 1;
+      const r = def.previewSrc, sheet = def.previewSheet;
+      return {
+        'background-image':    `url(${def.previewUrl})`,
+        'background-repeat':   'no-repeat',
+        'background-size':     `${sheet.w * s}px ${sheet.h * s}px`,
+        'background-position': `-${r.x * s}px -${r.y * s}px`,
+        'image-rendering':     'pixelated',
+        'width':               `${r.w * s}px`,
+        'height':              `${r.h * s}px`,
+      };
+    }
+    const scale = def.previewScale ?? 2;
     const size  = this.CHEST_FRAME_SIZE;
     return {
       'background-image':    `url(assets/sprites/resources/${def.spriteKey}.png)`,
