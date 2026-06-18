@@ -223,6 +223,14 @@ const WEAPON_CATALOG: LootEntry[] = [
     description: 'Sable de acero grabado con runas antiguas.',
     stats: { damage: 18 },
   },
+  {
+    name: 'Colmillo Carmesí', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'sword05_main', frame: 624, scale: 2.5, order: 2,
+    icon: `${SWORD_ICONS}/sword_01_icon.png`,
+    description: 'Cimitarra demoníaca de filo carmesí, sedienta de sangre.',
+    stats: { damage: 24 },
+  },
 ];
 
 // Bastones de mago: arte en assets/sprites/player/equip/weapons/staff/staff. Como

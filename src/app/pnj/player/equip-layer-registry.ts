@@ -333,6 +333,7 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   'Cimitarra Dorada': swordLayerArming('sword02', 'sword_02.png'),
   'Hoja Ardiente':    swordLayerArming('sword03', 'sword_03.png'),
   'Sable Rúnico':     swordLayerArming('sword04', 'sword_04.png'),
+  'Colmillo Carmesí': swordLayerArming('sword05', 'sword_05.png'),
   // ── Sombra del jugador (capa permanente, depth < player) ──────────────────
   'Shadow': {
     frameWidth: 64, frameHeight: 64, depth: 1, mode: 'anim',
