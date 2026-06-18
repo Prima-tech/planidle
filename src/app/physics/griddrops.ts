@@ -231,6 +231,14 @@ const WEAPON_CATALOG: LootEntry[] = [
     description: 'Cimitarra demoníaca de filo carmesí, sedienta de sangre.',
     stats: { damage: 24 },
   },
+  {
+    name: 'Matadragones', category: 'Arma', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'sword06_main', frame: 240, scale: 2.5, order: 2,
+    icon: `${SWORD_ICONS}/sword_01_icon.png`,
+    description: 'Una losa de hierro bruto más que una espada. Pesada, tosca, brutal.',
+    stats: { damage: 30 },
+  },
 ];
 
 // Bastones de mago: arte en assets/sprites/player/equip/weapons/staff/staff. Como

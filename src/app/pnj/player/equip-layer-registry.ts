@@ -218,6 +218,54 @@ function swordLayerArming(prefix: string, file: string): EquipLayerConfig {
   };
 }
 
+// Mandoble largo del set universal LPC (export de 24 col, 1536×5760). A diferencia
+// de las "arming swords" (26 col), esta hoja NO trae slash a 64px ni idle propio:
+//   · walk/idle a 64×64 (rejilla de 24 cols). walk filas 8-11 (9 frames). idle =
+//     1er frame del walk de cada dirección.
+//   · slash "oversize" a 192×192 (rejilla de 8 cols). bloque filas 18-21 (6 fr),
+//     una por dirección → animación de ATAQUE. Igual que el bloque de los bastones,
+//     se carga el PNG con una 2ª clave (192) y se usa offsetY=160 (el cuerpo va
+//     centrado en el frame de 192; (192-64)/2 × 2.5 = 160).
+function swordLayerLong(prefix: string, file: string): EquipLayerConfig {
+  const p = prefix;
+  const path = `assets/sprites/player/equip/weapons/swords/${file}`;
+  const C64 = 24;   // columnas a 64px
+  const walk = { up: 8 * C64, left: 9 * C64, down: 10 * C64, right: 11 * C64 };
+  const C192 = 8;   // columnas a 192px
+  const slash = { up: 18 * C192, left: 19 * C192, down: 20 * C192, right: 21 * C192 };
+  return {
+    frameWidth: 64, frameHeight: 64, depth: 4, mode: 'anim',
+    depthWhenUp: 1.5,   // detrás del jugador salvo mirando hacia abajo
+    oversizeSheetKey: `${p}_slash`, oversizeOffsetY: 160,
+    playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
+    sheets: [
+      {
+        key: `${p}_main`, path, frameWidth: 64, frameHeight: 64,
+        anims: [
+          // sin idle propio → idle = 1er frame del walk de cada dirección
+          { key: `${p}_idle_up`,      startFrame: walk.up,    endFrame: walk.up,        frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_left`,    startFrame: walk.left,  endFrame: walk.left,      frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_down`,    startFrame: walk.down,  endFrame: walk.down,      frameRate: 2,  repeat: -1 },
+          { key: `${p}_idle_right`,   startFrame: walk.right, endFrame: walk.right,     frameRate: 2,  repeat: -1 },
+          { key: `${p}_walk_up`,      startFrame: walk.up,    endFrame: walk.up + 8,    frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_left`,    startFrame: walk.left,  endFrame: walk.left + 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_down`,    startFrame: walk.down,  endFrame: walk.down + 8,  frameRate: 10, repeat: -1 },
+          { key: `${p}_walk_right`,   startFrame: walk.right, endFrame: walk.right + 8, frameRate: 10, repeat: -1 },
+        ],
+      },
+      {
+        key: `${p}_slash`, path, frameWidth: 192, frameHeight: 192,
+        anims: [
+          { key: `${p}_attack_up`,    startFrame: slash.up,    endFrame: slash.up + 5,    frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_left`,  startFrame: slash.left,  endFrame: slash.left + 5,  frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_down`,  startFrame: slash.down,  endFrame: slash.down + 5,  frameRate: 14, repeat: 0 },
+          { key: `${p}_attack_right`, startFrame: slash.right, endFrame: slash.right + 5, frameRate: 14, repeat: 0 },
+        ],
+      },
+    ],
+  };
+}
+
 // Bastones de mago (assets/sprites/player/equip/weapons/staff/staff). Hoja LPC
 // "magic" combinada de 1536×4224 que mezcla dos tamaños de frame sobre el MISMO PNG:
 //   · walk/idle a 64×64 (rejilla de 24 cols). walk filas 8-11 (9 frames, cols 0-8).
@@ -334,6 +382,7 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   'Hoja Ardiente':    swordLayerArming('sword03', 'sword_03.png'),
   'Sable Rúnico':     swordLayerArming('sword04', 'sword_04.png'),
   'Colmillo Carmesí': swordLayerArming('sword05', 'sword_05.png'),
+  'Matadragones':     swordLayerLong('sword06', 'sword_06.png'),
   // ── Sombra del jugador (capa permanente, depth < player) ──────────────────
   'Shadow': {
     frameWidth: 64, frameHeight: 64, depth: 1, mode: 'anim',
