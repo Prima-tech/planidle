@@ -425,7 +425,9 @@ export class GridDrops {
     this.mainScene.events.on('enemyDied', ({ position, type }: { position: Phaser.Math.Vector2, type: string }) => {
       this.playerState.addExp(EXP_REWARDS[type] ?? 10);
       const drops = this.rollDrops(type);
-      drops.forEach(loot => { try { this.spawnDrop(position, loot); } catch (e) { console.error('Drop error:', e); } });
+      // El botín sale despedido desde el enemigo (`from`) y aterriza a cierta
+      // distancia, en vez de quedarse pegado al punto de muerte.
+      drops.forEach(loot => { try { this.spawnDrop(position, loot, position); } catch (e) { console.error('Drop error:', e); } });
     });
   }
 
@@ -511,8 +513,20 @@ export class GridDrops {
       return;
     }
 
-    const offsetX = Phaser.Math.Between(-40, 40);
-    const offsetY = Phaser.Math.Between(-20, 20);
+    // Punto de caída: cuando hay un origen (`from`, p.ej. el enemigo al morir) el
+    // botín se dispersa de forma radial a cierta distancia para no amontonarse
+    // sobre el cadáver; sin origen mantiene un pequeño jitter alrededor del punto.
+    let offsetX: number;
+    let offsetY: number;
+    if (from) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist  = Phaser.Math.Between(48, 90);
+      offsetX = Math.cos(angle) * dist;
+      offsetY = Math.sin(angle) * dist * 0.6;   // achatado para perspectiva isométrica
+    } else {
+      offsetX = Phaser.Math.Between(-40, 40);
+      offsetY = Phaser.Math.Between(-20, 20);
+    }
     const targetX = position.x + offsetX;
     const targetY = position.y + offsetY;
 
