@@ -46,6 +46,10 @@
         <ion-icon name="hammer" class="footer-ion-icon"></ion-icon>
       </div>
 
+      <div class="icon-menu-wrapper" [class.active]="gameSettingsModal.isOpenModal()" (click)="openGameSettings()">
+        <ion-icon name="options" class="footer-ion-icon"></ion-icon>
+      </div>
+
       <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">
         <ion-icon name="settings" class="footer-ion-icon"></ion-icon>
       </div>

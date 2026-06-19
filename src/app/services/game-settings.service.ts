@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { map, distinctUntilChanged } from 'rxjs/operators';
 import { ParallaxThemeId } from '../scenes/gamescene/parallax-themes';
+import { WorldParallaxId } from '../scenes/worldrun/parallax-sets';
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -9,6 +10,7 @@ export interface GameSettings {
   showJoystick: boolean;
   showFps: boolean;
   parallaxTheme: ParallaxThemeId;
+  worldParallax: WorldParallaxId;
 }
 
 const STORAGE_KEY = 'idle_game_settings';
@@ -17,6 +19,7 @@ const DEFAULTS: GameSettings = {
   showJoystick: true,
   showFps: false,
   parallaxTheme: 'sea',
+  worldParallax: 'paralax01',
 };
 
 // ── Servicio ───────────────────────────────────────────────────────────────────
@@ -58,6 +61,10 @@ export class GameSettingsService {
   get parallaxTheme(): ParallaxThemeId { return this._settings.parallaxTheme; }
   get parallaxTheme$()                 { return this._subject.pipe(map(s => s.parallaxTheme), distinctUntilChanged()); }
   setParallaxTheme(v: ParallaxThemeId) { this.set('parallaxTheme', v); }
+
+  get worldParallax(): WorldParallaxId { return this._settings.worldParallax; }
+  get worldParallax$()                 { return this._subject.pipe(map(s => s.worldParallax), distinctUntilChanged()); }
+  setWorldParallax(v: WorldParallaxId) { this.set('worldParallax', v); }
 
   // ── Persistencia ────────────────────────────────────────────────────────────
 

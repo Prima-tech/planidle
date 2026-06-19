@@ -3,7 +3,7 @@
   <div class="gs-tabs">
     <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">{{ 'GAME_SETTINGS.GAME' | translate }}</button>
     <button class="gs-tab" [class.active]="tab === 1" (click)="tab = 1">{{ 'GAME_SETTINGS.BACKGROUND' | translate }}</button>
-    <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">Tab 3</button>
+    <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">Mundo</button>
   </div>
 
   <div class="gs-content">
@@ -59,7 +59,23 @@
 
     <ng-container *ngIf="tab === 2">
       <div class="gs-section">
-        <p class="gs-section-label">Tab 3</p>
+        <p class="gs-section-label">Modo Mundo</p>
+
+        <div class="gs-row gs-row-stack">
+          <div class="gs-row-info">
+            <span class="gs-row-title">Fondo del runner</span>
+            <span class="gs-row-desc">Elige el parallax del Modo Mundo.</span>
+          </div>
+          <div class="gs-options">
+            <button *ngFor="let s of worldParallaxSets"
+                    class="gs-option-btn"
+                    [class.active]="gs.worldParallax === s.id"
+                    (click)="gs.setWorldParallax(s.id)">
+              {{ s.label }}
+            </button>
+          </div>
+        </div>
+
       </div>
     </ng-container>
 

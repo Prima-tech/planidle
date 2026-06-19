@@ -105,12 +105,18 @@ ion-content::part(scroll)::-webkit-scrollbar {
    para separar la UI de la curva. */
 :root {
   --edge-min: 32px;
-  /* Izquierda: notch real → env() basta (ya va bien). Derecha: borde curvo
-     reporta 0px, así que aplicamos el mínimo --edge-min para separar la UI de la curva. */
+  /* Izquierda: notch real → env() basta (ya va bien). Derecha: en web NO forzamos
+     mínimo (no hay borde curvo), así la UI se ancla al filo como debe en escritorio. */
   --safe-left:   env(safe-area-inset-left, 0px);
-  --safe-right:  max(env(safe-area-inset-right, 0px), var(--edge-min));
+  --safe-right:  env(safe-area-inset-right, 0px);
   --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Solo en la app nativa (Capacitor): el borde curvo derecho reporta 0px, así que
+   aplicamos el mínimo --edge-min para separar la UI de la curva. En web sobra. */
+.plt-hybrid {
+  --safe-right: max(env(safe-area-inset-right, 0px), var(--edge-min));
 }
 
 /* ── Badge de notificación ("hay algo nuevo") ─────────────────────────────────

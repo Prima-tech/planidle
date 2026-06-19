@@ -1,5 +1,9 @@
 import { Subscription } from 'rxjs';
 import { GameRegistry } from '../game-registry';
+import {
+  WorldParallaxId, getWorldParallaxSet, worldParallaxKey, worldParallaxPath,
+  worldParallaxFactor, WORLD_PARALLAX_SRC_W, WORLD_PARALLAX_SRC_H,
+} from './parallax-sets';
 
 /**
  * Modo Mundo — runner lateral 2D estilo Idle Slayer.
@@ -51,16 +55,7 @@ const PLAYER_RUN_FRAMES = { start: 533, end: 540 };
 const PLAYER_RUN_AIR_FRAME = 537;                     // frame congelado en el aire
 const PLAYER_IDLE_FRAME = 325;                        // IDLE RIGHT
 
-// --- Parallax de fondo (4 capas espaciales, 1920×1080) ---
-const PARALLAX_DIR = 'assets/tilemaps/world/paralax/paralax01/';
-const PARALLAX_SRC_H = 1080;
-// De atrás (factor bajo = se mueve despacio) hacia delante.
-const PARALLAX_LAYERS = [
-  { key: 'wr_px_nebula',   file: 'l1_nebula-01',    factor: 0.08 },
-  { key: 'wr_px_stars',    file: 'l2_stars-01',     factor: 0.18 },
-  { key: 'wr_px_planet_b', file: 'l3_planet02-01',  factor: 0.34 },
-  { key: 'wr_px_planet_f', file: 'l4_planet02-01',  factor: 0.55 },
-];
+// El parallax de fondo es configurable (varios sets) desde ajustes; ver parallax-sets.ts.
 
 interface RunChunk {
   grass: Phaser.GameObjects.TileSprite;
@@ -82,7 +77,12 @@ export class WorldRunScene extends Phaser.Scene {
   private distanceText!: Phaser.GameObjects.Text;
   private jumpSub?: Subscription;
   private jumpReleaseSub?: Subscription;
+  private parallaxSub?: Subscription;
   private parallax: { ts: Phaser.GameObjects.TileSprite; factor: number }[] = [];
+  // scrollX de referencia cuando se (re)construye el parallax: las capas se desplazan
+  // respecto a este origen, no al scroll absoluto. Así un set recién cargado arranca
+  // alineado (como en la primera entrada) en vez de aparecer descuadrado a media carrera.
+  private parallaxBaseX = 0;
 
   // Estado del salto variable.
   private jumpHeld = false;
@@ -104,9 +104,21 @@ export class WorldRunScene extends Phaser.Scene {
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png',
         { frameWidth: 64, frameHeight: 64 });
     }
-    for (const l of PARALLAX_LAYERS) {
-      if (!this.textures.exists(l.key)) this.load.image(l.key, PARALLAX_DIR + l.file + '.png');
+    // Precargamos SOLO el set de parallax seleccionado (cada capa es 1920×1080; cargar
+    // todos saturaría VRAM). El resto se cargan bajo demanda al cambiarlo en ajustes.
+    this.queueParallaxTextures(this.reg.gameSettings.worldParallax);
+  }
+
+  private queueParallaxTextures(id: WorldParallaxId): string[] {
+    const missing: string[] = [];
+    for (const f of getWorldParallaxSet(id).files) {
+      const key = worldParallaxKey(id, f);
+      if (!this.textures.exists(key)) {
+        this.load.image(key, worldParallaxPath(id, f));
+        missing.push(key);
+      }
     }
+    return missing;
   }
 
   create() {
@@ -127,7 +139,9 @@ export class WorldRunScene extends Phaser.Scene {
     this.groundTopY = h - GROUND_TILES_TALL * RT;
 
     this.registerAnims();
-    this.buildParallax();
+    // Construye el parallax del set seleccionado y reacciona a cambios en ajustes
+    // (emite el valor actual al suscribir, así que esto también lo construye ya).
+    this.parallaxSub = this.reg.gameSettings.worldParallax$.subscribe(id => this.switchParallax(id));
     this.buildInitialChunks();
     this.createPlayer();
     this.createHud();
@@ -154,6 +168,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.jumpSub?.unsubscribe();
       this.jumpReleaseSub?.unsubscribe();
+      this.parallaxSub?.unsubscribe();
       this.reg.playerBridge.setRunMode(false);
     });
 
@@ -197,23 +212,50 @@ export class WorldRunScene extends Phaser.Scene {
     }
   }
 
-  private buildParallax(): void {
-    // Cada capa es un TileSprite fijo a la cámara (scrollFactor 0) que cubre toda
-    // la pantalla; el "movimiento" se hace desplazando tilePositionX según el
-    // scroll de la cámara y su factor de profundidad. Las imágenes se escalan a la
-    // altura de pantalla (tileScale) y se repiten en horizontal de forma infinita.
-    const tileScale = this.scale.height / PARALLAX_SRC_H;
-    PARALLAX_LAYERS.forEach((l, i) => {
-      const ts = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, l.key)
+  /** Cambia el set de parallax: carga sus texturas si faltan y luego lo reconstruye. */
+  private switchParallax(id: WorldParallaxId): void {
+    const missing = this.queueParallaxTextures(id);
+    if (missing.length === 0) { this.rebuildParallax(id); return; }
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => this.rebuildParallax(id));
+    this.load.start();
+  }
+
+  private rebuildParallax(id: WorldParallaxId): void {
+    for (const p of this.parallax) p.ts.destroy();
+    this.parallax = [];
+    // Rebaseamos al scroll actual: el set nuevo empieza alineado aquí.
+    this.parallaxBaseX = this.cameras.main.scrollX;
+
+    // Cada capa es un TileSprite fijo a la cámara (scrollFactor 0) que cubre toda la
+    // pantalla; el "movimiento" se hace desplazando tilePositionX según el scroll de
+    // la cámara y su factor de profundidad. Se escalan a la altura de pantalla
+    // (tileScale) y se repiten en horizontal de forma infinita.
+    const set = getWorldParallaxSet(id);
+    // 'height' (cielos): la imagen cabe entera de arriba a abajo y se repite a lo
+    // ancho (la repetición no se nota en escenas uniformes).
+    // 'cover' (paisajes): UNA copia llena el ancho (sin duplicar montaña/sol), y se
+    // recorta el alto mostrando la franja `anchorY` (1=abajo/horizonte).
+    const cover = set.fit === 'cover';
+    const tileScale = cover
+      ? Math.max(this.scale.width / WORLD_PARALLAX_SRC_W, this.scale.height / WORLD_PARALLAX_SRC_H)
+      : this.scale.height / WORLD_PARALLAX_SRC_H;
+    // Offset vertical (en px de textura, igual que tilePositionX): cuánto recortamos.
+    const anchorY = set.anchorY ?? 1;
+    const tilePosY = (WORLD_PARALLAX_SRC_H - this.scale.height / tileScale) * anchorY;
+    set.files.forEach((f, i) => {
+      const ts = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, worldParallaxKey(id, f))
         .setOrigin(0, 0).setScrollFactor(0).setDepth(-100 + i);
       ts.tileScaleX = tileScale;
       ts.tileScaleY = tileScale;
-      this.parallax.push({ ts, factor: l.factor });
+      ts.tilePositionY = tilePosY;
+      this.parallax.push({ ts, factor: worldParallaxFactor(i, set.files.length) });
     });
+    // Posiciona ya las capas (evita un frame con tilePositionX=0 al cambiar de set).
+    this.updateParallax();
   }
 
   private updateParallax(): void {
-    const sx = this.cameras.main.scrollX;
+    const sx = this.cameras.main.scrollX - this.parallaxBaseX;
     for (const p of this.parallax) {
       // tilePositionX está en px de textura (antes de tileScale), por eso dividimos.
       p.ts.tilePositionX = (sx * p.factor) / p.ts.tileScaleX;
