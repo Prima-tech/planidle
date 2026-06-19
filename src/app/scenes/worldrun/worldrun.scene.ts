@@ -87,13 +87,26 @@ const RAT_FW = 64;
 const RAT_FH = 32;
 const RAT_COLS = 12;
 const RAT_ANIM_IDLE = 'wr_rat_idle';
+const RAT_ANIM_ATTACK = 'wr_rat_attack';
 const RAT_ANIM_DEATH = 'wr_rat_death';
-const RAT_IDLE_FRAMES  = { start: 0,            end: 3 };                // fila 0 (4 fr)
-const RAT_DEATH_FRAMES = { start: 4 * RAT_COLS, end: 4 * RAT_COLS + 4 }; // fila 4 (5 fr)
+const RAT_IDLE_FRAMES   = { start: 0,            end: 3 };                 // fila 0 (4 fr)
+const RAT_ATTACK_FRAMES = { start: 2 * RAT_COLS, end: 2 * RAT_COLS + 11 }; // fila 2 (12 fr)
+const RAT_DEATH_FRAMES  = { start: 4 * RAT_COLS, end: 4 * RAT_COLS + 4 };  // fila 4 (5 fr)
 const RAT_INTERVAL_M = 50;            // una rata cada 50 m
 const RAT_SCALE = 4.4;
 const RAT_FACE_LEFT = true;           // mira hacia el jugador que llega por la izquierda
-const RAT_KILL_PX = 70;               // distancia a la que el jugador la golpea y mata al pasar
+// Combate: la rata telegrafía su ataque al acercarte por el suelo y te hace daño al
+// contacto; si saltas y caes sobre su lomo, la matas sin recibir daño (rebote).
+const RAT_DAMAGE = 10;                // daño al jugador al chocar a ras de suelo
+const RAT_SENSE_PX = 150;             // distancia a la que empieza su animación de ataque
+const RAT_CONTACT_PX = 60;            // distancia horizontal de contacto (aplica daño)
+const RAT_STOMP_HALF_W = 60;          // medio ancho del lomo para el pisotón
+// Franja de altura (px de los pies sobre el suelo) en la que cuenta el pisotón: hay
+// que CAER sobre el cuerpo de la rata, ni muy alto (vuelas por encima) ni a ras de
+// suelo (eso es choque con daño). Bajar RAT_STOMP_HIGH = hay que descender más.
+const RAT_STOMP_LOW = 18;             // por debajo de esto = estás en el suelo (choque)
+const RAT_STOMP_HIGH = 52;            // por encima de esto = vas demasiado alto (no pisas)
+const RAT_STOMP_BOUNCE = 520;         // impulso de rebote al pisarla
 
 // --- Mundo / chunks ---
 const CHUNK_TILES = 16;              // ancho de un chunk en tiles
@@ -153,7 +166,7 @@ export class WorldRunScene extends Phaser.Scene {
   // Ratas: plantadas en idle; el jugador las mata al pasar a su lado. Mundo infinito:
   // solo existen las cercanas (se generan por delante y se reciclan al quedar atrás).
   // Al morir salen del array y se animan/destruyen por su cuenta (ver playRatDeath).
-  private rats: Phaser.GameObjects.Sprite[] = [];
+  private rats: { sprite: Phaser.GameObjects.Sprite; attacking: boolean; hit: boolean }[] = [];
   private nextRatIndex = 1;
   private jumpSub?: Subscription;
   private jumpReleaseSub?: Subscription;
@@ -349,6 +362,13 @@ export class WorldRunScene extends Phaser.Scene {
           key: RAT_ANIM_IDLE,
           frames: this.anims.generateFrameNumbers(TEX_RAT, RAT_IDLE_FRAMES),
           frameRate: 8, repeat: -1,
+        });
+      }
+      if (!this.anims.exists(RAT_ANIM_ATTACK)) {
+        this.anims.create({
+          key: RAT_ANIM_ATTACK,
+          frames: this.anims.generateFrameNumbers(TEX_RAT, RAT_ATTACK_FRAMES),
+          frameRate: 14, repeat: 0,
         });
       }
       if (!this.anims.exists(RAT_ANIM_DEATH)) {
@@ -592,9 +612,10 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   /**
-   * Genera ratas por delante (una cada RAT_INTERVAL_M metros), las mata cuando el
-   * jugador pasa a su lado y recicla las que quedan atrás. Mundo infinito: solo
-   * existen las cercanas.
+   * Genera ratas por delante (una cada RAT_INTERVAL_M metros) y resuelve el combate:
+   * a ras de suelo te atacan y te hacen daño; si saltas y caes sobre el lomo las
+   * matas sin daño (pisotón con rebote). Recicla las que quedan atrás. Mundo
+   * infinito: solo existen las cercanas.
    */
   private updateRats(): void {
     if (!this.anims.exists(RAT_ANIM_IDLE)) return;   // textura/anim no disponibles
@@ -607,40 +628,78 @@ export class WorldRunScene extends Phaser.Scene {
       const sprite = this.add.sprite(x, groundY, TEX_RAT)
         .setOrigin(0.5, 1).setScale(RAT_SCALE).setDepth(4).setFlipX(RAT_FACE_LEFT);
       sprite.play(RAT_ANIM_IDLE);
-      this.rats.push(sprite);
+      this.rats.push({ sprite, attacking: false, hit: false });
       this.nextRatIndex++;
     }
 
     for (let i = this.rats.length - 1; i >= 0; i--) {
-      const sprite = this.rats[i];
-      // Recicla las que ya quedaron atrás (sin matar).
-      if (sprite.x < scrollX - CHUNK_W) {
-        sprite.destroy();
+      const rat = this.rats[i];
+      const s = rat.sprite;
+      // Recicla las que ya quedaron atrás.
+      if (s.x < scrollX - CHUNK_W) {
+        s.destroy();
         this.rats.splice(i, 1);
         continue;
       }
-      // Al pasar a su lado: el jugador la golpea y la mata. La sacamos del array y
-      // muere por su cuenta (flash + animación de muerte + sale despedida).
-      if (this.player.x >= sprite.x - RAT_KILL_PX) {
+
+      const dx = this.player.x - s.x;
+      const absdx = Math.abs(dx);
+      // Altura de los pies del jugador (origin 0.5,1) sobre el suelo (>0 = en el aire).
+      const feetAbove = s.y - this.player.y;
+      const onBack = feetAbove >= RAT_STOMP_LOW && feetAbove <= RAT_STOMP_HIGH;
+      const falling = (this.player.body?.velocity.y ?? 0) >= 0;
+
+      // Pisotón: caes sobre el cuerpo de la rata (dentro de la franja) y bajando →
+      // la matas, sin daño, y rebotas.
+      if (absdx < RAT_STOMP_HALF_W && onBack && falling) {
         this.rats.splice(i, 1);
-        this.playRatDeath(sprite);
+        this.playRatDeath(s);
+        this.player.setVelocityY(-RAT_STOMP_BOUNCE);
+        continue;
+      }
+
+      // Telegrafía el ataque al acercarte por la izquierda (antes de llegar).
+      if (!rat.attacking && dx <= 0 && absdx < RAT_SENSE_PX) {
+        rat.attacking = true;
+        s.play(RAT_ANIM_ATTACK);
+        s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+          if (s.active) s.play(RAT_ANIM_IDLE);
+        });
+      }
+
+      // Daño al contacto si vas a ras de suelo (no saltaste por encima). Una vez.
+      if (!rat.hit && absdx < RAT_CONTACT_PX && feetAbove < RAT_STOMP_LOW) {
+        rat.hit = true;
+        this.damagePlayer(RAT_DAMAGE);
       }
     }
   }
 
-  /** La rata recibe el golpe del jugador: flash de impacto, animación de muerte y
-   *  sale despedida hacia delante mientras se desvanece, luego se destruye. */
+  /** Aplica daño al jugador (sin matarlo en el runner: nunca baja de 1 HP) y un
+   *  destello rojo de impacto en el cuerpo. */
+  private damagePlayer(amount: number): void {
+    const p = this.reg.playerBridge.player;
+    if (p) {
+      const safe = Math.min(amount, Math.max(0, p.status.HP - 1));   // no muere aquí
+      if (safe > 0) this.reg.playerBridge.setAttackToPlayer({ HP: -safe });
+    }
+    this.player.setTint(0xff5555);
+    this.time.delayedCall(110, () => { if (this.player.active) this.player.clearTint(); });
+  }
+
+  /** La rata recibe el pisotón: flash de impacto, animación de muerte y se APLASTA
+   *  contra el suelo (origin abajo → encoge hacia los pies) mientras se desvanece, en
+   *  vez de salir volando hacia arriba. Luego se destruye. */
   private playRatDeath(sprite: Phaser.GameObjects.Sprite): void {
     sprite.setTintFill(0xffffff);                                   // destello del impacto
     this.time.delayedCall(70, () => { if (sprite.active) sprite.clearTint(); });
     if (this.anims.exists(RAT_ANIM_DEATH)) sprite.play(RAT_ANIM_DEATH);
     this.tweens.add({
       targets: sprite,
-      x: sprite.x + 34,            // empujada en el sentido de la carrera
-      y: sprite.y - 28,
-      angle: 80,                   // da una vuelta al caer
+      x: sprite.x + 16,                  // pequeño empujón en el sentido de la carrera
+      scaleY: sprite.scaleY * 0.6,       // se aplasta hacia el suelo (un punto menos)
       alpha: 0,
-      duration: 430, ease: 'Quad.out',
+      duration: 320, ease: 'Quad.out',
       onComplete: () => { if (sprite.active) sprite.destroy(); },
     });
   }

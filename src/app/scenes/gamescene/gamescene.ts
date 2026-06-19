@@ -2291,14 +2291,35 @@ export class GameScene extends Phaser.Scene {
      *  jugador, idle en bucle, y su tile bloqueado para que no se le pueda pisar. */
     private spawnCityNpc(texKey: string, animKey: string, tileX: number, tileY: number): void {
       const TS = GameScene.TILE_SIZE;
-      const x = tileX * TS + TS / 2;
-      const y = tileY * TS + TS / 2;
-      const npc = this.add.sprite(x, y, texKey, 312);
-      npc.setScale(2.5);    // igual que el jugador (initPlayer)
+      // --- Ajustes del NPC (tocar estos si no cuadra) ---
+      const SCALE       = 2.8;   // tamaño del sprite
+      const FOOT_OFFSET = 32;    // px que sube el sprite para que los pies caigan en el tile
+      // Caja de colisión en TILES, relativa al tile de los pies (tileX,tileY). Generosa
+      // a propósito: el jugador colisiona por su CENTRO, y con sprites LPC altos hay que
+      // bloquear de más para chocar ANTES de solaparse con el dibujo. Ancho impar = centrado.
+      const COL_W   = 3;         // ancho (tiles)
+      const COL_UP  = 1;         // filas por encima de los pies (cuerpo/cabeza)
+      const COL_DOWN = 1;        // filas por debajo de los pies (evita meterse por abajo)
+
+      const footX = tileX * TS + TS / 2;
+      const footY = tileY * TS + TS / 2;
+
+      // Sombra elíptica en los pies. Mismo depth que el NPC pero añadida ANTES, así
+      // queda detrás del cuerpo (y por encima del suelo, que va en depth ≤ 2).
+      this.add.ellipse(footX, footY, TS * 1.15, TS * 0.45, 0x000000, 0.3).setDepth(2);
+
+      const npc = this.add.sprite(footX, footY - FOOT_OFFSET, texKey, 312);
+      npc.setScale(SCALE);
       npc.setDepth(2);
       if (this.anims.exists(animKey)) npc.play(animKey);
-      const blocked = this.computeFootprintTiles(x, y, TS / 2);
-      for (const k of blocked) this.collisionTiles.add(k);
+
+      // Bloquea la caja completa alrededor del cuerpo.
+      const halfW = Math.floor(COL_W / 2);
+      for (let dx = -halfW; dx <= halfW; dx++) {
+        for (let ty = tileY - COL_UP; ty <= tileY + COL_DOWN; ty++) {
+          this.collisionTiles.add(`${tileX + dx},${ty}`);
+        }
+      }
     }
 
     /** Crea un cofre de ciudad (fijo o construido) en (x,y) px: sprite, colisión y
