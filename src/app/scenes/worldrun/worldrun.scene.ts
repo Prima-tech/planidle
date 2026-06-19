@@ -87,13 +87,13 @@ const RAT_FW = 64;
 const RAT_FH = 32;
 const RAT_COLS = 12;
 const RAT_ANIM_IDLE = 'wr_rat_idle';
-const RAT_ANIM_ATTACK = 'wr_rat_attack';
-const RAT_IDLE_FRAMES   = { start: 0,            end: 3 };                // fila 0 (4 fr)
-const RAT_ATTACK_FRAMES = { start: 2 * RAT_COLS, end: 2 * RAT_COLS + 11 }; // fila 2 (12 fr)
+const RAT_ANIM_DEATH = 'wr_rat_death';
+const RAT_IDLE_FRAMES  = { start: 0,            end: 3 };                // fila 0 (4 fr)
+const RAT_DEATH_FRAMES = { start: 4 * RAT_COLS, end: 4 * RAT_COLS + 4 }; // fila 4 (5 fr)
 const RAT_INTERVAL_M = 50;            // una rata cada 50 m
 const RAT_SCALE = 4.4;
 const RAT_FACE_LEFT = true;           // mira hacia el jugador que llega por la izquierda
-const RAT_TRIGGER_PX = 80;            // distancia a la que ataca al acercarse el jugador
+const RAT_KILL_PX = 70;               // distancia a la que el jugador la golpea y mata al pasar
 
 // --- Mundo / chunks ---
 const CHUNK_TILES = 16;              // ancho de un chunk en tiles
@@ -150,9 +150,10 @@ export class WorldRunScene extends Phaser.Scene {
   // sin generar. nextStarIndex 1 = primera estrella a STAR_INTERVAL_M metros.
   private stars!: Phaser.Physics.Arcade.Group;
   private nextStarIndex = 1;
-  // Ratas decorativas: plantadas en idle, atacan al pasar el jugador. Mundo infinito:
+  // Ratas: plantadas en idle; el jugador las mata al pasar a su lado. Mundo infinito:
   // solo existen las cercanas (se generan por delante y se reciclan al quedar atrás).
-  private rats: { sprite: Phaser.GameObjects.Sprite; attacked: boolean }[] = [];
+  // Al morir salen del array y se animan/destruyen por su cuenta (ver playRatDeath).
+  private rats: Phaser.GameObjects.Sprite[] = [];
   private nextRatIndex = 1;
   private jumpSub?: Subscription;
   private jumpReleaseSub?: Subscription;
@@ -350,11 +351,11 @@ export class WorldRunScene extends Phaser.Scene {
           frameRate: 8, repeat: -1,
         });
       }
-      if (!this.anims.exists(RAT_ANIM_ATTACK)) {
+      if (!this.anims.exists(RAT_ANIM_DEATH)) {
         this.anims.create({
-          key: RAT_ANIM_ATTACK,
-          frames: this.anims.generateFrameNumbers(TEX_RAT, RAT_ATTACK_FRAMES),
-          frameRate: 16, repeat: 0,
+          key: RAT_ANIM_DEATH,
+          frames: this.anims.generateFrameNumbers(TEX_RAT, RAT_DEATH_FRAMES),
+          frameRate: 12, repeat: 0,
         });
       }
     }
@@ -591,9 +592,9 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   /**
-   * Genera ratas por delante (una cada RAT_INTERVAL_M metros), las hace atacar cuando
-   * el jugador se acerca y recicla las que quedan atrás. Decorativo: sin daño ni
-   * colisión, solo idle → ataque → idle al pasar.
+   * Genera ratas por delante (una cada RAT_INTERVAL_M metros), las mata cuando el
+   * jugador pasa a su lado y recicla las que quedan atrás. Mundo infinito: solo
+   * existen las cercanas.
    */
   private updateRats(): void {
     if (!this.anims.exists(RAT_ANIM_IDLE)) return;   // textura/anim no disponibles
@@ -606,27 +607,42 @@ export class WorldRunScene extends Phaser.Scene {
       const sprite = this.add.sprite(x, groundY, TEX_RAT)
         .setOrigin(0.5, 1).setScale(RAT_SCALE).setDepth(4).setFlipX(RAT_FACE_LEFT);
       sprite.play(RAT_ANIM_IDLE);
-      this.rats.push({ sprite, attacked: false });
+      this.rats.push(sprite);
       this.nextRatIndex++;
     }
 
     for (let i = this.rats.length - 1; i >= 0; i--) {
-      const rat = this.rats[i];
-      // Recicla las que ya quedaron atrás.
-      if (rat.sprite.x < scrollX - CHUNK_W) {
-        rat.sprite.destroy();
+      const sprite = this.rats[i];
+      // Recicla las que ya quedaron atrás (sin matar).
+      if (sprite.x < scrollX - CHUNK_W) {
+        sprite.destroy();
         this.rats.splice(i, 1);
         continue;
       }
-      // Al acercarse el jugador: ataca una vez y vuelve a idle al terminar.
-      if (!rat.attacked && this.player.x >= rat.sprite.x - RAT_TRIGGER_PX) {
-        rat.attacked = true;
-        rat.sprite.play(RAT_ANIM_ATTACK);
-        rat.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-          if (rat.sprite.active) rat.sprite.play(RAT_ANIM_IDLE);
-        });
+      // Al pasar a su lado: el jugador la golpea y la mata. La sacamos del array y
+      // muere por su cuenta (flash + animación de muerte + sale despedida).
+      if (this.player.x >= sprite.x - RAT_KILL_PX) {
+        this.rats.splice(i, 1);
+        this.playRatDeath(sprite);
       }
     }
+  }
+
+  /** La rata recibe el golpe del jugador: flash de impacto, animación de muerte y
+   *  sale despedida hacia delante mientras se desvanece, luego se destruye. */
+  private playRatDeath(sprite: Phaser.GameObjects.Sprite): void {
+    sprite.setTintFill(0xffffff);                                   // destello del impacto
+    this.time.delayedCall(70, () => { if (sprite.active) sprite.clearTint(); });
+    if (this.anims.exists(RAT_ANIM_DEATH)) sprite.play(RAT_ANIM_DEATH);
+    this.tweens.add({
+      targets: sprite,
+      x: sprite.x + 34,            // empujada en el sentido de la carrera
+      y: sprite.y - 28,
+      angle: 80,                   // da una vuelta al caer
+      alpha: 0,
+      duration: 430, ease: 'Quad.out',
+      onComplete: () => { if (sprite.active) sprite.destroy(); },
+    });
   }
 
   private updatePlayerAnim(onGround: boolean): void {

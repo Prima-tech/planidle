@@ -278,6 +278,10 @@ export class GameScene extends Phaser.Scene {
       // loader, si no, reutilizaría la cacheada y no actualizaría el modelo.
       if (this.textures.exists('player')) this.textures.remove('player');
       this.load.spritesheet('player', bodySpriteFor(this.reg.asgard?.selectedPlayer?.name), { frameWidth: 64, frameHeight: 64 });
+      // Kugo: NPC fijo de la ciudad. Su cuerpo solo hace falta en el hogar (Asgard).
+      if (this.reg.world.getCurrentMap()?.id === 'hogar' && !this.textures.exists('kugo_body')) {
+        this.load.spritesheet('kugo_body', bodySpriteFor('Kugo'), { frameWidth: 64, frameHeight: 64 });
+      }
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
       this.load.spritesheet('chests', 'assets/sprites/resources/chests.png', { frameWidth: 32, frameHeight: 32 });
       // Estaciones de oficio (construibles). Cargada como imagen: las filas miden
@@ -483,6 +487,7 @@ export class GameScene extends Phaser.Scene {
         this.initBuildPlacementListener();
         this.initBuildClearedListener();
         if (this.currentMapConfig.id === 'hogar') this.initPlacedBuildings();
+        if (this.currentMapConfig.id === 'hogar') this.initCityNpcs();
         this.initHarvestNodes();
         this.initStatsListener();
         this.registerSkillAnimations();
@@ -2262,6 +2267,38 @@ export class GameScene extends Phaser.Scene {
       const TS  = GameScene.TILE_SIZE;
       // 4 tiles a la derecha del spawn del jugador (tile 30,30)
       this.addTownChest(34 * TS + TS / 2, 30 * TS + TS / 2);
+    }
+
+    /** NPCs fijos de la ciudad (Asgard): personajes decorativos que se quedan
+     *  quietos. Por ahora Kugo, plantado cerca del spawn con su idle mirando abajo. */
+    private initCityNpcs(): void {
+      this.ensureKugoAnim();
+      this.spawnCityNpc('kugo_body', 'kugo_idle_down', 27, 30);   // 3 tiles a la izda del spawn
+    }
+
+    /** Idle (mirando abajo) de Kugo: frames LPC 312-313, mismo cuerpo que el jugador. */
+    private ensureKugoAnim(): void {
+      if (this.anims.exists('kugo_idle_down')) return;
+      this.anims.create({
+        key: 'kugo_idle_down',
+        frames: this.anims.generateFrameNumbers('kugo_body', { start: 312, end: 313 }),
+        frameRate: 2,
+        repeat: -1,
+      });
+    }
+
+    /** Coloca un NPC quieto en el tile (tileX,tileY): mismo tamaño/profundidad que el
+     *  jugador, idle en bucle, y su tile bloqueado para que no se le pueda pisar. */
+    private spawnCityNpc(texKey: string, animKey: string, tileX: number, tileY: number): void {
+      const TS = GameScene.TILE_SIZE;
+      const x = tileX * TS + TS / 2;
+      const y = tileY * TS + TS / 2;
+      const npc = this.add.sprite(x, y, texKey, 312);
+      npc.setScale(2.5);    // igual que el jugador (initPlayer)
+      npc.setDepth(2);
+      if (this.anims.exists(animKey)) npc.play(animKey);
+      const blocked = this.computeFootprintTiles(x, y, TS / 2);
+      for (const k of blocked) this.collisionTiles.add(k);
     }
 
     /** Crea un cofre de ciudad (fijo o construido) en (x,y) px: sprite, colisión y

@@ -9,6 +9,7 @@ const DEFAULT_BODY = 'assets/sprites/player/character/body/main.png';
 
 const CHARACTER_BODY: Record<string, string> = {
   Gutts: 'assets/sprites/player/character/body/guts.png',
+  Kugo:  'assets/sprites/player/character/body/kugo.png',
 };
 
 /** Ruta de la hoja de cuerpo para un personaje (main.png si no tiene modelo propio). */
