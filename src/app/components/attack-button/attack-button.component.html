@@ -1,5 +1,6 @@
 <button class="attack-btn"
         [class.pressed]="pressed"
+        [class.run-mode]="runMode"
         [class.ctx-chest]="context === 'chest' || context === 'shop' || context === 'mine' || context === 'chop'"
         (pointerdown)="onPress($event)"
         (pointerup)="onRelease()"

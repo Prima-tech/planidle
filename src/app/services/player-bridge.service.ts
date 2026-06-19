@@ -10,6 +10,12 @@ import { PlayerStateService } from './player-state.service';
 /** Poción equipada: se auto-usa al bajar a la mitad de HP, con cooldown. */
 const AUTO_POTION_COOLDOWN_MS = 30_000;
 
+/** Petición de entrada a un mapa (Modo Mundo). `canCancel` = se puede rechazar. */
+export interface MapEntrancePrompt {
+  mapId: string;
+  canCancel: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PlayerBridgeService {
 
@@ -27,9 +33,37 @@ export class PlayerBridgeService {
   readonly jumpRequest$ = new Subject<void>();
   readonly jumpReleaseRequest$ = new Subject<void>();
 
+  /** Modo Mundo: la PRIMERA vez que se cruza la entrada de un mapa recién
+   *  desbloqueado, la escena pide mostrar el modal de entrada (o null = oculto).
+   *  `canCancel` es false en el primer mapa de todos (solo "Aceptar" → entra) y
+   *  true en los siguientes (se puede "Cancelar" y seguir corriendo). El modal lo lee. */
+  readonly mapEntrancePrompt$ = new BehaviorSubject<MapEntrancePrompt | null>(null);
+  /** El modal (o el icono de entrada) pide entrar al mapa; la WorldRunScene lo hace. */
+  readonly enterMapRequest$ = new Subject<string>();
+  /** El modal se cerró con "Cancelar": la WorldRunScene reanuda la carrera. */
+  readonly mapEntranceDismissed$ = new Subject<void>();
+  /** Modo Mundo: al pasar por la entrada de un mapa YA desbloqueado, la escena pide
+   *  mostrar el icono de teletransporte (arriba-derecha, 10 s). Emite el id del mapa. */
+  readonly mapEntranceHint$ = new Subject<string>();
+
   setRunMode(active: boolean): void { this.runMode$.next(active); }
   requestJump(): void { this.jumpRequest$.next(); }
   releaseJump(): void { this.jumpReleaseRequest$.next(); }
+  promptMapEntrance(mapId: string, canCancel: boolean): void {
+    this.mapEntrancePrompt$.next({ mapId, canCancel });
+  }
+  /** Confirmar entrada desde el modal: oculta el modal y avisa a la escena. */
+  requestEnterMap(mapId: string): void {
+    this.mapEntrancePrompt$.next(null);
+    this.enterMapRequest$.next(mapId);
+  }
+  /** "Cancelar" en el modal: oculta el modal y reanuda la carrera. */
+  dismissMapEntrance(): void {
+    this.mapEntrancePrompt$.next(null);
+    this.mapEntranceDismissed$.next();
+  }
+  /** Pasar por una entrada ya desbloqueada: muestra el icono de teletransporte. */
+  showMapEntranceHint(mapId: string): void { this.mapEntranceHint$.next(mapId); }
 
   private lastAutoPotion = 0;
   private autoPotionTimer?: ReturnType<typeof setTimeout>;

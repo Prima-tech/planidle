@@ -4,6 +4,7 @@ import { BehaviorSubject, distinctUntilChanged, map, Subject } from 'rxjs';
 export interface PlayerState {
   coins: number;
   specialCoins: number;
+  stars: number;
   exp: number;
   lvl: number;
   hp: number;
@@ -24,6 +25,7 @@ export function expNeeded(lvl: number): number {
 const INITIAL_STATE: PlayerState = {
   coins: 0,
   specialCoins: 0,
+  stars: 0,
   exp: 0,
   lvl: 1,
   hp: 100,
@@ -43,6 +45,7 @@ export class PlayerStateService {
   readonly state$        = this._state$.asObservable();
   readonly coins$        = this.state$.pipe(map(s => s.coins),        distinctUntilChanged());
   readonly specialCoins$ = this.state$.pipe(map(s => s.specialCoins), distinctUntilChanged());
+  readonly stars$        = this.state$.pipe(map(s => s.stars ?? 0),    distinctUntilChanged());
   readonly exp$          = this.state$.pipe(map(s => s.exp),          distinctUntilChanged());
   readonly lvl$          = this.state$.pipe(map(s => s.lvl),          distinctUntilChanged());
   readonly expProgress$  = this.state$.pipe(
@@ -55,6 +58,7 @@ export class PlayerStateService {
     this._state$.next({
       coins:         profile.coins          ?? 0,
       specialCoins:  profile.special_coins  ?? 0,
+      stars:         profile.stars          ?? 0,
       exp:           profile.exp            ?? 0,
       lvl:           profile.lvl            ?? 1,
       hp:            profile.hp             ?? profile.current_hp ?? 100,
@@ -74,6 +78,12 @@ export class PlayerStateService {
     const s = this._state$.getValue();
     this._patch({ coins: s.coins + amount, lifetimeCoins: (s.lifetimeCoins ?? 0) + amount });
     this.coinDropped$.next(amount);
+  }
+
+  /** Estrellas del Modo Mundo: contador propio, persistido como las monedas. */
+  collectStars(amount: number): void {
+    const s = this._state$.getValue();
+    this._patch({ stars: (s.stars ?? 0) + amount });
   }
 
   recordDeath(): void {

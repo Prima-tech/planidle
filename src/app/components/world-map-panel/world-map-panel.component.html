@@ -39,12 +39,15 @@
       </div>
 
       <button
-        *ngIf="selectedMap.id !== currentMapId"
+        *ngIf="selectedMap.id !== currentMapId && !isMapLocked(selectedMap.id)"
         class="teleport-btn"
         (click)="teleport(selectedMap.id)"
       >
         <ion-icon name="navigate-outline"></ion-icon>
       </button>
+      <div class="map-locked-note" *ngIf="isMapLocked(selectedMap.id)">
+        <ion-icon name="lock-closed"></ion-icon>
+      </div>
     </div>
 
     <!-- Tab 1: fondo alternativo -->
@@ -77,13 +80,14 @@
         class="map-pin"
         [class.current]="pin.id === currentMapId"
         [class.selected]="selectedMap?.id === pin.id"
+        [class.locked]="isMapLocked(pin.id)"
         [style.left.%]="pin.x"
         [style.top.%]="pin.y"
         (click)="selectPin(pin.id)"
         (dblclick)="teleport(pin.id)"
       >
         <div class="pin-marker">
-          <ion-icon [name]="pin.id === 'hogar' ? 'home-outline' : 'location-outline'"></ion-icon>
+          <ion-icon [name]="isMapLocked(pin.id) ? 'lock-closed' : (pin.id === 'hogar' ? 'home-outline' : 'location-outline')"></ion-icon>
         </div>
         <span class="pin-label">{{ pin.name }}</span>
       </button>

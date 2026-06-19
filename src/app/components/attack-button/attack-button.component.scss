@@ -33,6 +33,12 @@
   overflow: hidden;
   transition: transform 70ms ease-out, box-shadow 70ms ease-out, filter 70ms ease-out;
 
+  // Modo Mundo (salto): alineado con el borde derecho igual que los botones del
+  // footer (--padding-end: 8px), en vez del retranqueo de 52px del ataque normal.
+  &.run-mode {
+    right: calc(8px + var(--safe-right, 0px));
+  }
+
   &.pressed {
     transform: scale(0.86);
     filter: brightness(1.25);

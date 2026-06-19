@@ -38,6 +38,9 @@ export interface FeatureDef {
   requires: UnlockSource[];
   name?: string;
   desc?: string;
+  /** Si está, al desbloquearse (no silencioso) muestra una pastilla tipo logro.
+   *  Sin esto el desbloqueo solo actualiza badges, sin toast. */
+  toast?: { label: string; icon: string };
 }
 
 export const FEATURES: FeatureDef[] = [
@@ -61,7 +64,30 @@ export const FEATURES: FeatureDef[] = [
   // El botón del cofre de ciudad NO aparece en el footer hasta desbloquearlo.
   { id: 'panel.chest', scope: 'char', display: 'hidden', requires: [{ type: 'level', value: 3 }],
     name: 'Cofre de ciudad' },
+
+  // ── Mapas (char) — destinos de teletransporte ────────────────────────────────
+  // Todos los 1-x empiezan BLOQUEADOS (display 'locked' = se ven con candado en el
+  // mapa, pero no se puede viajar). 'hogar' no está en el registro → siempre libre.
+  //   · 1-1 se desbloquea al llegar a 100 m en el Modo Mundo (flag 'map_1_1'). La
+  //     PRIMERA vez, la WorldRunScene muestra el modal de entrada (app-map-entrance-modal)
+  //     en lugar de una pastilla; por eso esta feature no define `toast`. Ver WorldRunScene.
+  //   · 1-2…1-8 esperan su propio flag (aún sin definir cómo se ganan).
+  { id: 'map.1-1', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_1' }],
+    name: 'Mapa 1-1' },
+  { id: 'map.1-2', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_2' }], name: 'Mapa 1-2' },
+  { id: 'map.1-3', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_3' }], name: 'Mapa 1-3' },
+  { id: 'map.1-4', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_4' }], name: 'Mapa 1-4' },
+  { id: 'map.1-5', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_5' }], name: 'Mapa 1-5' },
+  { id: 'map.1-6', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_6' }], name: 'Mapa 1-6' },
+  { id: 'map.1-7', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_7' }], name: 'Mapa 1-7' },
+  { id: 'map.1-8', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_8' }], name: 'Mapa 1-8' },
 ];
+
+/** Id de feature de un mapa por su id de pin (p.ej. '1-1' → 'map.1-1'). 'hogar'
+ *  no está registrado, así que siempre cuenta como desbloqueado. */
+export function mapFeatureId(mapId: string): string {
+  return `map.${mapId}`;
+}
 
 /** Id de feature de un personaje del roster por su nombre (p.ej. 'Gutts' → 'char.gutts'). */
 export function characterFeatureId(name: string): string {

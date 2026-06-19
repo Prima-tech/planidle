@@ -1,0 +1,60 @@
+/* Icono de teletransporte del Modo Mundo — arriba-derecha, bajo el top-bar (72px). */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$text-cream: #ecd9b4;
+
+.mth {
+  position: fixed;
+  top: 82px;
+  right: 10px;
+  z-index: 900;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 8px 6px;
+
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 4px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 4px 12px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+
+  animation: mthPop 0.25s ease;
+  transition: filter 0.15s;
+
+  &:hover  { filter: brightness(1.12); }
+  &:active { filter: brightness(0.88); transform: translateY(1px); }
+}
+
+@keyframes mthPop {
+  from { transform: translateX(24px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.mth-icon {
+  width: 44px;
+  height: 44px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 6px rgba(240, 200, 100, 0.45));
+}
+
+.mth-label {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: $text-cream;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}

@@ -357,4 +357,36 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
       border-color: $gold;
     }
   }
+
+  // Mapa bloqueado: candado apagado y atenuado (no se puede viajar).
+  &.locked {
+    .pin-marker {
+      background: rgba($cell-bg, 0.7);
+      border-color: $stone-dark;
+      ion-icon { color: rgba($text-cream, 0.5); }
+    }
+    .pin-label {
+      color: rgba($text-cream, 0.5);
+      border-color: $stone-dark;
+    }
+  }
+}
+
+// Indicador de "bloqueado" en la tarjeta de info (en vez del botón de viajar).
+.map-locked-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 4px auto 0;
+  border-radius: 50%;
+  background: rgba($cell-bg, 0.85);
+  border: 2px solid $stone-dark;
+  box-shadow: 0 0 0 1px $outline;
+
+  ion-icon {
+    font-size: 20px;
+    color: rgba($text-cream, 0.6);
+  }
 }

@@ -9,6 +9,8 @@ import { StorageService } from 'src/app/services/storage.service';
 import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { MAP_REGISTRY, MapConfig } from 'src/app/scenes/gamescene/map-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
+import { UnlockService } from 'src/app/services/unlock.service';
+import { mapFeatureId } from 'src/app/services/unlock-config';
 
 interface MapPin {
   id: string;
@@ -54,6 +56,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private playerBridge  = inject(PlayerBridgeService);
   private asgard        = inject(AsgardService);
   private storage       = inject(StorageService);
+  private unlocks       = inject(UnlockService);
   private ngZone        = inject(NgZone);
   private mapSub: Subscription;
 
@@ -219,8 +222,15 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.charsOnMap = result;
   }
 
+  /** ¿El mapa está bloqueado? 'hogar' (sin feature) siempre cuenta como libre;
+   *  los 1-x están bloqueados hasta desbloquear su feature (p.ej. 1-1 a los 100 m). */
+  isMapLocked(pinId: string): boolean {
+    return !this.unlocks.isUnlocked(mapFeatureId(pinId));
+  }
+
   teleport(pinId: string) {
     if (pinId === this.currentMapId) return;
+    if (this.isMapLocked(pinId)) return;   // destino bloqueado: no se puede viajar
     this.worldService.setCurrentMap(pinId);
     this.playerBridge.restartGameScene();
   }

@@ -1,0 +1,137 @@
+/* ===== Tema madera + piedra (pixel-art RPG) — clona build-delete-modal ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;
+$text-cream: #ecd9b4;
+$title-gold: #f0c96a;
+$confirm-face: #5c8a3a;
+$confirm-text: #eaf5d8;
+
+.me-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: meFadeIn 0.25s ease;
+}
+
+@keyframes meFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.me-panel {
+  width: 290px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 0 60px rgba(0, 0, 0, 0.9),
+    0 0 30px rgba(240, 200, 100, 0.18);
+  animation: meSlideUp 0.25s ease;
+}
+
+@keyframes meSlideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.me-header {
+  padding: 22px 22px 12px;
+  text-align: center;
+
+  .me-icon {
+    font-size: 34px;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(240, 200, 100, 0.6));
+  }
+
+  .me-title {
+    margin: 10px 0 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: $title-gold;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  }
+}
+
+.me-divider {
+  height: 2px;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
+  margin: 0 16px;
+}
+
+.me-body {
+  padding: 14px 18px;
+  text-align: center;
+
+  .me-msg {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: $text-cream;
+    line-height: 1.4;
+
+    strong { color: $title-gold; }
+  }
+
+  .me-note {
+    margin: 0;
+    font-size: 12px;
+    color: #e7d4ac;
+    line-height: 1.3;
+  }
+}
+
+.me-actions {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px 18px;
+}
+
+.me-btn {
+  flex: 1 1 0;
+  padding: 10px;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.15s;
+
+  &:hover  { filter: brightness(1.15); }
+  &:active { filter: brightness(0.85); }
+
+  &--cancel {
+    background: $wood-btn-dark;
+    color: $text-cream;
+  }
+
+  &--confirm {
+    background: $confirm-face;
+    color: $confirm-text;
+  }
+}

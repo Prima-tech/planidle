@@ -1,5 +1,6 @@
 import { Subscription } from 'rxjs';
 import { GameRegistry } from '../game-registry';
+import { mapFeatureId } from '../../services/unlock-config';
 import {
   WorldParallaxId, getWorldParallaxSet, worldParallaxKey, worldParallaxPath,
   worldParallaxFactor, WORLD_PARALLAX_SRC_W, WORLD_PARALLAX_SRC_H,
@@ -17,28 +18,73 @@ import {
  * desbloqueos por distancia, huecos y variedad procedural, parallax de fondo.
  */
 
-// --- Tileset de suelo (assets/tilemaps/world/Ground_grass.png) ---
-const SRC_TILE = 16;                 // px por tile en la hoja
-const TILESET_COLS = 19;             // columnas de la hoja (304 / 16)
-const RENDER_SCALE = 3;              // los tiles se dibujan a 3× → 48px, como el grid
-const RT = SRC_TILE * RENDER_SCALE;  // tamaño de tile renderizado (48)
+// --- Tiles de suelo (imágenes sueltas en assets/tilemaps/world/) ---
+//  suelo_01 = superficie con hierba (fila de arriba) · suelo_02 = relleno de tierra
+const RT = 48;                       // tamaño de tile de juego (chunk/colisión/metros)
+const SUELO_FILE = 64;               // px del archivo de suelo (suelo_01/02 son 64×64)
+const GROUND_TILE = 64;              // tamaño EN PANTALLA de cada tile de suelo. Antes 32
+                                     // (escala 0.5) → se veían diminutos. A 64 = tamaño
+                                     // nítido 1:1 del archivo (subir = tiles más grandes).
+const SUELO_TILE_SCALE = GROUND_TILE / SUELO_FILE;  // escala del texture (1.0 = sin escalar)
+const TEX_SUELO_TOP = 'wr_suelo_top';
+const TEX_SUELO_FILL = 'wr_suelo_fill';
 
-// Frames de la hoja: borde superior de césped (col8/fila7 → 141) + relleno de
-// tierra (col11/fila12 → 239), como el mapa de la captura.
-const FRAME_GRASS = 8  + 7  * TILESET_COLS;
-const FRAME_DIRT  = 11 + 12 * TILESET_COLS;
+// --- Letrero de inicio (follow.png: flecha "→", indica el sentido de carrera) ---
+const TEX_SIGN = 'wr_sign';
+const SIGN_SCALE = 2.5;              // 32px → 80px en pantalla (~1.25 tiles de alto)
+
+// --- Puntos de interés (interest_point.png): hitos por distancia que desbloquean mapas ---
+const TEX_INTEREST = 'wr_interest';
+
+/**
+ * Hitos del Modo Mundo: al alcanzar `distanceM` por PRIMERA vez (su flag aún sin
+ * marcar) se desbloquea el mapa y aparece el modal de entrada.
+ *   · `firstEver` = el primer mapa de todos: el modal solo ofrece "Aceptar" (entra).
+ *     En los demás el modal ofrece "Aceptar" (entra) o "Cancelar" (sigue corriendo).
+ * El "primera vez" se persiste como flag (char) en UnlockService; el botón "borrar
+ * todo" limpia los flags, así que los hitos vuelven a dispararse desde cero.
+ * Añadir más mapas = añadir entradas aquí (su distancia, flag y pin de mapa).
+ */
+interface RunUnlockPoint {
+  distanceM: number;
+  flag: string;     // flag (char) que desbloquea la feature 'map.X'
+  mapId: string;    // id de pin del mapa (p.ej. '1-1')
+  firstEver: boolean;
+}
+const RUN_UNLOCK_POINTS: RunUnlockPoint[] = [
+  { distanceM: 100, flag: 'map_1_1', mapId: '1-1', firstEver: true },
+];
+
+// --- Estrellas coleccionables (assets/sprites/resources/world_mode/star/) ---
+// 10 frames de un parpadeo: star.png (frame 1) + star2..star10.png, animados en
+// bucle. Aparece una estrella cada STAR_INTERVAL_M metros, flotando sobre el suelo
+// a la altura del cuerpo del jugador para recogerla al pasar (o con un saltito).
+// El contador (estado del jugador, persistido como las monedas) sale arriba a la
+// derecha. NOTA: si los PNG están vacíos/corruptos, Phaser pinta el cuadro verde
+// "textura faltante" pero la estrella se sigue pudiendo recoger.
+const STAR_KEYS = Array.from({ length: 10 }, (_, i) => `wr_star_${i + 1}`);
+const STAR_FILES = STAR_KEYS.map((_, i) =>
+  `assets/sprites/resources/world_mode/star/star${i === 0 ? '' : i + 1}.png`);
+const STAR_ANIM = 'wr_star_twinkle';
+const STAR_INTERVAL_M = 10;          // cada cuántos metros aparece una estrella
+const STAR_SCALE = 1.8;
+const STAR_HEIGHT_ABOVE_GROUND = 50; // px que flota sobre la línea del suelo (a la
+                                     // altura del cuerpo de colisión, que va a los pies)
 
 // --- Mundo / chunks ---
 const CHUNK_TILES = 16;              // ancho de un chunk en tiles
 const CHUNK_W = CHUNK_TILES * RT;    // ancho de un chunk en px de mundo
-const GROUND_TILES_TALL = 4.5;       // altura de la superficie sobre el borde inferior (en tiles). Más = suelo más arriba.
-// El colisionador del suelo se hunde un poco dentro del tile de césped, de modo
-// que el personaje pisa sobre el césped (las briznas quedan detrás de sus pies).
-const SURFACE_INSET = RT * 0.55;
+// Filas de tiles de suelo visibles (de la hierba al borde inferior). 3 = se ven
+// ~3 tiles en vertical: 1 fila de hierba (suelo_01) + 2 de tierra (suelo_02).
+const GROUND_VISIBLE_ROWS = 3;
+const GROUND_BAND_H = GROUND_VISIBLE_ROWS * GROUND_TILE;  // alto de la banda de suelo (px pantalla)
+// El colisionador del suelo va casi en el borde superior del tile (suelo_01 tiene
+// la hierba arriba del todo), así el personaje pisa justo sobre la hierba.
+const SURFACE_INSET = RT * 0.12;
 
 // --- Física / movimiento ---
 const GRAVITY_Y = 2200;
-const RUN_SPEED = 420;               // px/s constantes hacia la derecha
+const RUN_SPEED = 260;               // px/s constantes hacia la derecha (bajar = más lento)
 const PX_PER_METER = RT;             // 1 tile = 1 metro
 
 // --- Salto variable (mantener = más alto, con tope) ---
@@ -48,7 +94,7 @@ const JUMP_MAX_HOLD_MS = 240;        // tiempo máx. que el mantener sigue impul
 const JUMP_MAX_VELOCITY = 860;       // tope de velocidad de subida (límite de altura)
 
 // --- Jugador (placeholder: cuerpo LPC corriendo de lado) ---
-const PLAYER_SCALE = 2.5;            // misma escala que el jugador en el grid (gamescene.ts)
+const PLAYER_SCALE = 2.1;            // ~2 tiles de alto sobre el suelo. Subir = más grande.
 // LPC expandido: la animación RUN está en las filas 38-41 (8 frames). Run-derecha
 // = fila 41 = frames 533-540 (≠ WALK derecha, que es 143-150).
 const PLAYER_RUN_FRAMES = { start: 533, end: 540 };
@@ -75,9 +121,17 @@ export class WorldRunScene extends Phaser.Scene {
   private distanceM = 0;
 
   private distanceText!: Phaser.GameObjects.Text;
+  private starText!: Phaser.GameObjects.Text;
+  // Estrellas vivas en el mundo y el siguiente hito (en "número de estrella") aún
+  // sin generar. nextStarIndex 1 = primera estrella a STAR_INTERVAL_M metros.
+  private stars!: Phaser.Physics.Arcade.Group;
+  private nextStarIndex = 1;
   private jumpSub?: Subscription;
   private jumpReleaseSub?: Subscription;
   private parallaxSub?: Subscription;
+  private enterMapSub?: Subscription;
+  private dismissSub?: Subscription;
+  private starsSub?: Subscription;
   private parallax: { ts: Phaser.GameObjects.TileSprite; factor: number }[] = [];
   // scrollX de referencia cuando se (re)construye el parallax: las capas se desplazan
   // respecto a este origen, no al scroll absoluto. Así un set recién cargado arranca
@@ -89,16 +143,29 @@ export class WorldRunScene extends Phaser.Scene {
   private isJumping = false;
   private jumpHoldMs = 0;
 
+  // Hitos ya disparados en esta carrera (por flag), para no re-evaluarlos cada frame.
+  private firedPoints = new Set<string>();
+
   constructor() {
     super({ key: 'WorldRunScene', active: false });
   }
 
   preload() {
     this.reg = new GameRegistry(this.game);
-    if (!this.textures.exists('world_tiles')) {
-      this.load.spritesheet('world_tiles', 'assets/tilemaps/world/Ground_grass.png',
-        { frameWidth: SRC_TILE, frameHeight: SRC_TILE });
+    if (!this.textures.exists(TEX_SUELO_TOP)) {
+      this.load.image(TEX_SUELO_TOP,  'assets/tilemaps/world/suelo_01.png');
+      this.load.image(TEX_SUELO_FILL, 'assets/tilemaps/world/suelo_02.png');
     }
+    if (!this.textures.exists(TEX_SIGN)) {
+      this.load.image(TEX_SIGN, 'assets/tilemaps/world/follow.png');
+    }
+    if (!this.textures.exists(TEX_INTEREST)) {
+      this.load.image(TEX_INTEREST, 'assets/tilemaps/world/interest_point.png');
+    }
+    // Frames del parpadeo de la estrella (imágenes sueltas).
+    STAR_KEYS.forEach((key, i) => {
+      if (!this.textures.exists(key)) this.load.image(key, STAR_FILES[i]);
+    });
     // El cuerpo del jugador suele estar ya cargado por GameScene; lo aseguramos.
     if (!this.textures.exists('player')) {
       this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png',
@@ -130,13 +197,15 @@ export class WorldRunScene extends Phaser.Scene {
     this.jumpHeld = false;
     this.isJumping = false;
     this.jumpHoldMs = 0;
+    this.nextStarIndex = 1;
+    this.firedPoints.clear();
 
     this.physics.world.gravity.y = GRAVITY_Y;
     this.cameras.main.setBackgroundColor('#0a0a14'); // espacio (por si una capa no cubre)
 
     const h = this.scale.height;
-    // El suelo ocupa las últimas GROUND_TILES_TALL filas de la pantalla.
-    this.groundTopY = h - GROUND_TILES_TALL * RT;
+    // El suelo ocupa las últimas GROUND_VISIBLE_ROWS filas de la pantalla.
+    this.groundTopY = h - GROUND_BAND_H;
 
     this.registerAnims();
     // Construye el parallax del set seleccionado y reacciona a cambios en ajustes
@@ -144,6 +213,9 @@ export class WorldRunScene extends Phaser.Scene {
     this.parallaxSub = this.reg.gameSettings.worldParallax$.subscribe(id => this.switchParallax(id));
     this.buildInitialChunks();
     this.createPlayer();
+    this.createStars();
+    this.createStartSign();
+    this.createInterestSigns();
     this.createHud();
     this.bindInput();
 
@@ -165,10 +237,17 @@ export class WorldRunScene extends Phaser.Scene {
     this.reg.playerBridge.setRunMode(true);
     this.jumpSub = this.reg.playerBridge.jumpRequest$.subscribe(() => this.pressJump());
     this.jumpReleaseSub = this.reg.playerBridge.jumpReleaseRequest$.subscribe(() => this.releaseJump());
+    // Modal de entrada: "Entrar" viaja al mapa; "Cancelar" reanuda la carrera (la
+    // pausamos al mostrar el modal, ver checkUnlockPoints).
+    this.enterMapSub = this.reg.playerBridge.enterMapRequest$.subscribe(mapId => this.enterMap(mapId));
+    this.dismissSub = this.reg.playerBridge.mapEntranceDismissed$.subscribe(() => this.scene.resume());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.jumpSub?.unsubscribe();
       this.jumpReleaseSub?.unsubscribe();
       this.parallaxSub?.unsubscribe();
+      this.enterMapSub?.unsubscribe();
+      this.dismissSub?.unsubscribe();
+      this.starsSub?.unsubscribe();
       this.reg.playerBridge.setRunMode(false);
     });
 
@@ -190,10 +269,13 @@ export class WorldRunScene extends Phaser.Scene {
     // (La cámara la mueve startFollow tras la física; aquí solo leemos su scroll.)
     this.updateParallax();
     this.recycleChunks();
+    this.updateStars();
 
     // Metros recorridos (Fase 2 lo llevará al HUD; por ahora texto en pantalla).
     this.distanceM = Math.max(0, Math.floor((this.player.x - this.startX) / PX_PER_METER));
     this.distanceText.setText(`${this.distanceM} m`);
+
+    this.checkUnlockPoints();
 
     // Caída por un hueco (aún no hay huecos en Fase 1): reinicio simple.
     if (this.player.y > this.scale.height + 300) this.respawn();
@@ -209,6 +291,16 @@ export class WorldRunScene extends Phaser.Scene {
         frameRate: 14,
         repeat: -1,
       });
+    }
+    // Parpadeo de la estrella: cada frame es una textura suelta (no spritesheet).
+    // Solo con las que CARGARON: si los PNG están vacíos/corruptos, crear el anim con
+    // frames inexistentes hace que play() reviente al leer 'frame'. Sin frames válidos
+    // no creamos el anim (las estrellas se ven como cuadro verde, pero no crashea).
+    if (!this.anims.exists(STAR_ANIM)) {
+      const frames = STAR_KEYS.filter(key => this.textures.exists(key)).map(key => ({ key }));
+      if (frames.length > 0) {
+        this.anims.create({ key: STAR_ANIM, frames, frameRate: 12, repeat: -1 });
+      }
     }
   }
 
@@ -270,18 +362,22 @@ export class WorldRunScene extends Phaser.Scene {
 
   private makeChunk(index: number): RunChunk {
     const leftX = index * CHUNK_W;
-    const stripW = CHUNK_TILES * SRC_TILE; // ancho en px SIN escalar (el scale lo aplica)
 
-    // Fila de césped arriba (borde del mapa) + tierra debajo. Ambas detrás del
-    // jugador (depth < 5) para que él pise sobre el césped.
-    const grass = this.add.tileSprite(leftX, this.groundTopY, stripW, SRC_TILE, 'world_tiles', FRAME_GRASS)
-      .setOrigin(0, 0).setScale(RENDER_SCALE).setDepth(1);
-    // La tierra sobra por debajo del borde de la pantalla (overdraw de 2 tiles) para
-    // que nunca quede hueco con el footer aunque el canvas no encaje al píxel.
-    const dirtTopY = this.groundTopY + RT;
-    const dirtPx = (this.scale.height + RT * 2) - dirtTopY;
-    const dirt = this.add.tileSprite(leftX, dirtTopY, stripW, dirtPx / RENDER_SCALE, 'world_tiles', FRAME_DIRT)
-      .setOrigin(0, 0).setScale(RENDER_SCALE).setDepth(0);
+    // Fila de superficie (suelo_01, con hierba) arriba + relleno (suelo_02) debajo.
+    // Ambas detrás del jugador (depth < 5) para que él pise sobre la hierba. Los
+    // TileSprite se dimensionan en px de pantalla; tileScale encoge el tile 64→32.
+    const grass = this.add.tileSprite(leftX, this.groundTopY, CHUNK_W, GROUND_TILE, TEX_SUELO_TOP)
+      .setOrigin(0, 0).setDepth(1);
+    grass.tileScaleX = SUELO_TILE_SCALE;
+    grass.tileScaleY = SUELO_TILE_SCALE;
+    // La tierra sobra por debajo del borde de la pantalla (overdraw) para que nunca
+    // quede hueco con el footer aunque el canvas no encaje al píxel.
+    const dirtTopY = this.groundTopY + GROUND_TILE;
+    const dirtH = (this.scale.height + RT * 2) - dirtTopY;
+    const dirt = this.add.tileSprite(leftX, dirtTopY, CHUNK_W, dirtH, TEX_SUELO_FILL)
+      .setOrigin(0, 0).setDepth(0);
+    dirt.tileScaleX = SUELO_TILE_SCALE;
+    dirt.tileScaleY = SUELO_TILE_SCALE;
 
     // Colisionador estático del suelo (invisible), hundido en el césped (SURFACE_INSET).
     const floorTop = this.groundTopY + SURFACE_INSET;
@@ -325,6 +421,108 @@ export class WorldRunScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(false);
 
     for (const chunk of this.chunks) this.physics.add.collider(this.player, chunk.floor);
+  }
+
+  /** Letrero "→" de inicio: en la vista inicial, pegado a la derecha y sobre la
+   *  hierba, para que se vea en cuanto el jugador arranca a correr. Es un marcador
+   *  estático del mundo (no se recicla): la cámara lo deja atrás al avanzar. */
+  private createStartSign(): void {
+    this.textures.get(TEX_SIGN).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    const x = this.scale.width - 64;                 // a la derecha del todo, fully visible
+    const y = this.groundTopY + SURFACE_INSET;       // base sobre la línea del suelo
+    this.add.image(x, y, TEX_SIGN).setOrigin(0.5, 1).setScale(SIGN_SCALE).setDepth(4);
+  }
+
+  /** Cartel "punto de interés" plantado en cada hito (mismo eje que el contador de
+   *  metros: startX + distancia). Al alcanzarlo se desbloquea su mapa (ver
+   *  checkUnlockPoints). Estáticos: la cámara los deja atrás al avanzar. */
+  private createInterestSigns(): void {
+    this.textures.get(TEX_INTEREST).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    const y = this.groundTopY + SURFACE_INSET;
+    for (const pt of RUN_UNLOCK_POINTS) {
+      const x = this.startX + pt.distanceM * PX_PER_METER;
+      this.add.image(x, y, TEX_INTEREST).setOrigin(0.5, 1).setScale(SIGN_SCALE).setDepth(4);
+    }
+  }
+
+  /**
+   * Hitos por distancia: la PRIMERA vez que se alcanza uno (su mapa aún sin
+   * desbloquear) se persiste el flag y se muestra el modal de entrada, pausando la
+   * carrera. En carreras posteriores el mapa ya está desbloqueado → sin modal.
+   * `firedPoints` evita reevaluar el mismo hito en cada frame dentro de una carrera.
+   */
+  private checkUnlockPoints(): void {
+    for (const pt of RUN_UNLOCK_POINTS) {
+      if (this.firedPoints.has(pt.flag) || this.distanceM < pt.distanceM) continue;
+      this.firedPoints.add(pt.flag);
+
+      const firstTime = !this.reg.unlocks.isUnlocked(mapFeatureId(pt.mapId));
+      this.reg.unlocks.setFlag(pt.flag, 'char');   // persiste el desbloqueo (idempotente)
+
+      if (firstTime) {
+        // Primera vez: modal de entrada (pausa la carrera hasta entrar o cancelar).
+        this.reg.playerBridge.promptMapEntrance(pt.mapId, !pt.firstEver);
+        this.scene.pause();
+      } else {
+        // Ya desbloqueado: icono de teletransporte arriba-derecha (10 s), sin pausar.
+        this.reg.playerBridge.showMapEntranceHint(pt.mapId);
+      }
+    }
+  }
+
+  /** Viaje al mapa desde el modal de entrada: reanuda (estábamos en pausa) para que
+   *  el fundido se anime y arranca GameScene en el mapa destino. */
+  private enterMap(mapId: string): void {
+    this.scene.resume();
+    this.cameras.main.fadeOut(250, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.reg.world.setCurrentMap(mapId);
+      this.scene.start('GameScene');
+      this.scene.stop();
+    });
+  }
+
+  /** Grupo de estrellas (sin gravedad) + overlap con el jugador para recogerlas. */
+  private createStars(): void {
+    this.textures.get(STAR_KEYS[0]).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    this.stars = this.physics.add.group({ allowGravity: false, immovable: true });
+    this.physics.add.overlap(this.player, this.stars,
+      (_p, star) => this.collectStar(star as Phaser.Physics.Arcade.Sprite));
+  }
+
+  /**
+   * Genera estrellas por delante de la cámara (una cada STAR_INTERVAL_M metros) y
+   * destruye las que ya quedaron atrás. Mundo infinito: solo existen las cercanas.
+   */
+  private updateStars(): void {
+    const scrollX = this.cameras.main.scrollX;
+    const spawnUntilX = scrollX + this.scale.width + CHUNK_W;   // un poco más allá del borde derecho
+    const starY = this.groundTopY + SURFACE_INSET - STAR_HEIGHT_ABOVE_GROUND;
+
+    while (this.startX + this.nextStarIndex * STAR_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
+      const x = this.startX + this.nextStarIndex * STAR_INTERVAL_M * PX_PER_METER;
+      const star = this.stars.create(x, starY, STAR_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
+      star.setScale(STAR_SCALE).setDepth(4);
+      if (this.anims.exists(STAR_ANIM)) star.play(STAR_ANIM);  // solo si cargaron los frames
+      this.nextStarIndex++;
+    }
+
+    // Limpieza: las que salieron por la izquierda (sin recoger) se eliminan.
+    for (const obj of this.stars.getChildren()) {
+      const star = obj as Phaser.Physics.Arcade.Sprite;
+      if (star.x < scrollX - CHUNK_W) star.destroy();
+    }
+  }
+
+  /** Recoge una estrella: suma al contador (persistido) y la hace desaparecer. */
+  private collectStar(star: Phaser.Physics.Arcade.Sprite): void {
+    if (!star.active) return;        // evita doble cobro si dos overlaps caen el mismo frame
+    star.disableBody(true, false);   // quita el cuerpo pero deja el sprite para el tween
+    this.reg.playerState.collectStars(1);
+    this.tweens.add({
+      targets: star, y: star.y - 40, alpha: 0, scale: STAR_SCALE * 1.6,
+      duration: 250, ease: 'Quad.out', onComplete: () => star.destroy(),
+    });
   }
 
   private updatePlayerAnim(onGround: boolean): void {
@@ -396,6 +594,17 @@ export class WorldRunScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '28px', color: '#ffffff',
       stroke: '#000000', strokeThickness: 4,
     }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(100);
+
+    // Contador de estrellas arriba a la derecha (icono + número), como el de monedas.
+    // Lee el estado del jugador (persistido); se actualiza al recoger estrellas.
+    const margin = 16;
+    const icon = this.add.image(this.scale.width - margin, margin + 16, STAR_KEYS[0])
+      .setOrigin(1, 0.5).setScale(1.4).setScrollFactor(0).setDepth(100);
+    this.starText = this.add.text(icon.x - icon.displayWidth - 8, margin + 16, '0', {
+      fontFamily: 'monospace', fontSize: '26px', color: '#ffe066',
+      stroke: '#000000', strokeThickness: 4,
+    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(100);
+    this.starsSub = this.reg.playerState.stars$.subscribe(n => this.starText.setText(`${n}`));
 
     // Botón provisional para volver al hogar (sin él, el runner es un callejón sin salida).
     const back = this.add.text(16, 16, '‹ Salir', {

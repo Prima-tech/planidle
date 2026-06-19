@@ -2,6 +2,7 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AchievementService } from 'src/app/services/achievement.service';
 import { QuestService } from 'src/app/services/quest.service';
+import { UnlockService } from 'src/app/services/unlock.service';
 
 interface Toast {
   icon: string;
@@ -23,6 +24,7 @@ const LEAVE_MS    = 400;
 export class AchievementToastComponent implements OnInit, OnDestroy {
   private achievements = inject(AchievementService);
   private quests = inject(QuestService);
+  private unlocks = inject(UnlockService);
   private subs: Subscription[] = [];
   private nextId = 0;
 
@@ -34,6 +36,10 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
         this.show(def.icon, def.name, 'Logro desbloqueado')),
       this.quests.completed$.subscribe(def =>
         this.show(def.icon, def.name, 'Misión completada')),
+      // Solo las features con `toast` definido muestran pastilla (p.ej. mapas).
+      this.unlocks.unlocked$.subscribe(def => {
+        if (def.toast) this.show(def.toast.icon, def.name ?? '', def.toast.label);
+      }),
     );
   }
 

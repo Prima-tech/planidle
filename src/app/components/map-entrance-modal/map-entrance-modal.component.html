@@ -1,0 +1,28 @@
+<div class="me-backdrop" *ngIf="(pending$ | async) as prompt">
+  <div class="me-panel">
+
+    <div class="me-header">
+      <span class="me-icon">🚪</span>
+      <h2 class="me-title">¡Entrada desbloqueada!</h2>
+    </div>
+
+    <div class="me-divider"></div>
+
+    <div class="me-body">
+      <p class="me-msg">
+        Has desbloqueado la entrada al <strong>Mapa {{ prompt.mapId }}</strong>.
+      </p>
+      <p class="me-note" *ngIf="prompt.canCancel">¿Quieres entrar?</p>
+    </div>
+
+    <div class="me-divider"></div>
+
+    <div class="me-actions">
+      <button *ngIf="prompt.canCancel" class="me-btn me-btn--cancel" (click)="cancel()">Cancelar</button>
+      <button class="me-btn me-btn--confirm" (click)="enter(prompt.mapId)">
+        {{ prompt.canCancel ? 'Entrar' : 'Aceptar' }}
+      </button>
+    </div>
+
+  </div>
+</div>

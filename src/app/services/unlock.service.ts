@@ -28,6 +28,10 @@ export class UnlockService {
   /** Emite cuando se desbloquea algo nuevo (para badges / notificaciones). */
   readonly changes$ = new Subject<void>();
 
+  /** Emite la feature recién desbloqueada (no silencioso). El toast solo se
+   *  muestra si la feature define `toast` (ver achievement-toast.component). */
+  readonly unlocked$ = new Subject<FeatureDef>();
+
   private charId: string | null = null;
 
   private unlockedChar   = new Set<string>();
@@ -186,7 +190,10 @@ export class UnlockService {
     if (set.has(def.id)) return;
     set.add(def.id);
     this.persist(def.scope);
-    if (!silent) this.changes$.next();
+    if (!silent) {
+      this.changes$.next();
+      this.unlocked$.next(def);
+    }
     this.syncRemote(def);
   }
 
