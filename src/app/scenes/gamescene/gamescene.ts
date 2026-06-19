@@ -7,6 +7,7 @@ import { GridPhysics } from "src/app/physics/gridphisics";
 import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MINIMAP_DATA_KEY } from "src/app/scenes/mobile-hud.scene";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
+import { bodySpriteFor } from "src/app/pnj/player/body-config";
 import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
@@ -272,7 +273,11 @@ export class GameScene extends Phaser.Scene {
     preload() {
       this.reg = new GameRegistry(this.game);
 
-      this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png', { frameWidth: 64, frameHeight: 64 });
+      // Cuerpo del personaje seleccionado (Gutts tiene modelo propio; el resto main).
+      // Forzamos recarga quitando la textura anterior: al cambiar de personaje el
+      // loader, si no, reutilizaría la cacheada y no actualizaría el modelo.
+      if (this.textures.exists('player')) this.textures.remove('player');
+      this.load.spritesheet('player', bodySpriteFor(this.reg.asgard?.selectedPlayer?.name), { frameWidth: 64, frameHeight: 64 });
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
       this.load.spritesheet('chests', 'assets/sprites/resources/chests.png', { frameWidth: 32, frameHeight: 32 });
       // Estaciones de oficio (construibles). Cargada como imagen: las filas miden
@@ -396,6 +401,8 @@ export class GameScene extends Phaser.Scene {
       this.currentMapConfig = this.reg.world.getCurrentMap();
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
+      // Actividad AFK: mapa con enemigos = matando; sin enemigos (hogar/ciudad) = idle.
+      this.reg.activity?.set((this.currentMapConfig.spawns?.length ?? 0) > 0 ? 'killing' : 'idle');
 
       // Inmediato: lo mínimo para que el primer frame sea válido
       this.initMap();
@@ -1888,6 +1895,8 @@ export class GameScene extends Phaser.Scene {
     private harvestNode(node: HarvestNode): void {
       node.hits++;
       const kind = HARVEST_KINDS[node.kind];
+      // Actividad AFK: lo último golpeado manda (minando una roca / talando un árbol).
+      this.reg.activity?.set(kind.skill === 'woodcutting' ? 'chopping' : 'mining');
       const s = node.sprite;
       const baseScale = kind.scale;
 

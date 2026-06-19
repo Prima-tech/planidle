@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { debounceTime, startWith } from 'rxjs/operators';
 import { EquipmentService, EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { EQUIP_LAYER_REGISTRY } from 'src/app/pnj/player/equip-layer-registry';
+import { bodySpriteFor } from 'src/app/pnj/player/body-config';
 import { LayerSource, loadDecoded, bakeStrip } from './sprite-strip.util';
 
 const FRAME_SIZE     = 64;
@@ -27,6 +28,9 @@ export class CharacterSpriteComponent implements OnInit, OnChanges, OnDestroy {
    * Si es null usa el personaje activo (EquipmentService reactivo).
    */
   @Input() equipmentSnapshot: EquipmentSnapshot | null = null;
+
+  /** Nombre del personaje: elige su modelo de cuerpo (Gutts tiene el suyo). */
+  @Input() characterName: string | null = null;
 
   private ctx: CanvasRenderingContext2D;
   private timer: ReturnType<typeof setTimeout>;
@@ -61,7 +65,7 @@ export class CharacterSpriteComponent implements OnInit, OnChanges, OnDestroy {
 
   private buildLayers(): LayerSource[] {
     const sources: LayerSource[] = [
-      { src: 'assets/sprites/player/character/body/main.png',
+      { src: bodySpriteFor(this.characterName),
         depth: 0, frameSize: FRAME_SIZE, startFrame: PREVIEW_START, frameCount: PREVIEW_FRAMES },
     ];
 

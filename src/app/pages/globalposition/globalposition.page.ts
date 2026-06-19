@@ -6,6 +6,7 @@ import { SupabaseService } from 'src/app/services/supabase.service';
 import { MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
 import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { UnlockService } from 'src/app/services/unlock.service';
+import { ActivityService, ActivityDef, ActivityKind } from 'src/app/services/activity.service';
 
 @Component({
   selector: 'app-globalposition',
@@ -18,6 +19,7 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
   charMapNames:  Record<string, string>           = {};
   charLastSeen:  Record<string, string>           = {};
   charEquipment: Record<string, EquipmentSnapshot> = {};
+  charActivity:  Record<string, ActivityKind>      = {};
   now = Date.now();
   private ticker: any;
 
@@ -46,6 +48,7 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     private storageService: StorageService,
     private supabaseService: SupabaseService,
     private unlocks: UnlockService,
+    private activityService: ActivityService,
   ) { }
 
   async ngOnInit() {
@@ -68,6 +71,9 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
       const mapId = snapshot?.mapId ?? 'hogar';
       this.charMapNames[char.id]  = MAP_REGISTRY[mapId]?.name ?? mapId;
       this.charEquipment[char.id] = snapshot?.equipment ?? {};
+      // Actividad: la guardada; si el save es antiguo (sin campo), se deduce del mapa.
+      this.charActivity[char.id] = snapshot?.activity
+        ?? (mapId === 'hogar' ? 'idle' : 'killing');
 
       if (snapshot?.lastSeen) {
         this.charLastSeen[char.id] = snapshot.lastSeen;
@@ -82,6 +88,11 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
         this.charLastSeen[char.id] = firstSeen;
       }
     }
+  }
+
+  /** Definición (icono/label/color) de la actividad de un personaje para la ficha. */
+  activityDef(charId: string): ActivityDef {
+    return this.activityService.def(this.charActivity[charId]);
   }
 
   timeSince(charId: string): string {
@@ -113,7 +124,6 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
       .map(t => ({
         id: nextLocalId--,
         name: t.name,
-        character_class: t.character_class,
         current_hp: t.max_hp,
         max_hp: t.max_hp,
         lvl: 1,

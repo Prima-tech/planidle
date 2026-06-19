@@ -14,6 +14,13 @@
     "CONTINUE_BUTTON": "CONTINUE",
     "CREATE_PLAYER_BUTTON": "CREATE PLAYER"
   },
+  "ACTIVITY": {
+    "IDLE": "Resting",
+    "KILLING": "Fighting",
+    "EXPLORING": "Exploring",
+    "MINING": "Mining",
+    "CHOPPING": "Chopping"
+  },
   "SETTINGS": {
     "TITLE": "Settings",
     "SECTION": {

@@ -36,13 +36,18 @@
                  [class.hero-card--selected]="isSelected?.id === character.id"
                  (click)="selectPlayer(character)">
               <div class="hero-name">{{ character.name }}</div>
-              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
+              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}" [characterName]="character.name"></app-character-sprite>
 <div class="hp-bar-track">
                 <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
                 <span>{{ charMapNames[character.id] || 'Asgard' }}</span>
+              </div>
+              <div class="hero-activity">
+                <ion-icon [name]="activityDef(character.id).icon"
+                          [style.color]="activityDef(character.id).color"></ion-icon>
+                <span>{{ activityDef(character.id).labelKey | translate }}</span>
               </div>
               <div class="hero-offline">
                 <ion-icon name="time-outline"></ion-icon>
@@ -61,13 +66,18 @@
                  [class.hero-card--selected]="isSelected?.id === character.id"
                  (click)="selectPlayer(character)">
               <div class="hero-name">{{ character.name }}</div>
-              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
+              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}" [characterName]="character.name"></app-character-sprite>
 <div class="hp-bar-track">
                 <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
                 <span>{{ charMapNames[character.id] || 'Asgard' }}</span>
+              </div>
+              <div class="hero-activity">
+                <ion-icon [name]="activityDef(character.id).icon"
+                          [style.color]="activityDef(character.id).color"></ion-icon>
+                <span>{{ activityDef(character.id).labelKey | translate }}</span>
               </div>
               <div class="hero-offline">
                 <ion-icon name="time-outline"></ion-icon>
@@ -86,13 +96,18 @@
                  [class.hero-card--selected]="isSelected?.id === character.id"
                  (click)="selectPlayer(character)">
               <div class="hero-name">{{ character.name }}</div>
-              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}"></app-character-sprite>
+              <app-character-sprite [size]="56" [equipmentSnapshot]="charEquipment[character.id] ?? {}" [characterName]="character.name"></app-character-sprite>
 <div class="hp-bar-track">
                 <div class="hp-bar-fill" [style.width.%]="(character.current_hp / character.max_hp) * 100"></div>
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
                 <span>{{ charMapNames[character.id] || 'Asgard' }}</span>
+              </div>
+              <div class="hero-activity">
+                <ion-icon [name]="activityDef(character.id).icon"
+                          [style.color]="activityDef(character.id).color"></ion-icon>
+                <span>{{ activityDef(character.id).labelKey | translate }}</span>
               </div>
               <div class="hero-offline">
                 <ion-icon name="time-outline"></ion-icon>

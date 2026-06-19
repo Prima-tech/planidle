@@ -16,6 +16,7 @@ import { AfkBonusService } from './afk-bonus.service';
 import { AchievementService } from './achievement.service';
 import { QuestService, QuestSave } from './quest.service';
 import { UnlockService } from './unlock.service';
+import { ActivityService } from './activity.service';
 import { CharacterStatsService } from './character-stats.service';
 import { ConnectionService } from './connection.service';
 
@@ -40,6 +41,9 @@ export interface GameSnapshot {
   /** Progresión de skills de recolección (minería, tala): XP + nivel */
   gatheringSkills?: GatheringSkillsSnapshot;
   mapId: string;
+  /** Qué hacía el personaje al dejarlo (matando, explorando, minando…). Lo muestra
+   *  el roster para distinguir a los personajes AFK. */
+  activity?: import('./activity.service').ActivityKind;
   kills: KillMap;
   /** Config activa de talentos (compat: saves antiguos de una sola config) */
   talents?: TalentSnapshot;
@@ -90,6 +94,7 @@ export class SaveService {
     private unlocks: UnlockService,
     private charStats: CharacterStatsService,
     private connection: ConnectionService,
+    private activity: ActivityService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
@@ -255,6 +260,7 @@ export class SaveService {
       gatheringLoadouts: this.gathering.getLoadoutsSnapshot(),
       gatheringSkills: this.gatheringSkills.getSnapshot(),
       mapId:        this.world.getCurrentMap().id,
+      activity:     this.activity.current,
       kills:        this.kills.getCharKillsSnapshot(),
       talents:      this.talent.getSnapshot(),
       talentLoadouts: this.talent.getLoadoutsSnapshot(),

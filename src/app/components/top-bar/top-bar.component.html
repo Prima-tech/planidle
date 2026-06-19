@@ -20,7 +20,7 @@
           <button class="char-roster-item" *ngFor="let it of rosterItems"
                   [class.current]="isCurrent(it.char)"
                   (click)="pickCharacter(it.char)">
-            <app-character-sprite [size]="30" [equipmentSnapshot]="it.equipment"></app-character-sprite>
+            <app-character-sprite [size]="30" [equipmentSnapshot]="it.equipment" [characterName]="it.char?.name"></app-character-sprite>
             <span class="char-roster-name">{{ it.char.name }}</span>
             <span class="char-roster-map">{{ it.mapName }}</span>
           </button>
@@ -28,8 +28,8 @@
 
         <div class="char-panel">
           <div class="avatar-col">
-            <div class="avatar-icon" [ngClass]="'avatar-icon--' + classKey">
-              <ion-icon [name]="classIcon"></ion-icon>
+            <div class="avatar-icon">
+              <ion-icon name="person-outline"></ion-icon>
             </div>
           </div>
 

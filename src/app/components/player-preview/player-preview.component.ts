@@ -2,7 +2,9 @@ import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@ang
 import { Subscription } from 'rxjs';
 import { debounceTime, startWith } from 'rxjs/operators';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { AsgardService } from 'src/app/services/asgard';
 import { EQUIP_LAYER_REGISTRY } from 'src/app/pnj/player/equip-layer-registry';
+import { bodySpriteFor } from 'src/app/pnj/player/body-config';
 import { LayerSource, loadDecoded, bakeStrip } from '../character-sprite/sprite-strip.util';
 
 const FRAME_SIZE     = 64;
@@ -26,7 +28,7 @@ export class PlayerPreviewComponent implements OnInit, OnDestroy {
   private frameIdx = 0;
   private sub: Subscription;
 
-  constructor(private equipment: EquipmentService) {}
+  constructor(private equipment: EquipmentService, private asgard: AsgardService) {}
 
   ngOnInit(): void {
     this.ctx = this.cvRef.nativeElement.getContext('2d')!;
@@ -48,7 +50,7 @@ export class PlayerPreviewComponent implements OnInit, OnDestroy {
     this.frameIdx = 0;
 
     const sources: LayerSource[] = [
-      { src: 'assets/sprites/player/character/body/main.png',
+      { src: bodySpriteFor(this.asgard.selectedPlayer?.name),
         depth: 0, frameSize: FRAME_SIZE, startFrame: PREVIEW_START, frameCount: PREVIEW_FRAMES },
     ];
 

@@ -1,5 +1,4 @@
 export class Character {
-  private _character_class: string;
   private _current_hp: number;
   private _equipment: any;
   private _experience_points: number;
@@ -10,7 +9,6 @@ export class Character {
 
   constructor(data: any) {
     if (data) {
-      this.character_class = data.character_class;
       this.current_hp = data.current_hp;
       this.equipment = data.equipment;
       this.experience_points = data.experience_points;
@@ -19,14 +17,6 @@ export class Character {
       this.name = data.name;
       this.profile_id = data.profile_id;
     }
-  }
-
-  get character_class(): string {
-    return this._character_class;
-  }
-
-  set character_class(value: string) {
-    this._character_class = value;
   }
 
   get current_hp(): number {

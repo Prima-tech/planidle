@@ -504,13 +504,6 @@ $metal-dark: #6b6357;
   justify-content: center;
 
   ion-icon { font-size: 14px; color: $text-cream; }
-
-  &--warrior   ion-icon { color: #ff8040; }
-  &--mage      ion-icon { color: #5aadff; }
-  &--hunter    ion-icon { color: #4ecf7a; }
-  &--priest    ion-icon { color: #e8d5a3; }
-  &--necron    ion-icon { color: #9e9e9e; }
-  &--ancestral ion-icon { color: #00d2ff; }
 }
 
 /* Pastilla flotante del nombre — mismo estilo que .minimap-name */

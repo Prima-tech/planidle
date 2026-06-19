@@ -1,6 +1,7 @@
 import { Subscription } from 'rxjs';
 import { GameRegistry } from '../game-registry';
 import { mapFeatureId } from '../../services/unlock-config';
+import { bodySpriteFor } from '../../pnj/player/body-config';
 import {
   WorldParallaxId, getWorldParallaxSet, worldParallaxKey, worldParallaxPath,
   worldParallaxFactor, WORLD_PARALLAX_SRC_W, WORLD_PARALLAX_SRC_H,
@@ -74,6 +75,26 @@ const STAR_SCALE = 1.8;
 // JUMP_MAX_VELOCITY se llega holgado a ~210px.
 const STAR_HEIGHTS = [50, 120, 180, 90, 150];
 
+// --- Enemigos decorativos (assets/sprites/enemy/world/rat/rat.png) ---
+// Hoja 768×160 con frames de 64×32 (NO 32×32): 12 cols × 5 filas. El contenido va
+// centrado en cada celda de 64px (verificado por alfa: centros en x=32,96,160…).
+// Filas: idle 0 (4fr), move 1 (8fr), attack 2 (12fr), damage 3 (4fr), death 4 (5fr).
+// En el Modo Mundo la rata está plantada en idle y reproduce el ataque al pasar el
+// jugador (de momento decorativo, sin daño). Una cada RAT_INTERVAL_M metros.
+const TEX_RAT = 'wr_rat';
+const RAT_SHEET = 'assets/sprites/enemy/world/rat/rat.png';
+const RAT_FW = 64;
+const RAT_FH = 32;
+const RAT_COLS = 12;
+const RAT_ANIM_IDLE = 'wr_rat_idle';
+const RAT_ANIM_ATTACK = 'wr_rat_attack';
+const RAT_IDLE_FRAMES   = { start: 0,            end: 3 };                // fila 0 (4 fr)
+const RAT_ATTACK_FRAMES = { start: 2 * RAT_COLS, end: 2 * RAT_COLS + 11 }; // fila 2 (12 fr)
+const RAT_INTERVAL_M = 50;            // una rata cada 50 m
+const RAT_SCALE = 4.4;
+const RAT_FACE_LEFT = true;           // mira hacia el jugador que llega por la izquierda
+const RAT_TRIGGER_PX = 80;            // distancia a la que ataca al acercarse el jugador
+
 // --- Mundo / chunks ---
 const CHUNK_TILES = 16;              // ancho de un chunk en tiles
 const CHUNK_W = CHUNK_TILES * RT;    // ancho de un chunk en px de mundo
@@ -129,6 +150,10 @@ export class WorldRunScene extends Phaser.Scene {
   // sin generar. nextStarIndex 1 = primera estrella a STAR_INTERVAL_M metros.
   private stars!: Phaser.Physics.Arcade.Group;
   private nextStarIndex = 1;
+  // Ratas decorativas: plantadas en idle, atacan al pasar el jugador. Mundo infinito:
+  // solo existen las cercanas (se generan por delante y se reciclan al quedar atrás).
+  private rats: { sprite: Phaser.GameObjects.Sprite; attacked: boolean }[] = [];
+  private nextRatIndex = 1;
   private jumpSub?: Subscription;
   private jumpReleaseSub?: Subscription;
   private parallaxSub?: Subscription;
@@ -169,9 +194,14 @@ export class WorldRunScene extends Phaser.Scene {
     STAR_KEYS.forEach((key, i) => {
       if (!this.textures.exists(key)) this.load.image(key, STAR_FILES[i]);
     });
-    // El cuerpo del jugador suele estar ya cargado por GameScene; lo aseguramos.
+    // Rata (enemigo decorativo): hoja con frames de 64×32.
+    if (!this.textures.exists(TEX_RAT)) {
+      this.load.spritesheet(TEX_RAT, RAT_SHEET, { frameWidth: RAT_FW, frameHeight: RAT_FH });
+    }
+    // El cuerpo del jugador suele estar ya cargado por GameScene (con el modelo del
+    // personaje seleccionado); lo aseguramos por si se entra sin pasar por ella.
     if (!this.textures.exists('player')) {
-      this.load.spritesheet('player', 'assets/sprites/player/character/body/main.png',
+      this.load.spritesheet('player', bodySpriteFor(this.reg.asgard?.selectedPlayer?.name),
         { frameWidth: 64, frameHeight: 64 });
     }
     // Precargamos SOLO el set de parallax seleccionado (cada capa es 1920×1080; cargar
@@ -201,6 +231,8 @@ export class WorldRunScene extends Phaser.Scene {
     this.isJumping = false;
     this.jumpHoldMs = 0;
     this.nextStarIndex = 1;
+    this.rats = [];
+    this.nextRatIndex = 1;
     this.firedPoints.clear();
 
     this.physics.world.gravity.y = GRAVITY_Y;
@@ -217,6 +249,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.buildInitialChunks();
     this.createPlayer();
     this.createStars();
+    this.createRats();
     this.createStartSign();
     this.createInterestSigns();
     this.createHud();
@@ -238,6 +271,7 @@ export class WorldRunScene extends Phaser.Scene {
     // Avisar a la UI Angular: oculta minimapa/skills/toggle del footer y convierte
     // el botón de ataque en botón de salto (que emite por jumpRequest$).
     this.reg.playerBridge.setRunMode(true);
+    this.reg.activity?.set('exploring');   // actividad AFK: explorando el Modo Mundo
     this.jumpSub = this.reg.playerBridge.jumpRequest$.subscribe(() => this.pressJump());
     this.jumpReleaseSub = this.reg.playerBridge.jumpReleaseRequest$.subscribe(() => this.releaseJump());
     // Modal de entrada: "Entrar" viaja al mapa; "Cancelar" reanuda la carrera (la
@@ -274,6 +308,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.updateParallax();
     this.recycleChunks();
     this.updateStars();
+    this.updateRats();
 
     // Metros recorridos (Fase 2 lo llevará al HUD; por ahora texto en pantalla).
     this.distanceM = Math.max(0, Math.floor((this.player.x - this.startX) / PX_PER_METER));
@@ -304,6 +339,23 @@ export class WorldRunScene extends Phaser.Scene {
       const frames = STAR_KEYS.filter(key => this.textures.exists(key)).map(key => ({ key }));
       if (frames.length > 0) {
         this.anims.create({ key: STAR_ANIM, frames, frameRate: 12, repeat: -1 });
+      }
+    }
+    // Rata: idle en bucle + ataque una vez (vuelve a idle al terminar, ver updateRats).
+    if (this.textures.exists(TEX_RAT)) {
+      if (!this.anims.exists(RAT_ANIM_IDLE)) {
+        this.anims.create({
+          key: RAT_ANIM_IDLE,
+          frames: this.anims.generateFrameNumbers(TEX_RAT, RAT_IDLE_FRAMES),
+          frameRate: 8, repeat: -1,
+        });
+      }
+      if (!this.anims.exists(RAT_ANIM_ATTACK)) {
+        this.anims.create({
+          key: RAT_ANIM_ATTACK,
+          frames: this.anims.generateFrameNumbers(TEX_RAT, RAT_ATTACK_FRAMES),
+          frameRate: 16, repeat: 0,
+        });
       }
     }
   }
@@ -529,6 +581,52 @@ export class WorldRunScene extends Phaser.Scene {
       targets: star, y: star.y - 40, alpha: 0, scale: STAR_SCALE * 1.6,
       duration: 250, ease: 'Quad.out', onComplete: () => star.destroy(),
     });
+  }
+
+  /** Filtro nearest para que la rata se vea nítida (pixel-art). */
+  private createRats(): void {
+    if (this.textures.exists(TEX_RAT)) {
+      this.textures.get(TEX_RAT).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+  }
+
+  /**
+   * Genera ratas por delante (una cada RAT_INTERVAL_M metros), las hace atacar cuando
+   * el jugador se acerca y recicla las que quedan atrás. Decorativo: sin daño ni
+   * colisión, solo idle → ataque → idle al pasar.
+   */
+  private updateRats(): void {
+    if (!this.anims.exists(RAT_ANIM_IDLE)) return;   // textura/anim no disponibles
+    const scrollX = this.cameras.main.scrollX;
+    const spawnUntilX = scrollX + this.scale.width + CHUNK_W;
+    const groundY = this.groundTopY + SURFACE_INSET;
+
+    while (this.startX + this.nextRatIndex * RAT_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
+      const x = this.startX + this.nextRatIndex * RAT_INTERVAL_M * PX_PER_METER;
+      const sprite = this.add.sprite(x, groundY, TEX_RAT)
+        .setOrigin(0.5, 1).setScale(RAT_SCALE).setDepth(4).setFlipX(RAT_FACE_LEFT);
+      sprite.play(RAT_ANIM_IDLE);
+      this.rats.push({ sprite, attacked: false });
+      this.nextRatIndex++;
+    }
+
+    for (let i = this.rats.length - 1; i >= 0; i--) {
+      const rat = this.rats[i];
+      // Recicla las que ya quedaron atrás.
+      if (rat.sprite.x < scrollX - CHUNK_W) {
+        rat.sprite.destroy();
+        this.rats.splice(i, 1);
+        continue;
+      }
+      // Al acercarse el jugador: ataca una vez y vuelve a idle al terminar.
+      if (!rat.attacked && this.player.x >= rat.sprite.x - RAT_TRIGGER_PX) {
+        rat.attacked = true;
+        rat.sprite.play(RAT_ANIM_ATTACK);
+        rat.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+          if (rat.sprite.active) rat.sprite.play(RAT_ANIM_IDLE);
+        });
+      }
+    }
   }
 
   private updatePlayerAnim(onGround: boolean): void {

@@ -41,6 +41,7 @@ import { InteractionService } from 'src/app/services/interaction.service';
 import { CityBuildService } from 'src/app/services/city-build.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { UnlockService } from 'src/app/services/unlock.service';
+import { ActivityService } from 'src/app/services/activity.service';
 
 @Component({
   selector: 'app-layout',
@@ -101,6 +102,7 @@ export class LayoutComponent implements OnDestroy {
     private gatheringSkillsService: GatheringSkillsService,
     private connectionService: ConnectionService,
     private unlockService: UnlockService,
+    private activityService: ActivityService,
   ) {
     this.loadGame();
   }
@@ -258,6 +260,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.GATHERING,       this.gatheringEquipmentService);
     this.phaserGame.registry.set(REGISTRY_KEYS.GATHERING_SKILLS, this.gatheringSkillsService);
     this.phaserGame.registry.set(REGISTRY_KEYS.UNLOCK,           this.unlockService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.ACTIVITY,         this.activityService);
     this.sceneManager.setGame(this.phaserGame);
   }
 

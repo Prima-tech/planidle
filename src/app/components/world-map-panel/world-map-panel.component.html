@@ -33,7 +33,7 @@
       </ng-template>
       <div class="info-chars" *ngIf="charsOnMap.length > 0">
         <div class="info-char" *ngFor="let c of charsOnMap">
-          <app-character-sprite [size]="56" [equipmentSnapshot]="c.equipment"></app-character-sprite>
+          <app-character-sprite [size]="56" [equipmentSnapshot]="c.equipment" [characterName]="c.name"></app-character-sprite>
           <span class="info-char-name">{{ c.name }}</span>
         </div>
       </div>
@@ -62,7 +62,7 @@
 
       <div class="info-chars" *ngIf="charsOnPlanet.length > 0">
         <div class="info-char" *ngFor="let c of charsOnPlanet">
-          <app-character-sprite [size]="56" [equipmentSnapshot]="c.equipment"></app-character-sprite>
+          <app-character-sprite [size]="56" [equipmentSnapshot]="c.equipment" [characterName]="c.name"></app-character-sprite>
           <span class="info-char-name">{{ c.name }}</span>
         </div>
       </div>

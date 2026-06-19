@@ -180,24 +180,6 @@ export class TopBarComponent implements OnInit, OnDestroy {
   potionCdSeconds = 0;
   potionCdIcon: string | null = null;
 
-  private readonly CLASS_ICONS: Record<string, string> = {
-    Warrior:   'shield-outline',
-    Mage:      'flash-outline',
-    Hunter:    'scan-outline',
-    Priest:    'heart-outline',
-    Necron:    'skull-outline',
-    Ancestral: 'infinite-outline',
-  };
-
-  get classIcon(): string {
-    const cls = this.asgardService.selectedPlayer?.character_class;
-    return this.CLASS_ICONS[cls] ?? 'person-outline';
-  }
-
-  get classKey(): string {
-    return (this.asgardService.selectedPlayer?.character_class ?? '').toLowerCase();
-  }
-
   ngOnInit() {
     this.valueHP$ = this.playerBridge.player.status$.pipe(
       startWith(this.playerBridge.getPlayer().getStatus()),

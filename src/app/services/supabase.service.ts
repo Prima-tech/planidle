@@ -59,13 +59,13 @@ export class SupabaseService {
   }
   */
 
-  static readonly ROSTER_TEMPLATE: { name: string; character_class: string; max_hp: number }[] = [
-    { name: 'Gutts',    character_class: 'Warrior',   max_hp: 120 },
-    { name: 'Merlin',   character_class: 'Mage',       max_hp: 65  },
-    { name: 'Aldric',   character_class: 'Hunter',     max_hp: 90  },
-    { name: 'Seraphel', character_class: 'Priest',     max_hp: 80  },
-    { name: 'Malachar', character_class: 'Necron',     max_hp: 70  },
-    { name: 'Solmara',  character_class: 'Ancestral',  max_hp: 100 },
+  static readonly ROSTER_TEMPLATE: { name: string; max_hp: number }[] = [
+    { name: 'Gutts',    max_hp: 120 },
+    { name: 'Merlin',   max_hp: 65  },
+    { name: 'Aldric',   max_hp: 90  },
+    { name: 'Seraphel', max_hp: 80  },
+    { name: 'Malachar', max_hp: 70  },
+    { name: 'Solmara',  max_hp: 100 },
   ];
 
   async fetchAndSaveLocalData(userId: string) {
@@ -86,7 +86,6 @@ export class SupabaseService {
           .map(t => ({
             profile_id: userId,
             name: t.name,
-            character_class: t.character_class,
             current_hp: t.max_hp,
             max_hp: t.max_hp,
             lvl: 1,
