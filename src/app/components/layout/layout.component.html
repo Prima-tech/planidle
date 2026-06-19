@@ -32,6 +32,7 @@
 </ion-content>
 
 <app-hud-skill-buttons *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)"></app-hud-skill-buttons>
+<app-sprint-button *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async)"></app-sprint-button>
 <app-attack-button *ngIf="dataLoaded && sceneVisible"></app-attack-button>
 <app-game-log></app-game-log>
 <app-footer-bar #footerBar></app-footer-bar>

@@ -1,0 +1,15 @@
+<button class="sprint-btn"
+        [class.pressed]="pressed"
+        [class.on-cd]="onCooldown"
+        [style.--cd-angle]="cdAngle + 'deg'"
+        (pointerdown)="onPress($event)"
+        (pointerup)="onRelease()"
+        (pointercancel)="onRelease()"
+        (pointerleave)="onRelease()"
+        (contextmenu)="$event.preventDefault()">
+  <span class="sprint-btn__shine"></span>
+  <ion-icon name="flash" class="sprint-btn__icon"></ion-icon>
+
+  <div *ngIf="cdAngle > 0" class="sprint-cd-overlay"></div>
+  <span *ngIf="cdSeconds" class="sprint-cd-text">{{ cdSeconds }}</span>
+</button>

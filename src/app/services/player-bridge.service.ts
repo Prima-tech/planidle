@@ -10,6 +10,13 @@ import { PlayerStateService } from './player-state.service';
 /** Poción equipada: se auto-usa al bajar a la mitad de HP, con cooldown. */
 const AUTO_POTION_COOLDOWN_MS = 30_000;
 
+// Sprint (Modo Mundo): empujón de velocidad de SPRINT_DURATION con un pico inicial
+// muy grande que decelera; luego un cooldown antes de poder repetirlo.
+const SPRINT_DURATION_MS = 10_000;
+const SPRINT_COOLDOWN_MS = 20_000;   // medido desde la activación (10 s sprint + 10 s de espera)
+const SPRINT_BASE_MULT = 2;          // ×2 sostenido durante todo el sprint
+const SPRINT_BURST_EXTRA = 2;        // pico extra al arrancar (×4) que decae hasta 0
+
 /** Petición de entrada a un mapa (Modo Mundo). `canCancel` = se puede rechazar. */
 export interface MapEntrancePrompt {
   mapId: string;
@@ -46,9 +53,48 @@ export class PlayerBridgeService {
    *  mostrar el icono de teletransporte (arriba-derecha, 10 s). Emite el id del mapa. */
   readonly mapEntranceHint$ = new Subject<string>();
 
-  setRunMode(active: boolean): void { this.runMode$.next(active); }
+  setRunMode(active: boolean): void {
+    if (active) this.sprintStart = 0;   // se entra con el sprint listo
+    this.runMode$.next(active);
+  }
   requestJump(): void { this.jumpRequest$.next(); }
   releaseJump(): void { this.jumpReleaseRequest$.next(); }
+
+  // ── Sprint (Modo Mundo) ───────────────────────────────────────────────────────
+  // Timestamp de la última activación (0 = nunca / reset). La velocidad la aplica
+  // WorldRunScene leyendo currentSprintMultiplier() cada frame; el botón lee los
+  // getters de cooldown para pintar el aro (igual que las habilidades).
+  private sprintStart = 0;
+
+  /** Arranca el sprint si no está en cooldown. Devuelve true si se activó. */
+  activateSprint(): boolean {
+    if (this.sprintOnCooldown) return false;
+    this.sprintStart = Date.now();
+    return true;
+  }
+
+  private get sprintElapsed(): number { return Date.now() - this.sprintStart; }
+  get sprintActive(): boolean { return this.sprintStart > 0 && this.sprintElapsed < SPRINT_DURATION_MS; }
+  get sprintOnCooldown(): boolean { return this.sprintStart > 0 && this.sprintElapsed < SPRINT_COOLDOWN_MS; }
+
+  /** Multiplicador de velocidad actual: pico al inicio (×4) que decelera hasta
+   *  ×SPRINT_BASE_MULT y vuelve a ×1 al terminar. */
+  currentSprintMultiplier(): number {
+    if (!this.sprintActive) return 1;
+    const t = this.sprintElapsed / SPRINT_DURATION_MS;   // 0 → 1
+    const decay = (1 - t) * (1 - t);                     // 1 → 0, deceleración suave
+    return SPRINT_BASE_MULT + SPRINT_BURST_EXTRA * decay;
+  }
+
+  /** Aro de cooldown del botón: 1 = recién usado, 0 = listo. */
+  get sprintCooldownRatio(): number {
+    if (!this.sprintOnCooldown) return 0;
+    return 1 - this.sprintElapsed / SPRINT_COOLDOWN_MS;
+  }
+  get sprintCooldownSeconds(): number {
+    if (!this.sprintOnCooldown) return 0;
+    return Math.ceil((SPRINT_COOLDOWN_MS - this.sprintElapsed) / 1000);
+  }
   promptMapEntrance(mapId: string, canCancel: boolean): void {
     this.mapEntrancePrompt$.next({ mapId, canCancel });
   }

@@ -1,0 +1,102 @@
+:host {
+  pointer-events: none;
+}
+
+// Mismo estilo "esfera" azul zafiro que las habilidades (hud-skill-buttons),
+// colocado a la izquierda del botón de saltar (attack-btn en run-mode: right 8px,
+// bottom 77px, 76×76 → centro en bottom 115). El sprint (52px) se centra a esa
+// altura y queda pegado a su izquierda con un pequeño hueco.
+.sprint-btn {
+  position: fixed;
+  right: calc(96px + var(--safe-right, 0px));
+  bottom: 89px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  z-index: 150;
+  pointer-events: auto;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  background: radial-gradient(circle at 35% 28%, #5fa8e8 0%, #2a64b8 40%, #143a78 75%, #0a1e48 100%);
+  border: 2px solid rgba(185, 220, 255, 0.35);
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.65),
+    0 0 0 2px rgba(0, 0, 0, 0.45),
+    inset 0 2px 5px rgba(255, 255, 255, 0.30),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.50);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 70ms ease-out, box-shadow 70ms ease-out, filter 70ms ease-out;
+
+  &.pressed {
+    transform: scale(0.88);
+    filter: brightness(1.25);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.6),
+      0 0 14px rgba(80, 160, 255, 0.85),
+      inset 0 2px 5px rgba(255, 255, 255, 0.35),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+  }
+
+  // En cooldown: apagado y sin posibilidad de pulsar (el aro indica el tiempo).
+  &.on-cd {
+    cursor: not-allowed;
+    filter: grayscale(35%) brightness(0.85);
+  }
+}
+
+// Brillo superior tipo cristal
+.sprint-btn__shine {
+  position: absolute;
+  top: 5%;
+  left: 14%;
+  width: 72%;
+  height: 38%;
+  border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sprint-btn__icon {
+  font-size: 26px;
+  color: #eaf4ff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sprint-cd-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    rgba(0, 0, 0, 0.72) 0deg var(--cd-angle),
+    transparent var(--cd-angle) 360deg
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sprint-cd-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 1);
+  pointer-events: none;
+  z-index: 3;
+}

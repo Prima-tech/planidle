@@ -258,8 +258,9 @@ export class WorldRunScene extends Phaser.Scene {
     if (!this.player.body) return;
 
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
-    // la anuló). El control manual está anulado: el único input es saltar.
-    this.player.setVelocityX(RUN_SPEED);
+    // la anuló). El control manual está anulado: el único input es saltar. El sprint
+    // multiplica esta velocidad (pico al inicio, decelerando) mientras esté activo.
+    this.player.setVelocityX(RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier());
 
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround && this.player.body.velocity.y >= 0) this.isJumping = false;

@@ -28,6 +28,7 @@ import { SkillDetailComponent } from './skill-detail/skill-detail.component';
 import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.page';
 import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.component';
 import { AttackButtonComponent } from './attack-button/attack-button.component';
+import { SprintButtonComponent } from './sprint-button/sprint-button.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
 import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
@@ -67,6 +68,7 @@ import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.
     GameSettingsPageComponent,
     HudSkillButtonsComponent,
     AttackButtonComponent,
+    SprintButtonComponent,
     WorldMapPanelComponent,
     EnemyNamePipe,
     CharacterSpriteComponent,
@@ -108,6 +110,7 @@ import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.
     SummonComponent,
     TownChestComponent,
     HudSkillButtonsComponent,
+    SprintButtonComponent,
     EnemyNamePipe,
     CharacterSpriteComponent,
     AchievementToastComponent,
