@@ -126,6 +126,15 @@ const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
   },
 };
 
+/** NPCs fijos de la ciudad (Asgard): personajes decorativos quietos (idle mirando
+ *  abajo). `name` = nombre en body-config (bodySpriteFor) para cargar su hoja;
+ *  `texKey` = clave de textura propia. Añadir uno = una línea más aquí. */
+const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number }[] = [
+  { name: 'Kugo',    texKey: 'npc_kugo',    tileX: 22, tileY: 30 },
+  { name: 'Italien', texKey: 'npc_italien', tileX: 28, tileY: 23 },
+  { name: 'Orc',     texKey: 'npc_orc',     tileX: 34, tileY: 27 },
+];
+
 // Nodo recolectable colocado en el mapa. Ocupa una huella de tiles (todas en
 // `tileKeys` para la colisión).
 interface HarvestNode {
@@ -207,6 +216,8 @@ export class GameScene extends Phaser.Scene {
       moving?: PlacedBuilding;   // si está, es la reubicación de un edificio existente
     } | null = null;
     private collisionTiles: Set<string>                    = new Set();
+    // NPCs fijos de la ciudad vivos en la escena (para detectar cercanía y hablar).
+    private cityNpcs: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string }[] = [];
     // Parallax de mar profundo detrás del mapa (cubre el borde azul del juego con
     // dos capas que derivan a distinta velocidad → sensación de profundidad).
     private pxFar?:  Phaser.GameObjects.TileSprite;
@@ -237,6 +248,7 @@ export class GameScene extends Phaser.Scene {
     private cachedNearChest:  typeof this.activeChests[0]    | null = null;
     private cachedNearWindow: typeof this.placedBuildings[0] | null = null;
     private cachedNearNode:   HarvestNode | null = null;
+    private cachedNearNpc:    typeof this.cityNpcs[0] | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
@@ -278,9 +290,13 @@ export class GameScene extends Phaser.Scene {
       // loader, si no, reutilizaría la cacheada y no actualizaría el modelo.
       if (this.textures.exists('player')) this.textures.remove('player');
       this.load.spritesheet('player', bodySpriteFor(this.reg.asgard?.selectedPlayer?.name), { frameWidth: 64, frameHeight: 64 });
-      // Kugo: NPC fijo de la ciudad. Su cuerpo solo hace falta en el hogar (Asgard).
-      if (this.reg.world.getCurrentMap()?.id === 'hogar' && !this.textures.exists('kugo_body')) {
-        this.load.spritesheet('kugo_body', bodySpriteFor('Kugo'), { frameWidth: 64, frameHeight: 64 });
+      // NPCs fijos de la ciudad: sus cuerpos solo hacen falta en el hogar (Asgard).
+      if (this.reg.world.getCurrentMap()?.id === 'hogar') {
+        for (const n of CITY_NPCS) {
+          if (!this.textures.exists(n.texKey)) {
+            this.load.spritesheet(n.texKey, bodySpriteFor(n.name), { frameWidth: 64, frameHeight: 64 });
+          }
+        }
       }
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
       this.load.spritesheet('chests', 'assets/sprites/resources/chests.png', { frameWidth: 32, frameHeight: 32 });
@@ -398,6 +414,7 @@ export class GameScene extends Phaser.Scene {
       this.autoBlacklist.clear();
       this.placedBuildings = [];
       this.nodes = [];
+      this.cityNpcs = [];
       this.activeHarvest = null;
       this.moveSelecting = false;
       this.deleteSelecting = false;
@@ -544,16 +561,19 @@ export class GameScene extends Phaser.Scene {
         this.cachedNearChest  = this.nearestOpenableChest();
         this.cachedNearWindow = this.cachedNearChest ? null : this.nearestWindowBuilding();
         this.cachedNearNode   = (!this.cachedNearChest && !this.cachedNearWindow) ? this.nearestHarvestable() : null;
+        this.cachedNearNpc    = (!this.cachedNearChest && !this.cachedNearWindow && !this.cachedNearNode) ? this.nearestNpc() : null;
       }
       const nearChest = this.cachedNearChest;
       const nearWindow = this.cachedNearWindow;
       const nearNode = this.cachedNearNode;
+      const nearNpc = this.cachedNearNpc;
       // La herramienta es "pegajosa": al encarar un recurso se muestra y se MANTIENE
       // aunque te alejes. Solo se quita al atacar a un enemigo / otra acción (strike).
       if (nearNode) this.setActiveHarvest(nearNode.kind);
       this.reg.interaction?.setContext(
         nearChest ? 'chest' : nearWindow ? 'shop'
-        : nearNode ? HARVEST_KINDS[nearNode.kind].context : 'attack');
+        : nearNode ? HARVEST_KINDS[nearNode.kind].context
+        : nearNpc ? 'talk' : 'attack');
 
       // Si la ventana de cofre de ciudad está abierta y el jugador se alejó de
       // TODOS los cofres de ciudad (fijo + construidos) → cerrar.
@@ -590,6 +610,11 @@ export class GameScene extends Phaser.Scene {
           if (!this.interactLatched) {
             this.interactLatched = true;
             this.reg.cityBuild.requestOpenWindow(nearWindow.building.type);
+          }
+        } else if (nearNpc) {
+          if (!this.interactLatched) {
+            this.interactLatched = true;
+            this.reg.dialogue?.show(nearNpc.name, this.npcLine(nearNpc.name));
           }
         } else if (!this.player.isAttacking && !this.interactLatched) {
           this.strike();
@@ -1635,11 +1660,15 @@ export class GameScene extends Phaser.Scene {
 
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
+        // Si ya hay un diálogo abierto, el espacio lo cierra.
+        if (this.reg.dialogue?.isOpen) { this.reg.dialogue.dismiss(); return; }
         this.reg.autoAttack?.pauseAutomation();
         const chest = this.nearestOpenableChest();
         if (chest) { this.openChest(chest); return; }
         const win = this.nearestWindowBuilding();
         if (win) { this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
+        const npc = this.nearestNpc();
+        if (npc) { this.reg.dialogue?.show(npc.name, this.npcLine(npc.name)); return; }
         if (this.player.isAttacking) return;
         this.strike();
       });
@@ -2272,16 +2301,19 @@ export class GameScene extends Phaser.Scene {
     /** NPCs fijos de la ciudad (Asgard): personajes decorativos que se quedan
      *  quietos. Por ahora Kugo, plantado cerca del spawn con su idle mirando abajo. */
     private initCityNpcs(): void {
-      this.ensureKugoAnim();
-      this.spawnCityNpc('kugo_body', 'kugo_idle_down', 27, 30);   // 3 tiles a la izda del spawn
+      for (const n of CITY_NPCS) {
+        const animKey = `${n.texKey}_idle_down`;
+        this.ensureNpcAnim(n.texKey, animKey);
+        this.spawnCityNpc(n.name, n.texKey, animKey, n.tileX, n.tileY);
+      }
     }
 
-    /** Idle (mirando abajo) de Kugo: frames LPC 312-313, mismo cuerpo que el jugador. */
-    private ensureKugoAnim(): void {
-      if (this.anims.exists('kugo_idle_down')) return;
+    /** Idle (mirando abajo) de un NPC: frames LPC 312-313, mismo layout que el jugador. */
+    private ensureNpcAnim(texKey: string, animKey: string): void {
+      if (this.anims.exists(animKey)) return;
       this.anims.create({
-        key: 'kugo_idle_down',
-        frames: this.anims.generateFrameNumbers('kugo_body', { start: 312, end: 313 }),
+        key: animKey,
+        frames: this.anims.generateFrameNumbers(texKey, { start: 312, end: 313 }),
         frameRate: 2,
         repeat: -1,
       });
@@ -2289,7 +2321,7 @@ export class GameScene extends Phaser.Scene {
 
     /** Coloca un NPC quieto en el tile (tileX,tileY): mismo tamaño/profundidad que el
      *  jugador, idle en bucle, y su tile bloqueado para que no se le pueda pisar. */
-    private spawnCityNpc(texKey: string, animKey: string, tileX: number, tileY: number): void {
+    private spawnCityNpc(name: string, texKey: string, animKey: string, tileX: number, tileY: number): void {
       const TS = GameScene.TILE_SIZE;
       // --- Ajustes del NPC (tocar estos si no cuadra) ---
       const SCALE       = 2.8;   // tamaño del sprite
@@ -2313,12 +2345,41 @@ export class GameScene extends Phaser.Scene {
       npc.setDepth(2);
       if (this.anims.exists(animKey)) npc.play(animKey);
 
+      // Punto de interacción para hablar: los pies del NPC.
+      this.cityNpcs.push({ sprite: npc, x: footX, y: footY, name });
+
       // Bloquea la caja completa alrededor del cuerpo.
       const halfW = Math.floor(COL_W / 2);
       for (let dx = -halfW; dx <= halfW; dx++) {
         for (let ty = tileY - COL_UP; ty <= tileY + COL_DOWN; ty++) {
           this.collisionTiles.add(`${tileX + dx},${ty}`);
         }
+      }
+    }
+
+    /** NPC hablable más cercano (dentro de rango), o null. */
+    private nearestNpc(): { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string } | null {
+      if (this.cityNpcs.length === 0) return null;
+      const pos = this.player.getPosition();
+      const RANGE = GameScene.TILE_SIZE * 2.2;
+      let nearest: typeof this.cityNpcs[0] | null = null;
+      let nearestDist = Infinity;
+      for (const npc of this.cityNpcs) {
+        const dx = npc.x - pos.x;
+        const dy = npc.y - pos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > RANGE) continue;
+        if (dist < nearestDist) { nearestDist = dist; nearest = npc; }
+      }
+      return nearest;
+    }
+
+    /** Línea que dice un NPC al hablarle. Kugo saluda al jugador por su nombre. */
+    private npcLine(name: string): string {
+      const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
+      switch (name) {
+        case 'Kugo': return `${player}, ¡cuánto tiempo!`;
+        default:     return '...';
       }
     }
 

@@ -22,6 +22,7 @@ import { GatheringEquipmentService } from '../services/gathering-equipment.servi
 import { GatheringSkillsService } from '../services/gathering-skills.service';
 import { UnlockService } from '../services/unlock.service';
 import { ActivityService } from '../services/activity.service';
+import { DialogueService } from '../services/dialogue.service';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
 export const REGISTRY_KEYS = {
@@ -49,6 +50,7 @@ export const REGISTRY_KEYS = {
   GATHERING_SKILLS: 'gatheringSkillsService',
   UNLOCK:           'unlockService',
   ACTIVITY:         'activityService',
+  DIALOGUE:         'dialogueService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -79,4 +81,5 @@ export class GameRegistry {
   get gatheringSkills(): GatheringSkillsService    { return this.game.registry.get(REGISTRY_KEYS.GATHERING_SKILLS); }
   get unlocks():         UnlockService             { return this.game.registry.get(REGISTRY_KEYS.UNLOCK); }
   get activity():        ActivityService           { return this.game.registry.get(REGISTRY_KEYS.ACTIVITY); }
+  get dialogue():        DialogueService           { return this.game.registry.get(REGISTRY_KEYS.DIALOGUE); }
 }

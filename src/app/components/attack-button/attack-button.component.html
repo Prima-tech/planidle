@@ -1,7 +1,7 @@
 <button class="attack-btn"
         [class.pressed]="pressed"
         [class.run-mode]="runMode"
-        [class.ctx-chest]="context === 'chest' || context === 'shop' || context === 'mine' || context === 'chop'"
+        [class.ctx-chest]="context === 'chest' || context === 'shop' || context === 'mine' || context === 'chop' || context === 'talk'"
         (pointerdown)="onPress($event)"
         (pointerup)="onRelease()"
         (pointercancel)="onRelease()"
@@ -14,4 +14,5 @@
   <ion-icon *ngIf="context === 'shop'" name="storefront-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'mine'" name="hammer-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'chop'" name="leaf-outline" class="attack-btn__ctx-icon"></ion-icon>
+  <ion-icon *ngIf="context === 'talk'" name="chatbubble-ellipses-outline" class="attack-btn__ctx-icon"></ion-icon>
 </button>

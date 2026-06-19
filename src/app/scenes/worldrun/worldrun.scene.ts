@@ -108,6 +108,36 @@ const RAT_STOMP_LOW = 18;             // por debajo de esto = estás en el suelo
 const RAT_STOMP_HIGH = 52;            // por encima de esto = vas demasiado alto (no pisas)
 const RAT_STOMP_BOUNCE = 520;         // impulso de rebote al pisarla
 
+// --- Fénix (enemigo volador): assets/sprites/enemy/world/fenix ---
+// Hoja 1024×384 con frames de 64×64 (16 cols × 6 filas). Filas (frames reales):
+// idle 0 (4), fly 1 (4), attack 2 (8), damage 3 (4), death 4 (8), rebirth 5 (9).
+// Vuela en el aire (no toca el suelo) y aparece cada FENIX_INTERVAL_M m desde
+// FENIX_START_M (25, 75, 125…), intercalándose con las ratas (que salen en 50, 100…).
+const TEX_FENIX = 'wr_fenix';
+const FENIX_SHEET = 'assets/sprites/enemy/world/fenix/Phoenixling Sprite Sheet.png';
+const FENIX_FW = 64;
+const FENIX_FH = 64;
+const FENIX_COLS = 16;
+const FENIX_ANIM_FLY = 'wr_fenix_fly';
+const FENIX_ANIM_DEATH = 'wr_fenix_death';
+const FENIX_FLY_FRAMES   = { start: 1 * FENIX_COLS, end: 1 * FENIX_COLS + 3 };  // fila 1 (4 fr)
+const FENIX_DEATH_FRAMES = { start: 4 * FENIX_COLS, end: 4 * FENIX_COLS + 7 };  // fila 4 (8 fr)
+const FENIX_INTERVAL_M = 50;          // un fénix cada 50 m
+const FENIX_START_M = 25;             // el primero a los 25 m (luego 75, 125…)
+const FENIX_SCALE = 3.0;
+const FENIX_FACE_LEFT = true;         // mira hacia el jugador que llega por la izquierda
+const FENIX_HEIGHT = 190;             // px sobre el suelo a los que vuela (centro del sprite)
+const FENIX_BOB = 14;                 // amplitud del balanceo de vuelo (px)
+// Combate: igual que la rata pero la franja del pisotón es relativa a SU centro (está
+// en el aire). Caer sobre él = muerte sin daño + rebote; tocarlo de otra forma = daño.
+const FENIX_DAMAGE = 12;              // daño si chocas con él sin pisarlo
+const FENIX_STOMP_HALF_W = 60;        // medio ancho horizontal para el pisotón
+const FENIX_STOMP_ABOVE = 45;         // pies hasta esto por ENCIMA de su centro = pisotón
+const FENIX_STOMP_BELOW = 16;         // ...y hasta esto por debajo de su centro
+const FENIX_BODY_HALF_W = 52;         // medio cuerpo (para el daño por contacto)
+const FENIX_BODY_HALF_H = 30;         // medio alto del cuerpo
+const FENIX_STOMP_BOUNCE = 540;       // impulso de rebote al pisarlo
+
 // --- Mundo / chunks ---
 const CHUNK_TILES = 16;              // ancho de un chunk en tiles
 const CHUNK_W = CHUNK_TILES * RT;    // ancho de un chunk en px de mundo
@@ -168,6 +198,11 @@ export class WorldRunScene extends Phaser.Scene {
   // Al morir salen del array y se animan/destruyen por su cuenta (ver playRatDeath).
   private rats: { sprite: Phaser.GameObjects.Sprite; attacking: boolean; hit: boolean }[] = [];
   private nextRatIndex = 1;
+  // Fénix voladores: hover en el aire; lo matas saltándole encima (pisotón). Se
+  // generan por delante y se reciclan al quedar atrás. nextFenixIndex 0 = primero a
+  // FENIX_START_M metros.
+  private fenixes: { sprite: Phaser.GameObjects.Sprite; hit: boolean }[] = [];
+  private nextFenixIndex = 0;
   private jumpSub?: Subscription;
   private jumpReleaseSub?: Subscription;
   private parallaxSub?: Subscription;
@@ -212,6 +247,10 @@ export class WorldRunScene extends Phaser.Scene {
     if (!this.textures.exists(TEX_RAT)) {
       this.load.spritesheet(TEX_RAT, RAT_SHEET, { frameWidth: RAT_FW, frameHeight: RAT_FH });
     }
+    // Fénix (enemigo volador): hoja con frames de 64×64.
+    if (!this.textures.exists(TEX_FENIX)) {
+      this.load.spritesheet(TEX_FENIX, FENIX_SHEET, { frameWidth: FENIX_FW, frameHeight: FENIX_FH });
+    }
     // El cuerpo del jugador suele estar ya cargado por GameScene (con el modelo del
     // personaje seleccionado); lo aseguramos por si se entra sin pasar por ella.
     if (!this.textures.exists('player')) {
@@ -247,6 +286,8 @@ export class WorldRunScene extends Phaser.Scene {
     this.nextStarIndex = 1;
     this.rats = [];
     this.nextRatIndex = 1;
+    this.fenixes = [];
+    this.nextFenixIndex = 0;
     this.firedPoints.clear();
 
     this.physics.world.gravity.y = GRAVITY_Y;
@@ -264,6 +305,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.createPlayer();
     this.createStars();
     this.createRats();
+    this.createFenixes();
     this.createStartSign();
     this.createInterestSigns();
     this.createHud();
@@ -323,6 +365,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.recycleChunks();
     this.updateStars();
     this.updateRats();
+    this.updateFenixes();
 
     // Metros recorridos (Fase 2 lo llevará al HUD; por ahora texto en pantalla).
     this.distanceM = Math.max(0, Math.floor((this.player.x - this.startX) / PX_PER_METER));
@@ -375,6 +418,23 @@ export class WorldRunScene extends Phaser.Scene {
         this.anims.create({
           key: RAT_ANIM_DEATH,
           frames: this.anims.generateFrameNumbers(TEX_RAT, RAT_DEATH_FRAMES),
+          frameRate: 12, repeat: 0,
+        });
+      }
+    }
+    // Fénix: aleteo de vuelo en bucle (fila 1) + muerte una vez (fila 4).
+    if (this.textures.exists(TEX_FENIX)) {
+      if (!this.anims.exists(FENIX_ANIM_FLY)) {
+        this.anims.create({
+          key: FENIX_ANIM_FLY,
+          frames: this.anims.generateFrameNumbers(TEX_FENIX, FENIX_FLY_FRAMES),
+          frameRate: 8, repeat: -1,
+        });
+      }
+      if (!this.anims.exists(FENIX_ANIM_DEATH)) {
+        this.anims.create({
+          key: FENIX_ANIM_DEATH,
+          frames: this.anims.generateFrameNumbers(TEX_FENIX, FENIX_DEATH_FRAMES),
           frameRate: 12, repeat: 0,
         });
       }
@@ -700,6 +760,90 @@ export class WorldRunScene extends Phaser.Scene {
       scaleY: sprite.scaleY * 0.6,       // se aplasta hacia el suelo (un punto menos)
       alpha: 0,
       duration: 320, ease: 'Quad.out',
+      onComplete: () => { if (sprite.active) sprite.destroy(); },
+    });
+  }
+
+  /** Filtro nearest para que el fénix se vea nítido (pixel-art). */
+  private createFenixes(): void {
+    if (this.textures.exists(TEX_FENIX)) {
+      this.textures.get(TEX_FENIX).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+  }
+
+  /**
+   * Genera fénix voladores por delante (cada FENIX_INTERVAL_M m desde FENIX_START_M),
+   * hovereando en el aire, y resuelve el combate: si saltas y caes sobre él lo matas
+   * sin daño (pisotón con rebote); si chocas de otra forma te hace daño. Recicla los
+   * que quedan atrás.
+   */
+  private updateFenixes(): void {
+    if (!this.anims.exists(FENIX_ANIM_FLY)) return;   // textura/anim no disponibles
+    const scrollX = this.cameras.main.scrollX;
+    const spawnUntilX = scrollX + this.scale.width + CHUNK_W;
+    const flyY = this.groundTopY + SURFACE_INSET - FENIX_HEIGHT;
+
+    let nextM = FENIX_START_M + this.nextFenixIndex * FENIX_INTERVAL_M;
+    while (this.startX + nextM * PX_PER_METER <= spawnUntilX) {
+      const x = this.startX + nextM * PX_PER_METER;
+      const sprite = this.add.sprite(x, flyY, TEX_FENIX)
+        .setScale(FENIX_SCALE).setDepth(4).setFlipX(FENIX_FACE_LEFT);
+      sprite.play(FENIX_ANIM_FLY);
+      // Balanceo de vuelo: sube y baja suave en bucle.
+      this.tweens.add({
+        targets: sprite, y: flyY - FENIX_BOB, duration: 850,
+        yoyo: true, repeat: -1, ease: 'Sine.inOut',
+      });
+      this.fenixes.push({ sprite, hit: false });
+      this.nextFenixIndex++;
+      nextM = FENIX_START_M + this.nextFenixIndex * FENIX_INTERVAL_M;
+    }
+
+    const falling = (this.player.body?.velocity.y ?? 0) >= 0;
+    for (let i = this.fenixes.length - 1; i >= 0; i--) {
+      const fenix = this.fenixes[i];
+      const s = fenix.sprite;
+      // Recicla los que quedaron atrás. killTweensOf: el balanceo es infinito.
+      if (s.x < scrollX - CHUNK_W) {
+        this.tweens.killTweensOf(s);
+        s.destroy();
+        this.fenixes.splice(i, 1);
+        continue;
+      }
+
+      const absdx = Math.abs(this.player.x - s.x);
+      const rel = this.player.y - s.y;   // pies del jugador respecto al centro del fénix (neg = encima)
+
+      // Pisotón: caes sobre él (pies en la franja superior de su cuerpo) y bajando.
+      if (absdx < FENIX_STOMP_HALF_W && rel >= -FENIX_STOMP_ABOVE && rel <= FENIX_STOMP_BELOW && falling) {
+        this.fenixes.splice(i, 1);
+        this.playFenixDeath(s);
+        this.player.setVelocityY(-FENIX_STOMP_BOUNCE);
+        continue;
+      }
+
+      // Choque sin pisarlo (de lado o subiendo hacia él): daño una vez.
+      if (!fenix.hit && absdx < FENIX_BODY_HALF_W && Math.abs(rel) < FENIX_BODY_HALF_H) {
+        fenix.hit = true;
+        this.damagePlayer(FENIX_DAMAGE);
+      }
+    }
+  }
+
+  /** El fénix recibe el pisotón: flash, animación de muerte y cae girando mientras se
+   *  desvanece, luego se destruye. Mata antes su tween de balanceo (infinito). */
+  private playFenixDeath(sprite: Phaser.GameObjects.Sprite): void {
+    this.tweens.killTweensOf(sprite);                              // corta el balanceo
+    sprite.setTintFill(0xffffff);                                  // destello del impacto
+    this.time.delayedCall(70, () => { if (sprite.active) sprite.clearTint(); });
+    if (this.anims.exists(FENIX_ANIM_DEATH)) sprite.play(FENIX_ANIM_DEATH);
+    this.tweens.add({
+      targets: sprite,
+      y: sprite.y + 90,            // cae al morir (estaba volando)
+      x: sprite.x + 20,
+      angle: 70,
+      alpha: 0,
+      duration: 480, ease: 'Quad.in',
       onComplete: () => { if (sprite.active) sprite.destroy(); },
     });
   }

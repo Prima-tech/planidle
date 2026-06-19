@@ -1,0 +1,63 @@
+// Overlay transparente que captura el toque para cerrar; el cuadro va abajo.
+.dlg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 16px calc(90px + var(--safe-bottom, 0px));
+  pointer-events: auto;
+}
+
+// Bocadillo madera + marco metálico (estilo RPG).
+.dlg-box {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  padding: 12px 16px 14px;
+  border-radius: 8px;
+  background: linear-gradient(#6b4a2c, #543820);
+  border: 3px solid;
+  border-color: #caa15e #4a2f18 #4a2f18 #caa15e;
+  box-shadow:
+    0 0 0 2px #2a1a0c,
+    0 6px 18px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12);
+  color: #f3e6c8;
+  animation: dlg-pop 140ms ease-out;
+}
+
+.dlg-speaker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffd970;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  margin-bottom: 4px;
+}
+
+.dlg-text {
+  font-size: 16px;
+  line-height: 1.35;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+// Flechita "tocar para continuar" parpadeando en la esquina.
+.dlg-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  font-size: 12px;
+  color: #ffd970;
+  animation: dlg-blink 1s steps(2, start) infinite;
+}
+
+@keyframes dlg-pop {
+  from { transform: translateY(10px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+@keyframes dlg-blink {
+  50% { opacity: 0.25; }
+}
