@@ -173,6 +173,32 @@ Cada helper genera el config completo con las rutas correctas. Si necesitas un t
 
 ---
 
+## Animación de piernas en el slash de espada (split)
+
+Las piezas en hoja universal 64×64 (casco, torso, botas, pantalones) llevan
+`splitLegsOnSlash: true` — **ya lo ponen los helpers** `helmLayer`/`armourLayer`/
+`bootsLayer`/`legsLayer` (vía `combinedLayer`); no hay que tocar nada.
+
+**Qué hace:** durante el ataque de **espada (slash)**, `player.ts` parte el sprite por la
+cintura — la mitad de arriba hace el slash y la de abajo (piernas) sigue caminando si te
+mueves, o queda quieta si estás parado. `beginLegsSplit` recorta cada capa a la mitad
+superior (`setCrop`) y clona la inferior reproduciendo walk/idle; `syncLayers` →
+`updateLegsSplit` la anima cada frame.
+
+**Requisito:** la pieza debe estar **alineada 1:1 con el cuerpo** (walk filas 8‑11, slash
+12‑15, mismo grid 64px). Si creas un helper nuevo para una pieza así, añade
+`splitLegsOnSlash: true` a su config. **NO** lo pongas en armas/herramientas (su ataque
+oversize va entero con el torso → ver `/new-weapon`), ni en la sombra, ni en capas con
+`depthWhenUp`.
+
+**Ajuste fino** (si una animación nueva no cuadra en la cintura), en `player.ts`:
+- `Player.WAIST_Y[dir]` — línea de corte por dirección (px de textura). Subirlo = corte
+  más abajo (más brazo/mano visibles, menos zancada); bajarlo = al revés.
+- `Player.LUNGE_X[dir]` — compensa la estocada lateral moviendo las piernas hacia el golpe
+  (px de mundo, escalado por el progreso del swing). 0 = sin compensar.
+
+---
+
 ## Paso 3 — Añadir el drop en `griddrops.ts`
 
 Archivo: `src/app/physics/griddrops.ts`

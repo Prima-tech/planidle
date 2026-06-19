@@ -66,10 +66,13 @@ const STAR_KEYS = Array.from({ length: 10 }, (_, i) => `wr_star_${i + 1}`);
 const STAR_FILES = STAR_KEYS.map((_, i) =>
   `assets/sprites/resources/world_mode/star/star${i === 0 ? '' : i + 1}.png`);
 const STAR_ANIM = 'wr_star_twinkle';
-const STAR_INTERVAL_M = 10;          // cada cuántos metros aparece una estrella
+const STAR_INTERVAL_M = 25;          // cada cuántos metros aparece una estrella
 const STAR_SCALE = 1.8;
-const STAR_HEIGHT_ABOVE_GROUND = 50; // px que flota sobre la línea del suelo (a la
-                                     // altura del cuerpo de colisión, que va a los pies)
+// Alturas (px sobre la línea del suelo) que van rotando estrella a estrella, para
+// que no salgan todas a la misma altura: 50 = a ras del cuerpo (se recoge corriendo),
+// las más altas piden un saltito (más alto = salto más largo). Ver el salto: con
+// JUMP_MAX_VELOCITY se llega holgado a ~210px.
+const STAR_HEIGHTS = [50, 120, 180, 90, 150];
 
 // --- Mundo / chunks ---
 const CHUNK_TILES = 16;              // ancho de un chunk en tiles
@@ -498,11 +501,13 @@ export class WorldRunScene extends Phaser.Scene {
   private updateStars(): void {
     const scrollX = this.cameras.main.scrollX;
     const spawnUntilX = scrollX + this.scale.width + CHUNK_W;   // un poco más allá del borde derecho
-    const starY = this.groundTopY + SURFACE_INSET - STAR_HEIGHT_ABOVE_GROUND;
+    const groundY = this.groundTopY + SURFACE_INSET;
 
     while (this.startX + this.nextStarIndex * STAR_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
       const x = this.startX + this.nextStarIndex * STAR_INTERVAL_M * PX_PER_METER;
-      const star = this.stars.create(x, starY, STAR_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
+      // Altura rotada por el índice: cada estrella sale a una altura distinta.
+      const height = STAR_HEIGHTS[(this.nextStarIndex - 1) % STAR_HEIGHTS.length];
+      const star = this.stars.create(x, groundY - height, STAR_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
       star.setScale(STAR_SCALE).setDepth(4);
       if (this.anims.exists(STAR_ANIM)) star.play(STAR_ANIM);  // solo si cargaron los frames
       this.nextStarIndex++;

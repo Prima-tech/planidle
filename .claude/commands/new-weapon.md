@@ -157,6 +157,12 @@ El sistema en `player.ts` gestiona automáticamente cada frame:
 - **Depth**: `depthWhenUp` si la animación no termina en `_down`, `depth` si es `_down`
 - **Sync de frames**: al cambiar de dirección, `layer.anims.setProgress(sprite.anims.getProgress())` para que el ciclo del arma no empiece desde 0 y no se vea "al revés"
 
+> **NO marcar `splitLegsOnSlash`** en las armas. Ese flag es solo para las capas de
+> cuerpo/armadura alineadas 1:1 (casco/torso/botas/pantalones; ver `/new-equipment`): en
+> el slash de espada parte el sprite por la cintura para que las piernas sigan caminando.
+> El swing del arma (hoja oversize) va **entero con el torso**, no se parte. Las armas ya
+> quedan excluidas por tener `depthWhenUp` y no llevar el flag.
+
 ---
 
 ## Paso 3 — Añadir el drop en `griddrops.ts`
