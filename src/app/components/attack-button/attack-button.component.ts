@@ -46,7 +46,11 @@ export class AttackButtonComponent implements OnInit, OnDestroy {
   onRelease(): void {
     if (!this.pressed) return;
     this.pressed = false;
-    if (this.runMode) return;
+    // En runner, soltar termina el salto variable (deja de impulsar hacia arriba).
+    if (this.runMode) {
+      this.playerBridge.releaseJump();
+      return;
+    }
     const input = this.input;
     if (input) input.isAttackHeld = false;
   }

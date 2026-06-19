@@ -22,11 +22,14 @@ export class PlayerBridgeService {
   /** Modo Mundo (runner) activo. La UI lo usa para ocultar minimapa/skills/toggle
    *  del footer y convertir el botón de ataque en botón de salto. */
   readonly runMode$ = new BehaviorSubject<boolean>(false);
-  /** El botón de salto (HTML) emite aquí; WorldRunScene lo escucha para saltar. */
+  /** El botón de salto (HTML) emite al pulsar/soltar; WorldRunScene los escucha
+   *  para el salto variable (mantener = más alto). */
   readonly jumpRequest$ = new Subject<void>();
+  readonly jumpReleaseRequest$ = new Subject<void>();
 
   setRunMode(active: boolean): void { this.runMode$.next(active); }
   requestJump(): void { this.jumpRequest$.next(); }
+  releaseJump(): void { this.jumpReleaseRequest$.next(); }
 
   private lastAutoPotion = 0;
   private autoPotionTimer?: ReturnType<typeof setTimeout>;
