@@ -280,6 +280,13 @@ export class GameScene extends Phaser.Scene {
       this.load.image('stations', 'assets/sprites/stations/stations.png');
       // Fragua apagada (textura propia 64×92, sin animación de fuego).
       this.load.spritesheet('forge_off', 'assets/sprites/stations/forge_off.png', { frameWidth: 64, frameHeight: 92 });
+      // Hornos detallados (reemplazan a la fragua). Cada uno: hoja encendida de 12
+      // frames 128×208 (animación de fuego) + textura apagada del mismo tamaño.
+      // city-build elige cuál con su spriteKey (…_off); cambiar de horno = 1 línea.
+      for (const f of ['furnace_central', 'furnace_lvl1']) {
+        this.load.spritesheet(f,          `assets/sprites/stations/${f}.png`,     { frameWidth: 128, frameHeight: 224 });
+        this.load.spritesheet(`${f}_off`, `assets/sprites/stations/${f}_off.png`, { frameWidth: 128, frameHeight: 224 });
+      }
       // Imagen escénica para los temas de parallax 'scenic_*' (vista de mundo).
       this.load.image('paralax_scene', 'assets/sprites/resources/paralax.jpg');
       // portal_01.png: 4 col × 4 fila (128×192), cada fila es un portal de 4 frames
@@ -1194,6 +1201,18 @@ export class GameScene extends Phaser.Scene {
           frameRate: 4,
           repeat: -1,
         });
+      }
+      // Hornos detallados: animación de fuego de 12 frames (10 fps, como el GIF origen).
+      // La clave del anim coincide con la spriteKey "encendida" que deriva setForgeLit.
+      for (const f of ['furnace_central', 'furnace_lvl1']) {
+        if (this.textures.exists(f) && !this.anims.exists(f)) {
+          this.anims.create({
+            key: f,
+            frames: this.anims.generateFrameNumbers(f, { start: 0, end: 11 }),
+            frameRate: 10,
+            repeat: -1,
+          });
+        }
       }
     }
 
@@ -2395,16 +2414,26 @@ export class GameScene extends Phaser.Scene {
       return true;
     }
 
-    /** Cambia la fragua entre encendida (animación de fuego en la hoja stations)
-     *  y apagada (textura estática forge_off). Ambos frames son 64×92. */
+    /** Cambia el horno/fragua entre encendido (animación de fuego) y apagado
+     *  (textura estática). Las claves se derivan del `def`: la apagada es
+     *  `spriteKey` (…_off) y la encendida es esa misma sin el sufijo `_off`
+     *  (que es también la clave del anim). Así, cambiar de horno = cambiar la
+     *  `spriteKey` en city-build (p.ej. furnace_lvl1_off) sin tocar esto. */
     private setForgeLit(pb: typeof this.placedBuildings[0], lit: boolean): void {
       pb.lit = lit;
+      const offKey = this.reg.cityBuild?.def(pb.building.type)?.spriteKey ?? 'forge_off';
+      const litKey = offKey.replace(/_off$/, '');
       if (lit) {
-        pb.sprite.setTexture('stations', 0);
-        if (this.anims.exists('station_forge')) pb.sprite.play('station_forge');
+        if (this.anims.exists(litKey)) {
+          pb.sprite.play(litKey);
+        } else {
+          // fragua antigua: la hoja encendida es 'stations' + anim 'station_forge'
+          pb.sprite.setTexture('stations', 0);
+          if (this.anims.exists('station_forge')) pb.sprite.play('station_forge');
+        }
       } else {
         pb.sprite.stop();
-        pb.sprite.setTexture('forge_off', 0);
+        pb.sprite.setTexture(offKey, 0);
       }
     }
 

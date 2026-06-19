@@ -106,17 +106,18 @@ export const BUILDABLES: BuildableDef[] = [
   },
 
   // ── Estaciones de oficio (decorativas + animadas) ──
-  // La fragua usa una textura propia "apagada" (sin fuego): forge_off.png (64×92),
-  // generada a partir del frame encendido. Es estática (sin animKey).
+  // Horno detallado (128×208). Arranca apagado (furnace_central_off, sin animKey) y
+  // se enciende al pulsarlo → setForgeLit reproduce el anim 'furnace_central' (12 fr).
+  // Para usar el otro horno: cambia spriteKey a 'furnace_lvl1_off' (y carga su hoja).
   {
     type: 'forge', name: 'BUILD.FORGE',
-    spriteKey: 'forge_off', frame: 0,
-    frameSize: 64, scale: 1.6,
+    spriteKey: 'furnace_central_off', frame: 0,
+    frameSize: 128, scale: 0.8,
     tilesW: 3, tilesH: 3, unique: false,
-    previewUrl: 'assets/sprites/stations/forge_off.png',
-    previewSrc: { x: 0, y: 0, w: 64, h: 92 },
-    previewSheet: { w: 64, h: 92 },
-    previewScale: +(58 / 92).toFixed(3),
+    previewUrl: 'assets/sprites/stations/furnace_central_off.png',
+    previewSrc: { x: 0, y: 0, w: 128, h: 224 },
+    previewSheet: { w: 128, h: 224 },
+    previewScale: +(58 / 224).toFixed(3),
   },
   station('smelter',          'BUILD.SMELTER',          0, 1),
   station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
