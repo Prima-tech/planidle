@@ -11,7 +11,7 @@
   <div class="zona-estatica">
     <div id="game"></div>
     <!-- Aro de piedra sobre el minimapa Phaser (MM_TOP/MM_MARGIN=10, MM_RADIUS=49) -->
-    <div class="minimap-frame" *ngIf="dataLoaded && sceneVisible" (click)="footerBar.openWorldMap()">
+    <div class="minimap-frame" *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)" (click)="footerBar.openWorldMap()">
       <span class="minimap-name">{{ (worldService.currentMap$ | async)?.name }}</span>
       <button class="minimap-btn minimap-btn--bag" (click)="footerBar.openInventory(); $event.stopPropagation()">
         <img class="minimap-btn-img" src="assets/icon/menu/bag.png" alt="" draggable="false" />
@@ -31,7 +31,7 @@
   </div>
 </ion-content>
 
-<app-hud-skill-buttons *ngIf="dataLoaded && sceneVisible"></app-hud-skill-buttons>
+<app-hud-skill-buttons *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)"></app-hud-skill-buttons>
 <app-attack-button *ngIf="dataLoaded && sceneVisible"></app-attack-button>
 <app-game-log></app-game-log>
 <app-footer-bar #footerBar></app-footer-bar>

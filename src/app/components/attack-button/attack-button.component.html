@@ -7,8 +7,9 @@
         (pointerleave)="onRelease()"
         (contextmenu)="$event.preventDefault()">
   <span class="attack-btn__shine"></span>
-  <img *ngIf="context === 'attack'" class="attack-btn__icon" src="assets/icon/weapons/icon_32_2_15.png" alt="" draggable="false" />
-  <ion-icon *ngIf="context === 'chest'" name="cube-outline" class="attack-btn__ctx-icon"></ion-icon>
+  <ion-icon *ngIf="runMode" name="chevron-up-circle-outline" class="attack-btn__ctx-icon"></ion-icon>
+  <img *ngIf="!runMode && context === 'attack'" class="attack-btn__icon" src="assets/icon/weapons/icon_32_2_15.png" alt="" draggable="false" />
+  <ion-icon *ngIf="!runMode && context === 'chest'" name="cube-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'shop'" name="storefront-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'mine'" name="hammer-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'chop'" name="leaf-outline" class="attack-btn__ctx-icon"></ion-icon>

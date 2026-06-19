@@ -1326,6 +1326,13 @@ export class GameScene extends Phaser.Scene {
           this.portalCooldown = true;
           this.cameras.main.fadeOut(250, 0, 0, 0);
           this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+            // Modo Mundo (runner): escena aparte, no es un mapa de grid. Arrancamos
+            // WorldRunScene y paramos GameScene (su SHUTDOWN apaga también el HUD).
+            if (p.config.targetMapId === 'world-run') {
+              this.scene.start('WorldRunScene');
+              this.scene.stop();
+              return;
+            }
             this.reg.world.setCurrentMap(p.config.targetMapId);
             this.scene.restart();
           });

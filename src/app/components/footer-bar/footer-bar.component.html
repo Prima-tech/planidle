@@ -12,17 +12,17 @@
 <app-modal-container #buildModal></app-modal-container>
 <app-modal-container #buildShopModal (closed)="onBuildShopModalClosed()"></app-modal-container>
 
-<button class="auto-attack-fab" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
+<button class="auto-attack-fab" *ngIf="!(runMode$ | async)" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
   <ion-icon name="infinite"></ion-icon>
 </button>
-<button class="auto-skill-fab" [class.active]="autoAttack.skillsEnabled" (click)="toggleAutoSkills()">
+<button class="auto-skill-fab" *ngIf="!(runMode$ | async)" [class.active]="autoAttack.skillsEnabled" (click)="toggleAutoSkills()">
   <ion-icon name="sparkles"></ion-icon>
 </button>
 
 <ion-footer>
   <ion-toolbar>
 
-    <button class="page-toggle" (click)="togglePage()">
+    <button class="page-toggle" *ngIf="!(runMode$ | async)" (click)="togglePage()">
       <ion-icon [name]="page === 'main' ? 'swap-horizontal' : 'arrow-back'"></ion-icon>
     </button>
 

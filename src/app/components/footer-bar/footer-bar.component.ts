@@ -89,9 +89,16 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private worldService           = inject(WorldService);
   private cityBuild              = inject(CityBuildService);
 
+  /** Modo Mundo (runner): oculta el toggle de página del footer. */
+  readonly runMode$ = this.playerBridge.runMode$;
+  private runModeSub: Subscription;
+
   constructor() { }
 
   ngOnInit() {
+    // Al entrar al runner, volver a la página principal (el toggle se oculta, así que
+    // no debe quedarse atascado en la página de skills).
+    this.runModeSub = this.runMode$.subscribe(active => { if (active) this.page = 'main'; });
     this.detailSub = this.skillEquipService.openDetail$.subscribe(() => {
       this.closeOtherOnSide('left', this.skillDetailModal);
       const fromHud = (this.skillEquipService.activeSlot ?? 0) < 0;
@@ -177,6 +184,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.runModeSub?.unsubscribe();
     this.detailSub?.unsubscribe();
     this.closeSub?.unsubscribe();
     this.activateSub?.unsubscribe();

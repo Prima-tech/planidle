@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { distinctUntilChanged, map, Subject } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map, Subject } from 'rxjs';
 import { IAttack, Player } from '../pnj/player/player';
 import { SceneManager } from '../scenes/scene-manager';
 import { CharacterStatsService } from './character-stats.service';
@@ -18,6 +18,15 @@ export class PlayerBridgeService {
   readonly death$ = new Subject<void>();
   readonly sceneStarting$ = new Subject<void>();
   readonly sceneReady$ = new Subject<void>();
+
+  /** Modo Mundo (runner) activo. La UI lo usa para ocultar minimapa/skills/toggle
+   *  del footer y convertir el botón de ataque en botón de salto. */
+  readonly runMode$ = new BehaviorSubject<boolean>(false);
+  /** El botón de salto (HTML) emite aquí; WorldRunScene lo escucha para saltar. */
+  readonly jumpRequest$ = new Subject<void>();
+
+  setRunMode(active: boolean): void { this.runMode$.next(active); }
+  requestJump(): void { this.jumpRequest$.next(); }
 
   private lastAutoPotion = 0;
   private autoPotionTimer?: ReturnType<typeof setTimeout>;

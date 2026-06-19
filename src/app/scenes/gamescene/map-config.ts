@@ -128,7 +128,10 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     ...W1_HOME_TILESET,
     id: 'hogar', name: 'Asgard',
     spawns: [],
-    portals: [{ tilePos: { x: 17, y: 17 }, targetMapId: '1-1', direction: 'next' }],
+    portals: [
+      { tilePos: { x: 17, y: 17 }, targetMapId: '1-1',       direction: 'next' },
+      { tilePos: { x: 30, y: 17 }, targetMapId: 'world-run', direction: 'next' }, // entrada al Modo Mundo (runner)
+    ],
     spawnPos: { x: 30, y: 30 },
     extraTilesets: [
       { key: 'w1-water-detail', name: 'Water_detilazation', image: 'assets/tilemaps/W1/water_detilazation.png' },

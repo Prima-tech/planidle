@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { GameScene } from 'src/app/scenes/gamescene/gamescene';
 import { NATIVE_DPR } from 'src/app/scenes/gamescene/constants';
 import { MobileHUDScene } from 'src/app/scenes/mobile-hud.scene';
+import { WorldRunScene } from 'src/app/scenes/worldrun/worldrun.scene';
 import { FakeApiService } from 'src/app/services/fakeapi';
 import { ProfileService } from 'src/app/services/profile';
 import Phaser from 'phaser';
@@ -190,7 +191,7 @@ export class LayoutComponent implements OnDestroy {
       // en pantallas de 120Hz), que es suave.
       type: Phaser.AUTO,
       input: { activePointers: 3 },
-      scene: [GameScene, MobileHUDScene],
+      scene: [GameScene, MobileHUDScene, WorldRunScene],
       scale: {
         width: window.innerWidth * dpr,
         height: window.innerHeight * dpr,
