@@ -41,6 +41,11 @@ export interface EquipLayerConfig {
    *  un frame de esa hoja. syncLayers lo aplica dinámicamente por frame. */
   oversizeSheetKey?: string;
   oversizeOffsetY?: number;
+  /** Capa alineada 1:1 con el cuerpo en la hoja universal 64×64 (botas, grebas,
+   *  torso, casco): durante el slash de espada, la mitad inferior (piernas) puede
+   *  seguir caminando mientras la superior hace el ataque. Ver Player.beginLegsSplit.
+   *  NO marcar en armas/herramientas (su ataque oversize swing va con el torso). */
+  splitLegsOnSlash?: boolean;
 }
 
 // Botas (foot) y pantalones (lets_final) LPC en hoja universal combinada de 64×64
@@ -49,7 +54,7 @@ function combinedLayer(prefix: string, path: string): EquipLayerConfig {
   const p = prefix;
   const C = 13;
   return {
-    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
+    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim', splitLegsOnSlash: true,
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
     sheets: [{
       key: `${p}_main`, path, frameWidth: 64, frameHeight: 64,
@@ -83,7 +88,7 @@ function armourLayer(prefix: string, file: string): EquipLayerConfig {
   const p = prefix;
   const C = 13;
   return {
-    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
+    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim', splitLegsOnSlash: true,
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
     sheets: [{
       key: `${p}_main`,
@@ -114,7 +119,7 @@ function helmLayer(prefix: string, file: string): EquipLayerConfig {
   const p = prefix;
   const C = 13;
   return {
-    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim',
+    frameWidth: 64, frameHeight: 64, depth: 3, mode: 'anim', splitLegsOnSlash: true,
     playerPrefix: 'player_', layerPrefix: `${p}_`, fallbackAnim: `${p}_idle_down`,
     sheets: [{
       key: `${p}_main`,
