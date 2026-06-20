@@ -47,5 +47,11 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
     clearTimeout(this.leaveTimer);
   }
 
+  /** Toque en el cuadro: avanza si hay más líneas; en la última, cierra. */
+  onBoxClick(): void {
+    if (this.line?.hasNext) this.dialogue.advance();
+    else this.dialogue.dismiss();
+  }
+
   dismiss(): void { this.dialogue.dismiss(); }
 }

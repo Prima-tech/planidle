@@ -59,6 +59,10 @@ export const FEATURES: FeatureDef[] = [
     name: 'Malachar' },
   { id: 'char.solmara',  scope: 'global', display: 'hidden', requires: [{ type: 'achievement', id: 'gkills_10000' }],
     name: 'Solmara' },
+  // Kugo se recluta hablándole en el mapa 1-1 (pone el flag 'char_kugo'). Ver
+  // RECRUIT_NPCS en gamescene.ts. Tras reclutarlo aparece en el roster.
+  { id: 'char.kugo',     scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_kugo' }],
+    name: 'Kugo' },
 
   // ── Paneles (char) ───────────────────────────────────────────────────────────
   // El botón del cofre de ciudad NO aparece en el footer hasta desbloquearlo.

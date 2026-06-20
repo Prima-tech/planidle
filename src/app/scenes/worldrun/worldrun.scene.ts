@@ -51,9 +51,14 @@ interface RunUnlockPoint {
   flag: string;     // flag (char) que desbloquea la feature 'map.X'
   mapId: string;    // id de pin del mapa (p.ej. '1-1')
   firstEver: boolean;
+  // Personaje reclutable que vive en ese mapa (p.ej. Kugo en 1-1). Su desbloqueo es
+  // GLOBAL (de cuenta), a diferencia del flag del mapa que es por personaje. Si ya
+  // está reclutado, el hito NO fuerza el modal aunque este personaje no tenga aún su
+  // flag de mapa: muestra el botón de entrada (ver checkUnlockPoints).
+  recruitChar?: string;
 }
 const RUN_UNLOCK_POINTS: RunUnlockPoint[] = [
-  { distanceM: 100, flag: 'map_1_1', mapId: '1-1', firstEver: true },
+  { distanceM: 100, flag: 'map_1_1', mapId: '1-1', firstEver: true, recruitChar: 'Kugo' },
 ];
 
 // --- Estrellas coleccionables (assets/sprites/resources/world_mode/star/) ---
@@ -74,6 +79,20 @@ const STAR_SCALE = 1.8;
 // las más altas piden un saltito (más alto = salto más largo). Ver el salto: con
 // JUMP_MAX_VELOCITY se llega holgado a ~210px.
 const STAR_HEIGHTS = [50, 120, 180, 90, 150];
+
+// --- Corazones coleccionables (assets/sprites/resources/world_mode/hearth/) ---
+// Mismo patrón que las estrellas: 10 frames (heart1..heart10.png) animados en bucle.
+// Aparece un corazón cada HEART_INTERVAL_M metros; al recogerlo cura HEART_HEAL de
+// vida. El sprite va al lado del de estrellas (carpeta hermana). Si los PNG están
+// vacíos/corruptos, Phaser pinta el cuadro verde pero el corazón se sigue recogiendo.
+const HEART_KEYS = Array.from({ length: 10 }, (_, i) => `wr_heart_${i + 1}`);
+const HEART_FILES = HEART_KEYS.map((_, i) =>
+  `assets/sprites/resources/world_mode/hearth/heart${i + 1}.png`);
+const HEART_ANIM = 'wr_heart_beat';
+const HEART_INTERVAL_M = 75;         // cada cuántos metros aparece un corazón
+const HEART_SCALE = 1.8;
+const HEART_HEAL = 10;               // vida que cura al recogerlo
+const HEART_HEIGHTS = [50, 120, 90];
 
 // --- Enemigos decorativos (assets/sprites/enemy/world/rat/rat.png) ---
 // Hoja 768×160 con frames de 64×32 (NO 32×32): 12 cols × 5 filas. El contenido va
@@ -146,9 +165,9 @@ const FIREBALL_KEY = 'skill_fireball';  // prefijo de los frames _1.._15 (precar
 const FIREBALL_FRAMES = 15;
 const FIREBALL_PATH = 'assets/sprites/skills/fire/Fireball/fireball_';
 const FIREBALL_ANIM = 'wr_fireball';
-const FIREBALL_SCALE = 1.6;
-const FIREBALL_SPEED = 280;           // px/s hacia el jugador (izquierda)
-const FIREBALL_GRAVITY = 900;         // cae hasta el suelo y luego rueda
+const FIREBALL_SCALE = 0.8;           // la mitad que antes
+const FIREBALL_SPEED = 340;           // px/s hacia el jugador (izquierda); más rápida = más "lanzada"
+const FIREBALL_GRAVITY = 520;         // arco MÁS PLANO: la lanza hacia delante en vez de soltarla
 const FIREBALL_GROUND_OFFSET = 30;    // altura del centro sobre el suelo al rodar
 const FIREBALL_DAMAGE = 12;           // daño si te alcanza
 const FIREBALL_HIT_W = 34;            // medio ancho de colisión con el jugador
@@ -202,13 +221,20 @@ export class WorldRunScene extends Phaser.Scene {
   private groundTopY = 0;
   private startX = 0;
   private distanceM = 0;
+  // Distancia (m) a la que arranca la carrera. >0 cuando entras desde el portal de
+  // salida de un mapa: apareces en la ENTRADA de ese mapa, no en el km 0. Lo fija
+  // init() a partir del mapa de origen (ver entryDistanceFor / RUN_UNLOCK_POINTS).
+  private startDistanceM = 0;
 
   private distanceText!: Phaser.GameObjects.Text;
-  private starText!: Phaser.GameObjects.Text;
   // Estrellas vivas en el mundo y el siguiente hito (en "número de estrella") aún
   // sin generar. nextStarIndex 1 = primera estrella a STAR_INTERVAL_M metros.
   private stars!: Phaser.Physics.Arcade.Group;
   private nextStarIndex = 1;
+  // Corazones: igual que las estrellas pero uno cada HEART_INTERVAL_M metros; curan
+  // al recogerlos. nextHeartIndex 1 = primer corazón a HEART_INTERVAL_M metros.
+  private hearts!: Phaser.Physics.Arcade.Group;
+  private nextHeartIndex = 1;
   // Ratas: plantadas en idle; el jugador las mata al pasar a su lado. Mundo infinito:
   // solo existen las cercanas (se generan por delante y se reciclan al quedar atrás).
   // Al morir salen del array y se animan/destruyen por su cuenta (ver playRatDeath).
@@ -226,7 +252,6 @@ export class WorldRunScene extends Phaser.Scene {
   private parallaxSub?: Subscription;
   private enterMapSub?: Subscription;
   private dismissSub?: Subscription;
-  private starsSub?: Subscription;
   private parallax: { ts: Phaser.GameObjects.TileSprite; factor: number }[] = [];
   // scrollX de referencia cuando se (re)construye el parallax: las capas se desplazan
   // respecto a este origen, no al scroll absoluto. Así un set recién cargado arranca
@@ -245,6 +270,19 @@ export class WorldRunScene extends Phaser.Scene {
     super({ key: 'WorldRunScene', active: false });
   }
 
+  /** Phaser pasa aquí los datos de scene.start(). `entryMapId` = mapa del que sales
+   *  por su portal: arrancamos en su distancia de entrada (km 0 si no tiene hito). */
+  init(data?: { entryMapId?: string }) {
+    this.startDistanceM = this.entryDistanceFor(data?.entryMapId);
+  }
+
+  /** Distancia (m) del hito de entrada de un mapa, o 0 si no está en RUN_UNLOCK_POINTS
+   *  (p.ej. 'hogar', o mapas cuyo hito aún no se ha definido → arranque normal). */
+  private entryDistanceFor(mapId?: string): number {
+    const pt = mapId ? RUN_UNLOCK_POINTS.find(p => p.mapId === mapId) : undefined;
+    return pt ? pt.distanceM : 0;
+  }
+
   preload() {
     this.reg = new GameRegistry(this.game);
     if (!this.textures.exists(TEX_SUELO_TOP)) {
@@ -260,6 +298,10 @@ export class WorldRunScene extends Phaser.Scene {
     // Frames del parpadeo de la estrella (imágenes sueltas).
     STAR_KEYS.forEach((key, i) => {
       if (!this.textures.exists(key)) this.load.image(key, STAR_FILES[i]);
+    });
+    // Frames del latido del corazón (imágenes sueltas).
+    HEART_KEYS.forEach((key, i) => {
+      if (!this.textures.exists(key)) this.load.image(key, HEART_FILES[i]);
     });
     // Rata (enemigo decorativo): hoja con frames de 64×32.
     if (!this.textures.exists(TEX_RAT)) {
@@ -306,13 +348,24 @@ export class WorldRunScene extends Phaser.Scene {
     this.jumpHeld = false;
     this.isJumping = false;
     this.jumpHoldMs = 0;
-    this.nextStarIndex = 1;
+    // Saltamos los coleccionables/enemigos que quedarían DETRÁS de la distancia de
+    // arranque (al entrar por un portal apareces más adelante): así no se generan en
+    // masa solo para reciclarse en el primer frame. El generador empieza en estos
+    // índices y crea lo que toca por delante.
+    const skip = this.startDistanceM;
+    this.nextStarIndex  = Math.max(1, Math.floor(skip / STAR_INTERVAL_M));
+    this.nextHeartIndex = Math.max(1, Math.floor(skip / HEART_INTERVAL_M));
     this.rats = [];
-    this.nextRatIndex = 1;
+    this.nextRatIndex   = Math.max(1, Math.floor(skip / RAT_INTERVAL_M));
     this.fenixes = [];
-    this.nextFenixIndex = 0;
+    this.nextFenixIndex = Math.max(0, Math.floor((skip - FENIX_START_M) / FENIX_INTERVAL_M));
     this.fireballs = [];
+    // Los hitos cuya distancia ya queda en/atrás del arranque no deben dispararse
+    // (apareces en la entrada del mapa del que vienes → no re-ofrecerla).
     this.firedPoints.clear();
+    for (const pt of RUN_UNLOCK_POINTS) {
+      if (pt.distanceM <= this.startDistanceM) this.firedPoints.add(pt.flag);
+    }
 
     this.physics.world.gravity.y = GRAVITY_Y;
     this.cameras.main.setBackgroundColor('#0a0a14'); // espacio (por si una capa no cubre)
@@ -328,6 +381,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.buildInitialChunks();
     this.createPlayer();
     this.createStars();
+    this.createHearts();
     this.createRats();
     this.createFenixes();
     this.createStartSign();
@@ -364,7 +418,6 @@ export class WorldRunScene extends Phaser.Scene {
       this.parallaxSub?.unsubscribe();
       this.enterMapSub?.unsubscribe();
       this.dismissSub?.unsubscribe();
-      this.starsSub?.unsubscribe();
       this.reg.playerBridge.setRunMode(false);
     });
 
@@ -388,6 +441,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.updateParallax();
     this.recycleChunks();
     this.updateStars();
+    this.updateHearts();
     this.updateRats();
     this.updateFenixes();
     this.updateFireballs(delta);
@@ -395,6 +449,7 @@ export class WorldRunScene extends Phaser.Scene {
     // Metros recorridos (Fase 2 lo llevará al HUD; por ahora texto en pantalla).
     this.distanceM = Math.max(0, Math.floor((this.player.x - this.startX) / PX_PER_METER));
     this.distanceText.setText(`${this.distanceM} m`);
+    this.reg.playerState.reportWorldDistance(this.distanceM);   // récord (solo persiste si bate)
 
     this.checkUnlockPoints();
 
@@ -405,13 +460,17 @@ export class WorldRunScene extends Phaser.Scene {
   // ---------------------------------------------------------------------------
 
   private registerAnims(): void {
-    if (!this.anims.exists('wr_run')) {
-      this.anims.create({
-        key: 'wr_run',
-        frames: this.anims.generateFrameNumbers('player', PLAYER_RUN_FRAMES),
-        frameRate: 14,
-        repeat: -1,
-      });
+    // 'wr_run' guarda referencias DIRECTAS a los frames de la textura 'player'. Esa
+    // textura se quita y recarga al cambiar de personaje (GameScene), dejando esos
+    // frames destruidos; reproducir la anim apuntaría a un frame nulo → crash
+    // 'sourceSize'. Por eso la rehacemos SIEMPRE contra la textura actual (no basta
+    // el guard `exists`). Mismo problema/fix que las anims player_* en gamescene.
+    if (this.textures.exists('player')) {
+      this.anims.remove('wr_run');
+      const runFrames = this.anims.generateFrameNumbers('player', PLAYER_RUN_FRAMES);
+      if (runFrames.length) {
+        this.anims.create({ key: 'wr_run', frames: runFrames, frameRate: 14, repeat: -1 });
+      }
     }
     // Parpadeo de la estrella: cada frame es una textura suelta (no spritesheet).
     // Solo con las que CARGARON: si los PNG están vacíos/corruptos, crear el anim con
@@ -421,6 +480,13 @@ export class WorldRunScene extends Phaser.Scene {
       const frames = STAR_KEYS.filter(key => this.textures.exists(key)).map(key => ({ key }));
       if (frames.length > 0) {
         this.anims.create({ key: STAR_ANIM, frames, frameRate: 12, repeat: -1 });
+      }
+    }
+    // Latido del corazón: mismo criterio que la estrella (solo con frames cargados).
+    if (!this.anims.exists(HEART_ANIM)) {
+      const frames = HEART_KEYS.filter(key => this.textures.exists(key)).map(key => ({ key }));
+      if (frames.length > 0) {
+        this.anims.create({ key: HEART_ANIM, frames, frameRate: 12, repeat: -1 });
       }
     }
     // Rata: idle en bucle + ataque una vez (vuelve a idle al terminar, ver updateRats).
@@ -588,9 +654,14 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   private createPlayer(): void {
-    this.startX = this.scale.width * 0.25;
+    // El jugador SIEMPRE aparece físicamente al 25% de la pantalla; lo que cambia es
+    // el origen de distancias (startX): lo retrasamos `startDistanceM` metros para que
+    // su "metro 0" quede detrás y la carrera arranque ya en la entrada del mapa. Todo
+    // (signos de interés, spawns, contador) se mide desde startX, así que basta esto.
+    const playerStartX = this.scale.width * 0.25;
+    this.startX = playerStartX - this.startDistanceM * PX_PER_METER;
     const floorTop = this.groundTopY + SURFACE_INSET;
-    this.player = this.physics.add.sprite(this.startX, floorTop - 120, 'player', PLAYER_IDLE_FRAME);
+    this.player = this.physics.add.sprite(playerStartX, floorTop - 120, 'player', PLAYER_IDLE_FRAME);
     this.player.setScale(PLAYER_SCALE).setDepth(5).setOrigin(0.5, 1);
     // Cuerpo de colisión ajustado a los pies del cuerpo LPC (el frame 64×64 tiene
     // mucho aire). setOffset en coordenadas del frame sin escalar.
@@ -605,6 +676,9 @@ export class WorldRunScene extends Phaser.Scene {
    *  hierba, para que se vea en cuanto el jugador arranca a correr. Es un marcador
    *  estático del mundo (no se recicla): la cámara lo deja atrás al avanzar. */
   private createStartSign(): void {
+    // Solo en un arranque desde el km 0 (desde el hogar): si entras por el portal de
+    // salida de un mapa apareces a media carrera y este letrero no pinta nada.
+    if (this.startDistanceM > 0) return;
     this.textures.get(TEX_SIGN).setFilter(Phaser.Textures.FilterMode.NEAREST);
     const x = this.scale.width - 64;                 // a la derecha del todo, fully visible
     const y = this.groundTopY + SURFACE_INSET;       // base sobre la línea del suelo
@@ -634,7 +708,13 @@ export class WorldRunScene extends Phaser.Scene {
       if (this.firedPoints.has(pt.flag) || this.distanceM < pt.distanceM) continue;
       this.firedPoints.add(pt.flag);
 
-      const firstTime = !this.reg.unlocks.isUnlocked(mapFeatureId(pt.mapId));
+      // "Primera vez" = el mapa aún no está desbloqueado para ESTE personaje Y su
+      // reclutable (Kugo, desbloqueo global de cuenta) tampoco lo está. Así, si ya
+      // reclutaste a Kugo con otro personaje, un personaje nuevo no vuelve a sufrir
+      // el modal forzado: ve directamente el botón de entrada.
+      const mapUnlocked = this.reg.unlocks.isUnlocked(mapFeatureId(pt.mapId));
+      const recruitDone = !!pt.recruitChar && this.reg.unlocks.isCharacterUnlocked(pt.recruitChar);
+      const firstTime = !mapUnlocked && !recruitDone;
       this.reg.unlocks.setFlag(pt.flag, 'char');   // persiste el desbloqueo (idempotente)
 
       if (firstTime) {
@@ -642,7 +722,7 @@ export class WorldRunScene extends Phaser.Scene {
         this.reg.playerBridge.promptMapEntrance(pt.mapId, !pt.firstEver);
         this.scene.pause();
       } else {
-        // Ya desbloqueado: icono de teletransporte arriba-derecha (10 s), sin pausar.
+        // Ya desbloqueado (o Kugo ya reclutado): botón de entrada, sin pausar.
         this.reg.playerBridge.showMapEntranceHint(pt.mapId);
       }
     }
@@ -705,6 +785,93 @@ export class WorldRunScene extends Phaser.Scene {
     });
   }
 
+  /** Grupo de corazones (sin gravedad) + overlap con el jugador para recogerlos. */
+  private createHearts(): void {
+    this.textures.get(HEART_KEYS[0]).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    this.hearts = this.physics.add.group({ allowGravity: false, immovable: true });
+    this.physics.add.overlap(this.player, this.hearts,
+      (_p, heart) => this.collectHeart(heart as Phaser.Physics.Arcade.Sprite));
+  }
+
+  /**
+   * Genera corazones por delante de la cámara (uno cada HEART_INTERVAL_M metros) y
+   * destruye los que ya quedaron atrás. Mismo esquema que updateStars().
+   */
+  private updateHearts(): void {
+    const scrollX = this.cameras.main.scrollX;
+    const spawnUntilX = scrollX + this.scale.width + CHUNK_W;
+    const groundY = this.groundTopY + SURFACE_INSET;
+
+    while (this.startX + this.nextHeartIndex * HEART_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
+      const x = this.startX + this.nextHeartIndex * HEART_INTERVAL_M * PX_PER_METER;
+      const height = HEART_HEIGHTS[(this.nextHeartIndex - 1) % HEART_HEIGHTS.length];
+      const heart = this.hearts.create(x, groundY - height, HEART_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
+      heart.setScale(HEART_SCALE).setDepth(4);
+      if (this.anims.exists(HEART_ANIM)) heart.play(HEART_ANIM);
+      this.nextHeartIndex++;
+    }
+
+    for (const obj of this.hearts.getChildren()) {
+      const heart = obj as Phaser.Physics.Arcade.Sprite;
+      if (heart.x < scrollX - CHUNK_W) heart.destroy();
+    }
+  }
+
+  /** Recoge un corazón: cura HEART_HEAL de vida y lo hace desaparecer. */
+  private collectHeart(heart: Phaser.Physics.Arcade.Sprite): void {
+    if (!heart.active) return;
+    heart.disableBody(true, false);
+    // showNumber=false: el "+X" de healPlayer se pinta sobre el sprite del GameScene
+    // (no el del runner), así que aquí lo replicamos sobre NUESTRO jugador.
+    this.reg.playerBridge.healPlayer(HEART_HEAL, false);
+    this.showHealEffect(HEART_HEAL);
+    this.tweens.add({
+      targets: heart, y: heart.y - 40, alpha: 0, scale: HEART_SCALE * 1.6,
+      duration: 250, ease: 'Quad.out', onComplete: () => heart.destroy(),
+    });
+  }
+
+  /** Efecto de curación sobre el jugador del runner: "+X" verde que flota hacia
+   *  arriba + pequeñas '+' subiendo alrededor (réplica del de los otros mapas, que
+   *  se pinta sobre el sprite del GameScene y aquí no se vería). */
+  private showHealEffect(amount: number): void {
+    if (amount <= 0) return;
+    const cx = this.player.x;
+    const topY = this.player.y - this.player.displayHeight * 0.9;
+
+    const text = this.add.text(cx, topY, `+${amount}`, {
+      fontSize: '30px',
+      color: '#3ad12f',
+      fontStyle: 'bold',
+      stroke: '#0a3d08',
+      strokeThickness: 6,
+    });
+    text.setOrigin(0.5, 1).setDepth(5000);
+    this.tweens.add({
+      targets: text, y: topY - 42, alpha: 0,
+      duration: 900, ease: 'Power2', onComplete: () => text.destroy(),
+    });
+
+    for (let i = 0; i < 5; i++) {
+      const px = cx + Phaser.Math.Between(-22, 22);
+      const py = this.player.y - Phaser.Math.Between(0, 30);
+      const plus = this.add.text(px, py, '+', {
+        fontSize: `${Phaser.Math.Between(14, 22)}px`,
+        color: '#7dff5a',
+        fontStyle: 'bold',
+        stroke: '#0a3d08',
+        strokeThickness: 3,
+      });
+      plus.setOrigin(0.5, 1).setDepth(4999).setAlpha(0);
+      this.tweens.add({
+        targets: plus, y: py - Phaser.Math.Between(40, 70),
+        alpha: { from: 0.9, to: 0 },
+        duration: Phaser.Math.Between(700, 1100), delay: i * 80,
+        ease: 'Sine.easeOut', onComplete: () => plus.destroy(),
+      });
+    }
+  }
+
   /** Filtro nearest para que la rata se vea nítida (pixel-art). */
   private createRats(): void {
     if (this.textures.exists(TEX_RAT)) {
@@ -755,6 +922,7 @@ export class WorldRunScene extends Phaser.Scene {
       if (absdx < RAT_STOMP_HALF_W && onBack && falling) {
         this.rats.splice(i, 1);
         this.playRatDeath(s);
+        this.reg.playerState.addWorldKills();
         this.player.setVelocityY(-RAT_STOMP_BOUNCE);
         continue;
       }
@@ -860,6 +1028,7 @@ export class WorldRunScene extends Phaser.Scene {
       if (absdx < FENIX_STOMP_HALF_W && rel >= -FENIX_STOMP_ABOVE && rel <= FENIX_STOMP_BELOW && falling) {
         this.fenixes.splice(i, 1);
         this.playFenixDeath(s);
+        this.reg.playerState.addWorldKills();
         this.player.setVelocityY(-FENIX_STOMP_BOUNCE);
         continue;
       }
@@ -1013,16 +1182,8 @@ export class WorldRunScene extends Phaser.Scene {
       stroke: '#000000', strokeThickness: 4,
     }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(100);
 
-    // Contador de estrellas arriba a la derecha (icono + número), como el de monedas.
-    // Lee el estado del jugador (persistido); se actualiza al recoger estrellas.
-    const margin = 16;
-    const icon = this.add.image(this.scale.width - margin, margin + 16, STAR_KEYS[0])
-      .setOrigin(1, 0.5).setScale(1.4).setScrollFactor(0).setDepth(100);
-    this.starText = this.add.text(icon.x - icon.displayWidth - 8, margin + 16, '0', {
-      fontFamily: 'monospace', fontSize: '26px', color: '#ffe066',
-      stroke: '#000000', strokeThickness: 4,
-    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(100);
-    this.starsSub = this.reg.playerState.stars$.subscribe(n => this.starText.setText(`${n}`));
+    // Los contadores (estrellas, enemigos abatidos, mejor distancia) ahora los pinta
+    // Angular (app-run-stats, arriba a la derecha, solo en run-mode), no este HUD.
 
     // Botón provisional para volver al hogar (sin él, el runner es un callejón sin salida).
     const back = this.add.text(16, 16, '‹ Salir', {

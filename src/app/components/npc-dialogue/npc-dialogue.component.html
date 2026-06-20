@@ -1,7 +1,12 @@
 <div class="dlg-overlay" *ngIf="line">
-  <div class="dlg-box" [class.leaving]="leaving" (click)="dismiss()">
+  <div class="dlg-box" [class.leaving]="leaving" (click)="onBoxClick()">
     <div class="dlg-speaker">{{ line.speaker }}</div>
+    <button
+      class="dlg-close"
+      type="button"
+      aria-label="Finalizar conversación"
+      (click)="$event.stopPropagation(); dismiss()">✕</button>
     <div class="dlg-text">{{ line.text }}</div>
-    <div class="dlg-hint">▼</div>
+    <div class="dlg-hint" *ngIf="line.hasNext">▼</div>
   </div>
 </div>

@@ -1,4 +1,5 @@
-/* Icono de teletransporte del Modo Mundo — arriba-derecha, bajo el top-bar (72px). */
+/* Icono de teletransporte del Modo Mundo — abajo-izquierda, sobre el footer y
+   despejado de los botones de salto/sprint (que van abajo-derecha). */
 $outline: #3a2c20;
 $stone: #8f8678;
 $stone-light: #a59c8d;
@@ -8,8 +9,8 @@ $text-cream: #ecd9b4;
 
 .mth {
   position: fixed;
-  top: 82px;
-  right: 10px;
+  bottom: calc(60px + var(--safe-bottom, 0px));
+  left: calc(10px + var(--safe-left, 0px));
   z-index: 900;
 
   display: flex;
@@ -38,8 +39,8 @@ $text-cream: #ecd9b4;
 }
 
 @keyframes mthPop {
-  from { transform: translateX(24px); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
+  from { transform: translateX(-24px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
 }
 
 .mth-icon {

@@ -1,3 +1,17 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-btn: #c08349;
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$text-cream: #ecd9b4;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
+$gold: #ffe08a;
+
 // Overlay NO bloqueante: deja pasar el toque al juego (para seguir moviéndote y que
 // el diálogo se cierre al alejarte). Solo el cuadro captura el toque (para cerrarlo).
 .dlg-overlay {
@@ -7,72 +21,134 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 0 16px calc(90px + var(--safe-bottom, 0px));
+  padding: 0 14px calc(86px + var(--safe-bottom, 0px));
   pointer-events: none;
 }
 
-// Bocadillo madera + marco metálico (estilo RPG).
+// Bocadillo: marco metálico + madera oscura con vetas (receta 1b del rpg-theme) + un
+// hilo dorado interior y la placa del nombre sobresaliendo por arriba.
 .dlg-box {
   position: relative;
   width: 100%;
-  max-width: 520px;
-  padding: 12px 16px 14px;
-  border-radius: 8px;
-  background: linear-gradient(#6b4a2c, #543820);
+  max-width: 270px;
+  padding: 18px 18px 17px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 14px),
+    linear-gradient(180deg, lighten($wood-btn-dark, 5%), $wood-btn-dark 60%, darken($wood-btn-dark, 5%));
   border: 3px solid;
-  border-color: #caa15e #4a2f18 #4a2f18 #caa15e;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 9px;
   box-shadow:
-    0 0 0 2px #2a1a0c,
-    0 6px 18px rgba(0, 0, 0, 0.6),
-    inset 0 2px 0 rgba(255, 255, 255, 0.12);
-  color: #f3e6c8;
-  pointer-events: auto;   // el cuadro sí se puede tocar (para cerrarlo)
+    0 0 0 1px $outline,                         // contorno exterior
+    inset 0 0 0 1px $outline,                    // contorno interior
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),     // reflejo metálico superior
+    0 9px 24px rgba(0, 0, 0, 0.55);              // elevación
+  pointer-events: auto;
   cursor: pointer;
-  animation: dlg-pop 140ms ease-out;
+  animation: dlg-pop 170ms cubic-bezier(0.18, 0.9, 0.3, 1.25);
 
-  // Animación de salida (al cerrarse / alejarse). `forwards` mantiene el estado final
-  // mientras el componente lo quita del DOM tras LEAVE_MS.
+  // Hilo dorado interior (doble marco clásico de bocadillo RPG).
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(255, 224, 138, 0.22);
+    border-radius: 5px;
+    pointer-events: none;
+  }
+
+  // Animación de salida (al cerrarse / alejarse).
   &.leaving {
     animation: dlg-out 180ms ease-in forwards;
     pointer-events: none;
   }
 }
 
+// Placa del nombre, sobresaliendo por el borde superior izquierdo (madera + piedra).
 .dlg-speaker {
+  position: absolute;
+  top: -13px;
+  left: 14px;
+  padding: 2px 12px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: $gold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  background: linear-gradient(180deg, $wood-btn-light, $wood-btn 55%, $wood-btn-dark);
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+// Icono de finalizar conversación, sobresaliendo por el borde superior derecho
+// (piedra + marco metálico, a juego con la placa del nombre).
+.dlg-close {
+  position: absolute;
+  top: -12px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #ffd970;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  margin-bottom: 4px;
+  line-height: 1;
+  color: $text-cream;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  background: linear-gradient(180deg, $stone-light, $stone 55%, $stone-dark);
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  pointer-events: auto;
+  cursor: pointer;
+
+  &:active { transform: translateY(1px); }
 }
 
 .dlg-text {
+  margin-top: 3px;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 16px;
-  line-height: 1.35;
+  line-height: 1.4;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-// Flechita "tocar para continuar" parpadeando en la esquina.
+// Flechita "tocar/espacio para continuar" parpadeando en la esquina.
 .dlg-hint {
   position: absolute;
-  right: 10px;
+  right: 12px;
   bottom: 6px;
-  font-size: 12px;
-  color: #ffd970;
-  animation: dlg-blink 1s steps(2, start) infinite;
+  font-size: 13px;
+  color: $gold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  animation: dlg-bob 0.9s ease-in-out infinite;
 }
 
 @keyframes dlg-pop {
-  from { transform: translateY(10px) scale(0.98); opacity: 0; }
+  from { transform: translateY(12px) scale(0.96); opacity: 0; }
   to   { transform: translateY(0)    scale(1);    opacity: 1; }
 }
 
 @keyframes dlg-out {
   from { transform: translateY(0)    scale(1);    opacity: 1; }
-  to   { transform: translateY(12px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(14px) scale(0.95); opacity: 0; }
 }
 
-@keyframes dlg-blink {
-  50% { opacity: 0.25; }
+@keyframes dlg-bob {
+  0%, 100% { transform: translateY(0);   opacity: 1;    }
+  50%      { transform: translateY(2px); opacity: 0.45; }
 }

@@ -1,0 +1,49 @@
+// Pila de contadores arriba a la derecha, alineada con el resto del HUD del Modo
+// Mundo (el contador de metros de la carrera actual sigue en Phaser, centrado
+// arriba). z-index alto para quedar sobre el canvas.
+.run-stats {
+  position: fixed;
+  top: calc(12px + var(--safe-top, 0px));
+  right: calc(12px + var(--safe-right, 0px));
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+  user-select: none;
+}
+
+// Cada contador es una fila independiente: valor + icono, alineados a la derecha.
+.run-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.run-stat__val {
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.9),
+    0 1px 2px rgba(0, 0, 0, 1);
+}
+
+.run-stat--stars .run-stat__val { color: #ffe066; }
+
+.run-stat__img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+}
+
+.run-stat__ic {
+  font-size: 26px;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+}
+
+.run-stat--kills .run-stat__ic { color: #ff6b6b; }
+.run-stat--best  .run-stat__ic { color: #ffd24a; }

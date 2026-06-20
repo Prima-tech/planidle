@@ -5,6 +5,8 @@ export interface PlayerState {
   coins: number;
   specialCoins: number;
   stars: number;
+  worldKills: number;        // enemigos abatidos en el Modo Mundo (total)
+  worldBestDistanceM: number; // mejor distancia (m) alcanzada en una carrera
   exp: number;
   lvl: number;
   hp: number;
@@ -26,6 +28,8 @@ const INITIAL_STATE: PlayerState = {
   coins: 0,
   specialCoins: 0,
   stars: 0,
+  worldKills: 0,
+  worldBestDistanceM: 0,
   exp: 0,
   lvl: 1,
   hp: 100,
@@ -46,6 +50,8 @@ export class PlayerStateService {
   readonly coins$        = this.state$.pipe(map(s => s.coins),        distinctUntilChanged());
   readonly specialCoins$ = this.state$.pipe(map(s => s.specialCoins), distinctUntilChanged());
   readonly stars$        = this.state$.pipe(map(s => s.stars ?? 0),    distinctUntilChanged());
+  readonly worldKills$   = this.state$.pipe(map(s => s.worldKills ?? 0), distinctUntilChanged());
+  readonly worldBestDistanceM$ = this.state$.pipe(map(s => s.worldBestDistanceM ?? 0), distinctUntilChanged());
   readonly exp$          = this.state$.pipe(map(s => s.exp),          distinctUntilChanged());
   readonly lvl$          = this.state$.pipe(map(s => s.lvl),          distinctUntilChanged());
   readonly expProgress$  = this.state$.pipe(
@@ -59,6 +65,8 @@ export class PlayerStateService {
       coins:         profile.coins          ?? 0,
       specialCoins:  profile.special_coins  ?? 0,
       stars:         profile.stars          ?? 0,
+      worldKills:    profile.worldKills     ?? 0,
+      worldBestDistanceM: profile.worldBestDistanceM ?? 0,
       exp:           profile.exp            ?? 0,
       lvl:           profile.lvl            ?? 1,
       hp:            profile.hp             ?? profile.current_hp ?? 100,
@@ -84,6 +92,20 @@ export class PlayerStateService {
   collectStars(amount: number): void {
     const s = this._state$.getValue();
     this._patch({ stars: (s.stars ?? 0) + amount });
+  }
+
+  /** Suma enemigos abatidos en el Modo Mundo (contador propio, persistido). */
+  addWorldKills(amount = 1): void {
+    const s = this._state$.getValue();
+    this._patch({ worldKills: (s.worldKills ?? 0) + amount });
+  }
+
+  /** Registra la distancia de la carrera actual; solo persiste si bate el récord. */
+  reportWorldDistance(meters: number): void {
+    const s = this._state$.getValue();
+    if (meters > (s.worldBestDistanceM ?? 0)) {
+      this._patch({ worldBestDistanceM: meters });
+    }
   }
 
   recordDeath(): void {

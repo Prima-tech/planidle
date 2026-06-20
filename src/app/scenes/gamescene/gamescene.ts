@@ -16,7 +16,7 @@ import { GatheringSkillId } from "src/app/services/gathering-skills.service";
 import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
-import { NATIVE_DPR } from "./constants";
+import { NATIVE_DPR, playerTags } from "./constants";
 import { BuildableDef, PlacedBuilding, stationFrameRect } from "src/app/services/city-build.service";
 import { PARALLAX_THEMES, ParallaxThemeId, ParallaxLayer, ParallaxTheme } from "./parallax-themes";
 import { Subscription } from "rxjs";
@@ -130,9 +130,17 @@ const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
  *  abajo). `name` = nombre en body-config (bodySpriteFor) para cargar su hoja;
  *  `texKey` = clave de textura propia. Añadir uno = una línea más aquí. */
 const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number }[] = [
-  { name: 'Kugo',    texKey: 'npc_kugo',    tileX: 22, tileY: 30 },
   { name: 'Italien', texKey: 'npc_italien', tileX: 28, tileY: 23 },
   { name: 'Orc',     texKey: 'npc_orc',     tileX: 34, tileY: 27 },
+];
+
+/** NPCs reclutables: aparecen en un mapa concreto (no el hogar) hasta que se les
+ *  habla. Al hablarles sueltan su frase, ponen un flag global que desbloquea su
+ *  personaje (aparece en el roster) y dejan de aparecer: la próxima vez que se
+ *  entra al mapa ya no están (el spawn se salta si el personaje está desbloqueado).
+ *  `name` debe existir en body-config (bodySpriteFor) y en ROSTER_TEMPLATE. */
+const RECRUIT_NPCS: { name: string; texKey: string; mapId: string; tileX: number; tileY: number; charFlag: string }[] = [
+  { name: 'Kugo', texKey: 'npc_kugo', mapId: '1-1', tileX: 33, tileY: 25, charFlag: 'char_kugo' },
 ];
 
 // Nodo recolectable colocado en el mapa. Ocupa una huella de tiles (todas en
@@ -160,16 +168,10 @@ export class GameScene extends Phaser.Scene {
     private lastDamageTime = -Infinity;
     private sessionKills: Record<string, number> = {};
     private eliteKills = 0;
-    // Kills totales en la sesión del mapa (cualquier enemigo). Desbloquean los portales.
-    private mapKills = 0;
-    // Portales vivos en la escena + sus adornos (nº que falta y calavera) y estado.
+    // Portales vivos en la escena. Siempre abiertos: ya no se desbloquean matando.
     private activePortals: {
       config: PortalConfig;
       sprite: Phaser.GameObjects.Sprite;
-      label: Phaser.GameObjects.Text;
-      skull: Phaser.GameObjects.Image;
-      requirement: number;
-      unlocked: boolean;
     }[] = [];
     private currentMapConfig: MapConfig;
     private reg: GameRegistry;
@@ -216,8 +218,9 @@ export class GameScene extends Phaser.Scene {
       moving?: PlacedBuilding;   // si está, es la reubicación de un edificio existente
     } | null = null;
     private collisionTiles: Set<string>                    = new Set();
-    // NPCs fijos de la ciudad vivos en la escena (para detectar cercanía y hablar).
-    private cityNpcs: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string }[] = [];
+    // NPCs vivos en la escena para detectar cercanía y hablar (fijos de la ciudad +
+    // reclutables). `recruit` solo lo llevan los reclutables (Kugo en 1-1).
+    private cityNpcs: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string; recruit?: typeof RECRUIT_NPCS[0] }[] = [];
     // Parallax de mar profundo detrás del mapa (cubre el borde azul del juego con
     // dos capas que derivan a distinta velocidad → sensación de profundidad).
     private pxFar?:  Phaser.GameObjects.TileSprite;
@@ -288,7 +291,20 @@ export class GameScene extends Phaser.Scene {
       // Cuerpo del personaje seleccionado (Gutts tiene modelo propio; el resto main).
       // Forzamos recarga quitando la textura anterior: al cambiar de personaje el
       // loader, si no, reutilizaría la cacheada y no actualizaría el modelo.
-      if (this.textures.exists('player')) this.textures.remove('player');
+      if (this.textures.exists('player')) {
+        this.textures.remove('player');
+        // Las animaciones del cuerpo (player_*) se crean una sola vez (makeAnim tiene
+        // guard `exists`) y guardan referencias DIRECTAS a los frames de la textura.
+        // Al quitar la textura esos frames quedan destruidos; si no recreamos las anims,
+        // reproducirlas apunta a un frame nulo → crash 'sourceSize' (visible sobre todo
+        // al cambiar de personaje, cuando la textura pasa a otra imagen). Las borramos
+        // para que initPlayerAnimation las reconstruya contra la textura nueva.
+        for (const tag of [playerTags.WALK, playerTags.IDLE, playerTags.ATTACK, playerTags.THRUST, playerTags.DEATH]) {
+          for (const dir of [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]) {
+            this.anims.remove(tag + dir);
+          }
+        }
+      }
       this.load.spritesheet('player', bodySpriteFor(this.reg.asgard?.selectedPlayer?.name), { frameWidth: 64, frameHeight: 64 });
       // NPCs fijos de la ciudad: sus cuerpos solo hacen falta en el hogar (Asgard).
       if (this.reg.world.getCurrentMap()?.id === 'hogar') {
@@ -297,6 +313,12 @@ export class GameScene extends Phaser.Scene {
             this.load.spritesheet(n.texKey, bodySpriteFor(n.name), { frameWidth: 64, frameHeight: 64 });
           }
         }
+      }
+      // NPC reclutable del mapa actual (p.ej. Kugo en 1-1): solo carga su cuerpo si
+      // todavía no se ha reclutado (si ya está desbloqueado no aparece).
+      const recruit = RECRUIT_NPCS.find(r => r.mapId === this.reg.world.getCurrentMap()?.id);
+      if (recruit && !this.reg.unlocks?.isCharacterUnlocked(recruit.name) && !this.textures.exists(recruit.texKey)) {
+        this.load.spritesheet(recruit.texKey, bodySpriteFor(recruit.name), { frameWidth: 64, frameHeight: 64 });
       }
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
       this.load.spritesheet('chests', 'assets/sprites/resources/chests.png', { frameWidth: 32, frameHeight: 32 });
@@ -315,10 +337,9 @@ export class GameScene extends Phaser.Scene {
       // Imagen escénica para los temas de parallax 'scenic_*' (vista de mundo).
       this.load.image('paralax_scene', 'assets/sprites/resources/paralax.jpg');
       // portal_01.png: 4 col × 4 fila (128×192), cada fila es un portal de 4 frames
-      // (32×48). Fila 0 azul (back), fila 2 naranja (next), fila 3 gris (bloqueado).
+      // (32×48). Fila 0 azul (back), fila 2 naranja (next). Los portales van siempre
+      // abiertos (ya no hay variante gris "bloqueada").
       this.load.spritesheet('portal', 'assets/sprites/resources/portal_01.png', { frameWidth: 32, frameHeight: 48 });
-      // Calavera del minimapa: la mostramos junto al nº de kills que falta sobre un portal bloqueado.
-      this.load.image('mm_enemy', 'assets/sprites/map/enemy.png');
       this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
       // Bolsas (equipo secundario): iconos sueltos usados como sprite del drop al invocar.
@@ -407,7 +428,6 @@ export class GameScene extends Phaser.Scene {
       this.portalCooldown = false;
       this.sessionKills = {};
       this.eliteKills = 0;
-      this.mapKills = 0;
       this.activePortals = [];
       this.autoTarget = null;
       this.autoStuckMs = 0;
@@ -505,6 +525,7 @@ export class GameScene extends Phaser.Scene {
         this.initBuildClearedListener();
         if (this.currentMapConfig.id === 'hogar') this.initPlacedBuildings();
         if (this.currentMapConfig.id === 'hogar') this.initCityNpcs();
+        this.initRecruitNpcs();
         this.initHarvestNodes();
         this.initStatsListener();
         this.registerSkillAnimations();
@@ -617,7 +638,7 @@ export class GameScene extends Phaser.Scene {
         } else if (nearNpc) {
           if (!this.interactLatched) {
             this.interactLatched = true;
-            this.reg.dialogue?.show(nearNpc.name, this.npcLine(nearNpc.name));
+            this.talkToNpc(nearNpc);
           }
         } else if (!this.player.isAttacking && !this.interactLatched) {
           this.strike();
@@ -1269,12 +1290,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     initPortals() {
-      // Tres variantes del portal — cada fila del sprite es un color:
-      //   azul = back (frames 0-3) · naranja = next (8-11) · gris = bloqueado (12-15)
+      // Dos variantes del portal — cada fila del sprite es un color:
+      //   azul = back (frames 0-3) · naranja = next (8-11). Siempre abiertos.
       const portalAnims: [string, number, number][] = [
         ['portal_blue',   0,  3],
         ['portal_orange', 8,  11],
-        ['portal_gray',   12, 15],
       ];
       for (const [key, start, end] of portalAnims) {
         if (!this.anims.exists(key)) {
@@ -1288,60 +1308,14 @@ export class GameScene extends Phaser.Scene {
       }
 
       const TS = GameScene.TILE_SIZE;
-      const baseReq = this.portalKillRequirement();
-      // La calavera es 16×16: con filtrado nearest (el juego ya va con antialias off,
-      // pero lo forzamos) y tamaño 3× se ve grande y limpia en vez de borrosa.
-      this.textures.get('mm_enemy').setFilter(Phaser.Textures.FilterMode.NEAREST);
       this.currentMapConfig.portals.forEach(portal => {
         const px = portal.tilePos.x * TS + TS / 2;
         const py = portal.tilePos.y * TS + TS / 2;
-        // Retroceder siempre es gratis: solo los portales de avance ('next') piden
-        // kills. Los de retroceso ('back') se abren sin matar nada.
-        const requirement = portal.direction === 'back' ? 0 : baseReq;
-
         const sprite = this.add.sprite(px, py, 'portal').setDepth(1).setScale(2.5);
-
-        // Cartel sobre el portal (solo visible mientras está bloqueado): nº de kills
-        // que faltan a la izquierda + la calavera del minimapa a la derecha.
-        const top = py - 84;
-        const label = this.add.text(px - 8, top, '', {
-          fontSize: '46px',
-          fontStyle: 'bold',
-          color: '#ffffff',
-          stroke: '#000000',
-          strokeThickness: 8,
-          resolution: Math.ceil(NATIVE_DPR * 2),   // bitmap a más densidad → número nítido
-        }).setOrigin(1, 0.5).setDepth(6000);
-        const skull = this.add.image(px + 10, top, 'mm_enemy')
-          .setOrigin(0, 0.5).setDisplaySize(48, 48).setDepth(6000);
-
-        this.activePortals.push({ config: portal, sprite, label, skull, requirement, unlocked: false });
+        // Color por sentido: naranja avanza ('next'), azul retrocede ('back').
+        sprite.play(portal.direction === 'next' ? 'portal_orange' : 'portal_blue');
+        this.activePortals.push({ config: portal, sprite });
       });
-
-      this.updatePortalLocks();
-    }
-
-    /** Kills necesarios para abrir los portales del mapa actual: 1-1→1, 1-2→2 … hogar→0. */
-    private portalKillRequirement(): number {
-      const id = this.currentMapConfig.id;
-      if (id === 'hogar') return 0;
-      const n = parseInt(id.split('-')[1], 10);
-      return Number.isNaN(n) ? 1 : n;
-    }
-
-    /** Refresca color/animación de cada portal y su cartel (nº que falta + calavera). */
-    private updatePortalLocks(): void {
-      for (const p of this.activePortals) {
-        const remaining = Math.max(0, p.requirement - this.mapKills);
-        p.unlocked = remaining <= 0;
-
-        const animKey = !p.unlocked ? 'portal_gray'
-          : p.config.direction === 'next' ? 'portal_orange' : 'portal_blue';
-        if (p.sprite.anims.currentAnim?.key !== animKey) p.sprite.play(animKey);
-
-        p.label.setText(p.unlocked ? '' : String(remaining)).setVisible(!p.unlocked);
-        p.skull.setVisible(!p.unlocked);
-      }
     }
 
     checkPortals(playerPos: Phaser.Math.Vector2) {
@@ -1357,7 +1331,6 @@ export class GameScene extends Phaser.Scene {
       const r2 = range * range;
 
       for (const p of this.activePortals) {
-        if (!p.unlocked) continue;   // portal gris bloqueado: aún faltan kills
         const cx = p.config.tilePos.x * TS + TS / 2;
         const cy = p.config.tilePos.y * TS + TS / 2;
         const dx = px - cx;
@@ -1369,7 +1342,9 @@ export class GameScene extends Phaser.Scene {
             // Modo Mundo (runner): escena aparte, no es un mapa de grid. Arrancamos
             // WorldRunScene y paramos GameScene (su SHUTDOWN apaga también el HUD).
             if (p.config.targetMapId === 'world-run') {
-              this.scene.start('WorldRunScene');
+              // El runner reaparece al jugador en la ENTRADA del mapa del que sale
+              // (su hito de distancia); 'hogar' no tiene hito → arranca en el km 0.
+              this.scene.start('WorldRunScene', { entryMapId: this.currentMapConfig.id });
               this.scene.stop();
               return;
             }
@@ -1649,6 +1624,8 @@ export class GameScene extends Phaser.Scene {
         if (this.handleForgeTap(pointer)) return;
         // Pulsar un edificio con ventana propia (p.ej. la tienda) la abre.
         if (this.handleBuildingWindowTap(pointer)) return;
+        // Un toque en cualquier punto del mapa cierra el diálogo de NPC abierto.
+        if (this.reg.dialogue?.isOpen) { this.reg.dialogue.dismiss(); return; }
         this.reg.asgard.closeAllMenus();
         this.onGameClick(pointer);
       });
@@ -1671,7 +1648,7 @@ export class GameScene extends Phaser.Scene {
         const win = this.nearestWindowBuilding();
         if (win) { this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
         const npc = this.nearestNpc();
-        if (npc) { this.reg.dialogue?.show(npc.name, this.npcLine(npc.name)); return; }
+        if (npc) { this.talkToNpc(npc); return; }
         if (this.player.isAttacking) return;
         this.strike();
       });
@@ -1759,10 +1736,6 @@ export class GameScene extends Phaser.Scene {
         const mapId = this.reg.world.getCurrentMap().id;
         this.reg.kill?.recordKill(mapId, type);
         this.reg.gathering?.addEquippedPetExp(1);   // 1 exp por enemigo a la mascota equipada
-
-        // Cualquier enemigo cuenta para abrir los portales del mapa.
-        this.mapKills++;
-        this.updatePortalLocks();
 
         if (type.endsWith('_oblivion')) return;
 
@@ -2311,6 +2284,18 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    /** NPC reclutable del mapa actual (Kugo en 1-1): solo aparece mientras no se le
+     *  haya reclutado. Tras hablarle se desbloquea como personaje y ya no se spawnea. */
+    private initRecruitNpcs(): void {
+      const r = RECRUIT_NPCS.find(rn => rn.mapId === this.currentMapConfig.id);
+      if (!r) return;
+      if (this.reg.unlocks?.isCharacterUnlocked(r.name)) return;   // ya reclutado
+      if (!this.textures.exists(r.texKey)) return;
+      const animKey = `${r.texKey}_idle_down`;
+      this.ensureNpcAnim(r.texKey, animKey);
+      this.spawnCityNpc(r.name, r.texKey, animKey, r.tileX, r.tileY, r);
+    }
+
     /** Idle (mirando abajo) de un NPC: frames LPC 312-313, mismo layout que el jugador. */
     private ensureNpcAnim(texKey: string, animKey: string): void {
       if (this.anims.exists(animKey)) return;
@@ -2324,7 +2309,7 @@ export class GameScene extends Phaser.Scene {
 
     /** Coloca un NPC quieto en el tile (tileX,tileY): mismo tamaño/profundidad que el
      *  jugador, idle en bucle, y su tile bloqueado para que no se le pueda pisar. */
-    private spawnCityNpc(name: string, texKey: string, animKey: string, tileX: number, tileY: number): void {
+    private spawnCityNpc(name: string, texKey: string, animKey: string, tileX: number, tileY: number, recruit?: typeof RECRUIT_NPCS[0]): void {
       const TS = GameScene.TILE_SIZE;
       // --- Ajustes del NPC (tocar estos si no cuadra) ---
       const SCALE       = 2.8;   // tamaño del sprite
@@ -2349,7 +2334,7 @@ export class GameScene extends Phaser.Scene {
       if (this.anims.exists(animKey)) npc.play(animKey);
 
       // Punto de interacción para hablar: los pies del NPC.
-      this.cityNpcs.push({ sprite: npc, x: footX, y: footY, name });
+      this.cityNpcs.push({ sprite: npc, x: footX, y: footY, name, recruit });
 
       // Bloquea la caja completa alrededor del cuerpo.
       const halfW = Math.floor(COL_W / 2);
@@ -2375,6 +2360,20 @@ export class GameScene extends Phaser.Scene {
         if (dist < nearestDist) { nearestDist = dist; nearest = npc; }
       }
       return nearest;
+    }
+
+    /** Habla con un NPC: si es reclutable y aún no está reclutado, suelta su frase de
+     *  reclutamiento y lo desbloquea como personaje (flag global → aparece en el
+     *  roster); si no, dice su línea normal. */
+    private talkToNpc(npc: typeof this.cityNpcs[0]): void {
+      if (npc.recruit && !this.reg.unlocks?.isCharacterUnlocked(npc.name)) {
+        const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
+        this.reg.dialogue?.show(npc.name,
+          `Hombre ${player}, ¿qué tal? A partir de ahora puedes elegirme para jugar contigo.`);
+        this.reg.unlocks?.setFlag(npc.recruit.charFlag, 'global');
+        return;
+      }
+      this.reg.dialogue?.show(npc.name, this.npcLine(npc.name));
     }
 
     /** Línea que dice un NPC al hablarle. Kugo saluda al jugador por su nombre. */

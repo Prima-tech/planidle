@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 
 /**
- * Icono de teletransporte del Modo Mundo (arriba-derecha). Aparece al pasar por la
+ * Icono de teletransporte del Modo Mundo (abajo-izquierda). Aparece al pasar por la
  * entrada de un mapa YA desbloqueado (la WorldRunScene emite `mapEntranceHint$`),
  * se queda visible 10 s y debajo muestra el mapa destino. Al pulsarlo viaja a ese
  * mapa (mismo camino que el modal: `requestEnterMap` → la escena arranca GameScene).

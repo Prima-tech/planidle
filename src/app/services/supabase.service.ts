@@ -66,6 +66,7 @@ export class SupabaseService {
     { name: 'Seraphel', max_hp: 80  },
     { name: 'Malachar', max_hp: 70  },
     { name: 'Solmara',  max_hp: 100 },
+    { name: 'Kugo',     max_hp: 110 },
   ];
 
   async fetchAndSaveLocalData(userId: string) {

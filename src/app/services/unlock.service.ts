@@ -4,6 +4,7 @@ import { StorageService } from './storage.service';
 import { KillService } from './kill.service';
 import { PlayerStateService } from './player-state.service';
 import { AchievementService, ACHIEVEMENTS } from './achievement.service';
+import { AdminService } from './admin.service';
 import {
   FEATURES, FeatureDef, UnlockScope, UnlockSource, characterFeatureId,
 } from './unlock-config';
@@ -44,6 +45,7 @@ export class UnlockService {
     private kills: KillService,
     private playerState: PlayerStateService,
     private achievements: AchievementService,
+    private admin: AdminService,
   ) {}
 
   // ── Carga ─────────────────────────────────────────────────────────────────
@@ -92,8 +94,11 @@ export class UnlockService {
     return this.isVisible(id) && !this.isUnlocked(id);
   }
 
-  /** Atajo para el roster: ¿está disponible este personaje del roster? */
+  /** Atajo para el roster: ¿está disponible este personaje del roster?
+   *  En modo admin el roster está TODO desbloqueado (igual que el resto de la UI);
+   *  en modo jugador depende del desbloqueo real (p.ej. reclutar a Kugo en 1-1). */
   isCharacterUnlocked(name: string): boolean {
+    if (this.admin.isAdmin) return true;
     return this.isUnlocked(characterFeatureId(name));
   }
 

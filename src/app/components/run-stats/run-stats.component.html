@@ -1,0 +1,19 @@
+<div class="run-stats">
+  <!-- Estrellas recogidas -->
+  <div class="run-stat run-stat--stars">
+    <span class="run-stat__val">{{ stars$ | async }}</span>
+    <img class="run-stat__img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+  </div>
+
+  <!-- Enemigos abatidos -->
+  <div class="run-stat run-stat--kills">
+    <span class="run-stat__val">{{ kills$ | async }}</span>
+    <ion-icon class="run-stat__ic" name="skull"></ion-icon>
+  </div>
+
+  <!-- Mejor distancia alcanzada -->
+  <div class="run-stat run-stat--best">
+    <span class="run-stat__val">{{ bestDistance$ | async }} m</span>
+    <ion-icon class="run-stat__ic" name="trophy"></ion-icon>
+  </div>
+</div>

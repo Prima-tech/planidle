@@ -71,8 +71,10 @@ const gen = (id: string) => ({
   extraTilesets: [GEN_WATER],
 });
 
-/** Portal de retroceso (esquina superior-izquierda) — azul */
-const backPortal  = (targetMapId: string): PortalConfig => ({ tilePos: { x: 2,  y: 2  }, targetMapId, direction: 'back' });
+/** Portal de salida (esquina superior-izquierda) — devuelve al Modo Mundo (runner).
+ *  La WorldRunScene reposiciona al jugador en la ENTRADA de este mapa (su hito de
+ *  distancia en RUN_UNLOCK_POINTS); por eso aquí no hace falta indicar destino. */
+const exitPortal  = (): PortalConfig => ({ tilePos: { x: 2,  y: 2  }, targetMapId: 'world-run', direction: 'back' });
 /** Portal de avance — x debe coincidir con width-3 del mapa generado (manifest.mjs) — naranja */
 const nextPortal  = (targetMapId: string, x = 17): PortalConfig => ({ tilePos: { x, y: 2 }, targetMapId, direction: 'next' });
 
@@ -84,7 +86,10 @@ interface GenLevelOpts {
 /** Nivel generado: spawn en el centro (como el hogar) y enemigos alrededor del spawn. */
 const genLevel = (o: GenLevelOpts): MapConfig => {
   const cx = Math.floor(o.w / 2), cy = Math.floor(o.h / 2);
-  const portals = [backPortal(o.back)];
+  // El portal de salida (esquina) devuelve al runner en la entrada de ESTE mapa.
+  // `o.back` (mapa anterior) se conserva como dato, pero ya no es el destino: en el
+  // Modo Mundo se avanza corriendo hasta la entrada de cada mapa, no encadenando.
+  const portals = [exitPortal()];
   if (o.next) portals.push(nextPortal(o.next, o.w - 3));
   return {
     ...gen(o.id),
