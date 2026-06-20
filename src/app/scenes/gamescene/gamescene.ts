@@ -453,6 +453,11 @@ export class GameScene extends Phaser.Scene {
         return;
       }
 
+      // GameScene NUNCA es Modo Mundo: aseguramos runMode=false (si quedara en true tras
+      // salir del runner, el footer ocultaría el minimapa/tienda y dejaría la UI de
+      // carrera encima, impidiendo abrir los menús de ciudad).
+      this.reg.playerBridge.setRunMode(false);
+
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
       // Actividad AFK: mapa con enemigos = matando; sin enemigos (hogar/ciudad) = idle.
@@ -619,8 +624,11 @@ export class GameScene extends Phaser.Scene {
         const range = GameScene.CHEST_INTERACT_RANGE;
         const anyNear = this.activeChests.some(c => {
           if (!c.isTownChest) return false;
-          const dx = c.sprite.x - pos.x;
-          const dy = c.sprite.y - pos.y;
+          // Bordes del sprite (coherente con nearestOpenableChest): si no, al estar
+          // pegado a un cofre grande lo daría por "lejos" y lo cerraría al instante.
+          const b = c.sprite.getBounds();
+          const dx = Math.max(b.left - pos.x, 0, pos.x - b.right);
+          const dy = Math.max(b.top  - pos.y, 0, pos.y - b.bottom);
           return dx * dx + dy * dy <= range * range;
         });
         if (!anyNear) this.reg.summon.townChestCloseRequest$.next();
@@ -2310,9 +2318,11 @@ export class GameScene extends Phaser.Scene {
       for (const chest of this.activeChests) {
         if (chest.opening) continue;
         if (chest.isTownChest && this.reg.summon.townChestIsOpen$.value) continue;
-        const sp = chest.sprite;
-        const dx = sp.x - pos.x;
-        const dy = sp.y - pos.y;
+        // Distancia a los BORDES del sprite (no al centro): así el espacio abre el cofre
+        // estando pegado, aunque su centro quede lejos (igual que la tienda).
+        const b = chest.sprite.getBounds();
+        const dx = Math.max(b.left - pos.x, 0, pos.x - b.right);
+        const dy = Math.max(b.top  - pos.y, 0, pos.y - b.bottom);
         if (dx * dx + dy * dy <= range * range) return chest;
       }
       return null;
@@ -2583,8 +2593,12 @@ export class GameScene extends Phaser.Scene {
       for (const pb of this.placedBuildings) {
         const def = this.reg.cityBuild?.def(pb.building.type);
         if (!def?.opensWindow) continue;
-        const dx = pb.sprite.x - pos.x;
-        const dy = pb.sprite.y - pos.y;
+        // Distancia a los BORDES del edificio (no al centro): los sprites grandes (la
+        // tienda) tienen el centro lejos aunque estés justo al lado. Así el espacio
+        // abre la ventana estando pegado, igual que pinchando el edificio.
+        const b = pb.sprite.getBounds();
+        const dx = Math.max(b.left - pos.x, 0, pos.x - b.right);
+        const dy = Math.max(b.top  - pos.y, 0, pos.y - b.bottom);
         if (dx * dx + dy * dy <= range * range) return pb;
       }
       return null;

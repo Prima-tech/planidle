@@ -21,7 +21,7 @@ export interface ShopSaleItem {
 
 const STORAGE_KEY  = 'build_shop';
 const INITIAL_GOLD = 500;
-const SLOT_COUNT   = 6;
+const SLOT_COUNT   = 7;
 
 /** Dimensiones del inventario de venta (donde arrastras items para venderlos). */
 export const SELL_ROWS = 3;
@@ -35,6 +35,8 @@ const PRODUCTS: { id: string; itemName: string; price: number; initialStock: num
   { id: 'legs1',  itemName: 'Grebas de Cuero',   price: 100, initialStock: 5 },
   { id: 'boots1', itemName: 'Botas de Marfil',   price: 100, initialStock: 5 },
   { id: 'sword1', itemName: 'Espada de Acero',   price: 100, initialStock: 5 },
+  { id: 'pick1',  itemName: 'Pico de Hierro',    price: 100, initialStock: 5 },
+  { id: 'axe1',   itemName: 'Hacha de Hierro',   price: 100, initialStock: 5 },
 ];
 
 /** Oro que paga la tienda por unidad al vender (por nombre). Fallback: DEFAULT. */

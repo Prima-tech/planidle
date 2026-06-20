@@ -118,7 +118,16 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Al entrar al runner, volver a la página principal (el toggle se oculta, así que
     // no debe quedarse atascado en la página de skills).
-    this.runModeSub = this.runMode$.subscribe(active => { if (active) this.page = 'main'; });
+    this.runModeSub = this.runMode$.subscribe(active => {
+      if (active) {
+        this.page = 'main';
+      } else {
+        // Al salir del Modo Mundo (volver a la ciudad), cerrar los modales de carrera:
+        // su backdrop (z-index 9999) taparía la ciudad e impediría abrir cualquier menú.
+        this.confirmHomeOpen = false;
+        this.runDeadOpen = false;
+      }
+    });
     // Muerte en el Modo Mundo → modal "Has muerto".
     this.runDeathSub = this.playerBridge.runDeath$.subscribe(() => { this.runDeadOpen = true; });
     this.detailSub = this.skillEquipService.openDetail$.subscribe(() => {
@@ -461,12 +470,19 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Botón "abrir tienda" (minimapa): acceso GLOBAL a la tienda construible real.
+   *  Abre la misma ventana que el edificio, pero SIN marcar windowOpen$ (no se cierra
+   *  al alejarse: la proximidad solo aplica al abrirla desde el edificio/espacio). */
   openShop() {
-    if (this.shopModal.isOpenModal()) {
-      this.shopModal.close();
+    if (this.buildShopModal.isOpenModal()) {
+      this.buildShopModal.close();
     } else {
-      this.closeOtherOnSide('right', this.shopModal);
-      this.shopModal.open(ShopComponent, 'shop');
+      this.closeOtherOnSide('left', this.buildShopModal);
+      this.buildShopModal.open(BuildShopComponent, 'build-shop');
+      if (!this.inventoryModal?.isOpenModal()) {
+        this.openInventory();
+        this.inventoryOpenedByShop = true;
+      }
     }
   }
 
