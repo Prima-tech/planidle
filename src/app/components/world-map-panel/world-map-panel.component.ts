@@ -12,25 +12,6 @@ import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.u
 import { UnlockService } from 'src/app/services/unlock.service';
 import { mapFeatureId } from 'src/app/services/unlock-config';
 
-interface MapPin {
-  id: string;
-  name: string;
-  x: number;
-  y: number;
-}
-
-const MAP_PINS: MapPin[] = [
-  { id: 'hogar', name: 'Asgard', x: 50, y: 15 },
-  { id: '1-1',   name: '1-1',  x: 10, y: 60 },
-  { id: '1-2',   name: '1-2',  x: 22, y: 45 },
-  { id: '1-3',   name: '1-3',  x: 33, y: 65 },
-  { id: '1-4',   name: '1-4',  x: 46, y: 50 },
-  { id: '1-5',   name: '1-5',  x: 57, y: 75 },
-  { id: '1-6',   name: '1-6',  x: 66, y: 58 },
-  { id: '1-7',   name: '1-7',  x: 77, y: 78 },
-  { id: '1-8',   name: '1-8',  x: 88, y: 62 },
-];
-
 const DISPLAY_PX = 48;
 
 // Qué mapas pertenecen a cada planeta (para saber qué personajes están en él).
@@ -60,7 +41,6 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private ngZone        = inject(NgZone);
   private mapSub: Subscription;
 
-  activeTab    = 0;
   currentMapId = '';
   selectedMap: MapConfig | null = null;
   charsOnMap: CharOnMap[] = [];
@@ -74,30 +54,18 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
 
   private planetGame: Phaser.Game | null = null;
 
-  readonly pins = MAP_PINS;
-
   ngOnInit() {
     this.mapSub = this.worldService.currentMap$.subscribe(m => {
       this.currentMapId = m.id;
     });
+    // Única vista del panel = el globo del planeta. Se crea tras el primer ciclo,
+    // cuando #planet-view ya está en el DOM.
+    setTimeout(() => this.createPlanetGame());
   }
 
   ngOnDestroy() {
     this.mapSub?.unsubscribe();
     this.destroyPlanetGame();
-  }
-
-  selectTab(index: number) {
-    if (this.activeTab === index) return;
-    this.activeTab = index;
-    if (index === 2) {
-      this.selectedMap = null;
-      this.charsOnMap  = [];
-      // El contenedor entra al DOM con el *ngIf en este mismo ciclo
-      setTimeout(() => this.createPlanetGame());
-    } else {
-      this.destroyPlanetGame();
-    }
   }
 
   private createPlanetGame() {
@@ -164,10 +132,15 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       }));
   }
 
-  /** Pinchar un mapa de la lista: gira el globo para centrar su pin. */
+  /** Pinchar un mapa de la lista: gira el globo para centrar su pin y deja ese mapa
+   *  SELECCIONADO de forma fija (resaltado estático en la lista), sin alternar. */
   focusPlanetMap(mapId: string) {
     const scene = this.planetGame?.scene.getScene('PlanetViewScene') as PlanetViewScene | undefined;
     scene?.focusMap(mapId, true);
+    if (this.selectedMap?.id !== mapId) {
+      this.selectedMap = MAP_REGISTRY[mapId];
+      this.loadCharsOnMap(mapId);
+    }
   }
 
   private destroyPlanetGame() {

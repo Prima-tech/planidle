@@ -15,8 +15,9 @@ export interface ShopSaleItem {
   id: string;
   entry: LootEntry;     // item que se entrega al comprar
   price: number;        // precio en oro
-  stock: number;        // unidades disponibles
+  stock: number;        // unidades disponibles (ignorado si infinite)
   initialStock: number; // stock con el que arranca (para el reset)
+  infinite: boolean;    // true → stock ilimitado: se puede comprar siempre (solo limita el oro)
 }
 
 const STORAGE_KEY  = 'build_shop';
@@ -93,7 +94,10 @@ export class BuildShopService {
       if (i >= SLOT_COUNT) return;
       const entry = ITEM_CATALOG.find(e => e.name === p.itemName);
       if (entry) {
-        slots[i] = { id: p.id, entry, price: p.price, stock: p.initialStock, initialStock: p.initialStock };
+        // Todos los productos de la tienda son de stock infinito (se compran las veces
+        // que quieras; solo limita el oro). Si algún día hay items de stock limitado,
+        // se añade un campo a PRODUCTS y se pasa aquí.
+        slots[i] = { id: p.id, entry, price: p.price, stock: p.initialStock, initialStock: p.initialStock, infinite: true };
       }
     });
     return slots;
@@ -113,13 +117,14 @@ export class BuildShopService {
   }
 
   canBuy(item: ShopSaleItem): boolean {
-    return item.stock > 0 && this.playerState.snapshot().coins >= item.price;
+    return (item.infinite || item.stock > 0) && this.playerState.snapshot().coins >= item.price;
   }
 
   /** Compra `qty` unidades: -oro jugador, +items al inventario (o al suelo si está
-   *  lleno), -stock, +oro tienda. Items apilables van en una pila de `qty`. */
+   *  lleno), -stock (salvo infinito), +oro tienda. Items apilables van en una pila de `qty`. */
   buy(item: ShopSaleItem, qty = 1): boolean {
-    qty = Math.min(Math.max(1, Math.floor(qty)), item.stock);
+    qty = Math.max(1, Math.floor(qty));
+    if (!item.infinite) qty = Math.min(qty, item.stock);   // limitado: tope por stock
     if (qty < 1) return false;
     const total = item.price * qty;
     if (this.playerState.snapshot().coins < total) return false;
@@ -134,7 +139,7 @@ export class BuildShopService {
         this.inventory.addOrDropToWorld(this.toInventoryItem(item.entry));
       }
     }
-    item.stock -= qty;
+    if (!item.infinite) item.stock -= qty;            // infinito: el stock no baja
     this.gold$.next(this.gold$.value + total);        // la tienda cobra
     this.persist();
     return true;

@@ -1,21 +1,8 @@
 <div class="panel-layout">
 
-  <div class="tabs-bar">
-    <div class="tab" [class.active]="activeTab === 0" (click)="selectTab(0)">
-      <ion-icon name="map-outline"></ion-icon>
-    </div>
-    <div class="tab" [class.active]="activeTab === 1" (click)="selectTab(1)">
-      <ion-icon name="compass-outline"></ion-icon>
-    </div>
-    <div class="tab" [class.active]="activeTab === 2" (click)="selectTab(2)">
-      <ion-icon name="flag-outline"></ion-icon>
-    </div>
-  </div>
-
   <div class="map-area">
-    <div class="map-bg"></div>
 
-    <!-- Info panel -->
+    <!-- Info panel (compartido: se rellena al pulsar un pin del globo) -->
     <div class="map-info-card" *ngIf="selectedMap">
       <div class="info-name">{{ selectedMap.name }}</div>
 <ng-container *ngIf="selectedMap.spawns.length > 0; else noEnemies">
@@ -50,27 +37,23 @@
       </div>
     </div>
 
-    <!-- Tab 1: fondo alternativo -->
-    <div class="map-bg alt-bg" *ngIf="activeTab === 1"></div>
+    <!-- Planeta interactivo (mini-instancia Phaser propia) -->
+    <div class="planet-area" id="planet-view"></div>
 
-    <!-- Tab 2: planeta interactivo (mini-instancia Phaser propia) -->
-    <div class="planet-area" id="planet-view" *ngIf="activeTab === 2"></div>
-
-    <!-- Tab 2: lista de mapas desbloqueados del planeta; pinchar gira el globo -->
-    <div class="planet-map-list" *ngIf="activeTab === 2 && planetMapList.length > 0">
+    <!-- Lista de mapas desbloqueados del planeta; pinchar gira el globo -->
+    <div class="planet-map-list" *ngIf="planetMapList.length > 0">
       <button
         *ngFor="let m of planetMapList"
         class="pml-item"
-        [class.current]="m.current"
+        [class.selected]="selectedMap?.id === m.id"
         (click)="focusPlanetMap(m.id)"
       >
-        <ion-icon [name]="m.id === 'hogar' ? 'home-outline' : 'location-outline'"></ion-icon>
         <span class="pml-name">{{ m.name }}</span>
       </button>
     </div>
 
-    <!-- Tab 2: tarjeta de info del planeta seleccionado -->
-    <div class="map-info-card planet-info-card" *ngIf="activeTab === 2 && selectedPlanet">
+    <!-- Tarjeta de info del planeta seleccionado -->
+    <div class="map-info-card planet-info-card" *ngIf="selectedPlanet">
       <div class="info-name">{{ selectedPlanet.name }}</div>
 
       <div class="info-chars" *ngIf="charsOnPlanet.length > 0">
@@ -86,25 +69,6 @@
       </button>
     </div>
 
-    <!-- Map pins -->
-    <ng-container *ngIf="activeTab === 0">
-      <button
-        *ngFor="let pin of pins"
-        class="map-pin"
-        [class.current]="pin.id === currentMapId"
-        [class.selected]="selectedMap?.id === pin.id"
-        [class.locked]="isMapLocked(pin.id)"
-        [style.left.%]="pin.x"
-        [style.top.%]="pin.y"
-        (click)="selectPin(pin.id)"
-        (dblclick)="teleport(pin.id)"
-      >
-        <div class="pin-marker">
-          <ion-icon [name]="isMapLocked(pin.id) ? 'lock-closed' : (pin.id === 'hogar' ? 'home-outline' : 'location-outline')"></ion-icon>
-        </div>
-        <span class="pin-label">{{ pin.name }}</span>
-      </button>
-    </ng-container>
   </div>
 
 </div>

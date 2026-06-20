@@ -2497,6 +2497,23 @@ export class GameScene extends Phaser.Scene {
       return tiles;
     }
 
+    /** Tiles ocupados por el jugador y los NPCs de ciudad, para impedir construir
+     *  encima de ellos. Ambos colisionan por su CENTRO; bloqueamos su tile de pies y
+     *  el de encima (el cuerpo del sprite LPC es alto y se solaparía con la construcción). */
+    private occupantTiles(): Set<string> {
+      const TS = GameScene.TILE_SIZE;
+      const tiles = new Set<string>();
+      const add = (px: number, py: number) => {
+        const tx = Math.floor(px / TS), ty = Math.floor(py / TS);
+        tiles.add(`${tx},${ty}`);
+        tiles.add(`${tx},${ty - 1}`);
+      };
+      const pos = this.player.getPosition();
+      add(pos.x, pos.y);
+      for (const npc of this.cityNpcs) add(npc.x, npc.y);
+      return tiles;
+    }
+
     /** Centro en px de la construcción cuyo tile-ancla es (tileX, tileY). */
     private buildingCenterPx(tileX: number, tileY: number): { x: number; y: number } {
       const TS = GameScene.TILE_SIZE;
@@ -2757,7 +2774,9 @@ export class GameScene extends Phaser.Scene {
         Math.floor((x - half) / TS) >= 0 && Math.floor((y - half) / TS) >= 0 &&
         Math.floor((x + half - 1) / TS) < this.currentMap.width &&
         Math.floor((y + half - 1) / TS) < this.currentMap.height;
-      const free = tiles.every(k => !this.collisionTiles.has(k));
+      // No dejar construir encima del jugador ni de otros personajes (NPCs de ciudad).
+      const occupants = this.occupantTiles();
+      const free = tiles.every(k => !this.collisionTiles.has(k) && !occupants.has(k));
       bp.valid = inBounds && free;
 
       bp.ghost.setTint(bp.valid ? 0x66ff66 : 0xff5555);

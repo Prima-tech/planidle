@@ -7,16 +7,21 @@
 <!-- ─────────── COMPRAR ─────────── -->
 <ng-container *ngIf="tab === 'buy'">
   <ng-container *ngIf="{ coins: (playerCoins$ | async) ?? 0 } as ctx">
-    <div class="shop-grid">
+    <div class="shop-grid" [class.shop-grid--slider]="itemCount > 6"
+         (pointerdown)="onSliderDown($event)"
+         (pointermove)="onSliderMove($event)"
+         (pointerup)="onSliderUp($event)"
+         (pointercancel)="onSliderUp($event)">
       <ng-container *ngFor="let item of slots">
         <button *ngIf="item" class="shop-card"
                 [class.selected]="selected === item"
-                [class.sold-out]="item.stock <= 0"
+                [class.sold-out]="!item.infinite && item.stock <= 0"
                 (click)="select(item)" [title]="item.entry.name">
           <div class="shop-card-frame">
             <img [src]="item.entry.icon" alt="" draggable="false" />
-            <span class="shop-card-stock" *ngIf="item.stock > 0">x{{ item.stock }}</span>
-            <span class="shop-card-stock shop-card-stock--out" *ngIf="item.stock <= 0">{{ 'BUILD.SOLD_OUT' | translate }}</span>
+            <span class="shop-card-stock" *ngIf="item.infinite">∞</span>
+            <span class="shop-card-stock" *ngIf="!item.infinite && item.stock > 0">x{{ item.stock }}</span>
+            <span class="shop-card-stock shop-card-stock--out" *ngIf="!item.infinite && item.stock <= 0">{{ 'BUILD.SOLD_OUT' | translate }}</span>
           </div>
           <span class="shop-card-price"><span class="coin-mini"></span>{{ item.price }}</span>
         </button>
@@ -31,7 +36,7 @@
       <div class="shop-detail-name">{{ it.entry.name }}</div>
       <div class="shop-detail-desc" *ngIf="it.entry.description">{{ it.entry.description }}</div>
 
-      <div class="shop-qty" *ngIf="stackable(it) && it.stock > 0">
+      <div class="shop-qty" *ngIf="stackable(it) && (it.infinite || it.stock > 0)">
         <button class="shop-qty-btn" (click)="dec()" [disabled]="quantity <= 1">−</button>
         <span class="shop-qty-val">{{ quantity }}</span>
         <button class="shop-qty-btn" (click)="inc(it, ctx.coins)" [disabled]="quantity >= maxQty(it, ctx.coins)">+</button>
@@ -39,8 +44,8 @@
 
       <div class="shop-detail-meta">
         <div class="shop-detail-price"><span class="coin-mini"></span><span>{{ totalPrice(it) }}</span></div>
-        <div class="shop-detail-stock" [class.out]="it.stock <= 0">
-          {{ it.stock > 0 ? ('x' + it.stock) : ('BUILD.SOLD_OUT' | translate) }}
+        <div class="shop-detail-stock" [class.out]="!it.infinite && it.stock <= 0">
+          {{ it.infinite ? '∞' : (it.stock > 0 ? ('x' + it.stock) : ('BUILD.SOLD_OUT' | translate)) }}
         </div>
       </div>
 

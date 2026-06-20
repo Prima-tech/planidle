@@ -43,41 +43,6 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
-// ── Tab bar (botones de madera) ────────────────────────────────────────────
-
-.tabs-bar {
-  width: 44px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.tab {
-  width: 44px;
-  height: 44px;
-  border: 2px solid $outline;
-  border-radius: 5px;
-  background: $wood-btn-dark;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: $text-cream;
-  font-size: 20px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
-  transition: background-color 0.15s, color 0.15s;
-
-  &.active, &:active {
-    background: $wood-btn;
-    color: $text-brown;
-    box-shadow:
-      inset 0 0 0 1px $wood-btn-light,
-      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-  }
-}
-
 // ── Map area (sección interior enmarcada) ──────────────────────────────────
 
 .map-area {
@@ -91,16 +56,6 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   box-shadow:
     0 0 0 2px $outline,
     inset 0 0 0 2px $outline;
-}
-
-.map-bg {
-  position: absolute;
-  inset: 0;
-  background: url('/assets/images/map_background_1.jpg') center / cover no-repeat;
-
-  &.alt-bg {
-    background-image: url('/assets/images/map_background.webp');
-  }
 }
 
 // ── Tarjeta de info del planeta (tab 2) ─────────────────────────────────────
@@ -135,34 +90,34 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   flex-direction: column;
   gap: 4px;
   overflow-y: auto;
-  padding: 4px;
+  padding: 0;                       // sin caja: los items van sueltos sobre el globo
   max-width: 40%;
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid $outline;
-  border-radius: 6px;
 }
 
 .pml-item {
   display: flex;
   align-items: center;
+  justify-content: center;          // texto centrado en la placa
   gap: 6px;
-  padding: 4px 8px;
+  width: 104px;                     // tamaño fijo: todas iguales
+  min-height: 28px;
+  box-sizing: border-box;
+  flex-shrink: 0;                   // no se encogen al haber muchas
+  padding: 4px 10px;
   background: $wood-btn;
   color: $text-brown;
   border: 2px solid;
-  border-color: $wood-btn-light $wood-btn-dark $wood-btn-dark $wood-btn-light;
+  border-color: $metal-light $metal-dark $metal-dark $metal;   // borde metálico
   border-radius: 5px;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
-
-  ion-icon { font-size: 14px; flex-shrink: 0; }
 
   &:hover  { background: $wood-btn-light; }
   &:active { background: $wood-btn-dark; color: $text-cream; }
 
-  &.current {                       // mapa donde está el jugador: acento dorado
+  &.selected {                      // mapa elegido: resaltado estático con acento dorado
     border-color: $gold;
     color: $gold;
     background: $wood-btn-dark;
@@ -317,103 +272,6 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     display: flex;
     align-items: center;
     gap: 4px;
-  }
-}
-
-// ── Map pins ───────────────────────────────────────────────────────────────
-
-.map-pin {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  z-index: 1;
-
-  .pin-marker {
-    width: 34px;
-    height: 34px;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    background: rgba($cell-bg, 0.9);
-    border: 2px solid $stone;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow:
-      0 0 0 1px $outline,
-      0 2px 8px rgba(0, 0, 0, 0.6);
-    transition: background 0.15s, border-color 0.15s;
-
-    ion-icon {
-      transform: rotate(45deg);
-      font-size: 16px;
-      color: $text-cream;
-    }
-  }
-
-  .pin-label {
-    background: rgba($cell-bg, 0.9);
-    color: $text-cream;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
-    border: 1px solid $outline;
-    letter-spacing: 0.3px;
-  }
-
-  &.selected {
-    .pin-marker {
-      background: rgba($purple, 0.95);
-      border-color: $gold;
-      box-shadow:
-        0 0 0 1px $outline,
-        0 0 10px rgba(240, 192, 64, 0.5);
-
-      ion-icon { color: $gold; }
-    }
-
-    .pin-label {
-      color: $gold;
-      border-color: $gold;
-    }
-  }
-
-  &.current {
-    .pin-marker {
-      background: rgba($wood-btn-dark, 0.95);
-      border-color: $gold;
-      box-shadow:
-        0 0 0 1px $outline,
-        0 0 10px rgba(240, 192, 64, 0.6);
-
-      ion-icon { color: $gold; }
-    }
-
-    .pin-label {
-      color: $gold;
-      border-color: $gold;
-    }
-  }
-
-  // Mapa bloqueado: candado apagado y atenuado (no se puede viajar).
-  &.locked {
-    .pin-marker {
-      background: rgba($cell-bg, 0.7);
-      border-color: $stone-dark;
-      ion-icon { color: rgba($text-cream, 0.5); }
-    }
-    .pin-label {
-      color: rgba($text-cream, 0.5);
-      border-color: $stone-dark;
-    }
   }
 }
 

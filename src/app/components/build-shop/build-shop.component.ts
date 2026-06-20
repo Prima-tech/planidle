@@ -30,6 +30,9 @@ export class BuildShopComponent implements OnInit, OnDestroy {
   readonly shopGold$    = this.buildShop.gold$;
   readonly playerCoins$ = this.playerState.coins$;
 
+  /** Nº de items reales en venta (slots no vacíos). Con más de 6 → slider horizontal. */
+  get itemCount(): number { return this.slots.filter(s => !!s).length; }
+
   /** Pestaña activa. */
   tab: 'buy' | 'sell' = 'buy';
 
@@ -37,6 +40,12 @@ export class BuildShopComponent implements OnInit, OnDestroy {
   selected: ShopSaleItem | null = null;
   quantity = 1;
   detailStyle: Record<string, string> = {};
+
+  // Arrastre del slider con ratón (el dedo usa el scroll nativo, ver touch-action).
+  private dragEl: HTMLElement | null = null;
+  private dragStartX = 0;
+  private dragStartScroll = 0;
+  private dragMoved = false;
 
   // ── Vender ───────────────────────────────────────────────────────────────
   readonly SELL_ROWS = this.buildShop.SELL_ROWS;
@@ -79,6 +88,8 @@ export class BuildShopComponent implements OnInit, OnDestroy {
   // ── Comprar ──────────────────────────────────────────────────────────────
 
   select(item: ShopSaleItem): void {
+    // Si el click viene de un arrastre del slider, ignóralo (no selecciones).
+    if (this.dragMoved) { this.dragMoved = false; return; }
     this.selected = this.selected === item ? null : item;
     this.quantity = 1;
     if (this.selected) {
@@ -87,12 +98,39 @@ export class BuildShopComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ── Arrastre del slider (ratón) ────────────────────────────────────────────
+  onSliderDown(e: PointerEvent): void {
+    if (e.pointerType !== 'mouse' || this.itemCount <= 6) return;  // táctil = scroll nativo
+    const el = e.currentTarget as HTMLElement;
+    this.dragEl = el;
+    this.dragStartX = e.clientX;
+    this.dragStartScroll = el.scrollLeft;
+    this.dragMoved = false;
+    el.classList.add('dragging');
+    try { el.setPointerCapture(e.pointerId); } catch { /* no soportado */ }
+  }
+
+  onSliderMove(e: PointerEvent): void {
+    if (!this.dragEl) return;
+    const dx = e.clientX - this.dragStartX;
+    if (Math.abs(dx) > 4) this.dragMoved = true;
+    this.dragEl.scrollLeft = this.dragStartScroll - dx;
+  }
+
+  onSliderUp(e: PointerEvent): void {
+    if (!this.dragEl) return;
+    this.dragEl.classList.remove('dragging');
+    try { this.dragEl.releasePointerCapture(e.pointerId); } catch { /* no soportado */ }
+    this.dragEl = null;
+  }
+
   closeDetail(): void { this.selected = null; }
 
   stackable(item: ShopSaleItem): boolean { return !!item.entry.mergeable; }
 
   maxQty(item: ShopSaleItem, coins: number): number {
-    return Math.max(1, Math.min(item.stock, Math.floor(coins / item.price)));
+    const byCoins = Math.floor(coins / item.price);
+    return Math.max(1, item.infinite ? byCoins : Math.min(item.stock, byCoins));
   }
 
   inc(item: ShopSaleItem, coins: number): void {
@@ -108,13 +146,15 @@ export class BuildShopComponent implements OnInit, OnDestroy {
 
   affordable(item: ShopSaleItem, coins: number): boolean {
     const qty = this.qtyFor(item);
-    return item.stock >= qty && coins >= item.price * qty;
+    return (item.infinite || item.stock >= qty) && coins >= item.price * qty;
   }
 
   buy(): void {
     if (!this.selected) return;
     this.buildShop.buy(this.selected, this.qtyFor(this.selected));
-    this.quantity = Math.max(1, Math.min(this.quantity, this.selected.stock));
+    // En infinitos el stock no baja: no limitamos la cantidad seleccionada por él.
+    const cap = this.selected.infinite ? this.quantity : this.selected.stock;
+    this.quantity = Math.max(1, Math.min(this.quantity, cap));
   }
 
   // ── Vender ───────────────────────────────────────────────────────────────
