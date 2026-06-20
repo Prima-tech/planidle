@@ -11,6 +11,7 @@
 <app-modal-container #shopModal></app-modal-container>
 <app-modal-container #buildModal></app-modal-container>
 <app-modal-container #buildShopModal (closed)="onBuildShopModalClosed()"></app-modal-container>
+<app-modal-container #forgeModal (closed)="onForgeModalClosed()"></app-modal-container>
 
 <!-- Modo Mundo: has muerto → al aceptar, teletransporte a la capital del planeta -->
 <div class="rh-backdrop" *ngIf="runDeadOpen">

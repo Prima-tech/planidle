@@ -283,6 +283,8 @@
     "SELL_GET": "You get:",
     "SELL_HINT": "Drag items from your bag here to sell them.",
     "FORGE": "Forge",
+    "FORGE_TITLE": "Forge",
+    "FORGE_SOON": "Coming soon",
     "SMELTER": "Smelter",
     "ALCHEMY_TABLE": "Alchemy table",
     "ALEMBIC": "Alembic",

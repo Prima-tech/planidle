@@ -26,6 +26,7 @@ import { WorldService } from 'src/app/services/world.service';
 import { CityBuildService } from 'src/app/services/city-build.service';
 import { BuildPanelComponent } from '../build-panel/build-panel.component';
 import { BuildShopComponent } from '../build-shop/build-shop.component';
+import { ForgeComponent } from '../forge/forge.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -47,6 +48,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('shopModal')        shopModal!:        ModalContainerComponent;
   @ViewChild('buildModal')       buildModal!:       ModalContainerComponent;
   @ViewChild('buildShopModal')   buildShopModal!:   ModalContainerComponent;
+  @ViewChild('forgeModal')       forgeModal!:       ModalContainerComponent;
 
   private detailSub:        Subscription;
   private closeSub:         Subscription;
@@ -188,14 +190,18 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       if (active) this.closeAllPanels();
     });
 
-    // Pulsar un edificio con ventana en el mapa (p.ej. la tienda) la abre a la izquierda.
+    // Pulsar un edificio con ventana en el mapa (la tienda, las estaciones de oficio…)
+    // la abre a la izquierda. La tienda tiene su ventana propia; el resto de estaciones
+    // (fragua, fundición…) abren de momento el mismo menú de forja (vacío).
     this.openWindowSub = this.cityBuild.openWindow$.subscribe(type => {
       if (type === 'shop') this.openBuildShop();
+      else                 this.openForge();
     });
 
-    // La escena pide cerrar la ventana del edificio (jugador se alejó de la tienda).
+    // La escena pide cerrar la ventana del edificio (jugador se alejó de la tienda/fragua).
     this.closeWindowSub = this.cityBuild.closeWindow$.subscribe(() => {
       if (this.buildShopModal?.isOpenModal()) this.buildShopModal.close();
+      if (this.forgeModal?.isOpenModal())     this.forgeModal.close();
     });
 
     this.sceneStartingSub = this.playerBridge.sceneStarting$.subscribe(() => {
@@ -258,7 +264,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal],
+      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal],
       right: [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.skillSlotsModal, this.worldMapModal, this.progressModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
@@ -268,7 +274,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeAllPanels() {
     [this.menuModal, this.gameSettingsModal, this.inventoryModal, this.equipmentModal,
      this.summonModal, this.chestModal, this.skillSlotsModal, this.skillDetailModal,
-     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal]
+     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal]
       .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
 
@@ -444,6 +450,22 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.inventoryModal.close();
     }
     this.inventoryOpenedByShop = false;
+  }
+
+  onForgeModalClosed() {
+    this.cityBuild.windowOpen$.next(false);
+  }
+
+  /** Abre el menú de la fragua a la izquierda (vacío de momento). Marca windowOpen$
+   *  para que la escena lo cierre al alejarte de la fragua (igual que la tienda). */
+  openForge() {
+    if (this.forgeModal.isOpenModal()) {
+      this.forgeModal.close();
+    } else {
+      this.closeOtherOnSide('left', this.forgeModal);
+      this.forgeModal.open(ForgeComponent, 'forge');
+      this.cityBuild.windowOpen$.next(true);
+    }
   }
 
   openBuild() {

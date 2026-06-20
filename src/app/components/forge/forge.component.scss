@@ -1,0 +1,48 @@
+/* ===== Tema madera + piedra (pixel-art RPG) — clona build-shop ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$text-cream: #ecd9b4;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: calc(100% - 4px);
+  margin: 2px;
+  padding: 10px 8px 8px;
+  min-width: 220px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.forge-title {
+  font-size: 0.78em;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 0 $outline;
+  margin-bottom: 8px;
+}
+
+.forge-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  font-size: 0.62em;
+  opacity: 0.75;
+  text-shadow: 0 1px 0 $outline;
+}

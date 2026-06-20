@@ -165,7 +165,6 @@ export class GameScene extends Phaser.Scene {
       blocked: string[];
       chestEntry?: ActiveChest;
       isOpenUnsub?: () => void;
-      lit?: boolean;            // fragua: true = encendida (animada), false = apagada
     }[] = [];
     // Estado del modo colocación de construcciones (ghost + botones confirmar/cancelar)
     private buildPlacement: {
@@ -214,6 +213,9 @@ export class GameScene extends Phaser.Scene {
     private cachedNearWindow: typeof this.placedBuildings[0] | null = null;
     private cachedNearNode:   HarvestNode | null = null;
     private cachedNearNpc:    typeof this.cityNpcs[0] | null = null;
+    // true una vez el jugador ha estado cerca de un edificio con ventana abierta:
+    // a partir de ahí, alejarse la cierra (ver bloque de cierre por proximidad).
+    private windowProximityArmed = false;
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
@@ -581,7 +583,8 @@ export class GameScene extends Phaser.Scene {
       // aunque te alejes. Solo se quita al atacar a un enemigo / otra acción (strike).
       if (nearNode) this.setActiveHarvest(nearNode.kind);
       this.reg.interaction?.setContext(
-        nearChest ? 'chest' : nearWindow ? 'shop'
+        nearChest ? 'chest'
+        : nearWindow ? (nearWindow.building.type === 'shop' ? 'shop' : 'forge')
         : nearNode ? HARVEST_KINDS[nearNode.kind].context
         : nearNpc ? 'talk' : 'attack');
 
@@ -605,10 +608,18 @@ export class GameScene extends Phaser.Scene {
         if (!anyNear) this.reg.summon.townChestCloseRequest$.next();
       }
 
-      // Si la ventana de un edificio (tienda) está abierta y el jugador se alejó
-      // del edificio → cerrarla.
-      if (this.reg.cityBuild?.windowOpen$.value && !this.nearestWindowBuilding()) {
-        this.reg.cityBuild.requestCloseWindow();
+      // Ventana de edificio (tienda/fragua) abierta: se cierra al ALEJARTE, pero solo
+      // tras haber estado cerca al menos una vez (windowProximityArmed). Si no, pulsar
+      // el edificio desde lejos lo abriría y el mismo frame lo cerraría (parecía que "no
+      // pasaba nada"): el jugador no se mueve hacia el edificio al pulsarlo.
+      if (this.reg.cityBuild?.windowOpen$.value) {
+        if (this.nearestWindowBuilding()) {
+          this.windowProximityArmed = true;
+        } else if (this.windowProximityArmed) {
+          this.reg.cityBuild.requestCloseWindow();
+        }
+      } else {
+        this.windowProximityArmed = false;   // ventana cerrada → re-armar para la próxima
       }
 
       // Botón de acción: cofre cerca → abrir; tienda cerca → abrir su ventana
@@ -1256,28 +1267,9 @@ export class GameScene extends Phaser.Scene {
           repeat: -1,
         });
       }
-      // La fragua arranca apagada (textura forge_off, sin animKey), pero necesita
-      // su animación de fuego (frames 0-2 de stations) para encenderse al pulsarla.
-      if (!this.anims.exists('station_forge')) {
-        this.anims.create({
-          key: 'station_forge',
-          frames: this.anims.generateFrameNumbers('stations', { frames: [0, 1, 2] }),
-          frameRate: 4,
-          repeat: -1,
-        });
-      }
-      // Hornos detallados: animación de fuego de 12 frames (10 fps, como el GIF origen).
-      // La clave del anim coincide con la spriteKey "encendida" que deriva setForgeLit.
-      for (const f of ['furnace_central', 'furnace_lvl1']) {
-        if (this.textures.exists(f) && !this.anims.exists(f)) {
-          this.anims.create({
-            key: f,
-            frames: this.anims.generateFrameNumbers(f, { start: 0, end: 11 }),
-            frameRate: 10,
-            repeat: -1,
-          });
-        }
-      }
+      // La fragua se muestra siempre apagada (textura furnace_central_off, sin animKey):
+      // se pulsa para abrir su menú, no para encender el fuego. La animación de fuego se
+      // conectará al desarrollar la lógica del menú de la forja.
     }
 
     private registerDropTextures(): void {
@@ -1628,9 +1620,7 @@ export class GameScene extends Phaser.Scene {
         if (this.moveSelecting) { this.handleMoveSelect(pointer); return; }
         // En modo "borrar edificio" el toque selecciona el edificio a borrar.
         if (this.deleteSelecting) { this.handleDeleteSelect(pointer); return; }
-        // Pulsar la fragua la enciende/apaga.
-        if (this.handleForgeTap(pointer)) return;
-        // Pulsar un edificio con ventana propia (p.ej. la tienda) la abre.
+        // Pulsar un edificio con ventana propia (la tienda, la fragua…) la abre.
         if (this.handleBuildingWindowTap(pointer)) return;
         // Un toque en cualquier punto del mapa cierra el diálogo de NPC abierto.
         if (this.reg.dialogue?.isOpen) { this.reg.dialogue.dismiss(); return; }
@@ -2525,10 +2515,11 @@ export class GameScene extends Phaser.Scene {
         sprite.setScale(def.scale);
         sprite.setDepth(2);
         if (def.animKey && this.anims.exists(def.animKey)) sprite.play(def.animKey);
-        // La fragua se pulsa para encender/apagar: la marcamos interactiva para que
-        // los controles móviles (joystick/ataque ocupan media pantalla) ignoren el
-        // toque que cae sobre ella y no disparen un ataque al alternarla.
-        if (def.type === 'forge') {
+        // Los edificios con ventana (fragua, fundición, tienda…) se pulsan para abrir
+        // su menú: los marcamos interactivos para que los controles móviles
+        // (joystick/ataque ocupan media pantalla) ignoren el toque que cae sobre ellos
+        // y no disparen movimiento/ataque al abrir la ventana.
+        if (def.opensWindow) {
           sprite.setInteractive();
           sprite.setData('blockControls', true);
         }
@@ -2610,40 +2601,6 @@ export class GameScene extends Phaser.Scene {
         if (dx * dx + dy * dy <= range * range) return pb;
       }
       return null;
-    }
-
-    /** Si el toque cae sobre una fragua, alterna encendida/apagada. Devuelve true si lo gestionó. */
-    private handleForgeTap(pointer: Phaser.Input.Pointer): boolean {
-      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-      const pb = this.placedBuildings.find(
-        b => b.building.type === 'forge' && b.sprite.getBounds().contains(world.x, world.y),
-      );
-      if (!pb) return false;
-      this.setForgeLit(pb, !pb.lit);
-      return true;
-    }
-
-    /** Cambia el horno/fragua entre encendido (animación de fuego) y apagado
-     *  (textura estática). Las claves se derivan del `def`: la apagada es
-     *  `spriteKey` (…_off) y la encendida es esa misma sin el sufijo `_off`
-     *  (que es también la clave del anim). Así, cambiar de horno = cambiar la
-     *  `spriteKey` en city-build (p.ej. furnace_lvl1_off) sin tocar esto. */
-    private setForgeLit(pb: typeof this.placedBuildings[0], lit: boolean): void {
-      pb.lit = lit;
-      const offKey = this.reg.cityBuild?.def(pb.building.type)?.spriteKey ?? 'forge_off';
-      const litKey = offKey.replace(/_off$/, '');
-      if (lit) {
-        if (this.anims.exists(litKey)) {
-          pb.sprite.play(litKey);
-        } else {
-          // fragua antigua: la hoja encendida es 'stations' + anim 'station_forge'
-          pb.sprite.setTexture('stations', 0);
-          if (this.anims.exists('station_forge')) pb.sprite.play('station_forge');
-        }
-      } else {
-        pb.sprite.stop();
-        pb.sprite.setTexture(offKey, 0);
-      }
     }
 
     /** Si el toque cae sobre un edificio con ventana propia, la abre. Devuelve true si lo gestionó. */

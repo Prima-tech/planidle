@@ -1,7 +1,7 @@
 <button class="attack-btn"
         [class.pressed]="pressed"
         [class.run-mode]="runMode"
-        [class.ctx-chest]="context === 'chest' || context === 'shop' || context === 'mine' || context === 'chop' || context === 'talk'"
+        [class.ctx-chest]="context === 'chest' || context === 'shop' || context === 'forge' || context === 'mine' || context === 'chop' || context === 'talk'"
         (pointerdown)="onPress($event)"
         (pointerup)="onRelease()"
         (pointercancel)="onRelease()"
@@ -12,6 +12,7 @@
   <img *ngIf="!runMode && context === 'attack'" class="attack-btn__icon" src="assets/icon/weapons/icon_32_2_15.png" alt="" draggable="false" />
   <ion-icon *ngIf="!runMode && context === 'chest'" name="cube-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'shop'" name="storefront-outline" class="attack-btn__ctx-icon"></ion-icon>
+  <ion-icon *ngIf="context === 'forge'" name="flame-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'mine'" name="hammer-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'chop'" name="leaf-outline" class="attack-btn__ctx-icon"></ion-icon>
   <ion-icon *ngIf="context === 'talk'" name="chatbubble-ellipses-outline" class="attack-btn__ctx-icon"></ion-icon>

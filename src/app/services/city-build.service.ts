@@ -106,20 +106,21 @@ export const BUILDABLES: BuildableDef[] = [
   },
 
   // ── Estaciones de oficio (decorativas + animadas) ──
-  // Horno detallado (128×208). Arranca apagado (furnace_central_off, sin animKey) y
-  // se enciende al pulsarlo → setForgeLit reproduce el anim 'furnace_central' (12 fr).
+  // Horno detallado (128×208). Siempre apagado (furnace_central_off, sin animKey): se
+  // pulsa para abrir su ventana (menú de la forja), no para encender el fuego.
   // Para usar el otro horno: cambia spriteKey a 'furnace_lvl1_off' (y carga su hoja).
   {
     type: 'forge', name: 'BUILD.FORGE',
     spriteKey: 'furnace_central_off', frame: 0,
     frameSize: 128, scale: 0.8,
     tilesW: 3, tilesH: 3, unique: false,
+    opensWindow: true,
     previewUrl: 'assets/sprites/stations/furnace_central_off.png',
     previewSrc: { x: 0, y: 0, w: 128, h: 224 },
     previewSheet: { w: 128, h: 224 },
     previewScale: +(58 / 224).toFixed(3),
   },
-  station('smelter',          'BUILD.SMELTER',          0, 1),
+  { ...station('smelter', 'BUILD.SMELTER', 0, 1), opensWindow: true },
   station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
   station('alembic',          'BUILD.ALEMBIC',          1, 1),
   station('workbench',        'BUILD.WORKBENCH',        2, 0),

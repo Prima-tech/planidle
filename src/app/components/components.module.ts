@@ -41,6 +41,7 @@ import { ShopComponent } from './shop/shop.component';
 import { BuildPanelComponent } from './build-panel/build-panel.component';
 import { BuildDeleteModalComponent } from './build-delete-modal/build-delete-modal.component';
 import { BuildShopComponent } from './build-shop/build-shop.component';
+import { ForgeComponent } from './forge/forge.component';
 import { MapEntranceModalComponent } from './map-entrance-modal/map-entrance-modal.component';
 import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.component';
 
@@ -83,6 +84,7 @@ import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.
     BuildPanelComponent,
     BuildDeleteModalComponent,
     BuildShopComponent,
+    ForgeComponent,
     MapEntranceModalComponent,
     MapTeleportHintComponent,
   ],
