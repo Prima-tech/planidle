@@ -3,6 +3,7 @@ import { auditTime, BehaviorSubject, filter, merge, skip } from 'rxjs';
 import { StorageService } from './storage.service';
 import { PlayerStateService, PlayerState } from './player-state.service';
 import { InventoryService, InventoryItem } from './inventory.service';
+import { slimItem, hydrateItem } from '../physics/griddrops';
 import { EquipmentService, EquipmentSnapshot, EquipmentLoadouts } from './equipment.service';
 import { GatheringEquipmentService } from './gathering-equipment.service';
 import { GatheringSkillsService, GatheringSkillsSnapshot } from './gathering-skills.service';
@@ -142,6 +143,9 @@ export class SaveService {
     const snapshot: GameSnapshot | null = await this.storage.get(this.snapshotKey());
 
     if (snapshot) {
+      // Rehidrata los items (icono, categoría, stats, descripción…) desde el catálogo
+      // antes de repartir el snapshot: en disco solo se guardó identidad + dinámico.
+      SaveService.mapSnapshotItems(snapshot, hydrateItem);
       this.playerState.setFromProfile(snapshot.playerState);
       this.inventory.restoreFromSnapshot(snapshot.inventory);
       this.equipment.restoreLoadouts(snapshot.equipmentLoadouts, snapshot.equipment ?? null);
@@ -252,7 +256,7 @@ export class SaveService {
 
   private buildSnapshot(): GameSnapshot {
     const now = new Date().toISOString();
-    return {
+    const snapshot: GameSnapshot = {
       playerState:  this.playerState.snapshot(),
       inventory:    this.inventory.getSnapshot(),
       equipment:    this.equipment.getSnapshot(),
@@ -272,6 +276,32 @@ export class SaveService {
       lastSeen:     now,
       lastModified: now,
     };
+    // Persistir/sincronizar solo identidad + estado dinámico de cada item; los datos
+    // estáticos (icono, categoría, stats, descripción…) son del catálogo de la app y
+    // se rehidratan al cargar (ver loadCharacter). Reduce el payload y evita enviarlos.
+    SaveService.mapSnapshotItems(snapshot, slimItem);
+    return snapshot;
+  }
+
+  /** Aplica `fn` a cada item del snapshot esté donde esté: inventario, equipo activo
+   *  y los 3 sets de equipo y de recolección. Muta el snapshot recibido (siempre es
+   *  una copia fresca: recién construida al guardar, recién leída de storage al
+   *  cargar). Se usa para adelgazar (slimItem) al guardar y rehidratar (hydrateItem)
+   *  al cargar. */
+  private static mapSnapshotItems(snapshot: GameSnapshot, fn: (it: InventoryItem) => InventoryItem): void {
+    const inv = snapshot.inventory;
+    if (Array.isArray(inv)) {
+      for (const tab of inv) for (const row of tab) {
+        for (let c = 0; c < row.length; c++) if (row[c]) row[c] = fn(row[c]!);
+      }
+    }
+    const mapSet = (set: Record<string, InventoryItem | null> | null | undefined) => {
+      if (!set) return;
+      for (const k of Object.keys(set)) if (set[k]) set[k] = fn(set[k]!);
+    };
+    mapSet(snapshot.equipment);
+    for (const s of snapshot.equipmentLoadouts?.sets ?? []) mapSet(s);
+    for (const s of snapshot.gatheringLoadouts?.sets ?? []) mapSet(s);
   }
 
   private async saveLocal(): Promise<void> {

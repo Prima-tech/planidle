@@ -50,26 +50,25 @@ const PLANETS: PlanetDef[] = [
   { id: 'vortex',  name: 'Vórtice', kind: 'pixel', style: 'blackhole', base: '#05030a', features: ['#1a1040', '#16275f', '#3a55f0'], cloudAlpha: 0, halo: 0x4a9af8, orbit: 0.97, size: 26, speed: 0.045 },
 ];
 
-// Puntos de interés sobre la superficie (coordenadas de textura 0-512).
-// Se mueven con el scroll del TileSprite: rotan con el planeta.
+// Mapas del planeta Tierra, en ORDEN del polo norte al polo sur. Se pintan como un
+// meridiano fijo (recta vertical por el centro del globo): Asgard arriba (polo
+// norte) y los 1-x descendiendo. No rotan con la textura; ver buildWorldRoute.
 interface SurfacePin {
   name: string;
   mapId: string;
-  tx: number;
-  ty: number;
   color: number;
 }
 
 const TIERRA_PINS: SurfacePin[] = [
-  { name: 'Asgard', mapId: 'hogar', tx: 256, ty: 100, color: 0xf0c040 },
-  { name: '1-1',   mapId: '1-1',   tx: 40,  ty: 200, color: 0x5bc0f8 },
-  { name: '1-2',   mapId: '1-2',   tx: 120, ty: 60,  color: 0x5bc0f8 },
-  { name: '1-3',   mapId: '1-3',   tx: 190, ty: 260, color: 0x5bc0f8 },
-  { name: '1-4',   mapId: '1-4',   tx: 290, ty: 180, color: 0x5bc0f8 },
-  { name: '1-5',   mapId: '1-5',   tx: 350, ty: 330, color: 0x5bc0f8 },
-  { name: '1-6',   mapId: '1-6',   tx: 420, ty: 120, color: 0x5bc0f8 },
-  { name: '1-7',   mapId: '1-7',   tx: 470, ty: 280, color: 0x5bc0f8 },
-  { name: '1-8',   mapId: '1-8',   tx: 80,  ty: 420, color: 0x5bc0f8 },
+  { name: 'Asgard', mapId: 'hogar', color: 0xf0c040 },
+  { name: '1-1',   mapId: '1-1',   color: 0x5bc0f8 },
+  { name: '1-2',   mapId: '1-2',   color: 0x5bc0f8 },
+  { name: '1-3',   mapId: '1-3',   color: 0x5bc0f8 },
+  { name: '1-4',   mapId: '1-4',   color: 0x5bc0f8 },
+  { name: '1-5',   mapId: '1-5',   color: 0x5bc0f8 },
+  { name: '1-6',   mapId: '1-6',   color: 0x5bc0f8 },
+  { name: '1-7',   mapId: '1-7',   color: 0x5bc0f8 },
+  { name: '1-8',   mapId: '1-8',   color: 0x5bc0f8 },
 ];
 
 // El componente Angular registra aquí sus callbacks: abrir la tarjeta de info
@@ -80,6 +79,9 @@ export const PLANET_PIN_TELEPORT_KEY = 'onPinTeleport';
 // doble click → zoom a la vista detalle (Angular solo cierra la tarjeta)
 export const PLANET_SELECT_KEY       = 'onPlanetSelect';
 export const PLANET_ZOOM_KEY         = 'onPlanetZoom';
+// Predicado (mapId → bloqueado) que registra Angular: el globo lo usa para pintar
+// los mapas bloqueados en gris y no extender la ruta hasta ellos.
+export const PLANET_MAP_LOCKED_KEY    = 'isMapLocked';
 
 const DOUBLE_CLICK_MS = 300;
 
@@ -200,7 +202,15 @@ export class PlanetViewScene extends Phaser.Scene {
   private detailCX = 0;
   private detailCY = 0;
   private detailR  = 0;
-  private pinObjs: { pin: SurfacePin; dot: Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text }[] = [];
+  // Pines de la Tierra: viven en coords de textura (tx/ty) y se proyectan cada frame
+  // siguiendo el giro del globo (ver updatePins). Forman un meridiano (misma tx).
+  private pinObjs: {
+    dot: Phaser.GameObjects.Arc;
+    label: Phaser.GameObjects.Text;
+    tx: number; ty: number;
+    locked: boolean;
+  }[] = [];
+  private routeGfx: Phaser.GameObjects.Graphics | null = null;
   private dragging = false;
   private lastX = 0;
   private lastY = 0;
@@ -257,7 +267,7 @@ export class PlanetViewScene extends Phaser.Scene {
   override update(_t: number, delta: number): void {
     if (this.mode === 'detail') {
       this.updateInertia();
-      this.updatePins();
+      this.updatePins();   // los pines y la ruta siguen el giro del globo
     } else if (this.mode === 'system') {
       this.updateOrbits(delta);
     }
@@ -377,13 +387,49 @@ export class PlanetViewScene extends Phaser.Scene {
     this.detailCX = cx;
     this.detailCY = cy;
     this.detailR  = radius;
-    this.pinObjs  = [];
-    if (def.id === 'mundo') {
-      for (const pin of TIERRA_PINS) {
-        const dotR = 5.5 * DPR;
-        const dot = this.add.circle(0, 0, dotR, pin.color, 1).setStrokeStyle(1.5 * DPR, 0x000000, 0.6);
-        // Área de toque generosa. En el espacio local del Arc el centro está
-        // en (radius, radius).
+    // detailC.destroy(true) ya destruyó los pines/ruta previos; soltamos sus refs
+    // (otros planetas no tienen ruta, así que updatePins debe quedar inerte).
+    this.pinObjs = [];
+    this.routeGfx = null;
+    if (def.id === 'mundo') this.buildWorldRoute();
+
+    this.detailC.add(this.buildPlusButton(() => this.goToSystem()));
+  }
+
+  /**
+   * Ruta de mapas de la Tierra: un MERIDIANO sobre la superficie (misma longitud,
+   * latitud del polo norte = Asgard al polo sur = 1-8). Los pines viven en coords de
+   * textura y rotan con el globo; updatePins los proyecta y traza la fina línea
+   * amarilla que une el inicio con los mapas DESBLOQUEADOS. Los bloqueados van en gris.
+   */
+  private buildWorldRoute(): void {
+    if (!this.detailC) return;
+    const lockFn = this.game.registry.get(PLANET_MAP_LOCKED_KEY) as ((id: string) => boolean) | undefined;
+    const isLocked = (id: string) => !!lockFn && lockFn(id);
+
+    // Coords de textura del meridiano: misma tx (columna central, dx=0); ty repartida
+    // del casi-polo norte (dy≈-0.82) al casi-polo sur (dy≈0.82). En reposo
+    // (tilePosition 0) la proyección de updatePins lo deja vertical y centrado.
+    const tx = this.detailR / DPR;
+    const n = TIERRA_PINS.length;
+    const topDy = -0.82, botDy = 0.82;
+    const dotR = 5.5 * DPR;
+
+    this.pinObjs = [];
+    // La línea de ruta se redibuja cada frame (va detrás de los nodos).
+    this.routeGfx = this.add.graphics();
+    this.detailC.add(this.routeGfx);
+
+    TIERRA_PINS.forEach((pin, i) => {
+      const dy = topDy + (botDy - topDy) * (n > 1 ? i / (n - 1) : 0);
+      const ty = this.detailR * (1 + dy) / DPR;
+      const locked = isLocked(pin.mapId);
+
+      const dot = this.add.circle(0, 0, dotR, locked ? 0x6b6357 : pin.color, 1)
+        .setStrokeStyle(1.5 * DPR, 0x000000, 0.6);
+
+      if (!locked) {
+        // Centro local del Arc en (dotR, dotR); área de toque generosa.
         dot.setInteractive(new Phaser.Geom.Circle(dotR, dotR, 16 * DPR), Phaser.Geom.Circle.Contains);
         let lastClick = 0;
         dot.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
@@ -398,48 +444,67 @@ export class PlanetViewScene extends Phaser.Scene {
           }
           lastClick = now;
         });
-        const label = this.add.text(0, 0, pin.name, {
-          fontSize: `${14 * DPR}px`, color: '#ffffff', fontStyle: 'bold',
-          stroke: '#000000', strokeThickness: 4 * DPR,
-        }).setOrigin(0.5, 1);
-        this.detailC.add([dot, label]);
-        this.pinObjs.push({ pin, dot, label });
       }
-      this.updatePins();
-    }
 
-    this.detailC.add(this.buildPlusButton(() => this.goToSystem()));
+      const label = this.add.text(0, 0, pin.name, {
+        fontSize: `${13 * DPR}px`,
+        color: locked ? '#8a8275' : '#ffffff',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 4 * DPR,
+      }).setOrigin(0, 0.5);
+
+      this.detailC!.add([dot, label]);
+      this.pinObjs.push({ dot, label, tx, ty, locked });
+    });
+
+    this.updatePins();
   }
 
-  // Proyecta cada pin desde coordenadas de textura a pantalla siguiendo el
-  // scroll del TileSprite. Fuera de la cara visible se oculta (está "al otro
-  // lado" del planeta); cerca del borde se encoge para simular la curvatura.
+  // Proyecta cada pin desde coords de textura a pantalla siguiendo el scroll del
+  // TileSprite (rota con el globo). Fuera de la cara visible se oculta (está "al otro
+  // lado"); cerca del borde se encoge para simular la curvatura. Redibuja además la
+  // línea amarilla uniendo los nodos consecutivos visibles y desbloqueados.
   private updatePins(): void {
     if (!this.planet || this.pinObjs.length === 0) return;
     const size = this.detailR * 2;
+    const proj: { px: number; py: number; vis: boolean; locked: boolean }[] = [];
+
     for (const o of this.pinObjs) {
-      // wx/wy en px de textura; en pantalla ocupan wx*DPR (tileScale = DPR)
-      const wx = Phaser.Math.Wrap(o.pin.tx - this.planet.tilePositionX, 0, TEX_SIZE) * DPR;
-      const wy = Phaser.Math.Wrap(o.pin.ty - this.planet.tilePositionY, 0, TEX_SIZE) * DPR;
-      if (wx > size || wy > size) {
-        o.dot.setVisible(false);
-        o.label.setVisible(false);
-        continue;
-      }
+      const wx = Phaser.Math.Wrap(o.tx - this.planet.tilePositionX, 0, TEX_SIZE) * DPR;
+      const wy = Phaser.Math.Wrap(o.ty - this.planet.tilePositionY, 0, TEX_SIZE) * DPR;
       const px = this.detailCX - this.detailR + wx;
       const py = this.detailCY - this.detailR + wy;
       const dx = (px - this.detailCX) / this.detailR;
       const dy = (py - this.detailCY) / this.detailR;
       const d2 = dx * dx + dy * dy;
-      if (d2 > 0.92) {
+      const vis = wx <= size && wy <= size && d2 <= 0.92;
+
+      if (vis) {
+        const curve = 0.7 + 0.3 * Math.sqrt(1 - d2);
+        const alpha = (0.55 + 0.45 * (1 - d2)) * (o.locked ? 0.6 : 1);
+        o.dot.setPosition(px, py).setScale(curve).setAlpha(alpha).setVisible(true);
+        o.label.setPosition(px + 8 * DPR, py).setScale(curve).setAlpha(alpha).setVisible(true);
+      } else {
         o.dot.setVisible(false);
         o.label.setVisible(false);
-        continue;
       }
-      const curve = 0.7 + 0.3 * Math.sqrt(1 - d2);
-      const alpha = 0.55 + 0.45 * (1 - d2);
-      o.dot.setPosition(px, py).setScale(curve).setAlpha(alpha).setVisible(true);
-      o.label.setPosition(px, py - 8 * DPR).setScale(curve).setAlpha(alpha).setVisible(true);
+      proj.push({ px, py, vis, locked: o.locked });
+    }
+
+    // Línea amarilla: une nodos consecutivos visibles y desbloqueados (ruta desde
+    // Asgard). El maxGap evita trazar a través del globo cuando la textura envuelve.
+    const g = this.routeGfx;
+    if (g) {
+      g.clear();
+      g.lineStyle(1.5 * DPR, 0xf0c040, 0.9);
+      const maxGap = size * 0.5;
+      for (let i = 0; i < proj.length - 1; i++) {
+        const a = proj[i], b = proj[i + 1];
+        if (!a.vis || !b.vis || a.locked || b.locked) continue;
+        if (Math.abs(a.px - b.px) > maxGap || Math.abs(a.py - b.py) > maxGap) continue;
+        g.lineBetween(a.px, a.py, b.px, b.py);
+      }
     }
   }
 

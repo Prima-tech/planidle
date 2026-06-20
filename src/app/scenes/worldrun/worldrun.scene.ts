@@ -59,6 +59,7 @@ interface RunUnlockPoint {
 }
 const RUN_UNLOCK_POINTS: RunUnlockPoint[] = [
   { distanceM: 100, flag: 'map_1_1', mapId: '1-1', firstEver: true, recruitChar: 'Kugo' },
+  { distanceM: 300, flag: 'map_1_2', mapId: '1-2', firstEver: false },
 ];
 
 // --- Estrellas coleccionables (assets/sprites/resources/world_mode/star/) ---

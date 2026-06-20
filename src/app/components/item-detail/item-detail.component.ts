@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { InventoryItem } from 'src/app/services/inventory.service';
+import { itemDescription } from 'src/app/physics/griddrops';
 import { BAG_SLOTS_BY_NAME } from 'src/app/services/inventory-unlock.service';
 import { PET_MAX_LEVEL, petExpNeeded, petPickupRange } from 'src/app/pnj/pet/pet-config';
 
@@ -29,6 +30,14 @@ export class ItemDetailComponent {
   @Output() equip = new EventEmitter<void>();
   /** Emite al pulsar "Usar" (consumibles). */
   @Output() use = new EventEmitter<void>();
+
+  /** Descripción del item: dato ESTÁTICO del catálogo de la app (no se guarda en el
+   *  save ni se sincroniza). Se resuelve por nombre; fallback al valor guardado para
+   *  items antiguos/mock que no estén en el catálogo. */
+  get description(): string {
+    if (!this.item) return '';
+    return itemDescription(this.item.name) ?? this.item.description ?? '';
+  }
 
   /** Consumible: cualquier item con curación (poción de vida). */
   get consumable(): boolean {

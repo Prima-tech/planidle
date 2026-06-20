@@ -77,8 +77,8 @@
     {{ 'INVENTORY.QUANTITY' | translate }} {{ item.sum }}
   </div>
 
-  <!-- Descripción al fondo del panel -->
-  <p *ngIf="item.description" class="detail-description">{{ item.description }}</p>
+  <!-- Descripción al fondo del panel (estática del catálogo, no del save) -->
+  <p *ngIf="description" class="detail-description">{{ description }}</p>
 
   <!-- Botón equipar: solo en el comparador (sustituye lo equipado por el nuevo) -->
   <button *ngIf="compareWith" class="detail-equip-btn"

@@ -418,6 +418,57 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...PETS_CATALOG,
 ];
 
+const CATALOG_BY_NAME = new Map(ITEM_CATALOG.map(e => [e.name, e]));
+
+/** Descripción (estática) de un item por su nombre, leída del catálogo de la app.
+ *  Las descripciones NO se persisten en el save ni se envían al backend: son datos
+ *  locales del juego, así que se resuelven aquí al mostrarlas (ver app-item-detail). */
+export function itemDescription(name: string): string | undefined {
+  return CATALOG_BY_NAME.get(name)?.description;
+}
+
+// Modelo de persistencia de items: solo se guarda la IDENTIDAD (id, name) y el ESTADO
+// DINÁMICO (apilado, progreso/vínculo de mascota). Todo lo demás (icono, categoría,
+// stats, descripción, ranura, tipo de arma…) son datos ESTÁTICOS del catálogo de la
+// app: no se guardan ni se envían al backend; se rehidratan al cargar (hydrateItem).
+
+/** Versión ligera para persistir: identidad + campos dinámicos. Un item que no está
+ *  en el catálogo (mock/legado) no se puede rehidratar, así que se guarda entero. */
+export function slimItem(item: InventoryItem): InventoryItem {
+  if (!CATALOG_BY_NAME.has(item.name)) return item;
+  const slim: InventoryItem = { id: item.id, name: item.name };
+  if (item.sum           !== undefined) slim.sum           = item.sum;
+  if (item.petLevel      !== undefined) slim.petLevel      = item.petLevel;
+  if (item.petExp        !== undefined) slim.petExp        = item.petExp;
+  if (item.boundCharId   !== undefined) slim.boundCharId   = item.boundCharId;
+  if (item.boundCharName !== undefined) slim.boundCharName = item.boundCharName;
+  return slim;
+}
+
+/** Rehidrata un item guardado con sus campos estáticos del catálogo (por nombre),
+ *  conservando identidad y estado dinámico. Fuera del catálogo: se deja tal cual. */
+export function hydrateItem(item: InventoryItem): InventoryItem {
+  const cat = CATALOG_BY_NAME.get(item.name);
+  if (!cat) return item;
+  return {
+    ...item,
+    category:        cat.category,
+    icon:            cat.icon,
+    iconSheet:       cat.iconSheet,
+    iconFrame:       cat.iconFrame,
+    iconFrameSize:   cat.iconFrameSize,
+    iconFrameCols:   cat.iconFrameCols,
+    iconContentSize: cat.iconContentSize,
+    mergeable:       cat.mergeable,
+    order:           cat.order,
+    description:     cat.description,
+    stats:           cat.stats,
+    inventorySlots:  cat.inventorySlots,
+    petId:           cat.petId,
+    weaponKind:      cat.weaponKind,
+  };
+}
+
 /** Drop activo en el suelo (sprite + datos + función para recogerlo). */
 export interface ActiveDrop {
   sprite: Phaser.Physics.Arcade.Sprite;
