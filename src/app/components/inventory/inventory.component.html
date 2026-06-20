@@ -5,8 +5,8 @@
 <app-item-detail [item]="compareItemData" [panelStyle]="comparePanelStyle"
                  [compareWith]="selectedItemData" (equip)="equipSelected()"></app-item-detail>
 
-<!-- Tabs -->
-<div class="tabs" (click)="$event.stopPropagation()">
+<!-- Tabs (invisibles si solo hay 1 pestaña, pero conservan su espacio) -->
+<div class="tabs" [class.tabs--hidden]="visibleTabCount <= 1" (click)="$event.stopPropagation()">
   <div
     *ngFor="let tab of tabs; let index = index"
     class="tab"

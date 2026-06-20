@@ -238,6 +238,14 @@ export class InventoryComponent implements OnInit, OnDestroy {
     return this.unlock.isTabVisible(tabIndex);
   }
 
+  /** Nº de pestañas visibles (desbloqueadas). Si solo hay 1, la fila de pestañas
+   *  no se muestra (no tiene sentido una única pestaña "I"). */
+  get visibleTabCount(): number {
+    let n = 0;
+    for (let t = 0; t < this.NUMBER_OF_TABS; t++) if (this.unlock.isTabVisible(t)) n++;
+    return n;
+  }
+
   ngAfterViewInit() {
     document.addEventListener('dragover', (event) => event.preventDefault());
   }

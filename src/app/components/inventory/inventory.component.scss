@@ -45,6 +45,12 @@ $purple: #6e4a67;         // celda seleccionada
   flex-shrink: 0;
 }
 
+/* Una sola pestaña: se oculta visualmente pero mantiene su alto/margen
+   (visibility, no display) para no desplazar la rejilla hacia arriba. */
+.tabs--hidden {
+  visibility: hidden;
+}
+
 .tab {
   flex: 1 1 0;
   text-align: center;
