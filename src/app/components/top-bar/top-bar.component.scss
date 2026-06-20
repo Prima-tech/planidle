@@ -418,6 +418,63 @@ $metal-dark: #6b6357;
   padding: 2px 0;
 }
 
+// AFK drops (icono + cantidad/hora)
+.mip-drops {
+  margin-top: 5px;
+}
+
+.mip-drop-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.mip-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.mip-drop-icon {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(58, 44, 32, 0.28);
+  border: 1px solid rgba(58, 44, 32, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mip-drop-sheet {
+  width: 32px;
+  height: 32px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.mip-drop-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.mip-drop-fallback {
+  font-size: 0.7em;
+  font-weight: bold;
+  color: $text-brown;
+}
+
+.mip-drop-rate {
+  font-size: 0.5em;
+  font-weight: bold;
+  color: $text-brown;
+}
+
 // AFK Passives
 .mip-passive {
   display: flex;
@@ -504,6 +561,24 @@ $metal-dark: #6b6357;
   justify-content: center;
 
   ion-icon { font-size: 14px; color: $text-cream; }
+
+  /* Icono de actividad (espada/pico/botas/hacha): pixel-art, encaja en el marco */
+  .avatar-activity-img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+
+  /* Idle (Asgard): el típico "Zzz" de dormido */
+  .avatar-zzz {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11px;
+    font-weight: bold;
+    font-style: italic;
+    letter-spacing: -0.5px;
+    color: $text-cream;
+  }
 }
 
 /* Pastilla flotante del nombre — mismo estilo que .minimap-name */

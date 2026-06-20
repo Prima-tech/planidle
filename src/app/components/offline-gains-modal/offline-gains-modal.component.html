@@ -3,59 +3,102 @@
 
     <div class="afk-header">
       <ion-icon name="time-outline" class="afk-header-icon"></ion-icon>
-      <div>
+      <div class="afk-header-text">
         <div class="afk-title">{{ 'OFFLINE.TITLE' | translate }}</div>
         <div class="afk-subtitle">
-          {{ gains.kind === 'exploring' ? gains.planetName : gains.mapName }} · {{ elapsedText }} {{ 'OFFLINE.AWAY_SUFFIX' | translate }}
+          <span class="afk-chip">{{ activityLabelKey | translate }}</span>
+          <span class="afk-chip">{{ gains.kind === 'exploring' ? gains.planetName : gains.mapName }}</span>
+          <span class="afk-chip">
+            <ion-icon name="hourglass-outline"></ion-icon>
+            {{ elapsedText }}
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- Exploración (Modo Mundo): metros recorridos + mapas desbloqueados -->
-    <ng-container *ngIf="gains.kind === 'exploring'; else combat">
-      <div class="afk-section-label">{{ 'OFFLINE.DISTANCE_TRAVELED' | translate }}</div>
-      <div class="afk-rows">
-        <div class="afk-row">
-          <span class="afk-label">{{ 'OFFLINE.METERS_EXPLORED' | translate }}</span>
-          <span class="afk-value afk-value--exp">+{{ gains.exploreMeters | number }} m</span>
-        </div>
-      </div>
+    <ng-container [ngSwitch]="gains.kind">
 
-      <ng-container *ngIf="gains.unlockedMapNames?.length">
-        <div class="afk-section-label">{{ 'OFFLINE.MAPS_UNLOCKED' | translate }}</div>
+      <!-- Exploración (Modo Mundo): metros recorridos + mapas desbloqueados -->
+      <ng-container *ngSwitchCase="'exploring'">
+        <div class="afk-section-label">{{ 'OFFLINE.DISTANCE_TRAVELED' | translate }}</div>
         <div class="afk-rows">
-          <div class="afk-row" *ngFor="let mapName of gains.unlockedMapNames">
-            <span class="afk-label">{{ mapName }}</span>
-            <ion-icon name="lock-open-outline" class="afk-value afk-value--exp"></ion-icon>
+          <div class="afk-row">
+            <span class="afk-label">{{ 'OFFLINE.METERS_EXPLORED' | translate }}</span>
+            <span class="afk-value afk-value--exp">+{{ gains.exploreMeters | number }} m</span>
+          </div>
+        </div>
+
+        <ng-container *ngIf="gains.unlockedMapNames?.length">
+          <div class="afk-section-label">{{ 'OFFLINE.MAPS_UNLOCKED' | translate }}</div>
+          <div class="afk-rows">
+            <div class="afk-row" *ngFor="let mapName of gains.unlockedMapNames">
+              <span class="afk-label">{{ mapName }}</span>
+              <ion-icon name="lock-open-outline" class="afk-value afk-value--exp"></ion-icon>
+            </div>
+          </div>
+        </ng-container>
+      </ng-container>
+
+      <!-- Recolección (minería / tala): nodos + XP de la skill -->
+      <ng-container *ngSwitchCase="'gathering'">
+        <div class="afk-section-label">{{ 'OFFLINE.GATHERED' | translate }}</div>
+        <div class="afk-rows">
+          <div class="afk-row">
+            <span class="afk-label">{{ (gains.gatherSkill === 'woodcutting' ? 'GATHER_SKILLS.WOODCUTTING' : 'GATHER_SKILLS.MINING') | translate }}</span>
+            <span class="afk-value">{{ gains.gatherNodes | number }}</span>
+          </div>
+          <div class="afk-row">
+            <span class="afk-label">XP</span>
+            <span class="afk-value afk-value--exp">+{{ gains.gatherXp | number }}</span>
           </div>
         </div>
       </ng-container>
+
+      <!-- Combate: kills + monedas/exp -->
+      <ng-container *ngSwitchDefault>
+        <div class="afk-section-label">{{ 'OFFLINE.ENEMIES_KILLED' | translate }}</div>
+
+        <div class="afk-rows">
+          <div class="afk-row" *ngFor="let entry of gains.enemyGains">
+            <span class="afk-label">{{ entry.displayName }}</span>
+            <span class="afk-value">{{ entry.kills | number }}</span>
+          </div>
+        </div>
+
+        <div class="afk-section-label">{{ 'OFFLINE.REWARDS' | translate }}</div>
+
+        <div class="afk-rows">
+          <div class="afk-row">
+            <span class="afk-label">{{ 'OFFLINE.COINS' | translate }}</span>
+            <span class="afk-value afk-value--coins">+{{ gains.coins | number }}</span>
+          </div>
+          <div class="afk-row">
+            <span class="afk-label">{{ 'OFFLINE.EXP' | translate }}</span>
+            <span class="afk-value afk-value--exp">+{{ gains.exp | number }}</span>
+          </div>
+        </div>
+      </ng-container>
+
     </ng-container>
 
-    <!-- Combate: kills + monedas/exp -->
-    <ng-template #combat>
-      <div class="afk-section-label">{{ 'OFFLINE.ENEMIES_KILLED' | translate }}</div>
-
-      <div class="afk-rows">
-        <div class="afk-row" *ngFor="let entry of gains.enemyGains">
-          <span class="afk-label">{{ entry.displayName }}</span>
-          <span class="afk-value">{{ entry.kills | number }}</span>
+    <!-- Botín acumulado (combate o recolección) -->
+    <ng-container *ngIf="gains.itemDrops?.length">
+      <div class="afk-section-label">{{ 'OFFLINE.ITEMS' | translate }}</div>
+      <div class="afk-drops">
+        <div class="afk-drop" *ngFor="let drop of gains.itemDrops">
+          <div class="afk-drop-icon">
+            <div *ngIf="drop.entry.iconSheet != null"
+                 class="afk-drop-sheet"
+                 [style.background-image]="'url(' + drop.entry.iconSheet + ')'"
+                 [style.background-size]="dropSheetBg(drop)"
+                 [style.background-position]="dropSheetPos(drop)"></div>
+            <img *ngIf="drop.entry.icon && drop.entry.iconSheet == null" [src]="drop.entry.icon" class="afk-drop-img">
+            <span *ngIf="!drop.entry.icon && drop.entry.iconSheet == null" class="afk-drop-fallback">{{ drop.entry.name.charAt(0) }}</span>
+          </div>
+          <span class="afk-drop-qty">×{{ drop.qty | number }}</span>
         </div>
       </div>
-
-      <div class="afk-section-label">{{ 'OFFLINE.REWARDS' | translate }}</div>
-
-      <div class="afk-rows">
-        <div class="afk-row">
-          <span class="afk-label">{{ 'OFFLINE.COINS' | translate }}</span>
-          <span class="afk-value afk-value--coins">+{{ gains.coins | number }}</span>
-        </div>
-        <div class="afk-row">
-          <span class="afk-label">{{ 'OFFLINE.EXP' | translate }}</span>
-          <span class="afk-value afk-value--exp">+{{ gains.exp | number }}</span>
-        </div>
-      </div>
-    </ng-template>
+    </ng-container>
 
     <button class="afk-collect-btn" (click)="collect()">{{ 'OFFLINE.COLLECT' | translate }}</button>
 

@@ -31,7 +31,7 @@ export interface LootEntry {
   weaponKind?: 'melee' | 'ranged';  // armas: 'ranged' (bastones) → ataque básico a distancia con proyectil
 }
 
-const EXP_REWARDS: Record<string, number> = {
+export const EXP_REWARDS: Record<string, number> = {
   slime4:          5,  slime4_elite:    25,  slime4_oblivion: 70,
   slime5:          5,  slime5_elite:    25,  slime5_oblivion: 70,
   orc1:          100,  orc1_elite:      75,  orc1_oblivion:   200,
@@ -51,7 +51,7 @@ const COIN = (min: number, max: number): LootEntry => ({
 const COIN_ELITE    = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
 const COIN_OBLIVION = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
 
-const LOOT_TABLES: Record<string, LootEntry[]> = {
+export const LOOT_TABLES: Record<string, LootEntry[]> = {
   slime4: [
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
   ],

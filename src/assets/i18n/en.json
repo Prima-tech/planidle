@@ -257,6 +257,7 @@
     "AFK_PRODUCTION": "AFK production / hour",
     "GOLD": "Gold",
     "XP": "XP",
+    "DROPS": "Loot / hour",
     "NO_ACTIVE_ENEMIES": "No active enemies"
   },
   "SUMMON": {
@@ -298,6 +299,8 @@
     "REWARDS": "Rewards",
     "COINS": "Coins",
     "EXP": "Experience",
+    "ITEMS": "Loot",
+    "GATHERED": "Gathered",
     "DISTANCE_TRAVELED": "Distance traveled",
     "METERS_EXPLORED": "Meters explored",
     "MAPS_UNLOCKED": "Maps unlocked",

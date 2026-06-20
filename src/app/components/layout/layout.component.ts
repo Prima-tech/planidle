@@ -13,13 +13,13 @@ import { MapService } from 'src/app/services/map.service';
 import { SceneManager } from 'src/app/scenes/scene-manager';
 import { AsgardService } from 'src/app/services/asgard';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
-import { InventoryService } from 'src/app/services/inventory.service';
+import { InventoryService, InventoryItem } from 'src/app/services/inventory.service';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { SaveService } from 'src/app/services/save.service';
 import { KillService } from 'src/app/services/kill.service';
 import { MapStatsService } from 'src/app/services/map-stats.service';
-import { OfflineGains } from 'src/app/services/offline-gains.service';
+import { OfflineGains, AfkItemGain } from 'src/app/services/offline-gains.service';
 import { REGISTRY_KEYS } from 'src/app/scenes/game-registry';
 import { CharacterStatsService } from 'src/app/services/character-stats.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
@@ -289,12 +289,55 @@ export class LayoutComponent implements OnDestroy {
       for (const flag of gains.unlockedFlags ?? []) {
         this.unlockService.setFlag(flag, 'char');
       }
+    } else if (gains.kind === 'gathering') {
+      // Recolección AFK: XP de la skill (minería/tala) por los nodos acumulados.
+      if (gains.gatherSkill) {
+        this.gatheringSkillsService.addBulk(gains.gatherSkill, gains.gatherXp ?? 0, gains.gatherNodes ?? 0);
+      }
     } else {
       this.playerStateService.collectCoins(gains.coins);
       this.playerStateService.addExp(gains.exp);
     }
+
+    // Botín real acumulado (combate o recolección): se mete al inventario (lo apilable
+    // como una pila; lo que no quepa se descarta, como un drop que no se recoge).
+    for (const drop of gains.itemDrops ?? []) {
+      const e = drop.entry;
+      if (e.mergeable) {
+        this.inventoryService.addDroppedItem(this.buildOfflineItem(e, drop.qty));
+      } else {
+        for (let i = 0; i < drop.qty; i++) {
+          this.inventoryService.addDroppedItem(this.buildOfflineItem(e, 1));
+        }
+      }
+    }
+
     this.pendingGains = null;
     this.saveService.pendingGains$.next(null);
+  }
+
+  /** Construye un InventoryItem a partir de una entrada de loot (botín AFK). Apilables
+   *  llevan `sum`; el resto un item por unidad. Mismos campos que un drop recogido. */
+  private buildOfflineItem(e: AfkItemGain['entry'], qty: number): InventoryItem {
+    return {
+      id: `afk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: e.name,
+      category: e.category,
+      icon: e.icon,
+      iconSheet: e.iconSheet,
+      iconFrame: e.iconFrame,
+      iconFrameSize: e.iconFrameSize,
+      iconFrameCols: e.iconFrameCols,
+      iconContentSize: e.iconContentSize,
+      mergeable: e.mergeable,
+      sum: e.mergeable ? qty : undefined,
+      order: e.order,
+      description: e.description,
+      stats: e.stats,
+      inventorySlots: e.inventorySlots,
+      petId: e.petId,
+      weaponKind: e.weaponKind,
+    };
   }
 
   test() {

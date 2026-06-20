@@ -9,11 +9,13 @@ import { expNeeded, MAX_LEVEL, PlayerStateService } from 'src/app/services/playe
 import { WorldService } from 'src/app/services/world.service';
 import { MapStatsService } from 'src/app/services/map-stats.service';
 import { AfkBonusService, AFK_PASSIVE_REGISTRY, AfkPassiveDef } from 'src/app/services/afk-bonus.service';
-import { OfflineGainsService } from 'src/app/services/offline-gains.service';
+import { OfflineGainsService, AfkDropRate } from 'src/app/services/offline-gains.service';
+import { sheetPos, sheetBgSize } from 'src/app/utils/item-icon.util';
 import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY, planetNameForMap } from 'src/app/scenes/gamescene/map-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { ActivityService, ActivityKind } from 'src/app/services/activity.service';
+import { CharacterStatsService } from 'src/app/services/character-stats.service';
 
 export interface MapPanelData {
   mapId: string;
@@ -26,6 +28,7 @@ export interface MapPanelData {
   oblivionProgress: number;
   coinsPerHour: number;
   expPerHour: number;
+  drops: AfkDropRate[];
   afkPassives: (AfkPassiveDef & { unlocked: boolean })[];
 }
 
@@ -47,6 +50,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private storage      = inject(StorageService);
   private unlocks      = inject(UnlockService);
   private activity     = inject(ActivityService);
+  private charStats    = inject(CharacterStatsService);
 
   valueHP$: any = null;
   valueMP$: any = null;
@@ -64,6 +68,8 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.worldService.currentMap$,
     this.mapStats.sessionKills$,
     this._unlockTrigger$,
+    // damage$ se reemite al cambiar equipo/talentos/stats → refresca las tasas AFK.
+    this.charStats.damage$,
   ]).pipe(
     map(([mapConfig, sessionKills]) => {
       const mapId = mapConfig.id;
@@ -86,6 +92,8 @@ export class TopBarComponent implements OnInit, OnDestroy {
 
       const enemyType = MAP_REGISTRY[mapId]?.spawns?.[0]?.enemyType ?? null;
 
+      const rates = this.offlineGains.afkRates(mapId);
+
       return {
         mapId,
         enemyType,
@@ -95,8 +103,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
         eliteKillsCurrent,
         eliteProgress,
         oblivionProgress,
-        coinsPerHour: this.offlineGains.coinsPerHour(mapId),
-        expPerHour:   this.offlineGains.expPerHour(mapId),
+        coinsPerHour: rates?.coinsPerHour ?? 0,
+        expPerHour:   rates?.expPerHour ?? 0,
+        drops:        rates?.drops ?? [],
         afkPassives: AFK_PASSIVE_REGISTRY.map(p => ({
           ...p,
           unlocked: this.afkBonus.isUnlocked(p.id),
@@ -174,6 +183,14 @@ export class TopBarComponent implements OnInit, OnDestroy {
   spriteStyle(enemyType: string) { return enemySpriteStyle(enemyType, 32); }
   spriteClass(enemyType: string) { return enemySpriteClass(enemyType); }
 
+  // Iconos de drops: recorte del spritesheet (poción usa icons1) o PNG suelto.
+  dropSheetPos(d: AfkDropRate) { return sheetPos(d.entry.iconFrame, d.entry.iconFrameCols, d.entry.iconFrameSize, d.entry.iconContentSize); }
+  dropSheetBg(d: AfkDropRate)  { return sheetBgSize(d.entry.iconFrameCols, d.entry.iconFrameSize, d.entry.iconContentSize); }
+  /** Cantidad/hora redondeada para mostrar (1 decimal si <10). */
+  dropPerHour(d: AfkDropRate): string {
+    return d.perHour >= 10 ? Math.round(d.perHour).toString() : d.perHour.toFixed(1);
+  }
+
   async unlockPassive(passive: AfkPassiveDef & { unlocked: boolean }): Promise<void> {
     if (passive.unlocked) return;
     const coins = this.playerState.snapshot().coins;
@@ -188,6 +205,15 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private buffSub: Subscription;
   private unlockSub: Subscription;
   private tickInterval: any;
+
+  // Avatar de la barra de vida: icono de lo que estoy haciendo ahora mismo
+  // (espada/pico/botas/hacha). null = idle (p.ej. en Asgard) → el template pinta "Zzz".
+  activityIcon: string | null = null;
+
+  /** Actualiza el icono del avatar según la actividad actual del personaje. */
+  private refreshActivityIcon(): void {
+    this.activityIcon = this.activity.def(this.activity.current).iconImg ?? null;
+  }
 
   // Cooldown de la poción auto-equipada, mostrado junto a los buffos
   potionCdActive = false;
@@ -223,6 +249,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
     );
 
     this.initStatusBar = true;
+    this.refreshActivityIcon();
 
     // Conteo inicial + recálculo cuando se desbloquea/bloquea algún personaje.
     this.refreshCharCount();
@@ -243,6 +270,8 @@ export class TopBarComponent implements OnInit, OnDestroy {
       this.potionCdRatio   = this.playerBridge.autoPotionReadyRatio;
       this.potionCdSeconds = this.playerBridge.autoPotionCooldownSeconds;
       this.potionCdIcon    = this.playerBridge.autoPotionItem?.icon ?? null;
+
+      this.refreshActivityIcon();
     }, 100);
   }
 

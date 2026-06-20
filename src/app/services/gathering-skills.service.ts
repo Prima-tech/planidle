@@ -96,6 +96,17 @@ export class GatheringSkillsService {
     this.changes$.next();
   }
 
+  /** Suma XP de VARIOS nodos a la vez (ganancias AFK offline): una sola emisión. */
+  addBulk(skill: GatheringSkillId, xp: number, nodes: number): void {
+    if (xp <= 0 && nodes <= 0) return;
+    const s = this.state[skill];
+    s.xp += xp;
+    s.gathered += nodes;
+    this.skills$.next({ ...this.state });
+    if (xp > 0) this.gained$.next({ skill, xp });
+    this.changes$.next();
+  }
+
   // --- Ciclo de vida (SaveService) ---
 
   restoreFromSnapshot(snap: GatheringSkillsSnapshot | null): void {

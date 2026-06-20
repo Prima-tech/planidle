@@ -257,6 +257,7 @@
     "AFK_PRODUCTION": "Producción AFK / hora",
     "GOLD": "Oro",
     "XP": "XP",
+    "DROPS": "Botín / hora",
     "NO_ACTIVE_ENEMIES": "Sin enemigos activos"
   },
   "SUMMON": {
@@ -298,6 +299,8 @@
     "REWARDS": "Recompensas",
     "COINS": "Monedas",
     "EXP": "Experiencia",
+    "ITEMS": "Botín",
+    "GATHERED": "Recolectado",
     "DISTANCE_TRAVELED": "Distancia recorrida",
     "METERS_EXPLORED": "Metros explorados",
     "MAPS_UNLOCKED": "Mapas desbloqueados",

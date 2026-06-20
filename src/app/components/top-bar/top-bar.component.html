@@ -30,7 +30,8 @@
         <div class="char-panel">
           <div class="avatar-col">
             <div class="avatar-icon">
-              <ion-icon name="person-outline"></ion-icon>
+              <img *ngIf="activityIcon" [src]="activityIcon" class="avatar-activity-img" alt="">
+              <span *ngIf="!activityIcon" class="avatar-zzz">Zzz</span>
             </div>
           </div>
 
@@ -106,6 +107,25 @@
             </div>
           </div>
           <div class="mip-no-spawn" *ngIf="d.coinsPerHour === 0">{{ 'MAP.NO_ACTIVE_ENEMIES' | translate }}</div>
+
+          <!-- Drops AFK estimados (icono + cantidad/hora) -->
+          <div class="mip-drops" *ngIf="d.drops.length > 0">
+            <div class="mip-rates-title">{{ 'MAP.DROPS' | translate }}</div>
+            <div class="mip-drop-grid">
+              <div class="mip-drop" *ngFor="let drop of d.drops">
+                <div class="mip-drop-icon">
+                  <div *ngIf="drop.entry.iconSheet != null"
+                       class="mip-drop-sheet"
+                       [style.background-image]="'url(' + drop.entry.iconSheet + ')'"
+                       [style.background-size]="dropSheetBg(drop)"
+                       [style.background-position]="dropSheetPos(drop)"></div>
+                  <img *ngIf="drop.entry.icon && drop.entry.iconSheet == null" [src]="drop.entry.icon" class="mip-drop-img">
+                  <span *ngIf="!drop.entry.icon && drop.entry.iconSheet == null" class="mip-drop-fallback">{{ drop.entry.name.charAt(0) }}</span>
+                </div>
+                <span class="mip-drop-rate">{{ dropPerHour(drop) }}/h</span>
+              </div>
+            </div>
+          </div>
 
         </ng-container>
       </div>

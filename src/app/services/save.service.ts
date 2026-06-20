@@ -62,7 +62,9 @@ export interface GameSnapshot {
   lastModified: string;
 }
 
-const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, stars: 0, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0 };
+// Oro inicial de un personaje nuevo o tras "Borrar todo".
+const STARTING_COINS = 500;
+const EMPTY_STATE: PlayerState = { coins: STARTING_COINS, specialCoins: 0, stars: 0, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0 };
 
 @Injectable({ providedIn: 'root' })
 export class SaveService {
@@ -99,7 +101,10 @@ export class SaveService {
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
-    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.gathering.changes$, this.gatheringSkills.changes$, this.talent.changes$, this.skillEquip.changes$)
+    // activity.current$ incluido: minar/talar/explorar cambia la actividad SIN tocar
+    // playerState/inventory hasta destruir el nodo, así que sin esto el snapshot podía
+    // quedarse con el 'killing' anterior y las ganancias AFK salían como combate.
+    merge(this.playerState.state$, this.inventory.changes$, this.equipment.changes$, this.gathering.changes$, this.gatheringSkills.changes$, this.talent.changes$, this.skillEquip.changes$, this.activity.current$)
       .pipe(
         skip(1),
         filter(() => !this.isRestoring),

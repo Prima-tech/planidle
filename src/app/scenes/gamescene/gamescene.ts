@@ -11,8 +11,7 @@ import { bodySpriteFor } from "src/app/pnj/player/body-config";
 import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
-import { InteractionContext } from "src/app/services/interaction.service";
-import { GatheringSkillId } from "src/app/services/gathering-skills.service";
+import { HarvestKind, HarvestKindId, HARVEST_KINDS } from "./harvest-config";
 import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
@@ -88,44 +87,6 @@ interface ActiveChest {
 }
 
 // Recolección de recursos del mapa (rocas con pico, árboles con hacha…).
-type HarvestKindId = 'rock' | 'tree';
-
-interface HarvestKind {
-  texture: string;            // textura precargada del recurso
-  toolCategory: string;       // categoría del item-herramienta requerido
-  toolSlotId: string;         // slot de GatheringEquipment + slot de la capa LPC
-  context: InteractionContext;// contexto del botón de acción ('mine' | 'chop')
-  footprintW: number;         // ancho de la huella en tiles (colisión)
-  footprintH: number;         // alto de la huella en tiles (colisión)
-  scale: number;              // escala visual del sprite
-  offsetY: number;            // ajuste vertical (px) para asentar la base en la huella
-  count: number;              // cuántos generar por mapa
-  debris: number[];           // colores de los escombros al golpear
-  skill: GatheringSkillId;    // skill de recolección que progresa
-  xp: number;                 // XP otorgada al recolectar (destruir) el nodo
-  // Recurso soltado al destruir el nodo (nombre en ITEM_CATALOG). A futuro la
-  // cantidad/probabilidad la escalarán talentos y variables de la skill.
-  drop?: { name: string; min: number; max: number };
-}
-
-// Config por tipo de recurso. Añadir aquí nuevos recolectables (caña→peces, etc.).
-const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
-  rock: {
-    texture: 'rock_mine', toolCategory: 'Pico', toolSlotId: 'pickaxe', context: 'mine',
-    footprintW: 2, footprintH: 2, scale: 3, offsetY: 0, count: 3,
-    debris: [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080],
-    skill: 'mining', xp: 1,   // XP base por piedra (1 tipo por ahora); modificadores futuros la escalan
-    drop: { name: 'Piedra Molida', min: 1, max: 1 },   // suelta 1 piedra molida al minar
-  },
-  tree: {
-    texture: 'tree_chop', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',
-    footprintW: 2, footprintH: 2, scale: 3.2, offsetY: 80, count: 3,
-    debris: [0x6b4a2b, 0x8a5a2b, 0x4e7a32, 0x3c6b28],   // madera + hojas
-    skill: 'woodcutting', xp: 1,   // XP base por árbol; modificadores futuros la escalan
-    drop: { name: 'Madera', min: 1, max: 1 },   // suelta 1 madera al talar
-  },
-};
-
 /** NPCs fijos de la ciudad (Asgard): personajes decorativos quietos (idle mirando
  *  abajo). `name` = nombre en body-config (bodySpriteFor) para cargar su hoja;
  *  `texKey` = clave de textura propia. Añadir uno = una línea más aquí. */
@@ -460,8 +421,15 @@ export class GameScene extends Phaser.Scene {
 
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
-      // Actividad AFK: mapa con enemigos = matando; sin enemigos (hogar/ciudad) = idle.
-      this.reg.activity?.set((this.currentMapConfig.spawns?.length ?? 0) > 0 ? 'killing' : 'idle');
+      // Actividad AFK: si el personaje quedó recolectando (mining/chopping), conservamos
+      // esa actividad — loadCharacter la restauró del snapshot y seguía minando/talando
+      // cuando se desconectó, no peleando (vuelve a 'killing' al atacar un enemigo). Los
+      // portales limpian el mining/chopping colgado, así que aquí solo sobrevive tras un
+      // reload. En cualquier otro caso manda el mapa: con enemigos = matando, sin = idle.
+      const resumed = this.reg.activity?.current;
+      if (resumed !== 'mining' && resumed !== 'chopping') {
+        this.reg.activity?.set((this.currentMapConfig.spawns?.length ?? 0) > 0 ? 'killing' : 'idle');
+      }
 
       // Inmediato: lo mínimo para que el primer frame sea válido
       this.initMap();
@@ -918,6 +886,17 @@ export class GameScene extends Phaser.Scene {
     private setActiveHarvest(kind: HarvestKindId | null): void {
       if (kind === this.activeHarvest) return;
       this.activeHarvest = kind;
+      // La actividad AFK sigue el MODO recolección, no cada golpe suelto: con la
+      // herramienta en mano (kind) estás minando/talando, y se mantiene estable entre
+      // golpes; al soltarla (atacar a un enemigo / alejarte tras strike) vuelves a
+      // pelear (mapa con enemigos) o a idle. Antes se fijaba por cada strike, así que
+      // en un mapa de minado CON enemigos un golpe al aire/slime la volvía a 'killing'
+      // y el snapshot guardaba combate aunque siguieras minando.
+      if (kind) {
+        this.reg.activity?.set(HARVEST_KINDS[kind].skill === 'woodcutting' ? 'chopping' : 'mining');
+      } else {
+        this.reg.activity?.set((this.currentMapConfig.spawns?.length ?? 0) > 0 ? 'killing' : 'idle');
+      }
       this.refreshHeldLayer();
     }
 
@@ -1370,6 +1349,11 @@ export class GameScene extends Phaser.Scene {
               return;
             }
             this.reg.world.setCurrentMap(p.config.targetMapId);
+            // Cruzar un portal rompe la recolección: limpiamos cualquier mining/chopping
+            // colgado para que no se cuele al mapa destino (create() lo conservaría). El
+            // nuevo mapa fija su actividad (killing/idle) en create().
+            const act = this.reg.activity?.current;
+            if (act === 'mining' || act === 'chopping') this.reg.activity?.set('idle');
             this.scene.restart();
           });
           break;
@@ -1833,7 +1817,9 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       // Ataque normal (enemigo / al aire): es "otra acción" → guarda la herramienta y
-      // vuelve a mostrar el arma.
+      // vuelve a mostrar el arma. setActiveHarvest(null) ya devuelve la actividad a
+      // 'killing' (mapa con enemigos) o 'idle', así que tras minar/talar el avatar de
+      // la barra vuelve a la espada sin fijar la actividad aquí a mano.
       this.setActiveHarvest(null);
       if (this.rangedWeapon) { this.rangedStrike(); return; }
       this.player.playerAttack();

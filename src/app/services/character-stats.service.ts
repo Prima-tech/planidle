@@ -277,6 +277,7 @@ export class CharacterStatsService {
     return { base, equipment, talents, total: base + equipment + talents };
   }
 
+  get currentDamage():       number { return this._calcDamage().total; }
   // DEX → defensa/evasión: los primeros 10 puntos no cuentan, cada 10 adicionales = +1 def / +1%
   get currentDefense():      number { return this._calcDefense().total; }
   get currentEvasion():      number { return this._calcEvasion().total; }

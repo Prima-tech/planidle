@@ -15,16 +15,24 @@ export type ActivityKind = 'idle' | 'killing' | 'exploring' | 'mining' | 'choppi
 export interface ActivityDef {
   kind: ActivityKind;
   labelKey: string;   // clave i18n (ACTIVITY.*)
-  icon: string;       // ion-icon
+  icon: string;       // ion-icon (ficha del roster)
   color: string;      // tinte del icono en la ficha del roster
+  iconImg?: string;   // PNG para el avatar de la barra de vida (espada/pico/botas/hacha)
 }
+
+// Iconos del avatar de la barra de vida: reusan el arte de equipo/herramientas del
+// juego (Ionicons no trae espada/pico/hacha). idle no tiene → cae al person-outline.
+const SWORD_ICON = 'assets/sprites/player/equip/weapons/swords/icons/sword_01_icon.png';
+const PICK_ICON  = 'assets/sprites/player/equip/tools/picks/icons/pick_01_icon.png';
+const AXE_ICON   = 'assets/sprites/player/equip/tools/axes/icons/axe_01_icon.png';
+const BOOTS_ICON = 'assets/sprites/player/equip/foot/icons/foot_01_icon.png';
 
 export const ACTIVITY_REGISTRY: Record<ActivityKind, ActivityDef> = {
   idle:      { kind: 'idle',      labelKey: 'ACTIVITY.IDLE',      icon: 'bed-outline',    color: '#9aa6b2' },
-  killing:   { kind: 'killing',   labelKey: 'ACTIVITY.KILLING',   icon: 'skull-outline',  color: '#e0584e' },
-  exploring: { kind: 'exploring', labelKey: 'ACTIVITY.EXPLORING', icon: 'walk-outline',   color: '#4ea1e0' },
-  mining:    { kind: 'mining',    labelKey: 'ACTIVITY.MINING',    icon: 'hammer-outline', color: '#c9a227' },
-  chopping:  { kind: 'chopping',  labelKey: 'ACTIVITY.CHOPPING',  icon: 'leaf-outline',   color: '#5bb24a' },
+  killing:   { kind: 'killing',   labelKey: 'ACTIVITY.KILLING',   icon: 'skull-outline',  color: '#e0584e', iconImg: SWORD_ICON },
+  exploring: { kind: 'exploring', labelKey: 'ACTIVITY.EXPLORING', icon: 'walk-outline',   color: '#4ea1e0', iconImg: BOOTS_ICON },
+  mining:    { kind: 'mining',    labelKey: 'ACTIVITY.MINING',    icon: 'hammer-outline', color: '#c9a227', iconImg: PICK_ICON  },
+  chopping:  { kind: 'chopping',  labelKey: 'ACTIVITY.CHOPPING',  icon: 'leaf-outline',   color: '#5bb24a', iconImg: AXE_ICON   },
 };
 
 /**

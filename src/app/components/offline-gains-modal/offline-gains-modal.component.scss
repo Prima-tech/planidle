@@ -7,8 +7,9 @@ $wood-bg: #a86f3e;        // madera del panel
 $wood-bg-dark: #935f34;   // madera oscura
 $wood-btn: #c08349;       // madera de botones/placas
 $wood-btn-light: #d99a5c;
-$wood-btn-dark: #8a5530;
-$cell-bg: #38241d;        // interior de celdas
+$wood-btn-dark: #8a5530;  // cara de agrupaciones/ventanas flotantes
+$cell-bg: #38241d;        // interior de celdas (oscuro)
+$cell-bg-light: #8a5e3c;  // interior de casillas marrón claro (estándar de celdas)
 $cell-border: #21130e;
 $grid-bg: #4a3023;        // fondo del área de grid
 $text-brown: #53301c;     // texto sobre madera clara
@@ -16,6 +17,9 @@ $text-cream: #ecd9b4;     // texto sobre fondos oscuros
 $purple: #6e4a67;         // selección
 $gold: #f0c040;           // monedas / oro
 $green: #7ec96a;          // ganancias
+$metal-light: #cfc7b8;    // bisel metálico iluminado
+$metal: #9b9285;          // bisel metálico base
+$metal-dark: #6b6357;     // bisel metálico en sombra
 
 .afk-backdrop {
   position: fixed;
@@ -38,8 +42,9 @@ $green: #7ec96a;          // ganancias
   to   { transform: translateY(0);    opacity: 1; }
 }
 
+/* ── Panel principal: marco de piedra biselado + madera con vetas (receta 1) ── */
 .afk-panel {
-  width: 280px;
+  width: 290px;
   color: $text-cream;
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
@@ -55,100 +60,257 @@ $green: #7ec96a;          // ganancias
   padding: 14px 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
   margin-top: -50px;
 }
 
+/* ── Cabecera: insignia metálica + título serif + chip de actividad ── */
 .afk-header {
   display: flex;
   align-items: center;
   gap: 10px;
   padding-bottom: 10px;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.18);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.22);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .afk-header-icon {
-  font-size: 20px;
-  color: $text-brown;
   flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  color: #3a342c;
+  background: linear-gradient(180deg, $metal-light 0%, $metal 55%, $metal-dark 100%);
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.afk-header-text {
+  min-width: 0;
+  flex: 1;
 }
 
 .afk-title {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.85em;
+  font-size: 0.88em;
   font-weight: 700;
   color: $text-brown;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .afk-subtitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
   font-size: 0.62em;
   color: #6b4226;
   letter-spacing: 0.03em;
-  margin-top: 2px;
+  margin-top: 4px;
+}
+
+/* Chips de la cabecera (actividad / mapa / tiempo): misma placa de madera clara */
+.afk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  color: #2e1a0f;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+
+  ion-icon {
+    font-size: 1em;
+    color: #2e1a0f;
+  }
 }
 
 .afk-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.58em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   font-weight: 700;
   color: #6b4226;
+  margin-top: 1px;
+
+  &::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: $wood-btn-dark;
+    border: 1px solid $outline;
+    transform: rotate(45deg);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
 }
 
+/* ── Agrupación de filas: marco metálico + cara de madera oscura (receta 2) ── */
 .afk-rows {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 3px 10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
 }
 
 .afk-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: $cell-bg;
-  border: 2px solid $outline;
-  border-radius: 5px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   padding: 6px 10px;
+
+  & + & {
+    border-top: 1px solid rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.06);
+  }
 }
 
 .afk-label {
   font-size: 0.7em;
-  color: rgba($text-cream, 0.6);
+  color: rgba($text-cream, 0.74);
 }
 
 .afk-value {
-  font-size: 0.8em;
+  font-size: 0.82em;
   font-weight: bold;
   color: $text-cream;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
 
   &--coins { color: $gold; }
   &--exp   { color: $green; }
 }
 
+/* ── Botín acumulado: agrupación metálica + celdas biseladas (recetas 2 + 3) ── */
+.afk-drops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+.afk-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.afk-drop-icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $cell-bg-light;
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.afk-drop-sheet {
+  width: 32px;
+  height: 32px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.afk-drop-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.afk-drop-fallback {
+  font-size: 1em;
+  font-weight: bold;
+  color: #fceeb8;
+}
+
+.afk-drop-qty {
+  font-size: 0.6em;
+  font-weight: bold;
+  color: $gold;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Botón recoger: madera + marco de piedra (receta 4) ── */
 .afk-collect-btn {
   display: block;
   width: 100%;
-  margin-top: 2px;
-  padding: 10px;
-  background: $wood-btn;
+  margin-top: 4px;
+  padding: 11px;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 14px),
+    $wood-btn;
   color: $text-brown;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
+  border: 3px solid;
+  border-color: $wood-btn-light $wood-btn-dark $wood-btn-dark $wood-btn;
+  border-radius: 7px;
   box-shadow:
     0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-  font-size: 0.75em;
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 3px 8px rgba(0, 0, 0, 0.4);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.78em;
   font-weight: bold;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, transform 0.05s;
 
   &:hover  { background: $wood-btn-light; }
-  &:active { background: $wood-btn-dark; color: $text-cream; }
+  &:active {
+    background: $wood-btn-dark;
+    color: $text-cream;
+    transform: translateY(1px);
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      inset 0 2px 5px rgba(0, 0, 0, 0.4);
+  }
 }
