@@ -433,6 +433,7 @@ export class WorldRunScene extends Phaser.Scene {
   override update(_time: number, delta: number) {
     if (!this.player.body) return;
     if (this.dead) return;   // muerto: congelado hasta aceptar el modal "Has muerto"
+    if (this.exiting) return; // volviendo a casa: no seguir reportando distancia (deshacía el reset de goHomeReset durante el fundido)
 
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
     // la anuló). El control manual está anulado: el único input es saltar. El sprint
