@@ -12,6 +12,24 @@
 <app-modal-container #buildModal></app-modal-container>
 <app-modal-container #buildShopModal (closed)="onBuildShopModalClosed()"></app-modal-container>
 
+<!-- Modo Mundo: has muerto → al aceptar, teletransporte a la capital del planeta -->
+<div class="rh-backdrop" *ngIf="runDeadOpen">
+  <div class="rh-panel">
+    <div class="rh-header">
+      <ion-icon class="rh-icon" name="skull"></ion-icon>
+      <h2 class="rh-title">{{ 'RUN.DEATH_TITLE' | translate }}</h2>
+    </div>
+    <div class="rh-divider"></div>
+    <div class="rh-body">
+      <p class="rh-msg">{{ 'RUN.DEATH_MSG' | translate }}</p>
+    </div>
+    <div class="rh-divider"></div>
+    <div class="rh-actions">
+      <button class="rh-btn rh-btn--confirm" (click)="acceptDeath()">{{ 'RUN.DEATH_ACCEPT' | translate }}</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirmación de volver a casa (Modo Mundo): se pierde el progreso de la expedición -->
 <div class="rh-backdrop" *ngIf="confirmHomeOpen" (click)="cancelGoHome()">
   <div class="rh-panel" (click)="$event.stopPropagation()">

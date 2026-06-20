@@ -89,12 +89,12 @@ const RAT_ANIM_DEATH = 'wr_rat_death';
 const RAT_IDLE_FRAMES   = { start: 0,            end: 3 };                 // fila 0 (4 fr)
 const RAT_ATTACK_FRAMES = { start: 2 * RAT_COLS, end: 2 * RAT_COLS + 11 }; // fila 2 (12 fr)
 const RAT_DEATH_FRAMES  = { start: 4 * RAT_COLS, end: 4 * RAT_COLS + 4 };  // fila 4 (5 fr)
-const RAT_INTERVAL_M = 50;            // una rata cada 50 m
+const RAT_INTERVAL_M = 25;            // una rata cada 25 m
 const RAT_SCALE = 4.4;
 const RAT_FACE_LEFT = true;           // mira hacia el jugador que llega por la izquierda
 // Combate: la rata telegrafía su ataque al acercarte por el suelo y te hace daño al
 // contacto; si saltas y caes sobre su lomo, la matas sin recibir daño (rebote).
-const RAT_DAMAGE = 10;                // daño al jugador al chocar a ras de suelo
+const RAT_DAMAGE = 30;                // daño al jugador al chocar a ras de suelo (×3)
 const RAT_SENSE_PX = 150;             // distancia a la que empieza su animación de ataque
 const RAT_CONTACT_PX = 60;            // distancia horizontal de contacto (aplica daño)
 const RAT_STOMP_HALF_W = 60;          // medio ancho del lomo para el pisotón
@@ -178,6 +178,7 @@ const PLAYER_SCALE = 2.1;            // ~2 tiles de alto sobre el suelo. Subir =
 // LPC expandido: la animación RUN está en las filas 38-41 (8 frames). Run-derecha
 // = fila 41 = frames 533-540 (≠ WALK derecha, que es 143-150).
 const PLAYER_RUN_FRAMES = { start: 533, end: 540 };
+const PLAYER_DEATH_FRAMES = { start: 260, end: 265 };   // animación de muerte (cuerpo LPC)
 const PLAYER_RUN_AIR_FRAME = 537;                     // frame congelado en el aire
 const PLAYER_IDLE_FRAME = 325;                        // IDLE RIGHT
 
@@ -234,6 +235,9 @@ export class WorldRunScene extends Phaser.Scene {
   // Mapa por cuyo portal se entró al Modo Mundo: determina el planeta (y por tanto su
   // capital) al que vuelve el botón "volver al mapa principal".
   private entryMapId = 'hogar';
+  // true mientras el jugador está muerto (escena pausada, modal "Has muerto" abierto):
+  // bloquea más daño hasta que se acepte y se vaya a la capital.
+  private dead = false;
   private parallax: { ts: Phaser.GameObjects.TileSprite; factor: number }[] = [];
   // scrollX de referencia cuando se (re)construye el parallax: las capas se desplazan
   // respecto a este origen, no al scroll absoluto. Así un set recién cargado arranca
@@ -356,6 +360,8 @@ export class WorldRunScene extends Phaser.Scene {
     }
 
     this.exiting = false;   // la instancia se reutiliza entre start/stop; rearmar la salida
+    this.dead = false;
+    this.reg.playerState.resetRunKills();   // los enemigos abatidos son por run (HUD)
 
     this.physics.world.gravity.y = GRAVITY_Y;
     this.cameras.main.setBackgroundColor('#0a0a14'); // espacio (por si una capa no cubre)
@@ -426,6 +432,7 @@ export class WorldRunScene extends Phaser.Scene {
 
   override update(_time: number, delta: number) {
     if (!this.player.body) return;
+    if (this.dead) return;   // muerto: congelado hasta aceptar el modal "Has muerto"
 
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
     // la anuló). El control manual está anulado: el único input es saltar. El sprint
@@ -470,6 +477,13 @@ export class WorldRunScene extends Phaser.Scene {
       const runFrames = this.anims.generateFrameNumbers('player', PLAYER_RUN_FRAMES);
       if (runFrames.length) {
         this.anims.create({ key: 'wr_run', frames: runFrames, frameRate: 14, repeat: -1 });
+      }
+      // Animación de muerte del jugador (frames universales 260-265 del cuerpo LPC).
+      // Misma razón que wr_run: rehacerla cada vez contra la textura 'player' actual.
+      this.anims.remove('wr_death');
+      const deathFrames = this.anims.generateFrameNumbers('player', PLAYER_DEATH_FRAMES);
+      if (deathFrames.length) {
+        this.anims.create({ key: 'wr_death', frames: deathFrames, frameRate: 9, repeat: 0 });
       }
     }
     // Parpadeo de la estrella: cada frame es una textura suelta (no spritesheet).
@@ -948,16 +962,42 @@ export class WorldRunScene extends Phaser.Scene {
     }
   }
 
-  /** Aplica daño al jugador (sin matarlo en el runner: nunca baja de 1 HP) y un
-   *  destello rojo de impacto en el cuerpo. */
+  /** Aplica daño al jugador y un destello rojo de impacto. Si el golpe llega a 0 HP,
+   *  el jugador MUERE (playerDie). */
   private damagePlayer(amount: number): void {
+    if (this.dead) return;                           // ya muerto: el modal está abierto
     const p = this.reg.playerBridge.player;
     if (p) {
-      const safe = Math.min(amount, Math.max(0, p.status.HP - 1));   // no muere aquí
-      if (safe > 0) this.reg.playerBridge.setAttackToPlayer({ HP: -safe });
+      if (p.status.HP - amount <= 0) { this.playerDie(); return; }
+      this.reg.playerBridge.setAttackToPlayer({ HP: -amount });
     }
     this.player.setTint(0xff5555);
     this.time.delayedCall(110, () => { if (this.player.active) this.player.clearTint(); });
+  }
+
+  /** Muerte en el Modo Mundo: cuenta la muerte (total de por vida, para estadísticas),
+   *  congela la carrera (pausa la escena) y pide a Angular el modal "Has muerto". Su
+   *  "Aceptar" → requestExitRun() → exitToHome() teletransporta a la capital. */
+  private playerDie(): void {
+    if (this.dead) return;
+    this.dead = true;
+    this.reg.playerState.recordDeath();
+    // Congela al jugador SIN pausar la escena (la escena debe seguir corriendo para que
+    // la animación de muerte avance y el fundido de exitToHome se anime; pausarla rompía
+    // el callback FADE_OUT_COMPLETE). update() hace early-return con `dead`.
+    this.player.setVelocity(0, 0);
+    (this.player.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+    this.player.clearTint();
+    this.player.setFlipX(false);                      // muere mirando a la derecha (como al correr)
+    // Animación de muerte; el modal "Has muerto" sale al terminarla (si no existe, ya).
+    if (this.anims.exists('wr_death')) {
+      this.player.play('wr_death');
+      this.player.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        this.reg.playerBridge.notifyRunDeath();
+      });
+    } else {
+      this.reg.playerBridge.notifyRunDeath();
+    }
   }
 
   /** La rata recibe el pisotón: flash de impacto, animación de muerte y se APLASTA
@@ -1202,18 +1242,22 @@ export class WorldRunScene extends Phaser.Scene {
   private exitToHome(): void {
     if (this.exiting) return;   // evita doble pulsación durante el fundido
     this.exiting = true;
+    // Reset YA (no dentro del callback del fundido, que podía no dispararse): volver a
+    // casa = fin de expedición → estrellas, distancia explorada y muertes actuales a 0;
+    // se conservan récord de distancia y total de muertes (estadísticas). Ver goHomeReset.
+    this.reg.playerState.goHomeReset();
+    // Llegar a la capital cura al 100% (sobre todo tras morir, que llegas con poca vida).
+    const p = this.reg.playerBridge.player;
+    if (p) {
+      this.reg.playerBridge.resetPlayerStatus(p.status.HPMax, p.status.HPMax);
+      this.reg.playerState.setHp(p.status.HPMax, p.status.HPMax);
+    }
+    // Mapa principal (capital) del planeta explorado (Asgard en la Tierra) y actividad
+    // 'idle' para que GameScene.create no rebote al Modo Mundo (ver rebote 'exploring').
+    this.reg.world.setCurrentMap(planetCapitalForMap(this.entryMapId));
+    this.reg.activity?.set('idle');
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      // Volver a casa = fin de la expedición: se pierde el progreso (estrellas y
-      // distancia explorada a 0, contador de muertes a 0); se conservan el récord de
-      // distancia y el total de muertes para estadísticas. Ver PlayerState.goHomeReset.
-      this.reg.playerState.goHomeReset();
-      // Mapa principal (capital) del planeta que se estaba explorando (Asgard en la
-      // Tierra). Lo determina el mapa por el que se entró al Modo Mundo.
-      this.reg.world.setCurrentMap(planetCapitalForMap(this.entryMapId));
-      // Salida explícita de la exploración: limpiamos la actividad para que
-      // GameScene.create no rebote de vuelta al Modo Mundo (ver rebote 'exploring').
-      this.reg.activity?.set('idle');
       this.scene.start('GameScene');
       this.scene.stop();
     });

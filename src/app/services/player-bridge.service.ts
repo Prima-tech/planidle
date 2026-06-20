@@ -42,6 +42,9 @@ export class PlayerBridgeService {
   /** El botón "volver al mapa principal" (HTML, solo en modo carrera) emite aquí;
    *  WorldRunScene sale de la exploración a la capital del planeta. */
   readonly exitRunRequest$ = new Subject<void>();
+  /** Muerte en el Modo Mundo: WorldRunScene pausa y emite aquí; Angular muestra el
+   *  modal "Has muerto" cuyo "Aceptar" llama a requestExitRun() (→ capital). */
+  readonly runDeath$ = new Subject<void>();
 
   /** Modo Mundo: la PRIMERA vez que se cruza la entrada de un mapa recién
    *  desbloqueado, la escena pide mostrar el modal de entrada (o null = oculto).
@@ -63,6 +66,7 @@ export class PlayerBridgeService {
   requestJump(): void { this.jumpRequest$.next(); }
   releaseJump(): void { this.jumpReleaseRequest$.next(); }
   requestExitRun(): void { this.exitRunRequest$.next(); }
+  notifyRunDeath(): void { this.runDeath$.next(); }
 
   // ── Sprint (Modo Mundo) ───────────────────────────────────────────────────────
   // Timestamp de la última activación (0 = nunca / reset). La velocidad la aplica

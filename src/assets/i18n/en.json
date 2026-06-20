@@ -308,7 +308,10 @@
     "GO_HOME_MSG": "Are you sure you want to return home?",
     "GO_HOME_WARN": "You'll lose this expedition's progress: current stars and distance reset.",
     "GO_HOME_NO": "No",
-    "GO_HOME_YES": "Yes"
+    "GO_HOME_YES": "Yes",
+    "DEATH_TITLE": "You died",
+    "DEATH_MSG": "You return to the planet's main city.",
+    "DEATH_ACCEPT": "Accept"
   },
   "GAME_LOG": {
     "COINS": "Coins"

@@ -95,6 +95,9 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   /** Confirmación de "volver a casa" (Modo Mundo): perder el progreso de la expedición. */
   confirmHomeOpen = false;
+  /** Modal "Has muerto" (Modo Mundo): al aceptar te lleva a la capital del planeta. */
+  runDeadOpen = false;
+  private runDeathSub?: Subscription;
 
   constructor() { }
 
@@ -106,10 +109,18 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.playerBridge.requestExitRun();   // WorldRunScene resetea progreso y sale a la capital
   }
 
+  // ── Muerte en el Modo Mundo ─────────────────────────────────────────────────
+  acceptDeath(): void {
+    this.runDeadOpen = false;
+    this.playerBridge.requestExitRun();   // reanuda, resetea progreso y va a la capital
+  }
+
   ngOnInit() {
     // Al entrar al runner, volver a la página principal (el toggle se oculta, así que
     // no debe quedarse atascado en la página de skills).
     this.runModeSub = this.runMode$.subscribe(active => { if (active) this.page = 'main'; });
+    // Muerte en el Modo Mundo → modal "Has muerto".
+    this.runDeathSub = this.playerBridge.runDeath$.subscribe(() => { this.runDeadOpen = true; });
     this.detailSub = this.skillEquipService.openDetail$.subscribe(() => {
       this.closeOtherOnSide('left', this.skillDetailModal);
       const fromHud = (this.skillEquipService.activeSlot ?? 0) < 0;
@@ -196,6 +207,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.runModeSub?.unsubscribe();
+    this.runDeathSub?.unsubscribe();
     this.detailSub?.unsubscribe();
     this.closeSub?.unsubscribe();
     this.activateSub?.unsubscribe();

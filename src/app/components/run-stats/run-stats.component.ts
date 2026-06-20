@@ -16,7 +16,7 @@ import { PlayerStateService } from 'src/app/services/player-state.service';
 export class RunStatsComponent {
   private playerState = inject(PlayerStateService);
   readonly stars$ = this.playerState.stars$;
-  readonly kills$ = this.playerState.worldKills$;
+  readonly kills$ = this.playerState.currentKills$;   // enemigos de la run actual (se reinicia)
   readonly bestDistance$ = this.playerState.worldBestDistanceM$;
   // Muertes de la expedición actual (se reinician al volver a casa).
   readonly deaths$ = this.playerState.currentDeaths$;

@@ -62,7 +62,7 @@ export interface GameSnapshot {
   lastModified: string;
 }
 
-const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, stars: 0, worldKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0 };
+const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, stars: 0, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0 };
 
 @Injectable({ providedIn: 'root' })
 export class SaveService {

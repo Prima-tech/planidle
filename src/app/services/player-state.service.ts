@@ -5,7 +5,8 @@ export interface PlayerState {
   coins: number;
   specialCoins: number;
   stars: number;
-  worldKills: number;        // enemigos abatidos en el Modo Mundo (total)
+  worldKills: number;        // enemigos abatidos en el Modo Mundo: TOTAL de por vida (stats)
+  currentKills: number;      // enemigos abatidos en la EXPEDICIÓN actual (se reinicia por run)
   worldBestDistanceM: number; // mejor distancia (m) alcanzada en una carrera
   explorationDistanceM: number; // distancia (m) explorada acumulada: crece corriendo
                                  // Y estando AFK (+10 m/min); la carrera resume desde aquí
@@ -32,6 +33,7 @@ const INITIAL_STATE: PlayerState = {
   specialCoins: 0,
   stars: 0,
   worldKills: 0,
+  currentKills: 0,
   worldBestDistanceM: 0,
   explorationDistanceM: 0,
   exp: 0,
@@ -56,6 +58,7 @@ export class PlayerStateService {
   readonly specialCoins$ = this.state$.pipe(map(s => s.specialCoins), distinctUntilChanged());
   readonly stars$        = this.state$.pipe(map(s => s.stars ?? 0),    distinctUntilChanged());
   readonly worldKills$   = this.state$.pipe(map(s => s.worldKills ?? 0), distinctUntilChanged());
+  readonly currentKills$ = this.state$.pipe(map(s => s.currentKills ?? 0), distinctUntilChanged());
   readonly worldBestDistanceM$ = this.state$.pipe(map(s => s.worldBestDistanceM ?? 0), distinctUntilChanged());
   readonly currentDeaths$ = this.state$.pipe(map(s => s.currentDeaths ?? 0), distinctUntilChanged());
   readonly totalDeaths$  = this.state$.pipe(map(s => s.totalDeaths ?? 0), distinctUntilChanged());
@@ -73,6 +76,7 @@ export class PlayerStateService {
       specialCoins:  profile.special_coins  ?? 0,
       stars:         profile.stars          ?? 0,
       worldKills:    profile.worldKills     ?? 0,
+      currentKills:  profile.currentKills   ?? 0,
       worldBestDistanceM: profile.worldBestDistanceM ?? 0,
       explorationDistanceM: profile.explorationDistanceM ?? 0,
       exp:           profile.exp            ?? 0,
@@ -103,10 +107,18 @@ export class PlayerStateService {
     this._patch({ stars: (s.stars ?? 0) + amount });
   }
 
-  /** Suma enemigos abatidos en el Modo Mundo (contador propio, persistido). */
+  /** Suma enemigos abatidos en el Modo Mundo: total de por vida + contador de la run. */
   addWorldKills(amount = 1): void {
     const s = this._state$.getValue();
-    this._patch({ worldKills: (s.worldKills ?? 0) + amount });
+    this._patch({
+      worldKills:   (s.worldKills ?? 0) + amount,
+      currentKills: (s.currentKills ?? 0) + amount,
+    });
+  }
+
+  /** Reinicia el contador de enemigos de la expedición actual (al empezar una run). */
+  resetRunKills(): void {
+    this._patch({ currentKills: 0 });
   }
 
   /** Registra la distancia de la carrera actual. Empuja el récord (worldBestDistanceM)
@@ -146,7 +158,7 @@ export class PlayerStateService {
    *  Se conserva lo "almacenado": el récord de distancia (worldBestDistanceM) y el
    *  total de muertes de por vida (totalDeaths), para estadísticas. */
   goHomeReset(): void {
-    this._patch({ stars: 0, explorationDistanceM: 0, currentDeaths: 0 });
+    this._patch({ stars: 0, explorationDistanceM: 0, currentDeaths: 0, currentKills: 0 });
   }
 
   addExp(amount: number): void {
