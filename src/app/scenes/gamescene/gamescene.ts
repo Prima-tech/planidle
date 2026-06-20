@@ -575,6 +575,9 @@ export class GameScene extends Phaser.Scene {
         : nearNode ? HARVEST_KINDS[nearNode.kind].context
         : nearNpc ? 'talk' : 'attack');
 
+      // Diálogo abierto + ya no hay NPC cerca → cerrarlo (te alejaste).
+      if (!nearNpc && this.reg.dialogue?.isOpen) this.reg.dialogue.dismiss();
+
       // Si la ventana de cofre de ciudad está abierta y el jugador se alejó de
       // TODOS los cofres de ciudad (fijo + construidos) → cerrar.
       if (this.reg.summon.townChestIsOpen$.value) {

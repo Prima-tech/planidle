@@ -1,4 +1,5 @@
-// Overlay transparente que captura el toque para cerrar; el cuadro va abajo.
+// Overlay NO bloqueante: deja pasar el toque al juego (para seguir moviéndote y que
+// el diálogo se cierre al alejarte). Solo el cuadro captura el toque (para cerrarlo).
 .dlg-overlay {
   position: fixed;
   inset: 0;
@@ -7,7 +8,7 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0 16px calc(90px + var(--safe-bottom, 0px));
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 // Bocadillo madera + marco metálico (estilo RPG).
@@ -25,7 +26,16 @@
     0 6px 18px rgba(0, 0, 0, 0.6),
     inset 0 2px 0 rgba(255, 255, 255, 0.12);
   color: #f3e6c8;
+  pointer-events: auto;   // el cuadro sí se puede tocar (para cerrarlo)
+  cursor: pointer;
   animation: dlg-pop 140ms ease-out;
+
+  // Animación de salida (al cerrarse / alejarse). `forwards` mantiene el estado final
+  // mientras el componente lo quita del DOM tras LEAVE_MS.
+  &.leaving {
+    animation: dlg-out 180ms ease-in forwards;
+    pointer-events: none;
+  }
 }
 
 .dlg-speaker {
@@ -56,6 +66,11 @@
 @keyframes dlg-pop {
   from { transform: translateY(10px) scale(0.98); opacity: 0; }
   to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+@keyframes dlg-out {
+  from { transform: translateY(0)    scale(1);    opacity: 1; }
+  to   { transform: translateY(12px) scale(0.96); opacity: 0; }
 }
 
 @keyframes dlg-blink {

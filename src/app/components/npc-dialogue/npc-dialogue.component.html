@@ -1,5 +1,5 @@
-<div class="dlg-overlay" *ngIf="line$ | async as line" (click)="dismiss()">
-  <div class="dlg-box" (click)="$event.stopPropagation()">
+<div class="dlg-overlay" *ngIf="line">
+  <div class="dlg-box" [class.leaving]="leaving" (click)="dismiss()">
     <div class="dlg-speaker">{{ line.speaker }}</div>
     <div class="dlg-text">{{ line.text }}</div>
     <div class="dlg-hint">▼</div>

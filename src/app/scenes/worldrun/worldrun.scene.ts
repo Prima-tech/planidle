@@ -137,6 +137,22 @@ const FENIX_STOMP_BELOW = 16;         // ...y hasta esto por debajo de su centro
 const FENIX_BODY_HALF_W = 52;         // medio cuerpo (para el daño por contacto)
 const FENIX_BODY_HALF_H = 30;         // medio alto del cuerpo
 const FENIX_STOMP_BOUNCE = 540;       // impulso de rebote al pisarlo
+// Ataque: al acercarte, el fénix lanza UNA bola de fuego que cae al suelo y rueda
+// hacia ti; la esquivas saltándola. La bola reutiliza los frames de skills/fire.
+const FENIX_ANIM_ATTACK = 'wr_fenix_attack';
+const FENIX_ATTACK_FRAMES = { start: 2 * FENIX_COLS, end: 2 * FENIX_COLS + 7 };  // fila 2 (8 fr)
+const FENIX_ATTACK_PX = 460;          // distancia a la que dispara (una vez por fénix)
+const FIREBALL_KEY = 'skill_fireball';  // prefijo de los frames _1.._15 (precargados por GameScene)
+const FIREBALL_FRAMES = 15;
+const FIREBALL_PATH = 'assets/sprites/skills/fire/Fireball/fireball_';
+const FIREBALL_ANIM = 'wr_fireball';
+const FIREBALL_SCALE = 1.6;
+const FIREBALL_SPEED = 280;           // px/s hacia el jugador (izquierda)
+const FIREBALL_GRAVITY = 900;         // cae hasta el suelo y luego rueda
+const FIREBALL_GROUND_OFFSET = 30;    // altura del centro sobre el suelo al rodar
+const FIREBALL_DAMAGE = 12;           // daño si te alcanza
+const FIREBALL_HIT_W = 34;            // medio ancho de colisión con el jugador
+const FIREBALL_HIT_H = 26;            // si los pies del jugador quedan por encima → la saltó
 
 // --- Mundo / chunks ---
 const CHUNK_TILES = 16;              // ancho de un chunk en tiles
@@ -201,8 +217,10 @@ export class WorldRunScene extends Phaser.Scene {
   // Fénix voladores: hover en el aire; lo matas saltándole encima (pisotón). Se
   // generan por delante y se reciclan al quedar atrás. nextFenixIndex 0 = primero a
   // FENIX_START_M metros.
-  private fenixes: { sprite: Phaser.GameObjects.Sprite; hit: boolean }[] = [];
+  private fenixes: { sprite: Phaser.GameObjects.Sprite; hit: boolean; attacked: boolean }[] = [];
   private nextFenixIndex = 0;
+  // Bolas de fuego del fénix: caen al suelo y ruedan hacia el jugador (se mueven a mano).
+  private fireballs: { sprite: Phaser.GameObjects.Sprite; vx: number; vy: number; grounded: boolean }[] = [];
   private jumpSub?: Subscription;
   private jumpReleaseSub?: Subscription;
   private parallaxSub?: Subscription;
@@ -251,6 +269,11 @@ export class WorldRunScene extends Phaser.Scene {
     if (!this.textures.exists(TEX_FENIX)) {
       this.load.spritesheet(TEX_FENIX, FENIX_SHEET, { frameWidth: FENIX_FW, frameHeight: FENIX_FH });
     }
+    // Bola de fuego del fénix: frames sueltos (los suele tener ya GameScene; aseguramos).
+    for (let i = 1; i <= FIREBALL_FRAMES; i++) {
+      const k = `${FIREBALL_KEY}_${i}`;
+      if (!this.textures.exists(k)) this.load.image(k, `${FIREBALL_PATH}${i}.png`);
+    }
     // El cuerpo del jugador suele estar ya cargado por GameScene (con el modelo del
     // personaje seleccionado); lo aseguramos por si se entra sin pasar por ella.
     if (!this.textures.exists('player')) {
@@ -288,6 +311,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.nextRatIndex = 1;
     this.fenixes = [];
     this.nextFenixIndex = 0;
+    this.fireballs = [];
     this.firedPoints.clear();
 
     this.physics.world.gravity.y = GRAVITY_Y;
@@ -366,6 +390,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.updateStars();
     this.updateRats();
     this.updateFenixes();
+    this.updateFireballs(delta);
 
     // Metros recorridos (Fase 2 lo llevará al HUD; por ahora texto en pantalla).
     this.distanceM = Math.max(0, Math.floor((this.player.x - this.startX) / PX_PER_METER));
@@ -438,6 +463,22 @@ export class WorldRunScene extends Phaser.Scene {
           frameRate: 12, repeat: 0,
         });
       }
+      if (!this.anims.exists(FENIX_ANIM_ATTACK)) {
+        this.anims.create({
+          key: FENIX_ANIM_ATTACK,
+          frames: this.anims.generateFrameNumbers(TEX_FENIX, FENIX_ATTACK_FRAMES),
+          frameRate: 14, repeat: 0,
+        });
+      }
+    }
+    // Bola de fuego (frames sueltos): solo con los que cargaron.
+    if (!this.anims.exists(FIREBALL_ANIM)) {
+      const frames: Phaser.Types.Animations.AnimationFrame[] = [];
+      for (let i = 1; i <= FIREBALL_FRAMES; i++) {
+        const k = `${FIREBALL_KEY}_${i}`;
+        if (this.textures.exists(k)) frames.push({ key: k });
+      }
+      if (frames.length > 0) this.anims.create({ key: FIREBALL_ANIM, frames, frameRate: 18, repeat: -1 });
     }
   }
 
@@ -794,7 +835,7 @@ export class WorldRunScene extends Phaser.Scene {
         targets: sprite, y: flyY - FENIX_BOB, duration: 850,
         yoyo: true, repeat: -1, ease: 'Sine.inOut',
       });
-      this.fenixes.push({ sprite, hit: false });
+      this.fenixes.push({ sprite, hit: false, attacked: false });
       this.nextFenixIndex++;
       nextM = FENIX_START_M + this.nextFenixIndex * FENIX_INTERVAL_M;
     }
@@ -811,7 +852,8 @@ export class WorldRunScene extends Phaser.Scene {
         continue;
       }
 
-      const absdx = Math.abs(this.player.x - s.x);
+      const dx = this.player.x - s.x;
+      const absdx = Math.abs(dx);
       const rel = this.player.y - s.y;   // pies del jugador respecto al centro del fénix (neg = encima)
 
       // Pisotón: caes sobre él (pies en la franja superior de su cuerpo) y bajando.
@@ -822,10 +864,63 @@ export class WorldRunScene extends Phaser.Scene {
         continue;
       }
 
+      // Ataque: al acercarte por la izquierda lanza UNA bola de fuego (anim de ataque).
+      if (!fenix.attacked && dx <= 0 && absdx < FENIX_ATTACK_PX) {
+        fenix.attacked = true;
+        s.play(FENIX_ANIM_ATTACK);
+        s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+          if (s.active) s.play(FENIX_ANIM_FLY);
+        });
+        this.spawnFireball(s.x, s.y);
+      }
+
       // Choque sin pisarlo (de lado o subiendo hacia él): daño una vez.
       if (!fenix.hit && absdx < FENIX_BODY_HALF_W && Math.abs(rel) < FENIX_BODY_HALF_H) {
         fenix.hit = true;
         this.damagePlayer(FENIX_DAMAGE);
+      }
+    }
+  }
+
+  /** Lanza una bola de fuego desde el fénix: cae con gravedad hasta el suelo y luego
+   *  rueda hacia el jugador (la mueve updateFireballs). */
+  private spawnFireball(x: number, y: number): void {
+    if (!this.anims.exists(FIREBALL_ANIM)) return;
+    const sprite = this.add.sprite(x, y, `${FIREBALL_KEY}_1`).setScale(FIREBALL_SCALE).setDepth(5);
+    sprite.play(FIREBALL_ANIM);
+    this.fireballs.push({ sprite, vx: -FIREBALL_SPEED, vy: 0, grounded: false });
+  }
+
+  /** Mueve las bolas de fuego (caída + rodar hacia el jugador), aplica daño si no las
+   *  saltas y limpia las que salen de pantalla. */
+  private updateFireballs(delta: number): void {
+    if (this.fireballs.length === 0) return;
+    const dt = delta / 1000;
+    const scrollX = this.cameras.main.scrollX;
+    const groundLevel = this.groundTopY + SURFACE_INSET - FIREBALL_GROUND_OFFSET;
+
+    for (let i = this.fireballs.length - 1; i >= 0; i--) {
+      const fb = this.fireballs[i];
+      fb.sprite.x += fb.vx * dt;
+      if (!fb.grounded) {
+        fb.vy += FIREBALL_GRAVITY * dt;
+        fb.sprite.y += fb.vy * dt;
+        if (fb.sprite.y >= groundLevel) { fb.sprite.y = groundLevel; fb.grounded = true; }
+      }
+      // Fuera de pantalla por la izquierda → limpiar.
+      if (fb.sprite.x < scrollX - 120) {
+        fb.sprite.destroy();
+        this.fireballs.splice(i, 1);
+        continue;
+      }
+      // Impacto (solo cuando ya rueda por el suelo): solapa en X y los pies del jugador
+      // NO están por encima de la bola (si saltó lo bastante alto, la libra).
+      if (fb.grounded &&
+          Math.abs(this.player.x - fb.sprite.x) < FIREBALL_HIT_W &&
+          this.player.y > fb.sprite.y - FIREBALL_HIT_H) {
+        this.damagePlayer(FIREBALL_DAMAGE);
+        fb.sprite.destroy();
+        this.fireballs.splice(i, 1);
       }
     }
   }
