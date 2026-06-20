@@ -9,6 +9,7 @@ $wood-btn: #c08349;       // madera de botones/placas
 $wood-btn-light: #d99a5c;
 $wood-btn-dark: #8a5530;
 $cell-bg: #38241d;        // interior de celdas
+$cell-bg-light: #8a5e3c;  // interior de casillas marrón claro (estándar de celdas)
 $cell-border: #21130e;
 $grid-bg: #4a3023;        // fondo del área de grid
 $text-brown: #53301c;     // texto sobre madera clara
@@ -177,27 +178,15 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     width: 48px;
     height: 48px;
     flex-shrink: 0;
-    background: $cell-bg;
-    border: 2px solid $cell-border;
+    background-color: $cell-bg-light;                            // marrón claro (receta 3)
+    border: 2px solid;
+    border-color: $metal-light $metal-dark $metal-dark $metal;   // bisel metálico
     border-radius: 5px;
     box-shadow:
+      0 0 0 1px $outline,
       inset 0 2px 4px rgba(0, 0, 0, 0.4),
       0 1px 0 rgba(255, 255, 255, 0.06);
     overflow: hidden;
-  }
-
-  .enemy-frame-name {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 8px;
-    font-weight: 600;
-    color: $text-cream;
-    background: rgba(0, 0, 0, 0.65);
-    padding: 1px 2px;
-    letter-spacing: 0.2px;
   }
 
   .enemy-sprite {

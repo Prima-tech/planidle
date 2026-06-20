@@ -324,12 +324,12 @@ $metal-dark: #6b6357;
 
 @keyframes spin-coin-mini {
   from { background-position: 0; }
-  to   { background-position: -70px; }
+  to   { background-position: -60px; }   /* 5 frames × 12px (cover) */
 }
 
 .coin-mini {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   flex-shrink: 0;
   background-image: url('../../../assets/sprites/resources/coin.png');
   background-size: cover;
@@ -358,7 +358,7 @@ $metal-dark: #6b6357;
 .coin-spinner {
   width: 20px;
   height: 20px;
-  transform: scale(0.85);
+  transform: scale(0.7);
   background-image: url('../../../assets/sprites/resources/coin.png');
   background-size: cover;
   background-repeat: no-repeat;

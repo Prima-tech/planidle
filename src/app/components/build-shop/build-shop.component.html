@@ -19,7 +19,6 @@
                 (click)="select(item)" [title]="item.entry.name">
           <div class="shop-card-frame">
             <img [src]="item.entry.icon" alt="" draggable="false" />
-            <span class="shop-card-stock" *ngIf="item.infinite">∞</span>
             <span class="shop-card-stock" *ngIf="!item.infinite && item.stock > 0">x{{ item.stock }}</span>
             <span class="shop-card-stock shop-card-stock--out" *ngIf="!item.infinite && item.stock <= 0">{{ 'BUILD.SOLD_OUT' | translate }}</span>
           </div>

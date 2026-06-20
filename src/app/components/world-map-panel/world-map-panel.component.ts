@@ -55,8 +55,18 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private planetGame: Phaser.Game | null = null;
 
   ngOnInit() {
+    let first = true;
     this.mapSub = this.worldService.currentMap$.subscribe(m => {
       this.currentMapId = m.id;
+      // Al abrir el panel, dejar seleccionado (resaltado en la lista de la izquierda)
+      // el mapa donde está el jugador ahora mismo.
+      if (first) {
+        first = false;
+        if (MAP_REGISTRY[m.id]) {
+          this.selectedMap = MAP_REGISTRY[m.id];
+          this.loadCharsOnMap(m.id);
+        }
+      }
     });
     // Única vista del panel = el globo del planeta. Se crea tras el primer ciclo,
     // cuando #planet-view ya está en el DOM.
