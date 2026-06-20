@@ -61,11 +61,6 @@ export class SupabaseService {
 
   static readonly ROSTER_TEMPLATE: { name: string; max_hp: number }[] = [
     { name: 'Gutts',    max_hp: 120 },
-    { name: 'Merlin',   max_hp: 65  },
-    { name: 'Aldric',   max_hp: 90  },
-    { name: 'Seraphel', max_hp: 80  },
-    { name: 'Malachar', max_hp: 70  },
-    { name: 'Solmara',  max_hp: 100 },
     { name: 'Kugo',     max_hp: 110 },
     { name: 'Italien',  max_hp: 95  },
     { name: 'Rake',     max_hp: 100 },

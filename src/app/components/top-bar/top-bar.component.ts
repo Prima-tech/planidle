@@ -114,6 +114,15 @@ export class TopBarComponent implements OnInit, OnDestroy {
     })
   );
 
+  /** Récord de máxima distancia en exploración (Modo Mundo). Se muestra en el menú
+   *  desplegable de la barra de vida solo cuando el personaje está explorando. */
+  recordDistance$ = this.playerState.worldBestDistanceM$;
+  /** Muertes de la expedición actual (Modo Mundo): se muestran en el mismo panel. */
+  deaths$ = this.playerState.currentDeaths$;
+
+  /** ¿El personaje está en el Modo Mundo ahora mismo? (la CD del tick lo reevalúa). */
+  get isExploring(): boolean { return this.activity.current === 'exploring'; }
+
   toggleMapPanel() { this.mapPanelOpen = !this.mapPanelOpen; }
 
   // ── Selector de personaje (botón arriba-dcha de la pastilla) ────────────────

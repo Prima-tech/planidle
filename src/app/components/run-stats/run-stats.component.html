@@ -10,16 +10,4 @@
     <span class="run-stat__val">{{ kills$ | async }}</span>
     <ion-icon class="run-stat__ic" name="skull"></ion-icon>
   </div>
-
-  <!-- Mejor distancia alcanzada -->
-  <div class="run-stat run-stat--best">
-    <span class="run-stat__val">{{ bestDistance$ | async }} m</span>
-    <ion-icon class="run-stat__ic" name="trophy"></ion-icon>
-  </div>
-
-  <!-- Muertes de la expedición actual (se reinician al volver a casa) -->
-  <div class="run-stat run-stat--deaths">
-    <span class="run-stat__val">{{ deaths$ | async }}</span>
-    <ion-icon class="run-stat__ic" name="heart-dislike"></ion-icon>
-  </div>
 </div>

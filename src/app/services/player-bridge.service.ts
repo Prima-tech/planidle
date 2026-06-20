@@ -6,6 +6,7 @@ import { CharacterStatsService } from './character-stats.service';
 import { EquipmentService } from './equipment.service';
 import { InventoryItem } from './inventory.service';
 import { PlayerStateService } from './player-state.service';
+import { AdminService } from './admin.service';
 
 /** Poción equipada: se auto-usa al bajar a la mitad de HP, con cooldown. */
 const AUTO_POTION_COOLDOWN_MS = 30_000;
@@ -126,6 +127,7 @@ export class PlayerBridgeService {
     private sceneManager: SceneManager,
     private playerState: PlayerStateService,
     private equipment: EquipmentService,
+    private admin: AdminService,
     charStats: CharacterStatsService,
   ) {
     // El sprite Phaser es la fuente de verdad de la barra de HP, pero hasta ahora
@@ -155,6 +157,8 @@ export class PlayerBridgeService {
 
   setAttackToPlayer(attack: IAttack): void {
     if (this.isDead) return;
+    // Modo admin: invulnerable al daño de enemigos (ignora ataques que restan HP).
+    if (this.admin.isAdmin && (attack.HP ?? 0) < 0) return;
     this.player.receiveAttack(attack);
     const { HP, HPMax } = this.player.status;
     this.playerState.setHp(HP, HPMax);

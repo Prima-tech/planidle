@@ -313,6 +313,8 @@
     "COLLECT": "Collect"
   },
   "RUN": {
+    "RECORD_DISTANCE": "Distance record",
+    "DEATHS": "Deaths",
     "GO_HOME_TITLE": "Return home",
     "GO_HOME_MSG": "Are you sure you want to return home?",
     "GO_HOME_WARN": "You'll lose this expedition's progress: current stars and distance reset.",

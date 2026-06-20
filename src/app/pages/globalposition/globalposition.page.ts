@@ -33,9 +33,11 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     const chars = this.asgardService._characters;
     if (!chars || !Array.isArray(chars)) return [];
     const order = SupabaseService.ROSTER_TEMPLATE.map(t => t.name);
-    // Solo personajes desbloqueados: el resto no aparece (sin candado)
+    const valid = new Set(order);
+    // Solo personajes del roster vigente (ROSTER_TEMPLATE) y desbloqueados: así, un
+    // personaje retirado del template no reaparece aunque siga en el roster guardado.
     return [...chars]
-      .filter(c => this.unlocks.isCharacterUnlocked(c.name))
+      .filter(c => valid.has(c.name) && this.unlocks.isCharacterUnlocked(c.name))
       .sort((a, b) => {
         const ai = order.indexOf(a.name);
         const bi = order.indexOf(b.name);

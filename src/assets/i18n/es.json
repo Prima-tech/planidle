@@ -313,6 +313,8 @@
     "COLLECT": "Recoger"
   },
   "RUN": {
+    "RECORD_DISTANCE": "Récord de distancia",
+    "DEATHS": "Muertes",
     "GO_HOME_TITLE": "Volver a casa",
     "GO_HOME_MSG": "¿Seguro que quieres volver a casa?",
     "GO_HOME_WARN": "Perderás el progreso de esta exploración: las estrellas y la distancia actuales se reinician.",

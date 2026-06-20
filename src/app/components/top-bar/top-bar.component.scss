@@ -100,6 +100,8 @@ $metal-dark: #6b6357;
     &:hover { background-color: $wood-btn-light; }
   }
   &:active { background-color: $wood-btn-dark; color: $text-cream; }
+  // En escritorio, el clic con ratón dejaba el outline de foco pegado (borde blanco).
+  &:focus { outline: none; }
 }
 
 /* Abierto: el tirador mantiene su forma de pestaña (redondeada abajo, sin línea
@@ -151,6 +153,8 @@ $metal-dark: #6b6357;
     &:hover { background-color: $wood-btn-light; }
   }
   &:active { background-color: $wood-btn-dark; color: $text-cream; }
+  // Quita el outline de foco que se queda pegado tras el clic en escritorio.
+  &:focus { outline: none; }
 }
 
 .char-roster {
@@ -409,6 +413,7 @@ $metal-dark: #6b6357;
   font-weight: bold;
   color: $text-brown;
 }
+
 
 .mip-no-spawn {
   font-size: 0.58em;

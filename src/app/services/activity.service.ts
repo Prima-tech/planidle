@@ -25,12 +25,13 @@ export interface ActivityDef {
 const SWORD_ICON = 'assets/sprites/player/equip/weapons/swords/icons/sword_01_icon.png';
 const PICK_ICON  = 'assets/sprites/player/equip/tools/picks/icons/pick_01_icon.png';
 const AXE_ICON   = 'assets/sprites/player/equip/tools/axes/icons/axe_01_icon.png';
-const BOOTS_ICON = 'assets/sprites/player/equip/foot/icons/foot_01_icon.png';
+// Exploración (Modo Mundo): el mismo icono de mapa del ofrecimiento de entrada.
+const MAP_ICON   = 'assets/sprites/resources/world_mode/map.png';
 
 export const ACTIVITY_REGISTRY: Record<ActivityKind, ActivityDef> = {
   idle:      { kind: 'idle',      labelKey: 'ACTIVITY.IDLE',      icon: 'bed-outline',    color: '#9aa6b2' },
   killing:   { kind: 'killing',   labelKey: 'ACTIVITY.KILLING',   icon: 'skull-outline',  color: '#e0584e', iconImg: SWORD_ICON },
-  exploring: { kind: 'exploring', labelKey: 'ACTIVITY.EXPLORING', icon: 'walk-outline',   color: '#4ea1e0', iconImg: BOOTS_ICON },
+  exploring: { kind: 'exploring', labelKey: 'ACTIVITY.EXPLORING', icon: 'walk-outline',   color: '#4ea1e0', iconImg: MAP_ICON },
   mining:    { kind: 'mining',    labelKey: 'ACTIVITY.MINING',    icon: 'hammer-outline', color: '#c9a227', iconImg: PICK_ICON  },
   chopping:  { kind: 'chopping',  labelKey: 'ACTIVITY.CHOPPING',  icon: 'leaf-outline',   color: '#5bb24a', iconImg: AXE_ICON   },
 };

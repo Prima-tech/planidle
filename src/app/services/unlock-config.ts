@@ -49,16 +49,6 @@ export const FEATURES: FeatureDef[] = [
   // condiciones cuando definas cómo se gana cada personaje.
   { id: 'char.gutts',    scope: 'global', display: 'hidden', requires: [],
     name: 'Gutts' },
-  { id: 'char.merlin',   scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_merlin' }],
-    name: 'Merlin' },
-  { id: 'char.aldric',   scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_aldric' }],
-    name: 'Aldric' },
-  { id: 'char.seraphel', scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_seraphel' }],
-    name: 'Seraphel' },
-  { id: 'char.malachar', scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_malachar' }],
-    name: 'Malachar' },
-  { id: 'char.solmara',  scope: 'global', display: 'hidden', requires: [{ type: 'achievement', id: 'gkills_10000' }],
-    name: 'Solmara' },
   // Kugo e Italien se reclutan hablándoles en el mapa 1-1 (ponen su flag global). Ver
   // RECRUIT_NPCS en gamescene.ts. Tras reclutarlos aparecen en el roster.
   { id: 'char.kugo',     scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_kugo' }],

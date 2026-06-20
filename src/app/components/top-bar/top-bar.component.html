@@ -63,7 +63,22 @@
 
       <!-- Panel info del mapa -->
       <div class="map-info-panel" *ngIf="mapPanelOpen">
-        <ng-container *ngIf="mapPanelData$ | async as d">
+
+        <!-- Modo exploración (Modo Mundo): récord de distancia + muertes de la
+             expedición. Filas label→valor, igual que las de Oro/XP del panel. -->
+        <div class="mip-rates" *ngIf="isExploring">
+          <div class="mip-rate">
+            <span class="mip-rate-label">{{ 'RUN.RECORD_DISTANCE' | translate }}</span>
+            <span class="mip-rate-val">{{ (recordDistance$ | async) | number }} m</span>
+          </div>
+          <div class="mip-rate">
+            <span class="mip-rate-label">{{ 'RUN.DEATHS' | translate }}</span>
+            <span class="mip-rate-val">{{ deaths$ | async }}</span>
+          </div>
+        </div>
+
+        <!-- Datos del mapa de combate (no aplica en exploración: ahí el mapa es stale) -->
+        <ng-container *ngIf="!isExploring && (mapPanelData$ | async) as d">
 
           <ng-container *ngIf="d.eliteThreshold > 0">
             <div class="mip-enemy-block">
