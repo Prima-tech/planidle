@@ -5,7 +5,7 @@
     <!-- Info panel (compartido: se rellena al pulsar un pin del globo) -->
     <div class="map-info-card" *ngIf="selectedMap">
       <div class="info-name">{{ selectedMap.name }}</div>
-<ng-container *ngIf="selectedMap.spawns.length > 0; else noEnemies">
+<div class="enemy-grid" *ngIf="selectedMap.spawns.length > 0">
         <div class="info-enemy" *ngFor="let spawn of selectedMap.spawns">
           <div class="enemy-frame">
             <div class="enemy-sprite"
@@ -13,13 +13,12 @@
                  [ngClass]="spriteClass(spawn.enemyType)"></div>
           </div>
         </div>
-      </ng-container>
-      <ng-template #noEnemies>
-        <div class="info-no-enemies">{{ 'MAP.SAFE_ZONE' | translate }}</div>
-      </ng-template>
+      </div>
       <div class="info-chars" *ngIf="charsOnMap.length > 0">
-        <div class="info-char" *ngFor="let c of charsOnMap">
-          <app-character-sprite [size]="56" [equipmentSnapshot]="c.equipment" [characterName]="c.name"></app-character-sprite>
+        <div class="info-char" *ngFor="let c of charsOnMap" [class.current]="c.isCurrent">
+          <div class="enemy-frame char-frame">
+            <app-character-sprite [size]="64" [equipmentSnapshot]="c.equipment" [characterName]="c.name"></app-character-sprite>
+          </div>
           <span class="info-char-name">{{ c.name }}</span>
         </div>
       </div>
@@ -56,8 +55,10 @@
       <div class="info-name">{{ selectedPlanet.name }}</div>
 
       <div class="info-chars" *ngIf="charsOnPlanet.length > 0">
-        <div class="info-char" *ngFor="let c of charsOnPlanet">
-          <app-character-sprite [size]="56" [equipmentSnapshot]="c.equipment" [characterName]="c.name"></app-character-sprite>
+        <div class="info-char" *ngFor="let c of charsOnPlanet" [class.current]="c.isCurrent">
+          <div class="enemy-frame char-frame">
+            <app-character-sprite [size]="64" [equipmentSnapshot]="c.equipment" [characterName]="c.name"></app-character-sprite>
+          </div>
           <span class="info-char-name">{{ c.name }}</span>
         </div>
       </div>

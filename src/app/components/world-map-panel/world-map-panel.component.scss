@@ -132,14 +132,16 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   top: 10px;
   right: 10px;
   z-index: 10;
-  width: 140px;
+  width: 148px;
   /* Marco metálico + madera oscura, igual que la ficha de detalles de talentos
      (.talent-picker-flyout.talent-node-card en la ventana de equipo). */
-  background: $wood-btn-dark;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.10), transparent 55%),
+    $wood-btn;
   border: 3px solid;
   border-color: $metal-light $metal-dark $metal-dark $metal;
   border-radius: 7px;
-  padding: 10px 12px;
+  padding: 9px 11px 11px;
   backdrop-filter: blur(4px);
   box-shadow:
     0 0 0 1px $outline,
@@ -149,14 +151,29 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   pointer-events: none;
 
   .info-name {
+    position: relative;
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 13px;
     font-weight: 700;
     color: #ffd700;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    padding-bottom: 7px;
     margin-bottom: 8px;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
     text-align: center;
+
+    // Filete dorado degradado bajo el título.
+    &::after {
+      content: '';
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      bottom: 0;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, $gold, transparent);
+      opacity: 0.7;
+    }
   }
 
   .info-section-label {
@@ -167,16 +184,23 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     margin-bottom: 5px;
   }
 
+  // Enemigos en rejilla centrada (antes apilados uno por fila).
+  .enemy-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+  }
+
   .info-enemy {
     display: flex;
     align-items: center;
-    margin-bottom: 3px;
   }
 
   .enemy-frame {
     position: relative;
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
     flex-shrink: 0;
     background-color: $cell-bg-light;                            // marrón claro (receta 3)
     border: 2px solid;
@@ -187,13 +211,24 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
       inset 0 2px 4px rgba(0, 0, 0, 0.4),
       0 1px 0 rgba(255, 255, 255, 0.06);
     overflow: hidden;
+
+    // Viñeta suave dentro del recuadro para dar profundidad al sprite.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(70% 70% at 50% 35%, transparent 60%, rgba(0, 0, 0, 0.28));
+    }
   }
 
   .enemy-sprite {
     position: absolute;
-    inset: 0;
-    width: 48px;
-    height: 48px;
+    left: 50%;
+    top: 50%;
+    width: 96px;                  // doble que el recuadro: el .enemy-frame recorta
+    height: 96px;
+    transform: translate(-50%, -50%);
     image-rendering: pixelated;
     background-position-y: 0;
 
@@ -209,16 +244,33 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   .info-chars {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    justify-content: center;
+    gap: 5px;
+    margin-top: 8px;
   }
 
   .info-char {
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+
+  // El personaje usa el mismo recuadro que los enemigos (.enemy-frame); el canvas
+  // se centra y el marco recorta, dando el mismo encuadre ampliado.
+  .char-frame app-character-sprite {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  // Personaje activo: acento dorado en el marco para distinguirlo.
+  .info-char.current .char-frame {
+    border-color: $gold;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 2px 4px rgba(0, 0, 0, 0.4),
+      0 0 8px rgba(240, 192, 64, 0.55);
   }
 
   .info-char-name {
@@ -228,39 +280,51 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     margin-top: 2px;
   }
 
+  // Botón de viajar: pastilla redonda solo-icono, cara de madera con degradado +
+  // bisel metálico y glow dorado al pasar.
   .teleport-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 26px;
-    height: 26px;
-    border-radius: 0 0 4px 0;
-    background: $wood-btn;
-    border: none;
-    border-top: 2px solid $outline;
-    border-left: 2px solid $outline;
-    color: $text-brown;
-    font-size: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 34px;
+    height: 30px;
+    margin: 10px auto 0;
+    border-radius: 7px;
+    background: linear-gradient(180deg, $wood-btn-light, $wood-btn 55%, $wood-btn-dark);
+    border: 2px solid;
+    border-color: $metal-light $metal-dark $metal-dark $metal;
+    color: $text-brown;
+    font-size: 16px;
     cursor: pointer;
     pointer-events: auto;
-    transition: background 0.15s, color 0.15s;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: filter 0.15s, box-shadow 0.15s, transform 0.05s;
 
-    &:hover  { background: $wood-btn-light; }
+    ion-icon { font-size: 16px; }
+
+    &:hover {
+      filter: brightness(1.08);
+      box-shadow:
+        0 0 0 1px $outline,
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        0 0 10px rgba(240, 192, 64, 0.6);
+    }
     &:active {
-      background: $wood-btn-dark;
-      color: $text-cream;
+      transform: translateY(1px);
+      box-shadow:
+        0 0 0 1px $outline,
+        inset 0 2px 4px rgba(0, 0, 0, 0.35);
     }
   }
 
+  // Texto "sin personajes" (planeta): neutro y centrado.
   .info-no-enemies {
-    font-size: 11px;
-    color: #7ec96a;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    margin-top: 2px;
+    font-size: 10px;
+    color: rgba($text-cream, 0.6);
+    text-align: center;
   }
 }
 

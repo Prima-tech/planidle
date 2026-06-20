@@ -169,9 +169,10 @@ $metal-dark: #6b6357;
 /* Rejilla de venta: tarjetas estilo panel de invocación (3 columnas) */
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-bottom: 10px;
+  grid-template-columns: repeat(auto-fill, 60px);  /* tarjetas estrechas, ancho fijo */
+  justify-content: center;
+  gap: 18px 16px;                /* fila ancha (pastilla que sobresale) + separación entre columnas */
+  margin-bottom: 14px;
 }
 
 /* Más de 6 items → mismo aspecto que al inicio (rejilla de 2 filas × 3 columnas que
@@ -183,13 +184,15 @@ $metal-dark: #6b6357;
   grid-template-columns: none;
   grid-template-rows: repeat(2, 1fr);
   grid-auto-flow: column;
-  grid-auto-columns: calc((100% - 12px) / 3);   /* 3 columnas visibles por ventana */
-  gap: 6px;
+  grid-auto-columns: 60px;        /* tarjetas estrechas (ceñidas al icono) */
+  column-gap: 16px;               /* algo más de separación entre ellas */
+  row-gap: 18px;                  /* hueco para la pastilla que sobresale entre filas */
+  justify-content: start;
   width: 100%;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 5px;            /* sitio para la barra */
+  padding-bottom: 14px;           /* hueco para la barra + pastilla de la fila inferior */
   scroll-snap-type: x proximity;
   cursor: grab;
   user-select: none;
@@ -212,11 +215,13 @@ $metal-dark: #6b6357;
 }
 
 .shop-card {
+  position: relative;            /* ancla de la pastilla flotante del precio */
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;   /* icono arriba; el precio flota abajo */
   gap: 5px;
-  min-height: 74px;
+  min-height: 64px;
   box-sizing: border-box;
   /* Placa de madera con bisel de piedra (mismo marco que el resto de menús) */
   background:
@@ -225,7 +230,7 @@ $metal-dark: #6b6357;
   border: 2px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 6px;
-  padding: 8px 4px 6px;
+  padding: 8px 4px 8px;
   cursor: pointer;
   color: $text-brown;
   box-shadow:
@@ -256,8 +261,8 @@ $metal-dark: #6b6357;
 
 .shop-card-frame {
   position: relative;
-  width: 54px;
-  height: 54px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -301,20 +306,28 @@ $metal-dark: #6b6357;
   }
 }
 
-/* Precio: mini-etiqueta con marco de piedra (placa pequeña, madera clara) */
+/* Precio: pastilla FLOTANTE (igual que la del nombre del personaje en el HUD): madera
+   clara + bisel de piedra, posicionada en absoluto sobre el borde inferior del icono. */
 .shop-card-price {
+  position: absolute;
+  bottom: -9px;                  /* sobresale del borde inferior de la card (flotante) */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   gap: 3px;
   padding: 2px 7px;
-  font-size: 13px;              /* 1px más grande */
+  font-size: 13px;
   font-weight: 700;
   color: $text-brown;
   background: #d99a5c;            /* madera clara: resalta sobre la tarjeta */
   border: 2px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 5px;
-  box-shadow: 0 0 0 1px $outline;
+  box-shadow:
+    0 0 0 1px $outline,
+    0 2px 4px rgba(0, 0, 0, 0.4);   /* sombra → sensación de "flotando" */
 
   /* La moneda gira, como el contador de oro */
   .coin-mini {

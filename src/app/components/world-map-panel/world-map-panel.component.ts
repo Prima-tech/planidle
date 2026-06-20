@@ -12,7 +12,9 @@ import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.u
 import { UnlockService } from 'src/app/services/unlock.service';
 import { mapFeatureId } from 'src/app/services/unlock-config';
 
-const DISPLAY_PX = 48;
+// Tamaño al que se renderiza cada frame del sprite del enemigo en la tarjeta de
+// info. El recuadro (.enemy-frame) recorta; con 96 el bicho se ve al doble.
+const DISPLAY_PX = 96;
 
 // Qué mapas pertenecen a cada planeta (para saber qué personajes están en él).
 // Al añadir mapas a un planeta nuevo, registrarlos aquí.
@@ -251,6 +253,18 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.playerBridge.restartGameScene();
   }
 
-  spriteStyle(enemyType: string) { return enemySpriteStyle(enemyType, DISPLAY_PX); }
+  /** Tamaño de render por tipo en la tarjeta: base DISPLAY_PX (96), con retoques —
+   *  los slimes un poco más pequeños y las ratas un poco más grandes. */
+  private enemyDisplayPx(enemyType: string): number {
+    if (enemyType.startsWith('slime')) return 84;
+    if (enemyType.startsWith('rats'))  return 108;
+    return DISPLAY_PX;
+  }
+
+  spriteStyle(enemyType: string) {
+    const px = this.enemyDisplayPx(enemyType);
+    // width/height inline = un frame: el .enemy-frame recorta y centra el sprite.
+    return { ...enemySpriteStyle(enemyType, px), width: `${px}px`, height: `${px}px` };
+  }
   spriteClass(enemyType: string) { return enemySpriteClass(enemyType); }
 }
