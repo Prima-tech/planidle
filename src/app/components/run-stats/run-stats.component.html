@@ -1,13 +1,23 @@
-<div class="run-stats">
-  <!-- Estrellas recogidas -->
-  <div class="run-stat run-stat--stars">
-    <span class="run-stat__val">{{ stars$ | async }}</span>
-    <img class="run-stat__img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+<div class="rs-block" [class.rs-block--open]="panelOpen">
+
+  <!-- Widget: contadores en vivo (sin barras), estilo barra de vida -->
+  <div class="rs-widget">
+    <div class="rs-stat">
+      <img class="rs-img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+      <span class="rs-val">{{ stars$ | async }}</span>
+    </div>
+    <div class="rs-stat">
+      <ion-icon class="rs-ic rs-ic--kills" name="skull"></ion-icon>
+      <span class="rs-val">{{ kills$ | async }}</span>
+    </div>
   </div>
 
-  <!-- Enemigos abatidos -->
-  <div class="run-stat run-stat--kills">
-    <span class="run-stat__val">{{ kills$ | async }}</span>
-    <ion-icon class="run-stat__ic" name="skull"></ion-icon>
-  </div>
+  <!-- Tirador: despliega el panel hacia abajo -->
+  <button class="rs-open-btn" (click)="togglePanel()">
+    <ion-icon [name]="panelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+  </button>
+
+  <!-- Panel desplegable: reservado para futuras cosas (de momento vacío). -->
+  <div class="rs-panel" *ngIf="panelOpen"></div>
+
 </div>
