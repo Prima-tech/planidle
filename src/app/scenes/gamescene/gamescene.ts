@@ -216,6 +216,11 @@ export class GameScene extends Phaser.Scene {
     // true una vez el jugador ha estado cerca de un edificio con ventana abierta:
     // a partir de ahí, alejarse la cierra (ver bloque de cierre por proximidad).
     private windowProximityArmed = false;
+    // Estación cuyo menú se está abriendo (candidata a encender) y la que está
+    // encendida ahora mismo. Se sincronizan con cityBuild.windowOpen$ (ver create()).
+    private pendingLitBuilding: typeof this.placedBuildings[0] | null = null;
+    private litBuilding:        typeof this.placedBuildings[0] | null = null;
+    private windowOpenSub: { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
     private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
@@ -293,6 +298,8 @@ export class GameScene extends Phaser.Scene {
       this.load.image('stations', 'assets/sprites/stations/stations.png');
       // Fragua apagada (textura propia 64×92, sin animación de fuego).
       this.load.spritesheet('forge_off', 'assets/sprites/stations/forge_off.png', { frameWidth: 64, frameHeight: 92 });
+      // Fundición apagada (frame de la hoja stations con el fuego retirado, 64×92).
+      this.load.spritesheet('smelter_off', 'assets/sprites/stations/smelter_off.png', { frameWidth: 64, frameHeight: 92 });
       // Hornos detallados (reemplazan a la fragua). Cada uno: hoja encendida de 12
       // frames 128×208 (animación de fuego) + textura apagada del mismo tamaño.
       // city-build elige cuál con su spriteKey (…_off); cambiar de horno = 1 línea.
@@ -464,6 +471,7 @@ export class GameScene extends Phaser.Scene {
         this.chestSub?.unsubscribe();
         this.placementSub?.unsubscribe();
         this.clearedSub?.unsubscribe();
+        this.windowOpenSub?.unsubscribe();
         this.moveSub?.unsubscribe();
         this.deleteSub?.unsubscribe();
         this.removedSub?.unsubscribe();
@@ -636,6 +644,7 @@ export class GameScene extends Phaser.Scene {
         } else if (nearWindow) {
           if (!this.interactLatched) {
             this.interactLatched = true;
+            this.pendingLitBuilding = nearWindow;
             this.reg.cityBuild.requestOpenWindow(nearWindow.building.type);
           }
         } else if (nearNpc) {
@@ -1267,9 +1276,32 @@ export class GameScene extends Phaser.Scene {
           repeat: -1,
         });
       }
-      // La fragua se muestra siempre apagada (textura furnace_central_off, sin animKey):
-      // se pulsa para abrir su menú, no para encender el fuego. La animación de fuego se
-      // conectará al desarrollar la lógica del menú de la forja.
+      // Animación "encendida" de cada estación (fragua, fundición…): se muestra solo
+      // mientras su menú está abierto (ver setStationLit). En reposo la estación usa su
+      // textura apagada (spriteKey …_off); al abrir el menú se reproduce este anim.
+      for (const def of this.reg.cityBuild?.buildables ?? []) {
+        if (!def.litAnimKey || !def.litFrames || this.anims.exists(def.litAnimKey)) continue;
+        if (!this.textures.exists(def.litTexture ?? '')) continue;
+        this.anims.create({
+          key: def.litAnimKey,
+          frames: this.anims.generateFrameNumbers(def.litTexture!, { frames: def.litFrames }),
+          frameRate: def.litFrameRate ?? 6,
+          repeat: -1,
+        });
+      }
+    }
+
+    /** Enciende (anim de fuego) o apaga (textura …_off estática) la estación `pb`.
+     *  Se usa al abrir/cerrar su menú: abrir = en uso = fuego encendido. */
+    private setStationLit(pb: typeof this.placedBuildings[0], lit: boolean): void {
+      const def = this.reg.cityBuild?.def(pb.building.type);
+      if (!def) return;
+      if (lit && def.litAnimKey && this.anims.exists(def.litAnimKey)) {
+        pb.sprite.play(def.litAnimKey);
+      } else {
+        pb.sprite.stop();
+        pb.sprite.setTexture(def.spriteKey, def.frame);
+      }
     }
 
     private registerDropTextures(): void {
@@ -1644,7 +1676,7 @@ export class GameScene extends Phaser.Scene {
         const chest = this.nearestOpenableChest();
         if (chest) { this.openChest(chest); return; }
         const win = this.nearestWindowBuilding();
-        if (win) { this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
+        if (win) { this.pendingLitBuilding = win; this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
         const npc = this.nearestNpc();
         if (npc) { this.talkToNpc(npc); return; }
         if (this.player.isAttacking) return;
@@ -2533,6 +2565,18 @@ export class GameScene extends Phaser.Scene {
       const cityBuild = this.reg.cityBuild;
       if (!cityBuild) return;
       this.clearedSub = cityBuild.cleared$.subscribe(() => this.removePlacedBuildings());
+      // Encender/apagar la estación según su menú: al abrirse (windowOpen$ true)
+      // se enciende la candidata (pendingLitBuilding, fijada al pulsar/espacio/botón);
+      // al cerrarse, se apaga la que estuviera encendida.
+      this.windowOpenSub = cityBuild.windowOpen$.subscribe(open => {
+        if (open) {
+          if (this.pendingLitBuilding) this.setStationLit(this.pendingLitBuilding, true);
+          this.litBuilding = this.pendingLitBuilding;
+        } else {
+          if (this.litBuilding) this.setStationLit(this.litBuilding, false);
+          this.litBuilding = null;
+        }
+      });
     }
 
     /** Quita en caliente todo lo construido por el jugador (no el cofre fijo). */
@@ -2546,6 +2590,10 @@ export class GameScene extends Phaser.Scene {
      *  sin tocar la persistencia. Usado por "borrar todo" y por "mover edificio". */
     private detachPlacedBuilding(pb: typeof this.placedBuildings[0]): void {
       pb.isOpenUnsub?.();
+      // No dejar referencias a un sprite a punto de destruirse (evita encender/apagar
+      // una estación ya borrada o movida).
+      if (this.pendingLitBuilding === pb) this.pendingLitBuilding = null;
+      if (this.litBuilding === pb)        this.litBuilding = null;
       pb.sprite.destroy();
       for (const k of pb.blocked) this.collisionTiles.delete(k);
       if (pb.chestEntry) {
@@ -2610,6 +2658,7 @@ export class GameScene extends Phaser.Scene {
       if (!pb) return false;
       const def = this.reg.cityBuild.def(pb.building.type);
       if (!def?.opensWindow) return false;
+      this.pendingLitBuilding = pb;   // candidata a encender si la ventana se abre
       this.reg.cityBuild.requestOpenWindow(pb.building.type);
       return true;
     }

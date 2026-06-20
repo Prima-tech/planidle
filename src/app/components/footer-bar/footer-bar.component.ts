@@ -64,6 +64,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeWindowSub:    Subscription;
   private inventoryOpenedByChest = false;
   private inventoryOpenedByShop = false;
+  private inventoryOpenedByForge = false;
   private cdInterval:       ReturnType<typeof setInterval> | null = null;
 
   page: 'main' | 'skills' = 'main';
@@ -454,10 +455,16 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   onForgeModalClosed() {
     this.cityBuild.windowOpen$.next(false);
+    // Cierra el inventario si se abrió junto a la fundición.
+    if (this.inventoryOpenedByForge && this.inventoryModal?.isOpenModal()) {
+      this.inventoryModal.close();
+    }
+    this.inventoryOpenedByForge = false;
   }
 
-  /** Abre el menú de la fragua a la izquierda (vacío de momento). Marca windowOpen$
-   *  para que la escena lo cierre al alejarte de la fragua (igual que la tienda). */
+  /** Abre el menú de la fundición a la izquierda. Marca windowOpen$ para que la escena
+   *  lo cierre al alejarte, y abre también el inventario (derecha) para arrastrar
+   *  materiales/combustible y recoger la salida (igual que la tienda). */
   openForge() {
     if (this.forgeModal.isOpenModal()) {
       this.forgeModal.close();
@@ -465,6 +472,10 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.closeOtherOnSide('left', this.forgeModal);
       this.forgeModal.open(ForgeComponent, 'forge');
       this.cityBuild.windowOpen$.next(true);
+      if (!this.inventoryModal?.isOpenModal()) {
+        this.openInventory();
+        this.inventoryOpenedByForge = true;
+      }
     }
   }
 

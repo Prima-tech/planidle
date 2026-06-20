@@ -36,6 +36,17 @@ export interface BuildableDef {
    *  [frame, frame+1, frame+2]. La crea/registra `gamescene` en `create()`. */
   animKey?: string;
 
+  // ── Estado "encendido" (fragua/fundición): la animación de fuego se muestra solo
+  //    mientras su menú está abierto. En reposo se ve `spriteKey` (…_off). ──
+  /** Clave del anim de fuego (lo crea gamescene desde litTexture+litFrames). */
+  litAnimKey?: string;
+  /** Textura sobre la que viven los frames del anim de fuego. */
+  litTexture?: string;
+  /** Índices de frame (en litTexture) del anim de fuego. */
+  litFrames?: number[];
+  /** FPS del anim de fuego (default 6). */
+  litFrameRate?: number;
+
   // ── Render del preview en el panel (DOM). Por defecto: hoja 'chests'
   //    (assets/sprites/resources/<spriteKey>.png, 9 cols, 32×32, ×2). ──
   /** URL del PNG para el preview (si la hoja no está en resources/). */
@@ -106,8 +117,8 @@ export const BUILDABLES: BuildableDef[] = [
   },
 
   // ── Estaciones de oficio (decorativas + animadas) ──
-  // Horno detallado (128×208). Siempre apagado (furnace_central_off, sin animKey): se
-  // pulsa para abrir su ventana (menú de la forja), no para encender el fuego.
+  // Horno detallado (128×208). En reposo apagado (furnace_central_off); al abrir su
+  // ventana (menú de la forja) se enciende el fuego (litAnimKey 'furnace_central').
   // Para usar el otro horno: cambia spriteKey a 'furnace_lvl1_off' (y carga su hoja).
   {
     type: 'forge', name: 'BUILD.FORGE',
@@ -115,12 +126,25 @@ export const BUILDABLES: BuildableDef[] = [
     frameSize: 128, scale: 0.8,
     tilesW: 3, tilesH: 3, unique: false,
     opensWindow: true,
+    litAnimKey: 'furnace_central', litTexture: 'furnace_central',
+    litFrames: [0,1,2,3,4,5,6,7,8,9,10,11], litFrameRate: 10,
     previewUrl: 'assets/sprites/stations/furnace_central_off.png',
     previewSrc: { x: 0, y: 0, w: 128, h: 224 },
     previewSheet: { w: 128, h: 224 },
     previewScale: +(58 / 224).toFixed(3),
   },
-  { ...station('smelter', 'BUILD.SMELTER', 0, 1), opensWindow: true },
+  // Fundición: usa su textura apagada propia (smelter_off, fuego retirado) y sin
+  // animKey, así que no parpadea fuego. Se pulsa para abrir su menú (opensWindow).
+  {
+    ...station('smelter', 'BUILD.SMELTER', 0, 1),
+    spriteKey: 'smelter_off', frame: 0, animKey: undefined,
+    opensWindow: true,
+    litAnimKey: 'smelter_lit', litTexture: 'stations', litFrames: [3,4,5], litFrameRate: 4,
+    previewUrl: 'assets/sprites/stations/smelter_off.png',
+    previewSrc: { x: 0, y: 0, w: 64, h: 92 },
+    previewSheet: { w: 64, h: 92 },
+    previewScale: +(58 / 92).toFixed(3),
+  },
   station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
   station('alembic',          'BUILD.ALEMBIC',          1, 1),
   station('workbench',        'BUILD.WORKBENCH',        2, 0),

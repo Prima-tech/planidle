@@ -351,6 +351,16 @@ const RESOURCES_CATALOG: LootEntry[] = [
     scale: 2, order: 6,
     description: 'Piedra molida obtenida al minar. Material de construcción.',
   },
+  {
+    name: 'Carbón',
+    category: 'Recurso',
+    type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'crushed_stone',
+    icon: 'assets/icon/resources/coal.png',
+    scale: 2, order: 6,
+    description: 'Carbón. Combustible para la fundición (y producto de fundir madera).',
+  },
 ];
 
 // ── Pociones (consumibles) ───────────────────────────────────────────────────

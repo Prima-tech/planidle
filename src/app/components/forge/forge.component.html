@@ -1,2 +1,84 @@
-<div class="forge-title">{{ 'BUILD.FORGE_TITLE' | translate }}</div>
-<div class="forge-empty">{{ 'BUILD.FORGE_SOON' | translate }}</div>
+<div cdkDropListGroup class="forge-root">
+
+  <!-- 1) Materiales a fundir -->
+  <div class="forge-section">
+    <div class="forge-label">{{ 'BUILD.FORGE_MATERIALS' | translate }}</div>
+    <div class="forge-slider">
+      <div *ngFor="let cell of mat; let i = index; trackBy: trackByIndex"
+           class="forge-cell" cdkDropList cdkDropListSortingDisabled
+           [id]="'forge-mat-' + i"
+           [cdkDropListConnectedTo]="inventoryCellIds"
+           (cdkDropListDropped)="onCellDrop($event, 'mat', i)">
+        <div *ngIf="cell" class="forge-item" cdkDrag
+             [cdkDragData]="{ sourceContext: 'forge', grid: 'mat', index: i, item: cell }"
+             [title]="cell.name">
+          <ng-container *ngTemplateOutlet="icon; context: { $implicit: cell }"></ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2) Combustible -->
+  <div class="forge-section">
+    <div class="forge-label">{{ 'BUILD.FORGE_FUEL' | translate }}</div>
+    <div class="forge-slider">
+      <div *ngFor="let cell of fuel; let i = index; trackBy: trackByIndex"
+           class="forge-cell" cdkDropList cdkDropListSortingDisabled
+           [id]="'forge-fuel-' + i"
+           [cdkDropListConnectedTo]="inventoryCellIds"
+           (cdkDropListDropped)="onCellDrop($event, 'fuel', i)">
+        <div *ngIf="cell" class="forge-item" cdkDrag
+             [cdkDragData]="{ sourceContext: 'forge', grid: 'fuel', index: i, item: cell }"
+             [title]="cell.name">
+          <ng-container *ngTemplateOutlet="icon; context: { $implicit: cell }"></ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3) Producción actual -->
+  <div class="forge-section">
+    <div class="forge-label">{{ 'BUILD.FORGE_PRODUCING' | translate }}</div>
+    <div class="forge-prod">
+      <ng-container *ngIf="producing$ | async as job; else prodEmpty">
+        <div class="forge-prod-cell" [title]="job.item.name">
+          <ng-container *ngTemplateOutlet="icon; context: { $implicit: job.item }"></ng-container>
+        </div>
+        <div class="forge-prod-bar"><span [style.width.%]="job.progress * 100"></span></div>
+      </ng-container>
+      <ng-template #prodEmpty>
+        <div class="forge-prod-cell forge-prod-cell--empty"></div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- 4) Salida -->
+  <div class="forge-section">
+    <div class="forge-label">{{ 'BUILD.FORGE_OUTPUT' | translate }}</div>
+    <div class="forge-slider">
+      <div *ngFor="let cell of out; let i = index; trackBy: trackByIndex"
+           class="forge-cell" cdkDropList cdkDropListSortingDisabled
+           [id]="'forge-out-' + i"
+           [cdkDropListConnectedTo]="inventoryCellIds"
+           (cdkDropListDropped)="onCellDrop($event, 'out', i)">
+        <div *ngIf="cell" class="forge-item" cdkDrag
+             [cdkDragData]="{ sourceContext: 'forge', grid: 'out', index: i, item: cell }"
+             [title]="cell.name">
+          <ng-container *ngTemplateOutlet="icon; context: { $implicit: cell }"></ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Render del icono de un item (igual que inventario/tienda) -->
+<ng-template #icon let-cell>
+  <div *ngIf="cell.iconSheet != null" class="item-icon-sheet"
+       [style.background-image]="'url(' + cell.iconSheet + ')'"
+       [style.background-size]="getSheetBgSize(cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)"
+       [style.background-position]="getSheetPos(cell.iconFrame, cell.iconFrameCols, cell.iconFrameSize, cell.iconContentSize)"></div>
+  <img *ngIf="cell.icon && cell.iconSheet == null" [src]="cell.icon" class="item-icon">
+  <span *ngIf="!cell.icon && cell.iconSheet == null" class="item-fallback">{{ cell.name.charAt(0) }}</span>
+  <div class="item-sum" *ngIf="cell.sum !== undefined">{{ cell.sum }}</div>
+</ng-template>

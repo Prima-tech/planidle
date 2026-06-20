@@ -6,6 +6,7 @@ import { EquipmentService } from 'src/app/services/equipment.service';
 import { GatheringEquipmentService } from 'src/app/services/gathering-equipment.service';
 import { TownChestService } from 'src/app/services/town-chest.service';
 import { BuildShopService } from 'src/app/services/build-shop.service';
+import { ForgeService } from 'src/app/services/forge.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
@@ -58,6 +59,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     private gatheringService: GatheringEquipmentService,
     private townChest: TownChestService,
     private buildShop: BuildShopService,
+    private forge: ForgeService,
     private el: ElementRef,
   ) {}
 
@@ -145,7 +147,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     if (!this.unlock.isTabVisible(this.activeTabIndex)) this.activeTabIndex = 0;
     this.tabs = ['I', 'II', 'III', 'IV', 'V'].slice(0, this.NUMBER_OF_TABS);
     this.equipmentSlotIds = this.equipmentService.getEquipmentSlotIds();
-    this.connectedDropIds = [...this.equipmentSlotIds, ...this.gatheringService.getSlotIds(), ...this.townChest.cellIds, ...this.buildShop.sellCellIds];
+    this.connectedDropIds = [...this.equipmentSlotIds, ...this.gatheringService.getSlotIds(), ...this.townChest.cellIds, ...this.buildShop.sellCellIds, ...this.forge.cellIds];
 
     // Grid vacío síncrono para que CDK registre los drop lists antes de cargar datos
     this.inventories = this.inventoryService.buildGrid();
@@ -382,6 +384,26 @@ export class InventoryComponent implements OnInit, OnDestroy {
       }
 
       this.buildShop.requestSellRemove(data.row, data.col);
+      this.splitMenuOpen = false;
+      this.deleteModalOpen = false;
+      this.triggerSave();
+      return;
+    }
+
+    // Drop desde la fundición (material/combustible/salida) → inventario (retirar)
+    if (data.sourceContext === 'forge') {
+      const targetItem = this.inventories[targetTabIndex][targetRow][targetCol];
+      const incoming: InventoryItem = data.item;
+
+      if (targetItem?.mergeable && incoming.mergeable && targetItem.name === incoming.name) {
+        targetItem.sum! += incoming.sum!;
+      } else if (targetItem !== null) {
+        return; // celda ocupada: rechazar
+      } else {
+        this.inventories[targetTabIndex][targetRow][targetCol] = incoming;
+      }
+
+      this.forge.removeCell(data.grid, data.index);
       this.splitMenuOpen = false;
       this.deleteModalOpen = false;
       this.triggerSave();

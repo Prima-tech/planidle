@@ -1,19 +1,23 @@
-/* ===== Tema madera + piedra (pixel-art RPG) — clona build-shop ===== */
+/* ===== Tema madera + piedra (pixel-art RPG) — clona build-shop/equipment ===== */
 $outline: #3a2c20;
 $stone: #8f8678;
 $stone-light: #a59c8d;
 $stone-dark: #6b6357;
 $wood-bg: #a86f3e;
+$wood-btn: #c08349;
+$wood-btn-dark: #8a5530;
+$cell-border: #21130e;
+$text-brown: #53301c;
 $text-cream: #ecd9b4;
 
 :host {
-  display: flex;
-  flex-direction: column;
+  display: block;
   box-sizing: border-box;
+  /* Mismo ancho que los paneles de la izquierda (equipo): 266 + 16 padding + 10 borde. */
+  width: 292px;
   min-height: calc(100% - 4px);
   margin: 2px;
   padding: 10px 8px 8px;
-  min-width: 220px;
   color: $text-cream;
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
@@ -27,22 +31,108 @@ $text-cream: #ecd9b4;
     0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
-.forge-title {
-  font-size: 0.78em;
-  font-weight: bold;
-  text-align: center;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 0 $outline;
-  margin-bottom: 8px;
+.forge-section { margin-bottom: 10px; }
+
+.forge-label {
+  font-size: 0.62em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-brown;
+  margin-bottom: 5px;
 }
 
-.forge-empty {
-  flex: 1;
+/* Slider horizontal de 8 celdas (scroll si no caben, como el de la tienda). */
+.forge-slider {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  touch-action: pan-x;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar { height: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $wood-btn-dark; border-radius: 2px; }
+}
+
+.forge-cell {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  position: relative;
+
+  &.cdk-drop-list-receiving,
+  &.cdk-drop-list-dragging { outline: 2px solid $wood-btn; }
+}
+
+.forge-item {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
-  font-size: 0.62em;
-  opacity: 0.75;
-  text-shadow: 0 1px 0 $outline;
+  cursor: grab;
 }
+
+/* Cuadro de producción: icono grande + barra de progreso. */
+.forge-prod {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.forge-prod-cell {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.forge-prod-bar {
+  flex: 1;
+  height: 12px;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(180deg, #f4b740, #e07a1c);
+    transition: width 0.25s linear;
+  }
+}
+
+/* Icono del item (igual que inventario/tienda). */
+.item-icon { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
+.item-icon-sheet { width: 32px; height: 32px; image-rendering: pixelated; }
+.item-fallback { font-size: 1.1em; font-weight: 700; color: $text-cream; }
+.item-sum {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  font-size: 0.6em;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px #000, 0 0 2px #000;
+}
+
+/* Item siendo arrastrado (CDK). */
+.cdk-drag-preview .item-icon-sheet,
+.cdk-drag-preview .item-icon { image-rendering: pixelated; }
+.cdk-drag-placeholder { opacity: 0.3; }
