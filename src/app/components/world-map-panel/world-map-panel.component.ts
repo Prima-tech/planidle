@@ -176,26 +176,8 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   }
 
   private async loadCharsOnPlanet(planetId: string) {
-    const mapIds  = PLANET_MAPS[planetId] ?? [];
-    const chars   = (await this.asgard.getCharacters()) ?? [];
-    const current = String(this.asgard.selectedPlayer?.id ?? '');
-    const result: CharOnMap[] = [];
-
-    for (const char of chars) {
-      if (!char?.id || !char?.name) continue;
-      const id = String(char.id);
-
-      if (id === current) {
-        if (mapIds.includes(this.currentMapId))
-          result.push({ name: char.name, isCurrent: true, equipment: null });
-      } else {
-        const snap = await this.storage.get(`snapshot_char_${id}`);
-        if (snap?.mapId && mapIds.includes(snap.mapId))
-          result.push({ name: char.name, isCurrent: false, equipment: snap.equipment ?? {} });
-      }
-    }
-
-    this.charsOnPlanet = result;
+    const mapIds = PLANET_MAPS[planetId] ?? [];
+    this.charsOnPlanet = await this.loadCharsWhere(m => mapIds.includes(m));
   }
 
   /** Botón de la tarjeta: hace el zoom-in a la vista detalle del planeta */
@@ -219,6 +201,13 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   }
 
   private async loadCharsOnMap(mapId: string) {
+    this.charsOnMap = await this.loadCharsWhere(m => m === mapId);
+  }
+
+  /** Recorre el roster y devuelve los personajes cuyo mapa cumple `matches`.
+   *  El personaje activo usa `currentMapId` (reactivo, equipment null); el resto
+   *  lee su snapshot persistido. Lo comparten la tarjeta de mapa y la de planeta. */
+  private async loadCharsWhere(matches: (mapId: string) => boolean): Promise<CharOnMap[]> {
     const chars   = (await this.asgard.getCharacters()) ?? [];
     const current = String(this.asgard.selectedPlayer?.id ?? '');
     const result: CharOnMap[] = [];
@@ -228,16 +217,16 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       const id = String(char.id);
 
       if (id === current) {
-        if (mapId === this.currentMapId)
+        if (matches(this.currentMapId))
           result.push({ name: char.name, isCurrent: true, equipment: null });
       } else {
         const snap = await this.storage.get(`snapshot_char_${id}`);
-        if (snap?.mapId === mapId)
+        if (snap?.mapId && matches(snap.mapId))
           result.push({ name: char.name, isCurrent: false, equipment: snap.equipment ?? {} });
       }
     }
 
-    this.charsOnMap = result;
+    return result;
   }
 
   /** ¿El mapa está bloqueado? 'hogar' (sin feature) siempre cuenta como libre;
