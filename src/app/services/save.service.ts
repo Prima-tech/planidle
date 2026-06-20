@@ -64,7 +64,7 @@ export interface GameSnapshot {
 
 // Oro inicial de un personaje nuevo o tras "Borrar todo".
 const STARTING_COINS = 500;
-const EMPTY_STATE: PlayerState = { coins: STARTING_COINS, specialCoins: 0, stars: 0, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0 };
+const EMPTY_STATE: PlayerState = { coins: STARTING_COINS, specialCoins: 0, stars: 0, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0, runMilestones: [] };
 
 @Injectable({ providedIn: 'root' })
 export class SaveService {

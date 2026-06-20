@@ -75,8 +75,10 @@ export class PlayerBridgeService {
   // getters de cooldown para pintar el aro (igual que las habilidades).
   private sprintStart = 0;
 
-  /** Arranca el sprint si no está en cooldown. Devuelve true si se activó. */
+  /** Arranca el sprint si no está en cooldown. Devuelve true si se activó.
+   *  Requiere tener comprado el hito 'sprint' (ver run-milestones / panel de hitos). */
   activateSprint(): boolean {
+    if (!this.playerState.hasRunMilestone('sprint')) return false;
     if (this.sprintOnCooldown) return false;
     this.sprintStart = Date.now();
     return true;

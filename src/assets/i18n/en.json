@@ -315,6 +315,9 @@
   "RUN": {
     "RECORD_DISTANCE": "Distance record",
     "DEATHS": "Deaths",
+    "MILESTONES": "Milestones",
+    "MS_SPRINT": "Sprint",
+    "MS_SPRINT_DESC": "Sprint attack: run faster while exploring.",
     "GO_HOME_TITLE": "Return home",
     "GO_HOME_MSG": "Are you sure you want to return home?",
     "GO_HOME_WARN": "You'll lose this expedition's progress: current stars and distance reset.",

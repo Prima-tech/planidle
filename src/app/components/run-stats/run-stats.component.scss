@@ -6,6 +6,7 @@ $stone-dark: #6b6357;
 $wood-bg: #a86f3e;
 $wood-btn-light: #d99a5c;
 $wood-btn-dark: #8a5530;
+$cell-bg: #38241d;
 $text-brown: #53301c;
 $text-cream: #ecd9b4;
 
@@ -15,10 +16,11 @@ $text-cream: #ecd9b4;
   position: fixed;
   top: calc(12px + var(--safe-top, 0px));
   right: calc(12px + var(--safe-right, 0px));
-  z-index: 150;
+  z-index: 160;        // por encima del botón de saltar (attack-button, z 150) para que
+                       // el panel desplegable lo cubra en vez de quedar tapado por él
   display: flex;
   flex-direction: column;
-  min-width: 180px;
+  width: 265px;        // mismo ancho que el panel/banners de la derecha
   pointer-events: none;
   user-select: none;
 
@@ -112,16 +114,20 @@ $text-cream: #ecd9b4;
   &:focus { outline: none; }   // sin borde de foco pegado en escritorio
 }
 
-/* ── Panel desplegable: detalle de la expedición (cuelga absoluto bajo el widget) ── */
+/* ── Panel desplegable: hitos. Cuelga del widget y se abre hasta cerca del footer
+      (como el resto de paneles laterales), con scroll si hay muchos. ── */
 .rs-panel {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
-  padding: 10px 8px 8px;
+  right: 0;            // anclado al borde derecho del widget
+  left: auto;
+  width: 265px;        // mismo ancho que los paneles/banners de la derecha
+  height: calc(100dvh - 120px);   // del borde del widget a ~un poco por encima del footer
+  padding: 9px 7px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  overflow-y: auto;
   background: $wood-bg;
   border: 3px solid;
   border-color: $stone $stone-dark $stone-dark $stone;
@@ -132,22 +138,84 @@ $text-cream: #ecd9b4;
     inset 0 0 0 1px $outline,
     0 4px 12px rgba(0, 0, 0, 0.6);
   box-sizing: border-box;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: $wood-btn-dark; border-radius: 2px; }
 }
 
-.rs-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.rs-row-label {
-  font-size: 0.6em;
+.rs-panel-title {
+  font-size: 0.52em;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: #6b4226;
+  text-align: center;
+  margin-bottom: 2px;
 }
 
-.rs-row-val {
+/* Tarjeta de hito: icono + nombre/desc + botón de compra (o check si ya está). */
+.rs-ms {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 6px;
+  background: $cell-bg;
+  border: 2px solid $outline;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+
+  &--owned { opacity: 0.85; }
+}
+
+.rs-ms-ic {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: #f4b740;
+}
+
+.rs-ms-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.rs-ms-name {
+  font-size: 0.6em;
+  font-weight: bold;
+  color: $text-cream;
+}
+
+.rs-ms-desc {
+  font-size: 0.5em;
+  color: rgba(236, 217, 180, 0.7);
+}
+
+.rs-ms-buy {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 7px;
+  border: 2px solid $outline;
+  border-radius: 5px;
   font-size: 0.62em;
   font-weight: bold;
-  color: $text-brown;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+
+  @media (hover: hover) { &:hover:not(:disabled) { background: $wood-btn-light; color: $text-brown; } }
+  &:disabled { opacity: 0.45; cursor: default; }
+  &:focus { outline: none; }
+
+  .rs-ms-star { width: 13px; height: 13px; image-rendering: pixelated; }
+}
+
+.rs-ms-check {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #6cc24a;
 }

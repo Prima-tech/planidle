@@ -32,7 +32,8 @@
 </ion-content>
 
 <app-hud-skill-buttons *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)"></app-hud-skill-buttons>
-<app-sprint-button *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async)"></app-sprint-button>
+<!-- El impulso solo existe si se ha comprado su hito (1 estrella) en el panel de hitos. -->
+<app-sprint-button *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async) && (playerStateService.runMilestones$ | async)?.includes('sprint')"></app-sprint-button>
 <app-run-stats *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async)"></app-run-stats>
 <app-attack-button *ngIf="dataLoaded && sceneVisible"></app-attack-button>
 <app-npc-dialogue *ngIf="dataLoaded && sceneVisible"></app-npc-dialogue>

@@ -19,6 +19,7 @@ export interface PlayerState {
   lifetimeCoins: number;
   totalDeaths: number;       // muertes TOTALES de por vida (para estadísticas; nunca se reinicia)
   currentDeaths: number;     // muertes de la expedición ACTUAL; se reinicia al volver a casa
+  runMilestones: string[];   // hitos del Modo Mundo comprados con estrellas (ids desbloqueados)
 }
 
 export const MAX_LEVEL = 100;
@@ -45,6 +46,7 @@ const INITIAL_STATE: PlayerState = {
   lifetimeCoins: 0,
   totalDeaths: 0,
   currentDeaths: 0,
+  runMilestones: [],
 };
 
 @Injectable({ providedIn: 'root' })
@@ -61,6 +63,7 @@ export class PlayerStateService {
   readonly currentKills$ = this.state$.pipe(map(s => s.currentKills ?? 0), distinctUntilChanged());
   readonly worldBestDistanceM$ = this.state$.pipe(map(s => s.worldBestDistanceM ?? 0), distinctUntilChanged());
   readonly currentDeaths$ = this.state$.pipe(map(s => s.currentDeaths ?? 0), distinctUntilChanged());
+  readonly runMilestones$ = this.state$.pipe(map(s => s.runMilestones ?? []), distinctUntilChanged());
   readonly totalDeaths$  = this.state$.pipe(map(s => s.totalDeaths ?? 0), distinctUntilChanged());
   readonly exp$          = this.state$.pipe(map(s => s.exp),          distinctUntilChanged());
   readonly lvl$          = this.state$.pipe(map(s => s.lvl),          distinctUntilChanged());
@@ -88,6 +91,7 @@ export class PlayerStateService {
       lifetimeCoins: profile.lifetimeCoins  ?? 0,
       totalDeaths:   profile.totalDeaths    ?? 0,
       currentDeaths: profile.currentDeaths  ?? 0,
+      runMilestones: profile.runMilestones  ?? [],
     });
   }
 
@@ -105,6 +109,21 @@ export class PlayerStateService {
   collectStars(amount: number): void {
     const s = this._state$.getValue();
     this._patch({ stars: (s.stars ?? 0) + amount });
+  }
+
+  /** ¿Está desbloqueado este hito del Modo Mundo? */
+  hasRunMilestone(id: string): boolean {
+    return (this._state$.getValue().runMilestones ?? []).includes(id);
+  }
+
+  /** Compra un hito del Modo Mundo gastando `cost` estrellas. Devuelve false si ya
+   *  está comprado o no hay estrellas suficientes. */
+  buyRunMilestone(id: string, cost: number): boolean {
+    const s = this._state$.getValue();
+    const owned = s.runMilestones ?? [];
+    if (owned.includes(id) || (s.stars ?? 0) < cost) return false;
+    this._patch({ stars: (s.stars ?? 0) - cost, runMilestones: [...owned, id] });
+    return true;
   }
 
   /** Suma enemigos abatidos en el Modo Mundo: total de por vida + contador de la run. */

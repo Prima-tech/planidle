@@ -17,7 +17,24 @@
     <ion-icon [name]="panelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
   </button>
 
-  <!-- Panel desplegable: reservado para futuras cosas (de momento vacío). -->
-  <div class="rs-panel" *ngIf="panelOpen"></div>
+  <!-- Panel desplegable: hitos comprables con estrellas (abre hasta cerca del footer). -->
+  <div class="rs-panel" *ngIf="panelOpen">
+    <div class="rs-panel-title">{{ 'RUN.MILESTONES' | translate }}</div>
+
+    <ng-container *ngIf="(milestones$ | async) as owned">
+      <div class="rs-ms" *ngFor="let m of RUN_MILESTONES" [class.rs-ms--owned]="owned.includes(m.id)">
+        <ion-icon class="rs-ms-ic" [name]="m.icon"></ion-icon>
+        <div class="rs-ms-body">
+          <span class="rs-ms-name">{{ m.labelKey | translate }}</span>
+          <span class="rs-ms-desc">{{ m.descKey | translate }}</span>
+        </div>
+        <button class="rs-ms-buy" *ngIf="!owned.includes(m.id)" [disabled]="!canBuy(m)" (click)="buy(m)">
+          <img class="rs-ms-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+          <span>{{ m.cost }}</span>
+        </button>
+        <ion-icon class="rs-ms-check" *ngIf="owned.includes(m.id)" name="checkmark-circle"></ion-icon>
+      </div>
+    </ng-container>
+  </div>
 
 </div>
