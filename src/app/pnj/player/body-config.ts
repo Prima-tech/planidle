@@ -15,6 +15,7 @@ const CHARACTER_BODY: Record<string, string> = {
   Kugo:    `${BODY_DIR}/kugo.png`,
   Italien: `${BODY_DIR}/italien.png`,
   Orc:     `${BODY_DIR}/orc.png`,
+  Rake:    `${BODY_DIR}/rake.png`,
 };
 
 /** Ruta de la hoja de cuerpo para un personaje (DEFAULT_BODY si no tiene modelo propio). */

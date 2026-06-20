@@ -91,8 +91,8 @@ interface ActiveChest {
  *  abajo). `name` = nombre en body-config (bodySpriteFor) para cargar su hoja;
  *  `texKey` = clave de textura propia. Añadir uno = una línea más aquí. */
 const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number }[] = [
-  { name: 'Italien', texKey: 'npc_italien', tileX: 28, tileY: 23 },
   { name: 'Orc',     texKey: 'npc_orc',     tileX: 34, tileY: 27 },
+  { name: 'Rake',    texKey: 'npc_rake',    tileX: 28, tileY: 23 },
 ];
 
 /** NPCs reclutables: aparecen en un mapa concreto (no el hogar) hasta que se les

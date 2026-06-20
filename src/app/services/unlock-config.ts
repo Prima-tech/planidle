@@ -65,6 +65,10 @@ export const FEATURES: FeatureDef[] = [
     name: 'Kugo' },
   { id: 'char.italien',  scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_italien' }],
     name: 'Italien' },
+  // Rake: disponible desde el inicio (requires []). Cambia a un flag/condición cuando
+  // definas cómo se gana (p.ej. reclutarlo como Kugo/Italien).
+  { id: 'char.rake',     scope: 'global', display: 'hidden', requires: [],
+    name: 'Rake' },
 
   // ── Paneles (char) ───────────────────────────────────────────────────────────
   // El botón del cofre de ciudad NO aparece en el footer hasta desbloquearlo.
