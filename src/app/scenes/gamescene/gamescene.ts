@@ -101,7 +101,8 @@ const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number }[
  *  entra al mapa ya no están (el spawn se salta si el personaje está desbloqueado).
  *  `name` debe existir en body-config (bodySpriteFor) y en ROSTER_TEMPLATE. */
 const RECRUIT_NPCS: { name: string; texKey: string; mapId: string; tileX: number; tileY: number; charFlag: string }[] = [
-  { name: 'Kugo', texKey: 'npc_kugo', mapId: '1-1', tileX: 33, tileY: 25, charFlag: 'char_kugo' },
+  { name: 'Kugo',    texKey: 'npc_kugo',    mapId: '1-1', tileX: 33, tileY: 25, charFlag: 'char_kugo' },
+  { name: 'Italien', texKey: 'npc_italien', mapId: '1-1', tileX: 27, tileY: 25, charFlag: 'char_italien' },
 ];
 
 // Nodo recolectable colocado en el mapa. Ocupa una huella de tiles (todas en
@@ -275,11 +276,13 @@ export class GameScene extends Phaser.Scene {
           }
         }
       }
-      // NPC reclutable del mapa actual (p.ej. Kugo en 1-1): solo carga su cuerpo si
-      // todavía no se ha reclutado (si ya está desbloqueado no aparece).
-      const recruit = RECRUIT_NPCS.find(r => r.mapId === this.reg.world.getCurrentMap()?.id);
-      if (recruit && !this.reg.unlocks?.isCharacterUnlocked(recruit.name) && !this.textures.exists(recruit.texKey)) {
-        this.load.spritesheet(recruit.texKey, bodySpriteFor(recruit.name), { frameWidth: 64, frameHeight: 64 });
+      // NPCs reclutables del mapa actual (p.ej. Kugo e Italien en 1-1): cargan su cuerpo
+      // solo mientras no se hayan reclutado (si ya están desbloqueados no aparecen).
+      const recruitMapId = this.reg.world.getCurrentMap()?.id;
+      for (const recruit of RECRUIT_NPCS.filter(r => r.mapId === recruitMapId)) {
+        if (!this.reg.unlocks?.isCharacterUnlocked(recruit.name) && !this.textures.exists(recruit.texKey)) {
+          this.load.spritesheet(recruit.texKey, bodySpriteFor(recruit.name), { frameWidth: 64, frameHeight: 64 });
+        }
       }
       this.load.spritesheet('drop_coin', 'assets/sprites/resources/coin.png', { frameWidth: 16, frameHeight: 16 });
       this.load.spritesheet('chests', 'assets/sprites/resources/chests.png', { frameWidth: 32, frameHeight: 32 });
@@ -2330,16 +2333,17 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    /** NPC reclutable del mapa actual (Kugo en 1-1): solo aparece mientras no se le
-     *  haya reclutado. Tras hablarle se desbloquea como personaje y ya no se spawnea. */
+    /** NPCs reclutables del mapa actual (Kugo e Italien en 1-1): cada uno aparece
+     *  mientras no se le haya reclutado. Tras hablarle se desbloquea como personaje
+     *  y ya no se spawnea. */
     private initRecruitNpcs(): void {
-      const r = RECRUIT_NPCS.find(rn => rn.mapId === this.currentMapConfig.id);
-      if (!r) return;
-      if (this.reg.unlocks?.isCharacterUnlocked(r.name)) return;   // ya reclutado
-      if (!this.textures.exists(r.texKey)) return;
-      const animKey = `${r.texKey}_idle_down`;
-      this.ensureNpcAnim(r.texKey, animKey);
-      this.spawnCityNpc(r.name, r.texKey, animKey, r.tileX, r.tileY, r);
+      for (const r of RECRUIT_NPCS.filter(rn => rn.mapId === this.currentMapConfig.id)) {
+        if (this.reg.unlocks?.isCharacterUnlocked(r.name)) continue;   // ya reclutado
+        if (!this.textures.exists(r.texKey)) continue;
+        const animKey = `${r.texKey}_idle_down`;
+        this.ensureNpcAnim(r.texKey, animKey);
+        this.spawnCityNpc(r.name, r.texKey, animKey, r.tileX, r.tileY, r);
+      }
     }
 
     /** Idle (mirando abajo) de un NPC: frames LPC 312-313, mismo layout que el jugador. */
@@ -2426,8 +2430,9 @@ export class GameScene extends Phaser.Scene {
     private npcLine(name: string): string {
       const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
       switch (name) {
-        case 'Kugo': return `${player}, ¡cuánto tiempo!`;
-        default:     return '...';
+        case 'Kugo':    return `${player}, ¡cuánto tiempo!`;
+        case 'Italien': return `Eh, ${player}, ¿listo para la aventura?`;
+        default:        return '...';
       }
     }
 
