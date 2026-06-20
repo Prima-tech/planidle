@@ -42,7 +42,7 @@
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
-                <span>{{ charMapNames[character.id] || 'Asgard' }}</span>
+                <span>{{ charLocation(character.id) }}</span>
               </div>
               <div class="hero-activity">
                 <ion-icon [name]="activityDef(character.id).icon"
@@ -72,7 +72,7 @@
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
-                <span>{{ charMapNames[character.id] || 'Asgard' }}</span>
+                <span>{{ charLocation(character.id) }}</span>
               </div>
               <div class="hero-activity">
                 <ion-icon [name]="activityDef(character.id).icon"
@@ -102,7 +102,7 @@
               </div>
               <div class="hero-map">
                 <ion-icon name="location-outline"></ion-icon>
-                <span>{{ charMapNames[character.id] || 'Asgard' }}</span>
+                <span>{{ charLocation(character.id) }}</span>
               </div>
               <div class="hero-activity">
                 <ion-icon [name]="activityDef(character.id).icon"

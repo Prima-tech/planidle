@@ -1,6 +1,7 @@
 import { Subscription } from 'rxjs';
 import { GameRegistry } from '../game-registry';
 import { mapFeatureId } from '../../services/unlock-config';
+import { RUN_UNLOCK_POINTS } from './run-unlock-points';
 import { bodySpriteFor } from '../../pnj/player/body-config';
 import {
   WorldParallaxId, getWorldParallaxSet, worldParallaxKey, worldParallaxPath,
@@ -36,31 +37,6 @@ const SIGN_SCALE = 2.5;              // 32px → 80px en pantalla (~1.25 tiles d
 
 // --- Puntos de interés (interest_point.png): hitos por distancia que desbloquean mapas ---
 const TEX_INTEREST = 'wr_interest';
-
-/**
- * Hitos del Modo Mundo: al alcanzar `distanceM` por PRIMERA vez (su flag aún sin
- * marcar) se desbloquea el mapa y aparece el modal de entrada.
- *   · `firstEver` = el primer mapa de todos: el modal solo ofrece "Aceptar" (entra).
- *     En los demás el modal ofrece "Aceptar" (entra) o "Cancelar" (sigue corriendo).
- * El "primera vez" se persiste como flag (char) en UnlockService; el botón "borrar
- * todo" limpia los flags, así que los hitos vuelven a dispararse desde cero.
- * Añadir más mapas = añadir entradas aquí (su distancia, flag y pin de mapa).
- */
-interface RunUnlockPoint {
-  distanceM: number;
-  flag: string;     // flag (char) que desbloquea la feature 'map.X'
-  mapId: string;    // id de pin del mapa (p.ej. '1-1')
-  firstEver: boolean;
-  // Personaje reclutable que vive en ese mapa (p.ej. Kugo en 1-1). Su desbloqueo es
-  // GLOBAL (de cuenta), a diferencia del flag del mapa que es por personaje. Si ya
-  // está reclutado, el hito NO fuerza el modal aunque este personaje no tenga aún su
-  // flag de mapa: muestra el botón de entrada (ver checkUnlockPoints).
-  recruitChar?: string;
-}
-const RUN_UNLOCK_POINTS: RunUnlockPoint[] = [
-  { distanceM: 100, flag: 'map_1_1', mapId: '1-1', firstEver: true, recruitChar: 'Kugo' },
-  { distanceM: 300, flag: 'map_1_2', mapId: '1-2', firstEver: false },
-];
 
 // --- Estrellas coleccionables (assets/sprites/resources/world_mode/star/) ---
 // 10 frames de un parpadeo: star.png (frame 1) + star2..star10.png, animados en
@@ -349,6 +325,11 @@ export class WorldRunScene extends Phaser.Scene {
     this.jumpHeld = false;
     this.isJumping = false;
     this.jumpHoldMs = 0;
+    // Resumimos desde la distancia de exploración persistida (la que crece corriendo
+    // y también estando AFK, +10 m/min): nunca arrancamos por detrás de lo ya
+    // explorado. La entrada del portal (startDistanceM de init) actúa como suelo.
+    this.startDistanceM = Math.max(this.startDistanceM, this.reg.playerState.snapshot().explorationDistanceM ?? 0);
+
     // Saltamos los coleccionables/enemigos que quedarían DETRÁS de la distancia de
     // arranque (al entrar por un portal apareces más adelante): así no se generan en
     // masa solo para reciclarse en el primer frame. El generador empieza en estos
@@ -423,6 +404,13 @@ export class WorldRunScene extends Phaser.Scene {
     });
 
     this.cameras.main.fadeIn(300, 0, 0, 0);
+
+    // Avisar a Angular de que la escena está lista para ocultar la pantalla de carga.
+    // Imprescindible en el rebote desde GameScene (recarga / cambio de personaje
+    // estando AFK explorando): allí GameScene retorna ANTES de su emitSceneReady, así
+    // que si WorldRunScene no la emite, `sceneVisible` se queda en false y el juego se
+    // queda colgado en "Cargando". En la entrada por portal es idempotente (ya era true).
+    this.time.delayedCall(300, () => this.reg.playerBridge?.emitSceneReady());
   }
 
   override update(_time: number, delta: number) {
@@ -736,6 +724,10 @@ export class WorldRunScene extends Phaser.Scene {
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.reg.world.setCurrentMap(mapId);
+      // Salimos de la exploración a propósito: limpiamos la actividad para que
+      // GameScene.create NO rebote de vuelta al Modo Mundo (su create la ajusta luego
+      // al mapa). Ver el rebote por 'exploring' en gamescene.ts.
+      this.reg.activity?.set('idle');
       this.scene.start('GameScene');
       this.scene.stop();
     });
@@ -1204,6 +1196,9 @@ export class WorldRunScene extends Phaser.Scene {
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.reg.world.setCurrentMap('hogar');
+      // Salida explícita de la exploración: limpiamos la actividad para que
+      // GameScene.create no rebote de vuelta al Modo Mundo (ver rebote 'exploring').
+      this.reg.activity?.set('idle');
       this.scene.start('GameScene');
       this.scene.stop();
     });

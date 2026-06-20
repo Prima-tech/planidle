@@ -245,6 +245,14 @@ export class PlayerBridgeService {
     if (scene?.scene.isActive()) {
       scene.scene.restart();
     } else {
+      // GameScene parada → venimos de WorldRunScene (p.ej. teletransporte desde el
+      // mapa del mundo o cambio de personaje en modo carrera). Su runner es un
+      // ArcadeSprite vivo que anima 'wr_run' sobre la textura 'player'; el preload de
+      // GameScene quita esa textura y, si WorldRunScene sigue corriendo, su sprite
+      // avanzaría a un frame ya destruido → crash 'sourceSize'. La paramos primero
+      // (su SHUTDOWN destruye el sprite) y luego arrancamos GameScene.
+      const run = game.scene.getScene('WorldRunScene');
+      if (run?.scene.isActive()) run.scene.stop();
       game.scene.start('GameScene');
     }
   }

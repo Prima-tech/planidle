@@ -298,6 +298,9 @@
     "REWARDS": "Rewards",
     "COINS": "Coins",
     "EXP": "Experience",
+    "DISTANCE_TRAVELED": "Distance traveled",
+    "METERS_EXPLORED": "Meters explored",
+    "MAPS_UNLOCKED": "Maps unlocked",
     "COLLECT": "Collect"
   },
   "GAME_LOG": {

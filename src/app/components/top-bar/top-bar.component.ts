@@ -10,9 +10,10 @@ import { WorldService } from 'src/app/services/world.service';
 import { MapStatsService } from 'src/app/services/map-stats.service';
 import { AfkBonusService, AFK_PASSIVE_REGISTRY, AfkPassiveDef } from 'src/app/services/afk-bonus.service';
 import { OfflineGainsService } from 'src/app/services/offline-gains.service';
-import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
+import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY, planetNameForMap } from 'src/app/scenes/gamescene/map-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
 import { UnlockService } from 'src/app/services/unlock.service';
+import { ActivityService, ActivityKind } from 'src/app/services/activity.service';
 
 export interface MapPanelData {
   mapId: string;
@@ -45,6 +46,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private offlineGains = inject(OfflineGainsService);
   private storage      = inject(StorageService);
   private unlocks      = inject(UnlockService);
+  private activity     = inject(ActivityService);
 
   valueHP$: any = null;
   valueMP$: any = null;
@@ -110,8 +112,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
   charListOpen = false;
   // Botón del roster: solo visible con 2+ personajes desbloqueados.
   hasMultipleChars = false;
-  // equipment null = personaje activo (sprite reactivo al equipo actual)
-  rosterItems: { char: any; equipment: EquipmentSnapshot | null; mapName: string }[] = [];
+  // equipment null = personaje activo (sprite reactivo al equipo actual). exploring =
+  // está en el Modo Mundo (mostramos el planeta, no el mapa de combate, que está stale).
+  rosterItems: { char: any; equipment: EquipmentSnapshot | null; mapName: string; exploring: boolean; planet: string }[] = [];
 
   /** Recuenta personajes desbloqueados para mostrar/ocultar el selector. */
   private async refreshCharCount(): Promise<void> {
@@ -131,11 +134,13 @@ export class TopBarComponent implements OnInit, OnDestroy {
       // Solo personajes desbloqueados: el resto no aparece (sin candado)
       if (!this.unlocks.isCharacterUnlocked(c.name)) continue;
       if (this.isCurrent(c)) {
+        // Personaje activo: estado EN VIVO. En el Modo Mundo el mapa actual sigue
+        // siendo el de combate (stale), así que la actividad la leemos del servicio.
         const mapId = this.worldService.getCurrentMap()?.id;
-        items.push({ char: c, equipment: null, mapName: this.mapNameOf(mapId) });
+        items.push({ char: c, equipment: null, ...this.locationOf(mapId, this.activity.current) });
       } else {
         const snap = await this.storage.get(`snapshot_char_${c.id}`);
-        items.push({ char: c, equipment: snap?.equipment ?? {}, mapName: this.mapNameOf(snap?.mapId) });
+        items.push({ char: c, equipment: snap?.equipment ?? {}, ...this.locationOf(snap?.mapId, snap?.activity) });
       }
     }
     this.rosterItems = items;
@@ -144,6 +149,16 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private mapNameOf(mapId: string | undefined): string {
     if (!mapId) return '—';
     return MAP_REGISTRY[mapId]?.name ?? mapId;
+  }
+
+  /** Ubicación para la ficha del roster. Explorando (Modo Mundo) muestra el planeta y
+   *  marca `exploring` (el template antepone "Explorando"); si no, el nombre del mapa. */
+  private locationOf(mapId: string | undefined, activity: ActivityKind | undefined): { mapName: string; exploring: boolean; planet: string } {
+    return {
+      mapName:   this.mapNameOf(mapId),
+      exploring: activity === 'exploring',
+      planet:    planetNameForMap(mapId ?? 'hogar'),
+    };
   }
 
   isCurrent(c: any): boolean {

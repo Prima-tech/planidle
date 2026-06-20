@@ -22,7 +22,8 @@
                   (click)="pickCharacter(it.char)">
             <app-character-sprite [size]="30" [equipmentSnapshot]="it.equipment" [characterName]="it.char?.name"></app-character-sprite>
             <span class="char-roster-name">{{ it.char.name }}</span>
-            <span class="char-roster-map">{{ it.mapName }}</span>
+            <span class="char-roster-map" *ngIf="!it.exploring">{{ it.mapName }}</span>
+            <span class="char-roster-map" *ngIf="it.exploring">{{ 'ACTIVITY.EXPLORING' | translate }} · {{ it.planet }}</span>
           </button>
         </div>
 

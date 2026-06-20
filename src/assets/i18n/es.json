@@ -298,6 +298,9 @@
     "REWARDS": "Recompensas",
     "COINS": "Monedas",
     "EXP": "Experiencia",
+    "DISTANCE_TRAVELED": "Distancia recorrida",
+    "METERS_EXPLORED": "Metros explorados",
+    "MAPS_UNLOCKED": "Mapas desbloqueados",
     "COLLECT": "Recoger"
   },
   "GAME_LOG": {

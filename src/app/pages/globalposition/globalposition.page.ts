@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AsgardService } from 'src/app/services/asgard';
 import { StorageService } from 'src/app/services/storage.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
-import { MAP_REGISTRY } from 'src/app/scenes/gamescene/map-config';
+import { MAP_REGISTRY, planetNameForMap } from 'src/app/scenes/gamescene/map-config';
 import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { ActivityService, ActivityDef, ActivityKind } from 'src/app/services/activity.service';
@@ -17,6 +17,7 @@ import { ActivityService, ActivityDef, ActivityKind } from 'src/app/services/act
 export class GlobalpositionPage implements OnInit, OnDestroy {
   isSelected: any = null;
   charMapNames:  Record<string, string>           = {};
+  charPlanet:    Record<string, string>            = {};
   charLastSeen:  Record<string, string>           = {};
   charEquipment: Record<string, EquipmentSnapshot> = {};
   charActivity:  Record<string, ActivityKind>      = {};
@@ -81,6 +82,7 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
       const snapshot = await this.storageService.get(`snapshot_char_${char.id}`);
       const mapId = snapshot?.mapId ?? 'hogar';
       this.charMapNames[char.id]  = MAP_REGISTRY[mapId]?.name ?? mapId;
+      this.charPlanet[char.id]    = planetNameForMap(mapId);
       this.charEquipment[char.id] = snapshot?.equipment ?? {};
       // Actividad: la guardada; si el save es antiguo (sin campo), se deduce del mapa.
       this.charActivity[char.id] = snapshot?.activity
@@ -104,6 +106,17 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
   /** Definición (icono/label/color) de la actividad de un personaje para la ficha. */
   activityDef(charId: string): ActivityDef {
     return this.activityService.def(this.charActivity[charId]);
+  }
+
+  /** Texto de ubicación de la ficha. Explorando (Modo Mundo) ya no estás en ningún
+   *  mapa de combate: el `mapId` del snapshot es el último mapa donde estuviste (p.ej.
+   *  '1-2') y mostrarlo confunde, así que enseñamos SOLO el planeta que exploras. En
+   *  el resto de actividades, el nombre del mapa. */
+  charLocation(charId: string): string {
+    if (this.charActivity[charId] === 'exploring' && this.charPlanet[charId]) {
+      return this.charPlanet[charId];
+    }
+    return this.charMapNames[charId] || 'Asgard';
   }
 
   timeSince(charId: string): string {

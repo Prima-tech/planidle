@@ -62,7 +62,7 @@ export interface GameSnapshot {
   lastModified: string;
 }
 
-const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, stars: 0, worldKills: 0, worldBestDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0 };
+const EMPTY_STATE: PlayerState = { coins: 0, specialCoins: 0, stars: 0, worldKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0 };
 
 @Injectable({ providedIn: 'root' })
 export class SaveService {
@@ -156,6 +156,10 @@ export class SaveService {
         this.gathering.switchLoadout(this.equipment.activeLoadout);
       }
       this.world.setCurrentMap(snapshot.mapId ?? 'hogar');
+      // Restaura la actividad guardada: GameScene.create la lee para decidir si rebota
+      // al Modo Mundo (activity 'exploring'); para el resto la sobrescribe según el
+      // mapa. Sin esto, un personaje dejado explorando volvía siempre al combate.
+      this.activity.set(snapshot.activity ?? 'idle');
       this.kills.restoreCharKills(snapshot.kills ?? {});
       this.talent.restoreLoadouts(snapshot.talentLoadouts, snapshot.talents ?? null);
       // Sincronizar: si los saves divergen, los talentos siguen al combate
@@ -171,6 +175,7 @@ export class SaveService {
       this.gathering.restoreLoadouts(null);
       this.gatheringSkills.restoreFromSnapshot(null);
       this.world.setCurrentMap('hogar');
+      this.activity.set('idle');
       this.kills.restoreCharKills({});
       this.talent.restoreLoadouts(null, null);
       this.skillEquip.restoreFromSnapshot(null);
@@ -230,6 +235,12 @@ export class SaveService {
     await this.storage.clear();               // personajes + snapshots + globales
     try { localStorage.removeItem('hud_skill_slots'); } catch { /* sin storage */ }
     this.charId = null;
+    // Reset en memoria de mapa y actividad: el llamador recarga después, pero si la
+    // recarga se retrasa o se previene (en dev, webpack: "Reload prevented"), un
+    // 'exploring' colgado haría que GameScene rebotara al Modo Mundo en vez de mostrar
+    // Asgard. Así el estado queda limpio (hogar/idle) sin depender solo del reload.
+    this.world.setCurrentMap('hogar');
+    this.activity.set('idle');
     // No reseteamos _isRestoring: dejarlo en true evita que cualquier emisión
     // tardía re-escriba estado obsoleto antes de la recarga del llamador.
   }

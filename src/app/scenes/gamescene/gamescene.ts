@@ -440,6 +440,19 @@ export class GameScene extends Phaser.Scene {
       this.deleteSelecting = false;
       this.interactLatched = false;
       this.currentMapConfig = this.reg.world.getCurrentMap();
+
+      // Si el personaje quedó AFK explorando, loadCharacter restauró su actividad como
+      // 'exploring': en vez de montar el mapa de combate, rebotamos al Modo Mundo. El
+      // preload ya recargó la textura 'player' del personaje seleccionado, y aquí
+      // todavía no hemos creado ningún sprite ni lanzado el HUD, así que arrancar
+      // WorldRunScene es seguro (mismo camino que el portal de entrada). entryMapId =
+      // último mapa de combate donde estaba (de ahí resume la distancia explorada).
+      if (this.reg.activity?.current === 'exploring') {
+        this.scene.start('WorldRunScene', { entryMapId: this.currentMapConfig.id });
+        this.scene.stop();
+        return;
+      }
+
       this.animService      = new AnimationService(this);
       this.reg.mapStats?.reset();
       // Actividad AFK: mapa con enemigos = matando; sin enemigos (hogar/ciudad) = idle.

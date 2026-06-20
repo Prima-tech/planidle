@@ -50,9 +50,9 @@ const PLANETS: PlanetDef[] = [
   { id: 'vortex',  name: 'Vórtice', kind: 'pixel', style: 'blackhole', base: '#05030a', features: ['#1a1040', '#16275f', '#3a55f0'], cloudAlpha: 0, halo: 0x4a9af8, orbit: 0.97, size: 26, speed: 0.045 },
 ];
 
-// Mapas del planeta Tierra, en ORDEN del polo norte al polo sur. Se pintan como un
-// meridiano fijo (recta vertical por el centro del globo): Asgard arriba (polo
-// norte) y los 1-x descendiendo. No rotan con la textura; ver buildWorldRoute.
+// Mapas del planeta Tierra, en ORDEN (Asgard primero). Se reparten AL AZAR por toda
+// la superficie del globo (coords de textura generadas en worldPinPositions); viven
+// sobre la superficie y rotan con la textura. Ver buildWorldRoute / updatePins.
 interface SurfacePin {
   name: string;
   mapId: string;
@@ -70,6 +70,20 @@ const TIERRA_PINS: SurfacePin[] = [
   { name: '1-7',   mapId: '1-7',   color: 0x5bc0f8 },
   { name: '1-8',   mapId: '1-8',   color: 0x5bc0f8 },
 ];
+
+// Posiciones (coords de textura 0-512) repartidas al azar por el globo. Se generan
+// una sola vez por sesión y se cachean, para que los mapas no salten de sitio cada
+// vez que abres el mapa del mundo (sí cambian al recargar la app).
+let WORLD_PIN_POS: { tx: number; ty: number }[] | null = null;
+function worldPinPositions(): { tx: number; ty: number }[] {
+  if (!WORLD_PIN_POS) {
+    WORLD_PIN_POS = TIERRA_PINS.map(() => ({
+      tx: Phaser.Math.Between(0, TEX_SIZE - 1),
+      ty: Phaser.Math.Between(0, TEX_SIZE - 1),
+    }));
+  }
+  return WORLD_PIN_POS;
+}
 
 // El componente Angular registra aquí sus callbacks: abrir la tarjeta de info
 // del mapa (click) y teletransportarse (doble click), como en la tab 0
@@ -203,7 +217,7 @@ export class PlanetViewScene extends Phaser.Scene {
   private detailCY = 0;
   private detailR  = 0;
   // Pines de la Tierra: viven en coords de textura (tx/ty) y se proyectan cada frame
-  // siguiendo el giro del globo (ver updatePins). Forman un meridiano (misma tx).
+  // siguiendo el giro del globo (ver updatePins). Repartidos por la cara (zig-zag).
   private pinObjs: {
     dot: Phaser.GameObjects.Arc;
     label: Phaser.GameObjects.Text;
@@ -397,23 +411,18 @@ export class PlanetViewScene extends Phaser.Scene {
   }
 
   /**
-   * Ruta de mapas de la Tierra: un MERIDIANO sobre la superficie (misma longitud,
-   * latitud del polo norte = Asgard al polo sur = 1-8). Los pines viven en coords de
-   * textura y rotan con el globo; updatePins los proyecta y traza la fina línea
-   * amarilla que une el inicio con los mapas DESBLOQUEADOS. Los bloqueados van en gris.
+   * Mapas de la Tierra repartidos AL AZAR por la superficie del globo (posiciones
+   * cacheadas en worldPinPositions). Viven en coords de textura y rotan con el globo;
+   * updatePins los proyecta y traza la fina línea amarilla que une los mapas
+   * DESBLOQUEADOS consecutivos cercanos. Los bloqueados van en gris.
    */
   private buildWorldRoute(): void {
     if (!this.detailC) return;
     const lockFn = this.game.registry.get(PLANET_MAP_LOCKED_KEY) as ((id: string) => boolean) | undefined;
     const isLocked = (id: string) => !!lockFn && lockFn(id);
 
-    // Coords de textura del meridiano: misma tx (columna central, dx=0); ty repartida
-    // del casi-polo norte (dy≈-0.82) al casi-polo sur (dy≈0.82). En reposo
-    // (tilePosition 0) la proyección de updatePins lo deja vertical y centrado.
-    const tx = this.detailR / DPR;
-    const n = TIERRA_PINS.length;
-    const topDy = -0.82, botDy = 0.82;
     const dotR = 5.5 * DPR;
+    const pos = worldPinPositions();
 
     this.pinObjs = [];
     // La línea de ruta se redibuja cada frame (va detrás de los nodos).
@@ -421,8 +430,7 @@ export class PlanetViewScene extends Phaser.Scene {
     this.detailC.add(this.routeGfx);
 
     TIERRA_PINS.forEach((pin, i) => {
-      const dy = topDy + (botDy - topDy) * (n > 1 ? i / (n - 1) : 0);
-      const ty = this.detailR * (1 + dy) / DPR;
+      const { tx, ty } = pos[i];
       const locked = isLocked(pin.mapId);
 
       const dot = this.add.circle(0, 0, dotR, locked ? 0x6b6357 : pin.color, 1)

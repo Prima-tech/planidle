@@ -155,3 +155,17 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
   '1-7': genLevel({ id: '1-7', w: 84, h: 68, back: '1-6',   next: '1-8', enemyType: 'goobling2', maxCount: 5, behavior: 'aggressive', visionRadius: 6 }),
   '1-8': genLevel({ id: '1-8', w: 88, h: 72, back: '1-7',                enemyType: 'golem1',   maxCount: 6, behavior: 'aggressive', visionRadius: 7 }),
 };
+
+// Planeta al que pertenece cada mapa (para mostrar "qué planeta exploras" en el
+// roster y el modal AFK). Hoy todos los mapas viven en la Tierra (ver TIERRA_PINS en
+// planet-view.scene.ts). Al añadir planetas nuevos, mapear aquí sus mapIds; el resto
+// cae al planeta por defecto.
+const DEFAULT_PLANET_NAME = 'Tierra';
+const PLANET_BY_MAP: Record<string, string> = {
+  // ej.: 'magmar-1': 'Magmar'
+};
+
+/** Nombre del planeta de un mapa (Tierra por defecto). */
+export function planetNameForMap(mapId: string): string {
+  return PLANET_BY_MAP[mapId] ?? DEFAULT_PLANET_NAME;
+}

@@ -279,8 +279,17 @@ export class LayoutComponent implements OnDestroy {
   }
 
   collectGains(gains: OfflineGains) {
-    this.playerStateService.collectCoins(gains.coins);
-    this.playerStateService.addExp(gains.exp);
+    if (gains.kind === 'exploring') {
+      // Avanza la distancia explorada (resume desde aquí la próxima carrera) y
+      // desbloquea los mapas que cruzó el AFK (setFlag es idempotente).
+      this.playerStateService.addExplorationDistance(gains.exploreMeters ?? 0);
+      for (const flag of gains.unlockedFlags ?? []) {
+        this.unlockService.setFlag(flag, 'char');
+      }
+    } else {
+      this.playerStateService.collectCoins(gains.coins);
+      this.playerStateService.addExp(gains.exp);
+    }
     this.pendingGains = null;
     this.saveService.pendingGains$.next(null);
   }

@@ -7,6 +7,8 @@ export interface PlayerState {
   stars: number;
   worldKills: number;        // enemigos abatidos en el Modo Mundo (total)
   worldBestDistanceM: number; // mejor distancia (m) alcanzada en una carrera
+  explorationDistanceM: number; // distancia (m) explorada acumulada: crece corriendo
+                                 // Y estando AFK (+10 m/min); la carrera resume desde aquí
   exp: number;
   lvl: number;
   hp: number;
@@ -30,6 +32,7 @@ const INITIAL_STATE: PlayerState = {
   stars: 0,
   worldKills: 0,
   worldBestDistanceM: 0,
+  explorationDistanceM: 0,
   exp: 0,
   lvl: 1,
   hp: 100,
@@ -67,6 +70,7 @@ export class PlayerStateService {
       stars:         profile.stars          ?? 0,
       worldKills:    profile.worldKills     ?? 0,
       worldBestDistanceM: profile.worldBestDistanceM ?? 0,
+      explorationDistanceM: profile.explorationDistanceM ?? 0,
       exp:           profile.exp            ?? 0,
       lvl:           profile.lvl            ?? 1,
       hp:            profile.hp             ?? profile.current_hp ?? 100,
@@ -100,12 +104,26 @@ export class PlayerStateService {
     this._patch({ worldKills: (s.worldKills ?? 0) + amount });
   }
 
-  /** Registra la distancia de la carrera actual; solo persiste si bate el récord. */
+  /** Registra la distancia de la carrera actual. Empuja el récord (worldBestDistanceM)
+   *  y la distancia explorada (explorationDistanceM, desde donde resume la próxima
+   *  carrera). Ambas son monótonas: solo crecen. */
   reportWorldDistance(meters: number): void {
     const s = this._state$.getValue();
-    if (meters > (s.worldBestDistanceM ?? 0)) {
-      this._patch({ worldBestDistanceM: meters });
+    const patch: Partial<PlayerState> = {};
+    if (meters > (s.worldBestDistanceM ?? 0))   patch.worldBestDistanceM = meters;
+    if (meters > (s.explorationDistanceM ?? 0)) patch.explorationDistanceM = meters;
+    if (patch.worldBestDistanceM !== undefined || patch.explorationDistanceM !== undefined) {
+      this._patch(patch);
     }
+  }
+
+  /** Suma metros explorados estando AFK (Modo Mundo). No toca el récord de carrera
+   *  (worldBestDistanceM): el AFK avanza la exploración pero no cuenta como "mejor
+   *  carrera". Ver OfflineGainsService. */
+  addExplorationDistance(meters: number): void {
+    if (meters <= 0) return;
+    const s = this._state$.getValue();
+    this._patch({ explorationDistanceM: (s.explorationDistanceM ?? 0) + meters });
   }
 
   recordDeath(): void {
