@@ -205,7 +205,10 @@ export class LayoutComponent implements OnDestroy {
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       parent: "game",
-      backgroundColor: "#48C4F8",
+      // Negro: es lo que asoma un instante al cambiar de escena (entre el fade-out de
+      // una y el primer frame de la siguiente). Antes era azul (#48C4F8) y daba un
+      // destello feo; negro empalma con los fundidos a negro de las transiciones.
+      backgroundColor: "#000000",
     };
   }
 
