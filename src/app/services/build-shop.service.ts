@@ -27,10 +27,14 @@ const SLOT_COUNT   = 6;
 export const SELL_ROWS = 3;
 export const SELL_COLS = 4;
 
-/** Productos a la venta (por nombre del item en ITEM_CATALOG). */
+/** Productos a la venta (por nombre del item en ITEM_CATALOG).
+ *  Equipo tier 1 (la pieza _01 de cada slot) + el arma básica, todo a 100 oro. */
 const PRODUCTS: { id: string; itemName: string; price: number; initialStock: number }[] = [
-  { id: 'bag1', itemName: 'Bolsa de Cuero', price: 100, initialStock: 1 },
-  { id: 'wood', itemName: 'Madera',         price: 10,  initialStock: 10 },
+  { id: 'helm1',  itemName: 'Yelmo de Hierro',  price: 100, initialStock: 5 },
+  { id: 'torso1', itemName: 'Coraza de Marfil',  price: 100, initialStock: 5 },
+  { id: 'legs1',  itemName: 'Grebas de Cuero',   price: 100, initialStock: 5 },
+  { id: 'boots1', itemName: 'Botas de Marfil',   price: 100, initialStock: 5 },
+  { id: 'sword1', itemName: 'Espada de Acero',   price: 100, initialStock: 5 },
 ];
 
 /** Oro que paga la tienda por unidad al vender (por nombre). Fallback: DEFAULT. */

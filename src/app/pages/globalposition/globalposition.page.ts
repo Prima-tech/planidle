@@ -55,6 +55,17 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     await this.unlocks.loadGlobal();
     await this.asgardService.refreshData();
     await this.fillLocalRosterIfIncomplete();
+
+    // Si solo hay UN personaje desbloqueado no hay nada que elegir: entra directo
+    // al juego con él (se salta esta pantalla). En modo admin están todos
+    // desbloqueados, así que sí se muestra la selección.
+    const unlocked = this.sorted;
+    if (unlocked.length === 1) {
+      await this.asgardService.setSelectedPlayer(unlocked[0]);
+      this.router.navigate(['/main']);
+      return;
+    }
+
     await this.loadCharacterMaps();
     this.ticker = setInterval(() => this.now = Date.now(), 1000);
   }

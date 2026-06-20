@@ -1802,6 +1802,15 @@ export class GameScene extends Phaser.Scene {
         });
         return;
       }
+      // Recurso de cara pero SIN su herramienta equipada → balanceo + aviso
+      // "need pickaxe"/"need axe" (en vez de un ataque normal contra la nada).
+      const missing = this.nearestNode(false);
+      if (missing) {
+        this.setActiveHarvest(null);
+        this.player.playerAttack();
+        this.showNeedToolText(missing);
+        return;
+      }
       // Ataque normal (enemigo / al aire): es "otra acción" → guarda la herramienta y
       // vuelve a mostrar el arma.
       this.setActiveHarvest(null);
@@ -1881,6 +1890,13 @@ export class GameScene extends Phaser.Scene {
     /** Recurso más cercano en rango y en la dirección de mirada cuya herramienta esté
      *  equipada. Define el contexto/capa de herramienta y el objetivo del golpe. */
     private nearestHarvestable(): HarvestNode | null {
+      return this.nearestNode(true);
+    }
+
+    /** Recurso más cercano en rango y dirección de mirada. `withTool` true = solo los
+     *  recolectables (herramienta equipada); false = solo aquellos cuya herramienta
+     *  FALTA (para avisar "need <tool>" al golpearlos sin ella). */
+    private nearestNode(withTool: boolean): HarvestNode | null {
       if (this.nodes.length === 0) return null;
       const pos = this.player.getPosition();
       const vec = this.dirVector(this.player.getDirection());
@@ -1889,7 +1905,8 @@ export class GameScene extends Phaser.Scene {
       let nearestDist = Infinity;
       for (const node of this.nodes) {
         const kind = HARVEST_KINDS[node.kind];
-        if (!this.equippedTool(kind.toolCategory, kind.toolSlotId)) continue;   // sin herramienta no surte efecto
+        const hasTool = !!this.equippedTool(kind.toolCategory, kind.toolSlotId);
+        if (hasTool !== withTool) continue;
         // Punto de interacción = centro de la huella en el suelo (no la copa del árbol)
         const baseY = node.sprite.y - kind.offsetY - (kind.footprintH / 2) * GameScene.TILE_SIZE;
         const dx = node.sprite.x - pos.x;
@@ -1900,6 +1917,26 @@ export class GameScene extends Phaser.Scene {
         if (dist < nearestDist) { nearestDist = dist; nearest = node; }
       }
       return nearest;
+    }
+
+    /** Aviso flotante "need pickaxe"/"need axe" sobre un recurso golpeado sin su
+     *  herramienta (estilo del número de daño de enemigos, en rojo). */
+    private showNeedToolText(node: HarvestNode): void {
+      const kind = HARVEST_KINDS[node.kind];
+      const x = node.sprite.x + Phaser.Math.Between(-20, 20);
+      const y = node.sprite.y - GameScene.TILE_SIZE * 1.8;   // bien por encima del recurso
+      const text = this.add.text(x, y, `need ${kind.toolSlotId}`, {
+        fontSize:        '32px',
+        color:           '#ffd700',
+        fontStyle:       'bold',
+        stroke:          '#000000',
+        strokeThickness: 7,
+      });
+      text.setOrigin(0.5, 1).setDepth(5000);
+      this.tweens.add({
+        targets: text, y: y - 45, alpha: 0, duration: 1300, ease: 'Power2',
+        onComplete: () => text.destroy(),
+      });
     }
 
     private harvestNode(node: HarvestNode): void {
