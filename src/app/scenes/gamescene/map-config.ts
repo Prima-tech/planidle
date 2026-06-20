@@ -169,3 +169,17 @@ const PLANET_BY_MAP: Record<string, string> = {
 export function planetNameForMap(mapId: string): string {
   return PLANET_BY_MAP[mapId] ?? DEFAULT_PLANET_NAME;
 }
+
+// Capital (mapa principal) del planeta al que pertenece cada mapa. Hoy todos los
+// mapas son de la Tierra, cuya capital es Asgard ('hogar'). Al añadir planetas, mapear
+// los mapId de cada uno a su capital; el resto cae a la capital por defecto.
+const DEFAULT_CAPITAL = 'hogar';
+const CAPITAL_BY_MAP: Record<string, string> = {
+  // ej.: 'magmar-1': 'magmar-hub'
+};
+
+/** Capital (mapa principal) del planeta de un mapa. Usado para "volver al mapa
+ *  principal" desde el Modo Mundo. */
+export function planetCapitalForMap(mapId: string): string {
+  return CAPITAL_BY_MAP[mapId] ?? DEFAULT_CAPITAL;
+}

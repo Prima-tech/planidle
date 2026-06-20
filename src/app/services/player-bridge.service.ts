@@ -39,6 +39,9 @@ export class PlayerBridgeService {
    *  para el salto variable (mantener = más alto). */
   readonly jumpRequest$ = new Subject<void>();
   readonly jumpReleaseRequest$ = new Subject<void>();
+  /** El botón "volver al mapa principal" (HTML, solo en modo carrera) emite aquí;
+   *  WorldRunScene sale de la exploración a la capital del planeta. */
+  readonly exitRunRequest$ = new Subject<void>();
 
   /** Modo Mundo: la PRIMERA vez que se cruza la entrada de un mapa recién
    *  desbloqueado, la escena pide mostrar el modal de entrada (o null = oculto).
@@ -59,6 +62,7 @@ export class PlayerBridgeService {
   }
   requestJump(): void { this.jumpRequest$.next(); }
   releaseJump(): void { this.jumpReleaseRequest$.next(); }
+  requestExitRun(): void { this.exitRunRequest$.next(); }
 
   // ── Sprint (Modo Mundo) ───────────────────────────────────────────────────────
   // Timestamp de la última activación (0 = nunca / reset). La velocidad la aplica

@@ -303,6 +303,13 @@
     "MAPS_UNLOCKED": "Maps unlocked",
     "COLLECT": "Collect"
   },
+  "RUN": {
+    "GO_HOME_TITLE": "Return home",
+    "GO_HOME_MSG": "Are you sure you want to return home?",
+    "GO_HOME_WARN": "You'll lose this expedition's progress: current stars and distance reset.",
+    "GO_HOME_NO": "No",
+    "GO_HOME_YES": "Yes"
+  },
   "GAME_LOG": {
     "COINS": "Coins"
   },

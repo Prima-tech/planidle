@@ -18,4 +18,6 @@ export class RunStatsComponent {
   readonly stars$ = this.playerState.stars$;
   readonly kills$ = this.playerState.worldKills$;
   readonly bestDistance$ = this.playerState.worldBestDistanceM$;
+  // Muertes de la expedición actual (se reinician al volver a casa).
+  readonly deaths$ = this.playerState.currentDeaths$;
 }

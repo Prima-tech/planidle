@@ -1,7 +1,7 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import Phaser from 'phaser';
-import { PlanetViewScene, PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY } from 'src/app/scenes/planet-view.scene';
+import { PlanetViewScene, PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY } from 'src/app/scenes/planet-view.scene';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
@@ -67,6 +67,10 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
 
   selectedPlanet: { id: string; name: string } | null = null;
   charsOnPlanet: CharOnMap[] = [];
+
+  // Planeta cuyo globo se está viendo en la vista detalle (lo reporta la escena).
+  // Determina la lista de mapas que se muestra a la izquierda del globo.
+  detailPlanetId = '';
 
   private planetGame: Phaser.Game | null = null;
 
@@ -138,6 +142,32 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
         this.charsOnPlanet  = [];
       });
     });
+    // Al abrir el globo, la escena se orienta al mapa donde está el jugador (o a la
+    // capital del planeta si no es válido); le damos ese mapId vía este callback.
+    this.planetGame.registry.set(PLANET_CURRENT_MAP_KEY, () => this.currentMapId);
+    // La escena nos dice qué planeta se está viendo → lista de mapas a la izquierda.
+    this.planetGame.registry.set(PLANET_DETAIL_KEY, (planetId: string) => {
+      this.ngZone.run(() => { this.detailPlanetId = planetId; });
+    });
+  }
+
+  /** Mapas DESBLOQUEADOS del planeta que se está viendo, para la lista de la izquierda
+   *  del globo. Pinchar uno gira el globo hacia su pin (focusPlanetMap). */
+  get planetMapList(): { id: string; name: string; current: boolean }[] {
+    const ids = PLANET_MAPS[this.detailPlanetId] ?? [];
+    return ids
+      .filter(id => !this.isMapLocked(id))
+      .map(id => ({
+        id,
+        name: MAP_REGISTRY[id]?.name ?? id,
+        current: id === this.currentMapId,
+      }));
+  }
+
+  /** Pinchar un mapa de la lista: gira el globo para centrar su pin. */
+  focusPlanetMap(mapId: string) {
+    const scene = this.planetGame?.scene.getScene('PlanetViewScene') as PlanetViewScene | undefined;
+    scene?.focusMap(mapId, true);
   }
 
   private destroyPlanetGame() {
@@ -145,6 +175,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.planetGame = null;
     this.selectedPlanet = null;
     this.charsOnPlanet  = [];
+    this.detailPlanetId = '';
   }
 
   // ── Tarjeta de info del planeta (vista sistema, tab 2) ─────────────────────

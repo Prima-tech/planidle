@@ -303,6 +303,13 @@
     "MAPS_UNLOCKED": "Mapas desbloqueados",
     "COLLECT": "Recoger"
   },
+  "RUN": {
+    "GO_HOME_TITLE": "Volver a casa",
+    "GO_HOME_MSG": "¿Seguro que quieres volver a casa?",
+    "GO_HOME_WARN": "Perderás el progreso de esta exploración: las estrellas y la distancia actuales se reinician.",
+    "GO_HOME_NO": "No",
+    "GO_HOME_YES": "Sí"
+  },
   "GAME_LOG": {
     "COINS": "Monedas"
   },

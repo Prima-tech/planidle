@@ -93,7 +93,18 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   readonly runMode$ = this.playerBridge.runMode$;
   private runModeSub: Subscription;
 
+  /** Confirmación de "volver a casa" (Modo Mundo): perder el progreso de la expedición. */
+  confirmHomeOpen = false;
+
   constructor() { }
+
+  // ── Volver a casa (Modo Mundo) ──────────────────────────────────────────────
+  askGoHome():    void { this.confirmHomeOpen = true; }
+  cancelGoHome(): void { this.confirmHomeOpen = false; }
+  confirmGoHome(): void {
+    this.confirmHomeOpen = false;
+    this.playerBridge.requestExitRun();   // WorldRunScene resetea progreso y sale a la capital
+  }
 
   ngOnInit() {
     // Al entrar al runner, volver a la página principal (el toggle se oculta, así que

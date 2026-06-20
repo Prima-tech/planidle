@@ -12,6 +12,26 @@
 <app-modal-container #buildModal></app-modal-container>
 <app-modal-container #buildShopModal (closed)="onBuildShopModalClosed()"></app-modal-container>
 
+<!-- Confirmación de volver a casa (Modo Mundo): se pierde el progreso de la expedición -->
+<div class="rh-backdrop" *ngIf="confirmHomeOpen" (click)="cancelGoHome()">
+  <div class="rh-panel" (click)="$event.stopPropagation()">
+    <div class="rh-header">
+      <ion-icon class="rh-icon" name="home"></ion-icon>
+      <h2 class="rh-title">{{ 'RUN.GO_HOME_TITLE' | translate }}</h2>
+    </div>
+    <div class="rh-divider"></div>
+    <div class="rh-body">
+      <p class="rh-msg">{{ 'RUN.GO_HOME_MSG' | translate }}</p>
+      <p class="rh-warn">{{ 'RUN.GO_HOME_WARN' | translate }}</p>
+    </div>
+    <div class="rh-divider"></div>
+    <div class="rh-actions">
+      <button class="rh-btn rh-btn--cancel" (click)="cancelGoHome()">{{ 'RUN.GO_HOME_NO' | translate }}</button>
+      <button class="rh-btn rh-btn--confirm" (click)="confirmGoHome()">{{ 'RUN.GO_HOME_YES' | translate }}</button>
+    </div>
+  </div>
+</div>
+
 <button class="auto-attack-fab" *ngIf="!(runMode$ | async)" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
   <ion-icon name="infinite"></ion-icon>
 </button>
@@ -24,6 +44,11 @@
 
     <button class="page-toggle" *ngIf="!(runMode$ | async)" (click)="togglePage()">
       <ion-icon [name]="page === 'main' ? 'swap-horizontal' : 'arrow-back'"></ion-icon>
+    </button>
+
+    <!-- Modo Mundo: volver al mapa principal (capital) del planeta -->
+    <button class="page-toggle" *ngIf="(runMode$ | async)" (click)="askGoHome()">
+      <ion-icon name="home"></ion-icon>
     </button>
 
     <!-- Página principal -->

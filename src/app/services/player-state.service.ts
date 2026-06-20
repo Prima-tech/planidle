@@ -16,7 +16,8 @@ export interface PlayerState {
   mp: number;
   mpMax: number;
   lifetimeCoins: number;
-  totalDeaths: number;
+  totalDeaths: number;       // muertes TOTALES de por vida (para estadísticas; nunca se reinicia)
+  currentDeaths: number;     // muertes de la expedición ACTUAL; se reinicia al volver a casa
 }
 
 export const MAX_LEVEL = 100;
@@ -41,6 +42,7 @@ const INITIAL_STATE: PlayerState = {
   mpMax: 100,
   lifetimeCoins: 0,
   totalDeaths: 0,
+  currentDeaths: 0,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -55,6 +57,8 @@ export class PlayerStateService {
   readonly stars$        = this.state$.pipe(map(s => s.stars ?? 0),    distinctUntilChanged());
   readonly worldKills$   = this.state$.pipe(map(s => s.worldKills ?? 0), distinctUntilChanged());
   readonly worldBestDistanceM$ = this.state$.pipe(map(s => s.worldBestDistanceM ?? 0), distinctUntilChanged());
+  readonly currentDeaths$ = this.state$.pipe(map(s => s.currentDeaths ?? 0), distinctUntilChanged());
+  readonly totalDeaths$  = this.state$.pipe(map(s => s.totalDeaths ?? 0), distinctUntilChanged());
   readonly exp$          = this.state$.pipe(map(s => s.exp),          distinctUntilChanged());
   readonly lvl$          = this.state$.pipe(map(s => s.lvl),          distinctUntilChanged());
   readonly expProgress$  = this.state$.pipe(
@@ -79,6 +83,7 @@ export class PlayerStateService {
       mpMax:         profile.mpMax          ?? 100,
       lifetimeCoins: profile.lifetimeCoins  ?? 0,
       totalDeaths:   profile.totalDeaths    ?? 0,
+      currentDeaths: profile.currentDeaths  ?? 0,
     });
   }
 
@@ -128,7 +133,20 @@ export class PlayerStateService {
 
   recordDeath(): void {
     const s = this._state$.getValue();
-    this._patch({ totalDeaths: (s.totalDeaths ?? 0) + 1 });
+    // Sube el total de por vida (estadísticas) y el contador de la expedición actual
+    // (que se reinicia al volver a casa).
+    this._patch({
+      totalDeaths:   (s.totalDeaths ?? 0) + 1,
+      currentDeaths: (s.currentDeaths ?? 0) + 1,
+    });
+  }
+
+  /** "Volver a casa" desde el Modo Mundo: reinicia el progreso de la expedición
+   *  actual (estrellas y distancia explorada vuelven a 0, contador de muertes a 0).
+   *  Se conserva lo "almacenado": el récord de distancia (worldBestDistanceM) y el
+   *  total de muertes de por vida (totalDeaths), para estadísticas. */
+  goHomeReset(): void {
+    this._patch({ stars: 0, explorationDistanceM: 0, currentDeaths: 0 });
   }
 
   addExp(amount: number): void {

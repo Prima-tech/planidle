@@ -45,5 +45,6 @@
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
 }
 
-.run-stat--kills .run-stat__ic { color: #ff6b6b; }
-.run-stat--best  .run-stat__ic { color: #ffd24a; }
+.run-stat--kills  .run-stat__ic { color: #ff6b6b; }
+.run-stat--best   .run-stat__ic { color: #ffd24a; }
+.run-stat--deaths .run-stat__ic { color: #b58be0; }   // muertes propias (distinto de kills)

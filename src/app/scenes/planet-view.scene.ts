@@ -96,6 +96,12 @@ export const PLANET_ZOOM_KEY         = 'onPlanetZoom';
 // Predicado (mapId → bloqueado) que registra Angular: el globo lo usa para pintar
 // los mapas bloqueados en gris y no extender la ruta hasta ellos.
 export const PLANET_MAP_LOCKED_KEY    = 'isMapLocked';
+// Callback () => string con el mapId donde está el jugador: al abrir el globo se
+// orienta a ese mapa (o a la capital 'hogar' si no es un mapa válido del planeta).
+export const PLANET_CURRENT_MAP_KEY   = 'planetCurrentMap';
+// Callback (planetId) que la escena llama al construir una vista detalle: Angular lo
+// usa para saber qué planeta se está viendo y mostrar su lista de mapas a la izquierda.
+export const PLANET_DETAIL_KEY        = 'onPlanetDetail';
 
 const DOUBLE_CLICK_MS = 300;
 
@@ -223,6 +229,7 @@ export class PlanetViewScene extends Phaser.Scene {
     label: Phaser.GameObjects.Text;
     tx: number; ty: number;
     locked: boolean;
+    mapId: string;
   }[] = [];
   private routeGfx: Phaser.GameObjects.Graphics | null = null;
   private dragging = false;
@@ -311,6 +318,7 @@ export class PlanetViewScene extends Phaser.Scene {
       }
       this.systemC?.setVisible(true);
       this.mode = 'system';
+      this.notifyDetail('');   // ya no estamos en el globo → ocultar lista de mapas
     }, zoomIn);
   }
 
@@ -408,6 +416,16 @@ export class PlanetViewScene extends Phaser.Scene {
     if (def.id === 'mundo') this.buildWorldRoute();
 
     this.detailC.add(this.buildPlusButton(() => this.goToSystem()));
+
+    // Avisar a Angular qué planeta se está viendo (para su lista de mapas a la izda.).
+    this.notifyDetail(def.id);
+  }
+
+  /** Notifica a Angular el planeta en vista detalle ('' = ya no estamos en el globo,
+   *  p.ej. al alejarse al sistema) para que muestre/oculte la lista de mapas. */
+  private notifyDetail(planetId: string): void {
+    const onDetail = this.game.registry.get(PLANET_DETAIL_KEY) as ((id: string) => void) | undefined;
+    onDetail?.(planetId);
   }
 
   /**
@@ -463,10 +481,60 @@ export class PlanetViewScene extends Phaser.Scene {
       }).setOrigin(0, 0.5);
 
       this.detailC!.add([dot, label]);
-      this.pinObjs.push({ dot, label, tx, ty, locked });
+      this.pinObjs.push({ dot, label, tx, ty, locked, mapId: pin.mapId });
     });
 
     this.updatePins();
+
+    // Orientar el globo al mapa donde está el jugador (o a la capital 'hogar' si no
+    // es un mapa válido del planeta). Sin animación: es el estado de apertura.
+    const getMap = this.game.registry.get(PLANET_CURRENT_MAP_KEY) as (() => string) | undefined;
+    this.focusMap(getMap?.() ?? '', false);
+  }
+
+  /** Gira el globo para centrar el pin del mapa dado en la cara visible (o la capital
+   *  'hogar' si ese mapa no existe en este planeta). `animate` = giro suave; si no, lo
+   *  coloca al instante (apertura). Solo aplica en la vista detalle con pines. */
+  focusMap(mapId: string, animate = true): void {
+    if (!this.planet || this.pinObjs.length === 0) return;
+    const pin = this.pinObjs.find(p => p.mapId === mapId)
+             ?? this.pinObjs.find(p => p.mapId === 'hogar')
+             ?? this.pinObjs[0];
+    if (!pin) return;
+
+    // Centrar el pin: en updatePins, px = detailCX cuando Wrap(tx - tilePositionX) =
+    // detailR/DPR. Despejamos tilePosition para esa condición (y lo mismo en Y).
+    const off = this.detailR / DPR;
+    const targetX = Phaser.Math.Wrap(pin.tx - off, 0, TEX_SIZE);
+    const targetY = Phaser.Math.Wrap(pin.ty - off, 0, TEX_SIZE);
+
+    // Cortar inercia/arrastre para que el giro no pelee con el dedo.
+    this.dragging = false;
+    this.velX = 0;
+    this.velY = 0;
+    this.tweens.killTweensOf(this.planet);
+
+    if (!animate) {
+      this.planet.tilePositionX = targetX;
+      this.planet.tilePositionY = targetY;
+      this.updatePins();
+      return;
+    }
+
+    // Camino más corto respetando la costura (la textura envuelve cada TEX_SIZE px).
+    const shortest = (from: number, to: number): number => {
+      let d = (to - from) % TEX_SIZE;
+      if (d >  TEX_SIZE / 2) d -= TEX_SIZE;
+      if (d < -TEX_SIZE / 2) d += TEX_SIZE;
+      return from + d;
+    };
+    this.tweens.add({
+      targets: this.planet,
+      tilePositionX: shortest(this.planet.tilePositionX, targetX),
+      tilePositionY: shortest(this.planet.tilePositionY, targetY),
+      duration: 700,
+      ease: 'Cubic.easeInOut',
+    });
   }
 
   // Proyecta cada pin desde coords de textura a pantalla siguiendo el scroll del
@@ -535,6 +603,7 @@ export class PlanetViewScene extends Phaser.Scene {
   private initDrag(): void {
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       if (this.mode !== 'detail' || this.transitioning) return;
+      if (this.planet) this.tweens.killTweensOf(this.planet);  // cancela el giro a un mapa
       this.dragging = true;
       this.lastX = p.x;
       this.lastY = p.y;

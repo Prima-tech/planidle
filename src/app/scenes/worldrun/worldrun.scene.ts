@@ -1,6 +1,7 @@
 import { Subscription } from 'rxjs';
 import { GameRegistry } from '../game-registry';
 import { mapFeatureId } from '../../services/unlock-config';
+import { planetCapitalForMap } from '../gamescene/map-config';
 import { RUN_UNLOCK_POINTS } from './run-unlock-points';
 import { bodySpriteFor } from '../../pnj/player/body-config';
 import {
@@ -229,6 +230,10 @@ export class WorldRunScene extends Phaser.Scene {
   private parallaxSub?: Subscription;
   private enterMapSub?: Subscription;
   private dismissSub?: Subscription;
+  private exitSub?: Subscription;
+  // Mapa por cuyo portal se entró al Modo Mundo: determina el planeta (y por tanto su
+  // capital) al que vuelve el botón "volver al mapa principal".
+  private entryMapId = 'hogar';
   private parallax: { ts: Phaser.GameObjects.TileSprite; factor: number }[] = [];
   // scrollX de referencia cuando se (re)construye el parallax: las capas se desplazan
   // respecto a este origen, no al scroll absoluto. Así un set recién cargado arranca
@@ -250,6 +255,7 @@ export class WorldRunScene extends Phaser.Scene {
   /** Phaser pasa aquí los datos de scene.start(). `entryMapId` = mapa del que sales
    *  por su portal: arrancamos en su distancia de entrada (km 0 si no tiene hito). */
   init(data?: { entryMapId?: string }) {
+    this.entryMapId = data?.entryMapId ?? 'hogar';
     this.startDistanceM = this.entryDistanceFor(data?.entryMapId);
   }
 
@@ -349,6 +355,8 @@ export class WorldRunScene extends Phaser.Scene {
       if (pt.distanceM <= this.startDistanceM) this.firedPoints.add(pt.flag);
     }
 
+    this.exiting = false;   // la instancia se reutiliza entre start/stop; rearmar la salida
+
     this.physics.world.gravity.y = GRAVITY_Y;
     this.cameras.main.setBackgroundColor('#0a0a14'); // espacio (por si una capa no cubre)
 
@@ -394,12 +402,15 @@ export class WorldRunScene extends Phaser.Scene {
     // pausamos al mostrar el modal, ver checkUnlockPoints).
     this.enterMapSub = this.reg.playerBridge.enterMapRequest$.subscribe(mapId => this.enterMap(mapId));
     this.dismissSub = this.reg.playerBridge.mapEntranceDismissed$.subscribe(() => this.scene.resume());
+    // Botón "volver al mapa principal" (HTML, solo en modo carrera): sale a la capital.
+    this.exitSub = this.reg.playerBridge.exitRunRequest$.subscribe(() => this.exitToHome());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.jumpSub?.unsubscribe();
       this.jumpReleaseSub?.unsubscribe();
       this.parallaxSub?.unsubscribe();
       this.enterMapSub?.unsubscribe();
       this.dismissSub?.unsubscribe();
+      this.exitSub?.unsubscribe();
       this.reg.playerBridge.setRunMode(false);
     });
 
@@ -1177,13 +1188,8 @@ export class WorldRunScene extends Phaser.Scene {
 
     // Los contadores (estrellas, enemigos abatidos, mejor distancia) ahora los pinta
     // Angular (app-run-stats, arriba a la derecha, solo en run-mode), no este HUD.
-
-    // Botón provisional para volver al hogar (sin él, el runner es un callejón sin salida).
-    const back = this.add.text(16, 16, '‹ Salir', {
-      fontFamily: 'monospace', fontSize: '24px', color: '#ffffff',
-      backgroundColor: '#00000080', padding: { x: 10, y: 6 },
-    }).setScrollFactor(0).setDepth(100).setInteractive({ useHandCursor: true });
-    back.on('pointerup', () => this.exitToHome());
+    // El botón "volver al mapa principal" también es Angular (HTML, ver layout +
+    // playerBridge.exitRunRequest$), por eso aquí ya no se pinta nada más.
   }
 
   private respawn(): void {
@@ -1192,10 +1198,19 @@ export class WorldRunScene extends Phaser.Scene {
     this.player.setVelocity(0, 0);
   }
 
+  private exiting = false;
   private exitToHome(): void {
+    if (this.exiting) return;   // evita doble pulsación durante el fundido
+    this.exiting = true;
     this.cameras.main.fadeOut(250, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.reg.world.setCurrentMap('hogar');
+      // Volver a casa = fin de la expedición: se pierde el progreso (estrellas y
+      // distancia explorada a 0, contador de muertes a 0); se conservan el récord de
+      // distancia y el total de muertes para estadísticas. Ver PlayerState.goHomeReset.
+      this.reg.playerState.goHomeReset();
+      // Mapa principal (capital) del planeta que se estaba explorando (Asgard en la
+      // Tierra). Lo determina el mapa por el que se entró al Modo Mundo.
+      this.reg.world.setCurrentMap(planetCapitalForMap(this.entryMapId));
       // Salida explícita de la exploración: limpiamos la actividad para que
       // GameScene.create no rebote de vuelta al Modo Mundo (ver rebote 'exploring').
       this.reg.activity?.set('idle');
