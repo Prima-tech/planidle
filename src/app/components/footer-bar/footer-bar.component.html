@@ -85,13 +85,9 @@
         <ion-icon name="rocket" class="footer-ion-icon"></ion-icon>
       </div>
 
-      <div class="icon-menu-wrapper" *ngIf="currentMapId === 'hogar'"
+      <div class="icon-menu-wrapper" *ngIf="currentMapId === 'hogar' && !(runMode$ | async)"
            [class.active]="buildModal.isOpenModal()" (click)="openBuild()">
         <ion-icon name="hammer" class="footer-ion-icon"></ion-icon>
-      </div>
-
-      <div class="icon-menu-wrapper" [class.active]="gameSettingsModal.isOpenModal()" (click)="openGameSettings()">
-        <ion-icon name="options" class="footer-ion-icon"></ion-icon>
       </div>
 
       <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">

@@ -1,6 +1,12 @@
 <div class="rs-block" [class.rs-block--open]="panelOpen">
 
-  <!-- Widget: metros recorridos (izquierda) + estrellas (derecha), sin barras -->
+  <!-- Ajustes: flotante en la esquina superior derecha (en exploración no hay minimap;
+       mismo botón que en el minimap) -->
+  <button class="rs-settings" (click)="openSettings.emit()">
+    <img src="assets/icon/menu/config.png" alt="" draggable="false" />
+  </button>
+
+  <!-- Widget: metros (izquierda) + estrellas (derecha), sin barras -->
   <div class="rs-widget">
     <div class="rs-stat rs-stat--meters">
       <span class="rs-val">{{ distance$ | async }}</span><span class="rs-unit">m</span>

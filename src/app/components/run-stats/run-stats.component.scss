@@ -18,7 +18,7 @@ $metal-dark: #6b6357;
    siempre pegado al borde inferior del widget. */
 .rs-block {
   position: fixed;
-  top: calc(12px + var(--safe-top, 0px));
+  top: calc(20px + var(--safe-top, 0px));   // bajo el botón flotante de ajustes (esquina)
   right: calc(12px + var(--safe-right, 0px));
   z-index: 160;        // por encima del botón de saltar (attack-button, z 150) para que
                        // el panel desplegable lo cubra en vez de quedar tapado por él
@@ -94,6 +94,40 @@ $metal-dark: #6b6357;
   color: rgba(83, 48, 28, 0.7);
 }
 
+/* Botón de ajustes: flotante en la esquina superior derecha, redondo con bisel de
+   piedra (mismo que el del minimap). */
+.rs-settings {
+  position: fixed;
+  top: calc(10px + var(--safe-top, 0px));
+  right: calc(5px + var(--safe-right, 0px));
+  z-index: 161;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 50%;
+  background: $wood-btn;
+  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: filter 0.15s;
+
+  @media (hover: hover) { &:hover { filter: brightness(1.12); } }
+  &:active { filter: brightness(0.92); }
+  &:focus { outline: none; }
+
+  img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+}
+
 /* ── Tirador: abre el panel hacia abajo (pestaña en el borde inferior dcho.) ── */
 .rs-open-btn {
   position: absolute;
@@ -139,7 +173,7 @@ $metal-dark: #6b6357;
   right: 0;            // anclado al borde derecho del widget
   left: auto;
   width: 265px;        // mismo ancho que los paneles/banners de la derecha
-  height: calc(100dvh - 120px);   // del borde del widget a ~un poco por encima del footer
+  height: calc(100dvh - 156px);   // del borde del widget a ~un poco por encima del footer
   padding: 9px 7px;
   display: flex;
   flex-direction: column;

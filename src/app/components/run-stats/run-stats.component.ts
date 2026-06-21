@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones';
@@ -26,6 +26,9 @@ export class RunStatsComponent {
   readonly milestones$ = this.playerState.runMilestones$;
 
   readonly RUN_MILESTONES = RUN_MILESTONES;
+
+  /** Botón de ajustes del widget (en exploración no hay minimap): lo abre el layout. */
+  @Output() openSettings = new EventEmitter<void>();
 
   panelOpen = false;
   togglePanel(): void { this.panelOpen = !this.panelOpen; }
