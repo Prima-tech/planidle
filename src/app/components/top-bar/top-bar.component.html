@@ -7,8 +7,8 @@
       <!-- Tarjeta superior: avatar + barras -->
       <div class="char-widget">
 
-        <!-- Pastilla flotante con el nombre (mismo estilo que la del minimapa) -->
-        <div class="char-name-pill">{{ asgardService?.selectedPlayer?.name }}</div>
+        <!-- Pastilla flotante con el nombre: al pulsarla abre la ventana de equipo. -->
+        <div class="char-name-pill" (click)="openEquipment.emit()">{{ asgardService?.selectedPlayer?.name }}</div>
 
         <!-- Selector de personaje: despliega el roster hacia la derecha.
              Solo visible con 2+ personajes desbloqueados. -->

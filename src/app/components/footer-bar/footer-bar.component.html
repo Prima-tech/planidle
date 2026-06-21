@@ -72,11 +72,6 @@
 
     <!-- Página principal -->
     <ng-container *ngIf="page === 'main'">
-      <div class="icon-menu-wrapper" [class.active]="equipmentModal.isOpenModal()" (click)="openEquipment()">
-        <ion-icon name="shirt" class="footer-ion-icon"></ion-icon>
-        <span class="notif-dot" *ngIf="badges.has('equip')"></span>
-      </div>
-
       <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
         <ion-icon name="flash" class="footer-ion-icon"></ion-icon>
       </div>

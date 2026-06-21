@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, inject, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subscription, map, startWith } from 'rxjs';
 import { AsgardService } from 'src/app/services/asgard';
 import { StorageService } from 'src/app/services/storage.service';
@@ -59,6 +59,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
   lvl$ = this.playerState.lvl$;
 
   mapName$ = this.worldService.currentMap$.pipe(map(m => m.name));
+
+  /** Pulsar el nombre del personaje abre la ventana de equipo (lo abre el layout). */
+  @Output() openEquipment = new EventEmitter<void>();
 
   mapPanelOpen = false;
 

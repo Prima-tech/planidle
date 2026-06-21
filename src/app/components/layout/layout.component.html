@@ -3,7 +3,7 @@
   <span class="loading-cover__text">{{ 'COMMON.LOADING_TEXT' | translate }}</span>
 </div>
 
-<app-top-bar *ngIf="dataLoaded && sceneVisible"></app-top-bar>
+<app-top-bar *ngIf="dataLoaded && sceneVisible" (openEquipment)="footerBar.openEquipment()"></app-top-bar>
 <app-quest-tracker *ngIf="dataLoaded && sceneVisible"></app-quest-tracker>
 <ion-content>
 
