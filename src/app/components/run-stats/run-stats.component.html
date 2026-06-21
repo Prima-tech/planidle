@@ -19,21 +19,28 @@
 
   <!-- Panel desplegable: hitos comprables con estrellas (abre hasta cerca del footer). -->
   <div class="rs-panel" *ngIf="panelOpen">
-    <div class="rs-panel-title">{{ 'RUN.MILESTONES' | translate }}</div>
+
+    <!-- Pestañas: objetivos (por comprar) / completos (ya comprados) -->
+    <div class="rs-tabs">
+      <div class="rs-tab" [class.active]="tab === 'objetivos'" (click)="tab = 'objetivos'">{{ 'RUN.MS_PENDING' | translate }}</div>
+      <div class="rs-tab" [class.active]="tab === 'completos'" (click)="tab = 'completos'">{{ 'RUN.MS_DONE' | translate }}</div>
+    </div>
 
     <ng-container *ngIf="(milestones$ | async) as owned">
-      <div class="rs-ms" *ngFor="let m of RUN_MILESTONES" [class.rs-ms--owned]="owned.includes(m.id)">
-        <ion-icon class="rs-ms-ic" [name]="m.icon"></ion-icon>
-        <div class="rs-ms-body">
-          <span class="rs-ms-name">{{ m.labelKey | translate }}</span>
-          <span class="rs-ms-desc">{{ m.descKey | translate }}</span>
+      <ng-container *ngIf="forTab(owned) as list">
+        <div class="rs-ms" *ngFor="let m of list">
+          <div class="rs-ms-frame"><ion-icon [name]="m.icon"></ion-icon></div>
+          <div class="rs-ms-body">
+            <span class="rs-ms-name">{{ m.labelKey | translate }}</span>
+            <span class="rs-ms-desc">{{ m.descKey | translate }}</span>
+          </div>
+          <button class="rs-ms-buy" *ngIf="tab === 'objetivos'" [disabled]="!canBuy(m)" (click)="buy(m)">
+            <img class="rs-ms-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+            <span>{{ m.cost }}</span>
+          </button>
         </div>
-        <button class="rs-ms-buy" *ngIf="!owned.includes(m.id)" [disabled]="!canBuy(m)" (click)="buy(m)">
-          <img class="rs-ms-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
-          <span>{{ m.cost }}</span>
-        </button>
-        <ion-icon class="rs-ms-check" *ngIf="owned.includes(m.id)" name="checkmark-circle"></ion-icon>
-      </div>
+        <div class="rs-empty" *ngIf="list.length === 0">{{ 'RUN.MS_NONE' | translate }}</div>
+      </ng-container>
     </ng-container>
   </div>
 

@@ -4,11 +4,15 @@ $stone: #8f8678;
 $stone-light: #a59c8d;
 $stone-dark: #6b6357;
 $wood-bg: #a86f3e;
+$wood-btn: #c08349;
 $wood-btn-light: #d99a5c;
 $wood-btn-dark: #8a5530;
 $cell-bg: #38241d;
 $text-brown: #53301c;
 $text-cream: #ecd9b4;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
 
 /* Ancla: el panel cuelga absoluto (no altera la altura), así el tirador queda
    siempre pegado al borde inferior del widget. */
@@ -143,34 +147,42 @@ $text-cream: #ecd9b4;
   &::-webkit-scrollbar-thumb { background: $wood-btn-dark; border-radius: 2px; }
 }
 
-.rs-panel-title {
-  font-size: 0.52em;
-  font-weight: bold;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #6b4226;
-  text-align: center;
-  margin-bottom: 2px;
-}
-
-/* Tarjeta de hito: icono + nombre/desc + botón de compra (o check si ya está). */
+/* Tarjeta de hito: placa de madera con bisel de piedra (mismo marco que las tarjetas
+   de la tienda y el resto de menús). Icono en marco metálico, texto marrón. */
 .rs-ms {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
+  gap: 8px;
+  padding: 7px 8px;
   border-radius: 6px;
-  background: $cell-bg;
-  border: 2px solid $outline;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
-
-  &--owned { opacity: 0.85; }
+  color: $text-brown;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
 }
 
-.rs-ms-ic {
+/* Icono en marco metálico (acero pulido), como los marcos de item de la app. */
+.rs-ms-frame {
   flex-shrink: 0;
-  font-size: 20px;
-  color: #f4b740;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, $metal-light 0%, $metal 65%, $metal-dark 100%);
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+  ion-icon { font-size: 18px; color: #3a2c20; }
 }
 
 .rs-ms-body {
@@ -178,44 +190,77 @@ $text-cream: #ecd9b4;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  line-height: 1.15;
+  line-height: 1.2;
 }
 
 .rs-ms-name {
-  font-size: 0.6em;
+  font-size: 0.64em;
   font-weight: bold;
-  color: $text-cream;
+  color: $text-brown;
 }
 
 .rs-ms-desc {
   font-size: 0.5em;
-  color: rgba(236, 217, 180, 0.7);
+  color: rgba(83, 48, 28, 0.75);
 }
 
+/* Botón de compra: verde como el "Comprar" de la tienda. */
 .rs-ms-buy {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 3px;
-  padding: 4px 7px;
+  padding: 5px 8px;
   border: 2px solid $outline;
   border-radius: 5px;
   font-size: 0.62em;
   font-weight: bold;
   color: $text-cream;
-  background: $wood-btn-dark;
+  background: #3f7a32;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: filter 0.15s;
 
-  @media (hover: hover) { &:hover:not(:disabled) { background: $wood-btn-light; color: $text-brown; } }
-  &:disabled { opacity: 0.45; cursor: default; }
+  @media (hover: hover) { &:not(:disabled):hover { filter: brightness(1.15); } }
+  &:disabled { opacity: 0.4; cursor: not-allowed; background: $wood-btn-dark; }
   &:focus { outline: none; }
 
   .rs-ms-star { width: 13px; height: 13px; image-rendering: pixelated; }
 }
 
-.rs-ms-check {
-  flex-shrink: 0;
-  font-size: 18px;
-  color: #6cc24a;
+/* Pestañas: objetivos / completos (mismo estilo que las de la tienda). */
+.rs-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.rs-tab {
+  flex: 1 1 0;
+  text-align: center;
+  padding: 5px 0;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  font-size: 0.58em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  user-select: none;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+
+  &.active {
+    background: $wood-btn;
+    color: $text-brown;
+    box-shadow: inset 0 0 0 1px $wood-btn-light, inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+}
+
+.rs-empty {
+  font-size: 0.55em;
+  text-align: center;
+  color: rgba(83, 48, 28, 0.7);
+  padding: 12px 4px;
 }

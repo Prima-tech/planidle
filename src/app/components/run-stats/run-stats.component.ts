@@ -28,6 +28,15 @@ export class RunStatsComponent {
   panelOpen = false;
   togglePanel(): void { this.panelOpen = !this.panelOpen; }
 
+  /** Pestaña activa del panel: objetivos (por comprar) o completos (ya comprados). */
+  tab: 'objetivos' | 'completos' = 'objetivos';
+
+  /** Hitos a mostrar según la pestaña: objetivos = no comprados; completos = comprados. */
+  forTab(owned: string[]): RunMilestoneDef[] {
+    return RUN_MILESTONES.filter(m =>
+      this.tab === 'objetivos' ? !owned.includes(m.id) : owned.includes(m.id));
+  }
+
   owned(id: string): boolean { return this.playerState.hasRunMilestone(id); }
 
   /** ¿Se puede comprar ahora? (no comprado + estrellas suficientes). */
