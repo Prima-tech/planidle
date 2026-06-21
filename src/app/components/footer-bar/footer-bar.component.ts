@@ -60,6 +60,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   /** Candado: false = modo edición de habilidades del HUD (skillEquip.hudEditMode). */
   locked = true;
+  /** Hub de botones (abajo-izquierda): abierto por defecto; el tirador lo colapsa. */
+  hubOpen = true;
   /** Id del mapa actual: el botón de construir solo aparece en 'hogar'. */
   currentMapId = 'hogar';
 
@@ -220,6 +222,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
      this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal]
       .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
+
+  toggleHub() { this.hubOpen = !this.hubOpen; }
 
   toggleAutoAttack() {
     this.autoAttack.toggle();

@@ -105,6 +105,63 @@ $gold-light: #ffe9a8;
   }
 }
 
+/* ── Hub de botones (abajo-izquierda): tirador fino + botones colapsables ── */
+.hub {
+  position: fixed;
+  left: calc(8px + var(--safe-left, 0px));
+  bottom: calc(8px + var(--safe-bottom, 0px));
+  z-index: 160;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+  > * { pointer-events: auto; }
+}
+
+/* Tirador: vertical, la mitad de ancho que un botón (21px) y su misma altura (40px). */
+.hub-toggle {
+  flex-shrink: 0;
+  width: 21px;
+  height: 40px;
+  padding: 0;
+  border: 3px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 4px;
+  background: $metal-face;
+  color: $icon-metal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.45);
+
+  ion-icon { font-size: 15px; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35)); }
+  &:active { background: $metal-face-pressed; }
+  &:focus { outline: none; }
+}
+
+/* Botones del hub: fila que se colapsa hacia el tirador con animación. */
+.hub-buttons {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  overflow: hidden;
+  max-width: 240px;
+  opacity: 1;
+  transform: translateX(0);
+  transition: max-width 0.3s ease, opacity 0.22s ease, transform 0.3s ease;
+}
+
+.hub:not(.hub--open) .hub-buttons {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(-12px);
+  pointer-events: none;
+}
+
 :host {
 
   /* Botón único de cambio de página (principal ⇄ skills). Más estrecho que las

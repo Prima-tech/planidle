@@ -192,11 +192,11 @@ const HELMET_CATALOG: LootEntry[] = [
 const SWORD_ICONS = 'assets/sprites/player/equip/weapons/swords/icons';
 const WEAPON_CATALOG: LootEntry[] = [
   {
-    name: 'Espada de Acero', category: 'Arma', type: 'item',
+    name: 'Daga Oxidada', category: 'Arma', type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
     texture: 'sword01_main', frame: 130, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_01_icon.png`,
-    description: 'Espada recta de acero forjada en Asgard.',
+    description: 'Una hoja corta y mellada, comida por el óxido. Apenas corta.',
     stats: { damagePercent: 10 },
   },
   {

@@ -60,15 +60,21 @@
   <ion-icon [name]="locked ? 'lock-closed' : 'lock-open'"></ion-icon>
 </button>
 
-<ion-footer>
-  <ion-toolbar>
+<!-- Hub de botones (abajo-izquierda): el tirador abre/cierra el hub con animación. -->
+<div class="hub" [class.hub--open]="hubOpen">
 
+  <!-- Tirador (abrir/cerrar): mismo ancho que un botón pero la mitad de fino. -->
+  <button class="hub-toggle" (click)="toggleHub()">
+    <ion-icon [name]="hubOpen ? 'chevron-back' : 'chevron-forward'"></ion-icon>
+  </button>
+
+  <!-- Botones del hub: se esconden con animación al cerrar. -->
+  <div class="hub-buttons">
     <!-- Modo Mundo: volver al mapa principal (capital) del planeta -->
     <button class="page-toggle" *ngIf="(runMode$ | async)" (click)="askGoHome()">
       <ion-icon name="home"></ion-icon>
     </button>
 
-    <!-- Botones principales -->
     <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
       <ion-icon name="flash" class="footer-ion-icon"></ion-icon>
     </div>
@@ -81,6 +87,6 @@
          [class.active]="buildModal.isOpenModal()" (click)="openBuild()">
       <ion-icon name="hammer" class="footer-ion-icon"></ion-icon>
     </div>
+  </div>
 
-  </ion-toolbar>
-</ion-footer>
+</div>

@@ -382,7 +382,7 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   'Cayado Arcano':   staffLayer('staff03', 'staff_03.png'),
   'Vara de Cristal': staffLayer('staff04', 'staff_04.png'),
   // ── Espadas (assets/sprites/player/equip/weapons/swords) ────────────────────
-  'Espada de Acero':  swordLayer64('sword01', 'sword_01.png'),
+  'Daga Oxidada':     swordLayer64('sword01', 'sword_01.png'),
   'Cimitarra Dorada': swordLayerArming('sword02', 'sword_02.png'),
   'Hoja Ardiente':    swordLayerArming('sword03', 'sword_03.png'),
   'Sable Rúnico':     swordLayerArming('sword04', 'sword_04.png'),

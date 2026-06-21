@@ -35,7 +35,7 @@ const PRODUCTS: { id: string; itemName: string; price: number; initialStock: num
   { id: 'torso1', itemName: 'Coraza de Marfil',  price: 100, initialStock: 5 },
   { id: 'legs1',  itemName: 'Grebas de Cuero',   price: 100, initialStock: 5 },
   { id: 'boots1', itemName: 'Botas de Marfil',   price: 100, initialStock: 5 },
-  { id: 'sword1', itemName: 'Espada de Acero',   price: 100, initialStock: 5 },
+  { id: 'sword1', itemName: 'Daga Oxidada',      price: 100, initialStock: 5 },
   { id: 'pick1',  itemName: 'Pico de Hierro',    price: 100, initialStock: 5 },
   { id: 'axe1',   itemName: 'Hacha de Hierro',   price: 100, initialStock: 5 },
 ];
