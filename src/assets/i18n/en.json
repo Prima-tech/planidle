@@ -173,6 +173,7 @@
     "BASE": "Base",
     "EQUIPMENT": "Equipment",
     "TALENTS": "Talents",
+    "WEAPON": "Weapon",
     "SKILLS": "Skills",
     "NO_BONUSES": "No bonuses",
     "EFFECTIVE_MULT": "Effective multiplier",
@@ -180,6 +181,9 @@
   },
   "ITEM_STAT": {
     "DAMAGE": "Damage",
+    "DAMAGE_PERCENT": "Damage",
+    "MAGIC_DAMAGE": "Magic Damage",
+    "HP": "Health",
     "HEALING": "Healing",
     "DEFENSE": "Defense",
     "SPEED": "Speed",

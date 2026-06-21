@@ -18,36 +18,36 @@ src/app/services/save.service.ts            ← persiste baseStats en GameSnapsh
 interface BaseStats { STR: number; DEX: number; CONST: number; INT: number; MAG: number; CHR: number; }
 ```
 
-- Todos los stats arrancan en **10** (nunca bajan de 10).
+- Todos los stats arrancan en **0** (nunca bajan de 0).
 - Se persisten en `GameSnapshot.baseStats` y se restauran con `charStats.restoreStats(stats)`.
-- `charStats.resetStats()` los devuelve todos a 10 (usado por "Borrar todo" en ajustes).
+- `charStats.resetStats()` los devuelve todos a 0 (usado por "Borrar todo" en ajustes y por personaje nuevo / save sin `baseStats`).
 
 ## Puntos de stat
 
 ```
-Disponibles = 8 + (nivel − 1)
-Gastados    = sum(STR + DEX + CONST + INT + MAG + CHR) − 60
+Disponibles = (nivel − 1) × POINTS_PER_LEVEL   // 0 al nivel 1, +1 por nivel
+Gastados    = sum(STR + DEX + CONST + INT + MAG + CHR)
 Libres      = Disponibles − Gastados
 ```
 
 - `charStats.freePoints$` — observable reactivo (combina `statsChanged$` + `playerState.state$`)
 - `charStats.freePoints` — getter síncrono
 - `charStats.increment(key)` — falla silenciosamente si `freePoints <= 0`
-- `charStats.decrement(key)` — no baja de 10
+- `charStats.decrement(key)` — no baja de 0
 - En la UI: `*ngIf="{ pts: freePoints$ | async } as vm"` — envolver en objeto para evitar que `0` se trate como falsy
 
 ## Escalado de stats → derivados
 
 | Stat | Derivado | Fórmula | Observable |
 |------|----------|---------|------------|
-| STR | Daño físico | base = STR; + equipo + talentos | `damage$` |
-| INT | Daño mágico | base = INT; + equipo `magicDamage` + talentos | `magicDamage$` |
-| CONST | HP máx | CONST × 10 + equipo + talentos | `hp$` |
-| MAG | MP máx | MAG × 5 + equipo + talentos | `mp$` |
-| DEX | Defensa | `floor((DEX−10)/10)` + equipo + talentos + buffs | `defense$` |
+| STR | Daño físico | `(10 + STR + equipo plano + talentos) × (1 + Σ damagePercent/100)` | `damage$` |
+| INT | Daño mágico | base = 10 + INT; + equipo `magicDamage` + talentos | `magicDamage$` |
+| CONST | HP máx | 50 + CONST × 10 + equipo + talentos | `hp$` |
+| MAG | MP máx | 50 + MAG × 5 + equipo + talentos | `mp$` |
+| DEX | Defensa | `floor(DEX/10)` + equipo + talentos + buffs | `defense$` |
 | DEX | Evasión % | misma fórmula DEX + equipo `evasion` + buffs | `evasion$` |
 | base 10% | Prob. crítico | + equipo `critChance` + talentos + buffs | `critChance$` |
-| base 150% | Daño crítico % | + `floor((STR−20)/5)` + equipo + buffs | `critDamage$` |
+| base 150% | Daño crítico % | + `floor(STR/5)` + equipo + buffs | `critDamage$` |
 | CONST | HP regen max | = CONST + equipo `hpRegen` + talentos; min = floor(max/2) | `hpRegen$` |
 | MAG | MP regen max | = MAG + equipo `mpRegen` + talentos; min = floor(max/2) | `mpRegen$` |
 

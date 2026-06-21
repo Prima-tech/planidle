@@ -2124,7 +2124,7 @@ export class GameScene extends Phaser.Scene {
       const critChance = this.reg.charStats?.currentCritChance ?? 10;
       const isCrit     = Math.random() * 100 < critChance;
       const critMult   = isCrit ? (this.reg.charStats?.currentCritDamage ?? 150) / 100 : 1;
-      return { dmg: Math.round(baseDamage * critMult), isCrit };
+      return { dmg: Math.floor(baseDamage * critMult), isCrit };
     }
 
     private flashPlayer() {

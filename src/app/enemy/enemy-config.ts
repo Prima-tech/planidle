@@ -221,6 +221,7 @@ const SLIME5_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 
 const slime5: EnemyTypeConfig = {
   type: 'slime5',
+  displayName: 'Slime mejorado',
   hp: 50,
   scale: 3,
   speed: 150,
@@ -330,6 +331,7 @@ const GOOBLING2_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 
 const goobling2: EnemyTypeConfig = {
   type: 'goobling2',
+  displayName: 'Goblin',
   hp: 145,                 // mapa 1-7
   scale: 3,
   speed: 115,
@@ -356,6 +358,7 @@ const GNOLL1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 
 const gnoll1: EnemyTypeConfig = {
   type: 'gnoll1',
+  displayName: 'Gnoll',
   hp: 86,                  // mapa 1-5
   scale: 3,
   speed: 110,
@@ -380,6 +383,7 @@ const GOLEM1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 
 const golem1: EnemyTypeConfig = {
   type: 'golem1',
+  displayName: 'Golem',
   hp: 190,                 // mapa 1-8
   scale: 4.5,
   speed: 70,
@@ -457,6 +461,7 @@ const GOOBLING1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 
 const goobling1: EnemyTypeConfig = {
   type: 'goobling1',
+  displayName: 'Goblin',
   hp: 66,                  // mapa 1-4
   scale: 3,
   speed: 110,

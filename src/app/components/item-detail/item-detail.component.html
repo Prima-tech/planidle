@@ -48,12 +48,12 @@
     <div class="stat-block" *ngFor="let stat of item.stats | keyvalue">
       <div class="stat-row">
         <span class="stat-label">{{ statLabel(stat.key) | translate }}</span>
-        <span class="stat-value">{{ stat.value }}</span>
+        <span class="stat-value">{{ stat.value }}{{ isPercentStat(stat.key) ? '%' : '' }}</span>
       </div>
       <div *ngIf="compareWith" class="stat-delta"
            [class.up]="statDelta(stat.key) > 0"
            [class.down]="statDelta(stat.key) < 0">
-        {{ statDelta(stat.key) > 0 ? '+' : '' }}{{ statDelta(stat.key) }}
+        {{ statDelta(stat.key) > 0 ? '+' : '' }}{{ statDelta(stat.key) }}{{ isPercentStat(stat.key) ? '%' : '' }}
       </div>
     </div>
   </div>

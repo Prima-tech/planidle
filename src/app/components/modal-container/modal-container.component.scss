@@ -4,15 +4,6 @@
   z-index: 200;
   border-radius: 5px;
   pointer-events: auto;
-  &.menu {
-    top: 10px;
-    bottom: 61px;  /* footer ~51px + 10px de aire, igual que game-settings/shop */
-    right: calc(10px + var(--safe-right, 0px));
-    width: 265px;
-    /* el marco lo pinta el :host del componente (tema madera + piedra) */
-    background: transparent;
-    overflow: hidden;
-  }
   &.character {
     top: 10px;
     bottom: 56px;

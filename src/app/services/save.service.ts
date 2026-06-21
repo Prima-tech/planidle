@@ -173,6 +173,7 @@ export class SaveService {
       }
       this.skillEquip.restoreFromSnapshot(snapshot.skillSlots ?? null);
       if (snapshot.baseStats) this.charStats.restoreStats(snapshot.baseStats);
+      else                    this.charStats.resetStats();
     } else {
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
@@ -184,6 +185,7 @@ export class SaveService {
       this.kills.restoreCharKills({});
       this.talent.restoreLoadouts(null, null);
       this.skillEquip.restoreFromSnapshot(null);
+      this.charStats.resetStats();
     }
     await this.kills.loadGlobalKills();
     // load AFK passives before calculating gains so multipliers are applied.

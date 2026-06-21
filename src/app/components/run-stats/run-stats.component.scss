@@ -57,6 +57,7 @@ $metal-dark: #6b6357;
 /* Cada contador en su propia pastilla de madera con bisel de piedra (como el
    bloque de monedas del inventario). */
 .rs-stat {
+  margin-right: 17px;
   display: flex;
   align-items: center;
   gap: 4px;

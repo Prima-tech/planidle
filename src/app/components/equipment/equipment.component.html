@@ -280,6 +280,10 @@
             <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ dmg.talents }}</span>
           </div>
+          <div class="ov-bk-row" *ngIf="dmg.percent > 0">
+            <span>{{ 'STAT.WEAPON' | translate }}</span>
+            <span class="ov-bonus">+{{ dmg.percent }}%</span>
+          </div>
         </ng-container>
       </div>
     </div>

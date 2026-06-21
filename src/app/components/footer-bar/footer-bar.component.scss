@@ -30,7 +30,8 @@ $gold-light: #ffe9a8;
 // ── FABs de automatización (auto-ataque + auto-skills) ───────────────────────
 
 .auto-attack-fab,
-.auto-skill-fab {
+.auto-skill-fab,
+.lock-fab {
   position: fixed;
   right: calc(12px + var(--safe-right, 0px));
   width: 26px;
@@ -85,6 +86,21 @@ $gold-light: #ffe9a8;
       0 0 0 1px $outline,
       inset 0 0 0 1px $outline,
       0 0 10px rgba(140, 80, 220, 0.65),
+      0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Candado (edición de habilidades del HUD): encima del FAB de auto-skill. */
+.lock-fab {
+  bottom: 124px;
+
+  &.active {
+    background: #b8862b;
+    color: #f5e3c8;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      0 0 10px rgba(230, 180, 60, 0.6),
       0 2px 8px rgba(0, 0, 0, 0.5);
   }
 }

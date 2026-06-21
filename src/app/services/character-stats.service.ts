@@ -8,20 +8,21 @@ import { TalentService } from './talent.service';
 
 export interface DamageBreakdown {
   base:      number;
-  equipment: number;
+  equipment: number;  // daño plano de equipo
   talents:   number;
+  percent:   number;  // % adicional de armas (damagePercent), sobre el subtotal
   total:     number;
 }
 
 export interface HpBreakdown {
-  base:      number; // CONST * 10
+  base:      number; // HP_BASE + CONST * 10
   equipment: number;
   talents:   number;
   total:     number;
 }
 
 export interface MpBreakdown {
-  base:      number; // MAG * 5
+  base:      number; // MP_BASE + MAG * 5
   equipment: number;
   talents:   number;
   total:     number;
@@ -53,14 +54,14 @@ export interface CritChanceBreakdown {
 
 export interface CritDamageBreakdown {
   base:      number;  // always 150
-  str:       number;  // floor((STR-20)/5), min 0
+  str:       number;  // floor(STR/5), min 0
   equipment: number;
   buffs:     number;
   total:     number;  // %
 }
 
 export interface MagicDamageBreakdown {
-  base:      number;  // INT
+  base:      number;  // DAMAGE_BASE + INT
   equipment: number;
   talents:   number;
   total:     number;
@@ -75,7 +76,7 @@ export interface RegenBreakdown {
 }
 
 export interface DropRateBreakdown {
-  chr:       number;  // floor((CHR-10)/2), min 0 — primeros 10 pts no cuentan
+  chr:       number;  // floor(CHR/2), min 0
   equipment: number;
   talents:   number;
   total:     number;  // % bonus sobre la chance base
@@ -91,25 +92,31 @@ export interface BaseStats {
 }
 
 const DEFAULT_BASE_STATS: BaseStats = {
-  STR:   10,
-  DEX:   10,
-  CONST: 10,
-  INT:   10,
-  MAG:   10,
-  CHR:   10,
+  STR:   0,
+  DEX:   0,
+  CONST: 0,
+  INT:   0,
+  MAG:   0,
+  CHR:   0,
 };
 
 const RESET_BASE_STATS: BaseStats = {
-  STR:   10,
-  DEX:   10,
-  CONST: 10,
-  INT:   10,
-  MAG:   10,
-  CHR:   10,
+  STR:   0,
+  DEX:   0,
+  CONST: 0,
+  INT:   0,
+  MAG:   0,
+  CHR:   0,
 };
 
 const HP_PER_CONST = 10;
 const MP_PER_MAG   = 5;
+
+// Valores base con todas las stats a 0 (nivel 1). Cada punto de stat suma encima.
+const HP_BASE     = 50;   // + CONST * HP_PER_CONST
+const MP_BASE     = 50;   // + MAG  * MP_PER_MAG
+const DAMAGE_BASE = 10;   // + STR (físico) / + INT (mágico)
+const POINTS_PER_LEVEL = 1; // 0 puntos al nivel 1; +1 por cada nivel
 
 @Injectable({ providedIn: 'root' })
 export class CharacterStatsService {
@@ -139,7 +146,7 @@ export class CharacterStatsService {
   }
 
   decrement(key: keyof BaseStats): void {
-    if (this.stats[key] > 10) {
+    if (this.stats[key] > 0) {
       this.stats[key]--;
       this.statsChanged$.next();
       if (key === 'CONST') this.syncHpMax();
@@ -202,21 +209,26 @@ export class CharacterStatsService {
 
   private _calcFreePoints(): number {
     const lvl   = this.playerState.snapshot().lvl;
-    const spent = (Object.values(this.stats) as number[]).reduce((a, v) => a + v, 0) - 60;
-    return 8 + (lvl - 1) - spent;
+    const spent = (Object.values(this.stats) as number[]).reduce((a, v) => a + v, 0);
+    return (lvl - 1) * POINTS_PER_LEVEL - spent;
   }
 
   private _calcDamage(): DamageBreakdown {
-    const base      = this.stats.STR;
+    const base      = DAMAGE_BASE + this.stats.STR;
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['damage'] ?? 0), 0
     );
     const talents = this.talent.getBonus().atk;
-    return { base, equipment, talents, total: base + equipment + talents };
+    // Armas con damagePercent multiplican el daño físico total (no suman plano)
+    const percent = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['damagePercent'] ?? 0), 0
+    );
+    const subtotal = base + equipment + talents;
+    return { base, equipment, talents, percent, total: Math.floor(subtotal * (1 + percent / 100)) };
   }
 
   private _calcMagicDamage(): MagicDamageBreakdown {
-    const base      = this.stats.INT;
+    const base      = DAMAGE_BASE + this.stats.INT;
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['magicDamage'] ?? 0), 0
     );
@@ -245,7 +257,7 @@ export class CharacterStatsService {
   }
 
   private _calcDropRate(): DropRateBreakdown {
-    const chr       = Math.max(0, Math.floor((this.stats.CHR - 10) / 2));
+    const chr       = Math.max(0, Math.floor(this.stats.CHR / 2));
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['dropRate'] ?? 0), 0
     );
@@ -260,7 +272,7 @@ export class CharacterStatsService {
   }
 
   private _calcHp(): HpBreakdown {
-    const base      = this.stats.CONST * HP_PER_CONST;
+    const base      = HP_BASE + this.stats.CONST * HP_PER_CONST;
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['hp'] ?? 0), 0
     );
@@ -269,7 +281,7 @@ export class CharacterStatsService {
   }
 
   private _calcMp(): MpBreakdown {
-    const base      = this.stats.MAG * MP_PER_MAG;
+    const base      = MP_BASE + this.stats.MAG * MP_PER_MAG;
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['mp'] ?? 0), 0
     );
@@ -278,7 +290,7 @@ export class CharacterStatsService {
   }
 
   get currentDamage():       number { return this._calcDamage().total; }
-  // DEX → defensa/evasión: los primeros 10 puntos no cuentan, cada 10 adicionales = +1 def / +1%
+  // DEX → defensa/evasión: cada 10 puntos = +1 def / +1% evasión
   get currentDefense():      number { return this._calcDefense().total; }
   get currentEvasion():      number { return this._calcEvasion().total; }
   get currentCritChance():   number { return this._calcCritChance().total; }
@@ -300,7 +312,7 @@ export class CharacterStatsService {
 
   private _calcCritDamage(): CritDamageBreakdown {
     const base      = 150;
-    const str       = Math.max(0, Math.floor((this.stats.STR - 20) / 5));
+    const str       = Math.max(0, Math.floor(this.stats.STR / 5));
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['critDamage'] ?? 0), 0
     );
@@ -309,7 +321,7 @@ export class CharacterStatsService {
   }
 
   private _calcEvasion(): EvasionBreakdown {
-    const dex       = Math.max(0, Math.floor((this.stats.DEX - 10) / 10));
+    const dex       = Math.max(0, Math.floor(this.stats.DEX / 10));
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['evasion'] ?? 0), 0
     );
@@ -319,7 +331,7 @@ export class CharacterStatsService {
   }
 
   private _calcDefense(): DefenseBreakdown {
-    const dex       = Math.max(0, Math.floor((this.stats.DEX - 10) / 10));
+    const dex       = Math.max(0, Math.floor(this.stats.DEX / 10));
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['defense'] ?? 0), 0
     );

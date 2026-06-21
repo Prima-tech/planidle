@@ -4,6 +4,7 @@ import { BuildShopService, ShopSaleItem } from 'src/app/services/build-shop.serv
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { InventoryService, InventoryItem } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { STAT_LABELS, isPercentStat } from 'src/app/components/item-detail/item-detail.component';
 import { Subscription } from 'rxjs';
 
 /**
@@ -125,6 +126,10 @@ export class BuildShopComponent implements OnInit, OnDestroy {
   }
 
   closeDetail(): void { this.selected = null; }
+
+  // ── Detalle de stats (mismo formato que app-item-detail del inventario) ────
+  statLabel(key: string): string { return STAT_LABELS[key] ?? key; }
+  isPercentStat(key: string): boolean { return isPercentStat(key); }
 
   stackable(item: ShopSaleItem): boolean { return !!item.entry.mergeable; }
 

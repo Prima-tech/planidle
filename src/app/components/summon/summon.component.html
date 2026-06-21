@@ -21,21 +21,9 @@
     >{{ tab }}</div>
   </div>
 
-  <ng-container [ngSwitch]="activeEnemyTab">
-
-    <ng-container *ngSwitchCase="0">
-      <div *ngFor="let group of slimeGroups" class="enemy-group">
-        <ng-container *ngTemplateOutlet="enemyGroupRow; context: { $implicit: group }"></ng-container>
-      </div>
-    </ng-container>
-
-    <ng-container *ngSwitchCase="1">
-      <div *ngFor="let group of miscGroups" class="enemy-group">
-        <ng-container *ngTemplateOutlet="enemyGroupRow; context: { $implicit: group }"></ng-container>
-      </div>
-    </ng-container>
-
-  </ng-container>
+  <div *ngFor="let group of enemyGroups" class="enemy-group">
+    <ng-container *ngTemplateOutlet="enemyGroupRow; context: { $implicit: group }"></ng-container>
+  </div>
 
 </div>
 

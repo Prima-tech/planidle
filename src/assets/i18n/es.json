@@ -173,6 +173,7 @@
     "BASE": "Base",
     "EQUIPMENT": "Equipo",
     "TALENTS": "Talentos",
+    "WEAPON": "Arma",
     "SKILLS": "Habilidades",
     "NO_BONUSES": "Sin bonificaciones",
     "EFFECTIVE_MULT": "Multiplicador efectivo",
@@ -180,6 +181,9 @@
   },
   "ITEM_STAT": {
     "DAMAGE": "Daño",
+    "DAMAGE_PERCENT": "Daño",
+    "MAGIC_DAMAGE": "Daño Mágico",
+    "HP": "Vida",
     "HEALING": "Curación",
     "DEFENSE": "Defensa",
     "SPEED": "Velocidad",

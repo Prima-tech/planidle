@@ -1,10 +1,8 @@
-﻿<app-modal-container #menuModal></app-modal-container>
-<app-modal-container #gameSettingsModal></app-modal-container>
+﻿<app-modal-container #gameSettingsModal></app-modal-container>
 <app-modal-container #inventoryModal></app-modal-container>
 <app-modal-container #equipmentModal></app-modal-container>
 <app-modal-container #summonModal></app-modal-container>
 <app-modal-container #chestModal (closed)="onChestModalClosed()"></app-modal-container>
-<app-modal-container #skillSlotsModal [persistent]="true"></app-modal-container>
 <app-modal-container #skillDetailModal [persistent]="true"></app-modal-container>
 <app-modal-container #worldMapModal></app-modal-container>
 <app-modal-container #progressModal></app-modal-container>
@@ -57,61 +55,32 @@
 <button class="auto-skill-fab" *ngIf="!(runMode$ | async)" [class.active]="autoAttack.skillsEnabled" (click)="toggleAutoSkills()">
   <ion-icon name="sparkles"></ion-icon>
 </button>
+<!-- Candado: edita/usa las habilidades del HUD (mismo tamaño que los FAB de auto). -->
+<button class="lock-fab" *ngIf="!(runMode$ | async)" [class.active]="!locked" (click)="toggleLock()">
+  <ion-icon [name]="locked ? 'lock-closed' : 'lock-open'"></ion-icon>
+</button>
 
 <ion-footer>
   <ion-toolbar>
-
-    <button class="page-toggle" *ngIf="!(runMode$ | async)" (click)="togglePage()">
-      <ion-icon [name]="page === 'main' ? 'swap-horizontal' : 'arrow-back'"></ion-icon>
-    </button>
 
     <!-- Modo Mundo: volver al mapa principal (capital) del planeta -->
     <button class="page-toggle" *ngIf="(runMode$ | async)" (click)="askGoHome()">
       <ion-icon name="home"></ion-icon>
     </button>
 
-    <!-- Página principal -->
-    <ng-container *ngIf="page === 'main'">
-      <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
-        <ion-icon name="flash" class="footer-ion-icon"></ion-icon>
-      </div>
+    <!-- Botones principales -->
+    <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
+      <ion-icon name="flash" class="footer-ion-icon"></ion-icon>
+    </div>
 
-      <div class="icon-menu-wrapper" [class.active]="progressModal.isOpenModal()" (click)="openProgress()">
-        <ion-icon name="rocket" class="footer-ion-icon"></ion-icon>
-      </div>
+    <div class="icon-menu-wrapper" [class.active]="progressModal.isOpenModal()" (click)="openProgress()">
+      <ion-icon name="rocket" class="footer-ion-icon"></ion-icon>
+    </div>
 
-      <div class="icon-menu-wrapper" *ngIf="currentMapId === 'hogar' && !(runMode$ | async)"
-           [class.active]="buildModal.isOpenModal()" (click)="openBuild()">
-        <ion-icon name="hammer" class="footer-ion-icon"></ion-icon>
-      </div>
-
-      <div class="icon-menu-wrapper right" [class.active]="menuModal.isOpenModal()" (click)="openMenu()">
-        <ion-icon name="settings" class="footer-ion-icon"></ion-icon>
-      </div>
-
-    </ng-container>
-
-    <!-- Página de habilidades -->
-    <ng-container *ngIf="page === 'skills'">
-      <div class="icon-menu-wrapper lock-btn" [class.active]="!locked" (click)="toggleLock()">
-        <ion-icon [name]="locked ? 'lock-closed' : 'lock-open'" class="footer-ion-icon"></ion-icon>
-      </div>
-      <div class="skill-slots-row">
-        <div *ngFor="let slot of skillSlots"
-             class="icon-menu-wrapper skill-slot"
-             [class.active]="activeSkillSlot === slot && skillSlotsModal.isOpenModal()"
-             [class.flashing]="isFlashing(slot)"
-             [class.no-target]="locked && slotNoTarget(slot)"
-             [style.--cd-angle]="cdAngles[slot] + 'deg'"
-             (click)="onSkillSlotClick(slot)">
-          <img *ngIf="slotIconImage(slot)" [src]="slotIconImage(slot)" class="skill-icon-img" />
-          <ion-icon *ngIf="!slotIconImage(slot) && slotIcon(slot)" [name]="slotIcon(slot)" class="footer-ion-icon"></ion-icon>
-          <span *ngIf="!slotIconImage(slot) && !slotIcon(slot) && !locked" class="skill-placeholder">+</span>
-          <div *ngIf="cdAngles[slot] > 0" class="cd-overlay"></div>
-          <span *ngIf="cdSeconds[slot]" class="cd-text">{{ cdSeconds[slot] }}</span>
-        </div>
-      </div>
-    </ng-container>
+    <div class="icon-menu-wrapper" *ngIf="currentMapId === 'hogar' && !(runMode$ | async)"
+         [class.active]="buildModal.isOpenModal()" (click)="openBuild()">
+      <ion-icon name="hammer" class="footer-ion-icon"></ion-icon>
+    </div>
 
   </ion-toolbar>
 </ion-footer>

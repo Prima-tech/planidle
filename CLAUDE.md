@@ -82,19 +82,21 @@ interface GameSnapshot {
 - Curar HP: `playerBridge.healPlayer(amount)` — actualiza sprite + playerState
 - Curar MP: `playerState.setMp(newMp, mpMax)` directamente
 
-## Stats (BaseStats: STR/DEX/CONST/INT/MAG/CHR, base 10)
+## Stats (BaseStats: STR/DEX/CONST/INT/MAG/CHR, base 0)
 
 | Stat | Derivado | Fórmula |
 |------|----------|---------|
-| STR | Daño físico | 1:1 |
-| INT | Daño mágico | 1:1 |
-| CONST | HP máx / regen | ×10 / regen=[CONST/2, CONST] |
-| MAG | MP máx / regen | ×5 / regen=[MAG/2, MAG] |
-| DEX | Defensa / Evasión% | floor((DEX−10)/10), mín 0 |
-| STR≥20 | Crit extra | +1% por cada 5 STR sobre 20 |
+| STR | Daño físico | 10 + STR |
+| INT | Daño mágico | 10 + INT |
+| CONST | HP máx / regen | 50 + ×10 / regen=[CONST/2, CONST] |
+| MAG | MP máx / regen | 50 + ×5 / regen=[MAG/2, MAG] |
+| DEX | Defensa / Evasión% | floor(DEX/10), mín 0 |
+| STR | Crit extra | +1% daño crít por cada 5 STR |
 
-- Puntos: `8 + (lvl−1)` totales, gastados = `sum(stats)−60`
+- Stats arrancan en **0** (mín 0). HP/MP base 50, daño base 10 con todo a 0.
+- Puntos: `(lvl−1)` totales (0 al nivel 1, +1 por nivel), gastados = `sum(stats)`
 - Combate: `effectiveDmg = max(0, dmg − defense)`. Evasión: roll < evasion% → "EVADE". Crítico base 10%.
+- **Sin decimales**: daño (con % de arma y crítico) y demás stats se truncan con `Math.floor` (jugador y enemigo).
 
 ## Enemigos
 

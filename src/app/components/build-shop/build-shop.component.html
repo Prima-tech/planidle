@@ -33,6 +33,15 @@
       <button class="shop-detail-close" (click)="closeDetail()">✕</button>
       <div class="shop-detail-icon"><img [src]="it.entry.icon" alt="" draggable="false" /></div>
       <div class="shop-detail-name">{{ it.entry.name }}</div>
+
+      <!-- Stats del item (daño, etc.), igual que el detalle del inventario -->
+      <div class="shop-detail-stats" *ngIf="it.entry.stats">
+        <div class="shop-stat-row" *ngFor="let stat of it.entry.stats | keyvalue">
+          <span class="shop-stat-label">{{ statLabel(stat.key) | translate }}</span>
+          <span class="shop-stat-value">{{ stat.value }}{{ isPercentStat(stat.key) ? '%' : '' }}</span>
+        </div>
+      </div>
+
       <div class="shop-detail-desc" *ngIf="it.entry.description">{{ it.entry.description }}</div>
 
       <div class="shop-qty" *ngIf="stackable(it) && (it.infinite || it.stock > 0)">

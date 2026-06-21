@@ -467,6 +467,35 @@ $metal-dark: #6b6357;
   color: rgba(236, 217, 180, 0.7);
 }
 
+/* Stats del item (daño, etc.) — placa de madera, como el detalle del inventario */
+.shop-detail-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+}
+
+.shop-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72em;
+}
+
+.shop-stat-label { color: #6b4226; }
+
+.shop-stat-value {
+  color: $text-brown;
+  font-weight: bold;
+}
+
 .shop-qty {
   display: flex;
   align-items: center;

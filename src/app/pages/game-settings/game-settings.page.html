@@ -3,12 +3,48 @@
   <div class="gs-tabs">
     <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">{{ 'GAME_SETTINGS.GAME' | translate }}</button>
     <button class="gs-tab" [class.active]="tab === 1" (click)="tab = 1">{{ 'GAME_SETTINGS.BACKGROUND' | translate }}</button>
-    <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">Mundo</button>
+    <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">Admin</button>
   </div>
 
   <div class="gs-content">
 
     <ng-container *ngIf="tab === 0">
+
+      <!-- Estado de conexión a Supabase -->
+      <div class="gs-conn" [class.gs-conn--on]="supabaseConnected">
+        <span class="gs-conn-dot"></span>
+        <span class="gs-conn-text">{{ supabaseConnected ? 'Conectado a Supabase' : 'Sin conexión (local)' }}</span>
+      </div>
+
+      <!-- Guardar partida + Cerrar sesión: misma línea (dos botones) -->
+      <div class="gs-btn-row">
+        <button class="gs-save-btn"
+                [class.saving]="isSaving$ | async"
+                [class.saved]="(saveStatus$ | async) === 'saved'"
+                [class.error]="(saveStatus$ | async) === 'error'"
+                [disabled]="isSaving$ | async"
+                (click)="save()">
+          <span class="gs-save-icon">
+            <span *ngIf="(saveStatus$ | async) === 'idle'">💾</span>
+            <span *ngIf="(saveStatus$ | async) === 'local'">⏳</span>
+            <span *ngIf="(saveStatus$ | async) === 'remote'">☁</span>
+            <span *ngIf="(saveStatus$ | async) === 'saved'">✓</span>
+            <span *ngIf="(saveStatus$ | async) === 'error'">✕</span>
+          </span>
+          <span>{{ saveLabel$ | async | translate }}</span>
+        </button>
+        <button class="gs-save-btn gs-logout-btn" (click)="logout()">
+          <span class="gs-save-icon">🚪</span>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+
+      <!-- Borrar todo (acción peligrosa): media línea, a la derecha. -->
+      <button class="gs-save-btn gs-danger-btn" (click)="clearAll()">
+        <span class="gs-save-icon">🗑</span>
+        <span>Borrar</span>
+      </button>
+
       <div class="gs-section">
         <p class="gs-section-label">{{ 'GAME_SETTINGS.INTERFACE' | translate }}</p>
 
@@ -54,13 +90,7 @@
           </div>
         </div>
 
-      </div>
-    </ng-container>
-
-    <ng-container *ngIf="tab === 2">
-      <div class="gs-section">
-        <p class="gs-section-label">Modo Mundo</p>
-
+        <!-- Fondo del Modo Mundo (runner), antes en la pestaña "Mundo" -->
         <div class="gs-row gs-row-stack">
           <div class="gs-row-info">
             <span class="gs-row-title">Fondo del runner</span>
@@ -76,6 +106,13 @@
           </div>
         </div>
 
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="tab === 2">
+      <div class="gs-section">
+        <p class="gs-section-label">Admin</p>
+        <!-- Contenido de administración (pendiente). -->
       </div>
     </ng-container>
 

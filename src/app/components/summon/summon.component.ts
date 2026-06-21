@@ -106,10 +106,9 @@ export class SummonComponent {
   set activeItemTab(v: number)  { this._activeItemTab = v;  this.panelState.set('summon.itemTab', v); }
   set activeEnemyTab(v: number) { this._activeEnemyTab = v; this.panelState.set('summon.enemyTab', v); }
   readonly itemSubTabs  = ['Armor', 'Weapons', 'Misc'];
-  readonly enemySubTabs = ['Slimes', 'Misc'];
+  readonly enemySubTabs = ['World1'];
 
-  readonly slimeGroups: EnemyGroup[];
-  readonly miscGroups:  EnemyGroup[];
+  readonly enemyGroups: EnemyGroup[];
   readonly armorCatalog:  LootEntry[];
   readonly weaponCatalog: LootEntry[];
   readonly miscCatalog:   LootEntry[];
@@ -156,8 +155,7 @@ export class SummonComponent {
       elite:    allCards.find(c => c.type === `${base.type}_elite`)    ?? null,
       oblivion: allCards.find(c => c.type === `${base.type}_oblivion`) ?? null,
     });
-    this.slimeGroups = baseCards.filter(c => c.type.startsWith('slime')).map(toGroup);
-    this.miscGroups  = baseCards.filter(c => !c.type.startsWith('slime')).map(toGroup);
+    this.enemyGroups = baseCards.map(toGroup);
     const rawTab         = this.panelState.get('summon.tab', 0) as number;
     this._activeTab      = rawTab === 2 ? 1 : rawTab === 1 ? 0 : rawTab;
     this._activeItemTab  = this.panelState.get('summon.itemTab',  0);
@@ -236,7 +234,7 @@ export class SummonComponent {
 
     return {
       type:        cfg.type,
-      label:       this.formatLabel(cfg.type),
+      label:       cfg.displayName ?? this.formatLabel(cfg.type),
       hp:          cfg.hp,
       spriteUrl,
       tier,

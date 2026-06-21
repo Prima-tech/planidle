@@ -197,7 +197,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword01_main', frame: 130, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_01_icon.png`,
     description: 'Espada recta de acero forjada en Asgard.',
-    stats: { damage: 12 },
+    stats: { damagePercent: 10 },
   },
   {
     name: 'Cimitarra Dorada', category: 'Arma', type: 'item',
@@ -205,7 +205,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword02_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_02_icon.png`,
     description: 'Sable curvo de filo dorado.',
-    stats: { damage: 16 },
+    stats: { damagePercent: 15 },
   },
   {
     name: 'Hoja Ardiente', category: 'Arma', type: 'item',
@@ -213,7 +213,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword03_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_03_icon.png`,
     description: 'Hoja curva forjada en brasas vivas.',
-    stats: { damage: 20 },
+    stats: { damagePercent: 20 },
   },
   {
     name: 'Sable Rúnico', category: 'Arma', type: 'item',
@@ -221,7 +221,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword04_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_04_icon.png`,
     description: 'Sable de acero grabado con runas antiguas.',
-    stats: { damage: 18 },
+    stats: { damagePercent: 18 },
   },
   {
     name: 'Colmillo Carmesí', category: 'Arma', type: 'item',
@@ -229,7 +229,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword05_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_01_icon.png`,
     description: 'Cimitarra demoníaca de filo carmesí, sedienta de sangre.',
-    stats: { damage: 24 },
+    stats: { damagePercent: 25 },
   },
   {
     name: 'Matadragones', category: 'Arma', type: 'item',
@@ -237,7 +237,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword06_main', frame: 240, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_01_icon.png`,
     description: 'Una losa de hierro bruto más que una espada. Pesada, tosca, brutal.',
-    stats: { damage: 30 },
+    stats: { damagePercent: 30 },
   },
 ];
 

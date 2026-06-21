@@ -418,7 +418,7 @@ export class Enemy {
     }
     const hitDelay  = Math.round(frameCount * 0.4 / frameRate * 1000);
     const isCrit    = Math.random() * 100 < ENEMY_CRIT_CHANCE;
-    const damage    = Math.round(this.damage * (isCrit ? ENEMY_CRIT_MULT : 1));
+    const damage    = Math.floor(this.damage * (isCrit ? ENEMY_CRIT_MULT : 1));
 
     this.mainScene.time.delayedCall(hitDelay, () => {
       if (this.isDead) return;

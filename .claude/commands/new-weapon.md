@@ -7,7 +7,7 @@ Guía para crear un arma con sprites Phaser, drop de enemigos y slot de equipami
 - **Nombre del arma** (ej. `Cimitar`, `Espada Larga`)
 - **Ruta del spritesheet** (ej. `weapons1/cimitar.png`)
 - **Enemigos que la dropean** y **% de drop**
-- **Stats** (ej. `damage: 9`)
+- **Stats**: espadas usan `damagePercent: N` (% que multiplica el daño físico total); bastones usan `magicDamage: N` (plano). `damage: N` plano sigue válido para otros items.
 - **JSON del generador LPC** (si lo hay) — es CLAVE para saber el formato (ver abajo).
 
 ---
@@ -179,7 +179,7 @@ Archivo: `src/app/physics/griddrops.ts`
   iconFrameSize: 128,   // tamaño físico del frame en la imagen
   iconFrameCols: 9,     // columnas del spritesheet
   iconContentSize: 64,  // tamaño real del arte dentro del frame
-  stats: { damage: 9 },
+  stats: { damagePercent: 10 },   // espadas: % sobre el daño físico total
 },
 ```
 

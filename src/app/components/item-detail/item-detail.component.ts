@@ -4,14 +4,24 @@ import { itemDescription } from 'src/app/physics/griddrops';
 import { BAG_SLOTS_BY_NAME } from 'src/app/services/inventory-unlock.service';
 import { PET_MAX_LEVEL, petExpNeeded, petPickupRange } from 'src/app/pnj/pet/pet-config';
 
-const STAT_LABELS: Record<string, string> = {
-  damage:   'ITEM_STAT.DAMAGE',
+/** Etiquetas i18n por stat. Exportado para que la tienda (build-shop) muestre el
+ *  mismo detalle de stats que el inventario. */
+export const STAT_LABELS: Record<string, string> = {
+  damage:        'ITEM_STAT.DAMAGE',
+  damagePercent: 'ITEM_STAT.DAMAGE_PERCENT',
+  magicDamage:   'ITEM_STAT.MAGIC_DAMAGE',
+  hp:            'ITEM_STAT.HP',
   healing:  'ITEM_STAT.HEALING',
   defense:  'ITEM_STAT.DEFENSE',
   speed:    'ITEM_STAT.SPEED',
   critical: 'ITEM_STAT.CRITICAL',
   stamina:  'ITEM_STAT.STAMINA',
 };
+
+/** Stats que se muestran como porcentaje (sufijo '%'). */
+export function isPercentStat(key: string): boolean {
+  return key === 'damagePercent';
+}
 
 @Component({
   selector: 'app-item-detail',
@@ -96,6 +106,11 @@ export class ItemDetailComponent {
 
   statLabel(key: string): string {
     return STAT_LABELS[key] ?? key;
+  }
+
+  /** Stats que representan un porcentaje → se muestran con sufijo '%'. */
+  isPercentStat(key: string): boolean {
+    return isPercentStat(key);
   }
 
   /** Diferencia del ítem nuevo (compareWith) respecto a este, para un stat. */
