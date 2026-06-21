@@ -33,9 +33,8 @@
 
     <!-- Detalle de compra (a la derecha de la ventana) -->
     <div class="shop-detail" *ngIf="selected as it" [ngStyle]="detailStyle">
-      <button class="shop-detail-close" (click)="closeDetail()">✕</button>
-      <div class="shop-detail-icon"><img [src]="it.entry.icon" alt="" draggable="false" /></div>
       <div class="shop-detail-name">{{ it.entry.name }}</div>
+      <div class="shop-detail-icon"><img [src]="it.entry.icon" alt="" draggable="false" /></div>
 
       <!-- Stats del item (daño, etc.), igual que el detalle del inventario -->
       <div class="shop-detail-stats" *ngIf="it.entry.stats">
@@ -58,12 +57,9 @@
           <div class="coin-spinner"></div>
           <span class="coin-amount">{{ totalPrice(it) | number }}</span>
         </div>
-        <div class="shop-detail-stock" [class.out]="!it.infinite && it.stock <= 0">
-          {{ it.infinite ? '∞' : (it.stock > 0 ? ('x' + it.stock) : ('BUILD.SOLD_OUT' | translate)) }}
-        </div>
       </div>
 
-      <button class="shop-buy-btn" [disabled]="!affordable(it, ctx.coins)" (click)="buy()">
+      <button class="rpg-btn rpg-btn--sm rpg-btn--block shop-buy-btn" [disabled]="!affordable(it, ctx.coins)" (click)="buy()">
         {{ 'BUILD.BUY' | translate }}
       </button>
     </div>
@@ -113,7 +109,7 @@
     <div class="coin-spinner"></div>
     <span class="coin-amount">{{ shopGold$ | async | number }}</span>
   </div>
-  <button *ngIf="tab === 'sell'" class="sell-btn" [disabled]="!canSell()" (click)="confirmSell()">
+  <button *ngIf="tab === 'sell'" class="rpg-btn rpg-btn--sm" [disabled]="!canSell()" (click)="confirmSell()">
     {{ 'BUILD.SELL' | translate }}
   </button>
 </div>

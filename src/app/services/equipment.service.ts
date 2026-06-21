@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { InventoryItem } from './inventory.service';
+import { InventoryUnlockService } from './inventory-unlock.service';
 
 export interface EquipmentSlot {
   id: string;
@@ -80,17 +81,18 @@ export class EquipmentService {
     this.restoreFromSnapshot(this.storedSets[this.activeLoadout]);
   }
 
-  private readonly _inventoryCellIds: string[] = (() => {
+  private readonly _unlock = inject(InventoryUnlockService);
+
+  /** IDs CDK de las celdas de inventario para `cdkDropListConnectedTo`. Solo las
+   *  DESBLOQUEADAS: las bloqueadas no se renderizan, y conectarse a ellas dispara el
+   *  warning "CdkDropList could not find connected drop list with id inv-…". */
+  get inventoryCellIds(): string[] {
     const ids: string[] = [];
     for (let t = 0; t < INV_TABS; t++)
       for (let r = 0; r < INV_ROWS; r++)
         for (let c = 0; c < INV_COLS; c++)
-          ids.push(`inv-${t}-${r}-${c}`);
+          if (this._unlock.isUnlocked(t, r, c)) ids.push(`inv-${t}-${r}-${c}`);
     return ids;
-  })();
-
-  get inventoryCellIds(): string[] {
-    return this._inventoryCellIds;
   }
 
   getEquipmentSlotIds(): string[] {

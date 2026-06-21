@@ -82,25 +82,10 @@ $text-cream: #ecd9b4;
   text-overflow: ellipsis;
 }
 
+/* Desbloquear: estilo global .rpg-btn; aquí solo que no se encoja en la fila */
 .unlock-btn {
   flex-shrink: 0;
-  padding: 4px 10px;
-  border: 2px solid $outline;
-  border-radius: 5px;
-  font-size: 0.65em;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  color: $text-brown;
-  background: $wood-btn;
-  box-shadow:
-    inset 0 0 0 1px $wood-btn-light,
-    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-  transition: background-color 0.15s;
-
-  &:hover  { background: $wood-btn-light; }
-  &:active { background: $wood-btn-dark; color: $text-cream; }
+  font-size: 0.65em;   /* botón pequeño dentro de la fila de progreso */
 }
 
 .unlocked-tag {

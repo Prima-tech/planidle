@@ -11,12 +11,12 @@
   <div class="build-empty" *ngIf="!buildables.length">{{ 'BUILD.NONE' | translate }}</div>
 </div>
 
-<button class="build-move-btn" [disabled]="!hasBuildings" (click)="startMove()">
+<button class="rpg-btn rpg-btn--block build-move-btn" [disabled]="!hasBuildings" (click)="startMove()">
   <ion-icon name="move-outline"></ion-icon>
   <span>{{ 'BUILD.MOVE' | translate }}</span>
 </button>
 
-<button class="build-move-btn build-delete-btn" [disabled]="!hasBuildings" (click)="startDelete()">
+<button class="rpg-btn rpg-btn--block build-move-btn build-delete-btn" [disabled]="!hasBuildings" (click)="startDelete()">
   <ion-icon name="trash-outline"></ion-icon>
   <span>{{ 'BUILD.DELETE' | translate }}</span>
 </button>

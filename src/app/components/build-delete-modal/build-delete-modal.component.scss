@@ -105,32 +105,7 @@ $danger-text: #7e2c1c;
   padding: 12px 16px 18px;
 }
 
+/* Cancelar / Borrar: estilo global .rpg-btn; aquí solo el reparto en fila */
 .bd-btn {
   flex: 1 1 0;
-  padding: 10px;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: filter 0.15s;
-
-  &:hover  { filter: brightness(1.15); }
-  &:active { filter: brightness(0.85); }
-
-  &--cancel {
-    background: $wood-btn-dark;
-    color: $text-cream;
-  }
-
-  &--confirm {
-    background: $danger-face;
-    color: #f5e3c8;
-  }
 }

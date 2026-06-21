@@ -155,3 +155,64 @@ ion-content::part(scroll)::-webkit-scrollbar {
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.18); }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Botón de acción estándar de la app — estilo del botón "Recoger" (AFK).
+   Fuente ÚNICA para todos los botones de acción con texto. Para aplicarlo,
+   pon class="rpg-btn" (y "rpg-btn--block" si debe ocupar todo el ancho).
+   ───────────────────────────────────────────────────────────────────────── */
+.rpg-btn {
+  display: inline-block;
+  padding: 11px 16px;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 14px),
+    #c08349;
+  color: #53301c;
+  border: 3px solid;
+  border-color: #d99a5c #8a5530 #8a5530 #d99a5c;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px #3a2c20,
+    inset 0 0 0 1px #3a2c20,
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 3px 8px rgba(0, 0, 0, 0.4);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.78em;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.05s;
+}
+
+.rpg-btn:hover { background: #d99a5c; }
+
+.rpg-btn:active {
+  background: #8a5530;
+  color: #ecd9b4;
+  transform: translateY(1px);
+  box-shadow:
+    0 0 0 1px #3a2c20,
+    inset 0 0 0 1px #3a2c20,
+    inset 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.rpg-btn:disabled,
+.rpg-btn.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: saturate(0.6);
+  transform: none;
+}
+
+.rpg-btn--block { display: block; width: 100%; }
+
+/* Variante compacta para paneles estrechos (talentos, misiones, progreso…). */
+.rpg-btn--sm {
+  padding: 5px 10px;
+  font-size: 0.64em;
+  letter-spacing: 0.06em;
+  border-width: 2px;
+  border-radius: 6px;
+}

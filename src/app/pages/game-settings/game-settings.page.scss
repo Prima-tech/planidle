@@ -138,6 +138,7 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
 
 /* Botón de guardar partida: mismo marco que las filas de ajuste y el indicador de
    conexión (metálico + madera oscura, receta 2 de rpg-theme). */
+/* Guardar / Logout / Borrar: estilo global .rpg-btn; aquí solo maquetación y estados */
 .gs-save-btn {
   display: flex;
   align-items: center;
@@ -145,34 +146,12 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   gap: 8px;
   width: 100%;
   margin-bottom: 12px;
-  padding: 10px 12px;
-  background: $wood-btn-dark;
-  color: $text-cream;
-  border: 3px solid;
-  border-color: $metal-light $metal-dark $metal-dark $metal;
-  border-radius: 7px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 2px 6px rgba(0, 0, 0, 0.35);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: filter 0.15s;
-
-  @media (hover: hover) { &:hover:not(:disabled) { filter: brightness(1.12); } }
-  &:active:not(:disabled) { filter: brightness(0.92); }
   &:focus { outline: none; }
 
-  // Mantiene SIEMPRE el marco de madera (estilo app); el estado se ve por el icono y
-  // el texto. Solo un matiz sutil: guardado = ✓ verde, error = ✕ rojo en el icono.
+  // El estado se ve por el icono: guardado = ✓ verde, error = ✕ rojo.
   &.saving { opacity: 0.65; cursor: not-allowed; }
   &.saved  .gs-save-icon { color: #7bc36a; }
   &.error  .gs-save-icon { color: #e08a7a; }
-  &:disabled { cursor: not-allowed; }
 }
 
 .gs-save-icon { display: inline-flex; }
@@ -203,16 +182,9 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
 /* Borrar todo: acción peligrosa — marco de madera de la app pero texto rojizo y
    tinte rojo al pulsar. Media línea, alineado a la derecha y más bajo. */
 .gs-danger-btn {
-  color: #e3a48f;
+  color: #e3a48f;        // texto rojizo: acción peligrosa
   width: 50%;
   margin-left: auto;     // a la derecha
-  padding: 6px 8px;      // más bajo
-
-  &:active:not(:disabled) {
-    background: #8a3a2f;
-    color: #f5e3c8;
-    filter: none;
-  }
 }
 
 .gs-section {

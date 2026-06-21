@@ -19,6 +19,7 @@ import { UnlockService } from 'src/app/services/unlock.service';
 import { SummonService } from 'src/app/services/summon.service';
 import { WorldService } from 'src/app/services/world.service';
 import { CityBuildService } from 'src/app/services/city-build.service';
+import { AdminService } from 'src/app/services/admin.service';
 import { BuildPanelComponent } from '../build-panel/build-panel.component';
 import { BuildShopComponent } from '../build-shop/build-shop.component';
 import { ForgeComponent } from '../forge/forge.component';
@@ -73,6 +74,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private summonService          = inject(SummonService);
   private worldService           = inject(WorldService);
   private cityBuild              = inject(CityBuildService);
+  admin                          = inject(AdminService);
 
   /** Modo Mundo (runner): oculta el toggle de página del footer. */
   readonly runMode$ = this.playerBridge.runMode$;

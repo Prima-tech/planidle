@@ -253,24 +253,13 @@ $metal-dark: #6b6357;
 }
 
 /* Botón de compra: verde como el "Comprar" de la tienda. */
+/* Comprar objetivo: estilo global .rpg-btn--sm; aquí solo maquetación */
 .rs-ms-buy {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 3px;
-  padding: 5px 8px;
-  border: 2px solid $outline;
-  border-radius: 5px;
-  font-size: 0.62em;
-  font-weight: bold;
-  color: $text-cream;
-  background: #3f7a32;
-  cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
-  transition: filter 0.15s;
 
-  @media (hover: hover) { &:not(:disabled):hover { filter: brightness(1.15); } }
-  &:disabled { opacity: 0.4; cursor: not-allowed; background: $wood-btn-dark; }
   &:focus { outline: none; }
 
   .rs-ms-star { width: 13px; height: 13px; image-rendering: pixelated; }

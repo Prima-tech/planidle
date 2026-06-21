@@ -51,9 +51,41 @@ const COIN = (min: number, max: number): LootEntry => ({
 const COIN_ELITE    = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
 const COIN_OBLIVION = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
 
+// ── Drops específicos de enemigo (materiales apilables) ──────────────────────
+// Cuelgan de la carpeta `drop/` del propio enemigo:
+//   assets/sprites/enemy/<tipo>/drop/<archivo>.png
+// No llevan `texture` precargada: el PNG `icon` se carga al vuelo en spawnDrop
+// (fallback `icondrop:`). Se acumulan en el inventario (mergeable) y servirán de
+// material de crafteo. Para añadir uno: meter el PNG en la carpeta `drop/` del
+// enemigo, crear su entrada con `_enemyMaterial` y sumarla a su LOOT_TABLE.
+const _enemyMaterial = (
+  name: string, enemyFolder: string, file: string, chance: number, description: string,
+): LootEntry => ({
+  name,
+  category: 'Material',
+  type: 'item',
+  chance, minQty: 1, maxQty: 1, mergeable: true,
+  texture: `enemydrop:${enemyFolder}/${file}`,   // clave inexistente → spawnDrop resuelve por `icon`
+  icon: `assets/sprites/enemy/${enemyFolder}/drop/${file}.png`,
+  scale: 2.5, order: 6,
+  description,
+});
+
+const SLIME_EYE = _enemyMaterial(
+  'Ojo de Slime', 'slime4', 'eyes', 0.2,
+  'Un ojo gelatinoso arrancado a un slime. Material de crafteo.',
+);
+
+// ── Drops comunes (compartidos por TODOS los enemigos) ───────────────────────
+// Se añaden a la tabla propia de cada enemigo en rollDrops(). De momento vacío:
+// el Oro va por enemigo (cantidades distintas). Rellenar aquí para soltar botín
+// común sin tocar tabla por tabla.
+export const COMMON_DROPS: LootEntry[] = [];
+
 export const LOOT_TABLES: Record<string, LootEntry[]> = {
   slime4: [
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+    SLIME_EYE,
   ],
   slime4_elite: [
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 5, maxQty: 10, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
@@ -513,7 +545,9 @@ export class GridDrops {
     const charBonus     = this.charStats?.currentDropRateBonus ?? 0;
     const mapModifier   = this.world?.getCurrentMap()?.dropRateModifier ?? 1.0;
     const multiplier    = (1 + charBonus / 100) * mapModifier;
-    return table.filter(entry => {
+    // Tabla propia del enemigo + drops comunes a todos.
+    const pool = COMMON_DROPS.length ? [...table, ...COMMON_DROPS] : table;
+    return pool.filter(entry => {
       const finalChance = entry.type === 'item'
         ? Math.min(1, entry.chance * multiplier)
         : entry.chance;

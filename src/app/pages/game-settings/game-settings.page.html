@@ -18,7 +18,7 @@
 
       <!-- Guardar partida + Cerrar sesión: misma línea (dos botones) -->
       <div class="gs-btn-row">
-        <button class="gs-save-btn"
+        <button class="rpg-btn gs-save-btn"
                 [class.saving]="isSaving$ | async"
                 [class.saved]="(saveStatus$ | async) === 'saved'"
                 [class.error]="(saveStatus$ | async) === 'error'"
@@ -33,14 +33,14 @@
           </span>
           <span>{{ saveLabel$ | async | translate }}</span>
         </button>
-        <button class="gs-save-btn gs-logout-btn" (click)="logout()">
+        <button class="rpg-btn gs-save-btn gs-logout-btn" (click)="logout()">
           <span class="gs-save-icon">🚪</span>
           <span>Cerrar sesión</span>
         </button>
       </div>
 
       <!-- Borrar todo (acción peligrosa): media línea, a la derecha. -->
-      <button class="gs-save-btn gs-danger-btn" (click)="clearAll()">
+      <button class="rpg-btn gs-save-btn gs-danger-btn" (click)="clearAll()">
         <span class="gs-save-icon">🗑</span>
         <span>Borrar</span>
       </button>

@@ -18,8 +18,8 @@
     <div class="me-divider"></div>
 
     <div class="me-actions">
-      <button *ngIf="prompt.canCancel" class="me-btn me-btn--cancel" (click)="cancel()">Cancelar</button>
-      <button class="me-btn me-btn--confirm" (click)="enter(prompt.mapId)">
+      <button *ngIf="prompt.canCancel" class="rpg-btn me-btn" (click)="cancel()">Cancelar</button>
+      <button class="rpg-btn me-btn" (click)="enter(prompt.mapId)">
         {{ prompt.canCancel ? 'Entrar' : 'Aceptar' }}
       </button>
     </div>

@@ -2,17 +2,15 @@
   pointer-events: none;
 }
 
-// Mismo estilo "esfera" azul zafiro que las habilidades (hud-skill-buttons),
-// colocado a la izquierda del botón de saltar (attack-btn en run-mode: right 8px,
-// bottom 77px, 76×76 → centro en bottom 115). El sprint (52px) se centra a esa
-// altura y queda pegado a su izquierda con un pequeño hueco.
+// Botón de correr (sprint) del Modo Mundo: abajo-izquierda, encima del footer/hub.
+// Cuadrado (con esquinas ligeramente redondeadas), estilo "zafiro".
 .sprint-btn {
   position: fixed;
-  right: calc(96px + var(--safe-right, 0px));
-  bottom: 32px;
+  left: calc(8px + var(--safe-left, 0px));
+  bottom: calc(60px + var(--safe-bottom, 0px));
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: 10px;
   z-index: 150;
   pointer-events: auto;
   padding: 0;
@@ -77,7 +75,7 @@
 .sprint-cd-overlay {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
+  border-radius: 10px;   // igual que el botón (ahora cuadrado)
   background: conic-gradient(
     from -90deg,
     rgba(0, 0, 0, 0.72) 0deg var(--cd-angle),

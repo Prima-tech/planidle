@@ -75,7 +75,8 @@
       <ion-icon name="home"></ion-icon>
     </button>
 
-    <div class="icon-menu-wrapper" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
+    <!-- Invocar: solo en modo admin -->
+    <div class="icon-menu-wrapper" *ngIf="admin.isAdmin" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
       <ion-icon name="flash" class="footer-ion-icon"></ion-icon>
     </div>
 

@@ -222,10 +222,10 @@ const SLIME5_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const slime5: EnemyTypeConfig = {
   type: 'slime5',
   displayName: 'Slime mejorado',
-  hp: 100,
+  hp: 125,
   scale: 3,
   speed: 150,
-  damage: 6,
+  damage: 14,
   attackCooldown: 1500,
   actions: {
     idle: {
@@ -276,10 +276,10 @@ const slime5: EnemyTypeConfig = {
 const slime5_elite: EnemyTypeConfig = {
   ...slime5,
   type: 'slime5_elite',
-  hp: 150,
+  hp: slime5.hp * 3,
   scale: 3.5,
   speed: 165,
-  damage: 12,
+  damage: slime5.damage * 2,
   attackCooldown: 1200,
   tint: 0xffcc00,
   spriteType: 'slime5',
@@ -288,10 +288,10 @@ const slime5_elite: EnemyTypeConfig = {
 const slime5_oblivion: EnemyTypeConfig = {
   ...slime5,
   type: 'slime5_oblivion',
-  hp: 400,
+  hp: slime5.hp * 8,
   scale: 4,
   speed: 180,
-  damage: 20,
+  damage: slime5.damage * 3,
   attackCooldown: 1000,
   tint: 0xcc00ff,
   spriteType: 'slime5',

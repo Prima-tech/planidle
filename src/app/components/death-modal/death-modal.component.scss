@@ -136,26 +136,9 @@ $green: #7ec96a;          // valores restaurados
   }
 }
 
+/* Aceptar: estilo global .rpg-btn; aquí solo maquetación */
 .death-accept-btn {
   display: block;
   width: calc(100% - 32px);
   margin: 12px 16px 18px;
-  padding: 11px;
-  background: $danger-face;
-  color: #f5e3c8;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: filter 0.15s;
-
-  &:hover  { filter: brightness(1.15); }
-  &:active { filter: brightness(0.85); }
 }

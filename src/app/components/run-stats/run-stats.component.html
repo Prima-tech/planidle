@@ -39,7 +39,7 @@
             <span class="rs-ms-name">{{ m.labelKey | translate }}</span>
             <span class="rs-ms-desc">{{ m.descKey | translate }}</span>
           </div>
-          <button class="rs-ms-buy" *ngIf="tab === 'objetivos'" [disabled]="!canBuy(m)" (click)="buy(m)">
+          <button class="rpg-btn rpg-btn--sm rs-ms-buy" *ngIf="tab === 'objetivos'" [disabled]="!canBuy(m)" (click)="buy(m)">
             <img class="rs-ms-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
             <span>{{ m.cost }}</span>
           </button>

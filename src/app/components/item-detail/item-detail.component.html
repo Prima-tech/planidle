@@ -81,13 +81,13 @@
   <p *ngIf="description" class="detail-description">{{ description }}</p>
 
   <!-- Botón equipar: solo en el comparador (sustituye lo equipado por el nuevo) -->
-  <button *ngIf="compareWith" class="detail-equip-btn"
+  <button *ngIf="compareWith" class="rpg-btn rpg-btn--block detail-equip-btn"
           (click)="equip.emit(); $event.stopPropagation()">
     {{ 'INVENTORY.EQUIP' | translate }}
   </button>
 
   <!-- Botón usar: consumibles (pociones) desde el inventario -->
-  <button *ngIf="canUse && consumable" class="detail-use-btn"
+  <button *ngIf="canUse && consumable" class="rpg-btn rpg-btn--block detail-use-btn"
           (click)="use.emit(); $event.stopPropagation()">
     {{ 'INVENTORY.USE' | translate }}
   </button>

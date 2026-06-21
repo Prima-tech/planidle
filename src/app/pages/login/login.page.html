@@ -37,7 +37,7 @@
           </div>
         </ng-container>
 
-        <button class="login-btn" (click)="login()" [disabled]="loading">{{ 'LOGIN.BUTTON' | translate }}</button>
+        <button class="rpg-btn rpg-btn--block login-btn" (click)="login()" [disabled]="loading">{{ 'LOGIN.BUTTON' | translate }}</button>
         <p class="login-error" *ngIf="error">{{ error }}</p>
       </div>
 

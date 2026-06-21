@@ -6,7 +6,10 @@
 export const GRASSLANDS_TILESETS = [
   {
     firstgid: 1, name: 'ground_grasss', image: '../W1/ground_grasss.png',
-    columns: 21, tilecount: 378, imagewidth: 341, imageheight: 297,
+    // imagewidth/height a múltiplo del tile (16): 336=21×16, 288=18×16 → 378 tiles.
+    // El PNG real es 341×297 (5/9px de borde sin tile); con los reales Phaser avisa
+    // "Image tile area not tile size multiple".
+    columns: 21, tilecount: 378, imagewidth: 336, imageheight: 288,
     tilewidth: 16, tileheight: 16, margin: 0, spacing: 0,
   },
   {
