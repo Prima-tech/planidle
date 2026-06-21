@@ -77,10 +77,10 @@ const ORC1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 const orc1: EnemyTypeConfig = {
   type: 'orc1',
   displayName: 'Orco',
-  hp: 52,                  // mapa 1-3
+  hp: 200,                 // mapa 1-3
   scale: 3,
   speed: 96,
-  damage: 6,
+  damage: 20,
   attackCooldown: 1500,
   actions: {
     idle: {
@@ -164,10 +164,10 @@ const SLIME4_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const slime4: EnemyTypeConfig = {
   type: 'slime4',
   displayName: 'Slime',
-  hp: 30,                  // mapa 1-1
+  hp: 100,                 // mapa 1-1
   scale: 3,
   speed: 150,
-  damage: 4,
+  damage: 12,
   attackCooldown: 1500,
   actions: {
     idle: {
@@ -222,7 +222,7 @@ const SLIME5_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const slime5: EnemyTypeConfig = {
   type: 'slime5',
   displayName: 'Slime mejorado',
-  hp: 50,
+  hp: 100,
   scale: 3,
   speed: 150,
   damage: 6,
@@ -332,10 +332,10 @@ const GOOBLING2_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 const goobling2: EnemyTypeConfig = {
   type: 'goobling2',
   displayName: 'Goblin',
-  hp: 145,                 // mapa 1-7
+  hp: 400,                 // mapa 1-7
   scale: 3,
   speed: 115,
-  damage: 16,
+  damage: 36,
   attackCooldown: 1700,
   actions: {
     idle:            { filename: 'Idle_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING2_DIR) },
@@ -359,10 +359,10 @@ const GNOLL1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const gnoll1: EnemyTypeConfig = {
   type: 'gnoll1',
   displayName: 'Gnoll',
-  hp: 86,                  // mapa 1-5
+  hp: 300,                 // mapa 1-5
   scale: 3,
   speed: 110,
-  damage: 10,
+  damage: 28,
   attackCooldown: 1600,
   actions: {
     idle:   { filename: 'Gnoll1_Idle_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GNOLL1_DIR) },
@@ -384,10 +384,10 @@ const GOLEM1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const golem1: EnemyTypeConfig = {
   type: 'golem1',
   displayName: 'Golem',
-  hp: 190,                 // mapa 1-8
+  hp: 450,                 // mapa 1-8
   scale: 4.5,
   speed: 70,
-  damage: 20,
+  damage: 40,
   attackCooldown: 2000,
   actions: {
     idle:   { filename: 'Golem1_Idle_with_shadow',  frameWidth: 128, frameHeight: 128, frameRate: 4,  repeat: -1, directional: true, frames: dirFrames(4, GOLEM1_DIR) },
@@ -410,10 +410,10 @@ const RAT1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 const rats1: EnemyTypeConfig = {
   type: 'rats1',
   displayName: 'Rata',
-  hp: 40,                  // mapa 1-2
+  hp: 150,                 // mapa 1-2
   scale: 3,
   speed: 130,
-  damage: 5,
+  damage: 16,
   attackCooldown: 1500,
   actions: {
     idle:   { filename: 'Rat1_Idle_with_shadow',   frameWidth: 128, frameHeight: 128, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(6, RAT1_DIR) },
@@ -436,10 +436,10 @@ const LIZARD1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dir
 const lizard1: EnemyTypeConfig = {
   type: 'lizard1',
   displayName: 'Hombre Lagarto',
-  hp: 112,                 // mapa 1-6
+  hp: 350,                 // mapa 1-6
   scale: 3,
   speed: 100,
-  damage: 13,
+  damage: 32,
   attackCooldown: 1400,
   actions: {
     idle:   { filename: 'Lizardman1_Idle_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, LIZARD1_DIR) },
@@ -462,10 +462,10 @@ const GOOBLING1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 const goobling1: EnemyTypeConfig = {
   type: 'goobling1',
   displayName: 'Goblin',
-  hp: 66,                  // mapa 1-4
+  hp: 250,                 // mapa 1-4
   scale: 3,
   speed: 110,
-  damage: 8,
+  damage: 24,
   attackCooldown: 1700,
   actions: {
     idle:            { filename: 'Idle0_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING1_DIR) },

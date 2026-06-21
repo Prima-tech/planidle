@@ -1115,6 +1115,9 @@ export class GameScene extends Phaser.Scene {
       playerSprite.setDepth(2);
       playerSprite.scale = 2.5;
       this.cameras.main.startFollow(playerSprite);
+      // Baja un poco al jugador en pantalla. Offset en unidades de mundo (~0.4 px-pantalla
+      // por unidad): +75 ≈ 30px hacia abajo. Positivo = más abajo. Ajustar si hace falta.
+      this.cameras.main.setFollowOffset(0, 75);
       this.cameras.main.roundPixels = true;
       const spawn = this.currentMapConfig.spawnPos ?? { x: 6, y: 6 };
       const sprites = {

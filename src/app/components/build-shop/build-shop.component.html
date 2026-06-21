@@ -22,7 +22,10 @@
             <span class="shop-card-stock" *ngIf="!item.infinite && item.stock > 0">x{{ item.stock }}</span>
             <span class="shop-card-stock shop-card-stock--out" *ngIf="!item.infinite && item.stock <= 0">{{ 'BUILD.SOLD_OUT' | translate }}</span>
           </div>
-          <span class="shop-card-price"><span class="coin-mini"></span>{{ item.price }}</span>
+          <div class="shop-card-price coins-section">
+            <div class="coin-spinner"></div>
+            <span class="coin-amount">{{ item.price | number }}</span>
+          </div>
         </button>
         <div *ngIf="!item" class="shop-card shop-card--empty"></div>
       </ng-container>
@@ -51,7 +54,10 @@
       </div>
 
       <div class="shop-detail-meta">
-        <div class="shop-detail-price"><span class="coin-mini"></span><span>{{ totalPrice(it) }}</span></div>
+        <div class="shop-detail-price coins-section">
+          <div class="coin-spinner"></div>
+          <span class="coin-amount">{{ totalPrice(it) | number }}</span>
+        </div>
         <div class="shop-detail-stock" [class.out]="!it.infinite && it.stock <= 0">
           {{ it.infinite ? '∞' : (it.stock > 0 ? ('x' + it.stock) : ('BUILD.SOLD_OUT' | translate)) }}
         </div>
@@ -66,8 +72,6 @@
 
 <!-- ─────────── VENDER ─────────── -->
 <ng-container *ngIf="tab === 'sell'">
-  <div class="sell-hint">{{ 'BUILD.SELL_HINT' | translate }}</div>
-
   <div class="sell-grid" cdkDropListGroup>
     <div *ngFor="let row of sellGrid; let r = index" class="sell-row">
       <div *ngFor="let cell of row; let c = index"
@@ -94,16 +98,22 @@
   </div>
 
   <div class="sell-foot">
-    <div class="sell-total">
-      <span>{{ 'BUILD.SELL_GET' | translate }}</span>
-      <span class="coin-mini"></span><span>{{ sellTotal() }}</span>
+    <span class="sell-total-label">{{ 'BUILD.SELL_GET' | translate }}</span>
+    <div class="coins-section">
+      <div class="coin-spinner"></div>
+      <span class="coin-amount">{{ sellTotal() | number }}</span>
     </div>
-    <button class="sell-btn" [disabled]="!canSell()" (click)="confirmSell()">{{ 'BUILD.SELL' | translate }}</button>
   </div>
 </ng-container>
 
-<!-- Oro de la tienda (misma maquetación que el oro del inventario) -->
-<div class="coins-section">
-  <div class="coin-spinner"></div>
-  <span class="coin-amount">{{ shopGold$ | async | number }}</span>
+<!-- Barra inferior: etiqueta + oro de la tienda y, en la pestaña Vender, el botón Vender a su derecha -->
+<div class="shop-bottom">
+  <span class="shop-gold-label">{{ 'BUILD.SHOP_GOLD' | translate }}</span>
+  <div class="coins-section">
+    <div class="coin-spinner"></div>
+    <span class="coin-amount">{{ shopGold$ | async | number }}</span>
+  </div>
+  <button *ngIf="tab === 'sell'" class="sell-btn" [disabled]="!canSell()" (click)="confirmSell()">
+    {{ 'BUILD.SELL' | translate }}
+  </button>
 </div>

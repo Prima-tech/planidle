@@ -23,7 +23,10 @@ $metal-dark: #6b6357;
   min-height: calc(100% - 4px);
   margin: 2px;
   padding: 10px 8px 8px;
-  min-width: 282px;
+  /* MISMO ancho que el panel de equipo (EquipmentComponent :host = 292px):
+     contenido 266 (vtabs 32 + gap 8 + eq-content 226) + padding 16 + borde 10.
+     box-sizing: border-box → este 292 incluye padding+borde, igual que equipo. */
+  width: 292px;
   color: $text-cream;
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
@@ -143,22 +146,22 @@ $metal-dark: #6b6357;
 .sell-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;   /* "Te dan" alineado a la derecha */
   gap: 8px;
   margin-bottom: 10px;
 }
 
-.sell-total {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* Etiquetas "Te dan:" y "Oro de la tienda" */
+.sell-total-label,
+.shop-gold-label {
   font-size: 0.7em;
   font-weight: 700;
   color: $text-cream;
 }
 
 .sell-btn {
-  padding: 8px 14px;
+  height: 26px;                 /* alineado con la pastilla de oro de la tienda */
+  padding: 0 14px;
   border: 2px solid $outline;
   border-radius: 6px;
   font-size: 0.72em;
@@ -180,8 +183,15 @@ $metal-dark: #6b6357;
   display: grid;
   grid-template-columns: repeat(auto-fill, 60px);  /* tarjetas estrechas, ancho fijo */
   justify-content: center;
-  gap: 18px 16px;                /* fila ancha (pastilla que sobresale) + separación entre columnas */
+  gap: 12px 16px;                /* separación entre filas / columnas (precio ya va en flujo) */
   margin-bottom: 14px;
+  /* Panel enmarcado con bisel de piedra, igual que el grid del inventario */
+  padding: 8px 6px;
+  background: $grid-bg;
+  border: 4px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 8px;
+  box-sizing: border-box;
 }
 
 /* Más de 6 items → mismo aspecto que al inicio (rejilla de 2 filas × 3 columnas que
@@ -195,13 +205,13 @@ $metal-dark: #6b6357;
   grid-auto-flow: column;
   grid-auto-columns: 60px;        /* tarjetas estrechas (ceñidas al icono) */
   column-gap: 16px;               /* algo más de separación entre ellas */
-  row-gap: 18px;                  /* hueco para la pastilla que sobresale entre filas */
+  row-gap: 12px;                  /* separación entre filas (precio en flujo) */
   justify-content: start;
   width: 100%;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 14px;           /* hueco para la barra + pastilla de la fila inferior */
+  padding-bottom: 8px;            /* hueco para la barra de scroll horizontal */
   scroll-snap-type: x proximity;
   cursor: grab;
   user-select: none;
@@ -229,62 +239,59 @@ $metal-dark: #6b6357;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;   /* icono arriba; el precio flota abajo */
-  gap: 5px;
-  min-height: 64px;
+  gap: 5px;                      /* separación icono ↔ pastilla de precio (en flujo) */
   box-sizing: border-box;
-  /* Placa de madera con bisel de piedra (mismo marco que el resto de menús) */
-  background:
-    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
-    $wood-btn;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
-  padding: 8px 4px 8px;
+  /* Envoltorio transparente: la celda visible es .shop-card-frame */
+  background: none;
+  border: none;
+  padding: 0;
   cursor: pointer;
   color: $text-brown;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
   transition: filter 0.15s;
 
-  &:not(.shop-card--empty):hover,
-  &:not(.shop-card--empty):active { filter: brightness(1.08); }
+  &:not(.shop-card--empty):hover .shop-card-frame,
+  &:not(.shop-card--empty):active .shop-card-frame { filter: brightness(1.12); }
 
   &.sold-out { opacity: 0.5; }
 
-  &.selected {
-    border-color: #f0c040 $stone-dark $stone-dark #f0c040;
+  &.selected .shop-card-frame {
+    border-color: #f0c040 $cell-border $cell-border #f0c040;
     box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
+      inset 0 2px 4px rgba(0, 0, 0, 0.4),
       0 0 8px rgba(240, 192, 64, 0.55);
   }
 
+  /* Celda vacía: hueco recesado del mismo tamaño que las celdas con item */
   &--empty {
     cursor: default;
-    background: rgba(0, 0, 0, 0.18);
-    border-color: $stone-dark $stone $stone $stone-dark;
+    justify-self: center;
+    width: 46px;
+    height: 46px;
+    min-height: 0;
+    background-color: rgba(0, 0, 0, 0.18);
+    border: 2px solid $cell-border;
+    border-radius: 5px;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4);
   }
 }
 
 .shop-card-frame {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Marco metálico + fondo claro (acero pulido), como el resto de marcos de la app */
-  background: linear-gradient(180deg, $metal-light 0%, $metal 65%, $metal-dark 100%);
-  border: 2px solid;
-  border-color: $metal-light $metal-dark $metal-dark $metal;
-  border-radius: 4px;
+  /* Celda marrón cálido, igual que las celdas del inventario */
+  background-color: #8a5e3c;
+  border: 2px solid $cell-border;
+  border-radius: 5px;
   box-shadow:
-    0 0 0 1px $outline,
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.06);
   overflow: hidden;
   flex-shrink: 0;
+  transition: filter 0.15s;
 
   img {
     max-width: 100%;
@@ -296,11 +303,11 @@ $metal-dark: #6b6357;
 
 .shop-card-stock {
   position: absolute;
-  right: 1px;
-  bottom: 0;
+  right: 2px;
+  bottom: 1px;
   font-size: 0.6em;
   font-weight: 700;
-  color: #fff;
+  color: #ffd700;
   text-shadow: 0 1px 2px #000, 0 0 2px #000;
 
   &--out {
@@ -315,48 +322,21 @@ $metal-dark: #6b6357;
   }
 }
 
-/* Precio: pastilla FLOTANTE (igual que la del nombre del personaje en el HUD): madera
-   clara + bisel de piedra, posicionada en absoluto sobre el borde inferior del icono. */
-.shop-card-price {
-  position: absolute;
-  bottom: -9px;                  /* sobresale del borde inferior de la card (flotante) */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  font-size: 13px;
-  font-weight: 700;
-  color: $text-brown;
-  background: #d99a5c;            /* madera clara: resalta sobre la tarjeta */
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 5px;
-  box-shadow:
-    0 0 0 1px $outline,
-    0 2px 4px rgba(0, 0, 0, 0.4);   /* sombra → sensación de "flotando" */
-
-  /* La moneda gira, como el contador de oro */
-  .coin-mini {
-    animation: spin-coin-mini 0.6s steps(5) infinite;
-  }
-}
-
-@keyframes spin-coin-mini {
-  from { background-position: 0; }
-  to   { background-position: -60px; }   /* 5 frames × 12px (cover) */
-}
-
-.coin-mini {
-  width: 12px;
-  height: 12px;
+/* Precio de la card: en flujo, debajo del icono, misma pastilla que el oro de la
+   tienda (.coins-section) pero más estrecha (menos padding/gap horizontal). */
+.shop-card-price.coins-section {
   flex-shrink: 0;
-  background-image: url('../../../assets/sprites/resources/coin.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  image-rendering: pixelated;
+  padding: 0 4px;
+  gap: 0px;
+}
+
+/* Barra inferior: oro de la tienda (+ botón Vender a su derecha en la pestaña Vender) */
+.shop-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;   /* empuja la barra al fondo del panel */
 }
 
 /* ── Oro de la tienda: misma maquetación que el oro del inventario ── */
@@ -364,8 +344,6 @@ $metal-dark: #6b6357;
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-top: auto;
-  margin-left: auto;
   height: 26px;
   padding: 0 8px;
   background: $wood-btn;
@@ -384,19 +362,16 @@ $metal-dark: #6b6357;
   background-image: url('../../../assets/sprites/resources/coin.png');
   background-size: cover;
   background-repeat: no-repeat;
-  animation: spin-coin 0.6s steps(5) infinite;
+  background-position: 0;   /* frame estático: la moneda NO gira */
   flex-shrink: 0;
-}
-
-@keyframes spin-coin {
-  from { background-position: 0px; }
-  to   { background-position: -100px; }
 }
 
 .coin-amount {
   font-size: 0.85em;
   font-weight: bold;
   color: $text-brown;
+  margin-top: 1px;
+  margin-right: 1px;
 }
 
 /* ── Panel de detalle (a la derecha de la ventana de tienda) ── */
@@ -552,13 +527,9 @@ $metal-dark: #6b6357;
   margin-top: 2px;
 }
 
+/* Precio total: misma pastilla de oro que el resto de la app (.coins-section) */
 .shop-detail-price {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.78em;
-  font-weight: 700;
-  color: $text-cream;
+  gap: 4px;
 }
 
 .shop-detail-stock {

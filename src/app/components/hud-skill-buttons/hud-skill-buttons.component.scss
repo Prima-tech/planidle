@@ -87,19 +87,19 @@
 // slot 0 — arriba del botón de ataque
 .hud-btn-slot-0 {
   right: calc(64px + var(--safe-right, 0px));
-  bottom: 173px;
+  bottom: 116px;
 }
 
 // slot 1 — diagonal
 .hud-btn-slot-1 {
   right: calc(123px + var(--safe-right, 0px));
-  bottom: 148px;
+  bottom: 91px;
 }
 
 // slot 2 — a la izquierda
 .hud-btn-slot-2 {
   right: calc(148px + var(--safe-right, 0px));
-  bottom: 89px;
+  bottom: 32px;
 }
 
 .hud-btn-icon {
