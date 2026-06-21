@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { PlayerStateService } from 'src/app/services/player-state.service';
+import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones';
 
 /**
@@ -17,10 +18,11 @@ import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones
   standalone: false,
 })
 export class RunStatsComponent {
-  private playerState = inject(PlayerStateService);
+  private playerState  = inject(PlayerStateService);
+  private playerBridge = inject(PlayerBridgeService);
 
-  readonly stars$ = this.playerState.stars$;
-  readonly kills$ = this.playerState.currentKills$;   // enemigos de la run actual (se reinicia)
+  readonly stars$    = this.playerState.stars$;
+  readonly distance$ = this.playerBridge.runDistanceM$;   // metros de la carrera actual
   readonly milestones$ = this.playerState.runMilestones$;
 
   readonly RUN_MILESTONES = RUN_MILESTONES;

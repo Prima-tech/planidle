@@ -36,7 +36,7 @@ $metal-dark: #6b6357;
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;   // metros a la izquierda, estrellas a la derecha
   gap: 16px;
   padding: 5px 12px;
   box-sizing: border-box;
@@ -54,31 +54,44 @@ $metal-dark: #6b6357;
   .rs-block--open & { border-radius: 8px 8px 0 0; }
 }
 
+/* Cada contador en su propia pastilla de madera con bisel de piedra (como el
+   bloque de monedas del inventario). */
 .rs-stat {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+
+  &--meters { gap: 0; }   // la unidad "m" va pegada al número (margin propio)
 }
 
 .rs-img {
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   image-rendering: pixelated;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
 }
 
-.rs-ic {
-  font-size: 18px;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
-
-  &--kills { color: #c0392b; }
+.rs-val {
+  font-size: 0.72em;
+  font-weight: bold;
+  color: $text-brown;
 }
 
-.rs-val {
-  font-size: 0.82em;
+/* Unidad "m" de los metros: más pequeña y apagada, pegada al número. */
+.rs-unit {
+  margin-left: 2px;
+  font-size: 0.55em;
   font-weight: bold;
-  color: $text-cream;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+  color: rgba(83, 48, 28, 0.7);
 }
 
 /* ── Tirador: abre el panel hacia abajo (pestaña en el borde inferior dcho.) ── */

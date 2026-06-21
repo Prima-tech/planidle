@@ -205,7 +205,6 @@ export class WorldRunScene extends Phaser.Scene {
   // init() a partir del mapa de origen (ver entryDistanceFor / RUN_UNLOCK_POINTS).
   private startDistanceM = 0;
 
-  private distanceText!: Phaser.GameObjects.Text;
   // Estrellas vivas en el mundo y el siguiente hito (en "número de estrella") aún
   // sin generar. nextStarIndex 1 = primera estrella a STAR_INTERVAL_M metros.
   private stars!: Phaser.Physics.Arcade.Group;
@@ -454,9 +453,12 @@ export class WorldRunScene extends Phaser.Scene {
     this.updateFenixes();
     this.updateFireballs(delta);
 
-    // Metros recorridos (Fase 2 lo llevará al HUD; por ahora texto en pantalla).
-    this.distanceM = Math.max(0, Math.floor((this.player.x - this.startX) / PX_PER_METER));
-    this.distanceText.setText(`${this.distanceM} m`);
+    // Metros recorridos: los muestra el HUD de Angular (run-stats) vía runDistanceM$.
+    const meters = Math.max(0, Math.floor((this.player.x - this.startX) / PX_PER_METER));
+    if (meters !== this.distanceM) {
+      this.distanceM = meters;
+      this.reg.playerBridge.runDistanceM$.next(meters);   // solo al cambiar de metro
+    }
     this.reg.playerState.reportWorldDistance(this.distanceM);   // récord (solo persiste si bate)
 
     this.checkUnlockPoints();
@@ -1222,15 +1224,10 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    this.distanceText = this.add.text(this.scale.width / 2, 24, '0 m', {
-      fontFamily: 'monospace', fontSize: '28px', color: '#ffffff',
-      stroke: '#000000', strokeThickness: 4,
-    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(100);
-
-    // Los contadores (estrellas, enemigos abatidos, mejor distancia) ahora los pinta
-    // Angular (app-run-stats, arriba a la derecha, solo en run-mode), no este HUD.
-    // El botón "volver al mapa principal" también es Angular (HTML, ver layout +
-    // playerBridge.exitRunRequest$), por eso aquí ya no se pinta nada más.
+    // Todo el HUD (metros recorridos, estrellas, botón de volver…) lo pinta Angular
+    // (app-run-stats arriba a la derecha + layout), no Phaser. Los metros se publican
+    // en playerBridge.runDistanceM$ desde update(). Aquí ya no se dibuja nada.
+    this.reg.playerBridge.runDistanceM$.next(0);   // reinicia el contador al empezar la carrera
   }
 
   private respawn(): void {

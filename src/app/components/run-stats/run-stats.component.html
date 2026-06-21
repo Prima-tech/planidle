@@ -1,14 +1,13 @@
 <div class="rs-block" [class.rs-block--open]="panelOpen">
 
-  <!-- Widget: contadores en vivo (sin barras), estilo barra de vida -->
+  <!-- Widget: metros recorridos (izquierda) + estrellas (derecha), sin barras -->
   <div class="rs-widget">
+    <div class="rs-stat rs-stat--meters">
+      <span class="rs-val">{{ distance$ | async }}</span><span class="rs-unit">m</span>
+    </div>
     <div class="rs-stat">
       <img class="rs-img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
       <span class="rs-val">{{ stars$ | async }}</span>
-    </div>
-    <div class="rs-stat">
-      <ion-icon class="rs-ic rs-ic--kills" name="skull"></ion-icon>
-      <span class="rs-val">{{ kills$ | async }}</span>
     </div>
   </div>
 

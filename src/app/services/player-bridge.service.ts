@@ -36,6 +36,9 @@ export class PlayerBridgeService {
   /** Modo Mundo (runner) activo. La UI lo usa para ocultar minimapa/skills/toggle
    *  del footer y convertir el botón de ataque en botón de salto. */
   readonly runMode$ = new BehaviorSubject<boolean>(false);
+  /** Metros recorridos en la carrera actual (Modo Mundo). La escena lo actualiza; el
+   *  HUD de Angular (run-stats) lo muestra. Se reinicia a 0 al empezar cada carrera. */
+  readonly runDistanceM$ = new BehaviorSubject<number>(0);
   /** El botón de salto (HTML) emite al pulsar/soltar; WorldRunScene los escucha
    *  para el salto variable (mantener = más alto). */
   readonly jumpRequest$ = new Subject<void>();
