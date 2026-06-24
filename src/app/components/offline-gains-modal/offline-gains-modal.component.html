@@ -56,16 +56,12 @@
 
       <!-- Combate: kills + monedas/exp -->
       <ng-container *ngSwitchDefault>
-        <div class="afk-section-label">{{ 'OFFLINE.ENEMIES_KILLED' | translate }}</div>
-
         <div class="afk-rows">
           <div class="afk-row" *ngFor="let entry of gains.enemyGains">
             <span class="afk-label">{{ entry.displayName }}</span>
             <span class="afk-value">{{ entry.kills | number }}</span>
           </div>
         </div>
-
-        <div class="afk-section-label">{{ 'OFFLINE.REWARDS' | translate }}</div>
 
         <div class="afk-rows">
           <div class="afk-row">
@@ -83,7 +79,6 @@
 
     <!-- Botín acumulado (combate o recolección) -->
     <ng-container *ngIf="gains.itemDrops?.length">
-      <div class="afk-section-label">{{ 'OFFLINE.ITEMS' | translate }}</div>
       <div class="afk-drops">
         <div class="afk-drop" *ngFor="let drop of gains.itemDrops">
           <div class="afk-drop-icon">

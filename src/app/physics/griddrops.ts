@@ -60,20 +60,49 @@ const COIN_OBLIVION = (min: number, max: number): LootEntry => ({ ...COIN(min, m
 // enemigo, crear su entrada con `_enemyMaterial` y sumarla a su LOOT_TABLE.
 const _enemyMaterial = (
   name: string, enemyFolder: string, file: string, chance: number, description: string,
+  dropDir = 'drop',   // subcarpeta del drop (casi siempre 'drop'; el orc usa 'orc')
 ): LootEntry => ({
   name,
   category: 'Material',
   type: 'item',
   chance, minQty: 1, maxQty: 1, mergeable: true,
   texture: `enemydrop:${enemyFolder}/${file}`,   // clave inexistente → spawnDrop resuelve por `icon`
-  icon: `assets/sprites/enemy/${enemyFolder}/drop/${file}.png`,
+  icon: `assets/sprites/enemy/${enemyFolder}/${dropDir}/${file}.png`,
   scale: 2.5, order: 6,
   description,
 });
 
 const SLIME_EYE = _enemyMaterial(
-  'Ojo de Slime', 'slime4', 'eyes', 0.2,
+  'Ojo de Slime', 'slime4', 'eyes', 1.0,
   'Un ojo gelatinoso arrancado a un slime. Material de crafteo.',
+);
+const GNOLL_SKIN = _enemyMaterial(
+  'Piel de Gnoll', 'gnoll1', 'skin', 1.0,
+  'Piel curtida de un gnoll. Material de crafteo.',
+);
+const GOLEM_STONE = _enemyMaterial(
+  'Piedra de Gólem', 'golem1', 'stone', 1.0,
+  'Fragmento de roca del núcleo de un gólem. Material de crafteo.',
+);
+const GOOBLING1_EAR = _enemyMaterial(
+  'Oreja de Goobling', 'goobling1', 'ear', 1.0,
+  'Oreja puntiaguda de un goobling. Material de crafteo.',
+);
+const GOOBLING2_NAIL = _enemyMaterial(
+  'Garra de Goobling', 'goobling2', 'nail', 1.0,
+  'Garra afilada de un goobling. Material de crafteo.',
+);
+const LIZARD_TAIL = _enemyMaterial(
+  'Cola de Lagarto', 'lizard1', 'tail', 1.0,
+  'Cola escamosa de un lagarto. Material de crafteo.',
+);
+const RAT_REMAINS = _enemyMaterial(
+  'Cola de Rata', 'rats1', 'Icon39', 1.0,
+  'Despojo correoso de una rata. Material de crafteo.',
+);
+const ORC_FINGER = _enemyMaterial(
+  'Dedo de Orco', 'orc1', 'finger', 1.0,
+  'Dedo cercenado de un orco. Material de crafteo.', 'orc',
 );
 
 // ── Drops comunes (compartidos por TODOS los enemigos) ───────────────────────
@@ -89,9 +118,11 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
   ],
   slime4_elite: [
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 5, maxQty: 10, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+    SLIME_EYE,
   ],
   slime4_oblivion: [
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 15, maxQty: 30, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
+    SLIME_EYE,
   ],
   slime5: [
     { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
@@ -105,33 +136,36 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
   orc1: [
     { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5,  mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
     { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
+    ORC_FINGER,
   ],
   orc1_elite: [
     { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 5, maxQty: 15, mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
     { name: 'Poción', type: 'item',     chance: 0.8,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
+    ORC_FINGER,
   ],
   orc1_oblivion: [
     { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 15, maxQty: 40, mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
     { name: 'Poción', type: 'item',     chance: 1.0,  minQty: 2,  maxQty: 4,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
+    ORC_FINGER,
   ],
-  goobling2:          [ COIN(1, 3)  ],
-  goobling2_elite:    [ COIN(3, 8)  ],
-  goobling2_oblivion: [ COIN(10, 20) ],
-  gnoll1:             [ COIN(1, 3)  ],
-  gnoll1_elite:       [ COIN(4, 10) ],
-  gnoll1_oblivion:    [ COIN(12, 24) ],
-  golem1:             [ COIN(4, 8)   ],
-  golem1_elite:       [ COIN(10, 22) ],
-  golem1_oblivion:    [ COIN(25, 55) ],
-  rats1:              [ COIN(1, 3)   ],
-  rats1_elite:        [ COIN(3, 8)   ],
-  rats1_oblivion:     [ COIN(10, 20) ],
-  lizard1:            [ COIN(2, 5)   ],
-  lizard1_elite:      [ COIN(6, 14)  ],
-  lizard1_oblivion:   [ COIN(18, 38) ],
-  goobling1:          [ COIN(1, 3)   ],
-  goobling1_elite:    [ COIN(3, 8)   ],
-  goobling1_oblivion: [ COIN(10, 20) ],
+  goobling2:          [ COIN(1, 3),  GOOBLING2_NAIL ],
+  goobling2_elite:    [ COIN(3, 8),  GOOBLING2_NAIL ],
+  goobling2_oblivion: [ COIN(10, 20), GOOBLING2_NAIL ],
+  gnoll1:             [ COIN(1, 3),  GNOLL_SKIN ],
+  gnoll1_elite:       [ COIN(4, 10), GNOLL_SKIN ],
+  gnoll1_oblivion:    [ COIN(12, 24), GNOLL_SKIN ],
+  golem1:             [ COIN(4, 8),   GOLEM_STONE ],
+  golem1_elite:       [ COIN(10, 22), GOLEM_STONE ],
+  golem1_oblivion:    [ COIN(25, 55), GOLEM_STONE ],
+  rats1:              [ COIN(1, 3),   RAT_REMAINS ],
+  rats1_elite:        [ COIN(3, 8),   RAT_REMAINS ],
+  rats1_oblivion:     [ COIN(10, 20), RAT_REMAINS ],
+  lizard1:            [ COIN(2, 5),   LIZARD_TAIL ],
+  lizard1_elite:      [ COIN(6, 14),  LIZARD_TAIL ],
+  lizard1_oblivion:   [ COIN(18, 38), LIZARD_TAIL ],
+  goobling1:          [ COIN(1, 3),   GOOBLING1_EAR ],
+  goobling1_elite:    [ COIN(3, 8),   GOOBLING1_EAR ],
+  goobling1_oblivion: [ COIN(10, 20), GOOBLING1_EAR ],
   default: [
     { name: 'Oro',    type: 'currency', chance: 0.4,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
   ],

@@ -2952,6 +2952,8 @@ export class GameScene extends Phaser.Scene {
     private executeSkill(abilityId: string, damage: number): void {
       const cfg = SKILL_REGISTRY[abilityId];
       if (!cfg) return;
+      // TEMP diagnóstico: revela CUALQUIER skill que se lance (auto o manual) y si es AoE.
+      console.log('[SKILLCAST]', abilityId, 'aoeRadius=', cfg.aoeRadius ?? '—', 'effect=', cfg.effectType);
       if (cfg.manaCost) {
         const ps = this.reg.playerState;
         const state = ps?.snapshot();

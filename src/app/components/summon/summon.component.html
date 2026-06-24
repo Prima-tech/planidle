@@ -105,6 +105,11 @@
       <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: miscCatalog }"></ng-container>
     </div>
 
+    <!-- Drops de bichos: un botón por material -->
+    <div class="item-grid" *ngSwitchCase="3">
+      <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: dropCatalog }"></ng-container>
+    </div>
+
   </ng-container>
 
 </div>

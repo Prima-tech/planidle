@@ -105,13 +105,14 @@ export class SummonComponent {
   set activeTab(v: number)      { this._activeTab = v;      this.panelState.set('summon.tab', v); }
   set activeItemTab(v: number)  { this._activeItemTab = v;  this.panelState.set('summon.itemTab', v); }
   set activeEnemyTab(v: number) { this._activeEnemyTab = v; this.panelState.set('summon.enemyTab', v); }
-  readonly itemSubTabs  = ['Armor', 'Weapons', 'Misc'];
+  readonly itemSubTabs  = ['Armor', 'Weapons', 'Misc', 'Drops'];
   readonly enemySubTabs = ['World1'];
 
   readonly enemyGroups: EnemyGroup[];
   readonly armorCatalog:  LootEntry[];
   readonly weaponCatalog: LootEntry[];
   readonly miscCatalog:   LootEntry[];
+  readonly dropCatalog:   LootEntry[];   // materiales que sueltan los bichos (categoría 'Material')
   readonly armorGroups:   ArmorGroup[];
   openGroups = new Set<string>();
 
@@ -134,7 +135,9 @@ export class SummonComponent {
 
     this.armorCatalog  = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'armor');
     this.weaponCatalog = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'weapon');
-    this.miscCatalog   = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'misc');
+    // Drops de bichos = materiales; van a su propia pestaña, fuera de Misc.
+    this.dropCatalog   = ITEM_CATALOG.filter(e => e.category === 'Material');
+    this.miscCatalog   = ITEM_CATALOG.filter(e => this.itemGroup(e) === 'misc' && e.category !== 'Material');
 
     const ARMOR_ORDER = ['Casco', 'Armadura', 'Pantalones', 'Botas'];
     const groupMap = new Map<string, LootEntry[]>();

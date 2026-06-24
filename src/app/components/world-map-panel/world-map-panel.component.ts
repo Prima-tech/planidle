@@ -11,6 +11,7 @@ import { MAP_REGISTRY, MapConfig } from 'src/app/scenes/gamescene/map-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { mapFeatureId } from 'src/app/services/unlock-config';
+import { AdminService } from 'src/app/services/admin.service';
 
 // Tamaño al que se renderiza cada frame del sprite del enemigo en la tarjeta de
 // info. El recuadro (.enemy-frame) recorta; con 96 el bicho se ve al doble.
@@ -40,6 +41,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private asgard        = inject(AsgardService);
   private storage       = inject(StorageService);
   private unlocks       = inject(UnlockService);
+  private admin         = inject(AdminService);
   private ngZone        = inject(NgZone);
   private mapSub: Subscription;
 
@@ -232,6 +234,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   /** ¿El mapa está bloqueado? 'hogar' (sin feature) siempre cuenta como libre;
    *  los 1-x están bloqueados hasta desbloquear su feature (p.ej. 1-1 a los 100 m). */
   isMapLocked(pinId: string): boolean {
+    if (this.admin.isAdmin) return false;   // admin: todos los mapas desbloqueados
     return !this.unlocks.isUnlocked(mapFeatureId(pinId));
   }
 

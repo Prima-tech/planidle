@@ -154,13 +154,20 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
   }
 
   /** Devuelve el número de enemigos golpeados */
+  /** Ataque básico de arma: golpea SOLO al enemigo (vivo) MÁS CERCANO en rango y en la
+   *  dirección de mirada. En el futuro habrá ataques que golpeen a varios; este no.
+   *  Devuelve 1 si acertó, 0 si no había objetivo. */
   attackEnemy(damage: number, isCrit = false): number {
     const pos  = this.player.getPosition();
     const dir  = this.player.getDirection();
     const RANGE = GameScene.TILE_SIZE * 3;
-    let hits = 0;
+
+    let target: typeof this.enemies[0] | null = null;
+    let bestDist = Infinity;
+    let candidates = 0;   // TEMP diagnóstico
 
     this.enemies.forEach(enemy => {
+      if (enemy.isDead) return;
       const ePos = enemy.getPixelPos();
       const dx   = ePos.x - pos.x;
       const dy   = ePos.y - pos.y;
@@ -169,13 +176,17 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
       if (dist > RANGE || dist === 0) return;
       if (!this.isInAttackDirection(dx, dy, dir)) return;
 
-      enemy.takeDamage(damage, isCrit);
-      enemy.startChasing();
-      this.emit('enemyAttacked', enemy);
-      hits++;
+      candidates++;   // TEMP diagnóstico
+      if (dist < bestDist) { bestDist = dist; target = enemy; }
     });
 
-    return hits;
+    if (!target) return 0;
+    // TEMP diagnóstico: cuántos enemigos había en rango+dirección y que SOLO golpea a 1.
+    console.log('[BASICATK] candidatos en rango+dir:', candidates, '→ daña a 1 (el más cercano)');
+    target.takeDamage(damage, isCrit);
+    target.startChasing();
+    this.emit('enemyAttacked', target);
+    return 1;
   }
 
   private isInAttackDirection(dx: number, dy: number, dir: Direction): boolean {
