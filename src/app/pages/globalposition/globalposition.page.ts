@@ -7,6 +7,7 @@ import { MAP_REGISTRY, planetNameForMap } from 'src/app/scenes/gamescene/map-con
 import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { ActivityService, ActivityDef, ActivityKind } from 'src/app/services/activity.service';
+import { ConnectionService } from 'src/app/services/connection.service';
 
 @Component({
   selector: 'app-globalposition',
@@ -52,6 +53,7 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     private supabaseService: SupabaseService,
     private unlocks: UnlockService,
     private activityService: ActivityService,
+    private connection: ConnectionService,
   ) { }
 
   async ngOnInit() {
@@ -165,6 +167,12 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
   async continue() {
     await this.asgardService.setSelectedPlayer(this.isSelected);
     this.router.navigate(['/main']);
+  }
+
+  /** Desconecta la cuenta de Supabase, vuelve a modo local y regresa al login. */
+  async logout() {
+    await this.connection.logout();
+    this.router.navigate(['/login']);
   }
 
   selectPlayer(player: any) {

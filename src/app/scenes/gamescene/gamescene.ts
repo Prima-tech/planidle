@@ -103,6 +103,7 @@ const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number }[
 const RECRUIT_NPCS: { name: string; texKey: string; mapId: string; tileX: number; tileY: number; charFlag: string }[] = [
   { name: 'Kugo',    texKey: 'npc_kugo',    mapId: '1-1', tileX: 33, tileY: 25, charFlag: 'char_kugo' },
   { name: 'Italien', texKey: 'npc_italien', mapId: '1-1', tileX: 27, tileY: 25, charFlag: 'char_italien' },
+  { name: 'Rake',    texKey: 'npc_rake',    mapId: '1-1', tileX: 30, tileY: 22, charFlag: 'char_rake' },
 ];
 
 // Nodo recolectable colocado en el mapa. Ocupa una huella de tiles (todas en
@@ -2457,6 +2458,7 @@ export class GameScene extends Phaser.Scene {
       switch (name) {
         case 'Kugo':    return `${player}, ¡cuánto tiempo!`;
         case 'Italien': return `Eh, ${player}, ¿listo para la aventura?`;
+        case 'Rake':    return `${player}, cuando quieras partimos.`;
         default:        return '...';
       }
     }

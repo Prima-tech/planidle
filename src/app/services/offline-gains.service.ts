@@ -136,12 +136,24 @@ export class OfflineGainsService {
     };
   }
 
-  calculate(snapshot: GameSnapshot): OfflineGains | null {
-    const ref = snapshot?.lastSeen ?? snapshot?.lastModified;
-    console.log('[OfflineGains] ref:', ref, '| mapId:', snapshot?.mapId);
-    if (!ref) { console.log('[OfflineGains] sin timestamp'); return null; }
+  /**
+   * @param overrideElapsedMs Tiempo offline en ms calculado por el SERVIDOR (claim_offline).
+   *   Cuando llega (modo Supabase), se usa en vez del reloj del cliente — así no se
+   *   puede fabricar progreso cambiando la hora del móvil. En modo local es undefined
+   *   y se cae al cálculo con el timestamp del snapshot (offline-first, sin alternativa).
+   */
+  calculate(snapshot: GameSnapshot, overrideElapsedMs?: number): OfflineGains | null {
+    let elapsedMs: number;
+    if (overrideElapsedMs != null) {
+      elapsedMs = overrideElapsedMs;
+      console.log('[OfflineGains] elapsed (servidor):', (elapsedMs / 60000).toFixed(1), 'min | mapId:', snapshot?.mapId);
+    } else {
+      const ref = snapshot?.lastSeen ?? snapshot?.lastModified;
+      console.log('[OfflineGains] ref (cliente):', ref, '| mapId:', snapshot?.mapId);
+      if (!ref) { console.log('[OfflineGains] sin timestamp'); return null; }
+      elapsedMs = Date.now() - new Date(ref).getTime();
+    }
 
-    const elapsedMs = Date.now() - new Date(ref).getTime();
     const elapsedMinutes = elapsedMs / 60000;
     console.log('[OfflineGains] minutos offline:', elapsedMinutes.toFixed(1));
     if (elapsedMs / 1000 < MIN_OFFLINE_SECONDS) { console.log('[OfflineGains] < 10 s, ignorado'); return null; }

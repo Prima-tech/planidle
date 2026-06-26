@@ -56,7 +56,7 @@ export class PlayerStateService {
   readonly coinDropped$  = new Subject<number>();
   readonly levelUp$      = new Subject<number>();
   readonly state$        = this._state$.asObservable();
-  readonly coins$        = this.state$.pipe(map(s => s.coins),        distinctUntilChanged());
+  readonly coins$        = this.state$.pipe(map(s => s.coins ?? 0),   distinctUntilChanged());
   readonly specialCoins$ = this.state$.pipe(map(s => s.specialCoins), distinctUntilChanged());
   readonly stars$        = this.state$.pipe(map(s => s.stars ?? 0),    distinctUntilChanged());
   readonly worldKills$   = this.state$.pipe(map(s => s.worldKills ?? 0), distinctUntilChanged());
@@ -96,13 +96,14 @@ export class PlayerStateService {
   }
 
   addCoins(amount: number): void {
-    this._patch({ coins: this._state$.getValue().coins + amount });
+    this._patch({ coins: (this._state$.getValue().coins ?? 0) + (amount || 0) });
   }
 
   collectCoins(amount: number): void {
     const s = this._state$.getValue();
-    this._patch({ coins: s.coins + amount, lifetimeCoins: (s.lifetimeCoins ?? 0) + amount });
-    this.coinDropped$.next(amount);
+    const add = amount || 0;   // evita NaN si llega undefined/NaN
+    this._patch({ coins: (s.coins ?? 0) + add, lifetimeCoins: (s.lifetimeCoins ?? 0) + add });
+    this.coinDropped$.next(add);
   }
 
   /** Estrellas del Modo Mundo: contador propio, persistido como las monedas. */

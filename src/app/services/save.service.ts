@@ -28,7 +28,14 @@ import { ConnectionService } from './connection.service';
  */
 const OFFLINE_MODE = false;
 
-export type SaveStatus = 'idle' | 'local' | 'remote' | 'saved' | 'error';
+export type SaveStatus = 'idle' | 'local' | 'remote' | 'saved' | 'error' | 'conflict';
+
+/** Detalle de un conflicto de subida: la nube fue modificada desde otro dispositivo
+ *  después de nuestra última sincronización, así que subir pisaría datos más nuevos. */
+export interface SaveConflict {
+  /** ISO del `last_modified` que tiene la nube ahora mismo. */
+  remoteLastModified: string;
+}
 
 export interface GameSnapshot {
   playerState: PlayerState;
@@ -71,6 +78,9 @@ export class SaveService {
 
   readonly status$       = new BehaviorSubject<SaveStatus>('idle');
   readonly pendingGains$ = new BehaviorSubject<OfflineGains | null>(null);
+  /** Se emite cuando "Guardar" detecta que la nube es más nueva que nuestra base
+   *  sincronizada (otro dispositivo guardó después). El llamador decide si forzar. */
+  readonly conflict$    = new BehaviorSubject<SaveConflict | null>(null);
   private charId: string | null = null;
   private _isRestoring  = false;
 
@@ -135,6 +145,20 @@ export class SaveService {
     return this.charId ? `snapshot_char_${this.charId}_synced` : 'snapshot_fallback_synced';
   }
 
+  /** Clave de la `version` base sincronizada (concurrencia optimista). */
+  private versionKey(): string {
+    return this.charId ? `snapshot_char_${this.charId}_v` : 'snapshot_fallback_v';
+  }
+
+  private async getLocalVersion(): Promise<number | null> {
+    const v = await this.storage.get(this.versionKey());
+    return typeof v === 'number' ? v : null;
+  }
+
+  private async setLocalVersion(v: number): Promise<void> {
+    await this.storage.set(this.versionKey(), v);
+  }
+
   // --- Ciclo de vida de personaje ---
 
   /**
@@ -195,7 +219,20 @@ export class SaveService {
     await this.achievements.loadForChar(charId, snapshot?.achievementsChar);
     await this.quests.loadForChar(charId, snapshot?.quests);
     await this.unlocks.loadForChar(charId);
-    const gains = snapshot ? this.offlineGains.calculate(snapshot) : null;
+
+    // Tiempo offline: en modo Supabase lo reclama el SERVIDOR (claim_offline → segundos
+    // capados con su reloj), así el del móvil no puede fabricar progreso. En modo local
+    // (o si la RPC falla) caemos al cálculo con el timestamp del snapshot.
+    let serverElapsedMs: number | undefined;
+    if (snapshot && !OFFLINE_MODE && this.connection.useSupabase) {
+      try {
+        const secs = await this.supabase.claimOffline(charId);
+        if (secs != null) serverElapsedMs = secs * 1000;
+      } catch (e) {
+        console.warn('[Save] claim_offline falló — uso tiempo local de respaldo', e);
+      }
+    }
+    const gains = snapshot ? this.offlineGains.calculate(snapshot, serverElapsedMs) : null;
     this.pendingGains$.next(gains);
     this._isRestoring = false;
   }
@@ -252,10 +289,25 @@ export class SaveService {
     // tardía re-escriba estado obsoleto antes de la recarga del llamador.
   }
 
-  /** Botón "Guardar": escribe local y luego intenta remoto */
-  async forceSave(): Promise<void> {
+  /**
+   * Botón "Borrar cuenta (nube)": borra los datos de juego de la cuenta de Supabase
+   * con la que se está conectado (snapshots de personajes + datos globales) y, a
+   * continuación, vacía el storage local para que este dispositivo no conserve datos
+   * obsoletos. La cuenta queda como recién creada. El llamador debe recargar después.
+   */
+  async wipeRemoteAccountData(): Promise<void> {
+    await this.supabase.wipeRemoteData();   // nube primero (si falla, no borramos local)
+    await this.wipeAllData();               // luego el local de este dispositivo
+  }
+
+  /**
+   * Botón "Guardar": escribe local y luego intenta remoto.
+   * `force` = saltar el guard de conflicto y sobrescribir la nube (lo usa el llamador
+   * tras confirmar con el usuario que quiere pisar una versión más nueva).
+   */
+  async forceSave(force = false): Promise<void> {
     await this.saveLocal();
-    await this.saveRemote();
+    await this.saveRemote(force);
   }
 
   // --- Inspección ---
@@ -330,7 +382,7 @@ export class SaveService {
     setTimeout(() => this.status$.next('idle'), 2000);
   }
 
-  private async saveRemote(): Promise<void> {
+  private async saveRemote(force = false): Promise<void> {
     // Sube a la nube solo si el master switch lo permite Y el usuario eligió
     // modo Supabase en el login. En modo local, el botón guarda solo en local.
     if (OFFLINE_MODE || !this.connection.useSupabase) {
@@ -340,12 +392,53 @@ export class SaveService {
     if (!this.charId) return;
     try {
       this.status$.next('remote');
+
+      // ── Guard de conflicto (concurrencia optimista por VERSIÓN, sin relojes) ──
+      // La nube lleva un contador `version`. Nuestra base = la versión que tenía la
+      // nube en nuestra última sync (guardada en versionKey). El UPDATE solo escribe
+      // si la versión sigue siendo esa; si otro dispositivo guardó, ya no coincide.
+      const remoteMeta = await this.supabase.getRemoteCharacterMeta(this.charId);
+      let base = await this.getLocalVersion();
+
+      if (force || base == null) {
+        // force: adoptamos la versión actual de la nube para garantizar la sobrescritura.
+        // base == null (migración / primera sync de esta instalación): asumimos la nube
+        // como nuestra base, sin disparar un falso conflicto.
+        base = remoteMeta?.version ?? 0;
+      } else if (remoteMeta && remoteMeta.version > base) {
+        // La nube avanzó por encima de nuestra base → otro dispositivo guardó después.
+        this.conflict$.next({ remoteLastModified: remoteMeta.lastModified ?? new Date().toISOString() });
+        this.status$.next('conflict');
+        setTimeout(() => this.status$.next('idle'), 3000);
+        return;   // NO subimos: el llamador decide (forceSave(true)).
+      }
+
       const current = this.buildSnapshot();
       // El botón es intención explícita del jugador: subimos el snapshot completo.
-      await this.supabase.saveCharacterSnapshot(this.charId, current);
-      // Logros de CUENTA (globales): viven en global_data, no en el personaje.
-      await this.supabase.saveAccountData({ achievementsGlobal: this.achievements.getGlobalSnapshot() });
+      const res = await this.supabase.saveCharacterSnapshot(this.charId, current, base);
+      if (!res.ok) {
+        // Perdimos la carrera entre el chequeo y la escritura (otro dispositivo se
+        // adelantó), o la fila no existe. Re-leemos la meta para distinguir.
+        const fresh = await this.supabase.getRemoteCharacterMeta(this.charId);
+        if (fresh) {
+          this.conflict$.next({ remoteLastModified: fresh.lastModified ?? new Date().toISOString() });
+          this.status$.next('conflict');
+        } else {
+          this.status$.next('error');   // fila inexistente: no es un conflicto
+        }
+        setTimeout(() => this.status$.next('idle'), 3000);
+        return;
+      }
+      // Logros de CUENTA (globales): viven en global_data, no en el personaje. Si esta
+      // escritura falla (p.ej. RLS de global_data), NO debe tumbar el guardado del
+      // personaje que ya tuvo éxito: lo aislamos.
+      try {
+        await this.supabase.saveAccountData({ achievementsGlobal: this.achievements.getGlobalSnapshot() });
+      } catch (e) {
+        console.warn('[Save] global_data no se pudo actualizar (logros de cuenta)', e);
+      }
       await this.storage.set(this.syncedKey(), current);
+      await this.setLocalVersion(res.version);   // nuestra nueva base sincronizada
       this.status$.next('saved');
       setTimeout(() => this.status$.next('idle'), 2000);
     } catch (e) {

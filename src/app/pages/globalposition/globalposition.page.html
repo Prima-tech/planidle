@@ -13,6 +13,11 @@
         <span>{{ asgardService._profile?.username }}</span>
       </div>
 
+      <button class="logout-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        <span>Desconectar</span>
+      </button>
+
     </div>
 
     <!-- DIVIDER -->
@@ -126,7 +131,7 @@
         </div>
 
         <div class="action-row">
-          <button class="rpg-btn continue-btn"
+          <button class="continue-btn"
                   *ngIf="asgardService._characters?.length > 0"
                   (click)="continue()"
                   [disabled]="!isSelected">

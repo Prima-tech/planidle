@@ -122,6 +122,10 @@ export class SupabaseService {
           await this.storageService.set(key, char.snapshot);
           await this.storageService.set(`${key}_synced`, char.snapshot);
         }
+        // Base de versión para la concurrencia optimista: tras el login, la versión
+        // que tiene la nube es nuestra base. El guardado condiciona el UPDATE a ella;
+        // si otro dispositivo la sube después, el siguiente save detecta el conflicto.
+        await this.storageService.set(`${key}_v`, char.version ?? 0);
       }
 
       // Roster ligero: el snapshot vive en su propia clave, no en el array del roster.
@@ -139,27 +143,61 @@ export class SupabaseService {
 
   // --- SAVE / LOAD POR PERSONAJE (snapshot JSONB) ---
 
-  /** Sube el GameSnapshot completo a la columna `snapshot` del personaje.
-   *  Las columnas espejo (lvl/coins/hp) permiten pintar el roster sin parsear el JSON. */
-  async saveCharacterSnapshot(charId: string, snapshot: any): Promise<void> {
+  /** Sube el GameSnapshot completo a la columna `snapshot` del personaje, con
+   *  CONCURRENCIA OPTIMISTA: solo escribe si la fila sigue en `expectedVersion` y, en
+   *  el mismo UPDATE, la sube a `expectedVersion + 1`. Si otro dispositivo guardó entre
+   *  medias, la versión ya no coincide → 0 filas afectadas → devuelve { ok: false }
+   *  (conflicto). No depende de relojes. Las columnas espejo (lvl/coins/hp) permiten
+   *  pintar el roster sin parsear el JSON. */
+  async saveCharacterSnapshot(charId: string, snapshot: any, expectedVersion: number): Promise<{ ok: boolean; version: number }> {
+    // Vía RPC SECURITY DEFINER: la RLS de `characters` no concede UPDATE directo al
+    // cliente (solo SELECT/DELETE), así que el guardado pasa por la función del
+    // servidor, que valida auth.uid() = profile_id y hace el UPDATE condicionado a la
+    // versión (concurrencia optimista) ahí dentro. Las columnas espejo (lvl/coins/hp)
+    // y los timestamps los sella el servidor (trigger). Devuelve la nueva versión, o
+    // null si la versión no coincidía (conflicto) o la fila no es tuya.
+    const { data, error } = await this.supabase.rpc('save_character', {
+      p_char: String(charId),
+      p_snapshot: snapshot,
+      p_expected_version: expectedVersion,
+    });
+    if (error) throw error;
+    if (data == null) return { ok: false, version: expectedVersion };
+    return { ok: true, version: data as number };
+  }
+
+  /** Reclama el tiempo offline con la HORA DEL SERVIDOR (no la del cliente): la RPC
+   *  calcula `now() - last_seen` (capado), sella `last_seen = now()` y devuelve los
+   *  segundos efectivos. Así el reloj del móvil no puede fabricar progreso. Devuelve
+   *  null si no hay sesión/fila (el llamador cae al cálculo local en modo offline). */
+  async claimOffline(charId: string): Promise<number | null> {
+    const { data, error } = await this.supabase.rpc('claim_offline', { p_char: String(charId) });
+    if (error) throw error;
+    return data == null ? null : Number(data);
+  }
+
+  /** Lee la meta de sincronización del personaje en la nube: su `version` (para la
+   *  concurrencia optimista) y `last_modified` (solo para el mensaje al usuario).
+   *  Devuelve null si la fila no existe. */
+  async getRemoteCharacterMeta(charId: string): Promise<{ version: number; lastModified: string | null } | null> {
     const { data: { user } } = await this.supabase.auth.getUser();
     if (!user) throw new Error('No hay sesión activa');
 
-    const ps = snapshot?.playerState ?? {};
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from('characters')
-      .update({
-        snapshot,
-        lvl:           ps.lvl,
-        coins:         ps.coins,
-        current_hp:    ps.hp,
-        max_hp:        ps.hpMax,
-        last_modified: snapshot?.lastModified ?? new Date().toISOString(),
-      })
+      .select('version, last_modified')
       .eq('id', charId)
-      .eq('profile_id', user.id);
+      .eq('profile_id', user.id)
+      .single();
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === 'PGRST116') return null;   // no existe la fila
+      throw error;
+    }
+    return {
+      version:      (data as any)?.version ?? 0,
+      lastModified: (data as any)?.last_modified ?? null,
+    };
   }
 
   /** Guarda datos a nivel de CUENTA (no por personaje) en global_data.account.
@@ -175,6 +213,26 @@ export class SupabaseService {
       .eq('id', user.id);
 
     if (error) throw error;
+  }
+
+  /** Borra los DATOS de juego de la cuenta en la nube: ELIMINA todas las filas de
+   *  personajes (incluidas las obsoletas) y resetea global_data.account. Al volver a
+   *  entrar, fetchAndSaveLocalData reinserta el roster limpio de ROSTER_TEMPLATE. */
+  async wipeRemoteData(): Promise<void> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) throw new Error('No hay sesión activa');
+
+    const { error: charErr } = await this.supabase
+      .from('characters')
+      .delete()
+      .eq('profile_id', user.id);
+    if (charErr) throw charErr;
+
+    const { error: accErr } = await this.supabase
+      .from('global_data')
+      .update({ account: null, last_modified: new Date().toISOString() })
+      .eq('id', user.id);
+    if (accErr) throw accErr;
   }
 
 }

@@ -55,9 +55,9 @@ export const FEATURES: FeatureDef[] = [
     name: 'Kugo' },
   { id: 'char.italien',  scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_italien' }],
     name: 'Italien' },
-  // Rake: disponible desde el inicio (requires []). Cambia a un flag/condición cuando
-  // definas cómo se gana (p.ej. reclutarlo como Kugo/Italien).
-  { id: 'char.rake',     scope: 'global', display: 'hidden', requires: [],
+  // Rake: oculto hasta reclutarlo (pone su flag global 'char_rake'). Define dónde/cómo
+  // se gana (p.ej. hablándole en un mapa, como Kugo/Italien).
+  { id: 'char.rake',     scope: 'global', display: 'hidden', requires: [{ type: 'flag', id: 'char_rake' }],
     name: 'Rake' },
 
   // ── Paneles (char) ───────────────────────────────────────────────────────────
