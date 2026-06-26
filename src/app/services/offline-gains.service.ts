@@ -144,7 +144,7 @@ export class OfflineGainsService {
    */
   calculate(snapshot: GameSnapshot, overrideElapsedMs?: number): OfflineGains | null {
     let elapsedMs: number;
-    if (overrideElapsedMs != null) {
+    if (overrideElapsedMs != null && Number.isFinite(overrideElapsedMs)) {
       elapsedMs = overrideElapsedMs;
       console.log('[OfflineGains] elapsed (servidor):', (elapsedMs / 60000).toFixed(1), 'min | mapId:', snapshot?.mapId);
     } else {

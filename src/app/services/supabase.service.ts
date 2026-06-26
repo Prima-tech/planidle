@@ -173,7 +173,15 @@ export class SupabaseService {
   async claimOffline(charId: string): Promise<number | null> {
     const { data, error } = await this.supabase.rpc('claim_offline', { p_char: String(charId) });
     if (error) throw error;
-    return data == null ? null : Number(data);
+    if (data == null) return null;
+    // Acepta tanto retorno ESCALAR (int) como TABLA ([{elapsed_seconds}]) u objeto,
+    // según cómo esté definida la función en la BD. Si no sale un número finito,
+    // devuelve null → el llamador cae al tiempo local (no NaN).
+    let val: any = data;
+    if (Array.isArray(data))            val = data[0]?.elapsed_seconds ?? data[0];
+    else if (typeof data === 'object')  val = (data as any).elapsed_seconds;
+    const n = Number(val);
+    return Number.isFinite(n) ? n : null;
   }
 
   /** Lee la meta de sincronización del personaje en la nube: su `version` (para la
