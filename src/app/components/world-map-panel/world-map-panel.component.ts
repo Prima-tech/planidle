@@ -55,6 +55,9 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   // Planeta cuyo globo se está viendo en la vista detalle (lo reporta la escena).
   // Determina la lista de mapas que se muestra a la izquierda del globo.
   detailPlanetId = '';
+  // Nombre del planeta en vista detalle: lo pinta Angular como título sobre el globo
+  // (antes lo dibujaba la propia escena Phaser).
+  detailPlanetName = '';
 
   private planetGame: Phaser.Game | null = null;
 
@@ -127,9 +130,9 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     // Al abrir el globo, la escena se orienta al mapa donde está el jugador (o a la
     // capital del planeta si no es válido); le damos ese mapId vía este callback.
     this.planetGame.registry.set(PLANET_CURRENT_MAP_KEY, () => this.currentMapId);
-    // La escena nos dice qué planeta se está viendo → lista de mapas a la izquierda.
-    this.planetGame.registry.set(PLANET_DETAIL_KEY, (planetId: string) => {
-      this.ngZone.run(() => { this.detailPlanetId = planetId; });
+    // La escena nos dice qué planeta se está viendo → lista de mapas + título del nombre.
+    this.planetGame.registry.set(PLANET_DETAIL_KEY, (planetId: string, name: string) => {
+      this.ngZone.run(() => { this.detailPlanetId = planetId; this.detailPlanetName = name; });
     });
   }
 
@@ -163,6 +166,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.selectedPlanet = null;
     this.charsOnPlanet  = [];
     this.detailPlanetId = '';
+    this.detailPlanetName = '';
   }
 
   // ── Tarjeta de info del planeta (vista sistema, tab 2) ─────────────────────

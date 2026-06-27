@@ -431,7 +431,7 @@ export class MobileHUDScene extends Phaser.Scene {
 
   /** Factor de tamaño de iconos/puntos según el zoom (crecen al acercar, pero
    *  amortiguado: a la mitad del zoom, para que no se vean demasiado grandes). */
-  private get mmIconScale(): number { return 1 + (this.mmZoom - 1) * 0.5; }
+  private get mmIconScale(): number { return 1 + (this.mmZoom - 1) * 0.3; }
 
   /** Pinta el suelo coloreado dentro del círculo. Genera una CanvasTexture de
    *  cols×rows px (1 px por tile) y la escala al tamaño del mapa proyectado,

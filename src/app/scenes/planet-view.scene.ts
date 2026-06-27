@@ -400,11 +400,9 @@ export class PlanetViewScene extends Phaser.Scene {
     const shade = this.add.image(cx, cy, SHADE_KEY);
     shade.setDisplaySize(radius * 2, radius * 2);
 
-    const name = this.add.text(cx, cy + radius + 32 * DPR, def.name, {
-      fontSize: `${18 * DPR}px`, color: '#9fc0e8', fontStyle: 'bold', letterSpacing: 2,
-    }).setOrigin(0.5, 0.5).setAlpha(0.85);
-
-    this.detailC.add([edge, this.planet, shade, name]);
+    // El nombre del planeta ya no se pinta en Phaser: lo muestra Angular (overlay)
+    // a partir del callback notifyDetail(def.id, def.name).
+    this.detailC.add([edge, this.planet, shade]);
 
     this.detailCX = cx;
     this.detailCY = cy;
@@ -417,15 +415,15 @@ export class PlanetViewScene extends Phaser.Scene {
 
     this.detailC.add(this.buildPlusButton(() => this.goToSystem()));
 
-    // Avisar a Angular qué planeta se está viendo (para su lista de mapas a la izda.).
-    this.notifyDetail(def.id);
+    // Avisar a Angular qué planeta se está viendo (lista de mapas a la izda. + nombre).
+    this.notifyDetail(def.id, def.name);
   }
 
   /** Notifica a Angular el planeta en vista detalle ('' = ya no estamos en el globo,
-   *  p.ej. al alejarse al sistema) para que muestre/oculte la lista de mapas. */
-  private notifyDetail(planetId: string): void {
-    const onDetail = this.game.registry.get(PLANET_DETAIL_KEY) as ((id: string) => void) | undefined;
-    onDetail?.(planetId);
+   *  p.ej. al alejarse al sistema) para que muestre/oculte la lista de mapas y el nombre. */
+  private notifyDetail(planetId: string, name = ''): void {
+    const onDetail = this.game.registry.get(PLANET_DETAIL_KEY) as ((id: string, name: string) => void) | undefined;
+    onDetail?.(planetId, name);
   }
 
   /**

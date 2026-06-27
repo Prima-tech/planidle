@@ -35,6 +35,9 @@
       </div>
     </div>
 
+    <!-- Nombre del planeta en vista detalle (overlay Angular sobre el globo) -->
+    <div class="planet-title" *ngIf="detailPlanetName">{{ detailPlanetName }}</div>
+
     <!-- Planeta interactivo (mini-instancia Phaser propia) -->
     <div class="planet-area" id="planet-view"></div>
 
