@@ -28,6 +28,15 @@ interface ArmorGroup {
   items:    LootEntry[];
 }
 
+// Icono de un tier de minería: PNG suelto (`img`) o recorte de una hoja (`box` +
+// `sheet`: 'icons' por defecto, o 'objects').
+interface MiningIcon {
+  name:  string;
+  img?:  string;
+  box?:  { x: number; y: number; w: number; h: number };
+  sheet?: 'icons' | 'objects';
+}
+
 @Component({
   selector: 'app-summon',
   templateUrl: './summon.component.html',
@@ -47,8 +56,9 @@ export class SummonComponent {
   ];
 
   // Tiers de minería (referencia), agrupados por tier. `img` = PNG suelto; `box` =
-  // recorte de Icons.png. El nombre del tier va en el título; cada icono solo su rol.
-  readonly miningTiers: { title: string; items: { name: string; img?: string; box?: { x: number; y: number; w: number; h: number } }[] }[] = [
+  // recorte de una hoja (`sheet`: 'icons' por defecto, o 'objects'). El nombre del
+  // tier va en el título; cada icono solo su rol.
+  readonly miningTiers: { title: string; items: MiningIcon[] }[] = [
     {
       title: 'tier1',
       items: [
@@ -59,19 +69,33 @@ export class SummonComponent {
         { name: 'bar',      box: { x: 112, y: 32, w: 32, h: 32 } }, // Icons.png #25 (grande)
       ],
     },
+    {
+      title: 'tier2',
+      items: [
+        { name: 'rock', box: { x: 338, y: 7,  w: 27, h: 23 }, sheet: 'objects' }, // Objects.png #10
+        { name: 'map',  box: { x: 0,   y: 16, w: 16, h: 16 } },   // Icons.png #0
+        { name: 'drop', box: { x: 16,  y: 32, w: 32, h: 32 } },   // Icons.png #21
+        { name: 'bar_mini', box: { x: 96, y: 16, w: 16, h: 16 } }, // Icons.png #4
+        { name: 'bar',      box: { x: 112, y: 0, w: 32, h: 32 } }, // Icons.png #5
+      ],
+    },
   ];
 
-  /** Recorte de Icons.png escalado para caber pequeño (~32px) en la celda del tier. */
-  miningIconStyle(box: { x: number; y: number; w: number; h: number }): Record<string, string> {
-    const scale = 1;
+  /** Recorte de una hoja (Icons/Objects) para mostrar el icono del tier en su celda. */
+  miningIconStyle(item: MiningIcon): Record<string, string> {
+    const isObj = item.sheet === 'objects';
+    const url = isObj ? 'assets/icon/icons/Objects.png' : 'assets/icon/icons/Icons.png';
+    const W = isObj ? this.OBJECTS_SHEET_W : this.ICONS_SHEET_W;
+    const H = isObj ? this.OBJECTS_SHEET_H : this.ICONS_SHEET_H;
+    const b = item.box!;
     return {
-      'background-image':    `url(assets/icon/icons/Icons.png)`,
+      'background-image':    `url(${url})`,
       'background-repeat':   'no-repeat',
-      'background-size':     `${this.ICONS_SHEET_W * scale}px ${this.ICONS_SHEET_H * scale}px`,
-      'background-position': `-${box.x * scale}px -${box.y * scale}px`,
+      'background-size':     `${W}px ${H}px`,
+      'background-position': `-${b.x}px -${b.y}px`,
       'image-rendering':     'pixelated',
-      'width':               `${box.w * scale}px`,
-      'height':              `${box.h * scale}px`,
+      'width':               `${b.w}px`,
+      'height':              `${b.h}px`,
     };
   }
 

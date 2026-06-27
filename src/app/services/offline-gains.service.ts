@@ -9,7 +9,7 @@ import { TalentService } from './talent.service';
 import { GatheringSkillId } from './gathering-skills.service';
 import { ENEMY_REGISTRY } from '../enemy/enemy-config';
 import { LOOT_TABLES, EXP_REWARDS, LootEntry, ITEM_CATALOG } from '../physics/griddrops';
-import { HARVEST_KINDS, HARVEST_HITS, harvestKindForSkill } from '../scenes/gamescene/harvest-config';
+import { HARVEST_KINDS, HARVEST_HITS, harvestKindForSkill, miningTier } from '../scenes/gamescene/harvest-config';
 
 const MIN_OFFLINE_SECONDS = 10;
 const MAX_OFFLINE_HOURS   = 8;
@@ -228,7 +228,11 @@ export class OfflineGainsService {
       const dropMult = skill === 'mining' ? 1 + (this.talent.getBonus().miningDrop ?? 0) : 1;
       const avgQty   = (kind.drop.min + kind.drop.max) / 2;
       const qty      = Math.floor(nodes * avgQty * dropMult);
-      const entry    = ITEM_CATALOG.find(e => e.name === kind.drop!.name);
+      // La minería suelta el mineral del tier del mapa; la tala, su recurso fijo.
+      const dropName = skill === 'mining'
+        ? miningTier(MAP_REGISTRY[snapshot.mapId ?? '']?.mineTier).dropName
+        : kind.drop.name;
+      const entry    = ITEM_CATALOG.find(e => e.name === dropName);
       if (entry && qty > 0) itemDrops.push({ entry, qty });
     }
 

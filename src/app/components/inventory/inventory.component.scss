@@ -192,6 +192,12 @@ $purple: #6e4a67;         // celda seleccionada
   transform: scale(2) translateY(3px);
 }
 
+/* Recursos (minerales, etc.) con iconSheet: más pequeños y subidos para que no
+   se salgan por abajo de la celda. Va después de --equip para ganarle. */
+.item-icon-sheet--resource {
+  transform: scale(1.5) translateY(2px);
+}
+
 .item-icon-sheet--armour {
   transform: scale(2) translateY(-5px);
 }

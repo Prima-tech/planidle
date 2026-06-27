@@ -46,6 +46,7 @@ export interface MapConfig {
   portals: PortalConfig[];
   spawnPos?: { x: number; y: number };
   dropRateModifier?: number;  // multiplicador sobre la chance base de items (default 1.0)
+  mineTier?: number;          // tier de minería de las menas de este mapa (default 1)
 }
 
 const W1_HOME_TILESET = {
@@ -82,6 +83,7 @@ interface GenLevelOpts {
   id: string; w: number; h: number;          // w/h DEBEN coincidir con manifest.mjs
   back: string; next?: string;
   enemyType: string; maxCount: number; behavior: EnemyBehavior; visionRadius: number;
+  mineTier?: number;                          // tier de las menas (default 1)
 }
 /** Nivel generado: spawn en el centro (como el hogar) y enemigos alrededor del spawn. */
 const genLevel = (o: GenLevelOpts): MapConfig => {
@@ -94,6 +96,7 @@ const genLevel = (o: GenLevelOpts): MapConfig => {
   return {
     ...gen(o.id),
     id: o.id, name: o.id,
+    mineTier: o.mineTier,
     spawnPos: { x: cx, y: cy },
     spawns: [{
       enemyType: o.enemyType,
@@ -147,7 +150,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
 
   // w/h DEBEN coincidir con tools/mapgen/manifest.mjs. Spawn = centro (derivado en genLevel).
   '1-1': genLevel({ id: '1-1', w: 60, h: 50, back: 'hogar', next: '1-2', enemyType: 'slime4',   maxCount: 2, behavior: 'passive',    visionRadius: 5 }),
-  '1-2': genLevel({ id: '1-2', w: 64, h: 54, back: '1-1',   next: '1-3', enemyType: 'rats1',    maxCount: 3, behavior: 'passive',    visionRadius: 5 }),
+  '1-2': genLevel({ id: '1-2', w: 64, h: 54, back: '1-1',   next: '1-3', enemyType: 'rats1',    maxCount: 3, behavior: 'passive',    visionRadius: 5, mineTier: 2 }),
   '1-3': genLevel({ id: '1-3', w: 68, h: 56, back: '1-2',   next: '1-4', enemyType: 'orc1',     maxCount: 3, behavior: 'passive',    visionRadius: 5 }),
   '1-4': genLevel({ id: '1-4', w: 72, h: 60, back: '1-3',   next: '1-5', enemyType: 'goobling1', maxCount: 4, behavior: 'aggressive', visionRadius: 4 }),
   '1-5': genLevel({ id: '1-5', w: 76, h: 62, back: '1-4',   next: '1-6', enemyType: 'gnoll1',   maxCount: 4, behavior: 'aggressive', visionRadius: 5 }),

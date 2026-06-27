@@ -28,10 +28,26 @@ export interface HarvestKind {
 // Golpes necesarios para destruir (recolectar) un nodo.
 export const HARVEST_HITS = 3;
 
+// ── Tiers de minería ─────────────────────────────────────────────────────────
+// Cada mapa minero define su tier (MapConfig.mineTier, default 1). El tier decide
+// el sprite de la mena en el mundo, el item que suelta y el icono del minimapa.
+export interface MiningTier {
+  rockTexture: string;   // textura del sprite de la roca en el mundo (preload en gamescene)
+  dropName:    string;   // item que suelta (nombre en ITEM_CATALOG)
+  mmFrame:     number;   // frame del icono en el minimapa (Icons.png como spritesheet 16px)
+}
+export const MINING_TIERS: Record<number, MiningTier> = {
+  1: { rockTexture: 'rock_tier1', dropName: 'Mineral Tier 1', mmFrame: 33 },  // Icons #2
+  2: { rockTexture: 'rock_tier2', dropName: 'Mineral Tier 2', mmFrame: 30 },  // Icons #0
+};
+export function miningTier(tier?: number): MiningTier {
+  return MINING_TIERS[tier ?? 1] ?? MINING_TIERS[1];
+}
+
 // Config por tipo de recurso. Añadir aquí nuevos recolectables (caña→peces, etc.).
 export const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
   rock: {
-    texture: 'rock_mine', toolCategory: 'Pico', toolSlotId: 'pickaxe', context: 'mine',
+    texture: 'rock_tier1', toolCategory: 'Pico', toolSlotId: 'pickaxe', context: 'mine',
     footprintW: 2, footprintH: 2, scale: 3, offsetY: 0, count: 3,
     debris: [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080],
     skill: 'mining', xp: 1,   // XP base por piedra (1 tipo por ahora); modificadores futuros la escalan

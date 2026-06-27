@@ -397,19 +397,6 @@ const BAGS_CATALOG: LootEntry[] = [
 // Imagen suelta como icono (no spritesheet). `texture` debe estar precargada en
 // gamescene.preload(); `icon` es la imagen para inventario/panel.
 
-// Minerales por tier que sueltan las piedras (texturas mining_tier1..6 precargadas
-// en gamescene.preload). De momento solo el tier 1 se suelta de verdad al minar.
-const MINING_TIERS: LootEntry[] = [1, 2, 3, 4, 5, 6].map(tier => ({
-  name: `Mineral Tier ${tier}`,
-  category: 'Recurso',
-  type: 'item' as const,
-  chance: 1, minQty: 1, maxQty: 1, mergeable: true,
-  texture: `mining_tier${tier}`,
-  icon: `assets/icon/resources/mining/tier${tier}_mining.png`,
-  scale: 2, order: 6,
-  description: `Mineral de tier ${tier} obtenido al minar piedra.`,
-}));
-
 const RESOURCES_CATALOG: LootEntry[] = [
   {
     name: 'Madera',
@@ -421,9 +408,28 @@ const RESOURCES_CATALOG: LootEntry[] = [
     scale: 0.15, order: 6,
     description: 'Madera recolectada. Material de construcción.',
   },
-  // Minerales por tier (los sueltan las piedras al minar). La piedra actual
-  // suelta el tier 1; el resto existen para soltarlos desde el panel de invocación.
-  ...MINING_TIERS,
+  // Mineral del tier 1 (lo sueltan las piedras al minar). Icono = Icons.png #23
+  // (rejilla 32px → frame 17); sprite del drop = ese mismo frame del spritesheet.
+  {
+    name: 'Mineral Tier 1',
+    category: 'Recurso',
+    type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'icons_sheet', frame: 17,
+    iconSheet: 'assets/icon/icons/Icons.png', iconFrame: 17, iconFrameSize: 32, iconFrameCols: 15,
+    scale: 2, order: 6,
+    description: 'Mineral obtenido al minar piedra.',
+  },
+  {
+    name: 'Mineral Tier 2',
+    category: 'Recurso',
+    type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'mineral_tier2',
+    icon: 'assets/icon/resources/mining/tier2_drop.png',
+    scale: 2, order: 6,
+    description: 'Mineral de tier 2 obtenido al minar menas del mapa 1-2.',
+  },
   {
     name: 'Carbón',
     category: 'Recurso',

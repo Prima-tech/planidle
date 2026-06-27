@@ -38,8 +38,9 @@ export interface MinimapData {
   townChest?: { x: number; y: number }; // cofre de ciudad fijo (solo en hogar)
   // Construcciones colocadas (cofre/tienda); referencia viva, cambian al construir/mover/borrar
   getBuildings?: () => { x: number; y: number; kind: string }[];
-  // Recursos recolectables (rocas/árboles); referencia viva, desaparecen al destruirse
-  getNodes?: () => { x: number; y: number; kind: string }[];
+  // Recursos recolectables (rocas/árboles); referencia viva, desaparecen al destruirse.
+  // `frame` = frame del icono de roca en Icons.png (por tier de minería del mapa).
+  getNodes?: () => { x: number; y: number; kind: string; frame?: number }[];
 }
 
 export const MINIMAP_DATA_KEY = 'minimapData';
@@ -547,6 +548,8 @@ export class MobileHUDScene extends Phaser.Scene {
     for (const n of nodes) {
       if (n.kind === 'rock') {
         const icon = this.getRockIcon(rUsed++);
+        const frame = n.frame ?? MM_ROCK_FRAME;
+        if (Number(icon.frame.name) !== frame) icon.setFrame(frame);   // frame del tier del mapa
         if (icon.displayWidth !== rockSz) icon.setDisplaySize(rockSz, rockSz);
         this.mmPlaceImg(icon, rockHalf, n.x, n.y);
         icon.setVisible(true);

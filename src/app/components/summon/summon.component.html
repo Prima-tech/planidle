@@ -135,13 +135,13 @@
   </div>
 </div>
 
-<!-- Hoja de objetos (Objects.png): troceada en celdas con su nº para referirse a ellos -->
+<!-- Hoja de objetos (Objects.png): nº consecutivos a los de Icons (continúan tras ellos) -->
 <div class="icon-grid" *ngIf="activeTab === 5">
-  <div *ngFor="let box of objectsSheetList; let i = index" class="icon-card" [title]="'#' + i">
+  <div *ngFor="let box of objectsSheetList; let i = index" class="icon-card" [title]="'#' + (i + iconsSheetList.length)">
     <div class="icon-frame">
       <div [ngStyle]="objectsSheetStyle(box)"></div>
     </div>
-    <span class="icon-num">#{{ i }}</span>
+    <span class="icon-num">#{{ i + iconsSheetList.length }}</span>
   </div>
 </div>
 
@@ -153,7 +153,7 @@
       <div class="mining-cell" *ngFor="let t of tier.items" [title]="t.name">
         <div class="mining-frame">
           <img *ngIf="t.img" [src]="t.img" class="mining-img" alt="" draggable="false" />
-          <div *ngIf="t.box" [ngStyle]="miningIconStyle(t.box)"></div>
+          <div *ngIf="t.box" [ngStyle]="miningIconStyle(t)"></div>
         </div>
         <span class="mining-name">{{ t.name }}</span>
       </div>
