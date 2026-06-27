@@ -35,7 +35,7 @@ export const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
     footprintW: 2, footprintH: 2, scale: 3, offsetY: 0, count: 3,
     debris: [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080],
     skill: 'mining', xp: 1,   // XP base por piedra (1 tipo por ahora); modificadores futuros la escalan
-    drop: { name: 'Piedra Molida', min: 1, max: 1 },   // suelta 1 piedra molida al minar
+    drop: { name: 'Mineral Tier 1', min: 1, max: 1 },   // suelta 1 mineral de tier 1 al minar
   },
   tree: {
     texture: 'tree_chop', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',

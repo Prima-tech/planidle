@@ -58,10 +58,7 @@ const MM_RADIUS     = 49 * DPR;   // radio del minimapa circular (px CSS × DPR)
 const MM_MARGIN     = 15 * DPR;   // separación del borde derecho (aro HTML a 10px + 5px de bisel)
 const MM_TOP        = 15 * DPR;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
 const MM_DOT_PORTAL    = 3   * DPR;
-const MM_DOT_CHEST     = 4.5 * DPR;
 const MM_COLOR_PORTAL  = 0x48c4f8;
-const MM_COLOR_CHEST   = 0xf1c40f;
-const MM_COLOR_SHOP    = 0x2ecc71;
 const MM_DOT_NODE      = 3.5 * DPR;   // recursos recolectables (rocas/árboles)
 const MM_COLOR_ROCK    = 0x9a9a9a;
 const MM_COLOR_TREE    = 0x3c8c3c;
@@ -69,6 +66,10 @@ const MM_ICON_ENEMY_KEY = 'mm_enemy';
 const MM_ICON_ELITE_KEY = 'mm_enemy_elite';
 const MM_ICON_PLAYER_KEY = 'mm_player';
 const MM_ICON_HALF_PLAYER = 7 * DPR;      // medio tamaño del icono del jugador
+const MM_ICON_BUILD_KEY  = 'mm_build';
+const MM_ICON_HALF_BUILD = 6 * DPR;       // medio tamaño del icono de construcciones
+const MM_ICON_CHEST_KEY  = 'mm_chest';
+const MM_ICON_HALF_CHEST = 6 * DPR;       // medio tamaño del icono del cofre de ciudad
 const MM_TERRAIN_TEX    = 'mm_terrain';   // CanvasTexture del suelo coloreado (se regenera por mapa)
 const MM_ICON_HALF      = 8   * DPR;   // half-size regular
 const MM_ICON_HALF_EL   = 10  * DPR;   // half-size elite / oblivion
@@ -90,7 +91,7 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmScale = 0;
   private mmPlayerDot:  Phaser.GameObjects.Image | null = null;
   private mmEnemyIcons: Phaser.GameObjects.Image[] = [];
-  private mmBuildingDots: Phaser.GameObjects.Arc[] = [];
+  private mmBuildingDots: Phaser.GameObjects.Image[] = [];
   private mmNodeDots: Phaser.GameObjects.Arc[] = [];
   private mmTerrain: Phaser.GameObjects.Image | null = null;       // imagen del suelo coloreado
   private mmTerrainMask: Phaser.GameObjects.Graphics | null = null; // máscara circular del terreno
@@ -115,6 +116,8 @@ export class MobileHUDScene extends Phaser.Scene {
     this.load.image(MM_ICON_ENEMY_KEY, 'assets/icon/minimap/enemy.png');
     this.load.image(MM_ICON_ELITE_KEY, 'assets/icon/minimap/enemy_elite.png');
     this.load.image(MM_ICON_PLAYER_KEY, 'assets/icon/minimap/player.png');
+    this.load.image(MM_ICON_BUILD_KEY, 'assets/icon/minimap/build.png');
+    this.load.image(MM_ICON_CHEST_KEY, 'assets/icon/minimap/treasure.png');
   }
 
   create(): void {
@@ -369,9 +372,9 @@ export class MobileHUDScene extends Phaser.Scene {
 
     // Cofre de ciudad (solo en hogar): estático
     if (data.townChest) {
-      const dot = this.add.circle(0, 0, MM_DOT_CHEST, MM_COLOR_CHEST, 1);
-      dot.setStrokeStyle(1 * DPR, 0xffffff, 0.6);
-      this.mmPlace(dot, data.townChest.x, data.townChest.y);
+      const icon = this.add.image(0, 0, MM_ICON_CHEST_KEY);
+      icon.setDisplaySize(MM_ICON_HALF_CHEST * 2, MM_ICON_HALF_CHEST * 2);
+      this.mmPlaceImg(icon, MM_ICON_HALF_CHEST, data.townChest.x, data.townChest.y);
     }
 
     this.mmPlayerDot = this.add.image(this.mmCX, this.mmCY, MM_ICON_PLAYER_KEY);
@@ -463,10 +466,9 @@ export class MobileHUDScene extends Phaser.Scene {
     const buildings = this.mmData.getBuildings?.() ?? [];
     let bUsed = 0;
     for (const b of buildings) {
-      const dot = this.getBuildingDot(bUsed++);
-      dot.setFillStyle(b.kind === 'shop' ? MM_COLOR_SHOP : MM_COLOR_CHEST, 1);
-      this.mmPlace(dot, b.x, b.y);
-      dot.setVisible(true);
+      const icon = this.getBuildingDot(bUsed++);
+      this.mmPlaceImg(icon, MM_ICON_HALF_BUILD, b.x, b.y);
+      icon.setVisible(true);
     }
     for (let i = bUsed; i < this.mmBuildingDots.length; i++) {
       this.mmBuildingDots[i].setVisible(false);
@@ -494,11 +496,11 @@ export class MobileHUDScene extends Phaser.Scene {
     return this.mmNodeDots[index];
   }
 
-  private getBuildingDot(index: number): Phaser.GameObjects.Arc {
+  private getBuildingDot(index: number): Phaser.GameObjects.Image {
     if (index >= this.mmBuildingDots.length) {
-      const dot = this.add.circle(0, 0, MM_DOT_CHEST, MM_COLOR_CHEST, 1);
-      dot.setStrokeStyle(1 * DPR, 0xffffff, 0.6);
-      this.mmBuildingDots.push(dot);
+      const icon = this.add.image(0, 0, MM_ICON_BUILD_KEY);
+      icon.setDisplaySize(MM_ICON_HALF_BUILD * 2, MM_ICON_HALF_BUILD * 2);
+      this.mmBuildingDots.push(icon);
     }
     return this.mmBuildingDots[index];
   }

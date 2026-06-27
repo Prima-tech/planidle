@@ -335,7 +335,13 @@ export class GameScene extends Phaser.Scene {
 
       // Recursos (drop al suelo desde el panel de invocación)
       this.load.image('wood', 'assets/icon/resources/wood.png');
-      this.load.image('crushed_stone', 'assets/icon/resources/mining/polvo.png');
+      this.load.image('crushed_stone', 'assets/icon/resources/mining/polvo.png');   // (carbón reutiliza este sprite)
+
+      // Minerales por tier (los sueltan las piedras al minar). La piedra actual
+      // suelta el tier 1; el resto se pueden soltar desde el panel de invocación.
+      for (let t = 1; t <= 6; t++) {
+        this.load.image(`mining_tier${t}`, `assets/icon/resources/mining/tier${t}_mining.png`);
+      }
 
       // Recursos recolectables (se colocan en mapas que no son el hogar)
       this.load.image('rock_mine', 'assets/sprites/map/skills/rocks/Rock1_3.png');

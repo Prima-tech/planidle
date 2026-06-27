@@ -396,6 +396,20 @@ const BAGS_CATALOG: LootEntry[] = [
 // ── Recursos (apilables) ─────────────────────────────────────────────────────
 // Imagen suelta como icono (no spritesheet). `texture` debe estar precargada en
 // gamescene.preload(); `icon` es la imagen para inventario/panel.
+
+// Minerales por tier que sueltan las piedras (texturas mining_tier1..6 precargadas
+// en gamescene.preload). De momento solo el tier 1 se suelta de verdad al minar.
+const MINING_TIERS: LootEntry[] = [1, 2, 3, 4, 5, 6].map(tier => ({
+  name: `Mineral Tier ${tier}`,
+  category: 'Recurso',
+  type: 'item' as const,
+  chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+  texture: `mining_tier${tier}`,
+  icon: `assets/icon/resources/mining/tier${tier}_mining.png`,
+  scale: 2, order: 6,
+  description: `Mineral de tier ${tier} obtenido al minar piedra.`,
+}));
+
 const RESOURCES_CATALOG: LootEntry[] = [
   {
     name: 'Madera',
@@ -407,16 +421,9 @@ const RESOURCES_CATALOG: LootEntry[] = [
     scale: 0.15, order: 6,
     description: 'Madera recolectada. Material de construcción.',
   },
-  {
-    name: 'Piedra Molida',
-    category: 'Recurso',
-    type: 'item',
-    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
-    texture: 'crushed_stone',
-    icon: 'assets/icon/resources/mining/polvo.png',
-    scale: 2, order: 6,
-    description: 'Piedra molida obtenida al minar. Material de construcción.',
-  },
+  // Minerales por tier (los sueltan las piedras al minar). La piedra actual
+  // suelta el tier 1; el resto existen para soltarlos desde el panel de invocación.
+  ...MINING_TIERS,
   {
     name: 'Carbón',
     category: 'Recurso',
