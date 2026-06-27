@@ -14,7 +14,7 @@
     <div class="minimap-frame" *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)" (click)="footerBar.openWorldMap()">
       <span class="minimap-name">{{ (worldService.currentMap$ | async)?.name }}</span>
       <button class="minimap-btn minimap-btn--bag" (click)="footerBar.openInventory(); $event.stopPropagation()">
-        <img class="minimap-btn-img" src="assets/icon/menu/bag.png" alt="" draggable="false" />
+        <img class="minimap-btn-img minimap-btn-img--bag" src="assets/icon/menu/inventory.png" alt="" draggable="false" />
       </button>
       <button class="minimap-btn minimap-btn--settings" (click)="footerBar.openGameSettings(); $event.stopPropagation()">
         <img class="minimap-btn-img" src="assets/icon/menu/config.png" alt="" draggable="false" />

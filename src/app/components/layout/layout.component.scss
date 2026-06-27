@@ -98,7 +98,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid;
+ // border: 2px solid;
   border-color: #a59c8d #6b6357 #6b6357 #8f8678;  /* bisel de piedra */
   border-radius: 50%;
   background: #c08349;                            /* $wood-btn */
@@ -147,6 +147,13 @@
   object-fit: contain;
   image-rendering: pixelated;
   pointer-events: none;
+}
+
+/* Icono de la bolsa (inventory.png, recortado al dibujo): llena el botón. */
+.minimap-btn-img--bag {
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;   /* el botón es flex y si no lo encoge para que quepa (32px) */
 }
 
 ::ng-deep {
