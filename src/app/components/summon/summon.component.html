@@ -125,6 +125,16 @@
   <ng-container *ngTemplateOutlet="itemCards; context: { $implicit: petCatalog }"></ng-container>
 </div>
 
+<!-- Hoja de iconos de referencia (Icons.png): cada celda con su nº para referirse a ellos -->
+<div class="icon-grid" *ngIf="activeTab === 4">
+  <div *ngFor="let box of iconsSheetList; let i = index" class="icon-card" [title]="'#' + i">
+    <div class="icon-frame">
+      <div [ngStyle]="iconsSheetStyle(box)"></div>
+    </div>
+    <span class="icon-num">#{{ i }}</span>
+  </div>
+</div>
+
 <ng-template #itemCards let-entries>
   <button *ngFor="let entry of entries" class="item-card" (click)="giveItem(entry)" [title]="entry.name">
     <div class="item-frame">

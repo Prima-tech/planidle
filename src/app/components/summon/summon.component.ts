@@ -41,10 +41,46 @@ export class SummonComponent {
     { icon: 'bag-handle-outline', title: 'Items'   },
     { icon: 'cube-outline',       title: 'Chests'  },
     { icon: 'paw-outline',        title: 'Pets'    },
+    { icon: 'apps-outline',       title: 'Icons'   },
   ];
 
   /** Mascotas disponibles para invocar (categoría 'Mascota'). */
   readonly petCatalog: LootEntry[] = ITEM_CATALOG.filter(e => e.category === 'Mascota');
+
+  // Hoja de iconos de referencia (Icons.png, 480×320). Columnas de ancho alterno:
+  // pequeño (16px) + grande (32px), repetido 10 veces; filas de 32px (10 filas).
+  // 20 iconos por fila × 10 = 200. Se listan en la pestaña Icons con su nº (#índice).
+  readonly ICONS_SHEET_W = 480;
+  readonly ICONS_SHEET_H = 320;
+  readonly iconsSheetList: { x: number; y: number; w: number; h: number }[] = (() => {
+    const list: { x: number; y: number; w: number; h: number }[] = [];
+    const rows = 10, pairs = 10, rowH = 32;
+    for (let r = 0; r < rows; r++) {
+      let x = 0;
+      const y = r * rowH;
+      for (let p = 0; p < pairs; p++) {
+        // El dibujo del pequeño vive en la mitad inferior de la fila → recorto
+        // solo ese 16×16 de abajo para que se vea centrado (no pegado al suelo).
+        list.push({ x, y: y + 16, w: 16, h: 16 }); x += 16;   // icono pequeño
+        list.push({ x, y, w: 32, h: 32 });         x += 32;   // icono grande
+      }
+    }
+    return list;
+  })();
+
+  /** Estilo que recorta la caja (x,y,w,h) de Icons.png, escalada. */
+  iconsSheetStyle(box: { x: number; y: number; w: number; h: number }): Record<string, string> {
+    const scale = 1.5;
+    return {
+      'background-image':    `url(assets/icon/icons/Icons.png)`,
+      'background-repeat':   'no-repeat',
+      'background-size':     `${this.ICONS_SHEET_W * scale}px ${this.ICONS_SHEET_H * scale}px`,
+      'background-position': `-${box.x * scale}px -${box.y * scale}px`,
+      'image-rendering':     'pixelated',
+      'width':               `${box.w * scale}px`,
+      'height':              `${box.h * scale}px`,
+    };
+  }
 
   /** Índices 0-8, uno por columna del spritesheet chests.png (32×32 por frame, 9 cols). */
   readonly chestIndices = [0,1,2,3,4,5,6,7,8];
