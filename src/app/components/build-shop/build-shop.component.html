@@ -24,7 +24,7 @@
           </div>
           <div class="shop-card-price coins-section">
             <div class="coin-spinner"></div>
-            <span class="coin-amount">{{ item.price | number }}</span>
+            <span class="coin-amount">{{ item.price | compactNumber }}</span>
           </div>
         </button>
         <div *ngIf="!item" class="shop-card shop-card--empty"></div>
@@ -55,7 +55,7 @@
       <div class="shop-detail-meta">
         <div class="shop-detail-price coins-section">
           <div class="coin-spinner"></div>
-          <span class="coin-amount">{{ totalPrice(it) | number }}</span>
+          <span class="coin-amount">{{ totalPrice(it) | compactNumber }}</span>
         </div>
       </div>
 
@@ -97,7 +97,7 @@
     <span class="sell-total-label">{{ 'BUILD.SELL_GET' | translate }}</span>
     <div class="coins-section">
       <div class="coin-spinner"></div>
-      <span class="coin-amount">{{ sellTotal() | number }}</span>
+      <span class="coin-amount">{{ sellTotal() | compactNumber }}</span>
     </div>
   </div>
 </ng-container>
@@ -107,7 +107,7 @@
   <span class="shop-gold-label">{{ 'BUILD.SHOP_GOLD' | translate }}</span>
   <div class="coins-section">
     <div class="coin-spinner"></div>
-    <span class="coin-amount">{{ shopGold$ | async | number }}</span>
+    <span class="coin-amount">{{ shopGold$ | async | compactNumber }}</span>
   </div>
   <button *ngIf="tab === 'sell'" class="rpg-btn rpg-btn--sm" [disabled]="!canSell()" (click)="confirmSell()">
     {{ 'BUILD.SELL' | translate }}

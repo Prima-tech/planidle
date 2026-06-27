@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { TopBarComponent } from './top-bar/top-bar.component';
@@ -32,6 +33,7 @@ import { RunStatsComponent } from './run-stats/run-stats.component';
 import { NpcDialogueComponent } from './npc-dialogue/npc-dialogue.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
 import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
+import { CompactNumberPipe } from '../pipes/compact-number.pipe';
 import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
 import { ProgressPanelComponent } from './progress-panel/progress-panel.component';
 import { AchievementToastComponent } from './achievement-toast/achievement-toast.component';
@@ -74,6 +76,7 @@ import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.
     NpcDialogueComponent,
     WorldMapPanelComponent,
     EnemyNamePipe,
+    CompactNumberPipe,
     CharacterSpriteComponent,
     ProgressPanelComponent,
     AchievementToastComponent,
@@ -88,6 +91,7 @@ import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.
   ],
   imports: [
     CommonModule,
+    FormsModule,
     IonicModule,
     DragDropModule,
     RouterModule,
@@ -117,6 +121,7 @@ import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.
     RunStatsComponent,
     NpcDialogueComponent,
     EnemyNamePipe,
+    CompactNumberPipe,
     CharacterSpriteComponent,
     AchievementToastComponent,
     QuestTrackerComponent,

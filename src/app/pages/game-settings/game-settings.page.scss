@@ -327,3 +327,95 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
     box-shadow: 0 0 8px rgba(46, 204, 113, 0.6), 0 1px 4px rgba(0, 0, 0, 0.4);
   }
 }
+
+// ── Admin: regalar monedas (placa de oro + barra + botón) ─────────────────────
+
+/* Placa de oro canónica (igual que el contador de monedas del inventario). */
+.gs-coins-amount.coins-section {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+
+  .coin-amount {
+    font-size: 13px;
+    font-weight: 700;
+    color: $text-brown;
+    min-width: 72px;
+    text-align: right;
+  }
+}
+
+.coin-spinner {
+  width: 20px;
+  height: 20px;
+  transform: scale(0.85);
+  background-image: url('../../../assets/sprites/resources/coin.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  animation: spin-coin 0.6s steps(5) infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin-coin {
+  from { background-position: 0px; }
+  to   { background-position: -100px; }
+}
+
+/* Barra deslizante sobre piedra. */
+.gs-coins-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  background: $cell-bg;
+  border: 2px solid;
+  border-color: $stone-dark $stone-light $stone-light $stone-dark;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  outline: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: linear-gradient(180deg, #d99a5c 0%, #c08349 60%, #8a5530 100%);
+    border: 1px solid $outline;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+  }
+
+  &::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: linear-gradient(180deg, #d99a5c 0%, #c08349 60%, #8a5530 100%);
+    border: 1px solid $outline;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+  }
+}
+
+/* Botón de acción: icono de moneda + texto. */
+.gs-coins-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  .coin-spinner { width: 18px; height: 18px; }
+}

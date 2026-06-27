@@ -119,7 +119,28 @@
     <ng-container *ngIf="tab === 2">
       <div class="gs-section">
         <p class="gs-section-label">Admin</p>
-        <!-- Contenido de administración (pendiente). -->
+
+        <!-- Regalar monedas: barra 1..1.000.000 + placa de oro + botón. -->
+        <div class="gs-row gs-row-stack">
+          <div class="gs-row-info">
+            <span class="gs-row-title">Regalar monedas</span>
+            <span class="gs-row-desc">Suma las monedas elegidas al personaje activo.</span>
+          </div>
+
+          <div class="gs-coins-amount coins-section">
+            <div class="coin-spinner"></div>
+            <span class="coin-amount">{{ adminCoins | number }}</span>
+          </div>
+
+          <input type="range" class="gs-coins-slider"
+                 min="1" [max]="ADMIN_COINS_MAX" step="1"
+                 [(ngModel)]="adminCoins">
+
+          <button class="rpg-btn gs-coins-btn" (click)="grantCoins()">
+            <div class="coin-spinner"></div>
+            <span>Dar monedas</span>
+          </button>
+        </div>
       </div>
     </ng-container>
 

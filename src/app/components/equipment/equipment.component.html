@@ -778,7 +778,7 @@
         <span class="quest-reward-label">{{ 'QUESTS.REWARD' | translate }}</span>
         <span class="quest-reward-item" *ngIf="q.reward.coins">
           <span class="qr-coin"></span>
-          <span class="qr-amount">{{ q.reward.coins | number }}</span>
+          <span class="qr-amount">{{ q.reward.coins | compactNumber }}</span>
         </span>
         <span class="quest-reward-item" *ngIf="q.reward.exp">
           <ion-icon class="qr-xp" name="star"></ion-icon>

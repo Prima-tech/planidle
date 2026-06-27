@@ -5,6 +5,7 @@ import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { SaveService, SaveStatus } from 'src/app/services/save.service';
 import { AsgardService } from 'src/app/services/asgard';
+import { PlayerStateService } from 'src/app/services/player-state.service';
 import { PARALLAX_THEME_LIST } from 'src/app/scenes/gamescene/parallax-themes';
 import { WORLD_PARALLAX_SETS } from 'src/app/scenes/worldrun/parallax-sets';
 import { APP_VERSION } from 'src/app/version';
@@ -30,7 +31,12 @@ export class GameSettingsPageComponent implements OnInit {
   private connection = inject(ConnectionService);
   private saveService = inject(SaveService);
   private asgard = inject(AsgardService);
+  private playerState = inject(PlayerStateService);
   private router = inject(Router);
+
+  /** Admin: cantidad de monedas a regalar (1..1.000.000) seleccionada en la barra. */
+  adminCoins = 1000;
+  readonly ADMIN_COINS_MAX = 1_000_000;
   readonly appVersion = APP_VERSION;
   readonly parallaxThemes = PARALLAX_THEME_LIST;
   readonly worldParallaxSets = WORLD_PARALLAX_SETS;
@@ -63,6 +69,12 @@ export class GameSettingsPageComponent implements OnInit {
       );
       if (ok) await this.saveService.forceSave(true);
     }
+  }
+
+  /** Admin: suma al personaje activo la cantidad de monedas de la barra. */
+  grantCoins(): void {
+    const amount = Math.max(1, Math.min(this.ADMIN_COINS_MAX, Math.floor(this.adminCoins) || 0));
+    this.playerState.collectCoins(amount);
   }
 
   /** Cierra sesión de Supabase, vuelve a modo local y regresa al login. */
