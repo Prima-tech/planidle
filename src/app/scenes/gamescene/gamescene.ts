@@ -4,7 +4,7 @@ import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridDrops, ITEM_CATALOG } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
-import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MINIMAP_DATA_KEY } from "src/app/scenes/mobile-hud.scene";
+import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MinimapTerrain, MINIMAP_DATA_KEY } from "src/app/scenes/mobile-hud.scene";
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
 import { bodySpriteFor } from "src/app/pnj/player/body-config";
@@ -180,6 +180,10 @@ export class GameScene extends Phaser.Scene {
       moving?: PlacedBuilding;   // si está, es la reubicación de un edificio existente
     } | null = null;
     private collisionTiles: Set<string>                    = new Set();
+    // Caché de color medio por tile para el minimapa: clave `tilesetName:index` → rgb
+    // (0xRRGGBB) o -1 si el tile es (casi) transparente. Estática: persiste entre mapas.
+    private static mmTileColors = new Map<string, number>();
+    private mmSampleCanvas?: HTMLCanvasElement;
     // NPCs vivos en la escena para detectar cercanía y hablar (fijos de la ciudad +
     // reclutables). `recruit` solo lo llevan los reclutables (Kugo en 1-1).
     private cityNpcs: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string; recruit?: typeof RECRUIT_NPCS[0] }[] = [];
@@ -1148,7 +1152,72 @@ export class GameScene extends Phaser.Scene {
           : undefined,
         getBuildings: () => this.getMinimapBuildings(),
         getNodes: () => this.getMinimapNodes(),
+        terrain: this.buildMinimapTerrain(),
       };
+    }
+
+    /** Muestrea el color medio del suelo de cada tile para pintar el minimapa
+     *  (hierba verde, agua azul…). Recorre todas las capas de abajo arriba: la
+     *  última tile no vacía de cada celda gana (la superficie visible). */
+    private buildMinimapTerrain(): MinimapTerrain | undefined {
+      const map = this.currentMap;
+      const W = map?.width  ?? 0;
+      const H = map?.height ?? 0;
+      if (!W || !H) return undefined;
+
+      const data = new Uint32Array(W * H);   // 0 = vacío
+      let any = false;
+      for (const ld of map.layers) {
+        const layer: Phaser.Tilemaps.TilemapLayer | null = ld.tilemapLayer;
+        if (!layer) continue;
+        for (let y = 0; y < H; y++) {
+          for (let x = 0; x < W; x++) {
+            const tile = layer.getTileAt(x, y);
+            if (!tile || tile.index < 0) continue;
+            const rgb = this.avgTileColor(tile.index);
+            if (rgb < 0) continue;
+            data[y * W + x] = 0xff000000 | rgb;   // marca opaco
+            any = true;
+          }
+        }
+      }
+      return any ? { cols: W, rows: H, data } : undefined;
+    }
+
+    /** Color medio (0xRRGGBB) de un tile, o -1 si es (casi) transparente. Cachea
+     *  por `tilesetName:index`. Trucazo: dibuja la región del tile reducida a 1×1 px
+     *  y lee ese píxel → es el promedio de la región sin recorrer todos los píxeles. */
+    private avgTileColor(index: number): number {
+      const tileset = this.tilesetForIndex(index);
+      if (!tileset) return -1;
+      const key = `${tileset.name}:${index}`;
+      const cached = GameScene.mmTileColors.get(key);
+      if (cached !== undefined) return cached;
+
+      const coord = tileset.getTileTextureCoordinates(index) as { x: number; y: number } | null;
+      const src = tileset.image?.getSourceImage() as CanvasImageSource | undefined;
+      if (!coord || !src) { GameScene.mmTileColors.set(key, -1); return -1; }
+
+      const tw = tileset.tileWidth, th = tileset.tileHeight;
+      if (!this.mmSampleCanvas) this.mmSampleCanvas = document.createElement('canvas');
+      const c = this.mmSampleCanvas;
+      c.width = 1; c.height = 1;
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      if (!ctx) { GameScene.mmTileColors.set(key, -1); return -1; }
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.drawImage(src, coord.x, coord.y, tw, th, 0, 0, 1, 1);
+      const d = ctx.getImageData(0, 0, 1, 1).data;
+      const rgb = d[3] < 16 ? -1 : (d[0] << 16) | (d[1] << 8) | d[2];   // alfa bajo → vacío
+      GameScene.mmTileColors.set(key, rgb);
+      return rgb;
+    }
+
+    /** Tileset que contiene un índice global de tile (maneja múltiples tilesets). */
+    private tilesetForIndex(index: number): Phaser.Tilemaps.Tileset | null {
+      for (const ts of this.currentMap.tilesets) {
+        if (ts.containsTileIndex(index)) return ts;
+      }
+      return null;
     }
 
     /** Construcciones colocadas (cofre/tienda) en px de mundo, para el minimapa. */

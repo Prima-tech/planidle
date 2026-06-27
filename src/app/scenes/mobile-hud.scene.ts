@@ -20,11 +20,20 @@ export interface MinimapEnemy {
   getPixelPos(): Phaser.Math.Vector2;
 }
 
+/** Terreno downsampleado: un color (0xRRGGBB) por tile; data[i]===0 → tile vacío.
+ *  GameScene lo calcula muestreando el color medio de cada tile del tileset. */
+export interface MinimapTerrain {
+  cols: number;
+  rows: number;
+  data: Uint32Array;   // length = cols*rows; 0 = vacío, si no 0xFF000000|rgb
+}
+
 export interface MinimapData {
   enemies: MinimapEnemy[];          // referencia viva al array de GameScene
   getPlayerPos: () => Phaser.Math.Vector2;
   mapWidthPx: number;
   mapHeightPx: number;
+  terrain?: MinimapTerrain;         // mapa de colores del suelo (opcional)
   portals: { x: number; y: number }[];  // posiciones en px de mundo
   townChest?: { x: number; y: number }; // cofre de ciudad fijo (solo en hogar)
   // Construcciones colocadas (cofre/tienda); referencia viva, cambian al construir/mover/borrar
@@ -48,10 +57,8 @@ const THUMB_R  = 26 * DPR;
 const MM_RADIUS     = 49 * DPR;   // radio del minimapa circular (px CSS × DPR)
 const MM_MARGIN     = 15 * DPR;   // separación del borde derecho (aro HTML a 10px + 5px de bisel)
 const MM_TOP        = 15 * DPR;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
-const MM_DOT_PLAYER    = 4   * DPR;
 const MM_DOT_PORTAL    = 3   * DPR;
 const MM_DOT_CHEST     = 4.5 * DPR;
-const MM_COLOR_PLAYER  = 0x2ecc71;
 const MM_COLOR_PORTAL  = 0x48c4f8;
 const MM_COLOR_CHEST   = 0xf1c40f;
 const MM_COLOR_SHOP    = 0x2ecc71;
@@ -60,6 +67,9 @@ const MM_COLOR_ROCK    = 0x9a9a9a;
 const MM_COLOR_TREE    = 0x3c8c3c;
 const MM_ICON_ENEMY_KEY = 'mm_enemy';
 const MM_ICON_ELITE_KEY = 'mm_enemy_elite';
+const MM_ICON_PLAYER_KEY = 'mm_player';
+const MM_ICON_HALF_PLAYER = 7 * DPR;      // medio tamaño del icono del jugador
+const MM_TERRAIN_TEX    = 'mm_terrain';   // CanvasTexture del suelo coloreado (se regenera por mapa)
 const MM_ICON_HALF      = 8   * DPR;   // half-size regular
 const MM_ICON_HALF_EL   = 10  * DPR;   // half-size elite / oblivion
 
@@ -78,10 +88,12 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmOffX = 0;     // origen del mapa proyectado (centrado en el círculo)
   private mmOffY = 0;
   private mmScale = 0;
-  private mmPlayerDot:  Phaser.GameObjects.Arc   | null = null;
+  private mmPlayerDot:  Phaser.GameObjects.Image | null = null;
   private mmEnemyIcons: Phaser.GameObjects.Image[] = [];
   private mmBuildingDots: Phaser.GameObjects.Arc[] = [];
   private mmNodeDots: Phaser.GameObjects.Arc[] = [];
+  private mmTerrain: Phaser.GameObjects.Image | null = null;       // imagen del suelo coloreado
+  private mmTerrainMask: Phaser.GameObjects.Graphics | null = null; // máscara circular del terreno
   private mmAccum = 0;   // acumulador para throttlear el redibujado del minimapa
 
   // ── Overlay de rendimiento (toggle en ajustes: showFps) ─────────────────────
@@ -100,8 +112,9 @@ export class MobileHUDScene extends Phaser.Scene {
   constructor() { super({ key: 'MobileHUDScene' }); }
 
   preload(): void {
-    this.load.image(MM_ICON_ENEMY_KEY, 'assets/sprites/map/enemy.png');
-    this.load.image(MM_ICON_ELITE_KEY, 'assets/sprites/map/enemy_elite.png');
+    this.load.image(MM_ICON_ENEMY_KEY, 'assets/icon/minimap/enemy.png');
+    this.load.image(MM_ICON_ELITE_KEY, 'assets/icon/minimap/enemy_elite.png');
+    this.load.image(MM_ICON_PLAYER_KEY, 'assets/icon/minimap/player.png');
   }
 
   create(): void {
@@ -326,6 +339,10 @@ export class MobileHUDScene extends Phaser.Scene {
     this.mmEnemyIcons   = [];
     this.mmBuildingDots = [];
     this.mmNodeDots     = [];
+    // La máscara no vive en la display list → no se destruye sola en el relanzamiento.
+    this.mmTerrainMask?.destroy();
+    this.mmTerrain      = null;
+    this.mmTerrainMask  = null;
 
     const data = this.registry.get(MINIMAP_DATA_KEY) as MinimapData | undefined;
     if (!data || !data.mapWidthPx || !data.mapHeightPx) return;
@@ -337,7 +354,11 @@ export class MobileHUDScene extends Phaser.Scene {
     this.mmOffX  = this.mmCX - (data.mapWidthPx  * this.mmScale) / 2;
     this.mmOffY  = this.mmCY - (data.mapHeightPx * this.mmScale) / 2;
 
-    const bg = this.add.circle(this.mmCX, this.mmCY, MM_RADIUS, 0x1a1a2e, 0.55);
+    // Suelo coloreado (verde hierba, azul agua…). Si hay terreno, el fondo oscuro
+    // se vuelve transparente para que se vea; si no, mantiene el relleno de siempre.
+    const hasTerrain = data.terrain ? this.renderTerrain(data.terrain) : false;
+
+    const bg = this.add.circle(this.mmCX, this.mmCY, MM_RADIUS, 0x1a1a2e, hasTerrain ? 0 : 0.55);
     bg.setStrokeStyle(1.5 * DPR, 0x3498db, 0.5);
 
     // Portales: estáticos, se dibujan una sola vez
@@ -353,8 +374,49 @@ export class MobileHUDScene extends Phaser.Scene {
       this.mmPlace(dot, data.townChest.x, data.townChest.y);
     }
 
-    this.mmPlayerDot = this.add.circle(this.mmCX, this.mmCY, MM_DOT_PLAYER, MM_COLOR_PLAYER, 1);
-    this.mmPlayerDot.setStrokeStyle(1 * DPR, 0xffffff, 0.9);
+    this.mmPlayerDot = this.add.image(this.mmCX, this.mmCY, MM_ICON_PLAYER_KEY);
+    this.mmPlayerDot.setDisplaySize(MM_ICON_HALF_PLAYER * 2, MM_ICON_HALF_PLAYER * 2);
+  }
+
+  /** Pinta el suelo coloreado dentro del círculo. Genera una CanvasTexture de
+   *  cols×rows px (1 px por tile) y la escala al tamaño del mapa proyectado,
+   *  recortada al círculo del minimapa. Devuelve false si no se pudo crear. */
+  private renderTerrain(t: MinimapTerrain): boolean {
+    if (!t.cols || !t.rows || t.data.length < t.cols * t.rows) return false;
+
+    if (this.textures.exists(MM_TERRAIN_TEX)) this.textures.remove(MM_TERRAIN_TEX);
+    const tex = this.textures.createCanvas(MM_TERRAIN_TEX, t.cols, t.rows);
+    if (!tex) return false;
+
+    const ctx = tex.context;
+    const img = ctx.createImageData(t.cols, t.rows);
+    const px = img.data;
+    for (let i = 0; i < t.cols * t.rows; i++) {
+      const v = t.data[i];
+      const o = i * 4;
+      if (v === 0) { px[o + 3] = 0; continue; }   // tile vacío → transparente
+      px[o]     = (v >> 16) & 0xff;
+      px[o + 1] = (v >> 8)  & 0xff;
+      px[o + 2] =  v        & 0xff;
+      px[o + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    tex.refresh();
+
+    const dispW = this.mmData!.mapWidthPx  * this.mmScale;
+    const dispH = this.mmData!.mapHeightPx * this.mmScale;
+    const im = this.add.image(this.mmCX, this.mmCY, MM_TERRAIN_TEX);
+    im.setDisplaySize(dispW, dispH);
+
+    // Máscara circular: el suelo no se sale del aro del minimapa.
+    const mask = this.make.graphics({});
+    mask.fillStyle(0xffffff);
+    mask.fillCircle(this.mmCX, this.mmCY, MM_RADIUS - 1 * DPR);
+    im.setMask(mask.createGeometryMask());
+
+    this.mmTerrain = im;
+    this.mmTerrainMask = mask;
+    return true;
   }
 
   // Proyecta px de mundo al minimapa y retiene el punto dentro del círculo
@@ -375,7 +437,7 @@ export class MobileHUDScene extends Phaser.Scene {
     if (!this.mmData || !this.mmPlayerDot) return;
 
     const playerPos = this.mmData.getPlayerPos();
-    this.mmPlace(this.mmPlayerDot, playerPos.x, playerPos.y);
+    this.mmPlaceImg(this.mmPlayerDot, MM_ICON_HALF_PLAYER, playerPos.x, playerPos.y);
 
     let used = 0;
     for (const enemy of this.mmData.enemies) {
