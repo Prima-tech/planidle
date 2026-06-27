@@ -80,7 +80,7 @@ const orc1: EnemyTypeConfig = {
   hp: 200,                 // mapa 1-3
   scale: 3,
   speed: 96,
-  damage: 20,
+  damage: 12,
   attackCooldown: 1500,
   actions: {
     idle: {
@@ -167,7 +167,7 @@ const slime4: EnemyTypeConfig = {
   hp: 100,                 // mapa 1-1
   scale: 3,
   speed: 150,
-  damage: 12,
+  damage: 7,
   attackCooldown: 1500,
   actions: {
     idle: {
@@ -225,7 +225,7 @@ const slime5: EnemyTypeConfig = {
   hp: 125,
   scale: 3,
   speed: 150,
-  damage: 14,
+  damage: 8,
   attackCooldown: 1500,
   actions: {
     idle: {
@@ -335,7 +335,7 @@ const goobling2: EnemyTypeConfig = {
   hp: 400,                 // mapa 1-7
   scale: 3,
   speed: 115,
-  damage: 36,
+  damage: 21,
   attackCooldown: 1700,
   actions: {
     idle:            { filename: 'Idle_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING2_DIR) },
@@ -362,7 +362,7 @@ const gnoll1: EnemyTypeConfig = {
   hp: 300,                 // mapa 1-5
   scale: 3,
   speed: 110,
-  damage: 28,
+  damage: 16,
   attackCooldown: 1600,
   actions: {
     idle:   { filename: 'Gnoll1_Idle_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GNOLL1_DIR) },
@@ -387,7 +387,7 @@ const golem1: EnemyTypeConfig = {
   hp: 450,                 // mapa 1-8
   scale: 4.5,
   speed: 70,
-  damage: 40,
+  damage: 23,
   attackCooldown: 2000,
   actions: {
     idle:   { filename: 'Golem1_Idle_with_shadow',  frameWidth: 128, frameHeight: 128, frameRate: 4,  repeat: -1, directional: true, frames: dirFrames(4, GOLEM1_DIR) },
@@ -413,7 +413,7 @@ const rats1: EnemyTypeConfig = {
   hp: 150,                 // mapa 1-2
   scale: 3,
   speed: 130,
-  damage: 16,
+  damage: 9,
   attackCooldown: 1500,
   actions: {
     idle:   { filename: 'Rat1_Idle_with_shadow',   frameWidth: 128, frameHeight: 128, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(6, RAT1_DIR) },
@@ -439,7 +439,7 @@ const lizard1: EnemyTypeConfig = {
   hp: 350,                 // mapa 1-6
   scale: 3,
   speed: 100,
-  damage: 32,
+  damage: 19,
   attackCooldown: 1400,
   actions: {
     idle:   { filename: 'Lizardman1_Idle_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, LIZARD1_DIR) },
@@ -465,7 +465,7 @@ const goobling1: EnemyTypeConfig = {
   hp: 250,                 // mapa 1-4
   scale: 3,
   speed: 110,
-  damage: 24,
+  damage: 14,
   attackCooldown: 1700,
   actions: {
     idle:            { filename: 'Idle0_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING1_DIR) },

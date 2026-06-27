@@ -31,11 +31,12 @@ export class CharStatsComponent {
       map(([s, damage]) => {
         const isMaxLevel = s.lvl >= MAX_LEVEL;
         const expCap     = isMaxLevel ? 0 : expNeeded(s.lvl);
+        const exp        = s.exp || 0;   // '|| 0' neutraliza NaN/undefined
         return {
           lvl: s.lvl,
-          exp: s.exp,
+          exp,
           expCap,
-          expPct: isMaxLevel ? 100 : Math.min(100, (s.exp / expCap) * 100),
+          expPct: isMaxLevel ? 100 : Math.min(100, (exp / expCap) * 100),
           isMaxLevel,
           damage,
         };

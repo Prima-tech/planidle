@@ -46,7 +46,8 @@ $text-cream: #ecd9b4;
 /* Placa de madera con bisel de piedra: misma maquetación que el bloque de
    monedas del inventario. La comparten el nombre y el paquete de stats. */
 .detail-header,
-.detail-stats {
+.detail-stats,
+.detail-description {
   background: $wood-btn;
   border: 2px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
@@ -197,8 +198,9 @@ $text-cream: #ecd9b4;
 
 .detail-description {
   font-size: 0.72em;
-  color: #6b4226;
+  color: $text-brown;
   margin: auto 0 0 0;  /* empuja la descripción al fondo del panel */
+  padding: 6px 8px;    /* misma maquetación que la placa del nombre/stats */
   line-height: 1.4;
 }
 

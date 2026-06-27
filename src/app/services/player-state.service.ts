@@ -56,7 +56,7 @@ export class PlayerStateService {
   readonly coinDropped$  = new Subject<number>();
   readonly levelUp$      = new Subject<number>();
   readonly state$        = this._state$.asObservable();
-  readonly coins$        = this.state$.pipe(map(s => s.coins ?? 0),   distinctUntilChanged());
+  readonly coins$        = this.state$.pipe(map(s => s.coins || 0),   distinctUntilChanged());
   readonly specialCoins$ = this.state$.pipe(map(s => s.specialCoins), distinctUntilChanged());
   readonly stars$        = this.state$.pipe(map(s => s.stars ?? 0),    distinctUntilChanged());
   readonly worldKills$   = this.state$.pipe(map(s => s.worldKills ?? 0), distinctUntilChanged());
@@ -65,10 +65,10 @@ export class PlayerStateService {
   readonly currentDeaths$ = this.state$.pipe(map(s => s.currentDeaths ?? 0), distinctUntilChanged());
   readonly runMilestones$ = this.state$.pipe(map(s => s.runMilestones ?? []), distinctUntilChanged());
   readonly totalDeaths$  = this.state$.pipe(map(s => s.totalDeaths ?? 0), distinctUntilChanged());
-  readonly exp$          = this.state$.pipe(map(s => s.exp),          distinctUntilChanged());
+  readonly exp$          = this.state$.pipe(map(s => s.exp || 0),     distinctUntilChanged());
   readonly lvl$          = this.state$.pipe(map(s => s.lvl),          distinctUntilChanged());
   readonly expProgress$  = this.state$.pipe(
-    map(s => s.lvl >= MAX_LEVEL ? 1 : s.exp / expNeeded(s.lvl)),
+    map(s => s.lvl >= MAX_LEVEL ? 1 : (s.exp || 0) / expNeeded(s.lvl)),
     distinctUntilChanged()
   );
 
@@ -96,13 +96,13 @@ export class PlayerStateService {
   }
 
   addCoins(amount: number): void {
-    this._patch({ coins: (this._state$.getValue().coins ?? 0) + (amount || 0) });
+    this._patch({ coins: (this._state$.getValue().coins || 0) + (amount || 0) });
   }
 
   collectCoins(amount: number): void {
     const s = this._state$.getValue();
     const add = amount || 0;   // evita NaN si llega undefined/NaN
-    this._patch({ coins: (s.coins ?? 0) + add, lifetimeCoins: (s.lifetimeCoins ?? 0) + add });
+    this._patch({ coins: (s.coins || 0) + add, lifetimeCoins: (s.lifetimeCoins || 0) + add });
     this.coinDropped$.next(add);
   }
 
@@ -184,8 +184,9 @@ export class PlayerStateService {
   addExp(amount: number): void {
     const s = this._state$.getValue();
     if (s.lvl >= MAX_LEVEL) return;
-    let { exp, lvl } = s;
-    exp += amount;
+    let exp = s.exp || 0;            // '|| 0' neutraliza NaN/undefined (?? no atrapa NaN)
+    let lvl = s.lvl || 1;
+    exp += amount || 0;
     while (lvl < MAX_LEVEL && exp >= expNeeded(lvl)) {
       exp -= expNeeded(lvl);
       lvl++;
