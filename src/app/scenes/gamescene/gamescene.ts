@@ -2545,7 +2545,7 @@ export class GameScene extends Phaser.Scene {
       entry: ActiveChest;
       isOpenUnsub: () => void;
     } {
-      const col = 0;
+      const col = 7;   // Cofre 8 (chests.png: columna 7 → idle, anim col+9/+18/+27)
 
       const sprite = this.add.sprite(x, y, 'chests', col);
       sprite.setScale(4);

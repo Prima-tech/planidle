@@ -5,7 +5,6 @@ import { SummonService } from 'src/app/services/summon.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
-import { ICONS1, ICONS1_COLS, ICONS1_FRAME_SIZE } from 'src/assets/icon/icons/icons1';
 
 interface EnemyCard {
   type:        string;
@@ -41,35 +40,11 @@ export class SummonComponent {
     { icon: 'skull-outline',      title: 'Enemies' },
     { icon: 'bag-handle-outline', title: 'Items'   },
     { icon: 'cube-outline',       title: 'Chests'  },
-    { icon: 'apps-outline',       title: 'Icons'   },
     { icon: 'paw-outline',        title: 'Pets'    },
   ];
 
   /** Mascotas disponibles para invocar (categoría 'Mascota'). */
   readonly petCatalog: LootEntry[] = ITEM_CATALOG.filter(e => e.category === 'Mascota');
-
-  /** Catálogo de iconos de icons1.png (nombre → frame) para consultar cuáles hay. */
-  readonly icons1List = Object.entries(ICONS1)
-    .map(([name, frame]) => ({ name, frame }))
-    .sort((a, b) => a.frame - b.frame);
-
-  /** Estilo de fondo que recorta el frame `frame` de icons1.png (rejilla 12 cols). */
-  icon1Style(frame: number): Record<string, string> {
-    const scale = 1.5;
-    const size  = ICONS1_FRAME_SIZE;   // 32
-    const cols  = ICONS1_COLS;         // 12
-    const col = frame % cols;
-    const row = Math.floor(frame / cols);
-    return {
-      'background-image':    `url(assets/icon/icons/icons1.png)`,
-      'background-repeat':   'no-repeat',
-      'background-size':     `${cols * size * scale}px auto`,
-      'background-position': `-${col * size * scale}px -${row * size * scale}px`,
-      'image-rendering':     'pixelated',
-      'width':               `${size * scale}px`,
-      'height':              `${size * scale}px`,
-    };
-  }
 
   /** Índices 0-8, uno por columna del spritesheet chests.png (32×32 por frame, 9 cols). */
   readonly chestIndices = [0,1,2,3,4,5,6,7,8];
@@ -160,7 +135,9 @@ export class SummonComponent {
     });
     this.enemyGroups = baseCards.map(toGroup);
     const rawTab         = this.panelState.get('summon.tab', 0) as number;
-    this._activeTab      = rawTab === 2 ? 1 : rawTab === 1 ? 0 : rawTab;
+    const mappedTab      = rawTab === 2 ? 1 : rawTab === 1 ? 0 : rawTab;
+    // Clamp al nuevo nº de pestañas (se quitó la de Icons; Pets pasó de 4 a 3).
+    this._activeTab      = Math.min(Math.max(mappedTab, 0), this.tabs.length - 1);
     this._activeItemTab  = this.panelState.get('summon.itemTab',  0);
     this._activeEnemyTab = this.panelState.get('summon.enemyTab', 0);
   }
