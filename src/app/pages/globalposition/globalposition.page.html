@@ -1,5 +1,8 @@
 <ion-content class="char-select-content" [fullscreen]="true">
-  <div class="char-select-screen">
+  <!-- Backdrop oscuro siempre presente: evita el flash del wallpaper mientras
+       ngOnInit decide si quedarse (≥2 pj) o redirigir a /main (1 pj). -->
+  <div class="char-select-backdrop"></div>
+  <div class="char-select-screen" *ngIf="ready">
 
     <!-- LEFT PANEL: branding -->
     <div class="left-panel">

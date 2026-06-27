@@ -5,6 +5,13 @@ ion-content {
 
 // ── LAYOUT ────────────────────────────────────────────────────────────────────
 
+.char-select-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 18, 0.86);
+  z-index: 0;
+}
+
 .char-select-screen {
   position: fixed;
   inset: 0;

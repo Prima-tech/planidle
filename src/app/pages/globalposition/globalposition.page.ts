@@ -23,6 +23,9 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
   charEquipment: Record<string, EquipmentSnapshot> = {};
   charActivity:  Record<string, ActivityKind>      = {};
   now = Date.now();
+  /** False hasta que sabemos que esta pantalla se queda (≥2 personajes). Si solo
+   *  hay uno, redirige a /main sin pintar nunca la grid → evita el flash feo. */
+  ready = false;
   private ticker: any;
 
   // Row 1 = indexes 0-4, Row 2 = 5-9, Row 3 = 10
@@ -72,6 +75,7 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     }
 
     await this.loadCharacterMaps();
+    this.ready = true;
     this.ticker = setInterval(() => this.now = Date.now(), 1000);
   }
 
