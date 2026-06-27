@@ -194,7 +194,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   spriteStyle(enemyType: string) { return enemySpriteStyle(enemyType, 32); }
   spriteClass(enemyType: string) { return enemySpriteClass(enemyType); }
 
-  // Iconos de drops: recorte del spritesheet (poción usa icons1) o PNG suelto.
+  // Iconos de drops: recorte de un spritesheet (materiales) o PNG suelto (poción, etc.).
   dropSheetPos(d: AfkDropRate) { return sheetPos(d.entry.iconFrame, d.entry.iconFrameCols, d.entry.iconFrameSize, d.entry.iconContentSize); }
   dropSheetBg(d: AfkDropRate)  { return sheetBgSize(d.entry.iconFrameCols, d.entry.iconFrameSize, d.entry.iconContentSize); }
   /** Cantidad/hora redondeada para mostrar (1 decimal si <10). */

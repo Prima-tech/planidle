@@ -898,31 +898,24 @@
 </ng-template>
 
 <!-- Placeholder pixel-art compartido por todos los slots vacíos.
-     Prioridad: frame del spritesheet → PNG propio → ionicon de respaldo. -->
+     Prioridad: PNG propio → ionicon de respaldo. -->
 <ng-template #placeholderTpl let-slot="slot">
   <ng-container *ngIf="slotPlaceholders[slot.id] as ph">
-    <div *ngIf="ph.frame != null; else phImgOrIcon"
+    <img *ngIf="ph.img && !placeholderImgFailed.has(slot.id); else phIcon"
          class="slot-placeholder-img"
-         [class.slot-placeholder-img--weapon]="slot.id === 'weapon'"
-         [ngStyle]="placeholderFrameStyle(ph.frame, ph.px)"
-         [title]="slot.label"></div>
-    <ng-template #phImgOrIcon>
-      <img *ngIf="ph.img && !placeholderImgFailed.has(slot.id); else phIcon"
-           class="slot-placeholder-img"
-           [class.slot-placeholder-img--boots]="slot.id === 'boots'"
-           [class.slot-placeholder-img--helmet]="slot.id === 'helmet'"
-           [class.slot-placeholder-img--armor]="slot.id === 'armor'"
-           [class.slot-placeholder-img--pants]="slot.id === 'pants'"
-           [class.slot-placeholder-img--ring]="slot.id === 'ring1' || slot.id === 'ring2'"
-           [class.slot-placeholder-img--necklace]="slot.id === 'necklace'"
-           [class.slot-placeholder-img--food]="slot.id === 'food'"
-           [class.slot-placeholder-img--potion]="slot.id === 'potion'"
-           [src]="ph.img"
-           (error)="onPlaceholderImgError(slot.id)"
-           [title]="slot.label">
-      <ng-template #phIcon>
-        <ion-icon class="slot-placeholder" [name]="ph.icon" [title]="slot.label"></ion-icon>
-      </ng-template>
+         [class.slot-placeholder-img--boots]="slot.id === 'boots'"
+         [class.slot-placeholder-img--helmet]="slot.id === 'helmet'"
+         [class.slot-placeholder-img--armor]="slot.id === 'armor'"
+         [class.slot-placeholder-img--pants]="slot.id === 'pants'"
+         [class.slot-placeholder-img--ring]="slot.id === 'ring1' || slot.id === 'ring2'"
+         [class.slot-placeholder-img--necklace]="slot.id === 'necklace'"
+         [class.slot-placeholder-img--food]="slot.id === 'food'"
+         [class.slot-placeholder-img--potion]="slot.id === 'potion'"
+         [src]="ph.img"
+         (error)="onPlaceholderImgError(slot.id)"
+         [title]="slot.label">
+    <ng-template #phIcon>
+      <ion-icon class="slot-placeholder" [name]="ph.icon" [title]="slot.label"></ion-icon>
     </ng-template>
   </ng-container>
 </ng-template>

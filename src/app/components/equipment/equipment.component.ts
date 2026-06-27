@@ -16,7 +16,6 @@ import { AchievementService, AchievementDef, AchievementScope } from 'src/app/se
 import { QuestService, QuestDef } from 'src/app/services/quest.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
-import { ICONS1, ICONS1_COLS, ICONS1_FRAME_SIZE } from 'src/assets/icon/icons/icons1';
 
 @Component({
   selector: 'app-equipment',
@@ -115,25 +114,24 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   readonly maxLevel  = MAX_LEVEL;
 
   // Placeholder pixel-art de cada slot vacío.
-  //   frame → recorta un frame de icons1.png (mismo estilo que los items)
-  //   img   → PNG propio 32×32 en assets/icon/slots/ (slots sin frame en el sheet)
+  //   img   → PNG propio en assets/icon/placeholder|slots/ (si existe)
   //   icon  → ionicon de respaldo mientras el PNG no exista (evita imagen rota)
-  readonly slotPlaceholders: Record<string, { frame?: number; img?: string; icon: string; px?: number }> = {
+  readonly slotPlaceholders: Record<string, { img?: string; icon: string }> = {
     // ── Combate ──
     helmet:   { img: 'assets/icon/placeholder/helm.png', icon: 'shield-half-outline' },
     armor:    { img: 'assets/icon/placeholder/torso.png', icon: 'shirt-outline' },
     pants:    { img: 'assets/icon/placeholder/pants.png', icon: 'man-outline' },
     boots:    { img: 'assets/icon/placeholder/feet.png', icon: 'footsteps-outline' },
-    weapon:   { frame: ICONS1['weapon_sword'],  icon: 'flash-outline', px: 48 },
+    weapon:   { icon: 'flash-outline' },
     necklace: { img: 'assets/icon/placeholder/neck.png', icon: 'diamond-outline' },
     ring1:    { img: 'assets/icon/placeholder/ring.png', icon: 'ellipse-outline' },
     ring2:    { img: 'assets/icon/placeholder/ring.png', icon: 'ellipse-outline' },
     food:     { img: 'assets/icon/placeholder/meat.png',   icon: 'restaurant-outline' },
     potion:   { img: 'assets/icon/placeholder/potion.png', icon: 'flask-outline' },
     // ── Recolección ──
-    pickaxe:     { frame: ICONS1['tool_pick'],  icon: 'hammer-outline' },
+    pickaxe:     { icon: 'hammer-outline' },
     axe:         { img: 'assets/icon/slots/axe.png',      icon: 'cut-outline' },
-    fishing_rod: { frame: ICONS1['item_hook'],  icon: 'fish-outline' },
+    fishing_rod: { icon: 'fish-outline' },
     shovel:      { img: 'assets/icon/slots/shovel.png',   icon: 'trail-sign-outline' },
     lantern:     { img: 'assets/icon/slots/lantern.png',  icon: 'flashlight-outline' },
     backpack:    { img: 'assets/icon/slots/backpack.png', icon: 'bag-handle-outline' },
@@ -146,28 +144,6 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   /** Slots cuyo PNG aún no existe → caen al ionicon de respaldo. */
   readonly placeholderImgFailed = new Set<string>();
   onPlaceholderImgError(slotId: string): void { this.placeholderImgFailed.add(slotId); }
-
-  /** Tamaño de pintado del placeholder (px). El frame nativo es 32px → se escala. */
-  readonly PLACEHOLDER_PX = 40;
-
-  /** Estilo de fondo que recorta el `frame` de icons1.png, escalado a `px` (por
-      defecto PLACEHOLDER_PX). El tamaño se controla aquí, no en el CSS, porque el
-      frame se pinta vía background-size (subir width/height en el SCSS no basta). */
-  placeholderFrameStyle(frame: number, px: number = this.PLACEHOLDER_PX): Record<string, string> {
-    const size  = ICONS1_FRAME_SIZE;            // 32
-    const cols  = ICONS1_COLS;                  // 12
-    const scale = px / size;
-    const col   = frame % cols;
-    const row   = Math.floor(frame / cols);
-    return {
-      'width':               `${px}px`,
-      'height':              `${px}px`,
-      'background-image':    'url(assets/icon/icons/icons1.png)',
-      'background-repeat':   'no-repeat',
-      'background-size':     `${cols * size * scale}px auto`,
-      'background-position': `-${col * size * scale}px -${row * size * scale}px`,
-    };
-  }
 
   readonly loadoutIndices = [0, 1, 2];
 

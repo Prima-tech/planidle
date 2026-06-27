@@ -18,8 +18,8 @@ export interface LootEntry {
   icon?: string;
   iconSheet?: string;
   iconFrame?: number;
-  iconFrameSize?: number;    // tamaño físico del frame en px (por defecto 32 para icons1)
-  iconFrameCols?: number;    // columnas en el sheet (por defecto 12 para icons1)
+  iconFrameSize?: number;    // tamaño físico del frame en px (por defecto 32)
+  iconFrameCols?: number;    // columnas en el sheet (por defecto 12)
   iconContentSize?: number;  // tamaño real del arte dentro del frame (si difiere de iconFrameSize)
   animKey?: string;
   scale: number;
@@ -135,17 +135,17 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
   ],
   orc1: [
     { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5,  mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
+    { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: true,  texture: 'heal_01', icon: 'assets/icon/resources/potions/heal_01.png', scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
     ORC_FINGER,
   ],
   orc1_elite: [
     { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 5, maxQty: 15, mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Poción', type: 'item',     chance: 0.8,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
+    { name: 'Poción', type: 'item',     chance: 0.8,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'heal_01', icon: 'assets/icon/resources/potions/heal_01.png', scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
     ORC_FINGER,
   ],
   orc1_oblivion: [
     { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 15, maxQty: 40, mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Poción', type: 'item',     chance: 1.0,  minQty: 2,  maxQty: 4,  mergeable: true,  texture: 'icons1', frame: 45, iconSheet: 'assets/icon/icons/icons1.png', iconFrame: 45, scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
+    { name: 'Poción', type: 'item',     chance: 1.0,  minQty: 2,  maxQty: 4,  mergeable: true,  texture: 'heal_01', icon: 'assets/icon/resources/potions/heal_01.png', scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
     ORC_FINGER,
   ],
   goobling2:          [ COIN(1, 3),  GOOBLING2_NAIL ],

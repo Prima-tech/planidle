@@ -318,7 +318,6 @@ export class GameScene extends Phaser.Scene {
       // (32×48). Fila 0 azul (back), fila 2 naranja (next). Los portales van siempre
       // abiertos (ya no hay variante gris "bloqueada").
       this.load.spritesheet('portal', 'assets/sprites/resources/portal_01.png', { frameWidth: 32, frameHeight: 48 });
-      this.load.spritesheet('icons1', 'assets/icon/icons/icons1.png', { frameWidth: 32, frameHeight: 32 });
 
       // Bolsas (equipo secundario): iconos sueltos usados como sprite del drop al invocar.
       this.load.image('bag_1', 'assets/icon/bags/bag_01.png');

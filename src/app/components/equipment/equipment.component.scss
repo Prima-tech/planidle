@@ -635,7 +635,7 @@ $metal-dark: #6b6357;
   pointer-events: none;
 }
 
-/* Placeholder pixel-art del slot vacío (frame de icons1.png o PNG propio).
+/* Placeholder pixel-art del slot vacío (PNG propio o ionicon de respaldo).
    Silueta negra/gris oscuro, centrada, para leerse como "hueco libre", no como item.
    brightness(0) → pinta de negro conservando el alfa; opacity lo aclara a gris oscuro. */
 .slot-placeholder-img {

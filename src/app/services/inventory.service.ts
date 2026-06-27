@@ -12,8 +12,8 @@ export interface InventoryItem {
   icon?: string;
   iconSheet?: string;
   iconFrame?: number;
-  iconFrameSize?: number;    // tamaño físico del frame en px (por defecto 32 para icons1)
-  iconFrameCols?: number;    // columnas en el sheet (por defecto 12 para icons1)
+  iconFrameSize?: number;    // tamaño físico del frame en px (por defecto 32)
+  iconFrameCols?: number;    // columnas en el sheet (por defecto 12)
   iconContentSize?: number;  // tamaño real del arte dentro del frame (si difiere de iconFrameSize)
   mergeable?: boolean;
   sum?: number;
