@@ -42,7 +42,38 @@ export class SummonComponent {
     { icon: 'cube-outline',       title: 'Chests'  },
     { icon: 'paw-outline',        title: 'Pets'    },
     { icon: 'apps-outline',       title: 'Icons'   },
+    { icon: 'leaf-outline',       title: 'Objects' },
+    { icon: 'diamond-outline',    title: 'Mining'  },
   ];
+
+  // Tiers de minería (referencia), agrupados por tier. `img` = PNG suelto; `box` =
+  // recorte de Icons.png. El nombre del tier va en el título; cada icono solo su rol.
+  readonly miningTiers: { title: string; items: { name: string; img?: string; box?: { x: number; y: number; w: number; h: number } }[] }[] = [
+    {
+      title: 'tier1',
+      items: [
+        { name: 'rock', img: 'assets/sprites/map/skills/rocks/tier1_rock.png' },
+        { name: 'map',  box: { x: 48,  y: 16, w: 16, h: 16 } },   // Icons.png #2  (minimapa)
+        { name: 'drop', box: { x: 64,  y: 32, w: 32, h: 32 } },   // Icons.png #23 (drop)
+        { name: 'bar_mini', box: { x: 96,  y: 48, w: 16, h: 16 } }, // Icons.png #24 (pequeño)
+        { name: 'bar',      box: { x: 112, y: 32, w: 32, h: 32 } }, // Icons.png #25 (grande)
+      ],
+    },
+  ];
+
+  /** Recorte de Icons.png escalado para caber pequeño (~32px) en la celda del tier. */
+  miningIconStyle(box: { x: number; y: number; w: number; h: number }): Record<string, string> {
+    const scale = 1;
+    return {
+      'background-image':    `url(assets/icon/icons/Icons.png)`,
+      'background-repeat':   'no-repeat',
+      'background-size':     `${this.ICONS_SHEET_W * scale}px ${this.ICONS_SHEET_H * scale}px`,
+      'background-position': `-${box.x * scale}px -${box.y * scale}px`,
+      'image-rendering':     'pixelated',
+      'width':               `${box.w * scale}px`,
+      'height':              `${box.h * scale}px`,
+    };
+  }
 
   /** Mascotas disponibles para invocar (categoría 'Mascota'). */
   readonly petCatalog: LootEntry[] = ITEM_CATALOG.filter(e => e.category === 'Mascota');
@@ -75,6 +106,36 @@ export class SummonComponent {
       'background-image':    `url(assets/icon/icons/Icons.png)`,
       'background-repeat':   'no-repeat',
       'background-size':     `${this.ICONS_SHEET_W * scale}px ${this.ICONS_SHEET_H * scale}px`,
+      'background-position': `-${box.x * scale}px -${box.y * scale}px`,
+      'image-rendering':     'pixelated',
+      'width':               `${box.w * scale}px`,
+      'height':              `${box.h * scale}px`,
+    };
+  }
+
+  // Hoja de objetos (Objects.png, 656×272). Rejilla irregular (arbustos/rocas/setas
+  // arriba, árboles grandes abajo): cada icono es su caja exacta detectada por su
+  // recorte real. Se escala cada uno para caber en la celda. Listados con su nº.
+  readonly OBJECTS_SHEET_W = 656;
+  readonly OBJECTS_SHEET_H = 272;
+  readonly objectsSheetList: { x: number; y: number; w: number; h: number }[] = [
+    {x:1,y:7,w:28,h:24},{x:33,y:7,w:28,h:24},{x:65,y:7,w:29,h:23},{x:97,y:7,w:29,h:23},{x:129,y:7,w:29,h:23},{x:161,y:9,w:29,h:21},{x:194,y:8,w:29,h:21},{x:226,y:8,w:29,h:21},{x:257,y:7,w:28,h:22},{x:289,y:8,w:28,h:21},{x:338,y:7,w:27,h:23},{x:370,y:7,w:27,h:23},{x:403,y:7,w:26,h:21},{x:435,y:7,w:26,h:21},{x:466,y:7,w:26,h:22},{x:498,y:9,w:26,h:20},{x:531,y:8,w:26,h:20},{x:563,y:8,w:26,h:20},{x:594,y:7,w:28,h:21},{x:626,y:8,w:28,h:20},
+    {x:3,y:39,w:27,h:23},{x:35,y:41,w:27,h:21},{x:64,y:39,w:28,h:23},{x:96,y:39,w:28,h:23},{x:128,y:39,w:29,h:23},{x:160,y:39,w:29,h:23},{x:193,y:39,w:28,h:22},{x:225,y:41,w:28,h:20},{x:258,y:39,w:26,h:22},{x:290,y:40,w:26,h:21},{x:340,y:39,w:25,h:22},{x:372,y:41,w:25,h:20},{x:400,y:39,w:28,h:22},{x:432,y:39,w:28,h:22},{x:466,y:39,w:26,h:21},{x:498,y:39,w:26,h:21},{x:530,y:39,w:26,h:20},{x:562,y:41,w:26,h:18},{x:595,y:39,w:24,h:21},{x:627,y:40,w:25,h:20},
+    {x:6,y:69,w:21,h:25},{x:41,y:81,w:18,h:13},{x:72,y:70,w:17,h:22},{x:105,y:80,w:16,h:12},{x:136,y:68,w:19,h:25},{x:169,y:77,w:18,h:16},{x:200,y:69,w:16,h:22},{x:230,y:80,w:20,h:12},{x:262,y:70,w:20,h:21},{x:296,y:81,w:17,h:11},{x:342,y:69,w:21,h:23},{x:377,y:81,w:17,h:11},{x:408,y:70,w:16,h:21},{x:442,y:80,w:14,h:11},{x:472,y:68,w:19,h:24},{x:505,y:77,w:17,h:15},{x:536,y:69,w:16,h:21},{x:570,y:84,w:13,h:6},{x:598,y:70,w:20,h:20},{x:635,y:84,w:11,h:6},
+    {x:7,y:98,w:21,h:30},{x:43,y:114,w:12,h:13},{x:69,y:99,w:22,h:28},{x:107,y:106,w:13,h:21},{x:134,y:100,w:20,h:28},{x:167,y:102,w:19,h:26},{x:197,y:101,w:20,h:27},{x:229,y:107,w:20,h:21},{x:262,y:101,w:22,h:27},{x:295,y:104,w:21,h:24},{x:343,y:98,w:21,h:29},{x:380,y:114,w:10,h:12},{x:405,y:99,w:22,h:27},{x:444,y:106,w:11,h:20},{x:470,y:100,w:20,h:27},{x:503,y:102,w:19,h:25},{x:533,y:101,w:20,h:26},{x:565,y:107,w:20,h:20},{x:598,y:101,w:22,h:26},{x:631,y:104,w:21,h:23},
+    {x:5,y:135,w:23,h:23},{x:37,y:142,w:23,h:16},{x:69,y:136,w:25,h:22},{x:103,y:142,w:23,h:16},{x:133,y:132,w:22,h:24},{x:165,y:140,w:22,h:16},{x:195,y:134,w:27,h:23},{x:227,y:142,w:27,h:15},{x:264,y:134,w:17,h:23},{x:296,y:146,w:17,h:11},{x:342,y:135,w:21,h:22},{x:374,y:142,w:21,h:15},{x:407,y:136,w:21,h:21},{x:439,y:142,w:21,h:15},{x:470,y:132,w:19,h:23},{x:502,y:140,w:19,h:15},{x:532,y:134,w:25,h:22},{x:564,y:142,w:25,h:14},{x:600,y:134,w:17,h:23},{x:632,y:146,w:17,h:11},
+    {x:3,y:168,w:23,h:22},{x:35,y:171,w:23,h:19},{x:69,y:167,w:23,h:22},{x:101,y:174,w:23,h:15},{x:132,y:167,w:23,h:25},{x:164,y:171,w:23,h:21},{x:198,y:167,w:20,h:24},{x:230,y:174,w:18,h:17},{x:263,y:164,w:21,h:26},{x:295,y:174,w:19,h:16},{x:341,y:168,w:21,h:21},{x:373,y:172,w:21,h:17},{x:406,y:167,w:19,h:21},{x:438,y:174,w:19,h:14},{x:470,y:167,w:20,h:23},{x:502,y:171,w:20,h:19},{x:535,y:167,w:19,h:22},{x:567,y:174,w:16,h:15},{x:599,y:164,w:21,h:25},{x:631,y:174,w:17,h:15},
+    {x:0,y:225,w:32,h:47},{x:37,y:253,w:24,h:19},{x:83,y:208,w:53,h:64},{x:143,y:253,w:33,h:19},{x:193,y:194,w:63,h:78},{x:268,y:247,w:42,h:25},{x:336,y:225,w:32,h:47},{x:373,y:254,w:24,h:18},{x:419,y:208,w:53,h:64},{x:479,y:253,w:33,h:19},{x:529,y:194,w:63,h:77},{x:604,y:247,w:41,h:24},
+  ];
+
+  /** Estilo que recorta la caja de Objects.png, escalada para caber (~48px) en la celda. */
+  objectsSheetStyle(box: { x: number; y: number; w: number; h: number }): Record<string, string> {
+    const FIT = 48;
+    const scale = Math.min(FIT / box.w, FIT / box.h);
+    return {
+      'background-image':    `url(assets/icon/icons/Objects.png)`,
+      'background-repeat':   'no-repeat',
+      'background-size':     `${this.OBJECTS_SHEET_W * scale}px ${this.OBJECTS_SHEET_H * scale}px`,
       'background-position': `-${box.x * scale}px -${box.y * scale}px`,
       'image-rendering':     'pixelated',
       'width':               `${box.w * scale}px`,

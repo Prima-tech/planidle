@@ -428,3 +428,69 @@ $purple: #6e4a67;         // selección
   color: rgba(236, 217, 180, 0.75);
 }
 
+// ── Pestaña de tiers de minería ──────────────────────────────────────────────
+
+.mining-tab {
+  padding: 4px 2px;
+}
+
+.mining-tier {
+  margin-bottom: 12px;
+}
+
+.mining-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: $text-cream;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 5px 2px;
+}
+
+.mining-row {
+  display: flex;
+  gap: 5px;
+}
+
+.mining-cell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.mining-frame {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Placa típica de item: madera marrón clara + bisel metálico de piedra. */
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  overflow: hidden;
+}
+
+.mining-name {
+  font-size: 8px;
+  color: $text-cream;
+  text-align: center;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+.mining-img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+

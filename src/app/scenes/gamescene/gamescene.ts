@@ -343,7 +343,7 @@ export class GameScene extends Phaser.Scene {
       }
 
       // Recursos recolectables (se colocan en mapas que no son el hogar)
-      this.load.image('rock_mine', 'assets/sprites/map/skills/rocks/Rock1_3.png');
+      this.load.image('rock_mine', 'assets/sprites/map/skills/rocks/tier1_rock.png');
       this.load.image('tree_chop', 'assets/sprites/map/skills/trees/Tree1.png');
 
       // Pociones (consumibles)

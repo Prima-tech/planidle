@@ -59,8 +59,7 @@ const MM_MARGIN     = 15 * DPR;   // separación del borde derecho (aro HTML a 1
 const MM_TOP        = 15 * DPR;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
 const MM_DOT_PORTAL    = 3   * DPR;
 const MM_COLOR_PORTAL  = 0x48c4f8;
-const MM_DOT_NODE      = 3.5 * DPR;   // recursos recolectables (rocas/árboles)
-const MM_COLOR_ROCK    = 0x9a9a9a;
+const MM_DOT_NODE      = 3.5 * DPR;   // árboles (las rocas usan icono)
 const MM_COLOR_TREE    = 0x3c8c3c;
 const MM_ICON_ENEMY_KEY = 'mm_enemy';
 const MM_ICON_ELITE_KEY = 'mm_enemy_elite';
@@ -70,6 +69,9 @@ const MM_ICON_BUILD_KEY  = 'mm_build';
 const MM_ICON_HALF_BUILD = 6 * DPR;       // medio tamaño del icono de construcciones
 const MM_ICON_CHEST_KEY  = 'mm_chest';
 const MM_ICON_HALF_CHEST = 6 * DPR;       // medio tamaño del icono del cofre de ciudad
+const MM_ICON_ROCK_KEY   = 'mm_icons';    // spritesheet 16px de Icons.png
+const MM_ROCK_FRAME      = 33;            // frame del icono #2 (col 3, fila 1)
+const MM_ICON_HALF_ROCK  = 5 * DPR;       // medio tamaño del icono de roca
 const MM_TERRAIN_TEX    = 'mm_terrain';   // CanvasTexture del suelo coloreado (se regenera por mapa)
 // Zoom fijo del minimapa: acercado y centrado en el jugador (el suelo se desplaza
 // bajo la máscara circular). Sin niveles ni botones: siempre este factor.
@@ -96,6 +98,7 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmEnemyIcons: Phaser.GameObjects.Image[] = [];
   private mmBuildingDots: Phaser.GameObjects.Image[] = [];
   private mmNodeDots: Phaser.GameObjects.Arc[] = [];
+  private mmRockIcons: Phaser.GameObjects.Image[] = [];   // iconos de roca (Icons.png frame 33)
   private mmTerrain: Phaser.GameObjects.Image | null = null;       // imagen del suelo coloreado
   private mmTerrainMask: Phaser.GameObjects.Graphics | null = null; // máscara circular del terreno
   // Elementos estáticos (mundo): se recolocan cada frame cuando hay zoom (siguen al jugador).
@@ -126,6 +129,8 @@ export class MobileHUDScene extends Phaser.Scene {
     this.load.image(MM_ICON_PLAYER_KEY, 'assets/icon/minimap/player.png');
     this.load.image(MM_ICON_BUILD_KEY, 'assets/icon/minimap/build.png');
     this.load.image(MM_ICON_CHEST_KEY, 'assets/icon/minimap/treasure.png');
+    // Icons.png como spritesheet 16px: el rock del minimapa es el frame #33 (icono #2).
+    this.load.spritesheet(MM_ICON_ROCK_KEY, 'assets/icon/icons/Icons.png', { frameWidth: 16, frameHeight: 16 });
   }
 
   create(): void {
@@ -350,6 +355,7 @@ export class MobileHUDScene extends Phaser.Scene {
     this.mmEnemyIcons   = [];
     this.mmBuildingDots = [];
     this.mmNodeDots     = [];
+    this.mmRockIcons    = [];
     this.mmPortals      = [];
     this.mmChest        = null;
     // La máscara no vive en la display list → no se destruye sola en el relanzamiento.
@@ -533,28 +539,44 @@ export class MobileHUDScene extends Phaser.Scene {
       this.mmBuildingDots[i].setVisible(false);
     }
 
-    // Recursos recolectables (rocas/árboles): dinámicos (desaparecen al destruirse)
+    // Recursos recolectables: rocas → icono (Icons.png frame 33); árboles → punto verde.
     const nodes = this.mmData.getNodes?.() ?? [];
     const nodeR = MM_DOT_NODE * s;
-    let nUsed = 0;
+    const rockHalf = MM_ICON_HALF_ROCK * s, rockSz = rockHalf * 2;
+    let dUsed = 0, rUsed = 0;
     for (const n of nodes) {
-      const dot = this.getNodeDot(nUsed++);
-      if (dot.radius !== nodeR) dot.setRadius(nodeR);   // guard: setRadius regenera geometría
-      dot.setFillStyle(n.kind === 'tree' ? MM_COLOR_TREE : MM_COLOR_ROCK, 1);
-      this.mmPlace(dot, n.x, n.y);
-      dot.setVisible(true);
+      if (n.kind === 'rock') {
+        const icon = this.getRockIcon(rUsed++);
+        if (icon.displayWidth !== rockSz) icon.setDisplaySize(rockSz, rockSz);
+        this.mmPlaceImg(icon, rockHalf, n.x, n.y);
+        icon.setVisible(true);
+      } else {
+        const dot = this.getNodeDot(dUsed++);
+        if (dot.radius !== nodeR) dot.setRadius(nodeR);   // guard: setRadius regenera geometría
+        dot.setFillStyle(MM_COLOR_TREE, 1);
+        this.mmPlace(dot, n.x, n.y);
+        dot.setVisible(true);
+      }
     }
-    for (let i = nUsed; i < this.mmNodeDots.length; i++) {
-      this.mmNodeDots[i].setVisible(false);
-    }
+    for (let i = dUsed; i < this.mmNodeDots.length; i++) this.mmNodeDots[i].setVisible(false);
+    for (let i = rUsed; i < this.mmRockIcons.length; i++) this.mmRockIcons[i].setVisible(false);
   }
 
   private getNodeDot(index: number): Phaser.GameObjects.Arc {
     if (index >= this.mmNodeDots.length) {
-      const dot = this.add.circle(0, 0, MM_DOT_NODE, MM_COLOR_ROCK, 1);
+      const dot = this.add.circle(0, 0, MM_DOT_NODE, MM_COLOR_TREE, 1);
       this.mmNodeDots.push(dot);
     }
     return this.mmNodeDots[index];
+  }
+
+  private getRockIcon(index: number): Phaser.GameObjects.Image {
+    if (index >= this.mmRockIcons.length) {
+      const icon = this.add.image(0, 0, MM_ICON_ROCK_KEY, MM_ROCK_FRAME);
+      icon.setDisplaySize(MM_ICON_HALF_ROCK * 2, MM_ICON_HALF_ROCK * 2);
+      this.mmRockIcons.push(icon);
+    }
+    return this.mmRockIcons[index];
   }
 
   private getBuildingDot(index: number): Phaser.GameObjects.Image {

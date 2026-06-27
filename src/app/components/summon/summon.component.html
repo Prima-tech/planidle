@@ -135,6 +135,32 @@
   </div>
 </div>
 
+<!-- Hoja de objetos (Objects.png): troceada en celdas con su nº para referirse a ellos -->
+<div class="icon-grid" *ngIf="activeTab === 5">
+  <div *ngFor="let box of objectsSheetList; let i = index" class="icon-card" [title]="'#' + i">
+    <div class="icon-frame">
+      <div [ngStyle]="objectsSheetStyle(box)"></div>
+    </div>
+    <span class="icon-num">#{{ i }}</span>
+  </div>
+</div>
+
+<!-- Tiers de minería: título del tier + sus iconos (rock/map/drop/bar…) en una fila -->
+<div class="mining-tab" *ngIf="activeTab === 6">
+  <div class="mining-tier" *ngFor="let tier of miningTiers">
+    <div class="mining-title">{{ tier.title }}</div>
+    <div class="mining-row">
+      <div class="mining-cell" *ngFor="let t of tier.items" [title]="t.name">
+        <div class="mining-frame">
+          <img *ngIf="t.img" [src]="t.img" class="mining-img" alt="" draggable="false" />
+          <div *ngIf="t.box" [ngStyle]="miningIconStyle(t.box)"></div>
+        </div>
+        <span class="mining-name">{{ t.name }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <ng-template #itemCards let-entries>
   <button *ngFor="let entry of entries" class="item-card" (click)="giveItem(entry)" [title]="entry.name">
     <div class="item-frame">
