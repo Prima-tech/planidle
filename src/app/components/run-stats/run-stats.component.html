@@ -9,7 +9,7 @@
   <!-- Widget: metros (izquierda) + estrellas (derecha), sin barras -->
   <div class="rs-widget">
     <div class="rs-stat rs-stat--meters">
-      <span class="rs-val">{{ distance$ | async }}</span><span class="rs-unit">m</span>
+      <span class="rs-val">{{ distance$ | async | compactNumber }}</span><span class="rs-unit">m</span>
     </div>
     <div class="rs-stat">
       <img class="rs-img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />

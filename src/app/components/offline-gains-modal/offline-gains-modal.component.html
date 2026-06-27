@@ -24,7 +24,7 @@
         <div class="afk-rows">
           <div class="afk-row">
             <span class="afk-label">{{ 'OFFLINE.METERS_EXPLORED' | translate }}</span>
-            <span class="afk-value afk-value--exp">+{{ gains.exploreMeters | number }} m</span>
+            <span class="afk-value afk-value--exp">+{{ gains.exploreMeters | compactNumber }} m</span>
           </div>
         </div>
 
@@ -45,11 +45,11 @@
         <div class="afk-rows">
           <div class="afk-row">
             <span class="afk-label">{{ (gains.gatherSkill === 'woodcutting' ? 'GATHER_SKILLS.WOODCUTTING' : 'GATHER_SKILLS.MINING') | translate }}</span>
-            <span class="afk-value">{{ gains.gatherNodes | number }}</span>
+            <span class="afk-value">{{ gains.gatherNodes | compactNumber }}</span>
           </div>
           <div class="afk-row">
             <span class="afk-label">XP</span>
-            <span class="afk-value afk-value--exp">+{{ gains.gatherXp | number }}</span>
+            <span class="afk-value afk-value--exp">+{{ gains.gatherXp | compactNumber }}</span>
           </div>
         </div>
       </ng-container>
@@ -59,7 +59,7 @@
         <div class="afk-rows">
           <div class="afk-row" *ngFor="let entry of gains.enemyGains">
             <span class="afk-label">{{ entry.displayName }}</span>
-            <span class="afk-value">{{ entry.kills | number }}</span>
+            <span class="afk-value">{{ entry.kills | compactNumber }}</span>
           </div>
         </div>
 
@@ -70,7 +70,7 @@
           </div>
           <div class="afk-row">
             <span class="afk-label">{{ 'OFFLINE.EXP' | translate }}</span>
-            <span class="afk-value afk-value--exp">+{{ gains.exp | number }}</span>
+            <span class="afk-value afk-value--exp">+{{ gains.exp | compactNumber }}</span>
           </div>
         </div>
       </ng-container>

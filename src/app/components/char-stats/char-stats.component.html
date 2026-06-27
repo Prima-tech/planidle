@@ -8,7 +8,7 @@
 
     <div class="cs-row">
       <span class="cs-label">EXP</span>
-      <span class="cs-val cs-xp" *ngIf="!vm.isMaxLevel">{{ vm.exp }} / {{ vm.expCap }}</span>
+      <span class="cs-val cs-xp" *ngIf="!vm.isMaxLevel">{{ vm.exp | compactNumber }} / {{ vm.expCap | compactNumber }}</span>
       <span class="cs-val cs-xp cs-max" *ngIf="vm.isMaxLevel">MAX</span>
     </div>
     <div class="cs-xp-track">
@@ -21,17 +21,17 @@
 
     <div class="cs-row">
       <span class="cs-label">{{ 'STAT.ATTACK' | translate }}</span>
-      <span class="cs-val cs-dmg">{{ vm.damage.total }}</span>
+      <span class="cs-val cs-dmg">{{ vm.damage.total | compactNumber }}</span>
     </div>
 
     <div class="cs-breakdown">
       <div class="cs-bk-row">
         <span>{{ 'STAT.STRENGTH' | translate }}</span>
-        <span>{{ vm.damage.base }}</span>
+        <span>{{ vm.damage.base | compactNumber }}</span>
       </div>
       <div class="cs-bk-row" *ngIf="vm.damage.equipment > 0">
         <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
-        <span class="cs-bonus">+{{ vm.damage.equipment }}</span>
+        <span class="cs-bonus">+{{ vm.damage.equipment | compactNumber }}</span>
       </div>
     </div>
   </ng-container>

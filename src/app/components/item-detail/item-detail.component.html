@@ -32,7 +32,8 @@
       <div class="pet-exp-fill" [style.width.%]="petExpRatio * 100"></div>
     </div>
     <div class="pet-exp-text">
-      {{ petIsMaxLevel ? ('PET.MAX_LEVEL' | translate) : (petExp + ' / ' + petExpNeeded) }}
+      <ng-container *ngIf="petIsMaxLevel; else petExpProgress">{{ 'PET.MAX_LEVEL' | translate }}</ng-container>
+      <ng-template #petExpProgress>{{ petExp | compactNumber }} / {{ petExpNeeded | compactNumber }}</ng-template>
     </div>
     <div class="pet-level-row pet-stat-row">
       <span class="pet-level-label">{{ 'PET.PICKUP_RANGE' | translate }}</span>

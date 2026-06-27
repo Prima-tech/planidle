@@ -69,7 +69,7 @@
         <div class="mip-rates" *ngIf="isExploring">
           <div class="mip-rate">
             <span class="mip-rate-label">{{ 'RUN.RECORD_DISTANCE' | translate }}</span>
-            <span class="mip-rate-val">{{ (recordDistance$ | async) | number }} m</span>
+            <span class="mip-rate-val">{{ (recordDistance$ | async) | compactNumber }} m</span>
           </div>
           <div class="mip-rate">
             <span class="mip-rate-label">{{ 'RUN.DEATHS' | translate }}</span>
@@ -118,7 +118,7 @@
             </div>
             <div class="mip-rate">
               <span class="mip-rate-label">XP</span>
-              <span class="mip-rate-val">{{ d.expPerHour | number }}</span>
+              <span class="mip-rate-val">{{ d.expPerHour | compactNumber }}</span>
             </div>
           </div>
           <div class="mip-no-spawn" *ngIf="d.coinsPerHour === 0">{{ 'MAP.NO_ACTIVE_ENEMIES' | translate }}</div>

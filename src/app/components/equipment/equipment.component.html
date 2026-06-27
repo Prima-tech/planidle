@@ -107,7 +107,7 @@
       <div class="ov-level-card">
         <div class="ov-level-top">
           <span class="ov-level-num">{{ 'STAT.LEVEL_SHORT' | translate }} {{ st.lvl }}</span>
-          <span class="ov-level-exp" *ngIf="st.lvl < maxLevel">{{ st.exp }} / {{ expNeeded(st.lvl) }} EXP</span>
+          <span class="ov-level-exp" *ngIf="st.lvl < maxLevel">{{ st.exp | compactNumber }} / {{ expNeeded(st.lvl) | compactNumber }} EXP</span>
           <span class="ov-level-exp" *ngIf="st.lvl >= maxLevel">MAX</span>
         </div>
         <div class="ov-exp-track">
@@ -549,14 +549,14 @@
                 <div class="skill-xp-fill" [style.width.%]="p.ratio * 100"></div>
               </div>
               <span class="skill-xp-label">
-                <ng-container *ngIf="!p.max">{{ p.intoLevel }} / {{ p.needed }} XP</ng-container>
-                <ng-container *ngIf="p.max">{{ p.totalXp }} XP</ng-container>
+                <ng-container *ngIf="!p.max">{{ p.intoLevel | compactNumber }} / {{ p.needed | compactNumber }} XP</ng-container>
+                <ng-container *ngIf="p.max">{{ p.totalXp | compactNumber }} XP</ng-container>
               </span>
             </div>
 
             <div class="skill-stat-row">
               <span class="skill-stat-label">{{ 'GATHER_SKILLS.TOTAL_GATHERED' | translate }}</span>
-              <span class="skill-stat-val">{{ p.gathered | number }}</span>
+              <span class="skill-stat-val">{{ p.gathered | compactNumber }}</span>
             </div>
 
           </ng-container>
@@ -782,7 +782,7 @@
         </span>
         <span class="quest-reward-item" *ngIf="q.reward.exp">
           <ion-icon class="qr-xp" name="star"></ion-icon>
-          <span class="qr-amount">{{ q.reward.exp | number }} EXP</span>
+          <span class="qr-amount">{{ q.reward.exp | compactNumber }} EXP</span>
         </span>
       </div>
 
