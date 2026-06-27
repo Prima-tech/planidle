@@ -71,6 +71,9 @@ const MM_ICON_HALF_BUILD = 6 * DPR;       // medio tamaño del icono de construc
 const MM_ICON_CHEST_KEY  = 'mm_chest';
 const MM_ICON_HALF_CHEST = 6 * DPR;       // medio tamaño del icono del cofre de ciudad
 const MM_TERRAIN_TEX    = 'mm_terrain';   // CanvasTexture del suelo coloreado (se regenera por mapa)
+// Zoom fijo del minimapa: acercado y centrado en el jugador (el suelo se desplaza
+// bajo la máscara circular). Sin niveles ni botones: siempre este factor.
+const MM_ZOOM = 2;
 const MM_ICON_HALF      = 8   * DPR;   // half-size regular
 const MM_ICON_HALF_EL   = 10  * DPR;   // half-size elite / oblivion
 
@@ -95,6 +98,11 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmNodeDots: Phaser.GameObjects.Arc[] = [];
   private mmTerrain: Phaser.GameObjects.Image | null = null;       // imagen del suelo coloreado
   private mmTerrainMask: Phaser.GameObjects.Graphics | null = null; // máscara circular del terreno
+  // Elementos estáticos (mundo): se recolocan cada frame cuando hay zoom (siguen al jugador).
+  private mmPortals: { dot: Phaser.GameObjects.Arc; x: number; y: number }[] = [];
+  private mmChest: { icon: Phaser.GameObjects.Image; x: number; y: number } | null = null;
+  private mmZoom = MM_ZOOM;  // zoom fijo (siempre acercado, centrado en el jugador)
+  private mmBaseScale = 0;   // escala que encaja el mapa completo (zoom 1)
   private mmAccum = 0;   // acumulador para throttlear el redibujado del minimapa
 
   // ── Overlay de rendimiento (toggle en ajustes: showFps) ─────────────────────
@@ -342,6 +350,8 @@ export class MobileHUDScene extends Phaser.Scene {
     this.mmEnemyIcons   = [];
     this.mmBuildingDots = [];
     this.mmNodeDots     = [];
+    this.mmPortals      = [];
+    this.mmChest        = null;
     // La máscara no vive en la display list → no se destruye sola en el relanzamiento.
     this.mmTerrainMask?.destroy();
     this.mmTerrain      = null;
@@ -351,11 +361,9 @@ export class MobileHUDScene extends Phaser.Scene {
     if (!data || !data.mapWidthPx || !data.mapHeightPx) return;
     this.mmData = data;
 
-    this.mmCX    = screenW - MM_MARGIN - MM_RADIUS;
-    this.mmCY    = MM_TOP + MM_RADIUS;
-    this.mmScale = (MM_RADIUS * 2) / Math.max(data.mapWidthPx, data.mapHeightPx);
-    this.mmOffX  = this.mmCX - (data.mapWidthPx  * this.mmScale) / 2;
-    this.mmOffY  = this.mmCY - (data.mapHeightPx * this.mmScale) / 2;
+    this.mmCX        = screenW - MM_MARGIN - MM_RADIUS;
+    this.mmCY        = MM_TOP + MM_RADIUS;
+    this.mmBaseScale = (MM_RADIUS * 2) / Math.max(data.mapWidthPx, data.mapHeightPx);
 
     // Suelo coloreado (verde hierba, azul agua…). Si hay terreno, el fondo oscuro
     // se vuelve transparente para que se vea; si no, mantiene el relleno de siempre.
@@ -364,22 +372,66 @@ export class MobileHUDScene extends Phaser.Scene {
     const bg = this.add.circle(this.mmCX, this.mmCY, MM_RADIUS, 0x1a1a2e, hasTerrain ? 0 : 0.55);
     bg.setStrokeStyle(1.5 * DPR, 0x3498db, 0.5);
 
-    // Portales: estáticos, se dibujan una sola vez
+    // Portales (estáticos): se crean una vez y se recolocan en layoutStatic().
     for (const portal of data.portals) {
       const dot = this.add.circle(0, 0, MM_DOT_PORTAL, MM_COLOR_PORTAL, 0.9);
-      this.mmPlace(dot, portal.x, portal.y);
+      this.mmPortals.push({ dot, x: portal.x, y: portal.y });
     }
 
-    // Cofre de ciudad (solo en hogar): estático
+    // Cofre de ciudad (solo en hogar): estático.
     if (data.townChest) {
       const icon = this.add.image(0, 0, MM_ICON_CHEST_KEY);
       icon.setDisplaySize(MM_ICON_HALF_CHEST * 2, MM_ICON_HALF_CHEST * 2);
-      this.mmPlaceImg(icon, MM_ICON_HALF_CHEST, data.townChest.x, data.townChest.y);
+      this.mmChest = { icon, x: data.townChest.x, y: data.townChest.y };
     }
 
     this.mmPlayerDot = this.add.image(this.mmCX, this.mmCY, MM_ICON_PLAYER_KEY);
     this.mmPlayerDot.setDisplaySize(MM_ICON_HALF_PLAYER * 2, MM_ICON_HALF_PLAYER * 2);
+
+    // Proyección inicial (zoom 1 → centrada en el mapa) y colocación de estáticos.
+    this.recomputeProjection();
+    this.layoutStatic();
   }
+
+  /** Recalcula escala y desplazamiento según el zoom. Zoom 1 → mapa centrado en el
+   *  círculo; zoom >1 → centrado en el jugador (si se pasa su posición). */
+  private recomputeProjection(playerPos?: Phaser.Math.Vector2): void {
+    if (!this.mmData) return;
+    this.mmScale = this.mmBaseScale * this.mmZoom;
+    if (this.mmZoom <= 1 || !playerPos) {
+      this.mmOffX = this.mmCX - (this.mmData.mapWidthPx  * this.mmScale) / 2;
+      this.mmOffY = this.mmCY - (this.mmData.mapHeightPx * this.mmScale) / 2;
+    } else {
+      this.mmOffX = this.mmCX - playerPos.x * this.mmScale;
+      this.mmOffY = this.mmCY - playerPos.y * this.mmScale;
+    }
+  }
+
+  /** Recoloca los elementos estáticos (suelo, portales, cofre) con la proyección
+   *  actual. Se llama cada frame: barato y mantiene el paralaje al hacer zoom. */
+  private layoutStatic(): void {
+    if (this.mmData && this.mmTerrain) {
+      const dispW = this.mmData.mapWidthPx  * this.mmScale;
+      const dispH = this.mmData.mapHeightPx * this.mmScale;
+      this.mmTerrain.setDisplaySize(dispW, dispH);
+      this.mmTerrain.setPosition(this.mmOffX + dispW / 2, this.mmOffY + dispH / 2);
+    }
+    const s = this.mmIconScale;
+    const portalR = MM_DOT_PORTAL * s;
+    for (const p of this.mmPortals) {
+      if (p.dot.radius !== portalR) p.dot.setRadius(portalR);   // guard: setRadius regenera geometría
+      this.mmPlace(p.dot, p.x, p.y);
+    }
+    if (this.mmChest) {
+      const half = MM_ICON_HALF_CHEST * s, sz = half * 2;
+      if (this.mmChest.icon.displayWidth !== sz) this.mmChest.icon.setDisplaySize(sz, sz);
+      this.mmPlaceImg(this.mmChest.icon, half, this.mmChest.x, this.mmChest.y);
+    }
+  }
+
+  /** Factor de tamaño de iconos/puntos según el zoom (crecen al acercar, pero
+   *  amortiguado: a la mitad del zoom, para que no se vean demasiado grandes). */
+  private get mmIconScale(): number { return 1 + (this.mmZoom - 1) * 0.5; }
 
   /** Pinta el suelo coloreado dentro del círculo. Genera una CanvasTexture de
    *  cols×rows px (1 px por tile) y la escala al tamaño del mapa proyectado,
@@ -406,10 +458,8 @@ export class MobileHUDScene extends Phaser.Scene {
     ctx.putImageData(img, 0, 0);
     tex.refresh();
 
-    const dispW = this.mmData!.mapWidthPx  * this.mmScale;
-    const dispH = this.mmData!.mapHeightPx * this.mmScale;
+    // Posición/tamaño los fija layoutStatic() según el zoom; aquí solo se crea.
     const im = this.add.image(this.mmCX, this.mmCY, MM_TERRAIN_TEX);
-    im.setDisplaySize(dispW, dispH);
 
     // Máscara circular: el suelo no se sale del aro del minimapa.
     const mask = this.make.graphics({});
@@ -439,15 +489,22 @@ export class MobileHUDScene extends Phaser.Scene {
   private updateMinimap(): void {
     if (!this.mmData || !this.mmPlayerDot) return;
 
+    const s = this.mmIconScale;   // los iconos/puntos crecen con el zoom
+
     const playerPos = this.mmData.getPlayerPos();
-    this.mmPlaceImg(this.mmPlayerDot, MM_ICON_HALF_PLAYER, playerPos.x, playerPos.y);
+    // Con zoom, la proyección sigue al jugador → reproyecta y recoloca estáticos.
+    this.recomputeProjection(playerPos);
+    this.layoutStatic();
+    const playerHalf = MM_ICON_HALF_PLAYER * s, playerSz = playerHalf * 2;
+    if (this.mmPlayerDot.displayWidth !== playerSz) this.mmPlayerDot.setDisplaySize(playerSz, playerSz);
+    this.mmPlaceImg(this.mmPlayerDot, playerHalf, playerPos.x, playerPos.y);
 
     let used = 0;
     for (const enemy of this.mmData.enemies) {
       if (enemy.isDead) continue;
       const isElite = enemy.type.endsWith('_elite') || enemy.type.endsWith('_oblivion');
       const texKey  = isElite ? MM_ICON_ELITE_KEY : MM_ICON_ENEMY_KEY;
-      const half    = isElite ? MM_ICON_HALF_EL   : MM_ICON_HALF;
+      const half    = (isElite ? MM_ICON_HALF_EL  : MM_ICON_HALF) * s;
 
       const img = this.getEnemyIcon(used++);
       if (img.texture.key !== texKey) img.setTexture(texKey);
@@ -464,10 +521,12 @@ export class MobileHUDScene extends Phaser.Scene {
 
     // Construcciones colocadas (cofre/tienda): dinámicas (aparecen/cambian al construir)
     const buildings = this.mmData.getBuildings?.() ?? [];
+    const buildHalf = MM_ICON_HALF_BUILD * s, buildSz = buildHalf * 2;
     let bUsed = 0;
     for (const b of buildings) {
       const icon = this.getBuildingDot(bUsed++);
-      this.mmPlaceImg(icon, MM_ICON_HALF_BUILD, b.x, b.y);
+      if (icon.displayWidth !== buildSz) icon.setDisplaySize(buildSz, buildSz);
+      this.mmPlaceImg(icon, buildHalf, b.x, b.y);
       icon.setVisible(true);
     }
     for (let i = bUsed; i < this.mmBuildingDots.length; i++) {
@@ -476,9 +535,11 @@ export class MobileHUDScene extends Phaser.Scene {
 
     // Recursos recolectables (rocas/árboles): dinámicos (desaparecen al destruirse)
     const nodes = this.mmData.getNodes?.() ?? [];
+    const nodeR = MM_DOT_NODE * s;
     let nUsed = 0;
     for (const n of nodes) {
       const dot = this.getNodeDot(nUsed++);
+      if (dot.radius !== nodeR) dot.setRadius(nodeR);   // guard: setRadius regenera geometría
       dot.setFillStyle(n.kind === 'tree' ? MM_COLOR_TREE : MM_COLOR_ROCK, 1);
       this.mmPlace(dot, n.x, n.y);
       dot.setVisible(true);
