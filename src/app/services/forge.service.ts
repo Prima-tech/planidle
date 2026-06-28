@@ -17,7 +17,10 @@ import { ITEM_CATALOG, LootEntry } from '../physics/griddrops';
  * Persistencia local (StorageService) de TODAS las forjas; al cargar hace catch-up
  * por el tiempo transcurrido, así que trabajan también con la app cerrada. Son
  * globales entre personajes (el servicio no está ligado a ningún pj).
- * TODO: mover a `global_data.account` de Supabase con tiempo de servidor.
+ *
+ * En modo conectado se sincronizan a la nube (columna `global_data.forges`) y el
+ * tiempo offline lo calcula el SERVIDOR (RPC `claim_forge_offline`), así que no se
+ * puede trampear adelantando el reloj del móvil. Ver `supabase/forge_offline.sql`.
  */
 
 export type ForgeGrid = 'mat' | 'fuel' | 'out';
@@ -492,8 +495,10 @@ export class ForgeService {
     return out;
   }
 
-  /** Reconstruye las forjas en memoria desde un snapshot (local o nube) + catch-up. */
-  private buildForges(snap: ForgeSnapshot): void {
+  /** Reconstruye las forjas en memoria desde un snapshot (local o nube) + catch-up.
+   *  `overrideElapsedS` = segundos calculados por el SERVIDOR (anti-trampa de reloj);
+   *  si no se pasa, cae al cálculo local `now - lastSave` (modo offline). */
+  private buildForges(snap: ForgeSnapshot, overrideElapsedS?: number): void {
     this.forges = snap.forges.map(s => ({
       id: s.id, name: s.name,
       mat: this.normGrid(s.mat), fuel: this.normGrid(s.fuel), out: this.normGrid(s.out),
@@ -502,8 +507,10 @@ export class ForgeService {
     }));
     this.activeId = snap.activeId && this.forges.some(f => f.id === snap.activeId)
       ? snap.activeId : this.forges[0].id;
-    // Catch-up offline: avanza cada forja en marcha por el tiempo transcurrido.
-    const elapsed = snap.lastSave ? Math.min(MAX_CATCHUP_S, (Date.now() - snap.lastSave) / 1000) : 0;
+    // Catch-up offline.
+    const elapsed = overrideElapsedS != null
+      ? Math.min(MAX_CATCHUP_S, Math.max(0, overrideElapsedS))
+      : (snap.lastSave ? Math.min(MAX_CATCHUP_S, (Date.now() - snap.lastSave) / 1000) : 0);
     if (elapsed > 0) for (const f of this.forges) if (f.running) { this.stepForge(f, elapsed); this.normalize(f); }
   }
 
@@ -523,24 +530,23 @@ export class ForgeService {
     this.storage.set(STORAGE_KEY, this.buildSnapshot());
   }
 
-  // ── Sincronización de cuenta (Supabase global_data.account.forges) ───────────
+  // ── Sincronización de cuenta (Supabase: columna global_data.forges + server-time) ──
 
   /** Snapshot para subir a la nube (lo llama SaveService al guardar). */
   getAccountSnapshot(): ForgeSnapshot {
     return this.buildSnapshot();
   }
 
-  /** Aplica el snapshot de la nube (login) si es MÁS NUEVO que el local; si el local
-   *  es igual o más nuevo (seguiste jugando offline), no toca nada. Resuelve por
-   *  `lastSave`. Espera a que el estado local esté cargado para no pisarse. */
-  async syncFromCloud(cloud: ForgeSnapshot | null): Promise<void> {
+  /** Aplica el snapshot de la NUBE al loguear (modo conectado). La nube + el tiempo
+   *  del SERVIDOR mandan: el estado local avanza con el reloj del cliente, que es
+   *  trampeable, así que NO se respeta aquí (se reconstruye desde la nube de forma
+   *  determinista con el tiempo real del servidor). `serverElapsedS` = segundos
+   *  offline calculados por el servidor (claim_forge_offline); si es null, cae al
+   *  reloj local como respaldo. Espera a que el estado local esté cargado. */
+  async syncFromCloud(cloud: ForgeSnapshot | null, serverElapsedS?: number | null): Promise<void> {
     if (!cloud?.forges?.length) return;
     await this.loadPromise;
-    const local = (await this.storage.get(STORAGE_KEY)) as ForgeSnapshot | null;
-    const cloudT = cloud.lastSave ?? 0;
-    const localT = local?.lastSave ?? 0;
-    if (local && localT >= cloudT) return;   // local igual o más nuevo → se queda
-    this.buildForges(cloud);
+    this.buildForges(cloud, serverElapsedS ?? undefined);
     this.persist();
     this.emitActive(); this.emitForges(); this.changes$.next();
   }

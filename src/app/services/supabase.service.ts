@@ -110,9 +110,16 @@ export class SupabaseService {
       const mergedGlobalAch = [...new Set([...cloudGlobalAch, ...localGlobalAch])];
       await this.storageService.set('achievements_global', mergedGlobalAch);
 
-      // Forjas de CUENTA (global_data.account.forges): globales entre personajes.
-      // syncFromCloud resuelve por lastSave (si el local es más nuevo, se queda).
-      await this.forge.syncFromCloud((data as any).account?.forges ?? null);
+      // Forjas de CUENTA (columna `forges`): globales entre personajes. El tiempo
+      // offline lo calcula el SERVIDOR (claim_forge_offline) → no se puede trampear
+      // adelantando el reloj del móvil. La nube + ese tiempo mandan sobre el local.
+      const cloudForges = (data as any).forges ?? null;
+      if (cloudForges?.forges?.length) {
+        let serverElapsed: number | null = null;
+        try { serverElapsed = await this.claimForgeOffline(); }
+        catch (e) { console.warn('[Supabase] claim_forge_offline falló — uso tiempo local', e); }
+        await this.forge.syncFromCloud(cloudForges, serverElapsed);
+      }
 
       // Offline-first: baja el snapshot de cada personaje a su clave local.
       // Conflicto: si el local es más nuevo (el jugador siguió jugando offline),
@@ -211,6 +218,23 @@ export class SupabaseService {
       version:      (data as any)?.version ?? 0,
       lastModified: (data as any)?.last_modified ?? null,
     };
+  }
+
+  /** Sube el snapshot de TODAS las forjas (columna `forges`). El servidor sella
+   *  `forges_last_seen = now()` en la RPC, así el tiempo es de servidor (no del cliente). */
+  async saveForges(forges: any): Promise<void> {
+    const { error } = await this.supabase.rpc('save_forges', { p_forges: forges });
+    if (error) throw error;
+  }
+
+  /** Reclama el tiempo offline de las forjas con la HORA DEL SERVIDOR: la RPC calcula
+   *  `now() - forges_last_seen` (capado), re-sella y devuelve los segundos. Así el
+   *  reloj del móvil no puede fabricar producción offline. null si no hay sello aún. */
+  async claimForgeOffline(): Promise<number | null> {
+    const { data, error } = await this.supabase.rpc('claim_forge_offline');
+    if (error) throw error;
+    const n = Number(data);
+    return Number.isFinite(n) ? n : null;
   }
 
   /** Guarda datos a nivel de CUENTA (no por personaje) en global_data.account.

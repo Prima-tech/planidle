@@ -448,12 +448,16 @@ export class SaveService {
       // escritura falla (p.ej. RLS de global_data), NO debe tumbar el guardado del
       // personaje que ya tuvo éxito: lo aislamos.
       try {
-        await this.supabase.saveAccountData({
-          achievementsGlobal: this.achievements.getGlobalSnapshot(),
-          forges: this.forge.getAccountSnapshot(),   // forjas globales de la cuenta
-        });
+        await this.supabase.saveAccountData({ achievementsGlobal: this.achievements.getGlobalSnapshot() });
       } catch (e) {
-        console.warn('[Save] global_data no se pudo actualizar (logros/forjas de cuenta)', e);
+        console.warn('[Save] global_data no se pudo actualizar (logros de cuenta)', e);
+      }
+      // Forjas de cuenta: por RPC aparte, que sella el tiempo en el SERVIDOR
+      // (anti-trampa de reloj). Aislado: si falla, no tumba el guardado.
+      try {
+        await this.supabase.saveForges(this.forge.getAccountSnapshot());
+      } catch (e) {
+        console.warn('[Save] forjas no se pudieron sincronizar', e);
       }
       await this.storage.set(this.syncedKey(), current);
       await this.setLocalVersion(res.version);   // nuestra nueva base sincronizada
