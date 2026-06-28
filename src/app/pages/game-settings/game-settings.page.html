@@ -141,6 +141,17 @@
             <span>Dar monedas</span>
           </button>
         </div>
+
+        <!-- Rejilla de tiles (debug de posiciones) -->
+        <div class="gs-row">
+          <div class="gs-row-info">
+            <span class="gs-row-title">Rejilla del mapa</span>
+            <span class="gs-row-desc">Muestra la cuadrícula de tiles con sus coordenadas.</span>
+          </div>
+          <div class="gs-toggle" [class.on]="gs.showGrid" (click)="gs.setShowGrid(!gs.showGrid)">
+            <div class="gs-toggle-thumb"></div>
+          </div>
+        </div>
       </div>
     </ng-container>
 

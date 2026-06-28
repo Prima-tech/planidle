@@ -227,6 +227,8 @@ export class GameScene extends Phaser.Scene {
     private litBuilding:        typeof this.placedBuildings[0] | null = null;
     private windowOpenSub: { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
+    private gridSub:     { unsubscribe(): void } | null = null;
+    private gridLayer:   Phaser.GameObjects.Container | null = null;   // overlay de rejilla de tiles (debug)
     private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
     private playerDamage      = 10;
@@ -497,6 +499,7 @@ export class GameScene extends Phaser.Scene {
 
       // Inmediato: lo mínimo para que el primer frame sea válido
       this.initMap();
+      this.initDebugGrid();
       this.initPlayer();
       this.initCamera();
       this.initParallax();
@@ -515,6 +518,7 @@ export class GameScene extends Phaser.Scene {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.scene.stop('MobileHUDScene');
         this.mobileInput = null;
+        this.gridSub?.unsubscribe();
         this.equipSub?.unsubscribe();
         this.gatherLayerSub?.unsubscribe();
         this.summonSub?.unsubscribe();
@@ -1160,6 +1164,44 @@ export class GameScene extends Phaser.Scene {
         layer.setDepth(depth++);
         layer.scale = 3;
       }
+    }
+
+    // ── Overlay de rejilla de tiles (debug de posiciones) ───────────────────────
+    private initDebugGrid(): void {
+      this.gridLayer = null;   // la escena se reutiliza; el container anterior ya murió en el shutdown
+      const gs = this.reg.gameSettings;
+      if (!gs) return;
+      this.setGridVisible(gs.showGrid);
+      this.gridSub = gs.showGrid$.subscribe((v: boolean) => this.setGridVisible(v));
+    }
+
+    private setGridVisible(on: boolean): void {
+      if (on) { if (!this.gridLayer) this.buildDebugGrid(); }
+      else    { this.gridLayer?.destroy(true); this.gridLayer = null; }
+    }
+
+    /** Dibuja líneas por tile (48px) + coordenadas cada 5 tiles. Por encima de todo. */
+    private buildDebugGrid(): void {
+      const TS = GameScene.TILE_SIZE;
+      const W = this.currentMap.width, H = this.currentMap.height;
+      const c = this.add.container(0, 0).setDepth(1000);
+
+      const g = this.add.graphics();
+      g.lineStyle(2, 0xffffff, 0.3);                       // líneas finas por tile
+      for (let x = 0; x <= W; x++) g.lineBetween(x * TS, 0, x * TS, H * TS);
+      for (let y = 0; y <= H; y++) g.lineBetween(0, y * TS, W * TS, y * TS);
+      g.lineStyle(3, 0xffd700, 0.55);                      // líneas marcadas cada 5 tiles
+      for (let x = 0; x <= W; x += 5) g.lineBetween(x * TS, 0, x * TS, H * TS);
+      for (let y = 0; y <= H; y += 5) g.lineBetween(0, y * TS, W * TS, y * TS);
+      c.add(g);
+
+      for (let x = 0; x < W; x += 5) {
+        for (let y = 0; y < H; y += 5) {
+          c.add(this.add.text(x * TS + 3, y * TS + 2, `${x},${y}`,
+            { fontSize: '18px', color: '#ffd700', fontStyle: 'bold' }));
+        }
+      }
+      this.gridLayer = c;
     }
 
     initPlayer() {

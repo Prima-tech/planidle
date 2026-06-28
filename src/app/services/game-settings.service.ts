@@ -9,6 +9,7 @@ import { WorldParallaxId } from '../scenes/worldrun/parallax-sets';
 export interface GameSettings {
   showJoystick: boolean;
   showFps: boolean;
+  showGrid: boolean;          // overlay de rejilla de tiles (debug de posiciones)
   parallaxTheme: ParallaxThemeId;
   worldParallax: WorldParallaxId;
 }
@@ -18,6 +19,7 @@ const STORAGE_KEY = 'idle_game_settings';
 const DEFAULTS: GameSettings = {
   showJoystick: true,
   showFps: false,
+  showGrid: false,
   parallaxTheme: 'sea',
   worldParallax: 'paralax01',
 };
@@ -57,6 +59,10 @@ export class GameSettingsService {
   get showFps():  boolean { return this._settings.showFps; }
   get showFps$()          { return this._subject.pipe(map(s => s.showFps), distinctUntilChanged()); }
   setShowFps(v: boolean)  { this.set('showFps', v); }
+
+  get showGrid():  boolean { return this._settings.showGrid; }
+  get showGrid$()          { return this._subject.pipe(map(s => s.showGrid), distinctUntilChanged()); }
+  setShowGrid(v: boolean)  { this.set('showGrid', v); }
 
   get parallaxTheme(): ParallaxThemeId { return this._settings.parallaxTheme; }
   get parallaxTheme$()                 { return this._subject.pipe(map(s => s.parallaxTheme), distinctUntilChanged()); }
