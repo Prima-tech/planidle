@@ -8,7 +8,7 @@ import { PET_REGISTRY, PET_ICON_FRAME, PetConfig } from '../pnj/pet/pet-config';
 export interface LootEntry {
   name: string;
   category?: string;       // tipo de slot para EquipmentService (ej. 'Casco', 'Arma')
-  type: 'currency' | 'item';
+  type: 'currency' | 'item' | 'special';   // 'special' = moneda de pago (specialCoins)
   chance: number;
   minQty: number;
   maxQty: number;
@@ -50,6 +50,14 @@ const COIN = (min: number, max: number): LootEntry => ({
 });
 const COIN_ELITE    = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
 const COIN_OBLIVION = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
+
+// Moneda de pago (especial): se recoge en `specialCoins` (no en oro). El sprite del
+// drop usa el PNG de la Marca (sin texture precargada → spawnDrop lo carga al vuelo).
+export const PAYMENT_COIN: LootEntry = {
+  name: 'Moneda de Pago', type: 'special', chance: 1.0, minQty: 1, maxQty: 1,
+  mergeable: true, texture: 'payment_coin', icon: 'assets/icon/brand_of_sacrifice.png',
+  scale: 2.5, order: 9,
+};
 
 // ── Drops específicos de enemigo (materiales apilables) ──────────────────────
 // Cuelgan de la carpeta `drop/` del propio enemigo:
@@ -1008,6 +1016,11 @@ export class GridDrops {
 
     if (loot.type === 'currency') {
       this.playerState.collectCoins(qty);
+      return;
+    }
+
+    if (loot.type === 'special') {
+      this.playerState.collectSpecialCoins(qty);
       return;
     }
 

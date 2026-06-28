@@ -428,6 +428,14 @@ $purple: #6e4a67;         // selección
   color: rgba(236, 217, 180, 0.75);
 }
 
+/* Icono suelto (PNG transparente) dentro de la rejilla de iconos */
+.brand-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
 // ── Pestaña de tiers de minería ──────────────────────────────────────────────
 
 .mining-tab {

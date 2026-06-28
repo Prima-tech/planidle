@@ -20,6 +20,7 @@ import { UnlockService } from './unlock.service';
 import { ActivityService } from './activity.service';
 import { CharacterStatsService } from './character-stats.service';
 import { ConnectionService } from './connection.service';
+import { ForgeService } from './forge.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -108,6 +109,7 @@ export class SaveService {
     private charStats: CharacterStatsService,
     private connection: ConnectionService,
     private activity: ActivityService,
+    private forge: ForgeService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
@@ -322,6 +324,19 @@ export class SaveService {
     return total;
   }
 
+  /** Suma de niveles de TODOS los personajes de la cuenta (talentos globales).
+   *  Lee el snapshot de cada personaje; si no tiene (nunca jugado) cuenta su lvl
+   *  del roster (default 1). Mismo patrón que getGlobalCoins. */
+  async getGlobalLevels(): Promise<number> {
+    const chars: any[] = (await this.storage.get('characters')) ?? [];
+    let total = 0;
+    for (const char of chars) {
+      const snap: GameSnapshot | null = await this.storage.get(`snapshot_char_${char.id}`);
+      total += snap?.playerState?.lvl ?? char?.lvl ?? 1;
+    }
+    return total;
+  }
+
   // --- Internos ---
 
   private buildSnapshot(): GameSnapshot {
@@ -433,9 +448,12 @@ export class SaveService {
       // escritura falla (p.ej. RLS de global_data), NO debe tumbar el guardado del
       // personaje que ya tuvo éxito: lo aislamos.
       try {
-        await this.supabase.saveAccountData({ achievementsGlobal: this.achievements.getGlobalSnapshot() });
+        await this.supabase.saveAccountData({
+          achievementsGlobal: this.achievements.getGlobalSnapshot(),
+          forges: this.forge.getAccountSnapshot(),   // forjas globales de la cuenta
+        });
       } catch (e) {
-        console.warn('[Save] global_data no se pudo actualizar (logros de cuenta)', e);
+        console.warn('[Save] global_data no se pudo actualizar (logros/forjas de cuenta)', e);
       }
       await this.storage.set(this.syncedKey(), current);
       await this.setLocalVersion(res.version);   // nuestra nueva base sincronizada

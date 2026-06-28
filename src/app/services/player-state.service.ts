@@ -106,6 +106,13 @@ export class PlayerStateService {
     this.coinDropped$.next(add);
   }
 
+  /** Moneda de pago (especial): contador propio, persistido junto a las monedas.
+   *  Se recoge al pisar el drop especial (type 'special'). */
+  collectSpecialCoins(amount: number): void {
+    const s = this._state$.getValue();
+    this._patch({ specialCoins: (s.specialCoins ?? 0) + (amount || 0) });
+  }
+
   /** Estrellas del Modo Mundo: contador propio, persistido como las monedas. */
   collectStars(amount: number): void {
     const s = this._state$.getValue();

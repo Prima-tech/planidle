@@ -80,6 +80,15 @@
     background: transparent;
     overflow: visible;
   }
+  &.global-talents {
+    top: 10px;
+    bottom: 61px;  /* footer ~51px + 10px de aire, como equipo/summon */
+    left: calc(10px + var(--safe-left, 0px));
+    width: fit-content;
+    /* El marco madera/piedra lo pinta el propio GlobalTalentsComponent (:host) */
+    background: transparent;
+    overflow-y: auto;
+  }
   &.skill-detail {
     top: 10px;
     bottom: 53px;

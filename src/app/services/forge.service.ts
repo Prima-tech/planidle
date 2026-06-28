@@ -5,20 +5,19 @@ import { InventoryItem } from './inventory.service';
 import { ITEM_CATALOG, LootEntry } from '../physics/griddrops';
 
 /**
- * Forja (estación de oficio `forge`/`smelter`). Tres celdas:
- *  - material (entrada): el mineral a fundir. La barra a producir se DEDUCE de él.
- *  - combustible: cualquier item sirve de combustible (se gasta 1 por barra).
- *  - salida: barras producidas; se arrastran de vuelta al inventario.
+ * Forjas (estación de oficio `forge`/`smelter`). MULTI-INSTANCIA: puede haber
+ * varias forjas independientes, cada una con su propio estado (material, combustible,
+ * salida, trabajo en curso, contador de lote… y a futuro mejoras). Todas simulan en
+ * segundo plano aunque no se vean; la UI muestra la ACTIVA (`activeId`).
  *
- * No se elige la receta: la barra resultante depende del mineral puesto (cada
- * mineral mapea a una barra en FORGE_BARS). Si hay mineral válido + combustible +
- * sitio en la salida, `ready$` es true (play activable). Con la forja en marcha
- * (`running$`), la barra de carga se rellena en SECONDS_PER_BAR; al completarse
- * gasta 1 mineral + 1 combustible y deja 1 barra en la salida. Mientras queden
- * materiales, encadena más barras. Sin combustible o sin mineral, no produce.
+ * Cada forja: la barra a producir se DEDUCE del mineral puesto (FORGE_BARS). Con
+ * mineral válido + madera + sitio en salida, se puede dar al play; cada barra tarda
+ * SECONDS_PER_BAR, gasta 1 mineral + 1 madera y deja 1 barra en la salida.
  *
- * Persistencia local (StorageService). El progreso se recupera al cargar
- * (catch-up por el tiempo transcurrido), así que la forja trabaja también cerrada.
+ * Persistencia local (StorageService) de TODAS las forjas; al cargar hace catch-up
+ * por el tiempo transcurrido, así que trabajan también con la app cerrada. Son
+ * globales entre personajes (el servicio no está ligado a ningún pj).
+ * TODO: mover a `global_data.account` de Supabase con tiempo de servidor.
  */
 
 export type ForgeGrid = 'mat' | 'fuel' | 'out';
@@ -43,6 +42,8 @@ export const FORGE_BARS: ForgeBar[] = [
 
 /** Segundos para producir una barra. */
 const SECONDS_PER_BAR = 5;
+/** Periodo del tick de simulación (ms). Fino para que el ciclo complete al instante. */
+const TICK_MS = 100;
 
 /** Combustible admitido: de momento solo madera (cualquier tier: 'Madera', 'Madera Tier 2'…). */
 function isFuelItem(item: InventoryItem | null): boolean {
@@ -55,41 +56,49 @@ function isMineralItem(item: InventoryItem | null): boolean {
 }
 
 export const FORGE_SLOTS = 8;
-const STORAGE_KEY = 'forge_state';
-const MAX_CATCHUP_S = 8 * 3600;   // tope de avance offline al cargar (8 h)
+const STORAGE_KEY = 'forge_state_v2';   // v2 = multi-instancia (el v1 era una sola forja)
+const MAX_CATCHUP_S = 8 * 3600;         // tope de avance offline al cargar (8 h)
 
 interface Job { elapsedS: number; barTier: number; }
+
+/** Una forja: todo su estado. `lastTickMs` es de runtime (interpolación), no se persiste. */
+export interface ForgeInstance {
+  id: string;
+  name: string;
+  mat:  (InventoryItem | null)[];
+  fuel: (InventoryItem | null)[];
+  out:  (InventoryItem | null)[];
+  job: Job | null;
+  running: boolean;
+  producedCount: number;
+  lastTickMs: number;
+}
+
+/** Resumen ligero de una forja para la lista/selector de la UI. */
+export interface ForgeSummary { id: string; name: string; running: boolean; }
 
 @Injectable({ providedIn: 'root' })
 export class ForgeService {
 
-  readonly mat:  (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
-  readonly fuel: (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
-  readonly out:  (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
+  // ── Estado multi-instancia ───────────────────────────────────────────────────
+  private forges: ForgeInstance[] = [];
+  private activeId = '';
 
-  /** Barra que se producirá según el mineral puesto (auto). null = sin mineral válido. */
+  /** Lista de forjas (para el selector) y cuál está activa. */
+  readonly forges$ = new BehaviorSubject<ForgeSummary[]>([]);
+  readonly activeId$ = new BehaviorSubject<string>('');
+
+  // ── Observables de la forja ACTIVA (la API que consume la plantilla) ──────────
   readonly currentBar$ = new BehaviorSubject<ForgeBar | null>(null);
-  /** true cuando hay mineral válido + combustible + sitio en salida → play activable. */
   readonly ready$ = new BehaviorSubject<boolean>(false);
-
-  /** true = forja en marcha (play); false = parada (stop). */
   readonly running$ = new BehaviorSubject<boolean>(false);
-  /** Progreso del ciclo actual (0..1) para la barra de carga por unidad. */
   readonly progress$ = new BehaviorSubject<number>(0);
-  /** Segundos que faltan para terminar la barra actual (cuenta atrás 5→0). */
   readonly remaining$ = new BehaviorSubject<number>(SECONDS_PER_BAR);
-  /** Progreso total del lote (0..1): barras ya hechas vs. total posible con el stock. */
   readonly totalProgress$ = new BehaviorSubject<number>(0);
-  /** Segundos que faltan para acabar TODAS las barras posibles con el stock actual. */
   readonly totalRemaining$ = new BehaviorSubject<number>(0);
-  /** Barras que aún se pueden producir con el stock (baja al completar cada una). */
   readonly producible$ = new BehaviorSubject<number>(0);
-  /** Item que se está produciendo ahora (la barra deducida) o null. */
   readonly producing$ = new BehaviorSubject<{ item: InventoryItem; progress: number } | null>(null);
-  /** Emite tras cada cambio (drop, tick) para refrescar la UI si hace falta. */
   readonly changes$ = new Subject<void>();
-  /** Petición de retirar un item de una celda hacia el inventario (doble clic).
-   *  Lo escucha el inventario, que decide si hay sitio. */
   readonly withdraw$ = new Subject<{ grid: ForgeGrid; index: number; item: InventoryItem }>();
 
   /** true mientras el panel de la forja está abierto (lo marca ForgeComponent). */
@@ -97,38 +106,93 @@ export class ForgeService {
   get isOpen(): boolean { return this._open; }
   setOpen(v: boolean): void { this._open = v; }
 
-  /** IDs CDK de todas las celdas (para `cdkDropListConnectedTo` del inventario). */
+  /** IDs CDK de las celdas de la forja activa (para `cdkDropListConnectedTo`). */
   readonly cellIds: string[] = (['mat', 'fuel', 'out'] as ForgeGrid[])
     .flatMap(g => Array.from({ length: FORGE_SLOTS }, (_, i) => `forge-${g}-${i}`));
 
   private storage = inject(StorageService);
   private zone = inject(NgZone);
 
-  private job: Job | null = null;
   private loaded = false;
-  private sincePersist = 0;    // segundos desde el último guardado (throttle del tick)
-  private producedCount = 0;   // barras hechas en el lote actual (para la barra total)
+  private loadPromise!: Promise<void>;   // se resuelve cuando el estado local está cargado
+  private sincePersist = 0;
 
   constructor() {
-    this.load();
-    // Tick 1 Hz fuera de la zona para no forzar CD global cada segundo; solo
-    // re-entramos a la zona cuando hay un cambio real que mostrar.
+    // Forja por defecto SÍNCRONA: así `active` nunca es undefined antes de que
+    // `load()` (async) restaure el estado guardado (que la reemplazará si existe).
+    const def = this.makeForge('Forja 1');
+    this.forges = [def];
+    this.activeId = def.id;
+    this.emitActive(); this.emitForges();
+    this.loadPromise = this.load();
+    // Tick a 100 ms fuera de la zona: la lógica avanza fino (la barra completa al
+    // instante). Solo re-entramos a la zona (CD) cuando cambia algo MOSTRADO de la
+    // forja activa. El aro/barra van por rAF, sin CD.
     this.zone.runOutsideAngular(() => {
-      interval(1000).subscribe(() => this.tick(1));
+      interval(TICK_MS).subscribe(() => this.tick(TICK_MS / 1000));
     });
   }
 
+  // ── Forja activa y vistas ────────────────────────────────────────────────────
+
+  private get active(): ForgeInstance {
+    return this.forges.find(f => f.id === this.activeId) ?? this.forges[0];
+  }
+
+  /** Celdas de la forja activa (lo que ve/edita la plantilla). */
+  get mat():  (InventoryItem | null)[] { return this.active.mat; }
+  get fuel(): (InventoryItem | null)[] { return this.active.fuel; }
+  get out():  (InventoryItem | null)[] { return this.active.out; }
+
+  get activeName(): string { return this.active?.name ?? ''; }
+
   private grid(g: ForgeGrid): (InventoryItem | null)[] {
-    return g === 'mat' ? this.mat : g === 'fuel' ? this.fuel : this.out;
+    const f = this.active;
+    return g === 'mat' ? f.mat : g === 'fuel' ? f.fuel : f.out;
+  }
+
+  // ── Gestión de forjas ────────────────────────────────────────────────────────
+
+  private makeForge(name: string): ForgeInstance {
+    return {
+      id: `forge-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name,
+      mat: Array(FORGE_SLOTS).fill(null),
+      fuel: Array(FORGE_SLOTS).fill(null),
+      out: Array(FORGE_SLOTS).fill(null),
+      job: null, running: false, producedCount: 0, lastTickMs: Date.now(),
+    };
+  }
+
+  /** Cambia la forja visible. */
+  selectForge(id: string): void {
+    if (!this.forges.some(f => f.id === id)) return;
+    this.activeId = id;
+    this.emitActive(); this.emitForges(); this.changes$.next(); this.persist();
+  }
+
+  /** Crea una forja nueva y la deja activa. */
+  addForge(): void {
+    const f = this.makeForge(`Forja ${this.forges.length + 1}`);
+    this.forges.push(f);
+    this.activeId = f.id;
+    this.emitActive(); this.emitForges(); this.changes$.next(); this.persist();
+  }
+
+  /** Elimina una forja (mínimo queda 1). */
+  removeForge(id: string): void {
+    if (this.forges.length <= 1) return;
+    const i = this.forges.findIndex(f => f.id === id);
+    if (i === -1) return;
+    this.forges.splice(i, 1);
+    if (this.activeId === id) this.activeId = this.forges[0].id;
+    this.emitActive(); this.emitForges(); this.changes$.next(); this.persist();
   }
 
   // ── Barra deducida del mineral ───────────────────────────────────────────────
 
-  /** Primera barra cuyo mineral esté en la celda de material (null si ninguno). */
-  private currentBar(): ForgeBar | null {
-    for (const bar of FORGE_BARS) {
-      if (this.hasItem(this.mat, bar.mineral)) return bar;
-    }
+  private currentBarOf(f: ForgeInstance): ForgeBar | null {
+    for (const bar of FORGE_BARS) if (this.hasItem(f.mat, bar.mineral)) return bar;
     return null;
   }
 
@@ -136,46 +200,37 @@ export class ForgeService {
     return FORGE_BARS.find(b => b.tier === tier) ?? null;
   }
 
-  // ── Play / Stop ─────────────────────────────────────────────────────────────
+  // ── Play / Pausa (sobre la activa) ───────────────────────────────────────────
 
-  /** Botón único: en marcha → pausa; parada → play. */
-  toggle(): void {
-    if (this.running$.value) this.pause();
-    else this.play();
-  }
+  toggle(): void { this.active.running ? this.pause() : this.play(); }
 
-  /** Arranca/reanuda la producción. Si hay un ciclo pausado a medias, sigue desde ahí. */
   play(): void {
-    if (!this.canProduce()) return;
-    this.running$.next(true);
-    if (!this.job) this.job = { elapsedS: 0, barTier: this.currentBar()!.tier };
-    this.emitState();
-    this.changes$.next();
-    this.persist();
+    const f = this.active;
+    if (!this.canProduceForge(f)) return;
+    f.running = true;
+    if (!f.job) f.job = { elapsedS: 0, barTier: this.currentBarOf(f)!.tier };
+    f.lastTickMs = Date.now();
+    this.emitActive(); this.emitForges(); this.changes$.next(); this.persist();
   }
 
-  /** Pausa: detiene el avance pero CONSERVA el progreso del ciclo en curso. */
   pause(): void {
-    this.running$.next(false);
-    this.emitState();
-    this.changes$.next();
-    this.persist();
+    const f = this.active;
+    f.running = false;
+    this.emitActive(); this.emitForges(); this.changes$.next(); this.persist();
   }
 
-  // ── Drag & drop ────────────────────────────────────────────────────────────
+  // ── Drag & drop (sobre la activa) ────────────────────────────────────────────
 
-  /** Coloca `item` en la celda (g,index). Apila si es el mismo item apilable;
-   *  rechaza si está ocupada por otro. Devuelve true si lo aceptó. */
   place(g: ForgeGrid, index: number, item: InventoryItem): boolean {
-    if (g === 'out') return false;                          // la salida es SOLO salida: no se mete nada
-    if (g === 'fuel' && !isFuelItem(item)) return false;    // la celda de combustible solo acepta madera
-    if (g === 'mat'  && !isMineralItem(item)) return false; // la celda de material solo acepta minerales
+    if (g === 'out') return false;
+    if (g === 'fuel' && !isFuelItem(item)) return false;
+    if (g === 'mat'  && !isMineralItem(item)) return false;
     const cells = this.grid(g);
     const target = cells[index];
     if (target?.mergeable && item.mergeable && target.name === item.name) {
       target.sum = (target.sum ?? 1) + (item.sum ?? 1);
     } else if (target !== null) {
-      return false;   // celda ocupada por otro item
+      return false;
     } else {
       cells[index] = item;
     }
@@ -183,10 +238,9 @@ export class ForgeService {
     return true;
   }
 
-  /** Movimiento interno entre celdas de la forja (swap o apilado). */
   moveInternal(from: { g: ForgeGrid; index: number }, to: { g: ForgeGrid; index: number }): void {
     if (from.g === to.g && from.index === to.index) return;
-    if (to.g === 'out') return;   // la salida es SOLO salida: no se mete nada
+    if (to.g === 'out') return;
     const src = this.grid(from.g), dst = this.grid(to.g);
     const item = src[from.index];
     if (!item) return;
@@ -196,139 +250,157 @@ export class ForgeService {
       src[from.index] = null;
     } else {
       dst[to.index] = item;
-      src[from.index] = target;   // swap (target puede ser null)
+      src[from.index] = target;
     }
     this.afterChange();
   }
 
-  /** Vacía una celda (el inventario se llevó el item). */
   removeCell(g: ForgeGrid, index: number): void {
     this.grid(g)[index] = null;
     this.afterChange();
   }
 
-  // ── Transferencia rápida (doble clic) ───────────────────────────────────────
-
-  /** Mete un item del inventario en su celda automática: madera → combustible,
-   *  mineral de una barra → material. Devuelve true si lo aceptó (lo movió). */
   quickAdd(item: InventoryItem): boolean {
     if (isFuelItem(item)) return this.place('fuel', 0, item);
     if (isMineralItem(item)) return this.place('mat', 0, item);
-    return false;   // no es combustible ni mineral de ninguna barra → no es de la forja
+    return false;
   }
 
-  /** Pide retirar la celda (g,index) al inventario; este decide si hay sitio. */
   requestWithdraw(g: ForgeGrid, index: number): void {
     const item = this.grid(g)[index];
     if (item) this.withdraw$.next({ grid: g, index, item });
   }
 
-  /** ¿Esta celda acepta este item? (para el predicado de arrastre y el resaltado).
-   *  material → minerales, combustible → madera, salida → nada. */
   canAccept(g: ForgeGrid, item: InventoryItem | null): boolean {
     if (!item) return false;
     if (g === 'fuel') return isFuelItem(item);
     if (g === 'mat')  return isMineralItem(item);
-    return false;   // 'out' nunca acepta
+    return false;
   }
 
-  // ── Motor de producción ─────────────────────────────────────────────────────
+  // ── Motor de producción (sobre cualquier forja) ──────────────────────────────
 
   private tick(dt: number): void {
-    if (!this.running$.value) return;       // parada: no avanza
-    const beforeJob = this.job;
-    const advanced = this.step(dt);
-    if (!advanced && this.job === beforeJob) return;   // nada que hacer (sin materiales)
-    this.zone.run(() => { this.emitState(); this.changes$.next(); });
-    // Persistir cada 5 s de avance: el progreso a mitad se recupera por el catch-up.
-    this.sincePersist += dt;
-    if (this.job === null || this.sincePersist >= 5) { this.persist(); this.sincePersist = 0; }
+    const a = this.active;
+    const beforeJob = a.job;
+    const beforeSec = this.unitSecOf(a);
+    let any = false;
+    for (const f of this.forges) {
+      if (!f.running) continue;
+      const adv = this.stepForge(f, dt);
+      if (adv) { f.lastTickMs = Date.now(); any = true; }
+      this.normalize(f);
+    }
+    // Solo CD si cambió lo que se ve de la forja ACTIVA (cronómetro/contador/completar).
+    if (a.job !== beforeJob || this.unitSecOf(a) !== beforeSec) {
+      this.zone.run(() => { this.emitActive(); this.emitForges(); this.changes$.next(); });
+    }
+    if (any) {
+      this.sincePersist += dt;
+      if (this.sincePersist >= 5) { this.persist(); this.sincePersist = 0; }
+    }
   }
 
-  /** Avanza la simulación `dt` segundos. Devuelve true si hubo progreso. */
-  private step(dt: number): boolean {
-    if (!this.running$.value) return false;
+  private unitSecOf(f: ForgeInstance): number {
+    return f.job ? Math.max(0, Math.ceil(SECONDS_PER_BAR - f.job.elapsedS)) : SECONDS_PER_BAR;
+  }
+
+  private stepForge(f: ForgeInstance, dt: number): boolean {
+    if (!f.running) return false;
     let work = dt, progressed = false, guard = 0;
     while (work > 1e-6 && guard++ < 10000) {
-      if (!this.job) {
-        const bar = this.currentBar();
-        if (!bar || !this.hasAnyFuel() || !this.outputHasSpace(bar.name)) break;
-        this.job = { elapsedS: 0, barTier: bar.tier };
+      if (!f.job) {
+        const bar = this.currentBarOf(f);
+        if (!bar || !this.hasAnyFuelOf(f) || !this.outputHasSpaceOf(f, bar.name)) break;
+        f.job = { elapsedS: 0, barTier: bar.tier };
       }
-      const slice = Math.min(work, SECONDS_PER_BAR - this.job.elapsedS);
-      this.job.elapsedS += slice;
+      const slice = Math.min(work, SECONDS_PER_BAR - f.job.elapsedS);
+      f.job.elapsedS += slice;
       work -= slice;
       progressed = true;
-      if (this.job.elapsedS >= SECONDS_PER_BAR - 1e-6) {
-        if (!this.completeBar()) { this.job = null; break; }   // sin materiales/sitio → parar
-        this.job = null;
+      if (f.job.elapsedS >= SECONDS_PER_BAR - 1e-6) {
+        if (!this.completeBarForge(f)) { f.job = null; break; }
+        f.job = null;
       }
     }
     return progressed;
   }
 
-  /** ¿Se puede producir ahora? Mineral válido + combustible + hueco en la salida. */
-  private canProduce(): boolean {
-    const bar = this.currentBar();
-    return !!bar && this.hasAnyFuel() && this.outputHasSpace(bar.name);
+  private canProduceForge(f: ForgeInstance): boolean {
+    const bar = this.currentBarOf(f);
+    return !!bar && this.hasAnyFuelOf(f) && this.outputHasSpaceOf(f, bar.name);
   }
 
-  /** Completa la barra del ciclo: -1 mineral, -1 combustible, +1 barra. false si no se puede. */
-  private completeBar(): boolean {
-    const bar = this.barByTier(this.job!.barTier);
+  private completeBarForge(f: ForgeInstance): boolean {
+    const bar = this.barByTier(f.job!.barTier);
     if (!bar) return false;
-    if (!this.hasItem(this.mat, bar.mineral) || !this.hasAnyFuel() || !this.outputHasSpace(bar.name)) return false;
-    this.consumeOne(this.mat, bar.mineral);
-    this.consumeAnyFuel();
-    this.addOutput(bar.name);
-    this.producedCount++;
+    if (!this.hasItem(f.mat, bar.mineral) || !this.hasAnyFuelOf(f) || !this.outputHasSpaceOf(f, bar.name)) return false;
+    this.consumeOne(f.mat, bar.mineral);
+    this.consumeAnyFuelOf(f);
+    this.addOutputTo(f, bar.name);
+    f.producedCount++;
     return true;
+  }
+
+  /** Reinicia el contador de lote cuando se agotó (sin trabajo ni stock). */
+  private normalize(f: ForgeInstance): void {
+    if (!f.job && this.producibleNowOf(f) === 0) f.producedCount = 0;
   }
 
   private hasItem(cells: (InventoryItem | null)[], name: string): boolean {
     return cells.some(c => c?.name === name);
   }
-
-  private hasAnyFuel(): boolean {
-    return this.fuel.some(c => isFuelItem(c));
+  private hasAnyFuelOf(f: ForgeInstance): boolean {
+    return f.fuel.some(c => isFuelItem(c));
   }
-
-  /** Unidades totales (sumando pilas) del item `name` en `cells`. */
   private countOf(cells: (InventoryItem | null)[], name: string): number {
     return cells.reduce((n, c) => n + (c?.name === name ? (c.sum ?? 1) : 0), 0);
   }
-
-  /** Unidades totales de combustible (madera, cualquier tier). */
-  private fuelCount(): number {
-    return this.fuel.reduce((n, c) => n + (isFuelItem(c) ? (c!.sum ?? 1) : 0), 0);
+  private fuelCountOf(f: ForgeInstance): number {
+    return f.fuel.reduce((n, c) => n + (isFuelItem(c) ? (c!.sum ?? 1) : 0), 0);
   }
 
-  /** Cuántas barras MÁS se pueden hacer ahora con el stock (mín. de mineral y madera).
-   *  Incluye la barra en curso (el material se gasta al completarla). */
-  private producibleNow(): number {
-    const bar = this.job ? this.barByTier(this.job.barTier) : this.currentBar();
+  /** Fracción (0..1) de la barra en curso de la forja ACTIVA, interpolada con reloj. */
+  liveUnitFraction(): number {
+    const f = this.active;
+    if (!f.job) return 0;
+    let e = f.job.elapsedS;
+    if (f.running) e += (Date.now() - f.lastTickMs) / 1000;
+    return Math.max(0, Math.min(1, e / SECONDS_PER_BAR));
+  }
+
+  /** Fracción (0..1) del lote total de la forja ACTIVA. */
+  liveTotalFraction(): number {
+    const f = this.active;
+    const producible = this.producibleNowOf(f);
+    const total = f.producedCount + producible;
+    if (total <= 0) return 0;
+    const partial = f.job ? this.liveUnitFraction() : 0;
+    return Math.max(0, Math.min(1, (f.producedCount + partial) / total));
+  }
+
+  private producibleNowOf(f: ForgeInstance): number {
+    const bar = f.job ? this.barByTier(f.job.barTier) : this.currentBarOf(f);
     if (!bar) return 0;
-    return Math.min(this.countOf(this.mat, bar.mineral), this.fuelCount());
+    return Math.min(this.countOf(f.mat, bar.mineral), this.fuelCountOf(f));
   }
 
-  /** Gasta 1 unidad del primer combustible (madera) disponible. */
-  private consumeAnyFuel(): void {
-    const i = this.fuel.findIndex(c => isFuelItem(c));
-    if (i !== -1) this.decOne(this.fuel, i);
+  private consumeAnyFuelOf(f: ForgeInstance): void {
+    const i = f.fuel.findIndex(c => isFuelItem(c));
+    if (i !== -1) this.decOne(f.fuel, i);
   }
 
-  private outputHasSpace(name: string): boolean {
-    return this.out.some(c => c === null || (c.mergeable && c.name === name));
+  private outputHasSpaceOf(f: ForgeInstance, name: string): boolean {
+    return f.out.some(c => c === null || (c.mergeable && c.name === name));
   }
 
-  private addOutput(name: string): void {
-    const existing = this.out.find(c => c?.mergeable && c.name === name);
+  private addOutputTo(f: ForgeInstance, name: string): void {
+    const existing = f.out.find(c => c?.mergeable && c.name === name);
     if (existing) { existing.sum = (existing.sum ?? 1) + 1; return; }
-    const idx = this.out.findIndex(c => c === null);
-    if (idx !== -1) this.out[idx] = this.itemFromCatalog(name);
+    const idx = f.out.findIndex(c => c === null);
+    if (idx !== -1) f.out[idx] = this.itemFromCatalog(name);
   }
 
-  /** Resta 1 unidad del primer item llamado `name` en `cells`. false si no hay. */
   private consumeOne(cells: (InventoryItem | null)[], name: string): boolean {
     const i = cells.findIndex(c => c?.name === name);
     if (i === -1) return false;
@@ -336,7 +408,6 @@ export class ForgeService {
     return true;
   }
 
-  /** Resta 1 a la pila de la celda i (la vacía si llega a 0 o no es apilable). */
   private decOne(cells: (InventoryItem | null)[], i: number): void {
     const it = cells[i];
     if (!it) return;
@@ -344,43 +415,48 @@ export class ForgeService {
     else cells[i] = null;
   }
 
-  /** Refresca currentBar$, ready$, producing$ y progress$ a partir del estado interno. */
-  private emitState(): void {
-    const bar = this.job ? this.barByTier(this.job.barTier) : this.currentBar();
-    const elapsed = this.job ? this.job.elapsedS : 0;
+  /** Refresca los observables de la forja ACTIVA. */
+  private emitActive(): void {
+    const f = this.active;
+    const bar = f.job ? this.barByTier(f.job.barTier) : this.currentBarOf(f);
+    const elapsed = f.job ? f.job.elapsedS : 0;
     const frac = Math.max(0, Math.min(1, elapsed / SECONDS_PER_BAR));
-    const remaining = this.job ? Math.max(0, Math.ceil(SECONDS_PER_BAR - elapsed)) : SECONDS_PER_BAR;
+    const remaining = f.job ? Math.max(0, Math.ceil(SECONDS_PER_BAR - elapsed)) : SECONDS_PER_BAR;
 
-    // Lote total: barras ya hechas + las que aún se pueden hacer con el stock.
-    const producible = this.producibleNow();
-    if (!this.job && producible === 0) this.producedCount = 0;   // lote agotado → reinicia el contador
-    const total = this.producedCount + producible;
-    const totalProgress = total > 0 ? Math.min(1, (this.producedCount + frac) / total) : 0;
+    this.normalize(f);
+    const producible = this.producibleNowOf(f);
+    const total = f.producedCount + producible;
+    const totalProgress = total > 0 ? Math.min(1, (f.producedCount + frac) / total) : 0;
     const totalRemaining = Math.max(0, Math.ceil(producible * SECONDS_PER_BAR - elapsed));
 
     this.currentBar$.next(bar);
-    this.ready$.next(this.canProduce());
+    this.ready$.next(this.canProduceForge(f));
+    this.running$.next(f.running);
     this.progress$.next(frac);
     this.remaining$.next(remaining);
     this.totalProgress$.next(totalProgress);
     this.totalRemaining$.next(totalRemaining);
     this.producible$.next(producible);
-    this.producing$.next(this.job && bar ? { item: this.itemFromCatalog(bar.name), progress: frac } : null);
+    this.producing$.next(f.job && bar ? { item: this.itemFromCatalog(bar.name), progress: frac } : null);
+  }
+
+  private emitForges(): void {
+    this.forges$.next(this.forges.map(f => ({ id: f.id, name: f.name, running: f.running })));
+    this.activeId$.next(this.activeId);
   }
 
   private afterChange(): void {
-    // Si quitaron el mineral en curso y ya no hay, cancela el ciclo.
-    if (this.job) {
-      const bar = this.barByTier(this.job.barTier);
-      if (!bar || !this.hasItem(this.mat, bar.mineral)) this.job = null;
+    const f = this.active;
+    if (f.job) {
+      const bar = this.barByTier(f.job.barTier);
+      if (!bar || !this.hasItem(f.mat, bar.mineral)) f.job = null;
     }
-    // Si está en marcha y ahora hay materiales, arranca el ciclo ya.
-    if (this.running$.value && !this.job && this.canProduce()) {
-      this.job = { elapsedS: 0, barTier: this.currentBar()!.tier };
+    if (f.running && !f.job && this.canProduceForge(f)) {
+      f.job = { elapsedS: 0, barTier: this.currentBarOf(f)!.tier };
+      f.lastTickMs = Date.now();
     }
-    this.emitState();
-    this.changes$.next();
-    this.persist();
+    this.normalize(f);
+    this.emitActive(); this.changes$.next(); this.persist();
   }
 
   // ── Persistencia ───────────────────────────────────────────────────────────
@@ -389,27 +465,20 @@ export class ForgeService {
     if (this.loaded) return;
     try {
       const saved = (await this.storage.get(STORAGE_KEY)) as ForgeSnapshot | null;
-      if (saved) {
-        this.restoreGrid(this.mat,  saved.mat);
-        this.restoreGrid(this.fuel, saved.fuel);
-        this.restoreGrid(this.out,  saved.out);
-        this.job = this.validJob(saved.job);
-        this.running$.next(saved.running ?? false);
-        const elapsed = saved.lastTick ? Math.min(MAX_CATCHUP_S, (Date.now() - saved.lastTick) / 1000) : 0;
-        if (elapsed > 0 && this.running$.value) this.step(elapsed);   // avance offline solo si estaba en marcha
-      }
+      if (saved?.forges?.length) this.buildForges(saved);
     } catch (e) {
       console.warn('[forge] no se pudo restaurar el estado guardado:', e);
     } finally {
-      // SIEMPRE marcar cargado: si esto falla, el tick quedaría bloqueado y la
-      // forja "no haría nada" aunque el play se viera activable.
+      if (!this.forges.length) {
+        const f = this.makeForge('Forja 1');
+        this.forges = [f];
+        this.activeId = f.id;
+      }
       this.loaded = true;
-      this.emitState();
-      this.changes$.next();
+      this.emitActive(); this.emitForges(); this.changes$.next();
     }
   }
 
-  /** Valida un job persistido contra el modelo actual (descarta formatos viejos). */
   private validJob(job: any): Job | null {
     if (job && typeof job.elapsedS === 'number' && typeof job.barTier === 'number' && this.barByTier(job.barTier)) {
       return { elapsedS: job.elapsedS, barTier: job.barTier };
@@ -417,20 +486,65 @@ export class ForgeService {
     return null;
   }
 
-  private restoreGrid(target: (InventoryItem | null)[], src?: (InventoryItem | null)[]): void {
-    if (!src) return;
-    for (let i = 0; i < FORGE_SLOTS; i++) target[i] = src[i] ?? null;
+  private normGrid(src?: (InventoryItem | null)[]): (InventoryItem | null)[] {
+    const out: (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
+    if (src) for (let i = 0; i < FORGE_SLOTS; i++) out[i] = src[i] ?? null;
+    return out;
+  }
+
+  /** Reconstruye las forjas en memoria desde un snapshot (local o nube) + catch-up. */
+  private buildForges(snap: ForgeSnapshot): void {
+    this.forges = snap.forges.map(s => ({
+      id: s.id, name: s.name,
+      mat: this.normGrid(s.mat), fuel: this.normGrid(s.fuel), out: this.normGrid(s.out),
+      job: this.validJob(s.job), running: !!s.running, producedCount: s.producedCount ?? 0,
+      lastTickMs: Date.now(),
+    }));
+    this.activeId = snap.activeId && this.forges.some(f => f.id === snap.activeId)
+      ? snap.activeId : this.forges[0].id;
+    // Catch-up offline: avanza cada forja en marcha por el tiempo transcurrido.
+    const elapsed = snap.lastSave ? Math.min(MAX_CATCHUP_S, (Date.now() - snap.lastSave) / 1000) : 0;
+    if (elapsed > 0) for (const f of this.forges) if (f.running) { this.stepForge(f, elapsed); this.normalize(f); }
+  }
+
+  /** Snapshot serializable de TODAS las forjas (mismo formato local y de cuenta). */
+  private buildSnapshot(): ForgeSnapshot {
+    return {
+      forges: this.forges.map(f => ({
+        id: f.id, name: f.name, mat: f.mat, fuel: f.fuel, out: f.out,
+        job: f.job, running: f.running, producedCount: f.producedCount,
+      })),
+      activeId: this.activeId,
+      lastSave: Date.now(),
+    };
   }
 
   private persist(): void {
-    const snap: ForgeSnapshot = {
-      mat: this.mat, fuel: this.fuel, out: this.out,
-      job: this.job, running: this.running$.value, lastTick: Date.now(),
-    };
-    this.storage.set(STORAGE_KEY, snap);
+    this.storage.set(STORAGE_KEY, this.buildSnapshot());
   }
 
-  /** Construye un InventoryItem nuevo a partir del catálogo (por nombre). */
+  // ── Sincronización de cuenta (Supabase global_data.account.forges) ───────────
+
+  /** Snapshot para subir a la nube (lo llama SaveService al guardar). */
+  getAccountSnapshot(): ForgeSnapshot {
+    return this.buildSnapshot();
+  }
+
+  /** Aplica el snapshot de la nube (login) si es MÁS NUEVO que el local; si el local
+   *  es igual o más nuevo (seguiste jugando offline), no toca nada. Resuelve por
+   *  `lastSave`. Espera a que el estado local esté cargado para no pisarse. */
+  async syncFromCloud(cloud: ForgeSnapshot | null): Promise<void> {
+    if (!cloud?.forges?.length) return;
+    await this.loadPromise;
+    const local = (await this.storage.get(STORAGE_KEY)) as ForgeSnapshot | null;
+    const cloudT = cloud.lastSave ?? 0;
+    const localT = local?.lastSave ?? 0;
+    if (local && localT >= cloudT) return;   // local igual o más nuevo → se queda
+    this.buildForges(cloud);
+    this.persist();
+    this.emitActive(); this.emitForges(); this.changes$.next();
+  }
+
   private itemFromCatalog(name: string): InventoryItem {
     const e = ITEM_CATALOG.find(x => x.name === name);
     if (!e) return { id: `forge-${Date.now()}`, name, mergeable: true, sum: 1 };
@@ -457,11 +571,16 @@ export class ForgeService {
   }
 }
 
-interface ForgeSnapshot {
-  mat:  (InventoryItem | null)[];
-  fuel: (InventoryItem | null)[];
-  out:  (InventoryItem | null)[];
-  job: Job | null;
-  running: boolean;
-  lastTick: number;
+export interface ForgeSnapshot {
+  forges: {
+    id: string; name: string;
+    mat: (InventoryItem | null)[];
+    fuel: (InventoryItem | null)[];
+    out: (InventoryItem | null)[];
+    job: Job | null;
+    running: boolean;
+    producedCount: number;
+  }[];
+  activeId: string;
+  lastSave: number;
 }

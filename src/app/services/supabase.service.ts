@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { StorageService } from './storage.service';
+import { ForgeService } from './forge.service';
 @Injectable({
   providedIn: 'root'
 })
 export class SupabaseService {
   private supabase: SupabaseClient;
 
-  constructor(private storageService: StorageService) {
+  constructor(private storageService: StorageService, private forge: ForgeService) {
     const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
       fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
 
@@ -108,6 +109,10 @@ export class SupabaseService {
       const localGlobalAch: string[] = (await this.storageService.get('achievements_global')) ?? [];
       const mergedGlobalAch = [...new Set([...cloudGlobalAch, ...localGlobalAch])];
       await this.storageService.set('achievements_global', mergedGlobalAch);
+
+      // Forjas de CUENTA (global_data.account.forges): globales entre personajes.
+      // syncFromCloud resuelve por lastSave (si el local es más nuevo, se queda).
+      await this.forge.syncFromCloud((data as any).account?.forges ?? null);
 
       // Offline-first: baja el snapshot de cada personaje a su clave local.
       // Conflicto: si el local es más nuevo (el jugador siguió jugando offline),

@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ENEMY_REGISTRY, EnemyTypeConfig } from 'src/app/enemy/enemy-config';
-import { ITEM_CATALOG, LootEntry } from 'src/app/physics/griddrops';
+import { ITEM_CATALOG, LootEntry, PAYMENT_COIN } from 'src/app/physics/griddrops';
 import { SummonService } from 'src/app/services/summon.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
@@ -499,6 +499,11 @@ export class SummonComponent {
       stats:           entry.stats,
     };
     this.inventoryService.addOrDropToWorld(item);
+  }
+
+  /** Dropea una moneda de pago (especial) al mapa, junto al jugador. */
+  dropPaymentCoin(): void {
+    this.summonService.dropItem(PAYMENT_COIN);
   }
 
   giveItem(entry: LootEntry): void {

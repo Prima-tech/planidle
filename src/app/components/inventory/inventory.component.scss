@@ -284,6 +284,19 @@ $purple: #6e4a67;         // celda seleccionada
   color: $text-brown;
 }
 
+/* Moneda de pago (especial): pastilla pegada a la del oro */
+.special-coins-section {
+  margin-left: 6px;   /* la de oro ya empuja con margin-left:auto; esta va a su lado */
+}
+
+.special-coin-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
 /* Botones */
 .button-bar {
   display: flex;

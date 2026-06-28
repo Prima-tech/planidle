@@ -53,6 +53,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   unlock = inject(InventoryUnlockService);
 
   coins$ = this.playerState.coins$;
+  specialCoins$ = this.playerState.specialCoins$;
 
   constructor(
     private inventoryService: InventoryService,

@@ -1,0 +1,71 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$wood-btn-dark: #8a5530;
+$text-cream: #ecd9b4;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
+
+:host {
+  display: block;
+  box-sizing: border-box;
+  min-height: calc(100% - 4px);
+  margin: 2px;
+  padding: 12px 10px 8px;
+  width: 292px;   /* mismo ancho que los paneles de este lado (equipo/tienda) */
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.gt-header {
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-cream;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Bloque "Lvl : N" — agrupación estándar (receta 2): bisel metálico + madera oscura */
+.gt-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.7);
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-cream;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.gt-level-value {
+  color: #f0c040;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}

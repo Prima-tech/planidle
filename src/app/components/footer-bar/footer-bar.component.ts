@@ -23,6 +23,7 @@ import { AdminService } from 'src/app/services/admin.service';
 import { BuildPanelComponent } from '../build-panel/build-panel.component';
 import { BuildShopComponent } from '../build-shop/build-shop.component';
 import { ForgeComponent } from '../forge/forge.component';
+import { GlobalTalentsComponent } from '../global-talents/global-talents.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -43,6 +44,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('buildModal')       buildModal!:       ModalContainerComponent;
   @ViewChild('buildShopModal')   buildShopModal!:   ModalContainerComponent;
   @ViewChild('forgeModal')       forgeModal!:       ModalContainerComponent;
+  @ViewChild('globalTalentsModal') globalTalentsModal!: ModalContainerComponent;
 
   private detailSub:        Subscription;
   private closeSub:         Subscription;
@@ -211,7 +213,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal],
+      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal],
       right: [this.gameSettingsModal, this.inventoryModal, this.worldMapModal, this.progressModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
@@ -221,7 +223,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeAllPanels() {
     [this.gameSettingsModal, this.inventoryModal, this.equipmentModal,
      this.summonModal, this.chestModal, this.skillDetailModal,
-     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal]
+     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal]
       .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
 
@@ -390,6 +392,16 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     } else {
       this.closeOtherOnSide('right', this.progressModal);
       this.progressModal.open(ProgressPanelComponent, 'progress');
+    }
+  }
+
+  /** Talentos globales de la cuenta: panel izquierdo (de momento solo el nivel total). */
+  openGlobalTalents() {
+    if (this.globalTalentsModal.isOpenModal()) {
+      this.globalTalentsModal.close();
+    } else {
+      this.closeOtherOnSide('left', this.globalTalentsModal);
+      this.globalTalentsModal.open(GlobalTalentsComponent, 'global-talents');
     }
   }
 }

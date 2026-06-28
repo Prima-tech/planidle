@@ -45,6 +45,7 @@ import { BuildShopComponent } from './build-shop/build-shop.component';
 import { ForgeComponent } from './forge/forge.component';
 import { MapEntranceModalComponent } from './map-entrance-modal/map-entrance-modal.component';
 import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.component';
+import { GlobalTalentsComponent } from './global-talents/global-talents.component';
 
 @NgModule({
   declarations: [
@@ -88,6 +89,7 @@ import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.
     ForgeComponent,
     MapEntranceModalComponent,
     MapTeleportHintComponent,
+    GlobalTalentsComponent,
   ],
   imports: [
     CommonModule,

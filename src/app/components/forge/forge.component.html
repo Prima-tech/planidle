@@ -2,8 +2,14 @@
 
   <div class="forge-title">Forja</div>
 
+  <!-- Pestañas del panel de ESTA forja: ciclo de producción / mejoras propias. -->
+  <div class="forge-tabs">
+    <button class="forge-tab" [class.is-active]="tab === 'forja'" (click)="setTab('forja')">Forja</button>
+    <button class="forge-tab" [class.is-active]="tab === 'mejoras'" (click)="setTab('mejoras')">Mejoras</button>
+  </div>
+
   <!-- 0) Producir: material (izq) + botón (centro) + salida (der). -->
-  <div class="forge-section forge-prod-section">
+  <div class="forge-section forge-prod-section" *ngIf="tab === 'forja'">
     <div class="forge-prod-wrap">
 
       <!-- Columna izquierda: mineral (arriba) + combustible (debajo), cada uno con su etiqueta. -->
@@ -56,7 +62,7 @@
         <div class="forge-tag">Produciendo</div>
 
         <!-- Tiempo de la unidad actual, arriba (el aro del cuadro muestra su progreso) -->
-        <div class="forge-timer forge-timer--unit">{{ remaining$ | async }}s</div>
+        <div class="forge-timer forge-timer--unit">{{ fmtTime(remaining$ | async) }}</div>
 
         <!-- Botón único play/pausa, encima del cuadro central -->
         <div class="forge-controls">
@@ -74,11 +80,10 @@
         <div class="forge-prod-frame">
           <svg class="forge-prod-ring" viewBox="0 0 54 54">
             <rect class="forge-ring-track" x="2" y="2" width="50" height="50" rx="8"></rect>
-            <rect class="forge-ring-fill" x="2" y="2" width="50" height="50" rx="8"
-                  pathLength="100"
-                  [style.stroke-dashoffset]="100 - (progress$ | async) * 100"></rect>
+            <rect #ringFill class="forge-ring-fill" x="2" y="2" width="50" height="50" rx="8"
+                  pathLength="100" stroke-dashoffset="100"></rect>
           </svg>
-          <div class="forge-prod-btn">
+          <div class="forge-prod-btn" [class.is-producing]="(running$ | async) && (producing$ | async)">
             <div class="forge-bar-icon" *ngIf="currentBar$ | async as bar"
                  [ngStyle]="barStyle(bar.box)"></div>
           </div>
@@ -89,7 +94,7 @@
         <!-- Barra del lote total (todas las barras posibles con el stock) + su tiempo -->
         <div class="forge-bar-row">
           <div class="forge-progress forge-progress--total">
-            <span [style.width.%]="(totalProgress$ | async) * 100"></span>
+            <span #totalFill></span>
           </div>
           <div class="forge-timer">{{ fmtTime(totalRemaining$ | async) }}</div>
         </div>
@@ -118,6 +123,10 @@
     </div>
   </div>
 
+  <!-- Pestaña Mejoras: propia de cada forja. Vacía de momento. -->
+  <div class="forge-section forge-upgrades" *ngIf="tab === 'mejoras'">
+    <div class="forge-upgrades-empty">Sin mejoras todavía</div>
+  </div>
 
 </div>
 

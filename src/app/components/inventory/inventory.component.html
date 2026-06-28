@@ -102,6 +102,12 @@
     <div class="coin-spinner"></div>
     <span class="coin-amount">{{ coins$ | async | compactNumber }}</span>
   </div>
+
+  <!-- Moneda de pago (especial): misma pastilla, con el icono de la Marca -->
+  <div class="coins-section special-coins-section">
+    <img src="assets/icon/brand_of_sacrifice.png" class="special-coin-icon" alt="" draggable="false" />
+    <span class="coin-amount">{{ specialCoins$ | async | compactNumber }}</span>
+  </div>
 </div>
 
 <!-- Menú Split -->

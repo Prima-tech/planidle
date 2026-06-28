@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, NgZone } from '@angular/core';
 import { CdkDragDrop, CdkDrag } from '@angular/cdk/drag-drop';
 import { ForgeService, ForgeGrid } from 'src/app/services/forge.service';
 import { InventoryService } from 'src/app/services/inventory.service';
@@ -18,14 +18,21 @@ import { EquipmentService } from 'src/app/services/equipment.service';
   styleUrls: ['./forge.component.scss'],
   standalone: false,
 })
-export class ForgeComponent implements OnInit, OnDestroy {
+export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
   private forge     = inject(ForgeService);
   private inventory = inject(InventoryService);
   private equipment = inject(EquipmentService);
+  private zone      = inject(NgZone);
 
-  readonly mat  = this.forge.mat;
-  readonly fuel = this.forge.fuel;
-  readonly out  = this.forge.out;
+  // Celdas de la forja ACTIVA (getters: cambian al cambiar de forja).
+  get mat()  { return this.forge.mat; }
+  get fuel() { return this.forge.fuel; }
+  get out()  { return this.forge.out; }
+
+  /** Pestaña del panel: el ciclo de producción o las mejoras de ESTA forja. */
+  tab: 'forja' | 'mejoras' = 'forja';
+  setTab(t: 'forja' | 'mejoras'): void { this.tab = t; }
+
   readonly producing$ = this.forge.producing$;
   readonly running$ = this.forge.running$;
   readonly progress$ = this.forge.progress$;
@@ -44,13 +51,34 @@ export class ForgeComponent implements OnInit, OnDestroy {
   /** IDs de celda del inventario a las que se puede arrastrar de vuelta. */
   inventoryCellIds: string[] = [];
 
+  // Relleno del aro (unidad) y de la barra total: se pintan cada frame con el
+  // progreso interpolado del servicio (fuera de la zona de Angular, sin CD), así
+  // van continuos y llegan al 100% aunque la lógica avance a 1 Hz.
+  @ViewChild('ringFill')  ringFill?:  ElementRef<SVGRectElement>;
+  @ViewChild('totalFill') totalFill?: ElementRef<HTMLElement>;
+  private rafId = 0;
+
   ngOnInit(): void {
     this.inventoryCellIds = this.equipment.inventoryCellIds;
     this.forge.setOpen(true);
   }
 
+  ngAfterViewInit(): void {
+    this.zone.runOutsideAngular(() => {
+      const loop = () => {
+        const ring = this.ringFill?.nativeElement;
+        if (ring) ring.style.strokeDashoffset = String(100 - this.forge.liveUnitFraction() * 100);
+        const total = this.totalFill?.nativeElement;
+        if (total) total.style.width = (this.forge.liveTotalFraction() * 100) + '%';
+        this.rafId = requestAnimationFrame(loop);
+      };
+      this.rafId = requestAnimationFrame(loop);
+    });
+  }
+
   ngOnDestroy(): void {
     this.forge.setOpen(false);
+    if (this.rafId) cancelAnimationFrame(this.rafId);
   }
 
   /** Predicados de arrastre: una celda solo se resalta/acepta si el item le sirve.
@@ -62,11 +90,14 @@ export class ForgeComponent implements OnInit, OnDestroy {
   /** Botón único play/pausa. */
   toggle(): void { this.forge.toggle(); }
 
-  /** Formatea segundos como "Ns" o "m:ss" si llega al minuto (para el total). */
+  /** Formatea segundos como HH:MM:SS. */
   fmtTime(s: number | null): string {
-    const v = s ?? 0;
-    if (v >= 60) { const m = Math.floor(v / 60); const r = v % 60; return `${m}:${r.toString().padStart(2, '0')}`; }
-    return `${v}s`;
+    const v = Math.max(0, Math.floor(s ?? 0));
+    const h = Math.floor(v / 3600);
+    const m = Math.floor((v % 3600) / 60);
+    const sec = v % 60;
+    const p = (n: number) => n.toString().padStart(2, '0');
+    return `${p(h)}:${p(m)}:${p(sec)}`;
   }
 
   /** Doble clic (detectado por tiempo, sin depender del evento nativo que cdkDrag
