@@ -145,9 +145,25 @@
   </div>
 </div>
 
-<!-- Tiers de minería: título del tier + sus iconos (rock/map/drop/bar…) en una fila -->
+<!-- Tiers de minería: sub-pestañas Minerales / Gemas / Árboles -->
 <div class="mining-tab" *ngIf="activeTab === 6">
-  <div class="mining-tier" *ngFor="let tier of miningTiers">
+  <div class="item-subtabs">
+    <div *ngFor="let tab of miningSubTabs; let i = index"
+         class="item-subtab"
+         [class.active]="i === activeMiningTab"
+         (click)="activeMiningTab = i">{{ tab }}</div>
+  </div>
+
+  <ng-container [ngSwitch]="activeMiningTab">
+    <ng-container *ngSwitchCase="0"><ng-container *ngTemplateOutlet="miningGroups; context: { $implicit: miningTiers }"></ng-container></ng-container>
+    <ng-container *ngSwitchCase="1"><ng-container *ngTemplateOutlet="miningGroups; context: { $implicit: gemTiers }"></ng-container></ng-container>
+    <ng-container *ngSwitchCase="2"><ng-container *ngTemplateOutlet="miningGroups; context: { $implicit: treeTiers }"></ng-container></ng-container>
+  </ng-container>
+</div>
+
+<!-- Render de una lista de tiers (título + iconos en fila). Reutilizado por las 3 sub-pestañas. -->
+<ng-template #miningGroups let-groups>
+  <div class="mining-tier" *ngFor="let tier of groups">
     <div class="mining-title">{{ tier.title }}</div>
     <div class="mining-row">
       <div class="mining-cell" *ngFor="let t of tier.items" [title]="t.name">
@@ -159,7 +175,8 @@
       </div>
     </div>
   </div>
-</div>
+  <div class="mining-empty" *ngIf="!groups.length">Sin definir</div>
+</ng-template>
 
 <ng-template #itemCards let-entries>
   <button *ngFor="let entry of entries" class="item-card" (click)="giveItem(entry)" [title]="entry.name">

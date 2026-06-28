@@ -156,7 +156,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
   '1-5': genLevel({ id: '1-5', w: 76, h: 62, back: '1-4',   next: '1-6', enemyType: 'gnoll1',   maxCount: 4, behavior: 'aggressive', visionRadius: 5, mineTier: 5 }),
   '1-6': genLevel({ id: '1-6', w: 80, h: 66, back: '1-5',   next: '1-7', enemyType: 'lizard1',  maxCount: 5, behavior: 'aggressive', visionRadius: 6, mineTier: 6 }),
   '1-7': genLevel({ id: '1-7', w: 84, h: 68, back: '1-6',   next: '1-8', enemyType: 'goobling2', maxCount: 5, behavior: 'aggressive', visionRadius: 6, mineTier: 7 }),
-  '1-8': genLevel({ id: '1-8', w: 88, h: 72, back: '1-7',                enemyType: 'golem1',   maxCount: 6, behavior: 'aggressive', visionRadius: 7 }),
+  '1-8': genLevel({ id: '1-8', w: 88, h: 72, back: '1-7',                enemyType: 'golem1',   maxCount: 6, behavior: 'aggressive', visionRadius: 7, mineTier: 8 }),
 };
 
 // Planeta al que pertenece cada mapa (para mostrar "qué planeta exploras" en el

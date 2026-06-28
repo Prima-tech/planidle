@@ -129,6 +129,36 @@ export class SummonComponent {
         { name: 'bar',      box: { x: 112, y: 192, w: 32, h: 32 } }, // Icons #125
       ],
     },
+    {
+      title: 'tier8',
+      items: [
+        { name: 'rock', box: { x: 531, y: 8,  w: 26, h: 20 }, sheet: 'objects' }, // Objects #216
+        { name: 'map',  box: { x: 48,  y: 80, w: 16, h: 16 } },   // Icons #42
+        { name: 'drop', box: { x: 64,  y: 96, w: 32, h: 32 } },   // Icons #63
+        { name: 'bar_mini', box: { x: 96,  y: 112, w: 16, h: 16 } }, // Icons #64
+        { name: 'bar',      box: { x: 112, y: 96,  w: 32, h: 32 } }, // Icons #65
+      ],
+    },
+    {
+      title: 'tier9',
+      items: [
+        { name: 'rock', box: { x: 530, y: 39,  w: 26, h: 20 }, sheet: 'objects' }, // Objects #236
+        { name: 'map',  box: { x: 0,   y: 272, w: 16, h: 16 } },   // Icons #160
+        { name: 'drop', box: { x: 16,  y: 288, w: 32, h: 32 } },   // Icons #181
+        { name: 'bar_mini', box: { x: 96,  y: 272, w: 16, h: 16 } }, // Icons #164
+        { name: 'bar',      box: { x: 112, y: 256, w: 32, h: 32 } }, // Icons #165
+      ],
+    },
+    {
+      title: 'tier10',
+      items: [
+        { name: 'rock', box: { x: 595, y: 39,  w: 24, h: 21 }, sheet: 'objects' }, // Objects #238
+        { name: 'map',  box: { x: 48,  y: 272, w: 16, h: 16 } },   // Icons #162
+        { name: 'drop', box: { x: 64,  y: 288, w: 32, h: 32 } },   // Icons #183
+        { name: 'bar_mini', box: { x: 96,  y: 304, w: 16, h: 16 } }, // Icons #184
+        { name: 'bar',      box: { x: 112, y: 288, w: 32, h: 32 } }, // Icons #185
+      ],
+    },
   ];
 
   /** Recorte de una hoja (Icons/Objects) para mostrar el icono del tier en su celda. */
@@ -148,6 +178,16 @@ export class SummonComponent {
       'height':              `${b.h}px`,
     };
   }
+
+  // Sub-pestañas de la pestaña Mining. `miningTiers` (arriba) = minerales; gemas y
+  // árboles de momento vacíos (se rellenan igual: { title, items }).
+  readonly miningSubTabs = ['Minerales', 'Gemas', 'Árboles'];
+  readonly gemTiers:  { title: string; items: MiningIcon[] }[] = [];
+  readonly treeTiers: { title: string; items: MiningIcon[] }[] = [];
+
+  private _activeMiningTab = 0;
+  get activeMiningTab(): number { return this._activeMiningTab; }
+  set activeMiningTab(v: number) { this._activeMiningTab = v; this.panelState.set('summon.miningTab', v); }
 
   /** Mascotas disponibles para invocar (categoría 'Mascota'). */
   readonly petCatalog: LootEntry[] = ITEM_CATALOG.filter(e => e.category === 'Mascota');
@@ -311,6 +351,7 @@ export class SummonComponent {
     this._activeTab      = Math.min(Math.max(mappedTab, 0), this.tabs.length - 1);
     this._activeItemTab  = this.panelState.get('summon.itemTab',  0);
     this._activeEnemyTab = this.panelState.get('summon.enemyTab', 0);
+    this._activeMiningTab = this.panelState.get('summon.miningTab', 0);
   }
 
   summon(type: string): void {

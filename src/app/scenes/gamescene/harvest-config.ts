@@ -44,6 +44,9 @@ export const MINING_TIERS: Record<number, MiningTier> = {
   5: { rockTexture: 'rock_tier5', dropName: 'Mineral Tier 5', mmFrame: 270 },  // Icons #80
   6: { rockTexture: 'rock_tier6', dropName: 'Mineral Tier 6', mmFrame: 390 },  // Icons #120
   7: { rockTexture: 'rock_tier7', dropName: 'Mineral Tier 7', mmFrame: 393 },  // Icons #122
+  8: { rockTexture: 'rock_tier8', dropName: 'Mineral Tier 8', mmFrame: 153 },  // Icons #42
+  9: { rockTexture: 'rock_tier9', dropName: 'Mineral Tier 9', mmFrame: 510 },  // Icons #160
+  10:{ rockTexture: 'rock_tier10', dropName: 'Mineral Tier 10', mmFrame: 513 }, // Icons #162
 };
 export function miningTier(tier?: number): MiningTier {
   return MINING_TIERS[tier ?? 1] ?? MINING_TIERS[1];
