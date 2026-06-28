@@ -3,6 +3,7 @@ import { CdkDragDrop, CdkDrag } from '@angular/cdk/drag-drop';
 import { ForgeService, ForgeGrid } from 'src/app/services/forge.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { AccountUpgradesService } from 'src/app/services/account-upgrades.service';
 
 /**
  * Menú de la fundición. De arriba a abajo:
@@ -22,7 +23,11 @@ export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
   private forge     = inject(ForgeService);
   private inventory = inject(InventoryService);
   private equipment = inject(EquipmentService);
+  private accountUpgrades = inject(AccountUpgradesService);
   private zone      = inject(NgZone);
+
+  /** Mejora de cuenta: si está activa, la forja muestra sus pestañas (Forja/Mejoras). */
+  readonly forgeUpgradesUnlocked$ = this.accountUpgrades.forgeUpgradesUnlocked$;
 
   // Celdas de la forja ACTIVA (getters: cambian al cambiar de forja).
   get mat()  { return this.forge.mat; }
@@ -131,8 +136,12 @@ export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
   onCellDrop(event: CdkDragDrop<any>, grid: ForgeGrid, index: number): void {
     const data = event.item.data;
     if (data.sourceContext === 'inventory') {
-      if (this.forge.place(grid, index, data.item)) {
+      // dropFromInventory acepta/apila o INTERCAMBIA (cambiar de mineral): el nuevo
+      // sale de su celda del inventario y el viejo desplazado vuelve al inventario.
+      const r = this.forge.dropFromInventory(grid, index, data.item);
+      if (r.ok) {
         this.inventory.removeRequest$.next({ tabIndex: data.tabIndex, row: data.row, col: data.col });
+        if (r.returned) this.inventory.itemDropped$.next(r.returned);
       }
       return;
     }

@@ -21,6 +21,7 @@ import { ActivityService } from './activity.service';
 import { CharacterStatsService } from './character-stats.service';
 import { ConnectionService } from './connection.service';
 import { ForgeService } from './forge.service';
+import { AccountUpgradesService } from './account-upgrades.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -110,6 +111,7 @@ export class SaveService {
     private connection: ConnectionService,
     private activity: ActivityService,
     private forge: ForgeService,
+    private accountUpgrades: AccountUpgradesService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
@@ -448,9 +450,12 @@ export class SaveService {
       // escritura falla (p.ej. RLS de global_data), NO debe tumbar el guardado del
       // personaje que ya tuvo éxito: lo aislamos.
       try {
-        await this.supabase.saveAccountData({ achievementsGlobal: this.achievements.getGlobalSnapshot() });
+        await this.supabase.saveAccountData({
+          achievementsGlobal: this.achievements.getGlobalSnapshot(),
+          accountUpgrades: this.accountUpgrades.getSnapshot(),   // mejoras de cuenta
+        });
       } catch (e) {
-        console.warn('[Save] global_data no se pudo actualizar (logros de cuenta)', e);
+        console.warn('[Save] global_data no se pudo actualizar (logros/mejoras de cuenta)', e);
       }
       // Forjas de cuenta: por RPC aparte, que sella el tiempo en el SERVIDOR
       // (anti-trampa de reloj). Aislado: si falla, no tumba el guardado.

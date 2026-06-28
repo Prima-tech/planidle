@@ -68,6 +68,9 @@ $metal-dark: #6b6357;
   display: flex;
   gap: 5px;
   margin-bottom: 10px;
+
+  /* Bloqueadas: invisibles pero conservan su hueco (no descolocan la producción). */
+  &.is-hidden { visibility: hidden; }
 }
 
 .forge-tab {
@@ -582,7 +585,9 @@ $metal-dark: #6b6357;
 /* Icono del item en las casillas de la forja: un poco más grande que el de
    inventario para llenar mejor el cuadrado (48px). */
 .item-icon { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
-.item-icon-sheet { width: 40px; height: 40px; image-rendering: pixelated; }
+/* Los iconos de hoja recortan UN frame asumiendo 32px: hay que dejar el div a 32px
+   (si no, enseña parte del frame de al lado) y agrandarlo con transform. */
+.item-icon-sheet { width: 32px; height: 32px; image-rendering: pixelated; transform: scale(1.25); }
 .item-fallback { font-size: 1.1em; font-weight: 700; color: $text-cream; }
 .item-sum {
   position: absolute;

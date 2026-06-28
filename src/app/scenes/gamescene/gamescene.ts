@@ -2608,8 +2608,10 @@ export class GameScene extends Phaser.Scene {
     private spawnCityNpc(name: string, texKey: string, animKey: string, tileX: number, tileY: number, recruit?: typeof RECRUIT_NPCS[0]): void {
       const TS = GameScene.TILE_SIZE;
       // --- Ajustes del NPC (tocar estos si no cuadra) ---
-      const SCALE       = 2.8;   // tamaño del sprite
-      const FOOT_OFFSET = 32;    // px que sube el sprite para que los pies caigan en el tile
+      // Misma escala que el jugador (initPlayer: 2.5): con 2.8 los NPCs salían más
+      // grandes y se veían más pixelados que el PJ pese a usar la misma hoja LPC.
+      const SCALE       = 2.5;   // tamaño del sprite (igual que el jugador)
+      const FOOT_OFFSET = 29;    // px que sube el sprite para que los pies caigan en el tile (∝ escala)
       // Caja de colisión en TILES, relativa al tile de los pies (tileX,tileY). Generosa
       // a propósito: el jugador colisiona por su CENTRO, y con sprites LPC altos hay que
       // bloquear de más para chocar ANTES de solaparse con el dibujo. Ancho impar = centrado.

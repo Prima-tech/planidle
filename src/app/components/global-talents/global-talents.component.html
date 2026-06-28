@@ -3,3 +3,20 @@
 <div class="gt-level">
   Lvl : <span class="gt-level-value">{{ totalLevel === null ? '…' : totalLevel }}</span>
 </div>
+
+<!-- Puntos de mejoras de cuenta a repartir -->
+<div class="gt-points">
+  Puntos : <span class="gt-points-value">{{ available$ | async }} / {{ total }}</span>
+</div>
+
+<!-- Mejoras de cuenta: activar/desactivar (consume/libera puntos) -->
+<div class="gt-upgrades">
+  <button *ngFor="let up of upgrades"
+          class="gt-upgrade"
+          [class.is-active]="isActive(up.id)"
+          (click)="toggle(up.id)">
+    <div class="gt-upgrade-name">{{ up.name }}</div>
+    <div class="gt-upgrade-desc">{{ up.desc }}</div>
+    <div class="gt-upgrade-state">{{ isActive(up.id) ? 'Activo' : ('Coste ' + up.cost) }}</div>
+  </button>
+</div>

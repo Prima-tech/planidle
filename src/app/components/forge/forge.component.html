@@ -2,14 +2,15 @@
 
   <div class="forge-title">Forja</div>
 
-  <!-- Pestañas del panel de ESTA forja: ciclo de producción / mejoras propias. -->
-  <div class="forge-tabs">
+  <!-- Pestañas: visibles solo si la mejora de cuenta "Mejoras de forjas" está activa,
+       pero RESERVAN su hueco siempre (visibility) para no descolocar la producción. -->
+  <div class="forge-tabs" [class.is-hidden]="!(forgeUpgradesUnlocked$ | async)">
     <button class="forge-tab" [class.is-active]="tab === 'forja'" (click)="setTab('forja')">Forja</button>
     <button class="forge-tab" [class.is-active]="tab === 'mejoras'" (click)="setTab('mejoras')">Mejoras</button>
   </div>
 
-  <!-- 0) Producir: material (izq) + botón (centro) + salida (der). -->
-  <div class="forge-section forge-prod-section" *ngIf="tab === 'forja'">
+  <!-- 0) Producir: visible si no hay pestañas (bloqueado) o estás en la pestaña Forja. -->
+  <div class="forge-section forge-prod-section" *ngIf="!(forgeUpgradesUnlocked$ | async) || tab === 'forja'">
     <div class="forge-prod-wrap">
 
       <!-- Columna izquierda: mineral (arriba) + combustible (debajo), cada uno con su etiqueta. -->
@@ -123,8 +124,8 @@
     </div>
   </div>
 
-  <!-- Pestaña Mejoras: propia de cada forja. Vacía de momento. -->
-  <div class="forge-section forge-upgrades" *ngIf="tab === 'mejoras'">
+  <!-- Pestaña Mejoras: solo si está desbloqueada y seleccionada. Vacía de momento. -->
+  <div class="forge-section forge-upgrades" *ngIf="(forgeUpgradesUnlocked$ | async) && tab === 'mejoras'">
     <div class="forge-upgrades-empty">Sin mejoras todavía</div>
   </div>
 

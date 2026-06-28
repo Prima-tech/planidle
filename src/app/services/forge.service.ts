@@ -203,6 +203,17 @@ export class ForgeService {
     return FORGE_BARS.find(b => b.tier === tier) ?? null;
   }
 
+  /** Si hay una barra en la salida, el mineral que la produce (el único que se puede
+   *  meter en material para no mezclar barras distintas). null si la salida está vacía. */
+  private outputMineral(f: ForgeInstance): string | null {
+    for (const c of f.out) {
+      if (!c) continue;
+      const bar = FORGE_BARS.find(b => b.name === c.name);
+      if (bar) return bar.mineral;
+    }
+    return null;
+  }
+
   // ── Play / Pausa (sobre la activa) ───────────────────────────────────────────
 
   toggle(): void { this.active.running ? this.pause() : this.play(); }
@@ -228,6 +239,11 @@ export class ForgeService {
     if (g === 'out') return false;
     if (g === 'fuel' && !isFuelItem(item)) return false;
     if (g === 'mat'  && !isMineralItem(item)) return false;
+    // Si ya hay una barra en la salida, solo se admite su mismo mineral (no mezclar).
+    if (g === 'mat') {
+      const need = this.outputMineral(this.active);
+      if (need && item.name !== need) return false;
+    }
     const cells = this.grid(g);
     const target = cells[index];
     if (target?.mergeable && item.mergeable && target.name === item.name) {
@@ -239,6 +255,31 @@ export class ForgeService {
     }
     this.afterChange();
     return true;
+  }
+
+  /** Drop desde el inventario: coloca/apila, o INTERCAMBIA si la celda está ocupada
+   *  por otro item válido (p. ej. cambiar de mineral). El swap solo procede si el item
+   *  es admisible (`canAccept` ya aplica la regla de "no mezclar con la barra de salida").
+   *  Devuelve `ok` (si lo aceptó) y `returned` = item desplazado que debe volver al
+   *  inventario (null si no desplazó nada). */
+  dropFromInventory(g: ForgeGrid, index: number, item: InventoryItem): { ok: boolean; returned: InventoryItem | null } {
+    if (!this.canAccept(g, item)) return { ok: false, returned: null };   // tipo válido + regla de salida
+    const cells = this.grid(g);
+    const target = cells[index];
+    if (target?.mergeable && item.mergeable && target.name === item.name) {
+      target.sum = (target.sum ?? 1) + (item.sum ?? 1);
+      this.afterChange();
+      return { ok: true, returned: null };
+    }
+    if (target === null) {
+      cells[index] = item;
+      this.afterChange();
+      return { ok: true, returned: null };
+    }
+    // Ocupada por otro item válido → intercambio (el viejo vuelve al inventario).
+    cells[index] = item;
+    this.afterChange();
+    return { ok: true, returned: target };
   }
 
   moveInternal(from: { g: ForgeGrid; index: number }, to: { g: ForgeGrid; index: number }): void {
@@ -277,7 +318,11 @@ export class ForgeService {
   canAccept(g: ForgeGrid, item: InventoryItem | null): boolean {
     if (!item) return false;
     if (g === 'fuel') return isFuelItem(item);
-    if (g === 'mat')  return isMineralItem(item);
+    if (g === 'mat') {
+      if (!isMineralItem(item)) return false;
+      const need = this.outputMineral(this.active);   // hay barra en salida → solo su mineral
+      return !need || item.name === need;
+    }
     return false;
   }
 

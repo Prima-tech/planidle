@@ -2,13 +2,15 @@ import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { StorageService } from './storage.service';
 import { ForgeService } from './forge.service';
+import { AccountUpgradesService } from './account-upgrades.service';
 @Injectable({
   providedIn: 'root'
 })
 export class SupabaseService {
   private supabase: SupabaseClient;
 
-  constructor(private storageService: StorageService, private forge: ForgeService) {
+  constructor(private storageService: StorageService, private forge: ForgeService,
+              private accountUpgrades: AccountUpgradesService) {
     const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
       fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
 
@@ -109,6 +111,9 @@ export class SupabaseService {
       const localGlobalAch: string[] = (await this.storageService.get('achievements_global')) ?? [];
       const mergedGlobalAch = [...new Set([...cloudGlobalAch, ...localGlobalAch])];
       await this.storageService.set('achievements_global', mergedGlobalAch);
+
+      // Mejoras de cuenta (global_data.account.accountUpgrades): la cuenta manda.
+      await this.accountUpgrades.restore((data as any).account?.accountUpgrades ?? null);
 
       // Forjas de CUENTA (columna `forges`): globales entre personajes. El tiempo
       // offline lo calcula el SERVIDOR (claim_forge_offline) → no se puede trampear
