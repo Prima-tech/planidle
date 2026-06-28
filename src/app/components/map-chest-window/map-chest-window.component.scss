@@ -1,0 +1,63 @@
+/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$text-cream: #ecd9b4;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
+
+:host {
+  display: block;
+  box-sizing: border-box;
+  width: 292px;
+  min-height: calc(100% - 4px);
+  margin: 2px;
+  padding: 12px 10px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.mcw-title {
+  text-align: center;
+  font-size: 0.9em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffd79a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  margin-bottom: 14px;
+}
+
+.mcw-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px 0;
+}
+
+.mcw-icon {
+  font-size: 48px;
+  color: rgba(236, 217, 180, 0.55);
+}
+
+.mcw-msg {
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(236, 217, 180, 0.7);
+}

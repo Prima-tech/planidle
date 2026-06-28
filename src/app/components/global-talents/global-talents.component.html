@@ -1,22 +1,72 @@
+<button class="gt-expand-btn" (click)="toggleExpand()" [title]="expanded ? 'Reducir' : 'Expandir'">
+  <ion-icon [name]="expanded ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
+</button>
+
 <div class="gt-header">Talentos globales</div>
 
-<div class="gt-level">
-  Lvl : <span class="gt-level-value">{{ totalLevel === null ? '…' : totalLevel }}</span>
+<!-- Lvl y Puntos en la misma fila (compacto) -->
+<div class="gt-topline">
+  <div class="gt-level">
+    Lvl : <span class="gt-level-value">{{ totalLevel === null ? '…' : totalLevel }}</span>
+  </div>
+  <div class="gt-points">
+    Puntos : <span class="gt-points-value">{{ available$ | async }} / {{ total }}</span>
+  </div>
 </div>
 
-<!-- Puntos de mejoras de cuenta a repartir -->
-<div class="gt-points">
-  Puntos : <span class="gt-points-value">{{ available$ | async }} / {{ total }}</span>
+<!-- Todas las filas (Ataque / Skills / Exploración) en un único lienzo -->
+<div class="gt-canvas-scroll">
+  <div class="gt-canvas" [style.width.px]="canvasWidth()" [style.height.px]="canvasHeight()">
+
+    <svg class="gt-svg" [attr.width]="canvasWidth()" [attr.height]="canvasHeight()">
+      <line *ngFor="let l of allLines()" class="gt-line"
+            [class.gt-line--active]="l.active"
+            [attr.x1]="l.x1" [attr.y1]="l.y1" [attr.x2]="l.x2" [attr.y2]="l.y2" />
+    </svg>
+
+    <!-- Etiqueta de cada fila, a la izquierda (centrada en la banda) -->
+    <div *ngFor="let t of trees" class="gt-tree-label"
+         [style.top.px]="bandTop(t.id)" [style.height.px]="BAND">
+      <span>{{ t.label }}</span>
+    </div>
+
+    <!-- Nodos de las 3 filas -->
+    <button *ngFor="let n of allNodes" class="gt-node"
+            [class.gt-node--unlocked]="state(n) === 'unlocked'"
+            [class.gt-node--unlockable]="state(n) === 'unlockable'"
+            [class.gt-node--locked]="state(n) === 'locked'"
+            [class.gt-node--selected]="selectedId === n.id"
+            [style.left.px]="nodeX(n)" [style.top.px]="nodeY(n)"
+            [style.width.px]="NODE" [style.height.px]="NODE"
+            [title]="n.label"
+            (click)="onNodeClick(n)">
+      <ion-icon [name]="n.icon"></ion-icon>
+    </button>
+
+  </div>
 </div>
 
-<!-- Mejoras de cuenta: activar/desactivar (consume/libera puntos) -->
-<div class="gt-upgrades">
-  <button *ngFor="let up of upgrades"
-          class="gt-upgrade"
-          [class.is-active]="isActive(up.id)"
-          (click)="toggle(up.id)">
-    <div class="gt-upgrade-name">{{ up.name }}</div>
-    <div class="gt-upgrade-desc">{{ up.desc }}</div>
-    <div class="gt-upgrade-state">{{ isActive(up.id) ? 'Activo' : ('Coste ' + up.cost) }}</div>
-  </button>
+<!-- Ficha flotante al seleccionar un nodo (réplica de la de talentos de pj) -->
+<div class="gt-flyout" *ngIf="selectedNode as n">
+  <div class="gt-flyout-name">{{ n.label }}</div>
+  <ion-icon class="gt-flyout-icon" [name]="n.icon"></ion-icon>
+  <div class="gt-flyout-desc">{{ n.desc }}</div>
+
+  <ng-container *ngIf="!selectedUnlocked() && selectedReachable()">
+    <button class="gt-flyout-btn" [disabled]="!selectedCanUnlock()" (click)="unlockSelected()">
+      <ion-icon name="star-outline"></ion-icon> Desbloquear ({{ n.cost }})
+    </button>
+    <div class="gt-flyout-hint" *ngIf="!selectedCanUnlock()">Sin puntos suficientes</div>
+  </ng-container>
+
+  <div class="gt-flyout-hint" *ngIf="!selectedUnlocked() && !selectedReachable()">
+    Bloqueado: desbloquea el nodo anterior
+  </div>
+
+  <ng-container *ngIf="selectedUnlocked()">
+    <div class="gt-flyout-state">Desbloqueado</div>
+    <button class="gt-flyout-btn gt-flyout-btn--relock" *ngIf="selectedCanRelock()" (click)="relockSelected()">
+      Quitar
+    </button>
+  </ng-container>
 </div>

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { StorageService } from './storage.service';
 import { ForgeService } from './forge.service';
-import { AccountUpgradesService } from './account-upgrades.service';
+import { GlobalTalentsService } from './global-talents.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -10,7 +10,7 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor(private storageService: StorageService, private forge: ForgeService,
-              private accountUpgrades: AccountUpgradesService) {
+              private globalTalents: GlobalTalentsService) {
     const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
       fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
 
@@ -112,8 +112,8 @@ export class SupabaseService {
       const mergedGlobalAch = [...new Set([...cloudGlobalAch, ...localGlobalAch])];
       await this.storageService.set('achievements_global', mergedGlobalAch);
 
-      // Mejoras de cuenta (global_data.account.accountUpgrades): la cuenta manda.
-      await this.accountUpgrades.restore((data as any).account?.accountUpgrades ?? null);
+      // Talentos globales de cuenta (global_data.account.globalTalents): la cuenta manda.
+      await this.globalTalents.restore((data as any).account?.globalTalents ?? null);
 
       // Forjas de CUENTA (columna `forges`): globales entre personajes. El tiempo
       // offline lo calcula el SERVIDOR (claim_forge_offline) → no se puede trampear
@@ -243,15 +243,31 @@ export class SupabaseService {
   }
 
   /** Guarda datos a nivel de CUENTA (no por personaje) en global_data.account.
-   *  Hoy: logros globales. Aquí irán futuros sistemas de cuenta (kills globales,
-   *  ciudad, tienda…). */
+   *  Hoy: logros globales + talentos globales. Aquí irán futuros sistemas de cuenta
+   *  (kills globales, ciudad, tienda…).
+   *
+   *  Blindado: hace MERGE con el `account` que ya hay en la nube en vez de pisarlo.
+   *  Así, si el llamador manda solo algunos campos (o se añade uno nuevo en el futuro
+   *  que esta llamada aún no incluya), el resto NO se pierde. */
   async saveAccountData(account: any): Promise<void> {
     const { data: { user } } = await this.supabase.auth.getUser();
     if (!user) throw new Error('No hay sesión activa');
 
+    // Lee el account actual para fusionar (read-merge-write). Si no se puede leer,
+    // seguimos con lo que hay (no abortamos el guardado por ello).
+    let current: any = {};
+    const { data: row } = await this.supabase
+      .from('global_data')
+      .select('account')
+      .eq('id', user.id)
+      .single();
+    if (row?.account && typeof row.account === 'object') current = row.account;
+
+    const merged = { ...current, ...account };
+
     const { error } = await this.supabase
       .from('global_data')
-      .update({ account, last_modified: new Date().toISOString() })
+      .update({ account: merged, last_modified: new Date().toISOString() })
       .eq('id', user.id);
 
     if (error) throw error;

@@ -11,6 +11,7 @@
 <app-modal-container #buildShopModal (closed)="onBuildShopModalClosed()"></app-modal-container>
 <app-modal-container #forgeModal (closed)="onForgeModalClosed()"></app-modal-container>
 <app-modal-container #globalTalentsModal></app-modal-container>
+<app-modal-container #mapChestModal (closed)="onMapChestModalClosed()"></app-modal-container>
 
 <!-- Modo Mundo: has muerto → al aceptar, teletransporte a la capital del planeta -->
 <div class="rh-backdrop" *ngIf="runDeadOpen">
@@ -50,7 +51,7 @@
   </div>
 </div>
 
-<button class="auto-attack-fab" *ngIf="!(runMode$ | async)" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
+<button class="auto-attack-fab" *ngIf="!(runMode$ | async) && (autoAttackUnlocked$ | async)" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
   <ion-icon name="infinite"></ion-icon>
 </button>
 <button class="auto-skill-fab" *ngIf="!(runMode$ | async)" [class.active]="autoAttack.skillsEnabled" (click)="toggleAutoSkills()">

@@ -21,7 +21,7 @@ import { ActivityService } from './activity.service';
 import { CharacterStatsService } from './character-stats.service';
 import { ConnectionService } from './connection.service';
 import { ForgeService } from './forge.service';
-import { AccountUpgradesService } from './account-upgrades.service';
+import { GlobalTalentsService } from './global-talents.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -111,7 +111,7 @@ export class SaveService {
     private connection: ConnectionService,
     private activity: ActivityService,
     private forge: ForgeService,
-    private accountUpgrades: AccountUpgradesService,
+    private globalTalents: GlobalTalentsService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
@@ -452,7 +452,7 @@ export class SaveService {
       try {
         await this.supabase.saveAccountData({
           achievementsGlobal: this.achievements.getGlobalSnapshot(),
-          accountUpgrades: this.accountUpgrades.getSnapshot(),   // mejoras de cuenta
+          globalTalents: this.globalTalents.getSnapshot(),   // talentos globales de cuenta
         });
       } catch (e) {
         console.warn('[Save] global_data no se pudo actualizar (logros/mejoras de cuenta)', e);

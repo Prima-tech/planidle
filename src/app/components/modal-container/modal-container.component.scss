@@ -87,7 +87,9 @@
     width: fit-content;
     /* El marco madera/piedra lo pinta el propio GlobalTalentsComponent (:host) */
     background: transparent;
-    overflow-y: auto;
+    /* overflow visible: la ficha flotante del nodo sale por la derecha del panel
+       (como el picker de talentos de equipo). El scroll interno lo hace gt-canvas-scroll. */
+    overflow: visible;
   }
   &.skill-detail {
     top: 10px;

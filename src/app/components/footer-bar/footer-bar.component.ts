@@ -20,10 +20,12 @@ import { SummonService } from 'src/app/services/summon.service';
 import { WorldService } from 'src/app/services/world.service';
 import { CityBuildService } from 'src/app/services/city-build.service';
 import { AdminService } from 'src/app/services/admin.service';
+import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { BuildPanelComponent } from '../build-panel/build-panel.component';
 import { BuildShopComponent } from '../build-shop/build-shop.component';
 import { ForgeComponent } from '../forge/forge.component';
 import { GlobalTalentsComponent } from '../global-talents/global-talents.component';
+import { MapChestWindowComponent } from '../map-chest-window/map-chest-window.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -45,6 +47,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('buildShopModal')   buildShopModal!:   ModalContainerComponent;
   @ViewChild('forgeModal')       forgeModal!:       ModalContainerComponent;
   @ViewChild('globalTalentsModal') globalTalentsModal!: ModalContainerComponent;
+  @ViewChild('mapChestModal')    mapChestModal!:    ModalContainerComponent;
 
   private detailSub:        Subscription;
   private closeSub:         Subscription;
@@ -77,6 +80,11 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private worldService           = inject(WorldService);
   private cityBuild              = inject(CityBuildService);
   admin                          = inject(AdminService);
+  private globalTalents          = inject(GlobalTalentsService);
+
+  /** Auto-ataque desbloqueado (mejora de cuenta attack_1): gatea el FAB ∞ del HUD. */
+  readonly autoAttackUnlocked$ = this.globalTalents.autoAttackUnlocked$;
+  private autoAttackLockSub?: Subscription;
 
   /** Modo Mundo (runner): oculta el toggle de página del footer. */
   readonly runMode$ = this.playerBridge.runMode$;
@@ -177,14 +185,22 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     // la abre a la izquierda. La tienda tiene su ventana propia; el resto de estaciones
     // (fragua, fundición…) abren de momento el mismo menú de forja (vacío).
     this.openWindowSub = this.cityBuild.openWindow$.subscribe(type => {
-      if (type === 'shop') this.openBuildShop();
-      else                 this.openForge();
+      if (type === 'shop')           this.openBuildShop();
+      else if (type === 'mapChest')  this.openMapChestWindow();
+      else                           this.openForge();
     });
 
     // La escena pide cerrar la ventana del edificio (jugador se alejó de la tienda/fragua).
     this.closeWindowSub = this.cityBuild.closeWindow$.subscribe(() => {
       if (this.buildShopModal?.isOpenModal()) this.buildShopModal.close();
       if (this.forgeModal?.isOpenModal())     this.forgeModal.close();
+      if (this.mapChestModal?.isOpenModal())  this.mapChestModal.close();
+    });
+
+    // Si el auto-ataque NO está desbloqueado (mejora de cuenta), apágalo: el FAB
+    // desaparece del HUD y no debe seguir activo por debajo.
+    this.autoAttackLockSub = this.autoAttackUnlocked$.subscribe(unlocked => {
+      if (!unlocked) this.autoAttack.isEnabled = false;
     });
 
     this.sceneStartingSub = this.playerBridge.sceneStarting$.subscribe(() => {
@@ -209,11 +225,12 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.deleteModeSub?.unsubscribe();
     this.openWindowSub?.unsubscribe();
     this.closeWindowSub?.unsubscribe();
+    this.autoAttackLockSub?.unsubscribe();
   }
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal],
+      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal],
       right: [this.gameSettingsModal, this.inventoryModal, this.worldMapModal, this.progressModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
@@ -223,7 +240,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeAllPanels() {
     [this.gameSettingsModal, this.inventoryModal, this.equipmentModal,
      this.summonModal, this.chestModal, this.skillDetailModal,
-     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal]
+     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal]
       .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
 
@@ -343,6 +360,21 @@ export class FooterBarComponent implements OnInit, OnDestroy {
         this.openInventory();
         this.inventoryOpenedByForge = true;
       }
+    }
+  }
+
+  onMapChestModalClosed() {
+    this.cityBuild.windowOpen$.next(false);
+  }
+
+  /** Ventana del cofre central del mapa (izquierda). De momento placeholder. */
+  openMapChestWindow() {
+    if (this.mapChestModal.isOpenModal()) {
+      this.mapChestModal.close();
+    } else {
+      this.closeOtherOnSide('left', this.mapChestModal);
+      this.mapChestModal.open(MapChestWindowComponent, 'mapChest');
+      this.cityBuild.windowOpen$.next(true);
     }
   }
 

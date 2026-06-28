@@ -414,7 +414,7 @@ $purple: #6e4a67;         // celda seleccionada
   border-radius: 10px;
   text-align: center;
   color: $text-cream;
-  width: 220px;
+  width: 270px;   /* ancho que deja caber los dos botones (Cancelar/Borrar) sin que se salgan */
   box-shadow:
     0 0 0 2px $outline,
     inset 0 0 0 2px $outline,
@@ -478,6 +478,12 @@ $purple: #6e4a67;         // celda seleccionada
   gap: 8px;
 }
 
-/* Botones del modal (Cancelar/Borrar): estilo global .rpg-btn; aquí solo reparto */
-.modal-buttons button { flex: 1; }
+/* Botones del modal (Cancelar/Borrar): estilo global .rpg-btn; aquí solo el reparto.
+   min-width:0 + padding lateral menor → reparten a partes iguales y no se salen. */
+.modal-buttons button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+}
 

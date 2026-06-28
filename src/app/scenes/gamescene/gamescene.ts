@@ -211,11 +211,15 @@ export class GameScene extends Phaser.Scene {
     // repintan todas las capas una sola vez (evita apilar listeners 'complete').
     private equipReapplyQueued = false;
     private activeChests: ActiveChest[] = [];
+    // Cofre central del mapa (cofre 2): fixture propio (no es construcción del jugador).
+    // Abre una ventana a la izquierda (placeholder) vía requestOpenWindow('mapChest').
+    private mapChest: { sprite: Phaser.GameObjects.Sprite; blocked: string[] } | null = null;
     // Cache del "qué tienes cerca" (cofre/tienda/recurso): son comprobaciones O(n)
     // sobre cofres/edificios/nodos. Recalcularlas CADA frame (120/seg) es CPU
     // tirada; se refrescan cada pocos frames (sigue siendo instantáneo en la práctica).
     private interactFrame = 0;
     private cachedNearChest:  typeof this.activeChests[0]    | null = null;
+    private cachedNearMapChest = false;
     private cachedNearWindow: typeof this.placedBuildings[0] | null = null;
     private cachedNearNode:   HarvestNode | null = null;
     private cachedNearNpc:    typeof this.cityNpcs[0] | null = null;
@@ -555,6 +559,8 @@ export class GameScene extends Phaser.Scene {
         this.deleteSelecting = false;
         this.placedBuildings = [];
         this.activeChests = [];
+        this.mapChest = null;
+        this.cachedNearMapChest = false;
         this.reg.interaction?.setContext('attack');
         this.statsSub?.unsubscribe();
         this.magicSub?.unsubscribe();
@@ -647,12 +653,14 @@ export class GameScene extends Phaser.Scene {
       // (u otro edificio con ventana) cerca → abrir ventana; si no → atacar.
       // Refresca el "qué tienes cerca" cada 4 frames, no cada frame → menos CPU.
       if ((this.interactFrame++ & 3) === 0) {
-        this.cachedNearChest  = this.nearestOpenableChest();
-        this.cachedNearWindow = this.cachedNearChest ? null : this.nearestWindowBuilding();
-        this.cachedNearNode   = (!this.cachedNearChest && !this.cachedNearWindow) ? this.nearestHarvestable() : null;
-        this.cachedNearNpc    = (!this.cachedNearChest && !this.cachedNearWindow && !this.cachedNearNode) ? this.nearestNpc() : null;
+        this.cachedNearChest    = this.nearestOpenableChest();
+        this.cachedNearMapChest = this.cachedNearChest ? false : this.nearMapChest();
+        this.cachedNearWindow   = (this.cachedNearChest || this.cachedNearMapChest) ? null : this.nearestWindowBuilding();
+        this.cachedNearNode     = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow) ? this.nearestHarvestable() : null;
+        this.cachedNearNpc      = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow && !this.cachedNearNode) ? this.nearestNpc() : null;
       }
       const nearChest = this.cachedNearChest;
+      const nearMapChest = this.cachedNearMapChest;
       const nearWindow = this.cachedNearWindow;
       const nearNode = this.cachedNearNode;
       const nearNpc = this.cachedNearNpc;
@@ -661,6 +669,7 @@ export class GameScene extends Phaser.Scene {
       if (nearNode) this.setActiveHarvest(nearNode.kind);
       this.reg.interaction?.setContext(
         nearChest ? 'chest'
+        : nearMapChest ? 'chest'
         : nearWindow ? (nearWindow.building.type === 'shop' ? 'shop' : 'forge')
         : nearNode ? HARVEST_KINDS[nearNode.kind].context
         : nearNpc ? 'talk' : 'attack');
@@ -690,7 +699,7 @@ export class GameScene extends Phaser.Scene {
       // el edificio desde lejos lo abriría y el mismo frame lo cerraría (parecía que "no
       // pasaba nada"): el jugador no se mueve hacia el edificio al pulsarlo.
       if (this.reg.cityBuild?.windowOpen$.value) {
-        if (this.nearestWindowBuilding()) {
+        if (this.nearestWindowBuilding() || this.nearMapChest()) {
           this.windowProximityArmed = true;
         } else if (this.windowProximityArmed) {
           this.reg.cityBuild.requestCloseWindow();
@@ -709,6 +718,11 @@ export class GameScene extends Phaser.Scene {
           if (!this.interactLatched) {
             this.interactLatched = true;
             this.openChest(nearChest);
+          }
+        } else if (nearMapChest) {
+          if (!this.interactLatched) {
+            this.interactLatched = true;
+            this.reg.cityBuild.requestOpenWindow('mapChest');
           }
         } else if (nearWindow) {
           if (!this.interactLatched) {
@@ -2509,6 +2523,9 @@ export class GameScene extends Phaser.Scene {
         this.spawnTownChest();
       }
 
+      // Cofre central del mapa (cofre 2): en TODOS los mapas, abre su ventana.
+      this.spawnMapChest();
+
       this.chestSub = this.reg.summon.chestSpawn$.subscribe(col => {
         const pos = this.player.getPosition();
         const TS  = GameScene.TILE_SIZE;
@@ -2881,6 +2898,33 @@ export class GameScene extends Phaser.Scene {
       this.reg.cityBuild.requestDelete({ ...pb.building });   // abre el modal de confirmación
     }
 
+    /** Cofre central del mapa (cofre 2 = col 1) en el centro. Bloquea su huella. */
+    private spawnMapChest(): void {
+      if (!this.currentMap) return;
+      const TS = GameScene.TILE_SIZE;
+      // Centro del mapa desplazado a la derecha (el spawn del jugador cae en el centro).
+      const x = (this.currentMap.width  * TS) / 2 + TS * 6;
+      const y = (this.currentMap.height * TS) / 2;
+      const sprite = this.add.sprite(x, y, 'chests', 1);   // 1 = cofre 2, frame cerrado
+      sprite.setScale(4);
+      sprite.setDepth(2);
+      const half = (32 * 4) / 2;
+      const blocked = this.computeFootprintTiles(x, y, half);
+      for (const k of blocked) this.collisionTiles.add(k);
+      this.mapChest = { sprite, blocked };
+    }
+
+    /** ¿El jugador está junto al cofre central? (bordes del sprite, como los demás cofres). */
+    private nearMapChest(): boolean {
+      if (!this.mapChest) return false;
+      const pos = this.player.getPosition();
+      const range = GameScene.CHEST_INTERACT_RANGE;
+      const b = this.mapChest.sprite.getBounds();
+      const dx = Math.max(b.left - pos.x, 0, pos.x - b.right);
+      const dy = Math.max(b.top  - pos.y, 0, pos.y - b.bottom);
+      return dx * dx + dy * dy <= range * range;
+    }
+
     /** Edificio con ventana propia (p.ej. tienda) dentro del rango de interacción, o null. */
     private nearestWindowBuilding(): typeof this.placedBuildings[0] | null {
       const pos   = this.player.getPosition();
@@ -2902,6 +2946,11 @@ export class GameScene extends Phaser.Scene {
     /** Si el toque cae sobre un edificio con ventana propia, la abre. Devuelve true si lo gestionó. */
     private handleBuildingWindowTap(pointer: Phaser.Input.Pointer): boolean {
       const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      // Cofre central del mapa.
+      if (this.mapChest && this.mapChest.sprite.getBounds().contains(world.x, world.y)) {
+        this.reg.cityBuild.requestOpenWindow('mapChest');
+        return true;
+      }
       const pb = this.placedBuildings.find(b => b.sprite.getBounds().contains(world.x, world.y));
       if (!pb) return false;
       const def = this.reg.cityBuild.def(pb.building.type);
