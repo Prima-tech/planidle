@@ -12,7 +12,7 @@ export class BuildPanelComponent {
   private cityBuild = inject(CityBuildService);
 
   readonly CHEST_FRAME_SIZE = 32;
-  readonly CHEST_COLS       = 9;
+  readonly CHEST_COLS       = 10;
 
   /** Construibles disponibles: oculta los uniques ya construidos. */
   get buildables(): BuildableDef[] {
@@ -40,7 +40,7 @@ export class BuildPanelComponent {
 
   /** Recorte del frame para el preview de la ficha.
    *  - Con `previewSrc` (estaciones): recorte explícito en px de la hoja `previewUrl`.
-   *  - Sin él (cofre/tienda): rejilla por defecto de la hoja 'chests' (9 cols, 32×32, ×2). */
+   *  - Sin él (cofre/tienda): rejilla por defecto de la hoja 'chests' (10 cols, 32×32, ×2). */
   frameStyle(def: BuildableDef): Record<string, string> {
     if (def.previewSrc && def.previewSheet) {
       const s = def.previewScale ?? 1;

@@ -363,10 +363,10 @@ export class SummonComponent {
     };
   }
 
-  /** Índices 0-8, uno por columna del spritesheet chests.png (32×32 por frame, 9 cols). */
-  readonly chestIndices = [0,1,2,3,4,5,6,7,8];
+  /** Índices 0-9, uno por columna del spritesheet chests.png (32×32 por frame, 10 cols). */
+  readonly chestIndices = [0,1,2,3,4,5,6,7,8,9];
   readonly CHEST_FRAME_SIZE = 32;
-  readonly CHEST_COLS       = 9;
+  readonly CHEST_COLS       = 10;
 
   chestFrameStyle(col: number): Record<string, string> {
     const scale = 2;

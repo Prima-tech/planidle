@@ -2474,18 +2474,18 @@ export class GameScene extends Phaser.Scene {
     }
 
     private initChestListener(): void {
-      // Registra las 9 animaciones de apertura (una por columna del spritesheet).
-      // chests.png: 9 cols × 4 rows, 32×32 px. Frames izq-dcha, arriba-abajo.
-      // Cofre col: idle=col, anim=[col+9, col+18, col+27]
-      for (let col = 0; col < 9; col++) {
+      // Registra las 10 animaciones de apertura (una por columna del spritesheet).
+      // chests.png: 10 cols × 4 rows, 32×32 px. Frames izq-dcha, arriba-abajo.
+      // Cofre col: idle=col (fila 0 = cerrado), anim=[col+10, col+20, col+30]
+      for (let col = 0; col < 10; col++) {
         const key = `chest_open_${col}`;
         if (!this.anims.exists(key)) {
           this.anims.create({
             key,
             frames: [
-              { key: 'chests', frame: col + 9  },
-              { key: 'chests', frame: col + 18 },
-              { key: 'chests', frame: col + 27 },
+              { key: 'chests', frame: col + 10 },
+              { key: 'chests', frame: col + 20 },
+              { key: 'chests', frame: col + 30 },
             ],
             frameRate: 6,
             repeat: 0,
@@ -2681,7 +2681,7 @@ export class GameScene extends Phaser.Scene {
       entry: ActiveChest;
       isOpenUnsub: () => void;
     } {
-      const col = 7;   // Cofre 8 (chests.png: columna 7 → idle, anim col+9/+18/+27)
+      const col = 5;   // Cofre 6 (chests.png: columna 5 → idle, anim col+10/+20/+30)
 
       const sprite = this.add.sprite(x, y, 'chests', col);
       sprite.setScale(4);
@@ -2702,7 +2702,7 @@ export class GameScene extends Phaser.Scene {
       // Sincroniza el frame con el estado de la ventana Angular:
       // col+27 = último frame (abierto), col = cerrado
       const isOpenSub = this.reg.summon.townChestIsOpen$.subscribe(isOpen => {
-        sprite.setFrame(isOpen ? col + 27 : col);
+        sprite.setFrame(isOpen ? col + 30 : col);
       });
       const isOpenUnsub = () => isOpenSub.unsubscribe();
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, isOpenUnsub);

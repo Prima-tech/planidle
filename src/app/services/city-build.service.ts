@@ -48,7 +48,7 @@ export interface BuildableDef {
   litFrameRate?: number;
 
   // ── Render del preview en el panel (DOM). Por defecto: hoja 'chests'
-  //    (assets/sprites/resources/<spriteKey>.png, 9 cols, 32×32, ×2). ──
+  //    (assets/sprites/resources/<spriteKey>.png, 10 cols, 32×32, ×2). ──
   /** URL del PNG para el preview (si la hoja no está en resources/). */
   previewUrl?: string;
   /** Recorte explícito (px) del frame dentro de la hoja `previewUrl`. */
