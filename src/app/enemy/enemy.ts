@@ -520,8 +520,10 @@ export class Enemy {
     if (this.config.actions.death) {
       this.playAnim('death');
       this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        // El cadáver (último frame de la muerte) se queda un rato y luego se
+        // desvanece; el drop cae justo al desaparecer.
         this.mainScene.tweens.add({
-          targets: this.sprite, alpha: 0, duration: 400, delay: 200,
+          targets: this.sprite, alpha: 0, duration: 400, delay: 1400,
           onComplete: () => {
             this.sprite.destroy();
             this.mainScene.events.emit('enemyDied', { position: center, type });
