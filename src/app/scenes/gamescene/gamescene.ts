@@ -227,6 +227,7 @@ export class GameScene extends Phaser.Scene {
     private pendingLitBuilding: typeof this.placedBuildings[0] | null = null;
     private litBuilding:        typeof this.placedBuildings[0] | null = null;
     private windowOpenSub: { unsubscribe(): void } | null = null;
+    private forgeProducingSub: { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
     private gridSub:     { unsubscribe(): void } | null = null;
     private gridLayer:   Phaser.GameObjects.Container | null = null;   // overlay de rejilla de tiles (debug)
@@ -538,6 +539,7 @@ export class GameScene extends Phaser.Scene {
         this.placementSub?.unsubscribe();
         this.clearedSub?.unsubscribe();
         this.windowOpenSub?.unsubscribe();
+        this.forgeProducingSub?.unsubscribe();
         this.moveSub?.unsubscribe();
         this.deleteSub?.unsubscribe();
         this.removedSub?.unsubscribe();
@@ -1490,7 +1492,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     /** Enciende (anim de fuego) o apaga (textura …_off estática) la estación `pb`.
-     *  Se usa al abrir/cerrar su menú: abrir = en uso = fuego encendido. */
+     *  La forja se enciende mientras PRODUCE (ver anyProducing$), no al abrir su menú. */
     private setStationLit(pb: typeof this.placedBuildings[0], lit: boolean): void {
       const def = this.reg.cityBuild?.def(pb.building.type);
       if (!def) return;
@@ -2622,13 +2624,14 @@ export class GameScene extends Phaser.Scene {
       const footX = tileX * TS + TS / 2;
       const footY = tileY * TS + TS / 2;
 
-      // Sombra elíptica en los pies. Mismo depth que el NPC pero añadida ANTES, así
-      // queda detrás del cuerpo (y por encima del suelo, que va en depth ≤ 2).
-      this.add.ellipse(footX, footY, TS * 1.15, TS * 0.45, 0x000000, 0.3).setDepth(2);
+      // Sombra elíptica en los pies. Profundidad basada en `y` (como enemigos/jugador):
+      // a depth fijo 2 quedaba TAPADA por las capas superiores del mapa (que van en
+      // depth 0,1,2,3… por capa). footY-1 la deja justo detrás del NPC y sobre el mapa.
+      this.add.ellipse(footX, footY, TS * 1.15, TS * 0.45, 0x000000, 0.3).setDepth(footY - 1);
 
       const npc = this.add.sprite(footX, footY - FOOT_OFFSET, texKey, 312);
       npc.setScale(SCALE);
-      npc.setDepth(2);
+      npc.setDepth(footY);
       if (this.anims.exists(animKey)) npc.play(animKey);
 
       // Punto de interacción para hablar: los pies del NPC.
@@ -2792,7 +2795,10 @@ export class GameScene extends Phaser.Scene {
         }
         const blocked = this.computeFootprintTiles(x, y, (def.frameSize * def.scale) / 2);
         for (const k of blocked) this.collisionTiles.add(k);
-        this.placedBuildings.push({ building, sprite, blocked, shadow });
+        const pb = { building, sprite, blocked, shadow };
+        this.placedBuildings.push(pb);
+        // Si es una forja y ya se está produciendo, nace encendida.
+        if (def.litAnimKey && this.reg.forge?.anyProducing$.value) this.setStationLit(pb, true);
       }
     }
 
@@ -2800,18 +2806,19 @@ export class GameScene extends Phaser.Scene {
       const cityBuild = this.reg.cityBuild;
       if (!cityBuild) return;
       this.clearedSub = cityBuild.cleared$.subscribe(() => this.removePlacedBuildings());
-      // Encender/apagar la estación según su menú: al abrirse (windowOpen$ true)
-      // se enciende la candidata (pendingLitBuilding, fijada al pulsar/espacio/botón);
-      // al cerrarse, se apaga la que estuviera encendida.
-      this.windowOpenSub = cityBuild.windowOpen$.subscribe(open => {
-        if (open) {
-          if (this.pendingLitBuilding) this.setStationLit(this.pendingLitBuilding, true);
-          this.litBuilding = this.pendingLitBuilding;
-        } else {
-          if (this.litBuilding) this.setStationLit(this.litBuilding, false);
-          this.litBuilding = null;
-        }
-      });
+      // El fuego de las forjas se enciende mientras PRODUCEN (no al abrir/tocar el menú).
+      // Al cambiar el estado de producción, enciende/apaga todas las forjas colocadas.
+      this.forgeProducingSub = this.reg.forge?.anyProducing$.subscribe(producing => {
+        this.setForgesLit(!!producing);
+      }) ?? null;
+    }
+
+    /** Enciende/apaga el fuego de TODAS las forjas colocadas (estaciones con litAnimKey). */
+    private setForgesLit(lit: boolean): void {
+      for (const pb of this.placedBuildings) {
+        const def = this.reg.cityBuild?.def(pb.building.type);
+        if (def?.litAnimKey) this.setStationLit(pb, lit);
+      }
     }
 
     /** Quita en caliente todo lo construido por el jugador (no el cofre fijo). */

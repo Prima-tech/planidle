@@ -103,6 +103,9 @@ export class ForgeService {
   readonly producing$ = new BehaviorSubject<{ item: InventoryItem; progress: number } | null>(null);
   readonly changes$ = new Subject<void>();
   readonly withdraw$ = new Subject<{ grid: ForgeGrid; index: number; item: InventoryItem }>();
+  /** true si ALGUNA forja está produciendo ahora (en marcha + con trabajo). Lo usa la
+   *  escena para encender el fuego del edificio mientras produce. */
+  readonly anyProducing$ = new BehaviorSubject<boolean>(false);
 
   /** true mientras el panel de la forja está abierto (lo marca ForgeComponent). */
   private _open = false;
@@ -339,6 +342,7 @@ export class ForgeService {
       if (adv) { f.lastTickMs = Date.now(); any = true; }
       this.normalize(f);
     }
+    this.emitAnyProducing();   // enciende/apaga el fuego del edificio (cualquier forja)
     // Solo CD si cambió lo que se ve de la forja ACTIVA (cronómetro/contador/completar).
     if (a.job !== beforeJob || this.unitSecOf(a) !== beforeSec) {
       this.zone.run(() => { this.emitActive(); this.emitForges(); this.changes$.next(); });
@@ -491,6 +495,13 @@ export class ForgeService {
   private emitForges(): void {
     this.forges$.next(this.forges.map(f => ({ id: f.id, name: f.name, running: f.running })));
     this.activeId$.next(this.activeId);
+    this.emitAnyProducing();
+  }
+
+  /** Emite si alguna forja está produciendo (en marcha + con trabajo), solo al cambiar. */
+  private emitAnyProducing(): void {
+    const v = this.forges.some(f => f.running && !!f.job);
+    if (v !== this.anyProducing$.value) this.anyProducing$.next(v);
   }
 
   private afterChange(): void {

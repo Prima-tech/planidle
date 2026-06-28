@@ -43,6 +43,7 @@ import { ConnectionService } from 'src/app/services/connection.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { ActivityService } from 'src/app/services/activity.service';
 import { DialogueService } from 'src/app/services/dialogue.service';
+import { ForgeService } from 'src/app/services/forge.service';
 
 @Component({
   selector: 'app-layout',
@@ -105,6 +106,7 @@ export class LayoutComponent implements OnDestroy {
     private unlockService: UnlockService,
     private activityService: ActivityService,
     private dialogueService: DialogueService,
+    private forgeService: ForgeService,
   ) {
     this.loadGame();
   }
@@ -267,6 +269,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.UNLOCK,           this.unlockService);
     this.phaserGame.registry.set(REGISTRY_KEYS.ACTIVITY,         this.activityService);
     this.phaserGame.registry.set(REGISTRY_KEYS.DIALOGUE,         this.dialogueService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.FORGE,            this.forgeService);
     this.sceneManager.setGame(this.phaserGame);
   }
 
