@@ -32,6 +32,8 @@ export interface BuildableDef {
   isTownChest?: boolean;
   /** true → al pulsar el edificio en el mapa abre su ventana (openWindow$). */
   opensWindow?: boolean;
+  /** true → pinta una elipse de sombra bajo el sprite en el mapa. */
+  shadow?: boolean;
   /** Animación a reproducir en bucle (ghost + sprite colocado). Sus frames son
    *  [frame, frame+1, frame+2]. La crea/registra `gamescene` en `create()`. */
   animKey?: string;
@@ -138,6 +140,8 @@ export const BUILDABLES: BuildableDef[] = [
   {
     ...station('smelter', 'BUILD.SMELTER', 0, 1),
     spriteKey: 'smelter_off', frame: 0, animKey: undefined,
+    scale: 1.5,   // 1/4 más pequeño que la escala base (2) al pintarlo en el mapa
+    shadow: true,
     opensWindow: true,
     litAnimKey: 'smelter_lit', litTexture: 'stations', litFrames: [3,4,5], litFrameRate: 4,
     previewUrl: 'assets/sprites/stations/smelter_off.png',

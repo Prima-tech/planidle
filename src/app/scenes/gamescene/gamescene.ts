@@ -166,6 +166,7 @@ export class GameScene extends Phaser.Scene {
       blocked: string[];
       chestEntry?: ActiveChest;
       isOpenUnsub?: () => void;
+      shadow?: Phaser.GameObjects.Ellipse;
     }[] = [];
     // Estado del modo colocación de construcciones (ghost + botones confirmar/cancelar)
     private buildPlacement: {
@@ -2763,6 +2764,14 @@ export class GameScene extends Phaser.Scene {
         sprite.setScale(def.scale);
         sprite.setDepth(2);
         if (def.animKey && this.anims.exists(def.animKey)) sprite.play(def.animKey);
+        // Sombra de elipse bajo la base del sprite (objetos estáticos).
+        let shadow: Phaser.GameObjects.Ellipse | undefined;
+        if (def.shadow) {
+          const baseY = sprite.y + sprite.displayHeight / 2;
+          shadow = this.add.ellipse(sprite.x, baseY - sprite.displayHeight * 0.06,
+            sprite.displayWidth * 0.5, sprite.displayHeight * 0.16, 0x000000, 0.28);
+          shadow.setDepth(1.9);   // bajo el sprite (depth 2), sobre el suelo
+        }
         // Los edificios con ventana (fragua, fundición, tienda…) se pulsan para abrir
         // su menú: los marcamos interactivos para que los controles móviles
         // (joystick/ataque ocupan media pantalla) ignoren el toque que cae sobre ellos
@@ -2773,7 +2782,7 @@ export class GameScene extends Phaser.Scene {
         }
         const blocked = this.computeFootprintTiles(x, y, (def.frameSize * def.scale) / 2);
         for (const k of blocked) this.collisionTiles.add(k);
-        this.placedBuildings.push({ building, sprite, blocked });
+        this.placedBuildings.push({ building, sprite, blocked, shadow });
       }
     }
 
@@ -2811,6 +2820,7 @@ export class GameScene extends Phaser.Scene {
       if (this.pendingLitBuilding === pb) this.pendingLitBuilding = null;
       if (this.litBuilding === pb)        this.litBuilding = null;
       pb.sprite.destroy();
+      pb.shadow?.destroy();
       for (const k of pb.blocked) this.collisionTiles.delete(k);
       if (pb.chestEntry) {
         const i = this.activeChests.indexOf(pb.chestEntry);
