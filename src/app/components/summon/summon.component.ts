@@ -79,6 +79,56 @@ export class SummonComponent {
         { name: 'bar',      box: { x: 112, y: 0, w: 32, h: 32 } }, // Icons.png #5
       ],
     },
+    {
+      title: 'tier3',
+      items: [
+        { name: 'rock', box: { x: 466, y: 7,  w: 26, h: 22 }, sheet: 'objects' }, // Objects #214
+        { name: 'map',  box: { x: 0,   y: 80, w: 16, h: 16 } },   // Icons #40
+        { name: 'drop', box: { x: 16,  y: 96, w: 32, h: 32 } },   // Icons #61
+        { name: 'bar_mini', box: { x: 96,  y: 80, w: 16, h: 16 } }, // Icons #44
+        { name: 'bar',      box: { x: 112, y: 64, w: 32, h: 32 } }, // Icons #45
+      ],
+    },
+    {
+      title: 'tier4',
+      items: [
+        { name: 'rock', box: { x: 340, y: 39,  w: 25, h: 22 }, sheet: 'objects' }, // Objects #230
+        { name: 'map',  box: { x: 48,  y: 144, w: 16, h: 16 } },   // Icons #82
+        { name: 'drop', box: { x: 64,  y: 160, w: 32, h: 32 } },   // Icons #103
+        { name: 'bar_mini', box: { x: 96,  y: 176, w: 16, h: 16 } }, // Icons #104
+        { name: 'bar',      box: { x: 112, y: 160, w: 32, h: 32 } }, // Icons #105
+      ],
+    },
+    {
+      title: 'tier5',
+      items: [
+        { name: 'rock', box: { x: 594, y: 7,   w: 28, h: 21 }, sheet: 'objects' }, // Objects #218
+        { name: 'map',  box: { x: 0,   y: 144, w: 16, h: 16 } },   // Icons #80
+        { name: 'drop', box: { x: 16,  y: 160, w: 32, h: 32 } },   // Icons #101
+        { name: 'bar_mini', box: { x: 96,  y: 144, w: 16, h: 16 } }, // Icons #84
+        { name: 'bar',      box: { x: 112, y: 128, w: 32, h: 32 } }, // Icons #85
+      ],
+    },
+    {
+      title: 'tier6',
+      items: [
+        { name: 'rock', box: { x: 400, y: 39,  w: 28, h: 22 }, sheet: 'objects' }, // Objects #232
+        { name: 'map',  box: { x: 0,   y: 208, w: 16, h: 16 } },   // Icons #120
+        { name: 'drop', box: { x: 16,  y: 224, w: 32, h: 32 } },   // Icons #141
+        { name: 'bar_mini', box: { x: 96,  y: 240, w: 16, h: 16 } }, // Icons #144
+        { name: 'bar',      box: { x: 112, y: 224, w: 32, h: 32 } }, // Icons #145
+      ],
+    },
+    {
+      title: 'tier7',
+      items: [
+        { name: 'rock', box: { x: 466, y: 39,  w: 26, h: 21 }, sheet: 'objects' }, // Objects #234
+        { name: 'map',  box: { x: 48,  y: 208, w: 16, h: 16 } },   // Icons #122
+        { name: 'drop', box: { x: 64,  y: 224, w: 32, h: 32 } },   // Icons #143
+        { name: 'bar_mini', box: { x: 96,  y: 208, w: 16, h: 16 } }, // Icons #124
+        { name: 'bar',      box: { x: 112, y: 192, w: 32, h: 32 } }, // Icons #125
+      ],
+    },
   ];
 
   /** Recorte de una hoja (Icons/Objects) para mostrar el icono del tier en su celda. */

@@ -37,8 +37,13 @@ export interface MiningTier {
   mmFrame:     number;   // frame del icono en el minimapa (Icons.png como spritesheet 16px)
 }
 export const MINING_TIERS: Record<number, MiningTier> = {
-  1: { rockTexture: 'rock_tier1', dropName: 'Mineral Tier 1', mmFrame: 33 },  // Icons #2
-  2: { rockTexture: 'rock_tier2', dropName: 'Mineral Tier 2', mmFrame: 30 },  // Icons #0
+  1: { rockTexture: 'rock_tier1', dropName: 'Mineral Tier 1', mmFrame: 33 },   // Icons #2
+  2: { rockTexture: 'rock_tier2', dropName: 'Mineral Tier 2', mmFrame: 30 },   // Icons #0
+  3: { rockTexture: 'rock_tier3', dropName: 'Mineral Tier 3', mmFrame: 150 },  // Icons #40
+  4: { rockTexture: 'rock_tier4', dropName: 'Mineral Tier 4', mmFrame: 273 },  // Icons #82
+  5: { rockTexture: 'rock_tier5', dropName: 'Mineral Tier 5', mmFrame: 270 },  // Icons #80
+  6: { rockTexture: 'rock_tier6', dropName: 'Mineral Tier 6', mmFrame: 390 },  // Icons #120
+  7: { rockTexture: 'rock_tier7', dropName: 'Mineral Tier 7', mmFrame: 393 },  // Icons #122
 };
 export function miningTier(tier?: number): MiningTier {
   return MINING_TIERS[tier ?? 1] ?? MINING_TIERS[1];

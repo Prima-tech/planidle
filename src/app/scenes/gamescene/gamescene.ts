@@ -344,7 +344,17 @@ export class GameScene extends Phaser.Scene {
       // Menas por tier (el mapa decide cuál spawnea via MapConfig.mineTier).
       this.load.image('rock_tier1', 'assets/sprites/map/skills/rocks/tier1_rock.png');
       this.load.image('rock_tier2', 'assets/sprites/map/skills/rocks/tier2_rock.png');
+      this.load.image('rock_tier3', 'assets/sprites/map/skills/rocks/tier3_rock.png');
+      this.load.image('rock_tier4', 'assets/sprites/map/skills/rocks/tier4_rock.png');
+      this.load.image('rock_tier5', 'assets/sprites/map/skills/rocks/tier5_rock.png');
+      this.load.image('rock_tier6', 'assets/sprites/map/skills/rocks/tier6_rock.png');
+      this.load.image('rock_tier7', 'assets/sprites/map/skills/rocks/tier7_rock.png');
       this.load.image('mineral_tier2', 'assets/icon/resources/mining/tier2_drop.png');
+      this.load.image('mineral_tier3', 'assets/icon/resources/mining/tier3_drop.png');
+      this.load.image('mineral_tier4', 'assets/icon/resources/mining/tier4_drop.png');
+      this.load.image('mineral_tier5', 'assets/icon/resources/mining/tier5_drop.png');
+      this.load.image('mineral_tier6', 'assets/icon/resources/mining/tier6_drop.png');
+      this.load.image('mineral_tier7', 'assets/icon/resources/mining/tier7_drop.png');
       this.load.image('tree_chop', 'assets/sprites/map/skills/trees/Tree1.png');
 
       // Pociones (consumibles)
