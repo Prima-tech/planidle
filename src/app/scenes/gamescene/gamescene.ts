@@ -1428,7 +1428,8 @@ export class GameScene extends Phaser.Scene {
           tracker.count--;
           // Respawn tras 3 segundos
           this.time.delayedCall(3000, () => this.spawnEnemy(cfg, tracker));
-        }
+        },
+        this.collisionTiles,
       );
 
       enemy.setWanderZone(cfg.zone.tileX, cfg.zone.tileY, cfg.zone.width, cfg.zone.height);
@@ -2014,6 +2015,7 @@ export class GameScene extends Phaser.Scene {
           const idx = this.enemies.indexOf(enemy);
           if (idx !== -1) this.enemies.splice(idx, 1);
         },
+        this.collisionTiles,
       );
 
       this.enemies.push(enemy);
@@ -3124,6 +3126,7 @@ export class GameScene extends Phaser.Scene {
           const idx = this.enemies.indexOf(enemy);
           if (idx !== -1) this.enemies.splice(idx, 1);
         },
+        this.collisionTiles,
       );
       this.enemies.push(enemy);
     }

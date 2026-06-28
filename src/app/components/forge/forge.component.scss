@@ -36,7 +36,8 @@ $metal-dark: #6b6357;
     0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
-/* Título de la ventana, centrado arriba. Brillo de brasa. */
+/* Título de la ventana en su propio bloque con marco metálico + cara de madera,
+   igual que el bloque de producción. */
 .forge-title {
   text-align: center;
   font-size: 0.95em;
@@ -47,10 +48,40 @@ $metal-dark: #6b6357;
   text-shadow:
     0 0 8px rgba(255, 140, 50, 0.5),
     0 1px 2px rgba(0, 0, 0, 0.7);
-  margin-bottom: 14px;   /* aire entre el título y los cuadros */
+  margin-bottom: 10px;   /* aire entre el bloque del título y el de producción */
+  padding: 6px 8px;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 16px),
+    #9a6336;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 3px 8px rgba(0, 0, 0, 0.45);
 }
 
 .forge-section { margin-bottom: 10px; }
+
+/* Bloque que integra toda la zona de producción (mineral · fuel · produciendo ·
+   salida) en una tarjeta con marco metálico + cara de madera, como en el resto
+   de la app. */
+.forge-prod-section {
+  padding: 12px 10px;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 16px),
+    #9a6336;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 3px 8px rgba(0, 0, 0, 0.45);
+}
 
 .forge-label {
   font-size: 0.62em;
@@ -107,7 +138,6 @@ $metal-dark: #6b6357;
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 0 8px;
 }
 
 .forge-left-col {
@@ -122,7 +152,7 @@ $metal-dark: #6b6357;
    Color de metal incandescente. */
 .forge-arrow {
   flex: 0 0 auto;
-  height: 56px;
+  height: 48px;
   margin-top: 20px;   /* baja lo que ocupa la etiqueta (16px) + su separación (4px) para centrar con los cuadrados */
   display: flex;
   align-items: center;
@@ -147,9 +177,9 @@ $metal-dark: #6b6357;
 .forge-mat-cell,
 .forge-fuel-cell,
 .forge-out-cell {
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
   background:
     radial-gradient(circle at 50% 32%, rgba(255, 180, 90, 0.12), transparent 70%),
     linear-gradient(180deg, #7c6650, #594434);
@@ -171,8 +201,8 @@ $metal-dark: #6b6357;
 /* Placeholder de las celdas de entrada (mineral / madera): icono atenuado que
    indica qué va ahí cuando la celda está vacía. No intercepta el drop ni el clic. */
 .forge-cell-ph {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   image-rendering: pixelated;
   opacity: 0.3;
@@ -182,8 +212,8 @@ $metal-dark: #6b6357;
 /* Botón de producir = boca de la fragua: hierro al rojo con brasas vivas dentro.
    La barra seleccionada se ve como el metal calentándose en el fuego. */
 .forge-prod-btn {
-  width: 56px;
-  height: 56px;            /* cuadrado, mismo tamaño con o sin selección */
+  width: 48px;
+  height: 48px;            /* cuadrado, mismo tamaño con o sin selección */
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -429,9 +459,10 @@ $metal-dark: #6b6357;
   }
 }
 
-/* Icono del item (igual que inventario/tienda). */
-.item-icon { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
-.item-icon-sheet { width: 32px; height: 32px; image-rendering: pixelated; }
+/* Icono del item en las casillas de la forja: un poco más grande que el de
+   inventario para llenar mejor el cuadrado (48px). */
+.item-icon { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
+.item-icon-sheet { width: 40px; height: 40px; image-rendering: pixelated; }
 .item-fallback { font-size: 1.1em; font-weight: 700; color: $text-cream; }
 .item-sum {
   position: absolute;

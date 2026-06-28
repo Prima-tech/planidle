@@ -49,6 +49,11 @@ function isFuelItem(item: InventoryItem | null): boolean {
   return !!item && item.name.startsWith('Madera');
 }
 
+/** Mineral admitido en la celda de material: el que pide alguna barra de FORGE_BARS. */
+function isMineralItem(item: InventoryItem | null): boolean {
+  return !!item && FORGE_BARS.some(b => b.mineral === item.name);
+}
+
 export const FORGE_SLOTS = 8;
 const STORAGE_KEY = 'forge_state';
 const MAX_CATCHUP_S = 8 * 3600;   // tope de avance offline al cargar (8 h)
@@ -157,6 +162,7 @@ export class ForgeService {
   place(g: ForgeGrid, index: number, item: InventoryItem): boolean {
     if (g === 'out') return false;                          // la salida es SOLO salida: no se mete nada
     if (g === 'fuel' && !isFuelItem(item)) return false;    // la celda de combustible solo acepta madera
+    if (g === 'mat'  && !isMineralItem(item)) return false; // la celda de material solo acepta minerales
     const cells = this.grid(g);
     const target = cells[index];
     if (target?.mergeable && item.mergeable && target.name === item.name) {
@@ -200,7 +206,7 @@ export class ForgeService {
    *  mineral de una barra → material. Devuelve true si lo aceptó (lo movió). */
   quickAdd(item: InventoryItem): boolean {
     if (isFuelItem(item)) return this.place('fuel', 0, item);
-    if (FORGE_BARS.some(b => b.mineral === item.name)) return this.place('mat', 0, item);
+    if (isMineralItem(item)) return this.place('mat', 0, item);
     return false;   // no es combustible ni mineral de ninguna barra → no es de la forja
   }
 
@@ -208,6 +214,15 @@ export class ForgeService {
   requestWithdraw(g: ForgeGrid, index: number): void {
     const item = this.grid(g)[index];
     if (item) this.withdraw$.next({ grid: g, index, item });
+  }
+
+  /** ¿Esta celda acepta este item? (para el predicado de arrastre y el resaltado).
+   *  material → minerales, combustible → madera, salida → nada. */
+  canAccept(g: ForgeGrid, item: InventoryItem | null): boolean {
+    if (!item) return false;
+    if (g === 'fuel') return isFuelItem(item);
+    if (g === 'mat')  return isMineralItem(item);
+    return false;   // 'out' nunca acepta
   }
 
   // ── Motor de producción ─────────────────────────────────────────────────────

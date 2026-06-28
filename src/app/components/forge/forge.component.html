@@ -14,6 +14,7 @@
           <div class="forge-mat-cell" cdkDropList cdkDropListSortingDisabled
                [id]="'forge-mat-0'"
                [cdkDropListConnectedTo]="inventoryCellIds"
+               [cdkDropListEnterPredicate]="matEnter"
                (cdkDropListDropped)="onCellDrop($event, 'mat', 0)"
                (click)="onCellClick('mat', 0)">
             <div *ngIf="mat[0]; else matPh" class="forge-item" cdkDrag
@@ -32,6 +33,7 @@
           <div class="forge-fuel-cell" cdkDropList cdkDropListSortingDisabled
                [id]="'forge-fuel-0'"
                [cdkDropListConnectedTo]="inventoryCellIds"
+               [cdkDropListEnterPredicate]="fuelEnter"
                (cdkDropListDropped)="onCellDrop($event, 'fuel', 0)"
                (click)="onCellClick('fuel', 0)">
             <div *ngIf="fuel[0]; else fuelPh" class="forge-item" cdkDrag
@@ -87,6 +89,7 @@
         <div class="forge-out-cell" cdkDropList cdkDropListSortingDisabled
              [id]="'forge-out-0'"
              [cdkDropListConnectedTo]="inventoryCellIds"
+             [cdkDropListEnterPredicate]="outEnter"
              (cdkDropListDropped)="onCellDrop($event, 'out', 0)"
              (click)="onCellClick('out', 0)">
           <div *ngIf="out[0]" class="forge-item" cdkDrag

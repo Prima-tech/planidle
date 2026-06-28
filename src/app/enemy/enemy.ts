@@ -134,6 +134,11 @@ export class Enemy {
     private behavior: EnemyBehavior = 'passive',
     visionRadius: number = 5,
     private onDeath?: () => void,
+    // Obstáculos dinámicos (rocas/árboles/edificios) que NO están en el tilemap.
+    // Es la MISMA referencia que usa GridPhysics para el jugador; al mutarse (nodo
+    // destruido), el enemigo ve el cambio en vivo. Sin esto, los enemigos atraviesan
+    // las rocas/árboles/edificios porque solo miraban el `collides` del tilemap.
+    private collisionTiles: Set<string> = new Set(),
   ) {
     this.type           = config.type;
     this.HP             = config.hp;
@@ -617,6 +622,8 @@ export class Enemy {
   private isTileBlocked(px: number, py: number): boolean {
     const tileX = Math.floor(px / GameScene.TILE_SIZE);
     const tileY = Math.floor(py / GameScene.TILE_SIZE);
+    // Obstáculos dinámicos (rocas/árboles/edificios), igual que GridPhysics.
+    if (this.collisionTiles.has(`${tileX},${tileY}`)) return true;
     let hasAny = false;
     for (let i = 0; i < this.layerCount; i++) {
       const tile = this.tileMap.getTileAt(tileX, tileY, false, i);

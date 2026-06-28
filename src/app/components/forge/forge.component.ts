@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDrag } from '@angular/cdk/drag-drop';
 import { ForgeService, ForgeGrid } from 'src/app/services/forge.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
@@ -47,6 +47,12 @@ export class ForgeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.forge.setOpen(false);
   }
+
+  /** Predicados de arrastre: una celda solo se resalta/acepta si el item le sirve.
+   *  Arrow functions para conservar `this`. `drag.data.item` = item arrastrado. */
+  matEnter  = (drag: CdkDrag): boolean => this.forge.canAccept('mat',  drag.data?.item);
+  fuelEnter = (drag: CdkDrag): boolean => this.forge.canAccept('fuel', drag.data?.item);
+  outEnter  = (_drag: CdkDrag): boolean => false;   // la salida nunca acepta
 
   /** Botón único play/pausa. */
   toggle(): void { this.forge.toggle(); }
