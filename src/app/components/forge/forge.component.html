@@ -41,6 +41,9 @@
         </div>
       </div>
 
+      <!-- Flecha: material → botón -->
+      <div class="forge-arrow">&#10146;</div>
+
       <!-- Botón de producir (cuadrado) + nombre debajo -->
       <div class="forge-prod-col">
         <button class="forge-prod-btn"
@@ -53,6 +56,9 @@
         </button>
         <span class="forge-prod-name" *ngIf="selectedRecipe$ | async as bar">{{ bar.name }}</span>
       </div>
+
+      <!-- Flecha: botón → salida -->
+      <div class="forge-arrow">&#10146;</div>
 
       <!-- Cuadrado de salida: aquí sale la barra producida; se arrastra al inventario. -->
       <div class="forge-out-cell" cdkDropList cdkDropListSortingDisabled

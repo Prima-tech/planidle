@@ -110,6 +110,19 @@ $text-cream: #ecd9b4;
   gap: 6px;
 }
 
+/* Flechas entre material → botón → salida. Alto = el del cuadrado (56px) para que
+   el glifo quede centrado a la altura de los cuadrados (la fila es flex-start). */
+.forge-arrow {
+  flex: 0 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  font-size: 1.2em;
+  font-weight: 800;
+  color: $text-cream;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
 .forge-prod-col {
   display: flex;
   flex-direction: column;
@@ -124,7 +137,7 @@ $text-cream: #ecd9b4;
   width: 56px;
   height: 56px;
   flex: 0 0 56px;
-  background: $cell-border;
+  background: #6b5440;   /* recuadro más clarito que el negro del resto de celdas */
   border: 2px solid $outline;
   border-radius: 6px;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
