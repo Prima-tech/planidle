@@ -57,6 +57,15 @@ export function miningTier(tier?: number): MiningTier {
 // definido (sin él, `gemTier()` devuelve null y no se generan gemas en ese mapa).
 export const GEM_TIERS: Record<number, MiningTier> = {
   1: { rockTexture: 'rock_gem1', dropName: 'Gema Tier 1', mmFrame: 594 },  // Icons #196
+  2: { rockTexture: 'rock_gem2', dropName: 'Gema Tier 2', mmFrame: 54 },   // Icons #16
+  3: { rockTexture: 'rock_gem3', dropName: 'Gema Tier 3', mmFrame: 114 },  // Icons #36
+  4: { rockTexture: 'rock_gem4', dropName: 'Gema Tier 4', mmFrame: 474 },  // Icons #156
+  5: { rockTexture: 'rock_gem5', dropName: 'Gema Tier 5', mmFrame: 174 },  // Icons #56
+  6: { rockTexture: 'rock_gem6', dropName: 'Gema Tier 6', mmFrame: 414 },  // Icons #136
+  7: { rockTexture: 'rock_gem7', dropName: 'Gema Tier 7', mmFrame: 234 },  // Icons #76
+  8: { rockTexture: 'rock_gem8', dropName: 'Gema Tier 8', mmFrame: 534 },  // Icons #176
+  9: { rockTexture: 'rock_gem9', dropName: 'Gema Tier 9', mmFrame: 354 },  // Icons #116
+  10:{ rockTexture: 'rock_gem10', dropName: 'Gema Tier 10', mmFrame: 294 }, // Icons #96
 };
 export function gemTier(tier?: number): MiningTier | null {
   return tier ? (GEM_TIERS[tier] ?? null) : null;

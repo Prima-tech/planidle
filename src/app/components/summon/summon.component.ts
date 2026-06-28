@@ -191,6 +191,78 @@ export class SummonComponent {
         { name: 'drop', box: { x: 400, y: 288, w: 32, h: 32 } },   // Icons #197
       ],
     },
+    {
+      title: 'tier2',
+      items: [
+        { name: 'rock', box: { x: 342, y: 135, w: 21, h: 22 }, sheet: 'objects' }, // Objects #290
+        { name: 'map',  box: { x: 384, y: 16,  w: 16, h: 16 } },   // Icons #16
+        { name: 'drop', box: { x: 400, y: 0,   w: 32, h: 32 } },   // Icons #17
+      ],
+    },
+    {
+      title: 'tier3',
+      items: [
+        { name: 'rock', box: { x: 407, y: 136, w: 21, h: 21 }, sheet: 'objects' }, // Objects #292
+        { name: 'map',  box: { x: 384, y: 48,  w: 16, h: 16 } },   // Icons #36
+        { name: 'drop', box: { x: 400, y: 32,  w: 32, h: 32 } },   // Icons #37
+      ],
+    },
+    {
+      title: 'tier4',
+      items: [
+        { name: 'rock', box: { x: 470, y: 167, w: 20, h: 23 }, sheet: 'objects' }, // Objects #314
+        { name: 'map',  box: { x: 384, y: 240, w: 16, h: 16 } },   // Icons #156
+        { name: 'drop', box: { x: 400, y: 224, w: 32, h: 32 } },   // Icons #157
+      ],
+    },
+    {
+      title: 'tier5',
+      items: [
+        { name: 'rock', box: { x: 470, y: 132, w: 19, h: 23 }, sheet: 'objects' }, // Objects #294
+        { name: 'map',  box: { x: 384, y: 80,  w: 16, h: 16 } },   // Icons #56
+        { name: 'drop', box: { x: 400, y: 64,  w: 32, h: 32 } },   // Icons #57
+      ],
+    },
+    {
+      title: 'tier6',
+      items: [
+        { name: 'rock', box: { x: 406, y: 167, w: 19, h: 21 }, sheet: 'objects' }, // Objects #312
+        { name: 'map',  box: { x: 384, y: 208, w: 16, h: 16 } },   // Icons #136
+        { name: 'drop', box: { x: 400, y: 192, w: 32, h: 32 } },   // Icons #137
+      ],
+    },
+    {
+      title: 'tier7',
+      items: [
+        { name: 'rock', box: { x: 532, y: 134, w: 25, h: 22 }, sheet: 'objects' }, // Objects #296
+        { name: 'map',  box: { x: 384, y: 112, w: 16, h: 16 } },   // Icons #76
+        { name: 'drop', box: { x: 400, y: 96,  w: 32, h: 32 } },   // Icons #77
+      ],
+    },
+    {
+      title: 'tier8',
+      items: [
+        { name: 'rock', box: { x: 535, y: 167, w: 19, h: 22 }, sheet: 'objects' }, // Objects #316
+        { name: 'map',  box: { x: 384, y: 272, w: 16, h: 16 } },   // Icons #176
+        { name: 'drop', box: { x: 400, y: 256, w: 32, h: 32 } },   // Icons #177
+      ],
+    },
+    {
+      title: 'tier9',
+      items: [
+        { name: 'rock', box: { x: 341, y: 168, w: 21, h: 21 }, sheet: 'objects' }, // Objects #310
+        { name: 'map',  box: { x: 384, y: 176, w: 16, h: 16 } },   // Icons #116
+        { name: 'drop', box: { x: 400, y: 160, w: 32, h: 32 } },   // Icons #117
+      ],
+    },
+    {
+      title: 'tier10',
+      items: [
+        { name: 'rock', box: { x: 600, y: 134, w: 17, h: 23 }, sheet: 'objects' }, // Objects #298
+        { name: 'map',  box: { x: 384, y: 144, w: 16, h: 16 } },   // Icons #96
+        { name: 'drop', box: { x: 400, y: 128, w: 32, h: 32 } },   // Icons #97
+      ],
+    },
   ];
   readonly treeTiers: { title: string; items: MiningIcon[] }[] = [];
 

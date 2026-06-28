@@ -353,6 +353,15 @@ export class GameScene extends Phaser.Scene {
       this.load.image('rock_tier9', 'assets/sprites/map/skills/rocks/tier9_rock.png');
       this.load.image('rock_tier10', 'assets/sprites/map/skills/rocks/tier10_rock.png');
       this.load.image('rock_gem1', 'assets/sprites/map/skills/rocks/gem1_rock.png');
+      this.load.image('rock_gem2', 'assets/sprites/map/skills/rocks/gem2_rock.png');
+      this.load.image('rock_gem3', 'assets/sprites/map/skills/rocks/gem3_rock.png');
+      this.load.image('rock_gem4', 'assets/sprites/map/skills/rocks/gem4_rock.png');
+      this.load.image('rock_gem5', 'assets/sprites/map/skills/rocks/gem5_rock.png');
+      this.load.image('rock_gem6', 'assets/sprites/map/skills/rocks/gem6_rock.png');
+      this.load.image('rock_gem7', 'assets/sprites/map/skills/rocks/gem7_rock.png');
+      this.load.image('rock_gem8', 'assets/sprites/map/skills/rocks/gem8_rock.png');
+      this.load.image('rock_gem9', 'assets/sprites/map/skills/rocks/gem9_rock.png');
+      this.load.image('rock_gem10', 'assets/sprites/map/skills/rocks/gem10_rock.png');
       this.load.image('mineral_tier2', 'assets/icon/resources/mining/tier2_drop.png');
       this.load.image('mineral_tier3', 'assets/icon/resources/mining/tier3_drop.png');
       this.load.image('mineral_tier4', 'assets/icon/resources/mining/tier4_drop.png');
@@ -363,6 +372,15 @@ export class GameScene extends Phaser.Scene {
       this.load.image('mineral_tier9', 'assets/icon/resources/mining/tier9_drop.png');
       this.load.image('mineral_tier10', 'assets/icon/resources/mining/tier10_drop.png');
       this.load.image('gem_tier1', 'assets/icon/resources/gems/gem1_drop.png');
+      this.load.image('gem_tier2', 'assets/icon/resources/gems/gem2_drop.png');
+      this.load.image('gem_tier3', 'assets/icon/resources/gems/gem3_drop.png');
+      this.load.image('gem_tier4', 'assets/icon/resources/gems/gem4_drop.png');
+      this.load.image('gem_tier5', 'assets/icon/resources/gems/gem5_drop.png');
+      this.load.image('gem_tier6', 'assets/icon/resources/gems/gem6_drop.png');
+      this.load.image('gem_tier7', 'assets/icon/resources/gems/gem7_drop.png');
+      this.load.image('gem_tier8', 'assets/icon/resources/gems/gem8_drop.png');
+      this.load.image('gem_tier9', 'assets/icon/resources/gems/gem9_drop.png');
+      this.load.image('gem_tier10', 'assets/icon/resources/gems/gem10_drop.png');
       this.load.image('tree_chop', 'assets/sprites/map/skills/trees/Tree1.png');
 
       // Pociones (consumibles)
