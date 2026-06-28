@@ -2624,15 +2624,20 @@ export class GameScene extends Phaser.Scene {
       const footX = tileX * TS + TS / 2;
       const footY = tileY * TS + TS / 2;
 
-      // Sombra elíptica en los pies. Profundidad basada en `y` (como enemigos/jugador):
-      // a depth fijo 2 quedaba TAPADA por las capas superiores del mapa (que van en
-      // depth 0,1,2,3… por capa). footY-1 la deja justo detrás del NPC y sobre el mapa.
-      this.add.ellipse(footX, footY, TS * 1.15, TS * 0.45, 0x000000, 0.3).setDepth(footY - 1);
-
       const npc = this.add.sprite(footX, footY - FOOT_OFFSET, texKey, 312);
       npc.setScale(SCALE);
       npc.setDepth(footY);
       if (this.anims.exists(animKey)) npc.play(animKey);
+
+      // Sombra elíptica a los PIES REALES del sprite. OJO: NO va en `footY` (el tile):
+      // el personaje LPC se dibuja con los pies bastante por debajo del centro, así que
+      // una sombra en footY quedaba flotando tras el cuerpo y no se veía. La anclamos al
+      // sprite (alto*0.40 por debajo del centro = los pies). Profundidad basada en `y`
+      // (footY-1): detrás del NPC y por ENCIMA de las capas del mapa (que van en depth
+      // 0,1,2,3… por capa, antes la tapaban).
+      const feetY = npc.y + npc.displayHeight * 0.40;
+      this.add.ellipse(footX, feetY, npc.displayWidth * 0.36, npc.displayWidth * 0.14, 0x000000, 0.38)
+        .setDepth(footY - 1);
 
       // Punto de interacción para hablar: los pies del NPC.
       this.cityNpcs.push({ sprite: npc, x: footX, y: footY, name, recruit });

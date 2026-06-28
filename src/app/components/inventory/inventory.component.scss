@@ -284,14 +284,17 @@ $purple: #6e4a67;         // celda seleccionada
   color: $text-brown;
 }
 
-/* Moneda de pago (especial): pastilla pegada a la del oro */
+/* Moneda de pago (especial): pastilla pegada a la del oro. Crece para alojar el
+   icono a 30px (más grande que el contador de oro). */
 .special-coins-section {
   margin-left: 6px;   /* la de oro ya empuja con margin-left:auto; esta va a su lado */
+  height: 38px;       /* alto para que quepa el icono de 30px con aire */
+  padding: 0 10px;
 }
 
 .special-coin-icon {
-  width: 18px;
-  height: 18px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   image-rendering: pixelated;
   flex-shrink: 0;

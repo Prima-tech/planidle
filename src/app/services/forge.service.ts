@@ -375,6 +375,12 @@ export class ForgeService {
         f.job = null;
       }
     }
+    // Si el ciclo completó justo al consumir todo el `work` (5s = nº exacto de ticks)
+    // y aún puede producir, deja el siguiente trabajo LISTO en este mismo tick. Así
+    // `job` no queda null un tick (evita el parpadeo del fondo rojo / fuego entre ciclos).
+    if (f.running && !f.job && this.canProduceForge(f)) {
+      f.job = { elapsedS: 0, barTier: this.currentBarOf(f)!.tier };
+    }
     return progressed;
   }
 

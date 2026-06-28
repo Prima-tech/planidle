@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, NgZone } from '@angular/core';
 import { CdkDragDrop, CdkDrag } from '@angular/cdk/drag-drop';
-import { ForgeService, ForgeGrid } from 'src/app/services/forge.service';
+import { ForgeService, ForgeGrid, ForgeBar } from 'src/app/services/forge.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { AccountUpgradesService } from 'src/app/services/account-upgrades.service';
