@@ -163,7 +163,9 @@
 
 <!-- Render de una lista de tiers (título + iconos en fila). Reutilizado por las 3 sub-pestañas. -->
 <ng-template #miningGroups let-groups>
-  <div class="mining-tier" *ngFor="let tier of groups">
+  <div class="mining-tier mining-tier--clickable" *ngFor="let tier of groups; let i = index"
+       (click)="giveTierStack(activeMiningTab, i)"
+       title="Dar 100 del drop de este tier">
     <div class="mining-title">{{ tier.title }}</div>
     <div class="mining-row">
       <div class="mining-cell" *ngFor="let t of tier.items" [title]="t.name">

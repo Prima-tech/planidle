@@ -153,7 +153,9 @@ $metal-dark: #6b6357;
 .forge-arrow {
   flex: 0 0 auto;
   height: 48px;
-  margin-top: 20px;   /* baja lo que ocupa la etiqueta (16px) + su separación (4px) para centrar con los cuadrados */
+  /* alinea con el cuadro central, que cae más abajo por lo que tiene encima:
+     etiqueta(20) + tiempo unidad(2+12=14) + controles(4+24+7=35) + hueco frame(3) ≈ 72px. */
+  margin-top: 72px;
   display: flex;
   align-items: center;
   font-size: 1.2em;
@@ -207,6 +209,65 @@ $metal-dark: #6b6357;
   image-rendering: pixelated;
   opacity: 0.3;
   pointer-events: none;
+}
+
+/* Marco que envuelve el cuadrado central + el aro de progreso de la unidad. */
+.forge-prod-frame {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Contador de barras producibles, en la esquina inferior derecha de la fragua. */
+.forge-prod-count {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55em;
+  font-weight: 800;
+  color: $text-cream;
+  background: $cell-border;
+  border: 1px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* Aro de progreso (borde del cuadrado central) que se rellena con la unidad. */
+.forge-prod-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.forge-ring-track {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.5);
+  stroke-width: 3;
+}
+
+.forge-ring-fill {
+  fill: none;
+  stroke: #ffc24a;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 100;            /* pathLength=100 → trabaja en 0..100 */
+  transition: stroke-dashoffset 0.25s linear;
+  filter: drop-shadow(0 0 2px rgba(255, 160, 60, 0.7));
 }
 
 /* Botón de producir = boca de la fragua: hierro al rojo con brasas vivas dentro.
@@ -289,6 +350,12 @@ $metal-dark: #6b6357;
   align-items: center;
 }
 
+/* Slot de salida: baja para que su cuadrado quede a la altura del cuadro central.
+   72px del cuadro − 20px de su propia etiqueta. */
+.forge-slot--out {
+  margin-top: 52px;
+}
+
 .forge-prod-select {
   font-size: 0.55em;
   font-weight: 700;
@@ -300,11 +367,12 @@ $metal-dark: #6b6357;
   padding: 0 3px;
 }
 
-/* Controles play / stop debajo del botón. */
+/* Control play/pausa (encima del cuadro central). */
 .forge-controls {
   display: flex;
   gap: 6px;
-  margin-top: 7px;
+  margin-top: 4px;
+  margin-bottom: 7px;   /* separación con la fragua de debajo */
 }
 
 .forge-ctrl {
@@ -324,6 +392,8 @@ $metal-dark: #6b6357;
 
   &:active:not(:disabled) { filter: brightness(0.9); }
   &:disabled { opacity: 0.4; cursor: default; box-shadow: 0 0 0 1px $outline; }
+  position:fixed;
+  z-index: 100;
 }
 
 .forge-ctrl--play {
@@ -341,11 +411,18 @@ $metal-dark: #6b6357;
   border-color: #d9665c #6e231e #6e231e #a83a32;
 }
 
-/* Barra de carga del ciclo actual. */
+/* Cada barra de progreso con su cronómetro debajo. */
+.forge-bar-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6px;
+}
+
+/* Barra de carga (unidad actual / lote total). */
 .forge-progress {
   width: 64px;
   height: 9px;
-  margin-top: 6px;
   background: $cell-border;
   border: 2px solid $outline;
   border-radius: 6px;
@@ -356,20 +433,32 @@ $metal-dark: #6b6357;
     display: block;
     height: 100%;
     width: 0;
-    background: linear-gradient(180deg, #ffd07a, #ef5e1e);
+    background: linear-gradient(180deg, #ffd07a, #ef5e1e);   /* brasa: barra por unidad */
     transition: width 0.25s linear;
+  }
+
+  /* Barra del lote total: dorado, para distinguirla de la de la unidad. */
+  &.forge-progress--total span {
+    background: linear-gradient(180deg, #fff0b0, #e0b020);
   }
 }
 
-/* Cronómetro cuenta atrás debajo de la barra de carga. */
+/* Cronómetro cuenta atrás debajo de cada barra de carga. */
 .forge-timer {
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: 0.6em;
   font-weight: 800;
   letter-spacing: 0.04em;
   color: #ffd79a;
   text-shadow: 0 0 6px rgba(255, 140, 50, 0.45), 0 1px 2px rgba(0, 0, 0, 0.7);
   font-variant-numeric: tabular-nums;
+}
+
+/* Tiempo de la unidad arriba: alto fijo para que cuadre la alineación de
+   flechas/salida con el cuadro central. */
+.forge-timer--unit {
+  height: 12px;
+  line-height: 12px;
 }
 
 /* Panel de selección de barras: flyout a la derecha, misma altura y separación

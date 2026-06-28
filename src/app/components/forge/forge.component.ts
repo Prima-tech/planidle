@@ -31,6 +31,11 @@ export class ForgeComponent implements OnInit, OnDestroy {
   readonly progress$ = this.forge.progress$;
   /** Segundos restantes de la barra actual (cuenta atrás). */
   readonly remaining$ = this.forge.remaining$;
+  /** Progreso (0..1) y tiempo restante del lote total con el stock disponible. */
+  readonly totalProgress$ = this.forge.totalProgress$;
+  readonly totalRemaining$ = this.forge.totalRemaining$;
+  /** Barras que aún se pueden producir con el stock (contador en la fragua). */
+  readonly producible$ = this.forge.producible$;
   /** Barra que saldrá según el mineral puesto (auto). */
   readonly currentBar$ = this.forge.currentBar$;
   /** true → hay mineral válido + combustible → play activable. */
@@ -56,6 +61,13 @@ export class ForgeComponent implements OnInit, OnDestroy {
 
   /** Botón único play/pausa. */
   toggle(): void { this.forge.toggle(); }
+
+  /** Formatea segundos como "Ns" o "m:ss" si llega al minuto (para el total). */
+  fmtTime(s: number | null): string {
+    const v = s ?? 0;
+    if (v >= 60) { const m = Math.floor(v / 60); const r = v % 60; return `${m}:${r.toString().padStart(2, '0')}`; }
+    return `${v}s`;
+  }
 
   /** Doble clic (detectado por tiempo, sin depender del evento nativo que cdkDrag
    *  se traga) en una celda de la forja → pide retirar el item al inventario. */

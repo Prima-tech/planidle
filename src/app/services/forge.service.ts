@@ -74,10 +74,16 @@ export class ForgeService {
 
   /** true = forja en marcha (play); false = parada (stop). */
   readonly running$ = new BehaviorSubject<boolean>(false);
-  /** Progreso del ciclo actual (0..1) para la barra de carga. */
+  /** Progreso del ciclo actual (0..1) para la barra de carga por unidad. */
   readonly progress$ = new BehaviorSubject<number>(0);
   /** Segundos que faltan para terminar la barra actual (cuenta atrás 5→0). */
   readonly remaining$ = new BehaviorSubject<number>(SECONDS_PER_BAR);
+  /** Progreso total del lote (0..1): barras ya hechas vs. total posible con el stock. */
+  readonly totalProgress$ = new BehaviorSubject<number>(0);
+  /** Segundos que faltan para acabar TODAS las barras posibles con el stock actual. */
+  readonly totalRemaining$ = new BehaviorSubject<number>(0);
+  /** Barras que aún se pueden producir con el stock (baja al completar cada una). */
+  readonly producible$ = new BehaviorSubject<number>(0);
   /** Item que se está produciendo ahora (la barra deducida) o null. */
   readonly producing$ = new BehaviorSubject<{ item: InventoryItem; progress: number } | null>(null);
   /** Emite tras cada cambio (drop, tick) para refrescar la UI si hace falta. */
@@ -101,6 +107,7 @@ export class ForgeService {
   private job: Job | null = null;
   private loaded = false;
   private sincePersist = 0;    // segundos desde el último guardado (throttle del tick)
+  private producedCount = 0;   // barras hechas en el lote actual (para la barra total)
 
   constructor() {
     this.load();
@@ -274,6 +281,7 @@ export class ForgeService {
     this.consumeOne(this.mat, bar.mineral);
     this.consumeAnyFuel();
     this.addOutput(bar.name);
+    this.producedCount++;
     return true;
   }
 
@@ -283,6 +291,24 @@ export class ForgeService {
 
   private hasAnyFuel(): boolean {
     return this.fuel.some(c => isFuelItem(c));
+  }
+
+  /** Unidades totales (sumando pilas) del item `name` en `cells`. */
+  private countOf(cells: (InventoryItem | null)[], name: string): number {
+    return cells.reduce((n, c) => n + (c?.name === name ? (c.sum ?? 1) : 0), 0);
+  }
+
+  /** Unidades totales de combustible (madera, cualquier tier). */
+  private fuelCount(): number {
+    return this.fuel.reduce((n, c) => n + (isFuelItem(c) ? (c!.sum ?? 1) : 0), 0);
+  }
+
+  /** Cuántas barras MÁS se pueden hacer ahora con el stock (mín. de mineral y madera).
+   *  Incluye la barra en curso (el material se gasta al completarla). */
+  private producibleNow(): number {
+    const bar = this.job ? this.barByTier(this.job.barTier) : this.currentBar();
+    if (!bar) return 0;
+    return Math.min(this.countOf(this.mat, bar.mineral), this.fuelCount());
   }
 
   /** Gasta 1 unidad del primer combustible (madera) disponible. */
@@ -321,13 +347,25 @@ export class ForgeService {
   /** Refresca currentBar$, ready$, producing$ y progress$ a partir del estado interno. */
   private emitState(): void {
     const bar = this.job ? this.barByTier(this.job.barTier) : this.currentBar();
-    const progress = this.job ? Math.max(0, Math.min(1, this.job.elapsedS / SECONDS_PER_BAR)) : 0;
-    const remaining = this.job ? Math.max(0, Math.ceil(SECONDS_PER_BAR - this.job.elapsedS)) : SECONDS_PER_BAR;
+    const elapsed = this.job ? this.job.elapsedS : 0;
+    const frac = Math.max(0, Math.min(1, elapsed / SECONDS_PER_BAR));
+    const remaining = this.job ? Math.max(0, Math.ceil(SECONDS_PER_BAR - elapsed)) : SECONDS_PER_BAR;
+
+    // Lote total: barras ya hechas + las que aún se pueden hacer con el stock.
+    const producible = this.producibleNow();
+    if (!this.job && producible === 0) this.producedCount = 0;   // lote agotado → reinicia el contador
+    const total = this.producedCount + producible;
+    const totalProgress = total > 0 ? Math.min(1, (this.producedCount + frac) / total) : 0;
+    const totalRemaining = Math.max(0, Math.ceil(producible * SECONDS_PER_BAR - elapsed));
+
     this.currentBar$.next(bar);
     this.ready$.next(this.canProduce());
-    this.progress$.next(progress);
+    this.progress$.next(frac);
     this.remaining$.next(remaining);
-    this.producing$.next(this.job && bar ? { item: this.itemFromCatalog(bar.name), progress } : null);
+    this.totalProgress$.next(totalProgress);
+    this.totalRemaining$.next(totalRemaining);
+    this.producible$.next(producible);
+    this.producing$.next(this.job && bar ? { item: this.itemFromCatalog(bar.name), progress: frac } : null);
   }
 
   private afterChange(): void {

@@ -464,6 +464,43 @@ export class SummonComponent {
     this.summonService.summon(type);
   }
 
+  /** Nombre del item que suelta un tier según la sub-pestaña (0 minerales, 1 gemas,
+   *  2 árboles) y su índice. Coincide con los dropName de harvest-config. */
+  private dropNameFor(subTab: number, index: number): string | null {
+    if (subTab === 0) {   // Minerales
+      const named = ['Mineral de Cobre', 'Mineral de Bronce', 'Mineral de Hierro'];
+      return index < named.length ? named[index] : `Mineral Tier ${index + 1}`;
+    }
+    if (subTab === 1) return `Gema Tier ${index + 1}`;                      // Gemas
+    if (subTab === 2) return index === 0 ? 'Madera' : `Madera Tier ${index + 1}`; // Árboles
+    return null;
+  }
+
+  /** Clic en un tier (panel Mining): mete un stack de 100 de su drop al inventario. */
+  giveTierStack(subTab: number, index: number): void {
+    const name = this.dropNameFor(subTab, index);
+    if (!name) return;
+    const entry = ITEM_CATALOG.find(e => e.name === name);
+    if (!entry) return;
+    const item: InventoryItem = {
+      id:              `give-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name:            entry.name,
+      category:        entry.category,
+      icon:            entry.icon,
+      iconSheet:       entry.iconSheet,
+      iconFrame:       entry.iconFrame,
+      iconFrameSize:   entry.iconFrameSize,
+      iconFrameCols:   entry.iconFrameCols,
+      iconContentSize: entry.iconContentSize,
+      mergeable:       true,
+      sum:             100,
+      order:           entry.order,
+      description:     entry.description,
+      stats:           entry.stats,
+    };
+    this.inventoryService.addOrDropToWorld(item);
+  }
+
   giveItem(entry: LootEntry): void {
     // Las mascotas van directas al inventario (no como drop al suelo), para
     // poder equiparlas luego en el slot de la pestaña secundaria.

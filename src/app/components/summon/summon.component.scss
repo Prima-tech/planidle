@@ -438,6 +438,16 @@ $purple: #6e4a67;         // selección
   margin-bottom: 12px;
 }
 
+/* Tier clicable (panel admin): al pulsar da 100 del drop. */
+.mining-tier--clickable {
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.12s ease;
+
+  &:hover  { background: rgba(255, 255, 255, 0.06); }
+  &:active { background: rgba(255, 255, 255, 0.12); }
+}
+
 .mining-title {
   font-size: 12px;
   font-weight: 700;
