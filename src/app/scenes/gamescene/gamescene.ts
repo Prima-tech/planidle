@@ -11,7 +11,7 @@ import { bodySpriteFor } from "src/app/pnj/player/body-config";
 import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
-import { HarvestKind, HarvestKindId, HARVEST_KINDS, miningTier } from "./harvest-config";
+import { HarvestKind, HarvestKindId, HARVEST_KINDS, miningTier, gemTier, MiningTier } from "./harvest-config";
 import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
@@ -352,6 +352,7 @@ export class GameScene extends Phaser.Scene {
       this.load.image('rock_tier8', 'assets/sprites/map/skills/rocks/tier8_rock.png');
       this.load.image('rock_tier9', 'assets/sprites/map/skills/rocks/tier9_rock.png');
       this.load.image('rock_tier10', 'assets/sprites/map/skills/rocks/tier10_rock.png');
+      this.load.image('rock_gem1', 'assets/sprites/map/skills/rocks/gem1_rock.png');
       this.load.image('mineral_tier2', 'assets/icon/resources/mining/tier2_drop.png');
       this.load.image('mineral_tier3', 'assets/icon/resources/mining/tier3_drop.png');
       this.load.image('mineral_tier4', 'assets/icon/resources/mining/tier4_drop.png');
@@ -361,6 +362,7 @@ export class GameScene extends Phaser.Scene {
       this.load.image('mineral_tier8', 'assets/icon/resources/mining/tier8_drop.png');
       this.load.image('mineral_tier9', 'assets/icon/resources/mining/tier9_drop.png');
       this.load.image('mineral_tier10', 'assets/icon/resources/mining/tier10_drop.png');
+      this.load.image('gem_tier1', 'assets/icon/resources/gems/gem1_drop.png');
       this.load.image('tree_chop', 'assets/sprites/map/skills/trees/Tree1.png');
 
       // Pociones (consumibles)
@@ -1255,14 +1257,13 @@ export class GameScene extends Phaser.Scene {
      *  Usa el centro de la huella en el suelo (no el sprite, que en árboles sube mucho). */
     private getMinimapNodes(): { x: number; y: number; kind: string; frame?: number }[] {
       const TS = GameScene.TILE_SIZE;
-      const mmFrame = miningTier(this.currentMapConfig.mineTier).mmFrame;
       return this.nodes.map(n => {
         const kind = HARVEST_KINDS[n.kind];
         return {
           x: n.sprite.x,
           y: n.sprite.y - kind.offsetY - (kind.footprintH / 2) * TS,
           kind: n.kind,
-          frame: n.kind === 'rock' ? mmFrame : undefined,   // icono de roca por tier
+          frame: this.harvestTierOf(n.kind)?.mmFrame,   // icono por tier (roca/gema); árbol → undefined
         };
       });
     }
@@ -1960,13 +1961,25 @@ export class GameScene extends Phaser.Scene {
     // (hacha). Bloquean el paso y solo se dañan con su herramienta equipada en el slot
     // de recolección. 3 golpes → destrucción. Config en HARVEST_KINDS.
 
+    /** Tier efectivo de un nodo en el mapa actual: rocas→mineTier (siempre hay),
+     *  gemas→gemTier (null si el mapa no tiene gemas), árboles→null (sin tier). */
+    private harvestTierOf(id: HarvestKindId): MiningTier | null {
+      if (id === 'rock') return miningTier(this.currentMapConfig.mineTier);
+      if (id === 'gem')  return gemTier(this.currentMapConfig.gemTier);
+      return null;
+    }
+    /** Textura del sprite de un nodo (la del tier si lo tiene; si no, la fija del kind). */
+    private harvestTexture(id: HarvestKindId): string {
+      return this.harvestTierOf(id)?.rockTexture ?? HARVEST_KINDS[id].texture;
+    }
+
     private initHarvestNodes(): void {
       if (this.currentMapConfig.id === 'hogar') return;
       for (const id of Object.keys(HARVEST_KINDS) as HarvestKindId[]) {
         const kind = HARVEST_KINDS[id];
-        // Las rocas usan la textura del tier del mapa; el resto su textura fija.
-        const texture = id === 'rock' ? miningTier(this.currentMapConfig.mineTier).rockTexture : kind.texture;
-        if (!this.textures.exists(texture)) continue;   // sin sprite → no se genera
+        // Gemas: solo si el mapa tiene gemTier; rocas/árboles siempre.
+        if (id === 'gem' && !this.harvestTierOf('gem')) continue;
+        if (!this.textures.exists(this.harvestTexture(id))) continue;   // sin sprite → no se genera
         for (let placed = 0, tries = 0; placed < kind.count && tries < 400; tries++) {
           if (this.trySpawnNode(id, kind)) placed++;
         }
@@ -2001,9 +2014,8 @@ export class GameScene extends Phaser.Scene {
       const baseY = (tileY + kind.footprintH) * TS;   // Y del suelo donde "se apoya"
       const cx = (tileX + kind.footprintW / 2) * TS;
       const cy = baseY + kind.offsetY;
-      // Roca → sprite del tier del mapa; otros recursos → su textura fija.
-      const texture = id === 'rock' ? miningTier(this.currentMapConfig.mineTier).rockTexture : kind.texture;
-      const sprite = this.add.image(cx, cy, texture);
+      // Roca/gema → sprite del tier del mapa; árbol → su textura fija.
+      const sprite = this.add.image(cx, cy, this.harvestTexture(id));
       sprite.setOrigin(0.5, 1);
       sprite.setScale(kind.scale);
       // Depth por Y (como el jugador, que usa depth = su Y de pies): si el jugador está
@@ -2114,9 +2126,9 @@ export class GameScene extends Phaser.Scene {
       // Progresión de la skill de recolección (minería / tala): XP al recolectar.
       this.reg.gatheringSkills?.addXp(kind.skill, kind.xp);
       const s = node.sprite;
-      // Suelta el recurso del nodo (árbol → madera; roca → mineral del tier del mapa).
+      // Suelta el recurso del nodo (árbol → madera; roca/gema → item del tier del mapa).
       if (kind.drop) {
-        const dropName = node.kind === 'rock' ? miningTier(this.currentMapConfig.mineTier).dropName : kind.drop.name;
+        const dropName = this.harvestTierOf(node.kind)?.dropName ?? kind.drop.name;
         const base = ITEM_CATALOG.find(e => e.name === dropName);
         if (base) {
           // Talentos de minería multiplican el botín de las rocas: mult = 1 + suma de

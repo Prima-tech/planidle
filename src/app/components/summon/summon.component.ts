@@ -182,7 +182,16 @@ export class SummonComponent {
   // Sub-pestañas de la pestaña Mining. `miningTiers` (arriba) = minerales; gemas y
   // árboles de momento vacíos (se rellenan igual: { title, items }).
   readonly miningSubTabs = ['Minerales', 'Gemas', 'Árboles'];
-  readonly gemTiers:  { title: string; items: MiningIcon[] }[] = [];
+  readonly gemTiers:  { title: string; items: MiningIcon[] }[] = [
+    {
+      title: 'tier1',
+      items: [
+        { name: 'rock', box: { x: 599, y: 164, w: 21, h: 25 }, sheet: 'objects' }, // Objects #318
+        { name: 'map',  box: { x: 384, y: 304, w: 16, h: 16 } },   // Icons #196
+        { name: 'drop', box: { x: 400, y: 288, w: 32, h: 32 } },   // Icons #197
+      ],
+    },
+  ];
   readonly treeTiers: { title: string; items: MiningIcon[] }[] = [];
 
   private _activeMiningTab = 0;

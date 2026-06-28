@@ -5,7 +5,7 @@ import { GatheringSkillId } from 'src/app/services/gathering-skills.service';
 // compartida entre la escena de juego (genera/golpea nodos) y el modelo de
 // ganancias AFK (offline-gains), que estima recolección por hora.
 
-export type HarvestKindId = 'rock' | 'tree';
+export type HarvestKindId = 'rock' | 'tree' | 'gem';
 
 export interface HarvestKind {
   texture: string;            // textura precargada del recurso
@@ -52,6 +52,16 @@ export function miningTier(tier?: number): MiningTier {
   return MINING_TIERS[tier ?? 1] ?? MINING_TIERS[1];
 }
 
+// ── Tiers de gemas ───────────────────────────────────────────────────────────
+// Nodo independiente de la minería normal. Solo spawnea en mapas con `gemTier`
+// definido (sin él, `gemTier()` devuelve null y no se generan gemas en ese mapa).
+export const GEM_TIERS: Record<number, MiningTier> = {
+  1: { rockTexture: 'rock_gem1', dropName: 'Gema Tier 1', mmFrame: 594 },  // Icons #196
+};
+export function gemTier(tier?: number): MiningTier | null {
+  return tier ? (GEM_TIERS[tier] ?? null) : null;
+}
+
 // Config por tipo de recurso. Añadir aquí nuevos recolectables (caña→peces, etc.).
 export const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
   rock: {
@@ -67,6 +77,15 @@ export const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
     debris: [0x6b4a2b, 0x8a5a2b, 0x4e7a32, 0x3c6b28],   // madera + hojas
     skill: 'woodcutting', xp: 1,   // XP base por árbol; modificadores futuros la escalan
     drop: { name: 'Madera', min: 1, max: 1 },   // suelta 1 madera al talar
+  },
+  // Gemas: se minan con pico (como las rocas) pero son un nodo aparte y solo
+  // aparecen en mapas con `gemTier`. Textura/drop/icono salen de GEM_TIERS.
+  gem: {
+    texture: 'rock_gem1', toolCategory: 'Pico', toolSlotId: 'pickaxe', context: 'mine',
+    footprintW: 2, footprintH: 2, scale: 3, offsetY: 0, count: 3,
+    debris: [0x7fe0d0, 0x49b6ff, 0xb06ee0, 0xffffff],   // brillos de gema
+    skill: 'mining', xp: 1,
+    drop: { name: 'Gema Tier 1', min: 1, max: 1 },
   },
 };
 

@@ -546,10 +546,9 @@ export class MobileHUDScene extends Phaser.Scene {
     const rockHalf = MM_ICON_HALF_ROCK * s, rockSz = rockHalf * 2;
     let dUsed = 0, rUsed = 0;
     for (const n of nodes) {
-      if (n.kind === 'rock') {
+      if (n.frame != null) {   // roca o gema → icono (su frame por tier); árbol → punto
         const icon = this.getRockIcon(rUsed++);
-        const frame = n.frame ?? MM_ROCK_FRAME;
-        if (Number(icon.frame.name) !== frame) icon.setFrame(frame);   // frame del tier del mapa
+        if (Number(icon.frame.name) !== n.frame) icon.setFrame(n.frame);
         if (icon.displayWidth !== rockSz) icon.setDisplaySize(rockSz, rockSz);
         this.mmPlaceImg(icon, rockHalf, n.x, n.y);
         icon.setVisible(true);

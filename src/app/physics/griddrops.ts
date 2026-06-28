@@ -511,6 +511,16 @@ const RESOURCES_CATALOG: LootEntry[] = [
     description: 'Mineral de tier 10 obtenido al minar menas.',
   },
   {
+    name: 'Gema Tier 1',
+    category: 'Recurso',
+    type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'gem_tier1',
+    icon: 'assets/icon/resources/gems/gem1_drop.png',
+    scale: 2, order: 6,
+    description: 'Gema de tier 1 obtenida al minar nodos de gema en 1-1.',
+  },
+  {
     name: 'Carbón',
     category: 'Recurso',
     type: 'item',
