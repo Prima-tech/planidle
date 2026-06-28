@@ -35,6 +35,7 @@ export interface MiningTier {
   rockTexture: string;   // textura del sprite del nodo en el mundo (preload en gamescene)
   dropName:    string;   // item que suelta (nombre en ITEM_CATALOG)
   mmFrame?:    number;   // frame del icono en el minimapa (Icons.png 16px); sin él → punto (árboles)
+  scale?:      number;   // escala visual; si falta usa la del HarvestKind (sprites de distinto tamaño)
 }
 export const MINING_TIERS: Record<number, MiningTier> = {
   1: { rockTexture: 'rock_tier1', dropName: 'Mineral Tier 1', mmFrame: 33 },   // Icons #2
@@ -75,7 +76,8 @@ export function gemTier(tier?: number): MiningTier | null {
 // Como la minería: cada mapa tiene treeTier (default 1). Los árboles no llevan
 // icono de minimapa (mmFrame), así que en el radar siguen siendo un punto verde.
 export const TREE_TIERS: Record<number, MiningTier> = {
-  1: { rockTexture: 'tree_tier1', dropName: 'Madera' },  // sprite Objects #326, drop = Madera (#19)
+  1: { rockTexture: 'tree_tier1', dropName: 'Madera', mmFrame: 57 },  // Objects #326, drop #19, minimapa #18
+  2: { rockTexture: 'tree_tier2', dropName: 'Madera Tier 2', scale: 3.7, mmFrame: 117 }, // Objects #328, drop #39, minimapa #38
 };
 export function treeTier(tier?: number): MiningTier {
   return TREE_TIERS[tier ?? 1] ?? TREE_TIERS[1];

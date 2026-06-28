@@ -383,6 +383,8 @@ export class GameScene extends Phaser.Scene {
       this.load.image('gem_tier10', 'assets/icon/resources/gems/gem10_drop.png');
       // Árboles por tier (MapConfig.treeTier, default 1).
       this.load.image('tree_tier1', 'assets/sprites/map/skills/trees/tree_tier1.png');
+      this.load.image('tree_tier2', 'assets/sprites/map/skills/trees/tree_tier2.png');
+      this.load.image('madera_tier2', 'assets/icon/resources/madera_t2.png');
 
       // Pociones (consumibles)
       this.load.image('heal_01', 'assets/icon/resources/potions/heal_01.png');
@@ -1992,6 +1994,10 @@ export class GameScene extends Phaser.Scene {
     private harvestTexture(id: HarvestKindId): string {
       return this.harvestTierOf(id)?.rockTexture ?? HARVEST_KINDS[id].texture;
     }
+    /** Escala visual de un nodo (la del tier si la define; si no, la del kind). */
+    private harvestScale(id: HarvestKindId): number {
+      return this.harvestTierOf(id)?.scale ?? HARVEST_KINDS[id].scale;
+    }
 
     private initHarvestNodes(): void {
       if (this.currentMapConfig.id === 'hogar') return;
@@ -2037,7 +2043,7 @@ export class GameScene extends Phaser.Scene {
       // Roca/gema → sprite del tier del mapa; árbol → su textura fija.
       const sprite = this.add.image(cx, cy, this.harvestTexture(id));
       sprite.setOrigin(0.5, 1);
-      sprite.setScale(kind.scale);
+      sprite.setScale(this.harvestScale(id));
       // Depth por Y (como el jugador, que usa depth = su Y de pies): si el jugador está
       // por encima (más al norte) que la base del recurso, el recurso lo tapa (copa del
       // árbol); si está por debajo, el jugador pasa por delante.
@@ -2110,7 +2116,7 @@ export class GameScene extends Phaser.Scene {
       // Actividad AFK: lo último golpeado manda (minando una roca / talando un árbol).
       this.reg.activity?.set(kind.skill === 'woodcutting' ? 'chopping' : 'mining');
       const s = node.sprite;
-      const baseScale = kind.scale;
+      const baseScale = this.harvestScale(node.kind);   // escala real del tier, no la global
 
       // Flash blanco de impacto
       s.setTintFill(0xffffff);
@@ -2172,8 +2178,9 @@ export class GameScene extends Phaser.Scene {
       this.spawnDebris(s.x, s.y - GameScene.TILE_SIZE * 0.8, 16, kind.debris);   // estallido mayor
       this.cameras.main.shake(120, 0.005);
       this.tweens.killTweensOf(s);
+      const baseScale = this.harvestScale(node.kind);
       this.tweens.add({
-        targets: s, scaleX: kind.scale * 1.2, scaleY: kind.scale * 1.2, alpha: 0, duration: 220, ease: 'Quad.easeOut',
+        targets: s, scaleX: baseScale * 1.2, scaleY: baseScale * 1.2, alpha: 0, duration: 220, ease: 'Quad.easeOut',
         onComplete: () => s.destroy(),
       });
     }

@@ -269,7 +269,16 @@ export class SummonComponent {
       title: 'tier1',
       items: [
         { name: 'tree', box: { x: 336, y: 225, w: 32, h: 47 }, sheet: 'objects' }, // Objects #326
+        { name: 'map',  box: { x: 432, y: 16,  w: 16, h: 16 } },   // Icons #18
         { name: 'drop', box: { x: 448, y: 0,   w: 32, h: 32 } },   // Icons #19
+      ],
+    },
+    {
+      title: 'tier2',
+      items: [
+        { name: 'tree', box: { x: 419, y: 208, w: 53, h: 64 }, sheet: 'objects' }, // Objects #328
+        { name: 'map',  box: { x: 432, y: 48,  w: 16, h: 16 } },   // Icons #38
+        { name: 'drop', box: { x: 448, y: 32,  w: 32, h: 32 } },   // Icons #39
       ],
     },
   ];
