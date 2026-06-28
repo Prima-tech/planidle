@@ -10,7 +10,11 @@
 export type WorldParallaxId =
   | 'paralax01' | 'paralax02' | 'paralax03' | 'paralax04'
   | 'paralax05' | 'paralax06' | 'paralax07' | 'paralax08'
-  | 'paralax09' | 'paralax10' | 'paralax11' | 'paralax12';
+  | 'paralax09' | 'paralax10' | 'paralax11' | 'paralax12'
+  | 'paralax13' | 'paralax14' | 'paralax15' | 'paralax16'
+  | 'paralax17' | 'paralax18' | 'paralax19' | 'paralax20'
+  | 'paralax21' | 'paralax22' | 'paralax23' | 'paralax24'
+  | 'paralax25' | 'paralax26' | 'paralax27' | 'paralax28';
 
 export interface WorldParallaxSet {
   id: WorldParallaxId;
@@ -46,6 +50,24 @@ export const WORLD_PARALLAX_SETS: WorldParallaxSet[] = [
   { id: 'paralax10', label: 'Montaña',  fit: 'cover', anchorY: 1,   files: ['sky', 'air', 'stars', 'clouds bg', 'mountains bg', 'mountains mg', 'mountains fg', 'clouds fg', 'ground', 'tree'] },
   { id: 'paralax11', label: 'Bosque',   fit: 'cover', anchorY: 1,   files: ['sky', 'clouds bg', 'forest and mountains', 'mountain', 'forest fg', 'clouds fg', 'fog', 'ground', 'tree'] },
   { id: 'paralax12', label: 'Cañón',    fit: 'cover', anchorY: 0.5, files: ['sky', 'sun', 'clouds bg', 'mountains bg', 'mountains mg', 'mountains fg', 'cloud fg', 'fog', 'ground'] },
+  // Sets de nubes (cielo uniforme): se repiten a lo ancho con 'height'.
+  { id: 'paralax13', label: 'Nubes 1', files: numbered(4) },
+  { id: 'paralax14', label: 'Nubes 2', files: numbered(4) },
+  { id: 'paralax15', label: 'Nubes 3', files: numbered(4) },
+  { id: 'paralax16', label: 'Nubes 4', files: numbered(4) },
+  { id: 'paralax17', label: 'Nubes 5', files: numbered(5) },
+  { id: 'paralax18', label: 'Nubes 6', files: numbered(6) },
+  { id: 'paralax19', label: 'Nubes 7', files: numbered(4) },
+  { id: 'paralax20', label: 'Nubes 8', files: numbered(6) },
+  // Sets de montañas (paisajes): 'cover' para no duplicar el relieve central.
+  { id: 'paralax21', label: 'Montaña 1', fit: 'cover', anchorY: 1, files: numbered(5) },
+  { id: 'paralax22', label: 'Montaña 2', fit: 'cover', anchorY: 1, files: numbered(7) },
+  { id: 'paralax23', label: 'Montaña 3', fit: 'cover', anchorY: 1, files: numbered(5) },
+  { id: 'paralax24', label: 'Montaña 4', fit: 'cover', anchorY: 1, files: numbered(3) },
+  { id: 'paralax25', label: 'Montaña 5', fit: 'cover', anchorY: 1, files: ['2', '3', '4', '5'] },
+  { id: 'paralax26', label: 'Montaña 6', fit: 'cover', anchorY: 1, files: numbered(5) },
+  { id: 'paralax27', label: 'Montaña 7', fit: 'cover', anchorY: 1, files: ['1', '2', '3_3'] },
+  { id: 'paralax28', label: 'Montaña 8', fit: 'cover', anchorY: 1, files: ['1_1', '2', '3'] },
 ];
 
 export const WORLD_PARALLAX_SRC_W = 1920;

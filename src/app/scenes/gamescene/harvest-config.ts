@@ -38,9 +38,9 @@ export interface MiningTier {
   scale?:      number;   // escala visual; si falta usa la del HarvestKind (sprites de distinto tamaño)
 }
 export const MINING_TIERS: Record<number, MiningTier> = {
-  1: { rockTexture: 'rock_tier1', dropName: 'Mineral Tier 1', mmFrame: 33 },   // Icons #2
-  2: { rockTexture: 'rock_tier2', dropName: 'Mineral Tier 2', mmFrame: 30 },   // Icons #0
-  3: { rockTexture: 'rock_tier3', dropName: 'Mineral Tier 3', mmFrame: 150 },  // Icons #40
+  1: { rockTexture: 'rock_tier3', dropName: 'Mineral de Cobre',  mmFrame: 150 }, // cobre (mena/icono del antiguo tier 3)
+  2: { rockTexture: 'rock_tier2', dropName: 'Mineral de Bronce', mmFrame: 30 },  // bronce
+  3: { rockTexture: 'rock_tier1', dropName: 'Mineral de Hierro', mmFrame: 33 },  // hierro (mena/icono del antiguo tier 1)
   4: { rockTexture: 'rock_tier4', dropName: 'Mineral Tier 4', mmFrame: 273 },  // Icons #82
   5: { rockTexture: 'rock_tier5', dropName: 'Mineral Tier 5', mmFrame: 270 },  // Icons #80
   6: { rockTexture: 'rock_tier6', dropName: 'Mineral Tier 6', mmFrame: 390 },  // Icons #120
@@ -91,7 +91,7 @@ export const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
     footprintW: 2, footprintH: 2, scale: 3, offsetY: 0, count: 3,
     debris: [0x9a9a9a, 0x6f6f6f, 0xbdbdbd, 0x808080],
     skill: 'mining', xp: 1,   // XP base por piedra (1 tipo por ahora); modificadores futuros la escalan
-    drop: { name: 'Mineral Tier 1', min: 1, max: 1 },   // suelta 1 mineral de tier 1 al minar
+    drop: { name: 'Mineral de Cobre', min: 1, max: 1 },   // fallback (el tier del mapa lo sobreescribe)
   },
   tree: {
     texture: 'tree_tier1', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',

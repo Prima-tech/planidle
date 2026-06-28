@@ -60,17 +60,17 @@ export class SummonComponent {
   // tier va en el título; cada icono solo su rol.
   readonly miningTiers: { title: string; items: MiningIcon[] }[] = [
     {
-      title: 'tier1',
+      title: 'cobre',   // tier 1 (iconos del antiguo tier 3)
       items: [
-        { name: 'rock', img: 'assets/sprites/map/skills/rocks/tier1_rock.png' },
-        { name: 'map',  box: { x: 48,  y: 16, w: 16, h: 16 } },   // Icons.png #2  (minimapa)
-        { name: 'drop', box: { x: 64,  y: 32, w: 32, h: 32 } },   // Icons.png #23 (drop)
-        { name: 'bar_mini', box: { x: 96,  y: 48, w: 16, h: 16 } }, // Icons.png #24 (pequeño)
-        { name: 'bar',      box: { x: 112, y: 32, w: 32, h: 32 } }, // Icons.png #25 (grande)
+        { name: 'rock', box: { x: 466, y: 7,  w: 26, h: 22 }, sheet: 'objects' }, // Objects #214
+        { name: 'map',  box: { x: 0,   y: 80, w: 16, h: 16 } },   // Icons #40
+        { name: 'drop', box: { x: 16,  y: 96, w: 32, h: 32 } },   // Icons #61
+        { name: 'bar_mini', box: { x: 96,  y: 80, w: 16, h: 16 } }, // Icons #44
+        { name: 'bar',      box: { x: 112, y: 64, w: 32, h: 32 } }, // Icons #45
       ],
     },
     {
-      title: 'tier2',
+      title: 'bronce',   // tier 2
       items: [
         { name: 'rock', box: { x: 338, y: 7,  w: 27, h: 23 }, sheet: 'objects' }, // Objects.png #10
         { name: 'map',  box: { x: 0,   y: 16, w: 16, h: 16 } },   // Icons.png #0
@@ -80,13 +80,13 @@ export class SummonComponent {
       ],
     },
     {
-      title: 'tier3',
+      title: 'hierro',   // tier 3 (iconos del antiguo tier 1)
       items: [
-        { name: 'rock', box: { x: 466, y: 7,  w: 26, h: 22 }, sheet: 'objects' }, // Objects #214
-        { name: 'map',  box: { x: 0,   y: 80, w: 16, h: 16 } },   // Icons #40
-        { name: 'drop', box: { x: 16,  y: 96, w: 32, h: 32 } },   // Icons #61
-        { name: 'bar_mini', box: { x: 96,  y: 80, w: 16, h: 16 } }, // Icons #44
-        { name: 'bar',      box: { x: 112, y: 64, w: 32, h: 32 } }, // Icons #45
+        { name: 'rock', img: 'assets/sprites/map/skills/rocks/tier1_rock.png' },
+        { name: 'map',  box: { x: 48,  y: 16, w: 16, h: 16 } },   // Icons.png #2
+        { name: 'drop', box: { x: 64,  y: 32, w: 32, h: 32 } },   // Icons.png #23
+        { name: 'bar_mini', box: { x: 96,  y: 48, w: 16, h: 16 } }, // Icons.png #24
+        { name: 'bar',      box: { x: 112, y: 32, w: 32, h: 32 } }, // Icons.png #25
       ],
     },
     {

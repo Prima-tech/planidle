@@ -24,6 +24,24 @@ export const FORGE_RECIPES: Record<string, { output: string; seconds: number }> 
   'Madera': { output: 'Carbón', seconds: 5 },   // fundir madera → carbón (ejemplo)
 };
 
+/** Barra de metal seleccionable como receta de producción de la forja. El icono es
+ *  un recorte de Icons.png (caja {x,y,w,h}). `mineral` = item que necesita para fundirse. */
+export interface ForgeBar { tier: number; name: string; mineral: string; box: { x: number; y: number; w: number; h: number }; }
+
+/** Barras de metal por tier (icono = recorte de Icons.png, mismo que el panel Mining). */
+export const FORGE_BARS: ForgeBar[] = [
+  { tier: 1,  name: 'Barra de Cobre',  mineral: 'Mineral de Cobre',  box: { x: 112, y: 64,  w: 32, h: 32 } }, // icono del antiguo tier 3
+  { tier: 2,  name: 'Barra de Bronce', mineral: 'Mineral de Bronce', box: { x: 112, y: 0,   w: 32, h: 32 } },
+  { tier: 3,  name: 'Barra de Hierro', mineral: 'Mineral de Hierro', box: { x: 112, y: 32,  w: 32, h: 32 } }, // icono del antiguo tier 1
+  { tier: 4,  name: 'Barra Tier 4',  mineral: 'Mineral Tier 4',  box: { x: 112, y: 160, w: 32, h: 32 } },
+  { tier: 5,  name: 'Barra Tier 5',  mineral: 'Mineral Tier 5',  box: { x: 112, y: 128, w: 32, h: 32 } },
+  { tier: 6,  name: 'Barra Tier 6',  mineral: 'Mineral Tier 6',  box: { x: 112, y: 224, w: 32, h: 32 } },
+  { tier: 7,  name: 'Barra Tier 7',  mineral: 'Mineral Tier 7',  box: { x: 112, y: 192, w: 32, h: 32 } },
+  { tier: 8,  name: 'Barra Tier 8',  mineral: 'Mineral Tier 8',  box: { x: 112, y: 96,  w: 32, h: 32 } },
+  { tier: 9,  name: 'Barra Tier 9',  mineral: 'Mineral Tier 9',  box: { x: 112, y: 256, w: 32, h: 32 } },
+  { tier: 10, name: 'Barra Tier 10', mineral: 'Mineral Tier 10', box: { x: 112, y: 288, w: 32, h: 32 } },
+];
+
 /** Segundos de quemado por unidad de combustible (cualquier otro item: DEFAULT). */
 const FUEL_SECONDS: Record<string, number> = {
   'Carbón': 20,
@@ -43,6 +61,9 @@ export class ForgeService {
   readonly mat:  (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
   readonly fuel: (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
   readonly out:  (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
+
+  /** Barra de metal seleccionada como receta (null = nada → el botón pide "Seleccionar"). */
+  readonly selectedRecipe$ = new BehaviorSubject<ForgeBar | null>(null);
 
   /** Trabajo en curso para el cuadro de producción (null = nada). */
   readonly producing$ = new BehaviorSubject<{ item: InventoryItem; progress: number } | null>(null);
@@ -72,6 +93,18 @@ export class ForgeService {
 
   private grid(g: ForgeGrid): (InventoryItem | null)[] {
     return g === 'mat' ? this.mat : g === 'fuel' ? this.fuel : this.out;
+  }
+
+  // ── Receta seleccionada (barra de metal) ────────────────────────────────────
+
+  /** Barras disponibles para seleccionar. De momento todas; a futuro se filtran por
+   *  los tiers que el jugador tenga desbloqueados/con material. */
+  get availableBars(): ForgeBar[] { return FORGE_BARS; }
+
+  /** Selecciona (o limpia con null) la barra a producir y lo persiste. */
+  selectRecipe(bar: ForgeBar | null): void {
+    this.selectedRecipe$.next(bar);
+    this.persist();
   }
 
   // ── Drag & drop ────────────────────────────────────────────────────────────
@@ -241,6 +274,8 @@ export class ForgeService {
       this.restoreGrid(this.out,  saved.out);
       this.job = saved.job ?? null;
       this.burnRemaining = saved.burnRemaining ?? 0;
+      const bar = FORGE_BARS.find(b => b.tier === saved.selectedTier);
+      if (bar) this.selectedRecipe$.next(bar);
       const elapsed = saved.lastTick ? Math.min(MAX_CATCHUP_S, (Date.now() - saved.lastTick) / 1000) : 0;
       if (elapsed > 0) this.step(elapsed);   // avance offline
     }
@@ -258,6 +293,7 @@ export class ForgeService {
     const snap: ForgeSnapshot = {
       mat: this.mat, fuel: this.fuel, out: this.out,
       job: this.job, burnRemaining: this.burnRemaining, lastTick: Date.now(),
+      selectedTier: this.selectedRecipe$.value?.tier ?? null,
     };
     this.storage.set(STORAGE_KEY, snap);
   }
@@ -296,4 +332,5 @@ interface ForgeSnapshot {
   job: Job | null;
   burnRemaining: number;
   lastTick: number;
+  selectedTier?: number | null;
 }

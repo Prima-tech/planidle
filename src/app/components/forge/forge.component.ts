@@ -1,8 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { ForgeService, ForgeGrid } from 'src/app/services/forge.service';
+import { ForgeService, ForgeGrid, ForgeBar } from 'src/app/services/forge.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
+import { ITEM_CATALOG } from 'src/app/physics/griddrops';
 
 /**
  * Menú de la fundición. De arriba a abajo:
@@ -27,12 +28,46 @@ export class ForgeComponent implements OnInit {
   readonly fuel = this.forge.fuel;
   readonly out  = this.forge.out;
   readonly producing$ = this.forge.producing$;
+  readonly selectedRecipe$ = this.forge.selectedRecipe$;
+  readonly availableBars = this.forge.availableBars;
+
+  /** true → panel de selección de barras (recetas) abierto a la derecha. */
+  recipePanelOpen = false;
 
   /** IDs de celda del inventario a las que se puede arrastrar de vuelta. */
   inventoryCellIds: string[] = [];
 
   ngOnInit(): void {
     this.inventoryCellIds = this.equipment.inventoryCellIds;
+  }
+
+  /** Pulsar el botón de producir: abre/cierra el panel de selección de barras. */
+  toggleRecipePanel(): void { this.recipePanelOpen = !this.recipePanelOpen; }
+
+  /** Elige una barra como receta y cierra el panel. */
+  selectBar(bar: ForgeBar): void {
+    this.forge.selectRecipe(bar);
+    this.recipePanelOpen = false;
+  }
+
+  /** Item del catálogo del mineral que requiere la barra seleccionada (para el icono
+   *  pista del cuadrado de material). null si no aplica. */
+  requiredMineral(bar: ForgeBar | null): any {
+    if (!bar) return null;
+    return ITEM_CATALOG.find(e => e.name === bar.mineral) ?? null;
+  }
+
+  /** Estilo de fondo que recorta la caja de una barra en Icons.png (480×320). */
+  barStyle(box: { x: number; y: number; w: number; h: number }): Record<string, string> {
+    return {
+      'background-image':    'url(assets/icon/icons/Icons.png)',
+      'background-repeat':   'no-repeat',
+      'background-size':     '480px 320px',
+      'background-position': `-${box.x}px -${box.y}px`,
+      'image-rendering':     'pixelated',
+      'width':               `${box.w}px`,
+      'height':              `${box.h}px`,
+    };
   }
 
   /** Drop en una celda de la fundición: desde el inventario (entra) o interno. */

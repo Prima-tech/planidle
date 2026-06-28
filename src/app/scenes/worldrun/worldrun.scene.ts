@@ -589,14 +589,21 @@ export class WorldRunScene extends Phaser.Scene {
     // 'cover' (paisajes): UNA copia llena el ancho (sin duplicar montaña/sol), y se
     // recorta el alto mostrando la franja `anchorY` (1=abajo/horizonte).
     const cover = set.fit === 'cover';
-    const tileScale = cover
-      ? Math.max(this.scale.width / WORLD_PARALLAX_SRC_W, this.scale.height / WORLD_PARALLAX_SRC_H)
-      : this.scale.height / WORLD_PARALLAX_SRC_H;
-    // Offset vertical (en px de textura, igual que tilePositionX): cuánto recortamos.
     const anchorY = set.anchorY ?? 1;
-    const tilePosY = (WORLD_PARALLAX_SRC_H - this.scale.height / tileScale) * anchorY;
     set.files.forEach((f, i) => {
-      const ts = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, worldParallaxKey(id, f))
+      const key = worldParallaxKey(id, f);
+      // Tamaño REAL de la textura (no asumir 1920×1080: las nubes son 576×324, etc.).
+      const src = this.textures.get(key).getSourceImage();
+      const srcW = src.width || WORLD_PARALLAX_SRC_W;
+      const srcH = src.height || WORLD_PARALLAX_SRC_H;
+      // 'height': cabe entera de alto y se repite a lo ancho.
+      // 'cover': una copia llena el ancho y se recorta el alto (franja anchorY).
+      const tileScale = cover
+        ? Math.max(this.scale.width / srcW, this.scale.height / srcH)
+        : this.scale.height / srcH;
+      // Offset vertical (en px de textura): cuánto recortamos por arriba.
+      const tilePosY = (srcH - this.scale.height / tileScale) * anchorY;
+      const ts = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, key)
         .setOrigin(0, 0).setScrollFactor(0).setDepth(-100 + i);
       ts.tileScaleX = tileScale;
       ts.tileScaleY = tileScale;

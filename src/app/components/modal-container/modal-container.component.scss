@@ -75,9 +75,10 @@
     bottom: 61px;  /* footer ~51px + 10px de aire, como build-shop */
     left: calc(10px + var(--safe-left, 0px));
     width: fit-content;
-    /* El marco madera/piedra lo pinta el propio ForgeComponent (:host) */
+    /* El marco madera/piedra lo pinta el propio ForgeComponent (:host).
+       Sin overflow: el panel de recetas sobresale por la derecha de la ventana. */
     background: transparent;
-    overflow-y: auto;
+    overflow: visible;
   }
   &.skill-detail {
     top: 10px;

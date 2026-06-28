@@ -1,72 +1,82 @@
 <div cdkDropListGroup class="forge-root">
 
-  <!-- 1) Materiales a fundir -->
-  <div class="forge-section">
-    <div class="forge-label">{{ 'BUILD.FORGE_MATERIALS' | translate }}</div>
-    <div class="forge-slider">
-      <div *ngFor="let cell of mat; let i = index; trackBy: trackByIndex"
-           class="forge-cell" cdkDropList cdkDropListSortingDisabled
-           [id]="'forge-mat-' + i"
-           [cdkDropListConnectedTo]="inventoryCellIds"
-           (cdkDropListDropped)="onCellDrop($event, 'mat', i)">
-        <div *ngIf="cell" class="forge-item" cdkDrag
-             [cdkDragData]="{ sourceContext: 'forge', grid: 'mat', index: i, item: cell }"
-             [title]="cell.name">
-          <ng-container *ngTemplateOutlet="icon; context: { $implicit: cell }"></ng-container>
+  <div class="forge-title">Forja</div>
+
+  <!-- 0) Producir: material (izq) + botón (centro) + salida (der). El nombre
+       de la barra va debajo del botón. -->
+  <div class="forge-section forge-prod-section">
+    <div class="forge-prod-wrap">
+
+      <!-- Columna izquierda: material (arriba) + combustible (debajo). -->
+      <div class="forge-left-col">
+        <!-- Material: arrastra aquí el mineral necesario. Vacío + barra elegida →
+             muestra como pista el mineral requerido. -->
+        <div class="forge-mat-cell" cdkDropList cdkDropListSortingDisabled
+             [id]="'forge-mat-0'"
+             [cdkDropListConnectedTo]="inventoryCellIds"
+             (cdkDropListDropped)="onCellDrop($event, 'mat', 0)">
+          <div *ngIf="mat[0]; else matHint" class="forge-item" cdkDrag
+               [cdkDragData]="{ sourceContext: 'forge', grid: 'mat', index: 0, item: mat[0] }"
+               [title]="mat[0].name">
+            <ng-container *ngTemplateOutlet="icon; context: { $implicit: mat[0] }"></ng-container>
+          </div>
+          <ng-template #matHint>
+            <div class="forge-mat-hint" *ngIf="requiredMineral(selectedRecipe$ | async) as need"
+                 [title]="need.name">
+              <ng-container *ngTemplateOutlet="icon; context: { $implicit: need }"></ng-container>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Combustible: un único cuadrado debajo del material. -->
+        <div class="forge-fuel-cell" cdkDropList cdkDropListSortingDisabled
+             [id]="'forge-fuel-0'"
+             [cdkDropListConnectedTo]="inventoryCellIds"
+             (cdkDropListDropped)="onCellDrop($event, 'fuel', 0)">
+          <div *ngIf="fuel[0]" class="forge-item" cdkDrag
+               [cdkDragData]="{ sourceContext: 'forge', grid: 'fuel', index: 0, item: fuel[0] }"
+               [title]="fuel[0].name">
+            <ng-container *ngTemplateOutlet="icon; context: { $implicit: fuel[0] }"></ng-container>
+          </div>
         </div>
       </div>
+
+      <!-- Botón de producir (cuadrado) + nombre debajo -->
+      <div class="forge-prod-col">
+        <button class="forge-prod-btn"
+                [class.forge-prod-btn--open]="recipePanelOpen"
+                (click)="toggleRecipePanel()">
+          <ng-container *ngIf="selectedRecipe$ | async as bar; else prodSelect">
+            <div class="forge-bar-icon" [ngStyle]="barStyle(bar.box)"></div>
+          </ng-container>
+          <ng-template #prodSelect><span class="forge-prod-select">Seleccionar</span></ng-template>
+        </button>
+        <span class="forge-prod-name" *ngIf="selectedRecipe$ | async as bar">{{ bar.name }}</span>
+      </div>
+
+      <!-- Cuadrado de salida: aquí sale la barra producida; se arrastra al inventario. -->
+      <div class="forge-out-cell" cdkDropList cdkDropListSortingDisabled
+           [id]="'forge-out-0'"
+           [cdkDropListConnectedTo]="inventoryCellIds"
+           (cdkDropListDropped)="onCellDrop($event, 'out', 0)">
+        <div *ngIf="out[0]" class="forge-item" cdkDrag
+             [cdkDragData]="{ sourceContext: 'forge', grid: 'out', index: 0, item: out[0] }"
+             [title]="out[0].name">
+          <ng-container *ngTemplateOutlet="icon; context: { $implicit: out[0] }"></ng-container>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- 2) Combustible -->
-  <div class="forge-section">
-    <div class="forge-label">{{ 'BUILD.FORGE_FUEL' | translate }}</div>
-    <div class="forge-slider">
-      <div *ngFor="let cell of fuel; let i = index; trackBy: trackByIndex"
-           class="forge-cell" cdkDropList cdkDropListSortingDisabled
-           [id]="'forge-fuel-' + i"
-           [cdkDropListConnectedTo]="inventoryCellIds"
-           (cdkDropListDropped)="onCellDrop($event, 'fuel', i)">
-        <div *ngIf="cell" class="forge-item" cdkDrag
-             [cdkDragData]="{ sourceContext: 'forge', grid: 'fuel', index: i, item: cell }"
-             [title]="cell.name">
-          <ng-container *ngTemplateOutlet="icon; context: { $implicit: cell }"></ng-container>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3) Producción actual -->
-  <div class="forge-section">
-    <div class="forge-label">{{ 'BUILD.FORGE_PRODUCING' | translate }}</div>
-    <div class="forge-prod">
-      <ng-container *ngIf="producing$ | async as job; else prodEmpty">
-        <div class="forge-prod-cell" [title]="job.item.name">
-          <ng-container *ngTemplateOutlet="icon; context: { $implicit: job.item }"></ng-container>
-        </div>
-        <div class="forge-prod-bar"><span [style.width.%]="job.progress * 100"></span></div>
-      </ng-container>
-      <ng-template #prodEmpty>
-        <div class="forge-prod-cell forge-prod-cell--empty"></div>
-      </ng-template>
-    </div>
-  </div>
-
-  <!-- 4) Salida -->
-  <div class="forge-section">
-    <div class="forge-label">{{ 'BUILD.FORGE_OUTPUT' | translate }}</div>
-    <div class="forge-slider">
-      <div *ngFor="let cell of out; let i = index; trackBy: trackByIndex"
-           class="forge-cell" cdkDropList cdkDropListSortingDisabled
-           [id]="'forge-out-' + i"
-           [cdkDropListConnectedTo]="inventoryCellIds"
-           (cdkDropListDropped)="onCellDrop($event, 'out', i)">
-        <div *ngIf="cell" class="forge-item" cdkDrag
-             [cdkDragData]="{ sourceContext: 'forge', grid: 'out', index: i, item: cell }"
-             [title]="cell.name">
-          <ng-container *ngTemplateOutlet="icon; context: { $implicit: cell }"></ng-container>
-        </div>
-      </div>
+  <!-- Panel de selección de recetas (barras de metal): aparece a la derecha al pulsar Producir -->
+  <div class="forge-recipe-panel" *ngIf="recipePanelOpen">
+    <div class="forge-recipe-title">Barras de metal</div>
+    <div class="forge-recipe-grid">
+      <button *ngFor="let bar of availableBars" class="forge-recipe-cell"
+              [title]="bar.name" (click)="selectBar(bar)">
+        <div class="forge-bar-icon" [ngStyle]="barStyle(bar.box)"></div>
+      </button>
     </div>
   </div>
 

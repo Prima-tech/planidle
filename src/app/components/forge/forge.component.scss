@@ -13,6 +13,7 @@ $text-cream: #ecd9b4;
 :host {
   display: block;
   box-sizing: border-box;
+  position: relative;   /* ancla del panel de recetas (flyout a la derecha) */
   /* Mismo ancho que los paneles de la izquierda (equipo): 266 + 16 padding + 10 borde. */
   width: 292px;
   min-height: calc(100% - 4px);
@@ -29,6 +30,18 @@ $text-cream: #ecd9b4;
     0 0 0 2px $outline,
     inset 0 0 0 2px $outline,
     0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* Título de la ventana, centrado arriba. */
+.forge-title {
+  text-align: center;
+  font-size: 0.95em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $text-cream;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  margin-bottom: 10px;
 }
 
 .forge-section { margin-bottom: 10px; }
@@ -80,11 +93,151 @@ $text-cream: #ecd9b4;
   cursor: grab;
 }
 
-/* Cuadro de producción: icono grande + barra de progreso. */
-.forge-prod {
+/* Producir: columna izq (material + combustible) · botón · salida.
+   align-items:flex-start → el material (arriba) queda al mismo nivel que el botón;
+   space-between → izquierda pegada a la izda. y salida a la dcha., con padding. */
+.forge-prod-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.forge-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.forge-prod-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Cuadrados de material, combustible y salida: mismo recuadro. */
+.forge-mat-cell,
+.forge-fuel-cell,
+.forge-out-cell {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  position: relative;
+
+  &.cdk-drop-list-receiving,
+  &.cdk-drop-list-dragging { outline: 2px solid $wood-btn; }
+}
+
+/* Mineral requerido como pista (cuadrado vacío + barra elegida): icono atenuado. */
+.forge-mat-hint {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.forge-prod-btn {
+  width: 56px;
+  height: 56px;            /* cuadrado, mismo tamaño con o sin selección */
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline;
+  color: $text-brown;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active { background: $wood-btn-dark; }
+  &--open  { box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, 0 0 8px rgba(244, 183, 64, 0.55); }
+}
+
+.forge-bar-icon { flex: 0 0 auto; image-rendering: pixelated; }
+
+.forge-prod-name {
+  font-size: 0.62em;
+  font-weight: 700;
+  color: $text-brown;
+  text-align: center;
+}
+
+.forge-prod-select {
+  font-size: 0.55em;
+  font-weight: 700;
+  color: $text-brown;
+  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.1;
+  padding: 0 3px;
+}
+
+/* Panel de selección de barras: flyout a la derecha, misma altura y separación
+   estándar (12px) que el resto de flyouts del juego. */
+.forge-recipe-panel {
+  position: absolute;
+  /* -5px = borde del marco de la forja, para que el alto coincida con su marco. */
+  top: -5px;
+  bottom: -5px;
+  left: calc(100% + 12px);
+  width: 104px;
+  z-index: 20;
+  box-sizing: border-box;
+  padding: 8px;
+  overflow-y: auto;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px $outline, inset 0 0 0 2px $outline, 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.forge-recipe-title {
+  font-size: 0.62em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-brown;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.forge-recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  justify-items: center;
+  gap: 5px;
+}
+
+.forge-recipe-cell {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active { transform: scale(0.94); }
 }
 
 .forge-prod-cell {

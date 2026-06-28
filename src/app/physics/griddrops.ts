@@ -423,34 +423,34 @@ const RESOURCES_CATALOG: LootEntry[] = [
   // Mineral del tier 1 (lo sueltan las piedras al minar). Icono = Icons.png #23
   // (rejilla 32px → frame 17); sprite del drop = ese mismo frame del spritesheet.
   {
-    name: 'Mineral Tier 1',
+    name: 'Mineral de Hierro',   // (era 'Mineral Tier 1'; ahora cae en el tier 3 = hierro)
     category: 'Recurso',
     type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: true,
     texture: 'icons_sheet', frame: 17,
     iconSheet: 'assets/icon/icons/Icons.png', iconFrame: 17, iconFrameSize: 32, iconFrameCols: 15,
     scale: 2, order: 6,
-    description: 'Mineral obtenido al minar piedra.',
+    description: 'Mineral de hierro obtenido al minar.',
   },
   {
-    name: 'Mineral Tier 2',
+    name: 'Mineral de Bronce',   // (tier 2)
     category: 'Recurso',
     type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: true,
     texture: 'mineral_tier2',
     icon: 'assets/icon/resources/mining/tier2_drop.png',
     scale: 2, order: 6,
-    description: 'Mineral de tier 2 obtenido al minar menas del mapa 1-2.',
+    description: 'Mineral de bronce obtenido al minar.',
   },
   {
-    name: 'Mineral Tier 3',
+    name: 'Mineral de Cobre',    // (era 'Mineral Tier 3'; ahora cae en el tier 1 = cobre)
     category: 'Recurso',
     type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: true,
     texture: 'mineral_tier3',
     icon: 'assets/icon/resources/mining/tier3_drop.png',
     scale: 2, order: 6,
-    description: 'Mineral de tier 3 obtenido al minar menas del mapa 1-3.',
+    description: 'Mineral de cobre obtenido al minar.',
   },
   {
     name: 'Mineral Tier 4',
