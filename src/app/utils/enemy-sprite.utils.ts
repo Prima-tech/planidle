@@ -26,8 +26,9 @@ function frameData(enemyType: string): EnemyFrameData | null {
     ? framesPerDir(action.frames as DirectionFrames)
     : omniLength(action.frames as OmniFrames);
 
+  const base = cfg.spriteBase ?? `assets/sprites/enemy/${baseType}`;
   return {
-    src: `assets/sprites/enemy/${baseType}/${action.filename}.png`,
+    src: `${base}/${action.filename}.png`,
     cols,
     fps: action.frameRate,
   };

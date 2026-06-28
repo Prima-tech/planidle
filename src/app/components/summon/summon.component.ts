@@ -526,8 +526,9 @@ export class SummonComponent {
                                   : cfg.type.endsWith('_elite')    ? 'elite'
                                   : 'base';
 
+    const spriteBase = ENEMY_REGISTRY[baseType]?.spriteBase ?? `assets/sprites/enemy/${baseType}`;
     const spriteUrl = idleCfg
-      ? `assets/sprites/enemy/${baseType}/${idleCfg.filename}.png`
+      ? `${spriteBase}/${idleCfg.filename}.png`
       : '';
 
     return {

@@ -1,5 +1,5 @@
 import { Enemy } from "src/app/enemy/enemy";
-import { ActionConfig, ENEMY_REGISTRY, EnemyTypeConfig } from "src/app/enemy/enemy-config";
+import { ActionConfig, ENEMY_REGISTRY, EnemyTypeConfig, ANIMAL_TYPES } from "src/app/enemy/enemy-config";
 import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridDrops, ITEM_CATALOG } from "src/app/physics/griddrops";
@@ -432,16 +432,19 @@ export class GameScene extends Phaser.Scene {
         typesToLoad.add(`${base}_elite`);
         typesToLoad.add(`${base}_oblivion`);
       }
+      // Animales de caza: spawnean en todos los mapas no-hogar → cargar siempre.
+      if (mapCfg.id !== 'hogar') for (const t of ANIMAL_TYPES) typesToLoad.add(t);
       for (const type of typesToLoad) {
         const cfg = ENEMY_REGISTRY[type];
         if (!cfg) continue;
         const baseType = cfg.spriteType ?? type;
+        const base = cfg.spriteBase ?? `assets/sprites/enemy/${baseType}`;
         for (const [action, actionCfg] of Object.entries(cfg.actions) as [string, ActionConfig][]) {
           const key = `${baseType}_${action}`;
           if (!this.textures.exists(key)) {
             this.load.spritesheet(
               key,
-              `assets/sprites/enemy/${baseType}/${actionCfg.filename}.png`,
+              `${base}/${actionCfg.filename}.png`,
               { frameWidth: actionCfg.frameWidth, frameHeight: actionCfg.frameHeight },
             );
           }
@@ -567,6 +570,7 @@ export class GameScene extends Phaser.Scene {
         this.registerDropTextures();
         this.registerStationAnimations();
         this.initSpawns();
+        this.initAnimalSpawns();
         this.reg.mapStats?.setTrackers(this.spawnTrackers);
         this.initEnemyAttackListener();
         this.createDrops();
@@ -1345,6 +1349,28 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    /** Animales de caza: spawnea unos pocos al azar (tipo + posición) en mapas no-hogar.
+     *  Son enemigos pasivos (vagan, no atacan), 10 HP, golpeables. Reusa spawnEnemy
+     *  (que respawnea al morir). No se añaden a spawnTrackers para no contar en mapStats. */
+    private initAnimalSpawns(): void {
+      if (this.currentMapConfig.id === 'hogar') return;
+      const W = this.currentMap.width, H = this.currentMap.height;
+      const COUNT = 4;
+      const ZW = 12, ZH = 12;
+      for (let i = 0; i < COUNT; i++) {
+        const type = ANIMAL_TYPES[Phaser.Math.Between(0, ANIMAL_TYPES.length - 1)];
+        const zx = Phaser.Math.Between(3, Math.max(3, W - ZW - 3));
+        const zy = Phaser.Math.Between(3, Math.max(3, H - ZH - 3));
+        const cfg: SpawnConfig = {
+          enemyType: type,
+          zone: { tileX: zx, tileY: zy, width: ZW, height: ZH },
+          maxCount: 1, behavior: 'passive', visionRadius: 0,
+        };
+        const tracker: SpawnTracker = { config: cfg, count: 0 };
+        this.time.delayedCall(i * 800, () => this.spawnEnemy(cfg, tracker));
+      }
+    }
+
     /** Elige un tile de spawn dentro de la zona evitando el entorno del jugador
      *  (para que no aparezcan enemigos encima) y los tiles ocupados (nodos/edificios).
      *  Si la zona es pequeña/saturada y no encuentra hueco, usa el último intento. */
@@ -1411,6 +1437,7 @@ export class GameScene extends Phaser.Scene {
         typesToRegister.add(`${base}_elite`);
         typesToRegister.add(`${base}_oblivion`);
       }
+      if (this.currentMapConfig.id !== 'hogar') for (const t of ANIMAL_TYPES) typesToRegister.add(t);
       for (const type of typesToRegister) {
         const cfg = ENEMY_REGISTRY[type];
         if (cfg) this.animService.registerEnemyAnimations(cfg);
@@ -1929,6 +1956,9 @@ export class GameScene extends Phaser.Scene {
         const mapId = this.reg.world.getCurrentMap().id;
         this.reg.kill?.recordKill(mapId, type);
         this.reg.gathering?.addEquippedPetExp(1);   // 1 exp por enemigo a la mascota equipada
+
+        // Los animales de caza no tienen élite/oblivion ni progresión de kills.
+        if (ANIMAL_TYPES.includes(type)) return;
 
         if (type.endsWith('_oblivion')) return;
 
@@ -3042,7 +3072,8 @@ export class GameScene extends Phaser.Scene {
       for (const [action, actionCfg] of Object.entries(cfg.actions) as [string, ActionConfig][]) {
         const key = `${baseType}_${action}`;
         if (!this.textures.exists(key)) {
-          this.load.spritesheet(key, `assets/sprites/enemy/${baseType}/${actionCfg.filename}.png`, {
+          const base = cfg.spriteBase ?? `assets/sprites/enemy/${baseType}`;
+          this.load.spritesheet(key, `${base}/${actionCfg.filename}.png`, {
             frameWidth: actionCfg.frameWidth,
             frameHeight: actionCfg.frameHeight,
           });

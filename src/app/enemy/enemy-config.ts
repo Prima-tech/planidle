@@ -38,6 +38,7 @@ export interface EnemyTypeConfig {
   displayName?: string;    // nombre visible al jugador (si omitido usa type)
   tint?: number;           // tint visual (0xRRGGBB) — usado para elite/oblivion
   spriteType?: string;     // tipo base cuyos sprites se reusan (omite carga propia)
+  spriteBase?: string;     // carpeta de sprites (default 'assets/sprites/enemy/{baseType}')
   actions: {
     idle?:             ActionConfig;
     walk?:             ActionConfig;
@@ -482,10 +483,48 @@ const goobling1: EnemyTypeConfig = {
 const goobling1_elite: EnemyTypeConfig    = { ...goobling1, type: 'goobling1_elite',    hp: goobling1.hp * 3,  scale: 3.5, speed: 121, damage: goobling1.damage * 2,  attackCooldown: 1360, tint: 0xffcc00, spriteType: 'goobling1' };
 const goobling1_oblivion: EnemyTypeConfig = { ...goobling1, type: 'goobling1_oblivion', hp: goobling1.hp * 8, scale: 4,   speed: 132, damage: goobling1.damage * 3, attackCooldown: 1140, tint: 0xcc00ff, spriteType: 'goobling1' };
 
+// ── Animales de caza ─────────────────────────────────────────────────────────
+// Sprites 32×32 direccionales (4 filas: down/up/left/right) en
+// assets/sprites/animals/hunt_animals/{Carpeta}/. Son enemigos PASIVOS (vagan,
+// no atacan, daño 0) y frágiles (10 HP). Se golpean como cualquier enemigo.
+
+const ANIMAL_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT];
+
+function animal(o: {
+  type: string; name: string; folder: string; prefix: string;
+  walkFile: string; walkCols: number; deathCols: number;
+}): EnemyTypeConfig {
+  const A = (filename: string, cols: number, fr: number, rep: number): ActionConfig => ({
+    filename, frameWidth: 32, frameHeight: 32, frameRate: fr, repeat: rep,
+    directional: true, frames: dirFrames(cols, ANIMAL_DIR),
+  });
+  return {
+    type: o.type, displayName: o.name,
+    hp: 10, scale: 3, speed: 50, damage: 0, attackCooldown: 999999,
+    spriteBase: `assets/sprites/animals/hunt_animals/${o.folder}`,
+    actions: {
+      idle:  A(`${o.prefix}_Idle_with_shadow`, 4, 4, -1),
+      walk:  A(o.walkFile, o.walkCols, 8, -1),
+      hurt:  A(`${o.prefix}_Hurt_with_shadow`, 4, 10, 0),
+      death: A(`${o.prefix}_Death_with_shadow`, o.deathCols, 8, 0),
+    },
+  };
+}
+
+const fox    = animal({ type: 'fox',          name: 'Zorro',    folder: 'Fox',          prefix: 'Fox',          walkFile: 'Fox_walk_with_shadow',          walkCols: 6, deathCols: 6 });
+const hare   = animal({ type: 'hare',         name: 'Liebre',   folder: 'Hare',         prefix: 'Hare',         walkFile: 'Hare_Walk_with_shadow',         walkCols: 5, deathCols: 6 });
+const deer   = animal({ type: 'deer',         name: 'Ciervo',   folder: 'Deer',         prefix: 'Deer',         walkFile: 'Deer_Walk_with_shadow',         walkCols: 6, deathCols: 7 });
+const boar   = animal({ type: 'boar',         name: 'Jabalí',   folder: 'Boar',         prefix: 'Boar',         walkFile: 'Boar_Walk_with_shadow',         walkCols: 6, deathCols: 6 });
+const grouse = animal({ type: 'black_grouse', name: 'Urogallo', folder: 'Black_grouse', prefix: 'Black_grouse', walkFile: 'Black_grouse_Walk_with_shadow', walkCols: 6, deathCols: 6 });
+
+/** Tipos de animal de caza (se spawnean al azar en mapas no-hogar). */
+export const ANIMAL_TYPES = ['fox', 'hare', 'deer', 'boar', 'black_grouse'];
+
 // ── Registro global de tipos de enemigo ──────────────────────────────────────
 // Para añadir un enemigo nuevo: agregar su config aquí.
 
 export const ENEMY_REGISTRY: Record<string, EnemyTypeConfig> = {
+  fox, hare, deer, boar, black_grouse: grouse,
   orc1,
   orc1_elite,
   orc1_oblivion,
