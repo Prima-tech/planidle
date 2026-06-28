@@ -414,6 +414,12 @@ const RESOURCES_CATALOG: LootEntry[] = [
     texture: 'madera_tier2', icon: 'assets/icon/resources/madera_t2.png',
     scale: 2, order: 6, description: 'Madera de tier 2 obtenida al talar árboles tier 2.',
   },
+  {
+    name: 'Madera Tier 3', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'madera_tier3', icon: 'assets/icon/resources/madera_t3.png',
+    scale: 2, order: 6, description: 'Madera de tier 3 obtenida al talar árboles tier 3.',
+  },
   // Mineral del tier 1 (lo sueltan las piedras al minar). Icono = Icons.png #23
   // (rejilla 32px → frame 17); sprite del drop = ese mismo frame del spritesheet.
   {

@@ -14,6 +14,16 @@
           </div>
         </div>
       </div>
+
+      <!-- Recursos recolectables del mapa (mina/árbol/gema según sus tiers) -->
+      <div class="resource-grid" *ngIf="mapResources.length > 0">
+        <div class="info-resource" *ngFor="let r of mapResources" [title]="r.type">
+          <div class="enemy-frame">
+            <img [src]="r.img" class="resource-img" alt="" draggable="false" />
+          </div>
+        </div>
+      </div>
+
       <div class="info-chars" *ngIf="charsOnMap.length > 0">
         <div class="info-char" *ngFor="let c of charsOnMap" [class.current]="c.isCurrent">
           <div class="enemy-frame char-frame">

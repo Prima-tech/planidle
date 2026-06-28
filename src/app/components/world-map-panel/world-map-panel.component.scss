@@ -214,6 +214,32 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     align-items: center;
   }
 
+  // Recursos del mapa (mina/árbol/gema): misma rejilla y recuadro que los enemigos.
+  .resource-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 5px;
+  }
+
+  .info-resource {
+    display: flex;
+    align-items: center;
+  }
+
+  .resource-img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 88%;
+    height: 88%;
+    transform: translate(-50%, -50%);
+    object-fit: contain;
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+
   .enemy-frame {
     position: relative;
     width: 46px;

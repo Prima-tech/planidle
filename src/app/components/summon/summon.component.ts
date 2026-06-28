@@ -281,6 +281,14 @@ export class SummonComponent {
         { name: 'drop', box: { x: 448, y: 32,  w: 32, h: 32 } },   // Icons #39
       ],
     },
+    {
+      title: 'tier3',
+      items: [
+        { name: 'tree', box: { x: 529, y: 194, w: 63, h: 77 }, sheet: 'objects' }, // Objects #330
+        { name: 'map',  box: { x: 432, y: 80,  w: 16, h: 16 } },   // Icons #58
+        { name: 'drop', box: { x: 448, y: 64,  w: 32, h: 32 } },   // Icons #59
+      ],
+    },
   ];
 
   private _activeMiningTab = 0;

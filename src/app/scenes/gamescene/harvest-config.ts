@@ -78,6 +78,7 @@ export function gemTier(tier?: number): MiningTier | null {
 export const TREE_TIERS: Record<number, MiningTier> = {
   1: { rockTexture: 'tree_tier1', dropName: 'Madera', mmFrame: 57 },  // Objects #326, drop #19, minimapa #18
   2: { rockTexture: 'tree_tier2', dropName: 'Madera Tier 2', scale: 3.7, mmFrame: 117 }, // Objects #328, drop #39, minimapa #38
+  3: { rockTexture: 'tree_tier3', dropName: 'Madera Tier 3', scale: 3, mmFrame: 177 },   // Objects #330, drop #59, minimapa #58
 };
 export function treeTier(tier?: number): MiningTier {
   return TREE_TIERS[tier ?? 1] ?? TREE_TIERS[1];

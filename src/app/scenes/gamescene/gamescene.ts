@@ -384,7 +384,9 @@ export class GameScene extends Phaser.Scene {
       // Árboles por tier (MapConfig.treeTier, default 1).
       this.load.image('tree_tier1', 'assets/sprites/map/skills/trees/tree_tier1.png');
       this.load.image('tree_tier2', 'assets/sprites/map/skills/trees/tree_tier2.png');
+      this.load.image('tree_tier3', 'assets/sprites/map/skills/trees/tree_tier3.png');
       this.load.image('madera_tier2', 'assets/icon/resources/madera_t2.png');
+      this.load.image('madera_tier3', 'assets/icon/resources/madera_t3.png');
 
       // Pociones (consumibles)
       this.load.image('heal_01', 'assets/icon/resources/potions/heal_01.png');

@@ -257,6 +257,19 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     return DISPLAY_PX;
   }
 
+  /** Recursos recolectables que spawnean en el mapa seleccionado (mina/árbol/gema),
+   *  derivados de sus tiers. El hogar (Asgard) no genera recursos. */
+  get mapResources(): { type: string; img: string }[] {
+    const m = this.selectedMap;
+    if (!m || m.id === 'hogar') return [];
+    const res: { type: string; img: string }[] = [
+      { type: 'Mina',  img: `assets/sprites/map/skills/rocks/tier${m.mineTier ?? 1}_rock.png` },
+      { type: 'Árbol', img: `assets/sprites/map/skills/trees/tree_tier${m.treeTier ?? 1}.png` },
+    ];
+    if (m.gemTier) res.push({ type: 'Gema', img: `assets/sprites/map/skills/rocks/gem${m.gemTier}_rock.png` });
+    return res;
+  }
+
   spriteStyle(enemyType: string) {
     const px = this.enemyDisplayPx(enemyType);
     // width/height inline = un frame: el .enemy-frame recorta y centra el sprite.
