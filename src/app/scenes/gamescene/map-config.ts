@@ -48,6 +48,7 @@ export interface MapConfig {
   dropRateModifier?: number;  // multiplicador sobre la chance base de items (default 1.0)
   mineTier?: number;          // tier de minería de las menas de este mapa (default 1)
   gemTier?: number;           // tier de gemas (nodo aparte); sin él, no spawnean gemas
+  treeTier?: number;          // tier de árboles de este mapa (default 1)
 }
 
 const W1_HOME_TILESET = {
@@ -86,6 +87,7 @@ interface GenLevelOpts {
   enemyType: string; maxCount: number; behavior: EnemyBehavior; visionRadius: number;
   mineTier?: number;                          // tier de las menas (default 1)
   gemTier?: number;                           // tier de gemas (nodo aparte; sin él, no hay gemas)
+  treeTier?: number;                          // tier de árboles (default 1)
 }
 /** Nivel generado: spawn en el centro (como el hogar) y enemigos alrededor del spawn. */
 const genLevel = (o: GenLevelOpts): MapConfig => {
@@ -100,6 +102,7 @@ const genLevel = (o: GenLevelOpts): MapConfig => {
     id: o.id, name: o.id,
     mineTier: o.mineTier,
     gemTier: o.gemTier,
+    treeTier: o.treeTier,
     spawnPos: { x: cx, y: cy },
     spawns: [{
       enemyType: o.enemyType,

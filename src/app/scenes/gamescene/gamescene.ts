@@ -11,7 +11,7 @@ import { bodySpriteFor } from "src/app/pnj/player/body-config";
 import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
-import { HarvestKind, HarvestKindId, HARVEST_KINDS, miningTier, gemTier, MiningTier } from "./harvest-config";
+import { HarvestKind, HarvestKindId, HARVEST_KINDS, miningTier, gemTier, treeTier, MiningTier } from "./harvest-config";
 import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
@@ -333,7 +333,7 @@ export class GameScene extends Phaser.Scene {
       }
 
       // Recursos (drop al suelo desde el panel de invocación)
-      this.load.image('wood', 'assets/icon/resources/wood.png');
+      this.load.image('madera', 'assets/icon/resources/madera_t1.png');   // drop de Madera (icono #19)
       this.load.image('crushed_stone', 'assets/icon/resources/mining/polvo.png');   // (carbón reutiliza este sprite)
 
       // Hoja de iconos (Icons.png) como spritesheet 32px: sprite del drop de mineral
@@ -381,7 +381,8 @@ export class GameScene extends Phaser.Scene {
       this.load.image('gem_tier8', 'assets/icon/resources/gems/gem8_drop.png');
       this.load.image('gem_tier9', 'assets/icon/resources/gems/gem9_drop.png');
       this.load.image('gem_tier10', 'assets/icon/resources/gems/gem10_drop.png');
-      this.load.image('tree_chop', 'assets/sprites/map/skills/trees/Tree1.png');
+      // Árboles por tier (MapConfig.treeTier, default 1).
+      this.load.image('tree_tier1', 'assets/sprites/map/skills/trees/tree_tier1.png');
 
       // Pociones (consumibles)
       this.load.image('heal_01', 'assets/icon/resources/potions/heal_01.png');
@@ -1984,6 +1985,7 @@ export class GameScene extends Phaser.Scene {
     private harvestTierOf(id: HarvestKindId): MiningTier | null {
       if (id === 'rock') return miningTier(this.currentMapConfig.mineTier);
       if (id === 'gem')  return gemTier(this.currentMapConfig.gemTier);
+      if (id === 'tree') return treeTier(this.currentMapConfig.treeTier);
       return null;
     }
     /** Textura del sprite de un nodo (la del tier si lo tiene; si no, la fija del kind). */

@@ -403,9 +403,9 @@ const RESOURCES_CATALOG: LootEntry[] = [
     category: 'Recurso',
     type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: true,
-    texture: 'wood',
-    icon: 'assets/icon/resources/wood.png',
-    scale: 0.15, order: 6,
+    texture: 'madera',
+    icon: 'assets/icon/resources/madera_t1.png',
+    scale: 2, order: 6,
     description: 'Madera recolectada. Material de construcción.',
   },
   // Mineral del tier 1 (lo sueltan las piedras al minar). Icono = Icons.png #23

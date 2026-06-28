@@ -264,7 +264,15 @@ export class SummonComponent {
       ],
     },
   ];
-  readonly treeTiers: { title: string; items: MiningIcon[] }[] = [];
+  readonly treeTiers: { title: string; items: MiningIcon[] }[] = [
+    {
+      title: 'tier1',
+      items: [
+        { name: 'tree', box: { x: 336, y: 225, w: 32, h: 47 }, sheet: 'objects' }, // Objects #326
+        { name: 'drop', box: { x: 448, y: 0,   w: 32, h: 32 } },   // Icons #19
+      ],
+    },
+  ];
 
   private _activeMiningTab = 0;
   get activeMiningTab(): number { return this._activeMiningTab; }

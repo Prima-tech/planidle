@@ -32,9 +32,9 @@ export const HARVEST_HITS = 3;
 // Cada mapa minero define su tier (MapConfig.mineTier, default 1). El tier decide
 // el sprite de la mena en el mundo, el item que suelta y el icono del minimapa.
 export interface MiningTier {
-  rockTexture: string;   // textura del sprite de la roca en el mundo (preload en gamescene)
+  rockTexture: string;   // textura del sprite del nodo en el mundo (preload en gamescene)
   dropName:    string;   // item que suelta (nombre en ITEM_CATALOG)
-  mmFrame:     number;   // frame del icono en el minimapa (Icons.png como spritesheet 16px)
+  mmFrame?:    number;   // frame del icono en el minimapa (Icons.png 16px); sin él → punto (árboles)
 }
 export const MINING_TIERS: Record<number, MiningTier> = {
   1: { rockTexture: 'rock_tier1', dropName: 'Mineral Tier 1', mmFrame: 33 },   // Icons #2
@@ -71,6 +71,16 @@ export function gemTier(tier?: number): MiningTier | null {
   return tier ? (GEM_TIERS[tier] ?? null) : null;
 }
 
+// ── Tiers de árboles ─────────────────────────────────────────────────────────
+// Como la minería: cada mapa tiene treeTier (default 1). Los árboles no llevan
+// icono de minimapa (mmFrame), así que en el radar siguen siendo un punto verde.
+export const TREE_TIERS: Record<number, MiningTier> = {
+  1: { rockTexture: 'tree_tier1', dropName: 'Madera' },  // sprite Objects #326, drop = Madera (#19)
+};
+export function treeTier(tier?: number): MiningTier {
+  return TREE_TIERS[tier ?? 1] ?? TREE_TIERS[1];
+}
+
 // Config por tipo de recurso. Añadir aquí nuevos recolectables (caña→peces, etc.).
 export const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
   rock: {
@@ -81,11 +91,11 @@ export const HARVEST_KINDS: Record<HarvestKindId, HarvestKind> = {
     drop: { name: 'Mineral Tier 1', min: 1, max: 1 },   // suelta 1 mineral de tier 1 al minar
   },
   tree: {
-    texture: 'tree_chop', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',
-    footprintW: 2, footprintH: 2, scale: 3.2, offsetY: 80, count: 3,
+    texture: 'tree_tier1', toolCategory: 'Hacha', toolSlotId: 'axe', context: 'chop',
+    footprintW: 2, footprintH: 2, scale: 5, offsetY: 0, count: 3,
     debris: [0x6b4a2b, 0x8a5a2b, 0x4e7a32, 0x3c6b28],   // madera + hojas
     skill: 'woodcutting', xp: 1,   // XP base por árbol; modificadores futuros la escalan
-    drop: { name: 'Madera', min: 1, max: 1 },   // suelta 1 madera al talar
+    drop: { name: 'Madera', min: 1, max: 1 },   // suelta 1 madera al talar (tier del mapa)
   },
   // Gemas: se minan con pico (como las rocas) pero son un nodo aparte y solo
   // aparecen en mapas con `gemTier`. Textura/drop/icono salen de GEM_TIERS.
