@@ -60,7 +60,7 @@
 
       <!-- Cuadro de la fragua: muestra la barra que se producirá (deducida del mineral) -->
       <div class="forge-prod-col">
-        <div class="forge-tag">Produciendo</div>
+        <div class="forge-tag">{{ prodLabel(currentBar$ | async) }}</div>
 
         <!-- Tiempo de la unidad actual, arriba (el aro del cuadro muestra su progreso) -->
         <div class="forge-timer forge-timer--unit">{{ fmtTime(remaining$ | async) }}</div>

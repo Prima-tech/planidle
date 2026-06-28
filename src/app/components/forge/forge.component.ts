@@ -95,6 +95,12 @@ export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Botón único play/pausa. */
   toggle(): void { this.forge.toggle(); }
 
+  /** Etiqueta de la zona central: "Producir" si no hay mineral asignado, o el nombre
+   *  del metal (Hierro, Cobre, Tier 4…) deducido de la barra que se va a producir. */
+  prodLabel(bar: ForgeBar | null): string {
+    return bar ? bar.name.replace(/^Barra (de )?/, '') : 'Producir';
+  }
+
   /** Formatea segundos como HH:MM:SS. */
   fmtTime(s: number | null): string {
     const v = Math.max(0, Math.floor(s ?? 0));
