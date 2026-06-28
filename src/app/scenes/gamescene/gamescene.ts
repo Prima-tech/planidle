@@ -497,7 +497,13 @@ export class GameScene extends Phaser.Scene {
       // portales limpian el mining/chopping colgado, así que aquí solo sobrevive tras un
       // reload. En cualquier otro caso manda el mapa: con enemigos = matando, sin = idle.
       const resumed = this.reg.activity?.current;
-      if (resumed !== 'mining' && resumed !== 'chopping') {
+      if (this.currentMapConfig.id === 'hogar') {
+        // El hogar es zona segura: nunca se pelea/mina/tala ahí. Forzamos idle SIEMPRE
+        // (incluso si se venía recolectando), porque al teletransportarse a la ciudad
+        // desde el mapa no se cruza un portal y la actividad colgada seguiría contando
+        // AFK (minando/talando) dentro de la ciudad.
+        this.reg.activity?.set('idle');
+      } else if (resumed !== 'mining' && resumed !== 'chopping') {
         this.reg.activity?.set((this.currentMapConfig.spawns?.length ?? 0) > 0 ? 'killing' : 'idle');
       }
 

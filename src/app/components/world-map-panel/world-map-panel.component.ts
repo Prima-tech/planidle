@@ -8,6 +8,7 @@ import { AsgardService } from 'src/app/services/asgard';
 import { StorageService } from 'src/app/services/storage.service';
 import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { MAP_REGISTRY, MapConfig } from 'src/app/scenes/gamescene/map-config';
+import { miningTier, gemTier, treeTier } from 'src/app/scenes/gamescene/harvest-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { mapFeatureId } from 'src/app/services/unlock-config';
@@ -263,11 +264,26 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     const m = this.selectedMap;
     if (!m || m.id === 'hogar') return [];
     const res: { type: string; img: string }[] = [
-      { type: 'Mina',  img: `assets/sprites/map/skills/rocks/tier${m.mineTier ?? 1}_rock.png` },
-      { type: 'Árbol', img: `assets/sprites/map/skills/trees/tree_tier${m.treeTier ?? 1}.png` },
+      { type: 'Mina',  img: this.harvestImg(miningTier(m.mineTier).rockTexture) },
+      { type: 'Árbol', img: this.harvestImg(treeTier(m.treeTier).rockTexture) },
     ];
-    if (m.gemTier) res.push({ type: 'Gema', img: `assets/sprites/map/skills/rocks/gem${m.gemTier}_rock.png` });
+    const gem = gemTier(m.gemTier);
+    if (gem) res.push({ type: 'Gema', img: this.harvestImg(gem.rockTexture) });
     return res;
+  }
+
+  /** Ruta del sprite a partir de la clave de textura del recurso (misma fuente de
+   *  verdad que el juego: harvest-config). Así el detalle del mapa nunca se
+   *  desincroniza al reordenar tiers.  rock_tier3 → rocks/tier3_rock.png,
+   *  rock_gem2 → rocks/gem2_rock.png, tree_tier1 → trees/tree_tier1.png */
+  private harvestImg(textureKey: string): string {
+    if (textureKey.startsWith('rock_')) {
+      return `assets/sprites/map/skills/rocks/${textureKey.slice('rock_'.length)}_rock.png`;
+    }
+    if (textureKey.startsWith('tree_')) {
+      return `assets/sprites/map/skills/trees/${textureKey}.png`;
+    }
+    return '';
   }
 
   spriteStyle(enemyType: string) {

@@ -1,9 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { ForgeService, ForgeGrid, ForgeBar } from 'src/app/services/forge.service';
+import { ForgeService, ForgeGrid } from 'src/app/services/forge.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
-import { ITEM_CATALOG } from 'src/app/physics/griddrops';
 
 /**
  * Menú de la fundición. De arriba a abajo:
@@ -19,7 +18,7 @@ import { ITEM_CATALOG } from 'src/app/physics/griddrops';
   styleUrls: ['./forge.component.scss'],
   standalone: false,
 })
-export class ForgeComponent implements OnInit {
+export class ForgeComponent implements OnInit, OnDestroy {
   private forge     = inject(ForgeService);
   private inventory = inject(InventoryService);
   private equipment = inject(EquipmentService);
@@ -28,33 +27,42 @@ export class ForgeComponent implements OnInit {
   readonly fuel = this.forge.fuel;
   readonly out  = this.forge.out;
   readonly producing$ = this.forge.producing$;
-  readonly selectedRecipe$ = this.forge.selectedRecipe$;
-  readonly availableBars = this.forge.availableBars;
-
-  /** true → panel de selección de barras (recetas) abierto a la derecha. */
-  recipePanelOpen = false;
+  readonly running$ = this.forge.running$;
+  readonly progress$ = this.forge.progress$;
+  /** Segundos restantes de la barra actual (cuenta atrás). */
+  readonly remaining$ = this.forge.remaining$;
+  /** Barra que saldrá según el mineral puesto (auto). */
+  readonly currentBar$ = this.forge.currentBar$;
+  /** true → hay mineral válido + combustible → play activable. */
+  readonly ready$ = this.forge.ready$;
 
   /** IDs de celda del inventario a las que se puede arrastrar de vuelta. */
   inventoryCellIds: string[] = [];
 
   ngOnInit(): void {
     this.inventoryCellIds = this.equipment.inventoryCellIds;
+    this.forge.setOpen(true);
   }
 
-  /** Pulsar el botón de producir: abre/cierra el panel de selección de barras. */
-  toggleRecipePanel(): void { this.recipePanelOpen = !this.recipePanelOpen; }
-
-  /** Elige una barra como receta y cierra el panel. */
-  selectBar(bar: ForgeBar): void {
-    this.forge.selectRecipe(bar);
-    this.recipePanelOpen = false;
+  ngOnDestroy(): void {
+    this.forge.setOpen(false);
   }
 
-  /** Item del catálogo del mineral que requiere la barra seleccionada (para el icono
-   *  pista del cuadrado de material). null si no aplica. */
-  requiredMineral(bar: ForgeBar | null): any {
-    if (!bar) return null;
-    return ITEM_CATALOG.find(e => e.name === bar.mineral) ?? null;
+  /** Botón único play/pausa. */
+  toggle(): void { this.forge.toggle(); }
+
+  /** Doble clic (detectado por tiempo, sin depender del evento nativo que cdkDrag
+   *  se traga) en una celda de la forja → pide retirar el item al inventario. */
+  private lastCellClick: { grid: ForgeGrid; index: number; time: number } | null = null;
+  onCellClick(grid: ForgeGrid, index: number): void {
+    const now = Date.now();
+    const lc = this.lastCellClick;
+    if (lc && lc.grid === grid && lc.index === index && now - lc.time < 350) {
+      this.lastCellClick = null;
+      this.forge.requestWithdraw(grid, index);
+      return;
+    }
+    this.lastCellClick = { grid, index, time: now };
   }
 
   /** Estilo de fondo que recorta la caja de una barra en Icons.png (480×320). */

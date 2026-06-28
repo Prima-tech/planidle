@@ -5,27 +5,26 @@ import { InventoryItem } from './inventory.service';
 import { ITEM_CATALOG, LootEntry } from '../physics/griddrops';
 
 /**
- * Fundición (estación de oficio `forge`/`smelter`). Tiene tres rejillas:
- *  - materiales (entrada): items a fundir (los que tengan receta en FORGE_RECIPES).
- *  - combustible: cualquier item arde y aporta segundos de quemado (FUEL_SECONDS).
- *  - salida: items producidos; se arrastran de vuelta al inventario.
- * Un único trabajo en curso (`producing$`) avanza mientras haya combustible
- * quemándose y un material con receta; al completarse consume 1 material, gasta
- * combustible y deja 1 unidad del producto en la salida.
+ * Forja (estación de oficio `forge`/`smelter`). Tres celdas:
+ *  - material (entrada): el mineral a fundir. La barra a producir se DEDUCE de él.
+ *  - combustible: cualquier item sirve de combustible (se gasta 1 por barra).
+ *  - salida: barras producidas; se arrastran de vuelta al inventario.
  *
- * Persistencia local (StorageService). El progreso se recupera al cargar (catch-up
- * por el tiempo transcurrido), así que la fundición trabaja también estando cerrada.
+ * No se elige la receta: la barra resultante depende del mineral puesto (cada
+ * mineral mapea a una barra en FORGE_BARS). Si hay mineral válido + combustible +
+ * sitio en la salida, `ready$` es true (play activable). Con la forja en marcha
+ * (`running$`), la barra de carga se rellena en SECONDS_PER_BAR; al completarse
+ * gasta 1 mineral + 1 combustible y deja 1 barra en la salida. Mientras queden
+ * materiales, encadena más barras. Sin combustible o sin mineral, no produce.
+ *
+ * Persistencia local (StorageService). El progreso se recupera al cargar
+ * (catch-up por el tiempo transcurrido), así que la forja trabaja también cerrada.
  */
 
 export type ForgeGrid = 'mat' | 'fuel' | 'out';
 
-/** EJEMPLO de recetas (input → output). Amplía/define las reales aquí. */
-export const FORGE_RECIPES: Record<string, { output: string; seconds: number }> = {
-  'Madera': { output: 'Carbón', seconds: 5 },   // fundir madera → carbón (ejemplo)
-};
-
-/** Barra de metal seleccionable como receta de producción de la forja. El icono es
- *  un recorte de Icons.png (caja {x,y,w,h}). `mineral` = item que necesita para fundirse. */
+/** Barra de metal. El icono es un recorte de Icons.png (caja {x,y,w,h}).
+ *  `mineral` = item que necesita para fundirse (lo que decide qué barra sale). */
 export interface ForgeBar { tier: number; name: string; mineral: string; box: { x: number; y: number; w: number; h: number }; }
 
 /** Barras de metal por tier (icono = recorte de Icons.png, mismo que el panel Mining). */
@@ -42,18 +41,19 @@ export const FORGE_BARS: ForgeBar[] = [
   { tier: 10, name: 'Barra Tier 10', mineral: 'Mineral Tier 10', box: { x: 112, y: 288, w: 32, h: 32 } },
 ];
 
-/** Segundos de quemado por unidad de combustible (cualquier otro item: DEFAULT). */
-const FUEL_SECONDS: Record<string, number> = {
-  'Carbón': 20,
-  'Madera': 8,
-};
-const DEFAULT_FUEL_SECONDS = 5;
+/** Segundos para producir una barra. */
+const SECONDS_PER_BAR = 5;
+
+/** Combustible admitido: de momento solo madera (cualquier tier: 'Madera', 'Madera Tier 2'…). */
+function isFuelItem(item: InventoryItem | null): boolean {
+  return !!item && item.name.startsWith('Madera');
+}
 
 export const FORGE_SLOTS = 8;
 const STORAGE_KEY = 'forge_state';
 const MAX_CATCHUP_S = 8 * 3600;   // tope de avance offline al cargar (8 h)
 
-interface Job { srcName: string; outName: string; neededS: number; elapsedS: number; }
+interface Job { elapsedS: number; barTier: number; }
 
 @Injectable({ providedIn: 'root' })
 export class ForgeService {
@@ -62,13 +62,29 @@ export class ForgeService {
   readonly fuel: (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
   readonly out:  (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
 
-  /** Barra de metal seleccionada como receta (null = nada → el botón pide "Seleccionar"). */
-  readonly selectedRecipe$ = new BehaviorSubject<ForgeBar | null>(null);
+  /** Barra que se producirá según el mineral puesto (auto). null = sin mineral válido. */
+  readonly currentBar$ = new BehaviorSubject<ForgeBar | null>(null);
+  /** true cuando hay mineral válido + combustible + sitio en salida → play activable. */
+  readonly ready$ = new BehaviorSubject<boolean>(false);
 
-  /** Trabajo en curso para el cuadro de producción (null = nada). */
+  /** true = forja en marcha (play); false = parada (stop). */
+  readonly running$ = new BehaviorSubject<boolean>(false);
+  /** Progreso del ciclo actual (0..1) para la barra de carga. */
+  readonly progress$ = new BehaviorSubject<number>(0);
+  /** Segundos que faltan para terminar la barra actual (cuenta atrás 5→0). */
+  readonly remaining$ = new BehaviorSubject<number>(SECONDS_PER_BAR);
+  /** Item que se está produciendo ahora (la barra deducida) o null. */
   readonly producing$ = new BehaviorSubject<{ item: InventoryItem; progress: number } | null>(null);
   /** Emite tras cada cambio (drop, tick) para refrescar la UI si hace falta. */
   readonly changes$ = new Subject<void>();
+  /** Petición de retirar un item de una celda hacia el inventario (doble clic).
+   *  Lo escucha el inventario, que decide si hay sitio. */
+  readonly withdraw$ = new Subject<{ grid: ForgeGrid; index: number; item: InventoryItem }>();
+
+  /** true mientras el panel de la forja está abierto (lo marca ForgeComponent). */
+  private _open = false;
+  get isOpen(): boolean { return this._open; }
+  setOpen(v: boolean): void { this._open = v; }
 
   /** IDs CDK de todas las celdas (para `cdkDropListConnectedTo` del inventario). */
   readonly cellIds: string[] = (['mat', 'fuel', 'out'] as ForgeGrid[])
@@ -78,7 +94,6 @@ export class ForgeService {
   private zone = inject(NgZone);
 
   private job: Job | null = null;
-  private burnRemaining = 0;   // segundos de quemado que quedan del combustible actual
   private loaded = false;
   private sincePersist = 0;    // segundos desde el último guardado (throttle del tick)
 
@@ -95,15 +110,43 @@ export class ForgeService {
     return g === 'mat' ? this.mat : g === 'fuel' ? this.fuel : this.out;
   }
 
-  // ── Receta seleccionada (barra de metal) ────────────────────────────────────
+  // ── Barra deducida del mineral ───────────────────────────────────────────────
 
-  /** Barras disponibles para seleccionar. De momento todas; a futuro se filtran por
-   *  los tiers que el jugador tenga desbloqueados/con material. */
-  get availableBars(): ForgeBar[] { return FORGE_BARS; }
+  /** Primera barra cuyo mineral esté en la celda de material (null si ninguno). */
+  private currentBar(): ForgeBar | null {
+    for (const bar of FORGE_BARS) {
+      if (this.hasItem(this.mat, bar.mineral)) return bar;
+    }
+    return null;
+  }
 
-  /** Selecciona (o limpia con null) la barra a producir y lo persiste. */
-  selectRecipe(bar: ForgeBar | null): void {
-    this.selectedRecipe$.next(bar);
+  private barByTier(tier: number): ForgeBar | null {
+    return FORGE_BARS.find(b => b.tier === tier) ?? null;
+  }
+
+  // ── Play / Stop ─────────────────────────────────────────────────────────────
+
+  /** Botón único: en marcha → pausa; parada → play. */
+  toggle(): void {
+    if (this.running$.value) this.pause();
+    else this.play();
+  }
+
+  /** Arranca/reanuda la producción. Si hay un ciclo pausado a medias, sigue desde ahí. */
+  play(): void {
+    if (!this.canProduce()) return;
+    this.running$.next(true);
+    if (!this.job) this.job = { elapsedS: 0, barTier: this.currentBar()!.tier };
+    this.emitState();
+    this.changes$.next();
+    this.persist();
+  }
+
+  /** Pausa: detiene el avance pero CONSERVA el progreso del ciclo en curso. */
+  pause(): void {
+    this.running$.next(false);
+    this.emitState();
+    this.changes$.next();
     this.persist();
   }
 
@@ -112,6 +155,8 @@ export class ForgeService {
   /** Coloca `item` en la celda (g,index). Apila si es el mismo item apilable;
    *  rechaza si está ocupada por otro. Devuelve true si lo aceptó. */
   place(g: ForgeGrid, index: number, item: InventoryItem): boolean {
+    if (g === 'out') return false;                          // la salida es SOLO salida: no se mete nada
+    if (g === 'fuel' && !isFuelItem(item)) return false;    // la celda de combustible solo acepta madera
     const cells = this.grid(g);
     const target = cells[index];
     if (target?.mergeable && item.mergeable && target.name === item.name) {
@@ -125,9 +170,10 @@ export class ForgeService {
     return true;
   }
 
-  /** Movimiento interno entre celdas de la fundición (swap o apilado). */
+  /** Movimiento interno entre celdas de la forja (swap o apilado). */
   moveInternal(from: { g: ForgeGrid; index: number }, to: { g: ForgeGrid; index: number }): void {
     if (from.g === to.g && from.index === to.index) return;
+    if (to.g === 'out') return;   // la salida es SOLO salida: no se mete nada
     const src = this.grid(from.g), dst = this.grid(to.g);
     const item = src[from.index];
     if (!item) return;
@@ -148,73 +194,86 @@ export class ForgeService {
     this.afterChange();
   }
 
-  // ── Motor de fundición ─────────────────────────────────────────────────────
+  // ── Transferencia rápida (doble clic) ───────────────────────────────────────
+
+  /** Mete un item del inventario en su celda automática: madera → combustible,
+   *  mineral de una barra → material. Devuelve true si lo aceptó (lo movió). */
+  quickAdd(item: InventoryItem): boolean {
+    if (isFuelItem(item)) return this.place('fuel', 0, item);
+    if (FORGE_BARS.some(b => b.mineral === item.name)) return this.place('mat', 0, item);
+    return false;   // no es combustible ni mineral de ninguna barra → no es de la forja
+  }
+
+  /** Pide retirar la celda (g,index) al inventario; este decide si hay sitio. */
+  requestWithdraw(g: ForgeGrid, index: number): void {
+    const item = this.grid(g)[index];
+    if (item) this.withdraw$.next({ grid: g, index, item });
+  }
+
+  // ── Motor de producción ─────────────────────────────────────────────────────
 
   private tick(dt: number): void {
-    if (!this.loaded) return;
-    const before = this.job;
+    if (!this.running$.value) return;       // parada: no avanza
+    const beforeJob = this.job;
     const advanced = this.step(dt);
-    if (!advanced && this.job === before) return;   // nada que hacer (forja en reposo)
-    this.zone.run(() => { this.emitProducing(); this.changes$.next(); });
-    // Persistir al cambiar de trabajo (arranque/fin) o cada 5 s de avance: el progreso
-    // a mitad se recupera igual por el catch-up (lastTick + elapsedS), no hace falta
-    // escribir en disco cada segundo.
+    if (!advanced && this.job === beforeJob) return;   // nada que hacer (sin materiales)
+    this.zone.run(() => { this.emitState(); this.changes$.next(); });
+    // Persistir cada 5 s de avance: el progreso a mitad se recupera por el catch-up.
     this.sincePersist += dt;
-    if (this.job !== before || this.sincePersist >= 5) { this.persist(); this.sincePersist = 0; }
+    if (this.job === null || this.sincePersist >= 5) { this.persist(); this.sincePersist = 0; }
   }
 
   /** Avanza la simulación `dt` segundos. Devuelve true si hubo progreso. */
   private step(dt: number): boolean {
-    let work = dt, progressed = false;
-    let guard = 0;
+    if (!this.running$.value) return false;
+    let work = dt, progressed = false, guard = 0;
     while (work > 1e-6 && guard++ < 10000) {
-      if (!this.job && !this.startJob()) break;          // sin trabajo posible
-      const j = this.job!;
-      if (this.burnRemaining <= 1e-6 && !this.consumeFuel()) break;   // sin combustible → parar
-      const slice = Math.min(work, this.burnRemaining, j.neededS - j.elapsedS);
-      j.elapsedS += slice;
-      this.burnRemaining -= slice;
+      if (!this.job) {
+        const bar = this.currentBar();
+        if (!bar || !this.hasAnyFuel() || !this.outputHasSpace(bar.name)) break;
+        this.job = { elapsedS: 0, barTier: bar.tier };
+      }
+      const slice = Math.min(work, SECONDS_PER_BAR - this.job.elapsedS);
+      this.job.elapsedS += slice;
       work -= slice;
       progressed = true;
-      if (j.elapsedS >= j.neededS - 1e-6) {
-        if (!this.completeJob()) break;   // sin sitio en salida → se queda lleno, parar
+      if (this.job.elapsedS >= SECONDS_PER_BAR - 1e-6) {
+        if (!this.completeBar()) { this.job = null; break; }   // sin materiales/sitio → parar
+        this.job = null;
       }
     }
     return progressed;
   }
 
-  /** Busca el primer material con receta y hueco de salida → arranca trabajo. */
-  private startJob(): boolean {
-    for (const cell of this.mat) {
-      const recipe = cell && FORGE_RECIPES[cell.name];
-      if (recipe && this.outputHasSpace(recipe.output)) {
-        this.job = { srcName: cell!.name, outName: recipe.output, neededS: recipe.seconds, elapsedS: 0 };
-        return true;
-      }
-    }
-    return false;
+  /** ¿Se puede producir ahora? Mineral válido + combustible + hueco en la salida. */
+  private canProduce(): boolean {
+    const bar = this.currentBar();
+    return !!bar && this.hasAnyFuel() && this.outputHasSpace(bar.name);
   }
 
-  /** Completa el trabajo: -1 material, +1 producto. Devuelve false si no cabe. */
-  private completeJob(): boolean {
-    const j = this.job!;
-    if (!this.outputHasSpace(j.outName)) { j.elapsedS = j.neededS; return false; }
-    if (!this.consumeOne(this.mat, j.srcName)) { this.job = null; return true; }   // material retirado
-    this.addOutput(j.outName);
-    this.job = null;
+  /** Completa la barra del ciclo: -1 mineral, -1 combustible, +1 barra. false si no se puede. */
+  private completeBar(): boolean {
+    const bar = this.barByTier(this.job!.barTier);
+    if (!bar) return false;
+    if (!this.hasItem(this.mat, bar.mineral) || !this.hasAnyFuel() || !this.outputHasSpace(bar.name)) return false;
+    this.consumeOne(this.mat, bar.mineral);
+    this.consumeAnyFuel();
+    this.addOutput(bar.name);
     return true;
   }
 
-  /** Quema una unidad de combustible → suma sus segundos. false si no hay. */
-  private consumeFuel(): boolean {
-    for (let i = 0; i < this.fuel.length; i++) {
-      const it = this.fuel[i];
-      if (!it) continue;
-      this.burnRemaining += FUEL_SECONDS[it.name] ?? DEFAULT_FUEL_SECONDS;
-      this.decOne(this.fuel, i);
-      return true;
-    }
-    return false;
+  private hasItem(cells: (InventoryItem | null)[], name: string): boolean {
+    return cells.some(c => c?.name === name);
+  }
+
+  private hasAnyFuel(): boolean {
+    return this.fuel.some(c => isFuelItem(c));
+  }
+
+  /** Gasta 1 unidad del primer combustible (madera) disponible. */
+  private consumeAnyFuel(): void {
+    const i = this.fuel.findIndex(c => isFuelItem(c));
+    if (i !== -1) this.decOne(this.fuel, i);
   }
 
   private outputHasSpace(name: string): boolean {
@@ -244,21 +303,29 @@ export class ForgeService {
     else cells[i] = null;
   }
 
-  private emitProducing(): void {
-    if (!this.job) { this.producing$.next(null); return; }
-    this.producing$.next({
-      item: this.itemFromCatalog(this.job.outName),
-      progress: Math.max(0, Math.min(1, this.job.elapsedS / this.job.neededS)),
-    });
+  /** Refresca currentBar$, ready$, producing$ y progress$ a partir del estado interno. */
+  private emitState(): void {
+    const bar = this.job ? this.barByTier(this.job.barTier) : this.currentBar();
+    const progress = this.job ? Math.max(0, Math.min(1, this.job.elapsedS / SECONDS_PER_BAR)) : 0;
+    const remaining = this.job ? Math.max(0, Math.ceil(SECONDS_PER_BAR - this.job.elapsedS)) : SECONDS_PER_BAR;
+    this.currentBar$.next(bar);
+    this.ready$.next(this.canProduce());
+    this.progress$.next(progress);
+    this.remaining$.next(remaining);
+    this.producing$.next(this.job && bar ? { item: this.itemFromCatalog(bar.name), progress } : null);
   }
 
   private afterChange(): void {
-    // Si retiraron el material que se estaba fundiendo, cancela el trabajo.
-    if (this.job && !this.mat.some(c => c?.name === this.job!.srcName)) this.job = null;
-    // Un drop puede haber dado material: arranca el trabajo ya (sin gastar combustible
-    // todavía; eso lo hace el primer tick) para que el cuadro de producción lo muestre.
-    if (!this.job) this.startJob();
-    this.emitProducing();
+    // Si quitaron el mineral en curso y ya no hay, cancela el ciclo.
+    if (this.job) {
+      const bar = this.barByTier(this.job.barTier);
+      if (!bar || !this.hasItem(this.mat, bar.mineral)) this.job = null;
+    }
+    // Si está en marcha y ahora hay materiales, arranca el ciclo ya.
+    if (this.running$.value && !this.job && this.canProduce()) {
+      this.job = { elapsedS: 0, barTier: this.currentBar()!.tier };
+    }
+    this.emitState();
     this.changes$.next();
     this.persist();
   }
@@ -267,21 +334,34 @@ export class ForgeService {
 
   private async load(): Promise<void> {
     if (this.loaded) return;
-    const saved = (await this.storage.get(STORAGE_KEY)) as ForgeSnapshot | null;
-    if (saved) {
-      this.restoreGrid(this.mat,  saved.mat);
-      this.restoreGrid(this.fuel, saved.fuel);
-      this.restoreGrid(this.out,  saved.out);
-      this.job = saved.job ?? null;
-      this.burnRemaining = saved.burnRemaining ?? 0;
-      const bar = FORGE_BARS.find(b => b.tier === saved.selectedTier);
-      if (bar) this.selectedRecipe$.next(bar);
-      const elapsed = saved.lastTick ? Math.min(MAX_CATCHUP_S, (Date.now() - saved.lastTick) / 1000) : 0;
-      if (elapsed > 0) this.step(elapsed);   // avance offline
+    try {
+      const saved = (await this.storage.get(STORAGE_KEY)) as ForgeSnapshot | null;
+      if (saved) {
+        this.restoreGrid(this.mat,  saved.mat);
+        this.restoreGrid(this.fuel, saved.fuel);
+        this.restoreGrid(this.out,  saved.out);
+        this.job = this.validJob(saved.job);
+        this.running$.next(saved.running ?? false);
+        const elapsed = saved.lastTick ? Math.min(MAX_CATCHUP_S, (Date.now() - saved.lastTick) / 1000) : 0;
+        if (elapsed > 0 && this.running$.value) this.step(elapsed);   // avance offline solo si estaba en marcha
+      }
+    } catch (e) {
+      console.warn('[forge] no se pudo restaurar el estado guardado:', e);
+    } finally {
+      // SIEMPRE marcar cargado: si esto falla, el tick quedaría bloqueado y la
+      // forja "no haría nada" aunque el play se viera activable.
+      this.loaded = true;
+      this.emitState();
+      this.changes$.next();
     }
-    this.loaded = true;
-    this.emitProducing();
-    this.changes$.next();
+  }
+
+  /** Valida un job persistido contra el modelo actual (descarta formatos viejos). */
+  private validJob(job: any): Job | null {
+    if (job && typeof job.elapsedS === 'number' && typeof job.barTier === 'number' && this.barByTier(job.barTier)) {
+      return { elapsedS: job.elapsedS, barTier: job.barTier };
+    }
+    return null;
   }
 
   private restoreGrid(target: (InventoryItem | null)[], src?: (InventoryItem | null)[]): void {
@@ -292,8 +372,7 @@ export class ForgeService {
   private persist(): void {
     const snap: ForgeSnapshot = {
       mat: this.mat, fuel: this.fuel, out: this.out,
-      job: this.job, burnRemaining: this.burnRemaining, lastTick: Date.now(),
-      selectedTier: this.selectedRecipe$.value?.tier ?? null,
+      job: this.job, running: this.running$.value, lastTick: Date.now(),
     };
     this.storage.set(STORAGE_KEY, snap);
   }
@@ -330,7 +409,6 @@ interface ForgeSnapshot {
   fuel: (InventoryItem | null)[];
   out:  (InventoryItem | null)[];
   job: Job | null;
-  burnRemaining: number;
+  running: boolean;
   lastTick: number;
-  selectedTier?: number | null;
 }

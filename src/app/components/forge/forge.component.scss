@@ -9,6 +9,10 @@ $wood-btn-dark: #8a5530;
 $cell-border: #21130e;
 $text-brown: #53301c;
 $text-cream: #ecd9b4;
+/* Paleta metálica canónica (pastilla del nombre = char-stats / talent-node-card). */
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
 
 :host {
   display: block;
@@ -32,16 +36,18 @@ $text-cream: #ecd9b4;
     0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
-/* Título de la ventana, centrado arriba. */
+/* Título de la ventana, centrado arriba. Brillo de brasa. */
 .forge-title {
   text-align: center;
   font-size: 0.95em;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: $text-cream;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-  margin-bottom: 10px;
+  color: #ffd79a;
+  text-shadow:
+    0 0 8px rgba(255, 140, 50, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.7);
+  margin-bottom: 14px;   /* aire entre el título y los cuadros */
 }
 
 .forge-section { margin-bottom: 10px; }
@@ -107,40 +113,52 @@ $text-cream: #ecd9b4;
 .forge-left-col {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 6px;
 }
 
 /* Flechas entre material → botón → salida. Alto = el del cuadrado (56px) para que
-   el glifo quede centrado a la altura de los cuadrados (la fila es flex-start). */
+   el glifo quede centrado a la altura de los cuadrados (la fila es flex-start).
+   Color de metal incandescente. */
 .forge-arrow {
   flex: 0 0 auto;
   height: 56px;
+  margin-top: 20px;   /* baja lo que ocupa la etiqueta (16px) + su separación (4px) para centrar con los cuadrados */
   display: flex;
   align-items: center;
   font-size: 1.2em;
   font-weight: 800;
-  color: $text-cream;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  color: #ff9436;
+  text-shadow:
+    0 0 6px rgba(255, 120, 40, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .forge-prod-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  /* sin gap: el espaciado entre botón/controles/barra/timer lo dan sus margin-top;
+     así la etiqueta (con su margin-bottom) deja el botón al mismo nivel que las celdas. */
 }
 
-/* Cuadrados de material, combustible y salida: mismo recuadro. */
+/* Cuadrados de material, combustible y salida: hueco de metal forjado, cálido,
+   con bisel de hierro y un leve resplandor de brasa desde dentro. */
 .forge-mat-cell,
 .forge-fuel-cell,
 .forge-out-cell {
   width: 56px;
   height: 56px;
   flex: 0 0 56px;
-  background: #6b5440;   /* recuadro más clarito que el negro del resto de celdas */
-  border: 2px solid $outline;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 180, 90, 0.12), transparent 70%),
+    linear-gradient(180deg, #7c6650, #594434);
+  border: 2px solid;
+  border-color: #4a3526 #1c1009 #1c1009 #4a3526;   /* bisel de hierro */
   border-radius: 6px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 210, 150, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,12 +168,19 @@ $text-cream: #ecd9b4;
   &.cdk-drop-list-dragging { outline: 2px solid $wood-btn; }
 }
 
-/* Mineral requerido como pista (cuadrado vacío + barra elegida): icono atenuado. */
-.forge-mat-hint {
-  opacity: 0.35;
+/* Placeholder de las celdas de entrada (mineral / madera): icono atenuado que
+   indica qué va ahí cuando la celda está vacía. No intercepta el drop ni el clic. */
+.forge-cell-ph {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  opacity: 0.3;
   pointer-events: none;
 }
 
+/* Botón de producir = boca de la fragua: hierro al rojo con brasas vivas dentro.
+   La barra seleccionada se ve como el metal calentándose en el fuego. */
 .forge-prod-btn {
   width: 56px;
   height: 56px;            /* cuadrado, mismo tamaño con o sin selección */
@@ -164,37 +189,157 @@ $text-cream: #ecd9b4;
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: $wood-btn;
+  background:
+    radial-gradient(circle at 50% 64%,
+      #ffe2a0 0%, #ff9d3c 20%, #ef5e1e 42%, #933114 70%, #3a160a 100%);
   border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-color: #5a4636 #150b05 #150b05 #5a4636;   /* bisel de hierro */
   border-radius: 6px;
-  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline;
-  color: $text-brown;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 10px rgba(0, 0, 0, 0.5),
+    0 0 14px rgba(255, 120, 40, 0.45);
+  color: $text-cream;
   cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
+  animation: forge-ember 2.4s ease-in-out infinite;
 
-  &:active { background: $wood-btn-dark; }
-  &--open  { box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, 0 0 8px rgba(244, 183, 64, 0.55); }
+  &:active { filter: brightness(0.92); }
+  &--open  {
+    animation: none;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 10px rgba(0, 0, 0, 0.5),
+      0 0 18px rgba(255, 160, 60, 0.7);
+  }
 }
 
-.forge-bar-icon { flex: 0 0 auto; image-rendering: pixelated; }
+/* Latido de las brasas del horno. */
+@keyframes forge-ember {
+  0%, 100% { box-shadow: 0 0 0 1px $outline, inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 120, 40, 0.35); }
+  50%      { box-shadow: 0 0 0 1px $outline, inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 18px rgba(255, 150, 55, 0.6); }
+}
 
-.forge-prod-name {
-  font-size: 0.62em;
-  font-weight: 700;
-  color: $text-brown;
-  text-align: center;
+.forge-bar-icon {
+  flex: 0 0 auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));   /* la barra resalta sobre las brasas */
+}
+
+/* Etiqueta de cada zona (Mineral / Combustible / Produciendo / Salida) en pastilla
+   con marco metálico + madera oscura y texto dorado (estilo canónico de las monedas
+   / pastilla del nombre en char-stats). Alto fijo para alinear todas las celdas. */
+.forge-tag {
+  height: 16px;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  white-space: nowrap;
+  font-size: 0.5em;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ffd700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  background: $wood-btn-dark;
+  border: 1px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Slot = etiqueta + su cuadrado (columna). */
+.forge-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .forge-prod-select {
   font-size: 0.55em;
   font-weight: 700;
-  color: $text-brown;
+  color: $text-cream;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
   letter-spacing: 0.02em;
   text-align: center;
   line-height: 1.1;
   padding: 0 3px;
+}
+
+/* Controles play / stop debajo del botón. */
+.forge-controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.forge-ctrl {
+  width: 26px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7em;
+  line-height: 1;
+  border: 2px solid;
+  border-radius: 5px;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  &:active:not(:disabled) { filter: brightness(0.9); }
+  &:disabled { opacity: 0.4; cursor: default; box-shadow: 0 0 0 1px $outline; }
+}
+
+.forge-ctrl--play {
+  color: #eafff0;
+  background: #3f8f4a;
+  border-color: #6fce78 #2c5e33 #2c5e33 #3f8f4a;
+
+  &.is-active:not(:disabled),
+  &.is-active { box-shadow: 0 0 0 1px $outline, 0 0 8px rgba(90, 220, 110, 0.6); }
+}
+
+.forge-ctrl--stop {
+  color: #ffeaea;
+  background: #a83a32;
+  border-color: #d9665c #6e231e #6e231e #a83a32;
+}
+
+/* Barra de carga del ciclo actual. */
+.forge-progress {
+  width: 64px;
+  height: 9px;
+  margin-top: 6px;
+  background: $cell-border;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+
+  span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(180deg, #ffd07a, #ef5e1e);
+    transition: width 0.25s linear;
+  }
+}
+
+/* Cronómetro cuenta atrás debajo de la barra de carga. */
+.forge-timer {
+  margin-top: 4px;
+  font-size: 0.6em;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #ffd79a;
+  text-shadow: 0 0 6px rgba(255, 140, 50, 0.45), 0 1px 2px rgba(0, 0, 0, 0.7);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Panel de selección de barras: flyout a la derecha, misma altura y separación

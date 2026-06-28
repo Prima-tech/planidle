@@ -43,6 +43,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private dropSub: Subscription;
   private removeSub: Subscription;
   private unlockSub: Subscription;
+  private forgeWithdrawSub: Subscription;
   private prevUnlocked = 0;
 
   private panelState = inject(PanelStateService);
@@ -170,6 +171,15 @@ export class InventoryComponent implements OnInit, OnDestroy {
       this.triggerSave();
     });
 
+    // Retirada rápida desde la forja (doble clic en una celda): la metemos en el
+    // inventario solo si hay sitio; si cabe, le decimos a la forja que vacíe la celda.
+    this.forgeWithdrawSub = this.forge.withdraw$.subscribe(({ grid, index, item }) => {
+      if (this.tryAddItem(item)) {
+        this.forge.removeCell(grid, index);
+        this.triggerSave();
+      }
+    });
+
     // Al cambiar la mochila equipada cambian las celdas/pestañas disponibles
     this.prevUnlocked = this.unlock.unlocked;
     this.unlockSub = this.unlock.unlocked$.subscribe(n => {
@@ -186,6 +196,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.dropSub?.unsubscribe();
     this.removeSub?.unsubscribe();
     this.unlockSub?.unsubscribe();
+    this.forgeWithdrawSub?.unsubscribe();
   }
 
   // --- Desbloqueo por mochilas ---
@@ -277,9 +288,25 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   // --- Selección ---
 
+  /** Último clic en una celda, para detectar doble clic sin depender del evento
+   *  nativo (cdkDrag se lo traga a veces). */
+  private lastItemClick: { tabIndex: number; row: number; col: number; time: number } | null = null;
+
   selectItem(tabIndex: number, row: number, col: number, event: MouseEvent): void {
     event.stopPropagation();
     if (!this.inventories[tabIndex][row][col]) return;
+
+    // Doble clic con la forja abierta → transferencia rápida a la forja.
+    if (this.forge.isOpen) {
+      const now = Date.now();
+      const lc = this.lastItemClick;
+      if (lc && lc.tabIndex === tabIndex && lc.row === row && lc.col === col && now - lc.time < 350) {
+        this.lastItemClick = null;
+        this.onItemDblClick(tabIndex, row, col);
+        return;
+      }
+      this.lastItemClick = { tabIndex, row, col, time: now };
+    }
 
     const isSame =
       this.selectedItem?.tabIndex === tabIndex &&
@@ -576,6 +603,48 @@ export class InventoryComponent implements OnInit, OnDestroy {
     } else {
       console.error('[Inventory] No hay espacio disponible');
     }
+  }
+
+  // --- Transferencia rápida con la forja (doble clic) ---
+
+  /**
+   * Doble clic en un item del inventario: si la forja está abierta y el item es
+   * combustible (madera) o mineral de una barra, lo mete en su celda de la forja
+   * y lo saca del inventario. Si no, no hace nada.
+   */
+  onItemDblClick(tabIndex: number, row: number, col: number): void {
+    if (!this.forge.isOpen) return;
+    const item = this.inventories[tabIndex][row][col];
+    if (!item) return;
+    if (this.forge.quickAdd(item)) {
+      this.inventories[tabIndex][row][col] = null;
+      this.selectedItem = null;
+      this.splitMenuOpen = false;
+      this.deleteModalOpen = false;
+      this.triggerSave();
+    }
+  }
+
+  /** Mete el item en el inventario (apila o primer hueco). Devuelve false si no cabe. */
+  private tryAddItem(item: InventoryItem): boolean {
+    if (item.mergeable) {
+      for (let t = 0; t < this.NUMBER_OF_TABS; t++) {
+        for (let i = 0; i < this.ROWS; i++) {
+          for (let j = 0; j < this.COLUMNS; j++) {
+            if (!this.unlock.isUnlocked(t, i, j)) continue;
+            const existing = this.inventories[t][i][j];
+            if (existing?.mergeable && existing.name === item.name) {
+              existing.sum = (existing.sum ?? 0) + (item.sum ?? 1);
+              return true;
+            }
+          }
+        }
+      }
+    }
+    const empty = this.findFirstEmptyCell();
+    if (!empty) return false;
+    this.inventories[empty.tabIndex][empty.row][empty.col] = item;
+    return true;
   }
 
   // --- Utilidades ---

@@ -522,6 +522,68 @@ const RESOURCES_CATALOG: LootEntry[] = [
     scale: 2, order: 6,
     description: 'Mineral de tier 10 obtenido al minar menas.',
   },
+  // Barras de metal: producidas en la forja a partir de su mineral + combustible.
+  // (No se sueltan en el suelo; `texture` es nominal, solo van al inventario/salida.)
+  {
+    name: 'Barra de Cobre', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar1', icon: 'assets/icon/resources/forge/bar1.png',
+    scale: 2, order: 7, description: 'Barra de cobre forjada a partir de Mineral de Cobre.',
+  },
+  {
+    name: 'Barra de Bronce', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar2', icon: 'assets/icon/resources/forge/bar2.png',
+    scale: 2, order: 7, description: 'Barra de bronce forjada a partir de Mineral de Bronce.',
+  },
+  {
+    name: 'Barra de Hierro', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar3', icon: 'assets/icon/resources/forge/bar3.png',
+    scale: 2, order: 7, description: 'Barra de hierro forjada a partir de Mineral de Hierro.',
+  },
+  {
+    name: 'Barra Tier 4', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar4', icon: 'assets/icon/resources/forge/bar4.png',
+    scale: 2, order: 7, description: 'Barra de tier 4 forjada a partir de Mineral Tier 4.',
+  },
+  {
+    name: 'Barra Tier 5', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar5', icon: 'assets/icon/resources/forge/bar5.png',
+    scale: 2, order: 7, description: 'Barra de tier 5 forjada a partir de Mineral Tier 5.',
+  },
+  {
+    name: 'Barra Tier 6', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar6', icon: 'assets/icon/resources/forge/bar6.png',
+    scale: 2, order: 7, description: 'Barra de tier 6 forjada a partir de Mineral Tier 6.',
+  },
+  {
+    name: 'Barra Tier 7', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar7', icon: 'assets/icon/resources/forge/bar7.png',
+    scale: 2, order: 7, description: 'Barra de tier 7 forjada a partir de Mineral Tier 7.',
+  },
+  {
+    name: 'Barra Tier 8', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar8', icon: 'assets/icon/resources/forge/bar8.png',
+    scale: 2, order: 7, description: 'Barra de tier 8 forjada a partir de Mineral Tier 8.',
+  },
+  {
+    name: 'Barra Tier 9', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar9', icon: 'assets/icon/resources/forge/bar9.png',
+    scale: 2, order: 7, description: 'Barra de tier 9 forjada a partir de Mineral Tier 9.',
+  },
+  {
+    name: 'Barra Tier 10', category: 'Recurso', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'forge_bar10', icon: 'assets/icon/resources/forge/bar10.png',
+    scale: 2, order: 7, description: 'Barra de tier 10 forjada a partir de Mineral Tier 10.',
+  },
   {
     name: 'Gema Tier 1',
     category: 'Recurso',
