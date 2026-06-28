@@ -52,6 +52,14 @@ $gold-light: #ffe9a8;
     0 0 0 1px $outline,
     inset 0 0 0 1px $outline,
     0 2px 8px rgba(0, 0, 0, 0.5);
+  /* Sin outline de foco (se quedaba blanco tras pulsar) ni highlight de tap móvil. */
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
 
   &:active {
     transform: scale(0.9);
