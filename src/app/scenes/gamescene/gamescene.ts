@@ -8,7 +8,7 @@ import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MinimapTerrain, MINIMAP_DAT
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
 import { bodySpriteFor } from "src/app/pnj/player/body-config";
-import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS } from "./map-config";
+import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS, TREE_RESPAWN_MS } from "./map-config";
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
 import { HarvestKind, HarvestKindId, HARVEST_KINDS, miningTier, gemTier, treeTier, MiningTier } from "./harvest-config";
@@ -2129,15 +2129,16 @@ export class GameScene extends Phaser.Scene {
         // Gemas: solo si el mapa tiene gemTier Y están desbloqueadas en la ventana de mapa.
         if (id === 'gem' && (!this.harvestTierOf('gem') || !this.reg.mapUpgrades?.gemUnlocked(mapId))) continue;
         if (!this.textures.exists(this.harvestTexture(id))) continue;   // sin sprite → no se genera
-        // Menas (rocas) y gemas usan máximo + respawn temporizado; el resto se colocan
-        // todas de golpe al entrar al mapa.
-        const target = id === 'rock' ? this.maxOre() : id === 'gem' ? this.maxGem() : kind.count;
+        // Menas, gemas y árboles usan máximo + respawn temporizado; el resto se colocan
+        // todos de golpe al entrar al mapa.
+        const target = id === 'rock' ? this.maxOre() : id === 'gem' ? this.maxGem() : id === 'tree' ? this.maxTree() : kind.count;
         for (let placed = 0, tries = 0; placed < target && tries < 400; tries++) {
           if (this.trySpawnNode(id, kind)) placed++;
         }
       }
       this.scheduleOreRespawn();
       this.scheduleGemRespawn();
+      this.scheduleTreeRespawn();
     }
 
     /** Máx. de menas (rocas) a la vez = 1 base + mejora de mapa "Menas máx.". */
@@ -2184,6 +2185,31 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(this.effectiveOreRespawnMs(), () => {
         if (this.countOreNodes() < this.maxOre()) this.trySpawnNode('rock', HARVEST_KINDS['rock']);
         this.scheduleOreRespawn();
+      });
+    }
+
+    /** Máx. de árboles a la vez = 1 base + mejora de mapa "Árboles máx.". */
+    private maxTree(): number {
+      return 1 + (this.reg.mapUpgrades?.extraTrees(this.currentMapConfig.id) ?? 0);
+    }
+
+    /** Respawn de árboles (ms) = base − mejora "Respawn de árboles" (suelo 5s). */
+    private effectiveTreeRespawnMs(): number {
+      const reduction = this.reg.mapUpgrades?.treeRespawnReductionMs(this.currentMapConfig.id) ?? 0;
+      return Math.max(5000, TREE_RESPAWN_MS - reduction);
+    }
+
+    private countTreeNodes(): number {
+      return this.nodes.reduce((n, node) => n + (node.kind === 'tree' ? 1 : 0), 0);
+    }
+
+    /** Programa el respawn de árboles: cada effectiveTreeRespawnMs aparece uno nuevo si
+     *  hay hueco bajo el máximo. Réplica del respawn de menas. */
+    private scheduleTreeRespawn(): void {
+      if (this.currentMapConfig.id === 'hogar') return;
+      this.time.delayedCall(this.effectiveTreeRespawnMs(), () => {
+        if (this.countTreeNodes() < this.maxTree()) this.trySpawnNode('tree', HARVEST_KINDS['tree']);
+        this.scheduleTreeRespawn();
       });
     }
 
@@ -2293,11 +2319,19 @@ export class GameScene extends Phaser.Scene {
       return this.reg.charStats?.currentMiningEfficiency ?? 0;
     }
 
-    /** Nº de unidades que suelta una mena según el ratio de eficiencia (jugador/requerida):
+    /** Eficiencia del personaje para un recurso: tala (hacha) para árboles, minería
+     *  (pico) para menas/gemas. */
+    private playerHarvestEfficiency(kind: HarvestKindId): number {
+      return kind === 'tree'
+        ? (this.reg.charStats?.currentWoodcuttingEfficiency ?? 0)
+        : this.playerMiningEfficiency();
+    }
+
+    /** Nº de unidades que suelta un recurso según el ratio de eficiencia (jugador/requerida):
      *  floor(ratio) garantizadas + 1 más con prob. = parte decimal (mín. 1). reqEff 0 → 1. */
-    private efficiencyDropCount(reqEff: number): number {
+    private efficiencyDropCount(playerEff: number, reqEff: number): number {
       if (reqEff <= 0) return 1;
-      const ratio = this.playerMiningEfficiency() / reqEff;
+      const ratio = playerEff / reqEff;
       const floor = Math.floor(ratio);
       const extra = Math.random() < (ratio - floor) ? 1 : 0;
       return Math.max(1, floor + extra);
@@ -2343,12 +2377,12 @@ export class GameScene extends Phaser.Scene {
       // Actividad AFK: lo último golpeado manda (minando una roca / talando un árbol).
       this.reg.activity?.set(kind.skill === 'woodcutting' ? 'chopping' : 'mining');
 
-      // Eficiencia de minado (rocas/gemas): el golpe acierta con prob = eficiencia del
-      // jugador / eficiencia requerida de la mena. Un fallo muestra "MISS" y NO cuenta
-      // para destruir la mena (el árbol/tala no tiene eficiencia → siempre acierta).
-      if (kind.skill === 'mining') {
+      // Eficiencia (minería o tala): el golpe acierta con prob = eficiencia del jugador /
+      // eficiencia requerida del recurso. Un fallo muestra "MISS" y NO cuenta para
+      // destruirlo. reqEff 0 → siempre acierta.
+      {
         const reqEff = this.harvestTierOf(node.kind)?.efficiency ?? 0;
-        if (reqEff > 0 && Math.random() > Math.min(1, this.playerMiningEfficiency() / reqEff)) {
+        if (reqEff > 0 && Math.random() > Math.min(1, this.playerHarvestEfficiency(node.kind) / reqEff)) {
           this.showMissText(node);
           return;
         }
@@ -2416,11 +2450,11 @@ export class GameScene extends Phaser.Scene {
           const dropMult = kind.skill === 'mining'
             ? 1 + (this.reg.talent?.getBonus().miningDrop ?? 0)
             : 1;
-          // Multi-drop por eficiencia: ratio = eficiencia del jugador / eficiencia de la
-          // mena. Suelta floor(ratio) garantizados + 1 más con prob. = la parte decimal
-          // (mín. 1). Ej.: ratio 2.5 → 2 menas y 50% de soltar una 3ª. Solo menas (reqEff>0).
+          // Multi-drop por eficiencia: ratio = eficiencia del jugador (minería o tala) /
+          // eficiencia del recurso. Suelta floor(ratio) garantizados + 1 más con prob. =
+          // la parte decimal (mín. 1). Ej.: ratio 2.5 → 2 + 50% de soltar una 3ª.
           const reqEff = this.harvestTierOf(node.kind)?.efficiency ?? 0;
-          const effQty = this.efficiencyDropCount(reqEff);
+          const effQty = this.efficiencyDropCount(this.playerHarvestEfficiency(node.kind), reqEff);
           const qty = Phaser.Math.Between(kind.drop.min, kind.drop.max) * effQty * dropMult;
           const baseY = s.y - GameScene.TILE_SIZE;
           const origin = new Phaser.Math.Vector2(s.x, baseY);

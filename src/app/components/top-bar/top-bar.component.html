@@ -231,6 +231,13 @@
 
             <!-- ───── PESTAÑA TALA ───── -->
             <div class="mip-mining" *ngIf="mapInfoTab === 'wood'">
+
+              <!-- Eficiencia de tala actual del personaje -->
+              <div class="mip-eff-head">
+                <span class="mip-eff-label"><ion-icon name="flash-outline"></ion-icon>Tu eficiencia de tala</span>
+                <span class="mip-eff-val">{{ d.playerWoodEff }}</span>
+              </div>
+
               <div class="mip-rates-title">Tala</div>
 
               <div class="mip-res-block" *ngIf="d.wood as w">
@@ -243,7 +250,25 @@
                 <div class="mip-stat-list">
                   <div class="mip-stat-row">
                     <span class="mip-stat-label"><ion-icon name="leaf-outline"></ion-icon>Máx. simultáneos</span>
-                    <span class="mip-stat-val">{{ w.count }}</span>
+                    <span class="mip-stat-val">{{ w.max }}</span>
+                  </div>
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="flash-outline"></ion-icon>Eficiencia para 100%</span>
+                    <span class="mip-stat-val">{{ w.efficiency }}</span>
+                  </div>
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="cube-outline"></ion-icon>Drop por árbol</span>
+                    <span class="mip-stat-val">
+                      ×{{ w.dropGuaranteed }}<span class="mip-stat-sub" *ngIf="w.dropPlusChance > 0"> · {{ w.dropPlusChance }}% ×{{ w.dropGuaranteed + 1 }}</span>
+                    </span>
+                  </div>
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="hourglass-outline"></ion-icon>Reaparición</span>
+                    <span class="mip-stat-val">{{ w.respawnLabel }}</span>
+                  </div>
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="time-outline"></ion-icon>AFK por hora</span>
+                    <span class="mip-stat-val">{{ w.afkPerHour | compactNumber }}/h</span>
                   </div>
                 </div>
               </div>

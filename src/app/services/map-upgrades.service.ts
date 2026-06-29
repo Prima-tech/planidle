@@ -28,6 +28,8 @@ export const MAP_UPGRADES: MapUpgradeDef[] = [
   { id: 'unlockGem',      name: 'Desbloquear gemas',    desc: 'Permite que aparezcan gemas (máx. 1 a la vez) en este mapa.',  icon: 'prism-outline',   effect: 'Gemas',    cost: 75 },
   { id: 'gemRespawnMin',  name: 'Reaparición mín. gema', desc: 'Reduce 10s el tiempo MÍNIMO de reaparición de gemas.',         icon: 'hourglass-outline', effect: '−10s',   cost: 40 },
   { id: 'gemRespawnMax',  name: 'Reaparición máx. gema', desc: 'Reduce 10s el tiempo MÁXIMO de reaparición de gemas.',         icon: 'hourglass-outline', effect: '−10s',   cost: 40 },
+  { id: 'treeMax',        name: 'Árboles máx.',         desc: 'Sube en 1 el máximo de árboles a la vez.',                     icon: 'leaf-outline',    effect: '+1',       cost: 25 },
+  { id: 'treeRespawn',    name: 'Respawn de árboles',   desc: 'Los árboles reaparecen 1s antes.',                             icon: 'hourglass-outline', effect: '−1s',    cost: 25 },
 ];
 
 const STORAGE_KEY = 'map_upgrades';
@@ -114,6 +116,8 @@ export class MapUpgradesService {
   respawnReductionMs(mapId: string): number { return this.isCompleted(mapId, 'respawn') ? 1000 : 0; }
   extraOre(mapId: string): number { return this.isCompleted(mapId, 'ore') ? 1 : 0; }
   oreRespawnReductionMs(mapId: string): number { return this.isCompleted(mapId, 'oreRespawn') ? 1000 : 0; }
+  extraTrees(mapId: string): number { return this.isCompleted(mapId, 'treeMax') ? 1 : 0; }
+  treeRespawnReductionMs(mapId: string): number { return this.isCompleted(mapId, 'treeRespawn') ? 1000 : 0; }
   /** Hasta desbloquearlos, los enemigos de Élite/Oblivion NO aparecen en el mapa. */
   eliteUnlocked(mapId: string): boolean { return this.isCompleted(mapId, 'unlockElite'); }
   oblivionUnlocked(mapId: string): boolean { return this.isCompleted(mapId, 'unlockOblivion'); }

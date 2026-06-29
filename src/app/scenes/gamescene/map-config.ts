@@ -132,6 +132,10 @@ export const ORE_RESPAWN_MS = 50000;
 export const GEM_RESPAWN_MIN_MS = 60000;   // 60 s
 export const GEM_RESPAWN_MAX_MS = 300000;  // 5 min
 
+/** Respawn de ÁRBOLES (tala): máx. 1 base por mapa, uno nuevo cada TREE_RESPAWN_MS hasta
+ *  el máximo. Lo reducen las mejoras de mapa ("Respawn de árboles"). Réplica de las menas. */
+export const TREE_RESPAWN_MS = 50000;
+
 export const MAP_ELITE_THRESHOLD: Record<string, number> = {
   'hogar': 999,
   '1-1':   10,

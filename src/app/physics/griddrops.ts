@@ -55,7 +55,7 @@ const COIN_OBLIVION = (min: number, max: number): LootEntry => ({ ...COIN(min, m
 // drop usa el PNG de la Marca (sin texture precargada → spawnDrop lo carga al vuelo).
 export const PAYMENT_COIN: LootEntry = {
   name: 'Moneda de Pago', type: 'special', chance: 1.0, minQty: 1, maxQty: 1,
-  mergeable: true, texture: 'payment_coin', icon: 'assets/icon/brand_of_sacrifice.png',
+  mergeable: true, texture: 'payment_coin', icon: 'assets/icon/brand_of_sacrifice_border.png',
   scale: 2.5, order: 9,
 };
 
@@ -376,7 +376,8 @@ const TOOLS_CATALOG: LootEntry[] = [
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
     texture: 'axe01_main', frame: 117, scale: 2.5, order: 4,
     icon: `${AXE_ICONS}/axe_01_icon.png`,
-    description: 'Un hacha de hierro afilada para talar árboles.',
+    stats: { woodcuttingEfficiency: 10, woodcuttingPower: 5 },   // +10 eficiencia, +5 fuerza de tala
+    description: 'Un hacha de hierro afilada para talar árboles. +10 eficiencia, +5 fuerza de tala.',
   },
 ];
 

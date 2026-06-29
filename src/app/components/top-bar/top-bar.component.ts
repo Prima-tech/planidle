@@ -11,9 +11,9 @@ import { MapStatsService } from 'src/app/services/map-stats.service';
 import { AfkBonusService, AFK_PASSIVE_REGISTRY, AfkPassiveDef } from 'src/app/services/afk-bonus.service';
 import { OfflineGainsService, AfkDropRate } from 'src/app/services/offline-gains.service';
 import { sheetPos, sheetBgSize } from 'src/app/utils/item-icon.util';
-import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS, planetNameForMap } from 'src/app/scenes/gamescene/map-config';
+import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS, TREE_RESPAWN_MS, planetNameForMap } from 'src/app/scenes/gamescene/map-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
-import { miningTier, gemTier, treeTier, HARVEST_KINDS } from 'src/app/scenes/gamescene/harvest-config';
+import { miningTier, gemTier, treeTier } from 'src/app/scenes/gamescene/harvest-config';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { ActivityService, ActivityKind } from 'src/app/services/activity.service';
 import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
@@ -34,14 +34,15 @@ export interface MapPanelData {
   expPerHour: number;
   drops: AfkDropRate[];
   afkPassives: (AfkPassiveDef & { unlocked: boolean })[];
-  /** Eficiencia de minado actual del personaje (para la cabecera de la pestaña Minería). */
+  /** Eficiencia de minado / tala actuales (cabeceras de las pestañas Minería / Tala). */
   playerMiningEff: number;
+  playerWoodEff: number;
   /** Minerales del mapa (mena + gema desbloqueada), cada uno con sus datos (pestaña
    *  Minería). dropGuaranteed/dropPlusChance = multi-drop por eficiencia; afkPerHour =
    *  unidades/hora AFK (reparto 50/50 si hay gema); respawnLabel = tiempo de reaparición. */
   minerals: { name: string; img: string; max: number; efficiency: number; dropGuaranteed: number; dropPlusChance: number; afkPerHour: number; respawnLabel: string }[];
-  /** Madera del mapa (pestaña Tala); null en el hogar. */
-  wood: { name: string; img: string; count: number } | null;
+  /** Madera del mapa (pestaña Tala), con sus datos como los minerales; null en el hogar. */
+  wood: { name: string; img: string; max: number; efficiency: number; dropGuaranteed: number; dropPlusChance: number; afkPerHour: number; respawnLabel: string } | null;
 }
 
 @Component({
@@ -88,8 +89,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.charStats.damage$,
     // mejoras de mapa → recalcula el respawn efectivo (la "Reaparición" lo reduce).
     this.mapUpgrades.changes$,
-    // eficiencia de minado del personaje → refresca la cabecera de la pestaña Minería.
+    // eficiencia de minado/tala del personaje → refresca las cabeceras de Minería/Tala.
     this.charStats.miningEfficiency$,
+    this.charStats.woodcuttingEfficiency$,
   ]).pipe(
     map(([mapConfig, sessionKills]) => {
       const mapId = mapConfig.id;
@@ -126,16 +128,18 @@ export class TopBarComponent implements OnInit, OnDestroy {
       // Recursos del mapa (el hogar no genera). Minerales (mena + gema) → pestaña
       // Minería; madera → pestaña Tala.
       const playerEff = this.charStats.currentMiningEfficiency;
-      // Drop por mena según el ratio eficiencia jugador/mena: floor(ratio) fijas + % de
+      const woodEff   = this.charStats.currentWoodcuttingEfficiency;
+      // Drop por golpe según el ratio eficiencia jugador/recurso: floor(ratio) fijas + % de
       // una más (la parte decimal). Igual que efficiencyDropCount() en gamescene.
-      const dropInfo = (eff: number) => {
-        const ratio = eff > 0 ? playerEff / eff : 1;
+      const dropInfo = (playerE: number, eff: number) => {
+        const ratio = eff > 0 ? playerE / eff : 1;
         const fl = Math.floor(ratio);
         return { dropGuaranteed: Math.max(1, fl), dropPlusChance: fl >= 1 ? Math.round((ratio - fl) * 100) : 0 };
       };
 
-      // AFK/hora por mineral (todas las stats) → se busca por nombre al construir la lista.
+      // AFK/hora por recurso (todas las stats) → se busca por nombre al construir la lista.
       const afk = new Map(this.offlineGains.miningAfkPerHour(mapId).map(a => [a.name, a.perHour]));
+      const woodAfk = new Map(this.offlineGains.woodcuttingAfkPerHour(mapId).map(a => [a.name, a.perHour]));
       // Tiempo de reaparición legible (segundos o m:ss).
       const fmt = (ms: number) => {
         const s = Math.round(ms / 1000);
@@ -143,20 +147,22 @@ export class TopBarComponent implements OnInit, OnDestroy {
       };
 
       const minerals: { name: string; img: string; max: number; efficiency: number; dropGuaranteed: number; dropPlusChance: number; afkPerHour: number; respawnLabel: string }[] = [];
-      let wood: { name: string; img: string; count: number } | null = null;
+      let wood: { name: string; img: string; max: number; efficiency: number; dropGuaranteed: number; dropPlusChance: number; afkPerHour: number; respawnLabel: string } | null = null;
       if (mapId !== 'hogar') {
         const mine = miningTier(mapConfig.mineTier);
         // Mena: máx. simultáneas = 1 base + mejora "Menas máx."; eficiencia del tier.
         const oreRespawnMs = Math.max(5000, ORE_RESPAWN_MS - this.mapUpgrades.oreRespawnReductionMs(mapId));
-        minerals.push({ name: mine.dropName, img: this.harvestImg(mine.rockTexture), max: 1 + this.mapUpgrades.extraOre(mapId), efficiency: mine.efficiency ?? 0, ...dropInfo(mine.efficiency ?? 0), afkPerHour: afk.get(mine.dropName) ?? 0, respawnLabel: fmt(oreRespawnMs) });
+        minerals.push({ name: mine.dropName, img: this.harvestImg(mine.rockTexture), max: 1 + this.mapUpgrades.extraOre(mapId), efficiency: mine.efficiency ?? 0, ...dropInfo(playerEff, mine.efficiency ?? 0), afkPerHour: afk.get(mine.dropName) ?? 0, respawnLabel: fmt(oreRespawnMs) });
         // Gema: solo si el mapa tiene gemTier Y está desbloqueada en la ventana de mapa.
         const gem = gemTier(mapConfig.gemTier);
         if (gem && this.mapUpgrades.gemUnlocked(mapId)) {
           const gemLabel = `${fmt(this.mapUpgrades.gemRespawnMinMs(mapId))} – ${fmt(this.mapUpgrades.gemRespawnMaxMs(mapId))}`;
-          minerals.push({ name: gem.dropName, img: this.harvestImg(gem.rockTexture), max: 1, efficiency: gem.efficiency ?? 0, ...dropInfo(gem.efficiency ?? 0), afkPerHour: afk.get(gem.dropName) ?? 0, respawnLabel: gemLabel });
+          minerals.push({ name: gem.dropName, img: this.harvestImg(gem.rockTexture), max: 1, efficiency: gem.efficiency ?? 0, ...dropInfo(playerEff, gem.efficiency ?? 0), afkPerHour: afk.get(gem.dropName) ?? 0, respawnLabel: gemLabel });
         }
+        // Árbol: réplica de la mena (máx. + respawn + eficiencia de tala).
         const tree = treeTier(mapConfig.treeTier);
-        wood = { name: tree.dropName, img: this.harvestImg(tree.rockTexture), count: HARVEST_KINDS.tree.count };
+        const treeRespawnMs = Math.max(5000, TREE_RESPAWN_MS - this.mapUpgrades.treeRespawnReductionMs(mapId));
+        wood = { name: tree.dropName, img: this.harvestImg(tree.rockTexture), max: 1 + this.mapUpgrades.extraTrees(mapId), efficiency: tree.efficiency ?? 0, ...dropInfo(woodEff, tree.efficiency ?? 0), afkPerHour: woodAfk.get(tree.dropName) ?? 0, respawnLabel: fmt(treeRespawnMs) };
       }
 
       return {
@@ -179,6 +185,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
           unlocked: this.afkBonus.isUnlocked(p.id),
         })),
         playerMiningEff: this.charStats.currentMiningEfficiency,
+        playerWoodEff: this.charStats.currentWoodcuttingEfficiency,
         minerals,
         wood,
       } as MapPanelData;
