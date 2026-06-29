@@ -11,10 +11,12 @@ import { MapStatsService } from 'src/app/services/map-stats.service';
 import { AfkBonusService, AFK_PASSIVE_REGISTRY, AfkPassiveDef } from 'src/app/services/afk-bonus.service';
 import { OfflineGainsService, AfkDropRate } from 'src/app/services/offline-gains.service';
 import { sheetPos, sheetBgSize } from 'src/app/utils/item-icon.util';
-import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY, planetNameForMap } from 'src/app/scenes/gamescene/map-config';
+import { MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, MAP_REGISTRY, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS, planetNameForMap } from 'src/app/scenes/gamescene/map-config';
 import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.utils';
+import { miningTier, gemTier, treeTier, HARVEST_KINDS } from 'src/app/scenes/gamescene/harvest-config';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { ActivityService, ActivityKind } from 'src/app/services/activity.service';
+import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
 import { CharacterStatsService } from 'src/app/services/character-stats.service';
 
 export interface MapPanelData {
@@ -26,10 +28,20 @@ export interface MapPanelData {
   eliteKillsCurrent: number;
   eliteProgress: number;
   oblivionProgress: number;
+  maxEnemies: number;       // máximo de enemigos simultáneos del mapa (suma de spawns)
+  respawnMs: number;        // tiempo de reaparición tras morir uno
   coinsPerHour: number;
   expPerHour: number;
   drops: AfkDropRate[];
   afkPassives: (AfkPassiveDef & { unlocked: boolean })[];
+  /** Eficiencia de minado actual del personaje (para la cabecera de la pestaña Minería). */
+  playerMiningEff: number;
+  /** Minerales del mapa (mena + gema desbloqueada), cada uno con sus datos (pestaña
+   *  Minería). dropGuaranteed/dropPlusChance = multi-drop por eficiencia; afkPerHour =
+   *  unidades/hora AFK (reparto 50/50 si hay gema); respawnLabel = tiempo de reaparición. */
+  minerals: { name: string; img: string; max: number; efficiency: number; dropGuaranteed: number; dropPlusChance: number; afkPerHour: number; respawnLabel: string }[];
+  /** Madera del mapa (pestaña Tala); null en el hogar. */
+  wood: { name: string; img: string; count: number } | null;
 }
 
 @Component({
@@ -51,6 +63,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private unlocks      = inject(UnlockService);
   private activity     = inject(ActivityService);
   private charStats    = inject(CharacterStatsService);
+  private mapUpgrades  = inject(MapUpgradesService);
 
   valueHP$: any = null;
   valueMP$: any = null;
@@ -73,6 +86,10 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this._unlockTrigger$,
     // damage$ se reemite al cambiar equipo/talentos/stats → refresca las tasas AFK.
     this.charStats.damage$,
+    // mejoras de mapa → recalcula el respawn efectivo (la "Reaparición" lo reduce).
+    this.mapUpgrades.changes$,
+    // eficiencia de minado del personaje → refresca la cabecera de la pestaña Minería.
+    this.charStats.miningEfficiency$,
   ]).pipe(
     map(([mapConfig, sessionKills]) => {
       const mapId = mapConfig.id;
@@ -87,25 +104,73 @@ export class TopBarComponent implements OnInit, OnDestroy {
         .filter(([t]) => t.endsWith('_elite'))
         .reduce((s, [, n]) => s + n, 0);
 
-      const eliteThresholdEff  = eliteThreshold < 999 ? eliteThreshold : null;
+      // Élite/Oblivion ocultos hasta desbloquearlos en las mejoras del mapa.
+      const eliteUnlocked    = this.mapUpgrades.eliteUnlocked(mapId);
+      const oblivionUnlocked = this.mapUpgrades.oblivionUnlocked(mapId);
+      const eliteThresholdEff    = (eliteUnlocked && eliteThreshold < 999) ? eliteThreshold : null;
+      const oblivionThresholdEff = (oblivionUnlocked && oblivionThreshold) ? oblivionThreshold : null;
       const baseKillsCurrent   = eliteThresholdEff    ? baseKills % eliteThresholdEff : 0;
-      const eliteKillsCurrent  = oblivionThreshold    ? eliteKills % oblivionThreshold : eliteKills;
+      const eliteKillsCurrent  = oblivionThresholdEff ? eliteKills % oblivionThresholdEff : eliteKills;
       const eliteProgress      = eliteThresholdEff    ? baseKillsCurrent / eliteThresholdEff : 0;
-      const oblivionProgress   = oblivionThreshold    ? eliteKillsCurrent / oblivionThreshold : 0;
+      const oblivionProgress   = oblivionThresholdEff ? eliteKillsCurrent / oblivionThresholdEff : 0;
 
-      const enemyType = MAP_REGISTRY[mapId]?.spawns?.[0]?.enemyType ?? null;
+      const spawns    = MAP_REGISTRY[mapId]?.spawns ?? [];
+      const enemyType = spawns[0]?.enemyType ?? null;
+      // Máx. enemigos simultáneos = maxCount + bono de la mejora de mapa "Enemigos máx."
+      // (mismo cálculo que gamescene.effectiveMaxCount, por grupo de spawn).
+      const enemyBonus = this.mapUpgrades.extraMaxEnemies(mapId);
+      const maxEnemies = spawns.reduce((s, sp) => s + (sp.maxCount ?? 0) + enemyBonus, 0);
 
       const rates = this.offlineGains.afkRates(mapId);
+
+      // Recursos del mapa (el hogar no genera). Minerales (mena + gema) → pestaña
+      // Minería; madera → pestaña Tala.
+      const playerEff = this.charStats.currentMiningEfficiency;
+      // Drop por mena según el ratio eficiencia jugador/mena: floor(ratio) fijas + % de
+      // una más (la parte decimal). Igual que efficiencyDropCount() en gamescene.
+      const dropInfo = (eff: number) => {
+        const ratio = eff > 0 ? playerEff / eff : 1;
+        const fl = Math.floor(ratio);
+        return { dropGuaranteed: Math.max(1, fl), dropPlusChance: fl >= 1 ? Math.round((ratio - fl) * 100) : 0 };
+      };
+
+      // AFK/hora por mineral (todas las stats) → se busca por nombre al construir la lista.
+      const afk = new Map(this.offlineGains.miningAfkPerHour(mapId).map(a => [a.name, a.perHour]));
+      // Tiempo de reaparición legible (segundos o m:ss).
+      const fmt = (ms: number) => {
+        const s = Math.round(ms / 1000);
+        return s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      };
+
+      const minerals: { name: string; img: string; max: number; efficiency: number; dropGuaranteed: number; dropPlusChance: number; afkPerHour: number; respawnLabel: string }[] = [];
+      let wood: { name: string; img: string; count: number } | null = null;
+      if (mapId !== 'hogar') {
+        const mine = miningTier(mapConfig.mineTier);
+        // Mena: máx. simultáneas = 1 base + mejora "Menas máx."; eficiencia del tier.
+        const oreRespawnMs = Math.max(5000, ORE_RESPAWN_MS - this.mapUpgrades.oreRespawnReductionMs(mapId));
+        minerals.push({ name: mine.dropName, img: this.harvestImg(mine.rockTexture), max: 1 + this.mapUpgrades.extraOre(mapId), efficiency: mine.efficiency ?? 0, ...dropInfo(mine.efficiency ?? 0), afkPerHour: afk.get(mine.dropName) ?? 0, respawnLabel: fmt(oreRespawnMs) });
+        // Gema: solo si el mapa tiene gemTier Y está desbloqueada en la ventana de mapa.
+        const gem = gemTier(mapConfig.gemTier);
+        if (gem && this.mapUpgrades.gemUnlocked(mapId)) {
+          const gemLabel = `${fmt(this.mapUpgrades.gemRespawnMinMs(mapId))} – ${fmt(this.mapUpgrades.gemRespawnMaxMs(mapId))}`;
+          minerals.push({ name: gem.dropName, img: this.harvestImg(gem.rockTexture), max: 1, efficiency: gem.efficiency ?? 0, ...dropInfo(gem.efficiency ?? 0), afkPerHour: afk.get(gem.dropName) ?? 0, respawnLabel: gemLabel });
+        }
+        const tree = treeTier(mapConfig.treeTier);
+        wood = { name: tree.dropName, img: this.harvestImg(tree.rockTexture), count: HARVEST_KINDS.tree.count };
+      }
 
       return {
         mapId,
         enemyType,
         eliteThreshold:    eliteThresholdEff ?? 0,
-        oblivionThreshold,
+        oblivionThreshold: oblivionThresholdEff,
         baseKillsCurrent,
         eliteKillsCurrent,
         eliteProgress,
         oblivionProgress,
+        maxEnemies,
+        // Respawn efectivo = base − reducción de la mejora de mapa "Reaparición" (suelo 500ms).
+        respawnMs: Math.max(500, ENEMY_RESPAWN_MS - this.mapUpgrades.respawnReductionMs(mapId)),
         coinsPerHour: rates?.coinsPerHour ?? 0,
         expPerHour:   rates?.expPerHour ?? 0,
         drops:        rates?.drops ?? [],
@@ -113,9 +178,23 @@ export class TopBarComponent implements OnInit, OnDestroy {
           ...p,
           unlocked: this.afkBonus.isUnlocked(p.id),
         })),
+        playerMiningEff: this.charStats.currentMiningEfficiency,
+        minerals,
+        wood,
       } as MapPanelData;
     })
   );
+
+  /** Pestaña activa del panel de info del mapa (lateral): enemigos | minería. */
+  mapInfoTab: 'enemies' | 'mining' | 'wood' = 'enemies';
+
+  /** Ruta del sprite del recurso a partir de su clave de textura (misma fuente que el
+   *  juego/harvest-config): rock_tier3 → rocks/tier3_rock.png, tree_tier1 → trees/tree_tier1.png */
+  private harvestImg(textureKey: string): string {
+    if (textureKey.startsWith('rock_')) return `assets/sprites/map/skills/rocks/${textureKey.slice('rock_'.length)}_rock.png`;
+    if (textureKey.startsWith('tree_')) return `assets/sprites/map/skills/trees/${textureKey}.png`;
+    return '';
+  }
 
   /** Récord de distancia y muertes de la expedición (Modo Mundo): se muestran en el
    *  panel desplegable de la barra de vida cuando el personaje está explorando. */

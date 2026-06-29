@@ -4,6 +4,9 @@ $stone: #8f8678;
 $stone-light: #a59c8d;
 $stone-dark: #6b6357;
 $wood-bg: #a86f3e;
+$wood-btn: #c08349;
+$wood-btn-dark: #8a5530;
+$text-brown: #53301c;
 $text-cream: #ecd9b4;
 $metal-light: #cfc7b8;
 $metal: #9b9285;
@@ -37,27 +40,178 @@ $metal-dark: #6b6357;
   text-transform: uppercase;
   color: #ffd79a;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
-.mcw-body {
+/* Material del mapa disponible (pastilla). */
+.mcw-mat {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 30px 0;
+  gap: 7px;
+  margin-bottom: 12px;
+  padding: 5px 10px;
+  background: $wood-btn-dark;
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  .mcw-mat-icon { width: 22px; height: 22px; image-rendering: pixelated; object-fit: contain; flex-shrink: 0; }
+  .mcw-mat-name { font-size: 0.72em; font-weight: 800; color: #ffd79a; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+  .mcw-mat-count { font-size: 0.8em; font-weight: 800; color: #ecd9b4; }
 }
 
-.mcw-icon {
-  font-size: 48px;
-  color: rgba(236, 217, 180, 0.55);
+/* Pestañas Por completar / Completados. */
+.mcw-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 
-.mcw-msg {
-  font-size: 0.8em;
-  font-weight: 700;
+.mcw-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 6px 4px;
+  font-size: 0.66em;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(236, 217, 180, 0.7);
+  letter-spacing: 0.02em;
+  color: rgba(236, 217, 180, 0.6);
+  background: $wood-btn-dark;
+  border: 2px solid;
+  border-color: $metal-dark $outline $outline $metal-dark;
+  border-radius: 7px;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &.active {
+    color: #ffd79a;
+    background: $wood-btn;
+    border-color: $stone-light $stone-dark $stone-dark $stone;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+}
+
+.mcw-list { display: flex; flex-direction: column; gap: 6px; }
+
+.mcw-empty {
+  text-align: center;
+  font-size: 0.66em;
+  color: rgba(236, 217, 180, 0.6);
+  padding: 14px 6px;
+}
+
+.mcw-upgrade {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  background: $wood-btn-dark;
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.mcw-up-icon { font-size: 1.5em; color: #ffd79a; flex-shrink: 0; }
+
+.mcw-up-info { flex: 1 1 0; min-width: 0; }
+
+.mcw-up-name {
+  font-size: 0.72em;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #ffd79a;
+}
+
+/* Efecto/recompensa (+1, −1s, Elite…): pastilla canónica tipo monedas (madera clara
+   + bisel de piedra), debajo del nombre/descripción. */
+.mcw-up-effect {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 4px;
+  height: 20px;
+  padding: 0 9px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  font-size: 0.72em;
+  font-weight: 800;
+  color: $text-brown;
+}
+
+/* Tarjeta ya completada: más apagada. */
+.mcw-upgrade.is-done { opacity: 0.78; }
+
+/* Check de mejora completada. */
+.mcw-up-check { font-size: 1.5em; color: #6fce78; flex-shrink: 0; }
+
+/* Descripción: ahora junto al nombre (no en bloque debajo). Texto normal, no en mayúsculas. */
+.mcw-up-desc {
+  margin-left: 6px;
+  font-size: 0.78em;        /* relativo al nombre (0.72em del padre) */
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: rgba(236, 217, 180, 0.72);
+}
+
+/* Botón de subir nivel (coste en monedas). */
+.mcw-up-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 9px;
+  font-size: 0.64em;
+  font-weight: 800;
+  color: $text-cream;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active:not(:disabled) { background: $wood-btn-dark; }
+  &:disabled { opacity: 0.45; cursor: default; }
+}
+
+/* Icono del material en el botón de coste. */
+.mcw-up-mat { width: 15px; height: 15px; image-rendering: pixelated; object-fit: contain; flex-shrink: 0; }
+
+/* Botón Restablecer (vacía los completados del mapa). */
+.mcw-reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  font-size: 0.66em;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 7px;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
+  ion-icon { font-size: 1.3em; }
+
+  &:active:not(:disabled) { background: #6f4426; }
+  &:disabled { opacity: 0.4; cursor: default; }
 }

@@ -412,6 +412,91 @@
       </div>
     </div>
 
+    <!-- Eficiencia de minado: base 0, +1 por cada 5 de Destreza, + pico + talentos -->
+    <div class="ov-accordion" (click)="showMiningEffBreakdown = !showMiningEffBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Eficiencia minado</span>
+        <ng-container *ngIf="miningEfficiency$ | async as me">
+          <span class="ov-val">{{ me.total }}</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showMiningEffBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showMiningEffBreakdown">
+        <ng-container *ngIf="miningEfficiency$ | async as me">
+          <div class="ov-bk-row" *ngIf="me.dex > 0">
+            <span>{{ 'STAT.DEXTERITY' | translate }}</span>
+            <span class="ov-bonus">+{{ me.dex }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="me.equipment > 0">
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
+            <span class="ov-bonus">+{{ me.equipment }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="me.talents > 0">
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
+            <span class="ov-bonus">+{{ me.talents }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="me.total === 0">
+            <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
+            <span>0</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Fuerza de minado: daño por golpe a la vida de la mena (base 0; pico, talentos) -->
+    <div class="ov-accordion" (click)="showMiningPowerBreakdown = !showMiningPowerBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Fuerza minado</span>
+        <ng-container *ngIf="miningPower$ | async as mp">
+          <span class="ov-val">{{ mp.total }}</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showMiningPowerBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showMiningPowerBreakdown">
+        <ng-container *ngIf="miningPower$ | async as mp">
+          <div class="ov-bk-row" *ngIf="mp.equipment > 0">
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
+            <span class="ov-bonus">+{{ mp.equipment }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="mp.talents > 0">
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
+            <span class="ov-bonus">+{{ mp.talents }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="mp.total === 0">
+            <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
+            <span>0</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Exp minería: XP extra por mena (objetos, talentos) -->
+    <div class="ov-accordion" (click)="showMiningExpBreakdown = !showMiningExpBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">Exp minería</span>
+        <ng-container *ngIf="miningExp$ | async as mx">
+          <span class="ov-val">+{{ mx.total }}</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showMiningExpBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showMiningExpBreakdown">
+        <ng-container *ngIf="miningExp$ | async as mx">
+          <div class="ov-bk-row" *ngIf="mx.equipment > 0">
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
+            <span class="ov-bonus">+{{ mx.equipment }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="mx.talents > 0">
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
+            <span class="ov-bonus">+{{ mx.talents }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="mx.total === 0">
+            <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
+            <span>0</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
   </div>
 
   <!-- Tab 4: Árbol de habilidades clásico (HTML + SVG) -->
@@ -558,6 +643,22 @@
               <span class="skill-stat-label">{{ 'GATHER_SKILLS.TOTAL_GATHERED' | translate }}</span>
               <span class="skill-stat-val">{{ p.gathered | compactNumber }}</span>
             </div>
+
+            <!-- Atributos de minería del personaje (solo en la skill de minería) -->
+            <ng-container *ngIf="sk.id === 'mining'">
+              <div class="skill-stat-row" *ngIf="miningPower$ | async as mp">
+                <span class="skill-stat-label">Fuerza minado</span>
+                <span class="skill-stat-val">{{ mp.total }}</span>
+              </div>
+              <div class="skill-stat-row" *ngIf="miningEfficiency$ | async as me">
+                <span class="skill-stat-label">Eficiencia minado</span>
+                <span class="skill-stat-val">{{ me.total }}</span>
+              </div>
+              <div class="skill-stat-row" *ngIf="miningExp$ | async as mx">
+                <span class="skill-stat-label">Exp minería</span>
+                <span class="skill-stat-val">+{{ mx.total }}</span>
+              </div>
+            </ng-container>
 
           </ng-container>
         </ng-container>

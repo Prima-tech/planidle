@@ -1,7 +1,45 @@
 <div class="mcw-root">
-  <div class="mcw-title">Cofre del mapa</div>
-  <div class="mcw-body">
-    <ion-icon name="construct-outline" class="mcw-icon"></ion-icon>
-    <div class="mcw-msg">En construcción</div>
+  <div class="mcw-title">Mejoras de mapa</div>
+
+  <!-- Material del mapa disponible (el drop de sus enemigos). -->
+  <div class="mcw-mat" *ngIf="material as mat">
+    <img class="mcw-mat-icon" [src]="mat.icon" [alt]="mat.name" />
+    <span class="mcw-mat-name">{{ mat.name }}</span>
+    <span class="mcw-mat-count">×{{ materialCount | compactNumber }}</span>
   </div>
+
+  <!-- Pestañas: por completar / completados -->
+  <div class="mcw-tabs">
+    <button class="mcw-tab" [class.active]="tab === 'pending'" (click)="tab = 'pending'">Por completar</button>
+    <button class="mcw-tab" [class.active]="tab === 'done'" (click)="tab = 'done'">Completados</button>
+  </div>
+
+  <div class="mcw-list">
+    <div class="mcw-upgrade" *ngFor="let u of list" [class.is-done]="tab === 'done'">
+      <div class="mcw-up-info">
+        <div class="mcw-up-name">{{ u.name }}
+          <span class="mcw-up-desc">{{ u.desc }}</span>
+        </div>
+        <span class="mcw-up-effect">{{ u.effect }}</span>
+      </div>
+
+      <!-- Pendiente → botón de coste en material. Completado → check. -->
+      <button *ngIf="tab === 'pending'" class="mcw-up-btn"
+              [disabled]="!canComplete(u.id)"
+              (click)="complete(u.id)">
+        <img *ngIf="material as mat" class="mcw-up-mat" [src]="mat.icon" [alt]="mat.name" />{{ cost(u.id) | compactNumber }}
+      </button>
+      <ion-icon *ngIf="tab === 'done'" name="checkmark-circle" class="mcw-up-check"></ion-icon>
+    </div>
+
+    <div class="mcw-empty" *ngIf="list.length === 0">
+      {{ tab === 'pending' ? 'No quedan mejoras por completar.' : 'Aún no has completado ninguna mejora.' }}
+    </div>
+  </div>
+
+  <!-- Restablecer: vacía Completados; las mejoras vuelven a "Por completar". -->
+  <button class="mcw-reset" [disabled]="!canReset" (click)="reset()">
+    <ion-icon name="refresh-outline"></ion-icon>
+    <span>Restablecer</span>
+  </button>
 </div>

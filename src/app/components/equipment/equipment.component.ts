@@ -105,7 +105,13 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   readonly evasion$    = this.charStats.evasion$;
   readonly critChance$ = this.charStats.critChance$;
   readonly critDamage$ = this.charStats.critDamage$;
+  readonly miningEfficiency$ = this.charStats.miningEfficiency$;
+  readonly miningPower$ = this.charStats.miningPower$;
+  readonly miningExp$   = this.charStats.miningExp$;
   showHpBreakdown       = false;
+  showMiningEffBreakdown = false;
+  showMiningPowerBreakdown = false;
+  showMiningExpBreakdown = false;
   showMpBreakdown       = false;
   showDefBreakdown      = false;
   showEvasionBreakdown  = false;

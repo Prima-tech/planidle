@@ -5,6 +5,7 @@ import { BuffService } from './buff.service';
 import { EquipmentService } from './equipment.service';
 import { PlayerStateService } from './player-state.service';
 import { TalentService } from './talent.service';
+import { GatheringEquipmentService } from './gathering-equipment.service';
 
 export interface DamageBreakdown {
   base:      number;
@@ -82,6 +83,25 @@ export interface DropRateBreakdown {
   total:     number;  // % bonus sobre la chance base
 }
 
+export interface MiningEfficiencyBreakdown {
+  dex:       number;  // floor(DEX/5), min 0 (skill base 0, +1 por cada 5 de Destreza)
+  equipment: number;  // stat miningEfficiency del pico equipado (equipo de recolección)
+  talents:   number;  // talento miningEfficiency
+  total:     number;
+}
+
+export interface MiningPowerBreakdown {
+  equipment: number;  // fuerza de minado de objetos (pico) — base 0
+  talents:   number;
+  total:     number;  // daño por golpe acertado a la vida de la mena
+}
+
+export interface MiningExpBreakdown {
+  equipment: number;  // bonus de exp de minería de objetos
+  talents:   number;
+  total:     number;  // exp extra por mena recolectada
+}
+
 export interface BaseStats {
   STR:   number;
   DEX:   number;
@@ -133,6 +153,9 @@ export class CharacterStatsService {
   readonly hpRegen$:    Observable<RegenBreakdown>;
   readonly mpRegen$:    Observable<RegenBreakdown>;
   readonly dropRate$:   Observable<DropRateBreakdown>;
+  readonly miningEfficiency$: Observable<MiningEfficiencyBreakdown>;
+  readonly miningPower$: Observable<MiningPowerBreakdown>;
+  readonly miningExp$:   Observable<MiningExpBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   private readonly statsChanged$ = new Subject<void>();
@@ -175,9 +198,12 @@ export class CharacterStatsService {
     private playerState: PlayerStateService,
     private talent: TalentService,
     private buff: BuffService,
+    private gathering: GatheringEquipmentService,
   ) {
     const trigger$  = merge(this.equipment.changes$, this.statsChanged$, this.talent.changes$).pipe(startWith(null as void));
     const defTrigger$ = merge(trigger$, this.buff.buffs$);
+    // La eficiencia de minado depende también del pico equipado (equipo de recolección).
+    const mineTrigger$ = merge(trigger$, this.gathering.changes$);
 
     this.damage$       = trigger$.pipe(map(() => this._calcDamage()));
     this.magicDamage$  = trigger$.pipe(map(() => this._calcMagicDamage()));
@@ -194,6 +220,9 @@ export class CharacterStatsService {
     this.hpRegen$  = trigger$.pipe(map(() => this._calcHpRegen()));
     this.mpRegen$  = trigger$.pipe(map(() => this._calcMpRegen()));
     this.dropRate$ = trigger$.pipe(map(() => this._calcDropRate()));
+    this.miningEfficiency$ = mineTrigger$.pipe(map(() => this._calcMiningEfficiency()));
+    this.miningPower$ = mineTrigger$.pipe(map(() => this._calcMiningPower()));
+    this.miningExp$   = mineTrigger$.pipe(map(() => this._calcMiningExp()));
 
     trigger$.subscribe(() => {
       this.syncHpMax();
@@ -265,6 +294,37 @@ export class CharacterStatsService {
     return { chr, equipment, talents, total: chr + equipment + talents };
   }
 
+  // Eficiencia de minado: skill base 0, +1 por cada 5 de Destreza (DEX); + pico equipado
+  // + talento miningEfficiency. La usan las menas para decidir el % de acierto al picar.
+  private _calcMiningEfficiency(): MiningEfficiencyBreakdown {
+    const dex       = Math.max(0, Math.floor(this.stats.DEX / 5));
+    const equipment = this.gathering.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['miningEfficiency'] ?? 0), 0
+    );
+    const talents = this.talent.getBonus().miningEfficiency ?? 0;
+    return { dex, equipment, talents, total: dex + equipment + talents };
+  }
+
+  // Fuerza de minado: daño por golpe acertado a la vida de la mena. Base 0; el pico la
+  // sube (stat miningPower). Sin talento propio aún (queda como fuente futura).
+  private _calcMiningPower(): MiningPowerBreakdown {
+    const equipment = this.gathering.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['miningPower'] ?? 0), 0
+    );
+    const talents = 0;
+    return { equipment, talents, total: equipment + talents };
+  }
+
+  // Exp de minería extra por mena recolectada. Viene de objetos (stat miningExp) y
+  // talentos (fuentes futuras). Base 0.
+  private _calcMiningExp(): MiningExpBreakdown {
+    const equipment = this.gathering.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['miningExp'] ?? 0), 0
+    );
+    const talents = 0;
+    return { equipment, talents, total: equipment + talents };
+  }
+
   private syncMpMax(): void {
     const { total } = this._calcMp();
     const current   = this.playerState.snapshot().mp ?? total;
@@ -299,6 +359,9 @@ export class CharacterStatsService {
   get currentHpRegen():      RegenBreakdown { return this._calcHpRegen(); }
   get currentMpRegen():      RegenBreakdown { return this._calcMpRegen(); }
   get currentDropRateBonus(): number { return this._calcDropRate().total; }
+  get currentMiningEfficiency(): number { return this._calcMiningEfficiency().total; }
+  get currentMiningPower():      number { return this._calcMiningPower().total; }
+  get currentMiningExp():        number { return this._calcMiningExp().total; }
 
   private _calcCritChance(): CritChanceBreakdown {
     const base      = 10;

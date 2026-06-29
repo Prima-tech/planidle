@@ -8,7 +8,7 @@ import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MinimapTerrain, MINIMAP_DAT
 import { Direction } from "src/app/pnj/interfaces/Direction";
 import { Player } from "src/app/pnj/player/player";
 import { bodySpriteFor } from "src/app/pnj/player/body-config";
-import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD } from "./map-config";
+import { MapConfig, SpawnConfig, SpawnTracker, PortalConfig, MAP_ELITE_THRESHOLD, MAP_OBLIVION_THRESHOLD, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS } from "./map-config";
 import { GameRegistry } from "../game-registry";
 import { InventoryItem } from "src/app/services/inventory.service";
 import { HarvestKind, HarvestKindId, HARVEST_KINDS, miningTier, gemTier, treeTier, MiningTier } from "./harvest-config";
@@ -110,7 +110,9 @@ const RECRUIT_NPCS: { name: string; texKey: string; mapId: string; tileX: number
 // `tileKeys` para la colisión).
 interface HarvestNode {
   sprite: Phaser.GameObjects.Image;
-  hits: number;
+  hits: number;          // árboles (tala): nº de golpes (se destruye a HARVEST_HITS)
+  mineHp?: number;       // minería: vida restante de la mena (se destruye al llegar a 0)
+  mineHpMax?: number;    // vida inicial (para barra/feedback)
   tileKeys: string[];
   kind: HarvestKindId;
 }
@@ -1417,8 +1419,20 @@ export class GameScene extends Phaser.Scene {
       return last;
     }
 
+    /** Máx. de enemigos simultáneos de un grupo, incluyendo la mejora de mapa "Enemigos máx.". */
+    private effectiveMaxCount(cfg: SpawnConfig): number {
+      const bonus = this.reg.mapUpgrades?.extraMaxEnemies(this.currentMapConfig.id) ?? 0;
+      return cfg.maxCount + bonus;
+    }
+
+    /** Respawn (ms) reducido por la mejora de mapa "Reaparición" (−1s al completarla, suelo 500ms). */
+    private effectiveRespawnMs(): number {
+      const reduction = this.reg.mapUpgrades?.respawnReductionMs(this.currentMapConfig.id) ?? 0;
+      return Math.max(500, ENEMY_RESPAWN_MS - reduction);
+    }
+
     private spawnEnemy(cfg: SpawnConfig, tracker: SpawnTracker) {
-      if (tracker.count >= cfg.maxCount) return;
+      if (tracker.count >= this.effectiveMaxCount(cfg)) return;
 
       const enemyCfg = ENEMY_REGISTRY[cfg.enemyType];
       if (!enemyCfg) { console.warn(`Enemy type "${cfg.enemyType}" not in ENEMY_REGISTRY`); return; }
@@ -1442,8 +1456,14 @@ export class GameScene extends Phaser.Scene {
           const idx = this.enemies.indexOf(enemy);
           if (idx !== -1) this.enemies.splice(idx, 1);
           tracker.count--;
-          // Respawn tras 3 segundos
-          this.time.delayedCall(3000, () => this.spawnEnemy(cfg, tracker));
+          // Reserva la plaza mientras corre el respawn (pending) para que el bucle de
+          // relleno NO tape el hueco antes de tiempo (si no, reaparecía casi al instante).
+          tracker.pending = (tracker.pending ?? 0) + 1;
+          // Respawn tras el delay efectivo (reducido por la mejora de mapa "Reaparición")
+          this.time.delayedCall(this.effectiveRespawnMs(), () => {
+            tracker.pending = Math.max(0, (tracker.pending ?? 0) - 1);
+            this.spawnEnemy(cfg, tracker);
+          });
         },
         this.collisionTiles,
       );
@@ -1889,6 +1909,7 @@ export class GameScene extends Phaser.Scene {
         this.reg.autoAttack?.pauseAutomation();
         const chest = this.nearestOpenableChest();
         if (chest) { this.openChest(chest); return; }
+        if (this.nearMapChest()) { this.reg.cityBuild.requestOpenWindow('mapChest'); return; }
         const win = this.nearestWindowBuilding();
         if (win) { this.pendingLitBuilding = win; this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
         const npc = this.nearestNpc();
@@ -1991,7 +2012,8 @@ export class GameScene extends Phaser.Scene {
           this.sessionKills[type] = (this.sessionKills[type] ?? 0) + 1;
           this.reg.mapStats?.updateSessionKills(this.sessionKills);
           const threshold = MAP_OBLIVION_THRESHOLD[mapId] ?? 5;
-          if (this.eliteKills % threshold === 0) {
+          // Oblivion bloqueado hasta desbloquearlo en las mejoras del mapa.
+          if (this.reg.mapUpgrades?.oblivionUnlocked(mapId) && this.eliteKills % threshold === 0) {
             const baseType = type.replace('_elite', '');
             this.spawnSpecial(`${baseType}_oblivion`, position);
           }
@@ -2001,7 +2023,8 @@ export class GameScene extends Phaser.Scene {
         this.sessionKills[type] = (this.sessionKills[type] ?? 0) + 1;
         this.reg.mapStats?.updateSessionKills(this.sessionKills);
         const threshold = MAP_ELITE_THRESHOLD[mapId] ?? 20;
-        if (this.sessionKills[type] % threshold === 0) {
+        // Élite bloqueado hasta desbloquearlo en las mejoras del mapa.
+        if (this.reg.mapUpgrades?.eliteUnlocked(mapId) && this.sessionKills[type] % threshold === 0) {
           this.spawnSpecial(`${type}_elite`, position);
         }
       });
@@ -2100,15 +2123,68 @@ export class GameScene extends Phaser.Scene {
 
     private initHarvestNodes(): void {
       if (this.currentMapConfig.id === 'hogar') return;
+      const mapId = this.currentMapConfig.id;
       for (const id of Object.keys(HARVEST_KINDS) as HarvestKindId[]) {
         const kind = HARVEST_KINDS[id];
-        // Gemas: solo si el mapa tiene gemTier; rocas/árboles siempre.
-        if (id === 'gem' && !this.harvestTierOf('gem')) continue;
+        // Gemas: solo si el mapa tiene gemTier Y están desbloqueadas en la ventana de mapa.
+        if (id === 'gem' && (!this.harvestTierOf('gem') || !this.reg.mapUpgrades?.gemUnlocked(mapId))) continue;
         if (!this.textures.exists(this.harvestTexture(id))) continue;   // sin sprite → no se genera
-        for (let placed = 0, tries = 0; placed < kind.count && tries < 400; tries++) {
+        // Menas (rocas) y gemas usan máximo + respawn temporizado; el resto se colocan
+        // todas de golpe al entrar al mapa.
+        const target = id === 'rock' ? this.maxOre() : id === 'gem' ? this.maxGem() : kind.count;
+        for (let placed = 0, tries = 0; placed < target && tries < 400; tries++) {
           if (this.trySpawnNode(id, kind)) placed++;
         }
       }
+      this.scheduleOreRespawn();
+      this.scheduleGemRespawn();
+    }
+
+    /** Máx. de menas (rocas) a la vez = 1 base + mejora de mapa "Menas máx.". */
+    private maxOre(): number {
+      return 1 + (this.reg.mapUpgrades?.extraOre(this.currentMapConfig.id) ?? 0);
+    }
+
+    /** Respawn de menas (ms) = base − reducción de la mejora "Respawn de menas" (suelo 5s). */
+    private effectiveOreRespawnMs(): number {
+      const reduction = this.reg.mapUpgrades?.oreRespawnReductionMs(this.currentMapConfig.id) ?? 0;
+      return Math.max(5000, ORE_RESPAWN_MS - reduction);
+    }
+
+    private countOreNodes(): number {
+      return this.nodes.reduce((n, node) => n + (node.kind === 'rock' ? 1 : 0), 0);
+    }
+
+    /** Máx. de gemas a la vez en el mapa (de momento 1, tras desbloquearlas). */
+    private maxGem(): number { return 1; }
+
+    private countGemNodes(): number {
+      return this.nodes.reduce((n, node) => n + (node.kind === 'gem' ? 1 : 0), 0);
+    }
+
+    /** Programa el respawn de gemas: tiempo ALEATORIO entre min y max (mejoras de mapa
+     *  los reducen). Solo spawnea si están desbloqueadas y hay hueco bajo el máximo. */
+    private scheduleGemRespawn(): void {
+      const mapId = this.currentMapConfig.id;
+      const mu = this.reg.mapUpgrades;
+      if (mapId === 'hogar' || !this.harvestTierOf('gem') || !mu) return;   // mapa sin gemas
+      const delay = Phaser.Math.Between(mu.gemRespawnMinMs(mapId), mu.gemRespawnMaxMs(mapId));
+      this.time.delayedCall(delay, () => {
+        if (mu.gemUnlocked(mapId) && this.countGemNodes() < this.maxGem()) {
+          this.trySpawnNode('gem', HARVEST_KINDS['gem']);
+        }
+        this.scheduleGemRespawn();   // se reprograma con otro tiempo aleatorio
+      });
+    }
+
+    /** Programa el respawn de menas: cada effectiveOreRespawnMs aparece una nueva si hay
+     *  hueco bajo el máximo. Se reprograma sola para reflejar cambios de la mejora. */
+    private scheduleOreRespawn(): void {
+      if (this.currentMapConfig.id === 'hogar') return;
+      this.time.delayedCall(this.effectiveOreRespawnMs(), () => {
+        if (this.countOreNodes() < this.maxOre()) this.trySpawnNode('rock', HARVEST_KINDS['rock']);
+        this.scheduleOreRespawn();
+      });
     }
 
     private trySpawnNode(id: HarvestKindId, kind: HarvestKind): boolean {
@@ -2148,7 +2224,9 @@ export class GameScene extends Phaser.Scene {
       // árbol); si está por debajo, el jugador pasa por delante.
       sprite.setDepth(baseY);
       for (const k of tileKeys) this.collisionTiles.add(k);   // bloquea su huella
-      this.nodes.push({ sprite, hits: 0, tileKeys, kind: id });
+      // Minería: la mena nace con la vida de minado de su tier; los árboles usan golpes.
+      const mineHp = kind.skill === 'mining' ? (this.harvestTierOf(id)?.mineHp ?? 20) : undefined;
+      this.nodes.push({ sprite, hits: 0, mineHp, mineHpMax: mineHp, tileKeys, kind: id });
     }
 
     /** Herramienta de la categoría dada equipada en su slot de recolección, o null. */
@@ -2209,13 +2287,88 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
+    /** Eficiencia de minado del personaje (stat derivado): floor(DEX/5) + pico + talento.
+     *  Cuanta más, más golpes acierta contra menas duras (tiers altos piden más). */
+    private playerMiningEfficiency(): number {
+      return this.reg.charStats?.currentMiningEfficiency ?? 0;
+    }
+
+    /** Nº de unidades que suelta una mena según el ratio de eficiencia (jugador/requerida):
+     *  floor(ratio) garantizadas + 1 más con prob. = parte decimal (mín. 1). reqEff 0 → 1. */
+    private efficiencyDropCount(reqEff: number): number {
+      if (reqEff <= 0) return 1;
+      const ratio = this.playerMiningEfficiency() / reqEff;
+      const floor = Math.floor(ratio);
+      const extra = Math.random() < (ratio - floor) ? 1 : 0;
+      return Math.max(1, floor + extra);
+    }
+
+    /** Fuerza de minado: daño por golpe acertado a la vida de la mena (stat derivado). */
+    private playerMiningPower(): number {
+      return this.reg.charStats?.currentMiningPower ?? 0;
+    }
+
+    /** Número de daño flotante sobre una mena al picarla (como el daño a enemigos). */
+    private showMiningDamage(node: HarvestNode, amount: number): void {
+      const x = node.sprite.x + Phaser.Math.Between(-18, 18);
+      const y = node.sprite.y - GameScene.TILE_SIZE * 1.2;
+      const text = this.add.text(x, y, `-${amount}`, {
+        fontSize: '24px', color: '#ffe08a', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 5,
+      });
+      text.setOrigin(0.5, 1).setDepth(5000);
+      this.tweens.add({
+        targets: text, y: y - 36, alpha: 0, duration: 800, ease: 'Power2',
+        onComplete: () => text.destroy(),
+      });
+    }
+
+    /** Texto flotante "MISS" sobre una mena cuando el golpe falla por falta de eficiencia. */
+    private showMissText(node: HarvestNode): void {
+      const x = node.sprite.x + Phaser.Math.Between(-18, 18);
+      const y = node.sprite.y - GameScene.TILE_SIZE * 1.2;
+      const text = this.add.text(x, y, 'MISS', {
+        fontSize: '26px', color: '#d8d8d8', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 6,
+      });
+      text.setOrigin(0.5, 1).setDepth(5000);
+      this.tweens.add({
+        targets: text, y: y - 40, alpha: 0, duration: 900, ease: 'Power2',
+        onComplete: () => text.destroy(),
+      });
+    }
+
     private harvestNode(node: HarvestNode): void {
-      node.hits++;
       const kind = HARVEST_KINDS[node.kind];
       // Actividad AFK: lo último golpeado manda (minando una roca / talando un árbol).
       this.reg.activity?.set(kind.skill === 'woodcutting' ? 'chopping' : 'mining');
+
+      // Eficiencia de minado (rocas/gemas): el golpe acierta con prob = eficiencia del
+      // jugador / eficiencia requerida de la mena. Un fallo muestra "MISS" y NO cuenta
+      // para destruir la mena (el árbol/tala no tiene eficiencia → siempre acierta).
+      if (kind.skill === 'mining') {
+        const reqEff = this.harvestTierOf(node.kind)?.efficiency ?? 0;
+        if (reqEff > 0 && Math.random() > Math.min(1, this.playerMiningEfficiency() / reqEff)) {
+          this.showMissText(node);
+          return;
+        }
+      }
+
       const s = node.sprite;
       const baseScale = this.harvestScale(node.kind);   // escala real del tier, no la global
+
+      // Golpe acertado: minería → resta la fuerza de minado a la vida de la mena (y
+      // muestra el número de daño); tala → cuenta el golpe (HARVEST_HITS para destruir).
+      let destroyed: boolean;
+      if (kind.skill === 'mining') {
+        const dmg = Math.max(1, this.playerMiningPower());
+        node.mineHp = (node.mineHp ?? 0) - dmg;
+        this.showMiningDamage(node, dmg);
+        destroyed = node.mineHp <= 0;
+      } else {
+        node.hits++;
+        destroyed = node.hits >= 3;
+      }
 
       // Flash blanco de impacto
       s.setTintFill(0xffffff);
@@ -2239,7 +2392,7 @@ export class GameScene extends Phaser.Scene {
       this.spawnDebris(s.x, impactY, 8, kind.debris);
       this.cameras.main.shake(70, 0.0035);
 
-      if (node.hits >= 3) this.destroyNode(node);
+      if (destroyed) this.destroyNode(node);
     }
 
     private destroyNode(node: HarvestNode): void {
@@ -2249,7 +2402,9 @@ export class GameScene extends Phaser.Scene {
 
       const kind = HARVEST_KINDS[node.kind];
       // Progresión de la skill de recolección (minería / tala): XP al recolectar.
-      this.reg.gatheringSkills?.addXp(kind.skill, kind.xp);
+      // En minería, el atributo "exp mining" suma XP extra por mena.
+      const bonusXp = kind.skill === 'mining' ? (this.reg.charStats?.currentMiningExp ?? 0) : 0;
+      this.reg.gatheringSkills?.addXp(kind.skill, kind.xp + bonusXp);
       const s = node.sprite;
       // Suelta el recurso del nodo (árbol → madera; roca/gema → item del tier del mapa).
       if (kind.drop) {
@@ -2261,7 +2416,12 @@ export class GameScene extends Phaser.Scene {
           const dropMult = kind.skill === 'mining'
             ? 1 + (this.reg.talent?.getBonus().miningDrop ?? 0)
             : 1;
-          const qty = Phaser.Math.Between(kind.drop.min, kind.drop.max) * dropMult;
+          // Multi-drop por eficiencia: ratio = eficiencia del jugador / eficiencia de la
+          // mena. Suelta floor(ratio) garantizados + 1 más con prob. = la parte decimal
+          // (mín. 1). Ej.: ratio 2.5 → 2 menas y 50% de soltar una 3ª. Solo menas (reqEff>0).
+          const reqEff = this.harvestTierOf(node.kind)?.efficiency ?? 0;
+          const effQty = this.efficiencyDropCount(reqEff);
+          const qty = Phaser.Math.Between(kind.drop.min, kind.drop.max) * effQty * dropMult;
           const baseY = s.y - GameScene.TILE_SIZE;
           const origin = new Phaser.Math.Vector2(s.x, baseY);
           // Cada unidad sale volando desde el centro del nodo hacia un punto de caída
@@ -2361,6 +2521,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     private rollAttack(baseDamage = this.playerDamage): { dmg: number; isCrit: boolean } {
+      // Modo admin: golpe fijo de 1000 (para testear sin grindear stats).
+      if (this.reg.admin?.isAdmin) return { dmg: 1000, isCrit: false };
       const critChance = this.reg.charStats?.currentCritChance ?? 10;
       const isCrit     = Math.random() * 100 < critChance;
       const critMult   = isCrit ? (this.reg.charStats?.currentCritDamage ?? 150) / 100 : 1;
@@ -2456,7 +2618,9 @@ export class GameScene extends Phaser.Scene {
         loop: true,
         callback: () => {
           for (const tracker of this.spawnTrackers) {
-            while (tracker.count < tracker.config.maxCount) {
+            // count + pending: solo rellena plazas NUEVAS (p.ej. al subir el maxCount),
+            // no las que están esperando su respawn de muerte (esas ya tienen su timer).
+            while (tracker.count + (tracker.pending ?? 0) < this.effectiveMaxCount(tracker.config)) {
               this.spawnEnemy(tracker.config, tracker);
             }
           }
@@ -2901,6 +3065,7 @@ export class GameScene extends Phaser.Scene {
     /** Cofre central del mapa (cofre 2 = col 1) en el centro. Bloquea su huella. */
     private spawnMapChest(): void {
       if (!this.currentMap) return;
+      if (this.currentMapConfig.id === 'hogar') return;   // en Asgard no hay mejoras de mapa
       const TS = GameScene.TILE_SIZE;
       // Centro del mapa desplazado a la derecha (el spawn del jugador cae en el centro).
       const x = (this.currentMap.width  * TS) / 2 + TS * 6;

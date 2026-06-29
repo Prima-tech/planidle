@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GameSnapshot } from './save.service';
-import { MAP_REGISTRY, planetNameForMap } from '../scenes/gamescene/map-config';
+import { MAP_REGISTRY, planetNameForMap, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS } from '../scenes/gamescene/map-config';
+import { MapUpgradesService } from './map-upgrades.service';
 import { RUN_UNLOCK_POINTS } from '../scenes/worldrun/run-unlock-points';
 import { AfkBonusService } from './afk-bonus.service';
 import { CharacterStatsService } from './character-stats.service';
@@ -9,7 +10,7 @@ import { TalentService } from './talent.service';
 import { GatheringSkillId } from './gathering-skills.service';
 import { ENEMY_REGISTRY } from '../enemy/enemy-config';
 import { LOOT_TABLES, EXP_REWARDS, LootEntry, ITEM_CATALOG } from '../physics/griddrops';
-import { HARVEST_KINDS, HARVEST_HITS, harvestKindForSkill, miningTier } from '../scenes/gamescene/harvest-config';
+import { HARVEST_KINDS, HARVEST_HITS, harvestKindForSkill, miningTier, gemTier } from '../scenes/gamescene/harvest-config';
 
 const MIN_OFFLINE_SECONDS = 10;
 const MAX_OFFLINE_HOURS   = 8;
@@ -22,6 +23,9 @@ const ATTACK_INTERVAL_MS = 600;
 // enemigo + respawn amortizado. Sin esto, contra enemigos frágiles los kills/hora
 // se dispararían a valores irreales.
 const TRAVEL_SECS = 1.5;
+// Eficiencia AFK: las ganancias offline rinden 1/10 de lo que rendiría jugando activo
+// (kills/hora ÷ 10 → oro, exp y drops también ÷ 10). Aplica a TODOS los mapas.
+const AFK_GAIN_FACTOR = 0.1;
 
 export interface EnemyGain {
   enemyType: string;
@@ -80,15 +84,77 @@ export class OfflineGainsService {
     private charStats: CharacterStatsService,
     private equipment: EquipmentService,
     private talent: TalentService,
+    private mapUpgrades: MapUpgradesService,
   ) {}
 
   /**
    * Tasas AFK REALES de un mapa, calculadas a partir del combate:
    *  - DPS del jugador (daño por golpe × valor esperado del crítico ÷ cadencia)
-   *  - vida del enemigo del mapa → tiempo por kill (+ sobrecoste de viaje)
-   *  - loot real (LOOT_TABLES) con el drop rate del personaje y del mapa
+   *  - vida del enemigo → tiempo de matar uno
+   *  - respawn y enemigos máx. simultáneos (incluidas las mejoras de mapa) → suministro:
+   *    kills/hora = 3600 / max(tiempoDeMatar, respawn ÷ maxEnemigos)
+   *  - loot real (LOOT_TABLES) con el drop rate del personaje y del mapa, + exp por kill
    * Devuelve null si el mapa no tiene enemigos o el daño es nulo.
    */
+  /**
+   * AFK/hora de cada mineral del mapa (mena + gema), con TODAS las stats:
+   *  - velocidad de minado: golpes (HARVEST_HITS) ÷ cadencia + viaje, y los misses por
+   *    falta de eficiencia (prob. acierto = min(1, efic. jugador / efic. mena)) lo frenan.
+   *  - suministro: las menas reaparecen cada ORE_RESPAWN_MS (−mejora "Respawn de menas"),
+   *    no puedes minar más rápido de lo que aparecen.
+   *  - drop por nodo: multi-drop por eficiencia (E[unidades] = max(1, ratio)) × talento
+   *    miningDrop × media del rango de drop.
+   * Devuelve [] en el hogar o mapas sin minería.
+   */
+  miningAfkPerHour(mapId: string): { name: string; perHour: number }[] {
+    const mapConfig = MAP_REGISTRY[mapId];
+    if (!mapConfig || mapId === 'hogar') return [];
+
+    const gem = gemTier(mapConfig.gemTier);
+    const gemAvailable = !!gem && this.mapUpgrades.gemUnlocked(mapId);
+    // AFK reparte el tiempo: si hay gemas desbloqueadas, mitad mena / mitad gema.
+    const oreShare = gemAvailable ? 0.5 : 1;
+
+    const mine = miningTier(mapConfig.mineTier);
+    const out: { name: string; perHour: number }[] = [
+      { name: mine.dropName, perHour: Math.floor(this.mineableThroughput(mapId, mine.efficiency ?? 0, this.oreSupplySecs(mapId)).perHour * oreShare) },
+    ];
+    if (gemAvailable) {
+      out.push({ name: gem!.dropName, perHour: Math.floor(this.mineableThroughput(mapId, gem!.efficiency ?? 0, this.gemSupplySecs(mapId)).perHour * 0.5) });
+    }
+    return out;
+  }
+
+  /** Segundos entre menas (respawn de menas, −mejora "Respawn de menas"). */
+  private oreSupplySecs(mapId: string): number {
+    return Math.max(5, (ORE_RESPAWN_MS - this.mapUpgrades.oreRespawnReductionMs(mapId)) / 1000);
+  }
+  /** Segundos medios entre gemas (media del rango aleatorio min..max de respawn de gema). */
+  private gemSupplySecs(mapId: string): number {
+    return ((this.mapUpgrades.gemRespawnMinMs(mapId) + this.mapUpgrades.gemRespawnMaxMs(mapId)) / 2) / 1000;
+  }
+
+  /** Núcleo compartido (panel y reclamo offline): nodos/hora y unidades/hora de una mena
+   *  o gema según TODAS las stats. `supplySecs` = segundos entre apariciones de ese
+   *  recurso. Así el panel y lo que recibes de verdad salen del MISMO cálculo. */
+  private mineableThroughput(mapId: string, reqEff: number, supplySecs: number): { nodesPerHour: number; perHour: number } {
+    const playerEff  = this.charStats.currentMiningEfficiency;
+    const supplyRate = 3600 / Math.max(1, supplySecs);                  // nodos/hora que el mapa suministra
+    const dropMult   = 1 + (this.talent.getBonus().miningDrop ?? 0);
+    const drop       = HARVEST_KINDS.rock.drop;                         // 1..1 (igual gema)
+    const avgQty     = drop ? (drop.min + drop.max) / 2 : 1;
+
+    const hitChance = reqEff > 0 ? Math.min(1, playerEff / reqEff) : 1;
+    if (hitChance <= 0) return { nodesPerHour: 0, perHour: 0 };         // siempre falla → no mina
+    const ratio        = reqEff > 0 ? playerEff / reqEff : 1;
+    const secsPerNode  = (HARVEST_HITS / hitChance) * (ATTACK_INTERVAL_MS / 1000) + TRAVEL_SECS;
+    const nodesPerHour = Math.min(3600 / secsPerNode, supplyRate);
+    const expMultiDrop = Math.max(1, ratio);                            // E[unidades] del multi-drop
+    // ×AFK_GAIN_FACTOR (1/10): el botín AFK rinde una décima parte (igual que el combate).
+    const perHour      = Math.floor(nodesPerHour * avgQty * expMultiDrop * dropMult * AFK_GAIN_FACTOR);
+    return { nodesPerHour, perHour };
+  }
+
   afkRates(mapId: string): AfkRates | null {
     const mapConfig = MAP_REGISTRY[mapId];
     if (!mapConfig || mapConfig.spawns.length === 0) return null;
@@ -106,8 +172,18 @@ export class OfflineGainsService {
     const expectedHit = hitDamage * (1 + critChance * (critMult - 1));
     const dps = expectedHit / (ATTACK_INTERVAL_MS / 1000);
 
+    // Ritmo de kills limitado por DOS cuellos de botella:
+    //  1) lo rápido que matas: vida del enemigo ÷ DPS.
+    //  2) el SUMINISTRO del mapa: respawn repartido entre los enemigos máx. simultáneos
+    //     (no puedes matar más rápido de lo que reaparecen). Aquí entran las mejoras de
+    //     mapa "Reaparición" (−respawn) y "Enemigos máx." (+max).
     const secsToKill   = enemyCfg.hp / dps;
-    const killsPerHour = Math.floor(3600 / (secsToKill + TRAVEL_SECS));
+    const respawnSecs  = Math.max(500, ENEMY_RESPAWN_MS - this.mapUpgrades.respawnReductionMs(mapId)) / 1000;
+    const enemyBonus   = this.mapUpgrades.extraMaxEnemies(mapId);
+    const maxEnemies   = Math.max(1, mapConfig.spawns.reduce((s, sp) => s + (sp.maxCount ?? 0) + enemyBonus, 0));
+    const secsPerKill  = Math.max(secsToKill, respawnSecs / maxEnemies);
+    // ×AFK_GAIN_FACTOR (1/10): el AFK rinde una décima parte del juego activo.
+    const killsPerHour = Math.floor((3600 / secsPerKill) * AFK_GAIN_FACTOR);
     if (killsPerHour <= 0) return null;
 
     // Drop rate real: bonus del personaje (%) y modificador del mapa sobre la chance base.
@@ -212,29 +288,48 @@ export class OfflineGainsService {
   private calculateGathering(snapshot: GameSnapshot, cappedMinutes: number): OfflineGains | null {
     const skill: GatheringSkillId = snapshot.activity === 'chopping' ? 'woodcutting' : 'mining';
     const kind  = HARVEST_KINDS[harvestKindForSkill(skill)];
-
-    const secsPerNode  = HARVEST_HITS * (ATTACK_INTERVAL_MS / 1000) + TRAVEL_SECS;
-    const nodesPerHour = Math.floor(3600 / secsPerNode);
     const hours = cappedMinutes / 60;
-    const nodes = Math.floor(nodesPerHour * hours);
+    const mapId = snapshot.mapId ?? 'hogar';
+
+    // Recurso(s) soltado(s) → itemDrops → inventario. La MINERÍA usa el MISMO cálculo
+    // que el panel (mineableThroughput); si hay gemas desbloqueadas, reparte el tiempo
+    // mitad mena / mitad gema. La TALA mantiene su modelo simple (sin eficiencia/multidrop).
+    const itemDrops: AfkItemGain[] = [];
+    const pushDrop = (name: string, qty: number) => {
+      if (qty <= 0) return;
+      const entry = ITEM_CATALOG.find(e => e.name === name);
+      if (entry) itemDrops.push({ entry, qty });
+    };
+
+    let nodesFloat = 0;
+    if (skill === 'mining') {
+      const mapConfig = MAP_REGISTRY[mapId];
+      const mine = miningTier(mapConfig?.mineTier);
+      const gem  = gemTier(mapConfig?.gemTier);
+      const gemAvailable = !!gem && this.mapUpgrades.gemUnlocked(mapId);
+      const oreShare = gemAvailable ? 0.5 : 1;
+
+      const oreTp = this.mineableThroughput(mapId, mine.efficiency ?? 0, this.oreSupplySecs(mapId));
+      pushDrop(mine.dropName, Math.floor(oreTp.perHour * oreShare * hours));
+      nodesFloat += oreTp.nodesPerHour * oreShare * hours;
+
+      if (gemAvailable) {
+        const gemTp = this.mineableThroughput(mapId, gem!.efficiency ?? 0, this.gemSupplySecs(mapId));
+        pushDrop(gem!.dropName, Math.floor(gemTp.perHour * 0.5 * hours));
+        nodesFloat += gemTp.nodesPerHour * 0.5 * hours;
+      }
+    } else {
+      const secsPerNode  = HARVEST_HITS * (ATTACK_INTERVAL_MS / 1000) + TRAVEL_SECS;
+      const nodesPerHour = 3600 / secsPerNode;
+      nodesFloat = nodesPerHour * hours;
+      const avgQty = kind.drop ? (kind.drop.min + kind.drop.max) / 2 : 1;
+      pushDrop(kind.drop?.name ?? '', Math.floor(nodesFloat * avgQty));
+    }
+
+    const nodes = Math.floor(nodesFloat);
     if (nodes <= 0) return null;
 
     const gatherXp = nodes * kind.xp;
-
-    // Recurso soltado (madera / piedra molida). La minería escala con el talento
-    // miningDrop (igual que en destroyNode). Va por itemDrops → al inventario.
-    const itemDrops: AfkItemGain[] = [];
-    if (kind.drop) {
-      const dropMult = skill === 'mining' ? 1 + (this.talent.getBonus().miningDrop ?? 0) : 1;
-      const avgQty   = (kind.drop.min + kind.drop.max) / 2;
-      const qty      = Math.floor(nodes * avgQty * dropMult);
-      // La minería suelta el mineral del tier del mapa; la tala, su recurso fijo.
-      const dropName = skill === 'mining'
-        ? miningTier(MAP_REGISTRY[snapshot.mapId ?? '']?.mineTier).dropName
-        : kind.drop.name;
-      const entry    = ITEM_CATALOG.find(e => e.name === dropName);
-      if (entry && qty > 0) itemDrops.push({ entry, qty });
-    }
 
     const mapName = MAP_REGISTRY[snapshot.mapId ?? 'hogar']?.name ?? snapshot.mapId ?? '';
     return {

@@ -44,6 +44,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private removeSub: Subscription;
   private unlockSub: Subscription;
   private forgeWithdrawSub: Subscription;
+  private reloadSub: Subscription;
   private prevUnlocked = 0;
 
   private panelState = inject(PanelStateService);
@@ -166,6 +167,12 @@ export class InventoryComponent implements OnInit, OnDestroy {
       this.addItemToInventory(item);
     });
 
+    // Recargar el grid vivo tras un consumo externo (p.ej. pagar una mejora de mapa
+    // con materiales): el descuento se hizo en mockGrid; re-sincronizamos para no pisarlo.
+    this.reloadSub = this.inventoryService.reload$.subscribe(() => {
+      this.inventories = this.inventoryService.getSnapshot();
+    });
+
     // Recibir solicitudes de borrado desde otros sistemas (p.ej. equipamiento)
     this.removeSub = this.inventoryService.removeRequest$.subscribe(({ tabIndex, row, col }) => {
       this.inventories[tabIndex][row][col] = null;
@@ -198,6 +205,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.removeSub?.unsubscribe();
     this.unlockSub?.unsubscribe();
     this.forgeWithdrawSub?.unsubscribe();
+    this.reloadSub?.unsubscribe();
   }
 
   // --- Desbloqueo por mochilas ---

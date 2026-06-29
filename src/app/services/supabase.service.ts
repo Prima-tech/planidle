@@ -3,6 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { StorageService } from './storage.service';
 import { ForgeService } from './forge.service';
 import { GlobalTalentsService } from './global-talents.service';
+import { MapUpgradesService } from './map-upgrades.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -10,7 +11,8 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor(private storageService: StorageService, private forge: ForgeService,
-              private globalTalents: GlobalTalentsService) {
+              private globalTalents: GlobalTalentsService,
+              private mapUpgrades: MapUpgradesService) {
     const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
       fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
 
@@ -114,6 +116,9 @@ export class SupabaseService {
 
       // Talentos globales de cuenta (global_data.account.globalTalents): la cuenta manda.
       await this.globalTalents.restore((data as any).account?.globalTalents ?? null);
+
+      // Mejoras de mapa (global_data.account.mapUpgrades): globales entre personajes.
+      await this.mapUpgrades.restore((data as any).account?.mapUpgrades ?? null);
 
       // Forjas de CUENTA (columna `forges`): globales entre personajes. El tiempo
       // offline lo calcula el SERVIDOR (claim_forge_offline) → no se puede trampear

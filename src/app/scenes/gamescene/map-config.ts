@@ -18,6 +18,9 @@ export interface SpawnConfig {
 export interface SpawnTracker {
   config: SpawnConfig;
   count: number;
+  /** Respawns por muerte en cola (timer de 20s corriendo). El bucle de relleno los
+   *  cuenta como ocupados para NO adelantar el respawn rellenando el hueco al instante. */
+  pending?: number;
 }
 
 export interface PortalConfig {
@@ -112,6 +115,22 @@ const genLevel = (o: GenLevelOpts): MapConfig => {
     portals,
   };
 };
+
+/** Tiempo (ms) que tarda en reaparecer un enemigo tras morir otro (respawn).
+ *  Constante global: la usa gamescene al programar el respawn y el panel del HUD
+ *  para mostrar la "velocidad de respawn". */
+export const ENEMY_RESPAWN_MS = 20000;
+
+/** Tiempo (ms) que tarda en reaparecer una mena (roca de minería). El mapa tiene un
+ *  máximo de menas a la vez (base 1) y cada ORE_RESPAWN_MS aparece una nueva hasta el
+ *  máximo. Lo reducen las mejoras de mapa ("Respawn de menas"). */
+export const ORE_RESPAWN_MS = 50000;
+
+/** Respawn de GEMAS: tras desbloquearlas en la ventana de mapa, aparece como máximo 1
+ *  por mapa, en un tiempo ALEATORIO entre min y max. Ambos extremos se reducen con
+ *  mejoras de mapa ("Reaparición mín./máx. de gema"). */
+export const GEM_RESPAWN_MIN_MS = 60000;   // 60 s
+export const GEM_RESPAWN_MAX_MS = 300000;  // 5 min
 
 export const MAP_ELITE_THRESHOLD: Record<string, number> = {
   'hogar': 999,

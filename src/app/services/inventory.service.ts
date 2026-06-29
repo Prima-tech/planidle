@@ -39,6 +39,9 @@ export class InventoryService {
   readonly itemDropped$   = new Subject<InventoryItem>();
   readonly changes$       = new Subject<void>();
   readonly removeRequest$ = new Subject<{ tabIndex: number; row: number; col: number }>();
+  /** Pide al componente de inventario que recargue su grid vivo desde mockGrid (tras un
+   *  consumo externo, p.ej. pagar una mejora de mapa con materiales). */
+  readonly reload$        = new Subject<void>();
   /** Item que no cabe en el inventario y debe soltarse al suelo (lo escucha la escena Phaser). */
   readonly dropToWorld$   = new Subject<InventoryItem>();
 
@@ -145,6 +148,41 @@ export class InventoryService {
       }
     }
     return false;
+  }
+
+  /** Suma total de un material apilable por nombre (todas las pilas del inventario). */
+  countByName(name: string): number {
+    let total = 0;
+    for (let t = 0; t < TABS; t++)
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++) {
+          const it = this.mockGrid[t][r][c];
+          if (it && it.name === name) total += it.sum ?? 1;
+        }
+    return total;
+  }
+
+  /** Gasta `qty` unidades de un material por nombre. Devuelve false (sin tocar nada) si no hay suficientes. */
+  consumeByName(name: string, qty: number): boolean {
+    if (qty <= 0) return true;
+    if (this.countByName(name) < qty) return false;
+    let left = qty;
+    for (let t = 0; t < TABS && left > 0; t++)
+      for (let r = 0; r < ROWS && left > 0; r++)
+        for (let c = 0; c < COLS && left > 0; c++) {
+          const it = this.mockGrid[t][r][c];
+          if (!it || it.name !== name) continue;
+          const have = it.sum ?? 1;
+          const take = Math.min(have, left);
+          left -= take;
+          if (have - take > 0) it.sum = have - take;
+          else this.mockGrid[t][r][c] = null;
+        }
+    this.changes$.next();
+    // El componente de inventario (si está vivo) trabaja sobre su propio clon y
+    // reescribe mockGrid al guardar; pídele que recargue para que no pise el descuento.
+    this.reload$.next();
+    return true;
   }
 
   generateId(): string {

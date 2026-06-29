@@ -80,6 +80,38 @@
         <!-- Datos del mapa de combate (no aplica en exploración: ahí el mapa es stale) -->
         <ng-container *ngIf="!isExploring && (mapPanelData$ | async) as d">
 
+          <!-- Pestañas laterales, FUERA del panel (a la derecha) -->
+          <div class="mip-tabs">
+            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'enemies'" (click)="mapInfoTab = 'enemies'" title="Enemigos">
+              <ion-icon name="skull-outline"></ion-icon>
+            </button>
+            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'mining'" (click)="mapInfoTab = 'mining'" title="Minería">
+              <ion-icon name="diamond-outline"></ion-icon>
+            </button>
+            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'wood'" (click)="mapInfoTab = 'wood'" title="Tala">
+              <ion-icon name="leaf-outline"></ion-icon>
+            </button>
+          </div>
+
+          <!-- Contenido: min-height fijo para que ambas pestañas midan igual -->
+          <div class="mip-content">
+
+          <!-- ───── PESTAÑA ENEMIGOS ───── -->
+          <ng-container *ngIf="mapInfoTab === 'enemies'">
+
+          <!-- Datos del mapa: máximo de enemigos + velocidad de respawn -->
+          <div class="mip-rates" *ngIf="d.maxEnemies > 0">
+            <div class="mip-rate">
+              <span class="mip-rate-label">Máx. enemigos</span>
+              <span class="mip-rate-val">{{ d.maxEnemies }}</span>
+            </div>
+            <div class="mip-rate">
+              <span class="mip-rate-label">Respawn</span>
+              <span class="mip-rate-val">{{ d.respawnMs / 1000 }}s</span>
+            </div>
+          </div>
+          <div class="mip-divider" *ngIf="d.maxEnemies > 0 && d.eliteThreshold > 0"></div>
+
           <ng-container *ngIf="d.eliteThreshold > 0">
             <div class="mip-enemy-block">
               <div *ngIf="d.enemyType"
@@ -112,13 +144,17 @@
 
           <div class="mip-rates" *ngIf="d.coinsPerHour > 0">
             <div class="mip-rates-title">{{ 'MAP.AFK_PRODUCTION' | translate }}</div>
-            <div class="mip-rate">
-              <span class="mip-rate-label">{{ 'MAP.GOLD' | translate }}</span>
-              <span class="mip-rate-val">{{ d.coinsPerHour | compactNumber }}</span>
-            </div>
-            <div class="mip-rate">
-              <span class="mip-rate-label">XP</span>
-              <span class="mip-rate-val">{{ d.expPerHour | compactNumber }}</span>
+            <div class="mip-rate-pills">
+              <!-- Oro: pastilla canónica de monedas (coin-spinner + cantidad) -->
+              <div class="coins-section">
+                <div class="coin-spinner"></div>
+                <span class="coin-amount">{{ d.coinsPerHour | compactNumber }}</span>
+              </div>
+              <!-- XP: misma pastilla, con etiqueta XP -->
+              <div class="coins-section">
+                <span class="xp-tag">XP</span>
+                <span class="coin-amount">{{ d.expPerHour | compactNumber }}</span>
+              </div>
             </div>
           </div>
           <div class="mip-no-spawn" *ngIf="d.coinsPerHour === 0">{{ 'MAP.NO_ACTIVE_ENEMIES' | translate }}</div>
@@ -127,7 +163,8 @@
           <div class="mip-drops" *ngIf="d.drops.length > 0">
             <div class="mip-rates-title">{{ 'MAP.DROPS' | translate }}</div>
             <div class="mip-drop-grid">
-              <div class="mip-drop" *ngFor="let drop of d.drops">
+              <!-- Cada botín en una pastilla (icono + producción/hora), como Oro/XP -->
+              <div class="coins-section mip-drop-pill" *ngFor="let drop of d.drops">
                 <div class="mip-drop-icon">
                   <div *ngIf="drop.entry.iconSheet != null"
                        class="mip-drop-sheet"
@@ -137,11 +174,84 @@
                   <img *ngIf="drop.entry.icon && drop.entry.iconSheet == null" [src]="drop.entry.icon" class="mip-drop-img">
                   <span *ngIf="!drop.entry.icon && drop.entry.iconSheet == null" class="mip-drop-fallback">{{ drop.entry.name.charAt(0) }}</span>
                 </div>
-                <span class="mip-drop-rate">{{ dropPerHour(drop) }}/h</span>
+                <span class="coin-amount">{{ dropPerHour(drop) }}/h</span>
               </div>
             </div>
           </div>
 
+            </ng-container>
+
+            <!-- ───── PESTAÑA MINERÍA ───── -->
+            <div class="mip-mining" *ngIf="mapInfoTab === 'mining'">
+
+              <!-- Eficiencia de minado actual del personaje -->
+              <div class="mip-eff-head">
+                <span class="mip-eff-label"><ion-icon name="flash-outline"></ion-icon>Tu eficiencia de minado</span>
+                <span class="mip-eff-val">{{ d.playerMiningEff }}</span>
+              </div>
+
+              <div class="mip-rates-title">Minería</div>
+
+              <!-- Un bloque por mineral: cabecera (recurso) + datos debajo. -->
+              <div class="mip-res-block" *ngFor="let m of d.minerals">
+                <div class="coins-section mip-res-head">
+                  <div class="mip-drop-icon">
+                    <img *ngIf="m.img" [src]="m.img" class="mip-drop-img" alt="" draggable="false">
+                  </div>
+                  <span class="mip-mining-name">{{ m.name }}</span>
+                </div>
+                <div class="mip-stat-list">
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="diamond-outline"></ion-icon>Máx. simultáneas</span>
+                    <span class="mip-stat-val">{{ m.max }}</span>
+                  </div>
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="flash-outline"></ion-icon>Eficiencia para 100%</span>
+                    <span class="mip-stat-val">{{ m.efficiency }}</span>
+                  </div>
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="cube-outline"></ion-icon>Drop por mena</span>
+                    <span class="mip-stat-val">
+                      ×{{ m.dropGuaranteed }}<span class="mip-stat-sub" *ngIf="m.dropPlusChance > 0"> · {{ m.dropPlusChance }}% ×{{ m.dropGuaranteed + 1 }}</span>
+                    </span>
+                  </div>
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="hourglass-outline"></ion-icon>Reaparición</span>
+                    <span class="mip-stat-val">{{ m.respawnLabel }}</span>
+                  </div>
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="time-outline"></ion-icon>AFK por hora</span>
+                    <span class="mip-stat-val">{{ m.afkPerHour | compactNumber }}/h</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mip-no-spawn" *ngIf="!d.minerals.length">Sin minería en este mapa</div>
+            </div>
+
+            <!-- ───── PESTAÑA TALA ───── -->
+            <div class="mip-mining" *ngIf="mapInfoTab === 'wood'">
+              <div class="mip-rates-title">Tala</div>
+
+              <div class="mip-res-block" *ngIf="d.wood as w">
+                <div class="coins-section mip-res-head">
+                  <div class="mip-drop-icon">
+                    <img *ngIf="w.img" [src]="w.img" class="mip-drop-img" alt="" draggable="false">
+                  </div>
+                  <span class="mip-mining-name">{{ w.name }}</span>
+                </div>
+                <div class="mip-stat-list">
+                  <div class="mip-stat-row">
+                    <span class="mip-stat-label"><ion-icon name="leaf-outline"></ion-icon>Máx. simultáneos</span>
+                    <span class="mip-stat-val">{{ w.count }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mip-no-spawn" *ngIf="!d.wood">Sin tala en este mapa</div>
+            </div>
+
+          </div><!-- /mip-content -->
         </ng-container>
       </div>
 

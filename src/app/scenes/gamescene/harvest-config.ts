@@ -36,18 +36,25 @@ export interface MiningTier {
   dropName:    string;   // item que suelta (nombre en ITEM_CATALOG)
   mmFrame?:    number;   // frame del icono en el minimapa (Icons.png 16px); sin él → punto (árboles)
   scale?:      number;   // escala visual; si falta usa la del HarvestKind (sprites de distinto tamaño)
+  // Eficiencia de minado requerida para 100% de acierto. El jugador acierta el golpe
+  // con prob = min(1, eficienciaJugador / efficiency); los fallos muestran "MISS" y no
+  // cuentan para destruir la mena. Solo aplica a minería (rocas/gemas), no a árboles.
+  efficiency?: number;
+  // Vida de minado de la mena: cada golpe ACERTADO le resta la "fuerza de minado" del
+  // jugador; al llegar a 0 se destruye. (Tier 1 = 20.) Solo minería (rocas/gemas).
+  mineHp?: number;
 }
 export const MINING_TIERS: Record<number, MiningTier> = {
-  1: { rockTexture: 'rock_tier3', dropName: 'Mineral de Cobre',  mmFrame: 150 }, // cobre (mena/icono del antiguo tier 3)
-  2: { rockTexture: 'rock_tier2', dropName: 'Mineral de Bronce', mmFrame: 30 },  // bronce
-  3: { rockTexture: 'rock_tier1', dropName: 'Mineral de Hierro', mmFrame: 33 },  // hierro (mena/icono del antiguo tier 1)
-  4: { rockTexture: 'rock_tier4', dropName: 'Mineral Tier 4', mmFrame: 273 },  // Icons #82
-  5: { rockTexture: 'rock_tier5', dropName: 'Mineral Tier 5', mmFrame: 270 },  // Icons #80
-  6: { rockTexture: 'rock_tier6', dropName: 'Mineral Tier 6', mmFrame: 390 },  // Icons #120
-  7: { rockTexture: 'rock_tier7', dropName: 'Mineral Tier 7', mmFrame: 393 },  // Icons #122
-  8: { rockTexture: 'rock_tier8', dropName: 'Mineral Tier 8', mmFrame: 153 },  // Icons #42
-  9: { rockTexture: 'rock_tier9', dropName: 'Mineral Tier 9', mmFrame: 510 },  // Icons #160
-  10:{ rockTexture: 'rock_tier10', dropName: 'Mineral Tier 10', mmFrame: 513 }, // Icons #162
+  1: { rockTexture: 'rock_tier3', dropName: 'Mineral de Cobre',  mmFrame: 150, efficiency: 10,   mineHp: 20 }, // cobre (mena/icono del antiguo tier 3)
+  2: { rockTexture: 'rock_tier2', dropName: 'Mineral de Bronce', mmFrame: 30,  efficiency: 50,   mineHp: 60 },  // bronce
+  3: { rockTexture: 'rock_tier1', dropName: 'Mineral de Hierro', mmFrame: 33,  efficiency: 150,  mineHp: 150 },  // hierro (mena/icono del antiguo tier 1)
+  4: { rockTexture: 'rock_tier4', dropName: 'Mineral Tier 4', mmFrame: 273, efficiency: 300,  mineHp: 300 },  // Icons #82
+  5: { rockTexture: 'rock_tier5', dropName: 'Mineral Tier 5', mmFrame: 270, efficiency: 500,  mineHp: 500 },  // Icons #80
+  6: { rockTexture: 'rock_tier6', dropName: 'Mineral Tier 6', mmFrame: 390, efficiency: 750,  mineHp: 750 },  // Icons #120
+  7: { rockTexture: 'rock_tier7', dropName: 'Mineral Tier 7', mmFrame: 393, efficiency: 1050, mineHp: 1100 },  // Icons #122
+  8: { rockTexture: 'rock_tier8', dropName: 'Mineral Tier 8', mmFrame: 153, efficiency: 1400, mineHp: 1500 },  // Icons #42
+  9: { rockTexture: 'rock_tier9', dropName: 'Mineral Tier 9', mmFrame: 510, efficiency: 1800, mineHp: 2000 },  // Icons #160
+  10:{ rockTexture: 'rock_tier10', dropName: 'Mineral Tier 10', mmFrame: 513, efficiency: 2250, mineHp: 2600 }, // Icons #162
 };
 export function miningTier(tier?: number): MiningTier {
   return MINING_TIERS[tier ?? 1] ?? MINING_TIERS[1];
@@ -57,16 +64,16 @@ export function miningTier(tier?: number): MiningTier {
 // Nodo independiente de la minería normal. Solo spawnea en mapas con `gemTier`
 // definido (sin él, `gemTier()` devuelve null y no se generan gemas en ese mapa).
 export const GEM_TIERS: Record<number, MiningTier> = {
-  1: { rockTexture: 'rock_gem1', dropName: 'Gema Tier 1', mmFrame: 594 },  // Icons #196
-  2: { rockTexture: 'rock_gem2', dropName: 'Gema Tier 2', mmFrame: 54 },   // Icons #16
-  3: { rockTexture: 'rock_gem3', dropName: 'Gema Tier 3', mmFrame: 114 },  // Icons #36
-  4: { rockTexture: 'rock_gem4', dropName: 'Gema Tier 4', mmFrame: 474 },  // Icons #156
-  5: { rockTexture: 'rock_gem5', dropName: 'Gema Tier 5', mmFrame: 174 },  // Icons #56
-  6: { rockTexture: 'rock_gem6', dropName: 'Gema Tier 6', mmFrame: 414 },  // Icons #136
-  7: { rockTexture: 'rock_gem7', dropName: 'Gema Tier 7', mmFrame: 234 },  // Icons #76
-  8: { rockTexture: 'rock_gem8', dropName: 'Gema Tier 8', mmFrame: 534 },  // Icons #176
-  9: { rockTexture: 'rock_gem9', dropName: 'Gema Tier 9', mmFrame: 354 },  // Icons #116
-  10:{ rockTexture: 'rock_gem10', dropName: 'Gema Tier 10', mmFrame: 294 }, // Icons #96
+  1: { rockTexture: 'rock_gem1', dropName: 'Gema Tier 1', mmFrame: 594, efficiency: 10,   mineHp: 20 },  // Icons #196
+  2: { rockTexture: 'rock_gem2', dropName: 'Gema Tier 2', mmFrame: 54,  efficiency: 50,   mineHp: 60 },   // Icons #16
+  3: { rockTexture: 'rock_gem3', dropName: 'Gema Tier 3', mmFrame: 114, efficiency: 150,  mineHp: 150 },  // Icons #36
+  4: { rockTexture: 'rock_gem4', dropName: 'Gema Tier 4', mmFrame: 474, efficiency: 300,  mineHp: 300 },  // Icons #156
+  5: { rockTexture: 'rock_gem5', dropName: 'Gema Tier 5', mmFrame: 174, efficiency: 500,  mineHp: 500 },  // Icons #56
+  6: { rockTexture: 'rock_gem6', dropName: 'Gema Tier 6', mmFrame: 414, efficiency: 750,  mineHp: 750 },  // Icons #136
+  7: { rockTexture: 'rock_gem7', dropName: 'Gema Tier 7', mmFrame: 234, efficiency: 1050, mineHp: 1100 },  // Icons #76
+  8: { rockTexture: 'rock_gem8', dropName: 'Gema Tier 8', mmFrame: 534, efficiency: 1400, mineHp: 1500 },  // Icons #176
+  9: { rockTexture: 'rock_gem9', dropName: 'Gema Tier 9', mmFrame: 354, efficiency: 1800, mineHp: 2000 },  // Icons #116
+  10:{ rockTexture: 'rock_gem10', dropName: 'Gema Tier 10', mmFrame: 294, efficiency: 2250, mineHp: 2600 }, // Icons #96
 };
 export function gemTier(tier?: number): MiningTier | null {
   return tier ? (GEM_TIERS[tier] ?? null) : null;

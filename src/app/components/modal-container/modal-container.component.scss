@@ -80,6 +80,14 @@
     background: transparent;
     overflow: visible;
   }
+  &.mapChest {
+    top: 10px;
+    bottom: 61px;  /* igual que forge: ventana izquierda */
+    left: calc(10px + var(--safe-left, 0px));
+    width: fit-content;
+    background: transparent;
+    overflow-y: auto;
+  }
   &.global-talents {
     top: 10px;
     bottom: 61px;  /* footer ~51px + 10px de aire, como equipo/summon */
