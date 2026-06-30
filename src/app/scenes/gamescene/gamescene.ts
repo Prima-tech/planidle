@@ -110,11 +110,14 @@ const RECRUIT_NPCS: { name: string; texKey: string; mapId: string; tileX: number
 // `tileKeys` para la colisión).
 interface HarvestNode {
   sprite: Phaser.GameObjects.Image;
-  hits: number;          // árboles (tala): nº de golpes (se destruye a HARVEST_HITS)
-  mineHp?: number;       // minería: vida restante de la mena (se destruye al llegar a 0)
+  hits: number;          // (legacy) contador de golpes; el destruir va por mineHp
+  mineHp?: number;       // vida restante del recurso (mena/gema/árbol); se destruye al llegar a 0
   mineHpMax?: number;    // vida inicial (para barra/feedback)
   tileKeys: string[];
   kind: HarvestKindId;
+  // Barra de vida: se crea/muestra en cuanto el recurso baja del 100% de vida.
+  hpBarTrack?: Phaser.GameObjects.Rectangle;
+  hpBarFill?:  Phaser.GameObjects.Rectangle;
 }
 
 export class GameScene extends Phaser.Scene {
@@ -1379,11 +1382,22 @@ export class GameScene extends Phaser.Scene {
      *  (que respawnea al morir). No se añaden a spawnTrackers para no contar en mapStats. */
     private initAnimalSpawns(): void {
       if (this.currentMapConfig.id === 'hogar') return;
+      const mapId = this.currentMapConfig.id;
       const W = this.currentMap.width, H = this.currentMap.height;
-      const COUNT = 4;
       const ZW = 12, ZH = 12;
+
+      // Tipos de animal del mapa. Por defecto: 4 al azar de ANIMAL_TYPES. En 1-1 son
+      // SOLO conejos (liebre) y únicamente si la mejora de mapa "Desbloquear conejos"
+      // está completada (si no, no aparece ningún conejo).
+      let pool = ANIMAL_TYPES;
+      const COUNT = 4;
+      if (mapId === '1-1') {
+        if (!this.reg.mapUpgrades?.rabbitUnlocked(mapId)) return;
+        pool = ['hare'];
+      }
+
       for (let i = 0; i < COUNT; i++) {
-        const type = ANIMAL_TYPES[Phaser.Math.Between(0, ANIMAL_TYPES.length - 1)];
+        const type = pool[Phaser.Math.Between(0, pool.length - 1)];
         const zx = Phaser.Math.Between(3, Math.max(3, W - ZW - 3));
         const zy = Phaser.Math.Between(3, Math.max(3, H - ZH - 3));
         const cfg: SpawnConfig = {
@@ -2250,8 +2264,9 @@ export class GameScene extends Phaser.Scene {
       // árbol); si está por debajo, el jugador pasa por delante.
       sprite.setDepth(baseY);
       for (const k of tileKeys) this.collisionTiles.add(k);   // bloquea su huella
-      // Minería: la mena nace con la vida de minado de su tier; los árboles usan golpes.
-      const mineHp = kind.skill === 'mining' ? (this.harvestTierOf(id)?.mineHp ?? 20) : undefined;
+      // El recurso nace con la vida de su tier (menas, gemas y árboles); cada golpe le
+      // resta la fuerza del jugador (minado/tala).
+      const mineHp = this.harvestTierOf(id)?.mineHp ?? 20;
       this.nodes.push({ sprite, hits: 0, mineHp, mineHpMax: mineHp, tileKeys, kind: id });
     }
 
@@ -2342,6 +2357,14 @@ export class GameScene extends Phaser.Scene {
       return this.reg.charStats?.currentMiningPower ?? 0;
     }
 
+    /** Fuerza del personaje para un recurso: tala (hacha) para árboles, minería (pico)
+     *  para menas/gemas. Daño por golpe acertado a la vida del recurso. */
+    private playerHarvestPower(kind: HarvestKindId): number {
+      return kind === 'tree'
+        ? (this.reg.charStats?.currentWoodcuttingPower ?? 0)
+        : this.playerMiningPower();
+    }
+
     /** Número de daño flotante sobre una mena al picarla (como el daño a enemigos). */
     private showMiningDamage(node: HarvestNode, amount: number): void {
       const x = node.sprite.x + Phaser.Math.Between(-18, 18);
@@ -2355,6 +2378,35 @@ export class GameScene extends Phaser.Scene {
         targets: text, y: y - 36, alpha: 0, duration: 800, ease: 'Power2',
         onComplete: () => text.destroy(),
       });
+    }
+
+    /** Barra de vida del recurso: se crea de forma perezosa cuando el recurso baja del
+     *  100% de vida y permanece visible (actualizándose con cada golpe) hasta que se
+     *  recolecta. A vida completa no existe/no se ve. */
+    private showNodeHpBar(node: HarvestNode): void {
+      const s = node.sprite;
+      const W = Math.max(72, s.displayWidth * 0.9);
+      const H = 14;
+      const x = s.x;
+      const y = s.getTopCenter().y - 24;   // un poco por encima del recurso
+
+      if (!node.hpBarTrack || !node.hpBarFill) {
+        node.hpBarTrack = this.add.rectangle(x, y, W, H, 0x21130e, 0.9)
+          .setOrigin(0.5, 0.5).setStrokeStyle(3, 0x3a2c20).setDepth(4800);
+        node.hpBarFill = this.add.rectangle(x - W / 2 + 2, y, W - 4, H - 4, 0xc0392b)
+          .setOrigin(0, 0.5).setDepth(4801);
+      }
+
+      const pct = Phaser.Math.Clamp((node.mineHp ?? 0) / (node.mineHpMax || 1), 0, 1);
+      node.hpBarFill.setSize((W - 4) * pct, H - 4);
+    }
+
+    /** Destruye la barra de vida (al recolectar el recurso). */
+    private destroyNodeHpBar(node: HarvestNode): void {
+      node.hpBarTrack?.destroy();
+      node.hpBarFill?.destroy();
+      node.hpBarTrack = undefined;
+      node.hpBarFill  = undefined;
     }
 
     /** Texto flotante "MISS" sobre una mena cuando el golpe falla por falta de eficiencia. */
@@ -2391,18 +2443,15 @@ export class GameScene extends Phaser.Scene {
       const s = node.sprite;
       const baseScale = this.harvestScale(node.kind);   // escala real del tier, no la global
 
-      // Golpe acertado: minería → resta la fuerza de minado a la vida de la mena (y
-      // muestra el número de daño); tala → cuenta el golpe (HARVEST_HITS para destruir).
-      let destroyed: boolean;
-      if (kind.skill === 'mining') {
-        const dmg = Math.max(1, this.playerMiningPower());
-        node.mineHp = (node.mineHp ?? 0) - dmg;
-        this.showMiningDamage(node, dmg);
-        destroyed = node.mineHp <= 0;
-      } else {
-        node.hits++;
-        destroyed = node.hits >= 3;
-      }
+      // Golpe acertado: resta la fuerza (minado/tala) a la vida del recurso y muestra el
+      // número de daño. Mismo modelo para menas, gemas y árboles.
+      const dmg = Math.max(1, this.playerHarvestPower(node.kind));
+      node.mineHp = (node.mineHp ?? 0) - dmg;
+      this.showMiningDamage(node, dmg);
+      const destroyed = node.mineHp <= 0;
+
+      // Barra de vida: aparece solo al hacer daño y se actualiza con cada golpe.
+      if (!destroyed) this.showNodeHpBar(node);
 
       // Flash blanco de impacto
       s.setTintFill(0xffffff);
@@ -2432,6 +2481,7 @@ export class GameScene extends Phaser.Scene {
     private destroyNode(node: HarvestNode): void {
       const idx = this.nodes.indexOf(node);
       if (idx !== -1) this.nodes.splice(idx, 1);
+      this.destroyNodeHpBar(node);
       for (const k of node.tileKeys) this.collisionTiles.delete(k);   // libera la huella
 
       const kind = HARVEST_KINDS[node.kind];

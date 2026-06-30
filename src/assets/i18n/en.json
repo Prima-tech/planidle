@@ -176,6 +176,7 @@
     "WEAPON": "Weapon",
     "SKILLS": "Skills",
     "NO_BONUSES": "No bonuses",
+    "ALLOCATED": "Allocated",
     "EFFECTIVE_MULT": "Effective multiplier",
     "BASE_POWER": "Base power"
   },
@@ -200,7 +201,8 @@
     "MINING": "Mining",
     "WOODCUTTING": "Woodcutting",
     "LEVEL": "Level",
-    "TOTAL_GATHERED": "Gathered"
+    "TOTAL_GATHERED": "Gathered",
+    "RESET_ATTRS": "Reset attributes"
   },
   "QUESTS": {
     "AVAILABLE": "Available",

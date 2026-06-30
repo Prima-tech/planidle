@@ -62,6 +62,8 @@ export interface GameSnapshot {
   talentLoadouts?: TalentLoadouts;
   skillSlots?: SkillSlotsSnapshot;
   baseStats?: import('./character-stats.service').BaseStats;
+  /** Atributos de minería repartidos a mano (sin coste) en la pestaña de minería */
+  miningAlloc?: import('./character-stats.service').MiningAllocations;
   /** Misiones del personaje (progreso, completadas, activas) */
   quests?: QuestSave;
   /** IDs de pasivas AFK desbloqueadas por el personaje */
@@ -204,6 +206,7 @@ export class SaveService {
       this.skillEquip.restoreFromSnapshot(snapshot.skillSlots ?? null);
       if (snapshot.baseStats) this.charStats.restoreStats(snapshot.baseStats);
       else                    this.charStats.resetStats();
+      this.charStats.restoreMining(snapshot.miningAlloc ?? null);
     } else {
       this.playerState.setFromProfile(EMPTY_STATE);
       this.inventory.restoreFromSnapshot(this.inventory.buildGrid());
@@ -216,6 +219,7 @@ export class SaveService {
       this.talent.restoreLoadouts(null, null);
       this.skillEquip.restoreFromSnapshot(null);
       this.charStats.resetStats();
+      this.charStats.restoreMining(null);
     }
     await this.kills.loadGlobalKills();
     // load AFK passives before calculating gains so multipliers are applied.
@@ -263,6 +267,7 @@ export class SaveService {
     this.gatheringSkills.clearAll();
     this.talent.restoreLoadouts(null, null);
     this.charStats.resetStats();
+    this.charStats.restoreMining(null);
     await this.unlocks.clearAll();
     await this.kills.resetAll();
     // Al final, cuando ya no hay recálculos de equipo/stats que puedan parchear
@@ -359,6 +364,7 @@ export class SaveService {
       talentLoadouts: this.talent.getLoadoutsSnapshot(),
       skillSlots:   this.skillEquip.getSnapshot(),
       baseStats:    { ...this.charStats.stats },
+      miningAlloc:  { ...this.charStats.miningAlloc },
       quests:           this.quests.getSnapshot(),
       afkPassives:      this.afkBonus.getSnapshot(),
       achievementsChar: this.achievements.getCharSnapshot(),

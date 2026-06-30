@@ -10,7 +10,7 @@ import { TalentService } from './talent.service';
 import { GatheringSkillId } from './gathering-skills.service';
 import { ENEMY_REGISTRY } from '../enemy/enemy-config';
 import { LOOT_TABLES, EXP_REWARDS, LootEntry, ITEM_CATALOG } from '../physics/griddrops';
-import { HARVEST_KINDS, HARVEST_HITS, harvestKindForSkill, miningTier, gemTier, treeTier } from '../scenes/gamescene/harvest-config';
+import { HARVEST_KINDS, harvestKindForSkill, miningTier, gemTier, treeTier } from '../scenes/gamescene/harvest-config';
 
 const MIN_OFFLINE_SECONDS = 10;
 const MAX_OFFLINE_HOURS   = 8;
@@ -98,7 +98,7 @@ export class OfflineGainsService {
    */
   /**
    * AFK/hora de cada mineral del mapa (mena + gema), con TODAS las stats:
-   *  - velocidad de minado: golpes (HARVEST_HITS) ÷ cadencia + viaje, y los misses por
+   *  - velocidad de minado: golpes para destruir (vida/fuerza) ÷ cadencia + viaje, y los misses por
    *    falta de eficiencia (prob. acierto = min(1, efic. jugador / efic. mena)) lo frenan.
    *  - suministro: las menas reaparecen cada ORE_RESPAWN_MS (−mejora "Respawn de menas"),
    *    no puedes minar más rápido de lo que aparecen.
@@ -116,24 +116,26 @@ export class OfflineGainsService {
     const oreShare = gemAvailable ? 0.5 : 1;
 
     const oreEff = this.charStats.currentMiningEfficiency;
+    const minePow = this.charStats.currentMiningPower;
     const mine = miningTier(mapConfig.mineTier);
     const out: { name: string; perHour: number }[] = [
-      { name: mine.dropName, perHour: Math.floor(this.mineableThroughput(oreEff, mine.efficiency ?? 0, this.oreSupplySecs(mapId), this.miningDropMult()).perHour * oreShare) },
+      { name: mine.dropName, perHour: Math.floor(this.mineableThroughput(oreEff, mine.efficiency ?? 0, this.oreSupplySecs(mapId), this.miningDropMult(), mine.mineHp ?? 20, minePow).perHour * oreShare) },
     ];
     if (gemAvailable) {
-      out.push({ name: gem!.dropName, perHour: Math.floor(this.mineableThroughput(oreEff, gem!.efficiency ?? 0, this.gemSupplySecs(mapId), this.miningDropMult()).perHour * 0.5) });
+      out.push({ name: gem!.dropName, perHour: Math.floor(this.mineableThroughput(oreEff, gem!.efficiency ?? 0, this.gemSupplySecs(mapId), this.miningDropMult(), gem!.mineHp ?? 20, minePow).perHour * 0.5) });
     }
     return out;
   }
 
   /** AFK/hora de la madera del mapa (pestaña Tala). Misma fórmula que la minería, con la
-   *  eficiencia de TALA, el respawn de árboles y sin reparto (un solo recurso). */
+   *  eficiencia/fuerza de TALA, el respawn de árboles y sin reparto (un solo recurso). */
   woodcuttingAfkPerHour(mapId: string): { name: string; perHour: number }[] {
     const mapConfig = MAP_REGISTRY[mapId];
     if (!mapConfig || mapId === 'hogar') return [];
     const tree = treeTier(mapConfig.treeTier);
     const eff  = this.charStats.currentWoodcuttingEfficiency;
-    return [{ name: tree.dropName, perHour: this.mineableThroughput(eff, tree.efficiency ?? 0, this.treeSupplySecs(mapId), this.woodDropMult()).perHour }];
+    const pow  = this.charStats.currentWoodcuttingPower;
+    return [{ name: tree.dropName, perHour: this.mineableThroughput(eff, tree.efficiency ?? 0, this.treeSupplySecs(mapId), this.woodDropMult(), tree.mineHp ?? 20, pow).perHour }];
   }
 
   private miningDropMult(): number { return 1 + (this.talent.getBonus().miningDrop ?? 0); }
@@ -156,19 +158,22 @@ export class OfflineGainsService {
    *  unidades/hora de un recurso según TODAS las stats. `playerEff` = eficiencia del
    *  jugador (minería o tala), `supplySecs` = segundos entre apariciones, `dropMult` =
    *  multiplicador de botín (talento). Así panel y botín real salen del MISMO cálculo. */
-  private mineableThroughput(playerEff: number, reqEff: number, supplySecs: number, dropMult: number): { nodesPerHour: number; perHour: number } {
+  private mineableThroughput(playerEff: number, reqEff: number, supplySecs: number, dropMult: number, hp: number, power: number): { nodesPerHour: number; perHour: number } {
     const supplyRate = 3600 / Math.max(1, supplySecs);                  // nodos/hora que el mapa suministra
     const drop       = HARVEST_KINDS.rock.drop;                         // 1..1 (igual gema/árbol)
     const avgQty     = drop ? (drop.min + drop.max) / 2 : 1;
 
     const hitChance = reqEff > 0 ? Math.min(1, playerEff / reqEff) : 1;
-    if (hitChance <= 0) return { nodesPerHour: 0, perHour: 0 };         // siempre falla → no mina
+    if (hitChance <= 0 || power <= 0) return { nodesPerHour: 0, perHour: 0 };  // no acierta o sin fuerza
     const ratio        = reqEff > 0 ? playerEff / reqEff : 1;
-    const secsPerNode  = (HARVEST_HITS / hitChance) * (ATTACK_INTERVAL_MS / 1000) + TRAVEL_SECS;
-    const nodesPerHour = Math.min(3600 / secsPerNode, supplyRate);
-    const expMultiDrop = Math.max(1, ratio);                            // E[unidades] del multi-drop
+    // Golpes para destruir = vida / fuerza (mismo modelo que gamescene); los misses por
+    // eficiencia los multiplican (1/hitChance intentos por golpe acertado).
+    const hitsToDestroy = Math.max(1, Math.ceil(hp / power));
+    const secsPerNode   = (hitsToDestroy / hitChance) * (ATTACK_INTERVAL_MS / 1000) + TRAVEL_SECS;
+    const nodesPerHour  = Math.min(3600 / secsPerNode, supplyRate);
+    const expMultiDrop  = Math.max(1, ratio);                           // E[unidades] del multi-drop
     // ×AFK_GAIN_FACTOR (1/10): el botín AFK rinde una décima parte (igual que el combate).
-    const perHour      = Math.floor(nodesPerHour * avgQty * expMultiDrop * dropMult * AFK_GAIN_FACTOR);
+    const perHour       = Math.floor(nodesPerHour * avgQty * expMultiDrop * dropMult * AFK_GAIN_FACTOR);
     return { nodesPerHour, perHour };
   }
 
@@ -327,20 +332,22 @@ export class OfflineGainsService {
       const oreShare = gemAvailable ? 0.5 : 1;
 
       const oreEff = this.charStats.currentMiningEfficiency;
-      const oreTp = this.mineableThroughput(oreEff, mine.efficiency ?? 0, this.oreSupplySecs(mapId), this.miningDropMult());
+      const minePow = this.charStats.currentMiningPower;
+      const oreTp = this.mineableThroughput(oreEff, mine.efficiency ?? 0, this.oreSupplySecs(mapId), this.miningDropMult(), mine.mineHp ?? 20, minePow);
       pushDrop(mine.dropName, Math.floor(oreTp.perHour * oreShare * hours));
       nodesFloat += oreTp.nodesPerHour * oreShare * hours;
 
       if (gemAvailable) {
-        const gemTp = this.mineableThroughput(oreEff, gem!.efficiency ?? 0, this.gemSupplySecs(mapId), this.miningDropMult());
+        const gemTp = this.mineableThroughput(oreEff, gem!.efficiency ?? 0, this.gemSupplySecs(mapId), this.miningDropMult(), gem!.mineHp ?? 20, minePow);
         pushDrop(gem!.dropName, Math.floor(gemTp.perHour * 0.5 * hours));
         nodesFloat += gemTp.nodesPerHour * 0.5 * hours;
       }
     } else {
-      // Tala: mismo cálculo (eficiencia de tala, respawn de árboles, multi-drop).
+      // Tala: mismo cálculo (eficiencia/fuerza de tala, respawn de árboles, multi-drop).
       const tree = treeTier(MAP_REGISTRY[mapId]?.treeTier);
       const eff  = this.charStats.currentWoodcuttingEfficiency;
-      const tp   = this.mineableThroughput(eff, tree.efficiency ?? 0, this.treeSupplySecs(mapId), this.woodDropMult());
+      const pow  = this.charStats.currentWoodcuttingPower;
+      const tp   = this.mineableThroughput(eff, tree.efficiency ?? 0, this.treeSupplySecs(mapId), this.woodDropMult(), tree.mineHp ?? 20, pow);
       pushDrop(tree.dropName, Math.floor(tp.perHour * hours));
       nodesFloat = tp.nodesPerHour * hours;
     }

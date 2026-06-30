@@ -435,6 +435,10 @@
             <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ me.talents }}</span>
           </div>
+          <div class="ov-bk-row" *ngIf="me.manual > 0">
+            <span>{{ 'STAT.ALLOCATED' | translate }}</span>
+            <span class="ov-bonus">+{{ me.manual }}</span>
+          </div>
           <div class="ov-bk-row" *ngIf="me.total === 0">
             <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
             <span>0</span>
@@ -462,6 +466,10 @@
             <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ mp.talents }}</span>
           </div>
+          <div class="ov-bk-row" *ngIf="mp.manual > 0">
+            <span>{{ 'STAT.ALLOCATED' | translate }}</span>
+            <span class="ov-bonus">+{{ mp.manual }}</span>
+          </div>
           <div class="ov-bk-row" *ngIf="mp.total === 0">
             <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
             <span>0</span>
@@ -488,6 +496,10 @@
           <div class="ov-bk-row" *ngIf="mx.talents > 0">
             <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ mx.talents }}</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="mx.manual > 0">
+            <span>{{ 'STAT.ALLOCATED' | translate }}</span>
+            <span class="ov-bonus">+{{ mx.manual }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="mx.total === 0">
             <span>{{ 'STAT.NO_BONUSES' | translate }}</span>
@@ -644,20 +656,33 @@
               <span class="skill-stat-val">{{ p.gathered | compactNumber }}</span>
             </div>
 
-            <!-- Atributos de minería del personaje (solo en la skill de minería) -->
+            <!-- Atributos de minería del personaje (solo en la skill de minería).
+                 Cada atributo se sube a mano con el botón + (sin coste). -->
             <ng-container *ngIf="sk.id === 'mining'">
               <div class="skill-stat-row" *ngIf="miningPower$ | async as mp">
                 <span class="skill-stat-label">Fuerza minado</span>
+                <button class="stat-btn minus" [disabled]="charStats.miningAlloc.miningPower <= 0" (click)="charStats.decrementMining('miningPower')">−</button>
                 <span class="skill-stat-val">{{ mp.total }}</span>
+                <button class="stat-btn plus" (click)="charStats.incrementMining('miningPower')">+</button>
               </div>
               <div class="skill-stat-row" *ngIf="miningEfficiency$ | async as me">
                 <span class="skill-stat-label">Eficiencia minado</span>
+                <button class="stat-btn minus" [disabled]="charStats.miningAlloc.miningEfficiency <= 0" (click)="charStats.decrementMining('miningEfficiency')">−</button>
                 <span class="skill-stat-val">{{ me.total }}</span>
+                <button class="stat-btn plus" (click)="charStats.incrementMining('miningEfficiency')">+</button>
               </div>
               <div class="skill-stat-row" *ngIf="miningExp$ | async as mx">
                 <span class="skill-stat-label">Exp minería</span>
+                <button class="stat-btn minus" [disabled]="charStats.miningAlloc.miningExp <= 0" (click)="charStats.decrementMining('miningExp')">−</button>
                 <span class="skill-stat-val">+{{ mx.total }}</span>
+                <button class="stat-btn plus" (click)="charStats.incrementMining('miningExp')">+</button>
               </div>
+
+              <button class="rpg-btn mining-reset-btn"
+                      [disabled]="charStats.miningAllocTotal <= 0"
+                      (click)="charStats.resetMining()">
+                {{ 'GATHER_SKILLS.RESET_ATTRS' | translate }}
+              </button>
             </ng-container>
 
           </ng-container>

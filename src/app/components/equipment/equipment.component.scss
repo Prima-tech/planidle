@@ -2228,9 +2228,18 @@ $metal-dark: #6b6357;
   @extend %ov-plaque;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   padding: 7px 10px;
+
+  // El botón "+" de minería va más pequeño que el de stats de combate
+  .stat-btn { width: 20px; height: 20px; }
 }
 
-.skill-stat-label { font-size: 0.7em;  font-weight: 700; color: $text-brown; }
+.skill-stat-label { flex: 1; font-size: 0.7em;  font-weight: 700; color: $text-brown; }
 .skill-stat-val   { font-size: 0.8em;  font-weight: 800; color: $cell-bg; }
+
+// Botón de restablecer atributos de minería (centrado bajo la lista)
+.mining-reset-btn {
+  display: block;
+  margin: 10px auto 0;
+}

@@ -30,6 +30,7 @@ export const MAP_UPGRADES: MapUpgradeDef[] = [
   { id: 'gemRespawnMax',  name: 'Reaparición máx. gema', desc: 'Reduce 10s el tiempo MÁXIMO de reaparición de gemas.',         icon: 'hourglass-outline', effect: '−10s',   cost: 40 },
   { id: 'treeMax',        name: 'Árboles máx.',         desc: 'Sube en 1 el máximo de árboles a la vez.',                     icon: 'leaf-outline',    effect: '+1',       cost: 25 },
   { id: 'treeRespawn',    name: 'Respawn de árboles',   desc: 'Los árboles reaparecen 1s antes.',                             icon: 'hourglass-outline', effect: '−1s',    cost: 25 },
+  { id: 'unlockRabbit',   name: 'Desbloquear conejos',  desc: 'Permite que aparezcan conejos en este mapa.',                  icon: 'paw-outline',     effect: 'Conejos',  cost: 30 },
 ];
 
 const STORAGE_KEY = 'map_upgrades';
@@ -121,6 +122,8 @@ export class MapUpgradesService {
   /** Hasta desbloquearlos, los enemigos de Élite/Oblivion NO aparecen en el mapa. */
   eliteUnlocked(mapId: string): boolean { return this.isCompleted(mapId, 'unlockElite'); }
   oblivionUnlocked(mapId: string): boolean { return this.isCompleted(mapId, 'unlockOblivion'); }
+  /** Conejos: no aparecen hasta completar "Desbloquear conejos" en el mapa. */
+  rabbitUnlocked(mapId: string): boolean { return this.isCompleted(mapId, 'unlockRabbit'); }
 
   /** Gemas: bloqueadas hasta desbloquearlas; entonces máx. 1 con respawn aleatorio entre
    *  min y max (cada extremo reducible con su mejora de mapa, suelo 5s). */

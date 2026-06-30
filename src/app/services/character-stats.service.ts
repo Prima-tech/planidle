@@ -87,6 +87,7 @@ export interface MiningEfficiencyBreakdown {
   dex:       number;  // floor(DEX/5), min 0 (skill base 0, +1 por cada 5 de Destreza)
   equipment: number;  // stat miningEfficiency del pico equipado (equipo de recolección)
   talents:   number;  // talento miningEfficiency
+  manual:    number;  // puntos repartidos a mano en la pestaña de minería
   total:     number;
 }
 
@@ -100,13 +101,30 @@ export interface WoodcuttingEfficiencyBreakdown {
 export interface MiningPowerBreakdown {
   equipment: number;  // fuerza de minado de objetos (pico) — base 0
   talents:   number;
+  manual:    number;  // puntos repartidos a mano en la pestaña de minería
   total:     number;  // daño por golpe acertado a la vida de la mena
+}
+
+export interface WoodcuttingPowerBreakdown {
+  equipment: number;  // fuerza de tala del hacha — base 0
+  talents:   number;
+  total:     number;  // daño por golpe acertado a la vida del árbol
 }
 
 export interface MiningExpBreakdown {
   equipment: number;  // bonus de exp de minería de objetos
   talents:   number;
+  manual:    number;  // puntos repartidos a mano en la pestaña de minería
   total:     number;  // exp extra por mena recolectada
+}
+
+/** Atributos de minería que el jugador reparte a mano (sin coste) en la pestaña. */
+export type MiningAttr = 'miningPower' | 'miningEfficiency' | 'miningExp';
+
+export interface MiningAllocations {
+  miningPower:      number;
+  miningEfficiency: number;
+  miningExp:        number;
 }
 
 export interface BaseStats {
@@ -163,8 +181,12 @@ export class CharacterStatsService {
   readonly miningEfficiency$: Observable<MiningEfficiencyBreakdown>;
   readonly woodcuttingEfficiency$: Observable<WoodcuttingEfficiencyBreakdown>;
   readonly miningPower$: Observable<MiningPowerBreakdown>;
+  readonly woodcuttingPower$: Observable<WoodcuttingPowerBreakdown>;
   readonly miningExp$:   Observable<MiningExpBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
+
+  /** Puntos de minería repartidos a mano (sin coste) en la pestaña de minería. */
+  readonly miningAlloc: MiningAllocations = { miningPower: 0, miningEfficiency: 0, miningExp: 0 };
 
   private readonly statsChanged$ = new Subject<void>();
 
@@ -190,6 +212,41 @@ export class CharacterStatsService {
     this.statsChanged$.next();
     this.syncHpMax();
     this.syncMpMax();
+  }
+
+  // ── Atributos de minería (reparto libre, sin coste) ─────────────────────────
+
+  /** Suma 1 punto al atributo de minería indicado. */
+  incrementMining(key: MiningAttr): void {
+    this.miningAlloc[key]++;
+    this.statsChanged$.next();
+  }
+
+  /** Quita 1 punto al atributo de minería indicado (mín 0). */
+  decrementMining(key: MiningAttr): void {
+    if (this.miningAlloc[key] <= 0) return;
+    this.miningAlloc[key]--;
+    this.statsChanged$.next();
+  }
+
+  /** Total de puntos repartidos a mano (para habilitar/ocultar el botón de reset). */
+  get miningAllocTotal(): number {
+    return this.miningAlloc.miningPower + this.miningAlloc.miningEfficiency + this.miningAlloc.miningExp;
+  }
+
+  /** Devuelve a 0 todos los atributos de minería subidos a mano. */
+  resetMining(): void {
+    this.miningAlloc.miningPower = 0;
+    this.miningAlloc.miningEfficiency = 0;
+    this.miningAlloc.miningExp = 0;
+    this.statsChanged$.next();
+  }
+
+  restoreMining(alloc: MiningAllocations | null | undefined): void {
+    this.miningAlloc.miningPower      = alloc?.miningPower      ?? 0;
+    this.miningAlloc.miningEfficiency = alloc?.miningEfficiency ?? 0;
+    this.miningAlloc.miningExp        = alloc?.miningExp        ?? 0;
+    this.statsChanged$.next();
   }
 
   restoreStats(stats: BaseStats): void {
@@ -231,6 +288,7 @@ export class CharacterStatsService {
     this.miningEfficiency$ = mineTrigger$.pipe(map(() => this._calcMiningEfficiency()));
     this.woodcuttingEfficiency$ = mineTrigger$.pipe(map(() => this._calcWoodcuttingEfficiency()));
     this.miningPower$ = mineTrigger$.pipe(map(() => this._calcMiningPower()));
+    this.woodcuttingPower$ = mineTrigger$.pipe(map(() => this._calcWoodcuttingPower()));
     this.miningExp$   = mineTrigger$.pipe(map(() => this._calcMiningExp()));
 
     trigger$.subscribe(() => {
@@ -311,7 +369,8 @@ export class CharacterStatsService {
       (sum, slot) => sum + (slot.item?.stats?.['miningEfficiency'] ?? 0), 0
     );
     const talents = this.talent.getBonus().miningEfficiency ?? 0;
-    return { dex, equipment, talents, total: dex + equipment + talents };
+    const manual  = this.miningAlloc.miningEfficiency;
+    return { dex, equipment, talents, manual, total: dex + equipment + talents + manual };
   }
 
   // Eficiencia de tala: skill base 0, +1 por cada 5 de Fuerza (STR); + hacha equipada
@@ -332,6 +391,17 @@ export class CharacterStatsService {
       (sum, slot) => sum + (slot.item?.stats?.['miningPower'] ?? 0), 0
     );
     const talents = 0;
+    const manual  = this.miningAlloc.miningPower;
+    return { equipment, talents, manual, total: equipment + talents + manual };
+  }
+
+  // Fuerza de tala: daño por golpe acertado a la vida del árbol. Base 0; el hacha la
+  // sube (stat woodcuttingPower). Sin talento propio aún (fuente futura).
+  private _calcWoodcuttingPower(): WoodcuttingPowerBreakdown {
+    const equipment = this.gathering.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['woodcuttingPower'] ?? 0), 0
+    );
+    const talents = 0;
     return { equipment, talents, total: equipment + talents };
   }
 
@@ -342,7 +412,8 @@ export class CharacterStatsService {
       (sum, slot) => sum + (slot.item?.stats?.['miningExp'] ?? 0), 0
     );
     const talents = 0;
-    return { equipment, talents, total: equipment + talents };
+    const manual  = this.miningAlloc.miningExp;
+    return { equipment, talents, manual, total: equipment + talents + manual };
   }
 
   private syncMpMax(): void {
@@ -382,6 +453,7 @@ export class CharacterStatsService {
   get currentMiningEfficiency(): number { return this._calcMiningEfficiency().total; }
   get currentWoodcuttingEfficiency(): number { return this._calcWoodcuttingEfficiency().total; }
   get currentMiningPower():      number { return this._calcMiningPower().total; }
+  get currentWoodcuttingPower(): number { return this._calcWoodcuttingPower().total; }
   get currentMiningExp():        number { return this._calcMiningExp().total; }
 
   private _calcCritChance(): CritChanceBreakdown {

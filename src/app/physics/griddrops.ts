@@ -368,8 +368,8 @@ const TOOLS_CATALOG: LootEntry[] = [
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,
     texture: 'pick01_main', frame: 117, scale: 2.5, order: 4,
     icon: `${PICK_ICONS}/pick_01_icon.png`,
-    stats: { miningEfficiency: 10, miningPower: 5 },   // +10 eficiencia, +5 fuerza de minado
-    description: 'Un pico de hierro robusto para picar mineral. +10 eficiencia, +5 fuerza de minado.',
+    stats: { miningEfficiency: 5, miningPower: 5 },   // +5 eficiencia, +5 fuerza de minado
+    description: 'Un pico de hierro robusto para picar mineral. +5 eficiencia, +5 fuerza de minado.',
   },
   {
     name: 'Hacha de Hierro', category: 'Hacha', type: 'item',

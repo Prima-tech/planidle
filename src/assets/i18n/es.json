@@ -176,6 +176,7 @@
     "WEAPON": "Arma",
     "SKILLS": "Habilidades",
     "NO_BONUSES": "Sin bonificaciones",
+    "ALLOCATED": "Asignado",
     "EFFECTIVE_MULT": "Multiplicador efectivo",
     "BASE_POWER": "Poder base"
   },
@@ -200,7 +201,8 @@
     "MINING": "Minería",
     "WOODCUTTING": "Tala",
     "LEVEL": "Nivel",
-    "TOTAL_GATHERED": "Recolectado"
+    "TOTAL_GATHERED": "Recolectado",
+    "RESET_ATTRS": "Restablecer atributos"
   },
   "QUESTS": {
     "AVAILABLE": "Disponibles",
