@@ -85,8 +85,10 @@
     bottom: 61px;  /* igual que forge: ventana izquierda */
     left: calc(10px + var(--safe-left, 0px));
     width: fit-content;
+    /* El marco lo pinta el :host (alto fijo); el scroll lo hace la lista interna
+       (.mcw-list). overflow visible para no recortar nada del marco. */
     background: transparent;
-    overflow-y: auto;
+    overflow: visible;
   }
   &.global-talents {
     top: 10px;

@@ -13,10 +13,13 @@ $metal: #9b9285;
 $metal-dark: #6b6357;
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   width: 292px;
-  min-height: calc(100% - 4px);
+  /* Alto fijo = llena el modal (mismo patrón que equipment): el marco no se mueve y
+     la lista interna (.mcw-list) es la única que scrollea. */
+  height: calc(100% - 4px);
   margin: 2px;
   padding: 12px 10px;
   color: $text-cream;
@@ -32,7 +35,19 @@ $metal-dark: #6b6357;
     0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
+/* Contenedor real de todo el contenido (hijo único del :host). Es quien hace de
+   columna flex que llena el alto disponible; sin esto, la lista no se constriñe
+   y no aparece el scroll. */
+.mcw-root {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
 .mcw-title {
+  flex-shrink: 0;
   text-align: center;
   font-size: 0.9em;
   font-weight: 800;
@@ -45,6 +60,7 @@ $metal-dark: #6b6357;
 
 /* Material del mapa disponible (pastilla). */
 .mcw-mat {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,6 +80,7 @@ $metal-dark: #6b6357;
 
 /* Pestañas Por completar / Completados. */
 .mcw-tabs {
+  flex-shrink: 0;
   display: flex;
   gap: 5px;
   margin-bottom: 10px;
@@ -94,7 +111,16 @@ $metal-dark: #6b6357;
   }
 }
 
-.mcw-list { display: flex; flex-direction: column; gap: 6px; }
+/* Única zona con scroll: ocupa el alto sobrante entre las pestañas y el botón
+   Restablecer (ambos fijos). min-height:0 permite que encoja y muestre la barra. */
+.mcw-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
 .mcw-empty {
   text-align: center;
@@ -190,6 +216,7 @@ $metal-dark: #6b6357;
 
 /* Botón Restablecer (vacía los completados del mapa). */
 .mcw-reset {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
