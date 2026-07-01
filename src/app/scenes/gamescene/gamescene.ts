@@ -1288,7 +1288,10 @@ export class GameScene extends Phaser.Scene {
       const playerSprite = this.physics.add.sprite(0, 0, "player");
       playerSprite.setDepth(2);
       playerSprite.scale = 2.5;
-      this.cameras.main.startFollow(playerSprite);
+      // Seguimiento con lerp (0.2) en vez de clavado: la cámara "persigue" al jugador
+      // con un pelín de retardo → sensación de peso/fluidez al moverse. roundPixels=true
+      // mantiene el pixel-art nítido (sin shimmer). Subir hacia 1 = más rígido.
+      this.cameras.main.startFollow(playerSprite, true, 0.2, 0.2);
       // Baja un poco al jugador en pantalla. Offset en unidades de mundo (~0.4 px-pantalla
       // por unidad): +75 ≈ 30px hacia abajo. Positivo = más abajo. Ajustar si hace falta.
       this.cameras.main.setFollowOffset(0, 75);
@@ -2052,6 +2055,9 @@ export class GameScene extends Phaser.Scene {
         }
         this.reg.playerBridge.setAttackToPlayer({ HP: -effectiveDamage });
         this.flashPlayer();
+        // Contundencia al recibir: temblor + destello ROJO de pantalla (más fuerte en crítico).
+        this.cameras.main.shake(isCrit ? 160 : 90, isCrit ? 0.006 : 0.003);
+        this.cameras.main.flash(isCrit ? 200 : 120, 120, 0, 0);
         this.showPlayerDamage(effectiveDamage, isCrit);
         // Un crítico enemigo empuja al jugador hacia atrás, alejándolo del enemigo.
         if (isCrit && sourceX != null && sourceY != null) {
@@ -2157,7 +2163,12 @@ export class GameScene extends Phaser.Scene {
         if (this.reg.playerBridge?.isDead) return;
         const { dmg, isCrit } = this.rollAttack();
         const hits = this.gridPhysics.attackEnemy(dmg, isCrit);
-        if (hits > 0 && isCrit) this.critFeedback();
+        if (hits > 0) {
+          // Peso en CADA golpe que conecta: crítico = hit-stop + shake fuerte;
+          // normal = micro-temblor (antes el golpe normal no tenía "punch").
+          if (isCrit) this.critFeedback();
+          else        this.cameras.main.shake(45, 0.0016);
+        }
       });
     }
 

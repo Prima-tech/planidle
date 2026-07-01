@@ -20,6 +20,17 @@ export const GRASSLANDS_TILESETS = [
     columns: 37, tilecount: 2886, imagewidth: 592, imageheight: 1248,
     tilewidth: 16, tileheight: 16, margin: 0, spacing: 0,
   },
+  // firstgids iguales a Glades.tmx para poder "lift" prefabs suyos con sus gids tal cual.
+  {
+    firstgid: 5345, name: 'Trees_rocks', image: '../biomas/grasslands/Trees_rocks.png',
+    columns: 16, tilecount: 544, imagewidth: 256, imageheight: 544,
+    tilewidth: 16, tileheight: 16, margin: 0, spacing: 0,
+  },
+  {
+    firstgid: 5889, name: 'Details', image: '../biomas/grasslands/Details.png',
+    columns: 12, tilecount: 168, imagewidth: 192, imageheight: 224,
+    tilewidth: 16, tileheight: 16, margin: 0, spacing: 0,
+  },
 ];
 
 export const BIOMES = {
@@ -30,8 +41,17 @@ export const BIOMES = {
     },
     // Charca sacada de Glades.tmx: agua (Water_detilazation gid 2459) en Base + orillas
     // (Water_coasts) en Agua. Los tiles de agua se animan en el juego (gamescene).
+    // Las charcas/ríos ya NO son stamps: se generan proceduralmente (water.mjs) con
+    // formas variadas y autotile de orillas. Aquí solo queda la decoración esparcida.
     stamps: [
-      { file: 'pond_glades', weight: 1 },
+      { file: 'deco_detail1', weight: 6 },   // matas/flores/detalles del suelo (abundantes)
+      { file: 'deco_detail2', weight: 6 },
+      { file: 'deco_detail3', weight: 6 },
+      { file: 'deco_detail4', weight: 6 },
+      { file: 'deco_detail5', weight: 6 },
+      { file: 'deco_detail6', weight: 6 },
+      { file: 'deco_obj1',    weight: 3 },   // rocas/arbustos pequeños
+      { file: 'deco_obj2',    weight: 3 },
     ],
   },
 };

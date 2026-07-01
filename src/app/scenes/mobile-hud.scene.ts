@@ -122,6 +122,9 @@ export class MobileHUDScene extends Phaser.Scene {
   private logicMax   = 0;  // pico de tiempo de lógica (GameScene.update) en la ventana
   private renderMax  = 0;  // pico de tiempo de CPU de render (emisión del batch) en la ventana
 
+  // ── Viñeta roja de vida baja (tensión ARPG) ─────────────────────────────────
+  private lowHpVignette: Phaser.GameObjects.Image | null = null;
+
   constructor() { super({ key: 'MobileHUDScene' }); }
 
   preload(): void {
@@ -143,6 +146,7 @@ export class MobileHUDScene extends Phaser.Scene {
 
     this.createMinimap(W);
     this.createFpsOverlay();
+    this.createLowHpVignette();
 
     // ── Joystick ──────────────────────────────────────────────────────────────
     const jx = 110 * DPR, jy = H - 130 * DPR;
@@ -213,6 +217,7 @@ export class MobileHUDScene extends Phaser.Scene {
 
   override update(_time: number, delta: number): void {
     this.updateFps(delta);
+    this.updateLowHpVignette(_time);
 
     // El minimapa corría a 120 fps (recorriendo enemigos/edificios/nodos y
     // reposicionando objetos cada frame). Un radar no necesita tanto: ~20 Hz basta
@@ -221,6 +226,48 @@ export class MobileHUDScene extends Phaser.Scene {
     if (this.mmAccum < 50) return;
     this.mmAccum = 0;
     this.updateMinimap();
+  }
+
+  // ── Viñeta roja de vida baja ────────────────────────────────────────────────
+
+  /** Textura de viñeta (radial: centro transparente → bordes rojos) generada una vez,
+   *  añadida fija a pantalla (esta escena no tiene zoom → px = px de canvas). */
+  private createLowHpVignette(): void {
+    const W = Math.max(1, Math.ceil(this.scale.width));
+    const H = Math.max(1, Math.ceil(this.scale.height));
+    const key = 'lowhp_vignette';
+    if (!this.textures.exists(key)) {
+      const cv = this.textures.createCanvas(key, W, H);
+      if (cv) {
+        const ctx = cv.context;
+        const cx = W / 2, cy = H / 2;
+        const grad = ctx.createRadialGradient(cx, cy, Math.min(W, H) * 0.34, cx, cy, Math.max(W, H) * 0.72);
+        grad.addColorStop(0, 'rgba(190,0,0,0)');
+        grad.addColorStop(1, 'rgba(150,0,0,0.85)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+        cv.refresh();
+      }
+    }
+    this.lowHpVignette = this.add.image(0, 0, key).setOrigin(0, 0);
+    this.lowHpVignette.setScrollFactor(0).setDepth(8000).setAlpha(0);
+  }
+
+  /** Sube el alfa de la viñeta (y la hace pulsar) cuando el HP baja del 30%. */
+  private updateLowHpVignette(time: number): void {
+    if (!this.lowHpVignette) return;
+    const pb = this.game.registry.get(REGISTRY_KEYS.PLAYER_BRIDGE);
+    const st = pb?.player?.status;
+    if (!st || pb.isDead || !st.HPMax) { this.lowHpVignette.setAlpha(0); return; }
+    const ratio  = st.HP / st.HPMax;
+    const THRESH = 0.3;
+    if (ratio > 0 && ratio <= THRESH) {
+      const sev   = 1 - ratio / THRESH;                  // 0 (en el umbral) → 1 (casi muerto)
+      const pulse = 0.55 + 0.45 * Math.sin(time / 210);  // latido suave
+      this.lowHpVignette.setAlpha((0.22 + 0.5 * sev) * pulse);
+    } else {
+      this.lowHpVignette.setAlpha(0);
+    }
   }
 
   // ── Overlay de rendimiento ────────────────────────────────────────────────────

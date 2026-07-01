@@ -71,6 +71,14 @@ const GEN_WATER_DETAIL: TilesetConfig = {
   key: 'gen-water-detail', name: 'Water_detilazation',
   image: 'assets/tilemaps/biomas/grasslands/water_detilazation.png',
 };
+const GEN_TREES: TilesetConfig = {
+  key: 'gen-trees-rocks', name: 'Trees_rocks',
+  image: 'assets/tilemaps/biomas/grasslands/Trees_rocks.png',
+};
+const GEN_DETAILS: TilesetConfig = {
+  key: 'gen-details', name: 'Details',
+  image: 'assets/tilemaps/biomas/grasslands/Details.png',
+};
 /** Tileset/tilemap de un mapa generado. El portal de avance va en (width-3, 2): ver manifest.mjs. */
 const gen = (id: string) => ({
   tilemapKey:   `gen-${id}`,
@@ -78,7 +86,7 @@ const gen = (id: string) => ({
   tilesetKey:   'gen-ground-grasss',
   tilesetImage: 'assets/tilemaps/biomas/grasslands/ground_grasss.png',
   tilesetName:  'ground_grasss',
-  extraTilesets: [GEN_WATER, GEN_WATER_DETAIL],
+  extraTilesets: [GEN_WATER, GEN_WATER_DETAIL, GEN_TREES, GEN_DETAILS],
 });
 
 /** Portal de salida (esquina superior-izquierda) — devuelve al Modo Mundo (runner).

@@ -226,6 +226,7 @@ export class Enemy {
     this.ensureHPBar();
     this.drawHPBar();
     this.flashWhite();
+    this.spawnHitSpark(isCrit);
     if (this.HP <= 0) { this.die(); return; }
     this.applyKnockback(isCrit);
     this.playHurt();
@@ -332,6 +333,17 @@ export class Enemy {
     );
     if (this.config.tint) this.sprite.setTint(this.config.tint);
     this.cachedDisplayHeight = this.sprite.displayHeight;
+
+    // Pop-in: entra con un escalado elástico (Back.Out sobre-rebota) + fade, en vez de
+    // aparecer de golpe. Arranca en 0.5× (no 0×) para que, en el caso raro de recibir un
+    // golpe durante el tween — el knockback hace killTweensOf(sprite) — no quede diminuto.
+    const baseScale = this.config.scale * SCALE_BOOST;
+    this.sprite.setScale(baseScale * 0.5);
+    this.sprite.setAlpha(0.35);
+    this.mainScene.tweens.add({
+      targets: this.sprite, scaleX: baseScale, scaleY: baseScale, alpha: 1,
+      duration: 200, ease: 'Back.Out',
+    });
   }
 
   private setState(next: EnemyState) {
@@ -410,6 +422,8 @@ export class Enemy {
       return;
     }
 
+    this.spawnAttackTell();   // telegrafía el golpe entrante (ya sabemos que ataca)
+
     // Retrasa el daño ~40% de la duración de la animación para que coincida
     // visualmente con el impacto, en lugar de aplicarse al primer frame.
     const attackCfg = this.config.actions.attack;
@@ -441,6 +455,84 @@ export class Enemy {
 
   private resolveAttackAnim(): string {
     return 'attack';
+  }
+
+  // Énfasis al matar un enemigo especial (élite/oblivion): shake fuerte + destello
+  // blanco + micro cámara-lenta (freeze real ~90ms, igual patrón que el crítico del player).
+  private specialKillFeedback(): void {
+    const cam = this.mainScene.cameras.main;
+    cam.shake(220, 0.009);
+    cam.flash(180, 255, 255, 255);
+    this.mainScene.scene.pause();
+    setTimeout(() => this.mainScene.scene.resume(), 90);
+  }
+
+  // Estallido de muerte: destello + anillo expansivo + trozos radiales (del color del
+  // enemigo). Objetos propios de vida corta → coste GPU mínimo. El loot ya sale volando
+  // aparte (gridDrops.spawnDrop con `from` = enemigo).
+  private spawnDeathPop(): void {
+    const cx = this.sprite.x;
+    const cy = this.sprite.y - this.sprite.displayHeight * 0.25;
+
+    const flash = this.mainScene.add.circle(cx, cy, 16, 0xffffff, 0.9);
+    flash.setDepth(6000);
+    this.mainScene.tweens.add({
+      targets: flash, scale: 2.2, alpha: 0, duration: 190, ease: 'Quad.easeOut',
+      onComplete: () => flash.destroy(),
+    });
+
+    const ring = this.mainScene.add.circle(cx, cy, 10, 0xffffff, 0);
+    ring.setStrokeStyle(4, 0xffffff, 0.85);
+    ring.setDepth(6000);
+    this.mainScene.tweens.add({
+      targets: ring, scale: 4, alpha: 0, duration: 320, ease: 'Quad.easeOut',
+      onComplete: () => ring.destroy(),
+    });
+
+    const color = this.config.tint ?? 0xffffff;
+    const n = 7;
+    for (let i = 0; i < n; i++) {
+      const chip = this.mainScene.add.circle(cx, cy, Phaser.Math.Between(3, 6), color, 1);
+      chip.setDepth(6000);
+      const ang  = (Math.PI * 2 * i) / n + Phaser.Math.FloatBetween(-0.3, 0.3);
+      const dist = Phaser.Math.Between(30, 62);
+      this.mainScene.tweens.add({
+        targets: chip,
+        x: cx + Math.cos(ang) * dist,
+        y: cy + Math.sin(ang) * dist * 0.7,   // achatado (perspectiva)
+        alpha: 0, scale: 0.3,
+        duration: Phaser.Math.Between(260, 420), ease: 'Quad.easeOut',
+        onComplete: () => chip.destroy(),
+      });
+    }
+  }
+
+  // Chispa blanca de impacto al recibir un golpe: círculo que crece y se desvanece
+  // (objeto propio, no toca el sprite → no compite con el knockback). Más grande en crítico.
+  private spawnHitSpark(isCrit: boolean): void {
+    const x = this.sprite.x + Phaser.Math.Between(-8, 8);
+    const y = this.sprite.y - this.sprite.displayHeight * 0.30;
+    const spark = this.mainScene.add.circle(x, y, isCrit ? 12 : 8, 0xffffff, 0.9);
+    spark.setDepth(6000);
+    this.mainScene.tweens.add({
+      targets: spark, scale: isCrit ? 3.2 : 2.2, alpha: 0,
+      duration: isCrit ? 260 : 170, ease: 'Quad.easeOut',
+      onComplete: () => spark.destroy(),
+    });
+  }
+
+  // Telegrafía de ataque: anillo naranja que se expande bajo el enemigo justo al
+  // iniciar el golpe, para que el jugador lo lea venir (objeto propio, sin riesgo).
+  private spawnAttackTell(): void {
+    const x = this.sprite.x;
+    const y = this.sprite.y - this.sprite.displayHeight * 0.22;
+    const ring = this.mainScene.add.circle(x, y, 8, 0xff5a3c, 0);
+    ring.setStrokeStyle(3, 0xff5a3c, 0.9);
+    ring.setDepth(4500);
+    this.mainScene.tweens.add({
+      targets: ring, scale: 3.4, alpha: 0, duration: 300, ease: 'Quad.easeOut',
+      onComplete: () => ring.destroy(),
+    });
   }
 
   // Flash blanco de impacto: tinte sólido un instante y restaurar el tinte propio
@@ -513,6 +605,9 @@ export class Enemy {
     this.isDead = true;
     this.isChasing = false;
     this.state = 'death';
+    this.spawnDeathPop();   // estallido al morir (el loot ya sale volando aparte)
+    // Kills especiales (élite/oblivion): énfasis extra para que se sientan un evento.
+    if (this.type.endsWith('_elite') || this.type.endsWith('_oblivion')) this.specialKillFeedback();
     this.sprite.off(Phaser.Animations.Events.ANIMATION_COMPLETE);
     this.hpBarTrack?.destroy();
     this.hpBarFill?.destroy();

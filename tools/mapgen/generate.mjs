@@ -4,6 +4,7 @@ import path from 'node:path';
 import { makeRng } from './rng.mjs';
 import { loadStamp, buildTmj } from './tmj.mjs';
 import { BIOMES } from './biomes.mjs';
+import { generateWater } from './water.mjs';
 
 const STAMP_DIR = path.join(import.meta.dirname, 'stamps');
 
@@ -39,6 +40,10 @@ export function generateMap(opts) {
   for (let x = 0; x < W; x++) { clear.add(`${x},0`); clear.add(`${x},${H - 1}`); }
   for (let y = 0; y < H; y++) { clear.add(`0,${y}`); clear.add(`${W - 1},${y}`); }
   for (const k of clear) occupied.add(k);
+
+  // --- agua procedural (charcas de forma variada + río con vado) ANTES de decorar ---
+  // Autotileada con las piezas del pack; verifica que no aísle los portales.
+  generateWater(rng, { W, H, base, agua, collision, occupied, spawn: opts.spawn, portals: opts.portals });
 
   // --- cargar stamps del bioma ---
   const stamps = biome.stamps.map(s => ({
