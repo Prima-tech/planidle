@@ -16,6 +16,7 @@ import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
 import { NATIVE_DPR, playerTags } from "./constants";
+import { spawnFloatingText } from "./floating-text";
 import { BuildableDef, PlacedBuilding, stationFrameRect } from "src/app/services/city-build.service";
 import { HOME_CHEST_ID } from "src/app/services/town-chest.service";
 import { PARALLAX_THEMES, ParallaxThemeId, ParallaxLayer, ParallaxTheme } from "./parallax-themes";
@@ -252,6 +253,7 @@ export class GameScene extends Phaser.Scene {
     private pendingDashAnimDir: Direction | null = null;
     // Auto-ataque: objetivo fijo + anti-atasco
     private autoTarget: Enemy | null = null;
+    private autoTargetMarker: Phaser.GameObjects.Text | null = null; // "▼" sobre el objetivo actual
     private autoStuckMs = 0;
     private autoLastX = 0;
     private autoLastY = 0;
@@ -657,6 +659,7 @@ export class GameScene extends Phaser.Scene {
       const autoPaused = auto?.isPausedByManual ?? false;
       if (auto?.isEnabled && !autoPaused) this.runAutoAttack(delta);
       if (auto?.skillsEnabled && !autoPaused) this.runAutoSkills(delta);
+      this.updateAutoTargetMarker(auto?.isEnabled === true && !autoPaused);
       this.gridPhysics.update(delta);
 
       // Contexto del botón de acción: cofre cerca → abrir cofre; si no, tienda
@@ -857,6 +860,31 @@ export class GameScene extends Phaser.Scene {
     // (HUD + barra de skills), con una pausa entre casts para que se encadenen
     // con ritmo en vez de dispararse todas a la vez. Mismo camino que pulsar el
     // botón (request → activate$): respeta maná, cooldown y daño por esfera.
+    /** Flechita "▼" flotando sobre el objetivo actual del auto-ataque: con varios
+     *  enemigos en pantalla hace legible a por cuál va el personaje. Se oculta sin
+     *  objetivo, con el auto apagado o pausado por input manual. */
+    private updateAutoTargetMarker(autoActive: boolean): void {
+      // El restart de escena destruye el texto pero el campo sobrevive (la instancia
+      // de GameScene se reutiliza) → soltar la referencia muerta.
+      if (this.autoTargetMarker && !this.autoTargetMarker.active) this.autoTargetMarker = null;
+
+      const t = this.autoTarget;
+      if (!autoActive || !t || t.isDead || !t.sprite?.active) {
+        this.autoTargetMarker?.setVisible(false);
+        return;
+      }
+      if (!this.autoTargetMarker) {
+        this.autoTargetMarker = this.add.text(0, 0, '▼', {
+          fontSize: '26px', color: '#ffd700', fontStyle: 'bold',
+          stroke: '#000000', strokeThickness: 5,
+        }).setOrigin(0.5, 1).setDepth(6000);
+      }
+      const bob = Math.sin(this.time.now / 160) * 3;   // balanceo suave
+      this.autoTargetMarker
+        .setVisible(true)
+        .setPosition(t.sprite.x, t.sprite.y - t.sprite.displayHeight * 0.45 + bob);
+    }
+
     private runAutoSkills(delta: number): void {
       this.autoSkillGapMs -= delta;
       if (this.autoSkillGapMs > 0) return;
@@ -1698,9 +1726,35 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
+    /** Estallido dorado al subir de nivel: anillo expansivo + partículas radiales
+     *  desde el jugador + destello (destello respeta el ajuste de efectos). */
+    private spawnLevelUpBurst(x: number, y: number): void {
+      const ring = this.add.circle(x, y, 12, 0xffe680, 0);
+      ring.setStrokeStyle(5, 0xffd700, 0.9);
+      ring.setDepth(5999);
+      this.tweens.add({
+        targets: ring, scale: 5, alpha: 0, duration: 500, ease: 'Quad.easeOut',
+        onComplete: () => ring.destroy(),
+      });
+      const n = 12;
+      for (let i = 0; i < n; i++) {
+        const p = this.add.circle(x, y, Phaser.Math.Between(3, 6), 0xffd700, 1);
+        p.setDepth(5999);
+        const ang  = (Math.PI * 2 * i) / n;
+        const dist = Phaser.Math.Between(50, 100);
+        this.tweens.add({
+          targets: p, x: x + Math.cos(ang) * dist, y: y + Math.sin(ang) * dist * 0.8 - 20,
+          alpha: 0, scale: 0.3, duration: Phaser.Math.Between(500, 800), ease: 'Quad.easeOut',
+          onComplete: () => p.destroy(),
+        });
+      }
+      this.fxFlash(260, 90, 70, 0);   // destello dorado tenue
+    }
+
     private showLevelUp(): void {
       this.lvlUpText?.destroy();
       const pos = this.player.getPosition();
+      this.spawnLevelUpBurst(pos.x, pos.y);
       const txt = this.add.text(pos.x, pos.y - 160, 'LVL UP!', {
         fontSize: '52px',        // más grande que el daño (28px) y el crítico (48px)
         fontStyle: 'bold',
@@ -2036,10 +2090,18 @@ export class GameScene extends Phaser.Scene {
 
 
     initEnemyAttackListener() {
-      this.events.on('enemyAttackPlayer', ({ damage, isCrit, sourceX, sourceY }: { damage: number; isCrit?: boolean; sourceX?: number; sourceY?: number }) => {
+      this.events.on('enemyAttackPlayer', ({ damage, isCrit, sourceX, sourceY, knockback }: { damage: number; isCrit?: boolean; sourceX?: number; sourceY?: number; knockback?: boolean }) => {
         const now = this.time.now;
-        if (now - this.lastDamageTime < 500) return;
+        // Anti-stack: ventana mínima para que dos golpes que impactan el MISMO instante
+        // no se sientan uno doble injusto. El ritmo real de daño lo marca el cooldown
+        // de CADA enemigo → más enemigos encima = más daño (antes 500ms globales
+        // capaban a las hordas al DPS de un solo enemigo).
+        if (now - this.lastDamageTime < 150) return;
         this.lastDamageTime = now;
+
+        // Modo admin: invulnerable (damagePlayer ya ignora el daño) → tampoco
+        // feedback de golpe (tinte/temblor/destello/número, que parecía un bug).
+        if (this.reg.admin?.isAdmin) return;
 
         const evasion = this.reg.charStats?.currentEvasion ?? 0;
         if (evasion > 0 && Math.random() * 100 < evasion) {
@@ -2053,14 +2115,20 @@ export class GameScene extends Phaser.Scene {
           this.showPlayerImmune();
           return;
         }
-        this.reg.playerBridge.setAttackToPlayer({ HP: -effectiveDamage });
+        this.reg.playerBridge.damagePlayer(effectiveDamage);
         this.flashPlayer();
-        // Contundencia al recibir: temblor + destello ROJO de pantalla (más fuerte en crítico).
-        this.cameras.main.shake(isCrit ? 160 : 90, isCrit ? 0.006 : 0.003);
-        this.cameras.main.flash(isCrit ? 200 : 120, 120, 0, 0);
+        // Contundencia al recibir: temblor siempre; el destello ROJO de pantalla solo
+        // en golpes que duelen de verdad (≥ 1/4 de la vida máxima) — con golpes
+        // frecuentes y flojos la pantalla parpadeaba sin parar.
+        this.fxShake(isCrit ? 160 : 90, isCrit ? 0.006 : 0.003);
+        const hpMax = this.reg.playerBridge.player?.status?.HPMax ?? 100;
+        if (effectiveDamage >= hpMax * 0.25) {
+          this.fxFlash(isCrit ? 200 : 120, 120, 0, 0);
+        }
         this.showPlayerDamage(effectiveDamage, isCrit);
-        // Un crítico enemigo empuja al jugador hacia atrás, alejándolo del enemigo.
-        if (isCrit && sourceX != null && sourceY != null) {
+        // Empuja al jugador hacia atrás: crítico enemigo o golpes con empujón
+        // propio (la embestida siempre atropella).
+        if ((isCrit || knockback) && sourceX != null && sourceY != null) {
           this.knockbackPlayer(sourceX, sourceY);
         }
       });
@@ -2156,9 +2224,10 @@ export class GameScene extends Phaser.Scene {
       // la barra vuelve a la espada sin fijar la actividad aquí a mano.
       this.setActiveHarvest(null);
       if (this.rangedWeapon) { this.rangedStrike(); return; }
-      this.player.playerAttack();
+      const ts = this.attackTimeScale();
+      this.player.playerAttack(false, ts);
       const anim  = this.player.getSprite().anims.currentAnim;
-      const delay = anim ? Math.round(anim.duration * 0.4) : 150;
+      const delay = anim ? Math.round(anim.duration * 0.4 / ts) : 150;
       this.time.delayedCall(delay, () => {
         if (this.reg.playerBridge?.isDead) return;
         const { dmg, isCrit } = this.rollAttack();
@@ -2166,8 +2235,9 @@ export class GameScene extends Phaser.Scene {
         if (hits > 0) {
           // Peso en CADA golpe que conecta: crítico = hit-stop + shake fuerte;
           // normal = micro-temblor (antes el golpe normal no tenía "punch").
+          this.reg.audio?.play('hit');
           if (isCrit) this.critFeedback();
-          else        this.cameras.main.shake(45, 0.0016);
+          else        this.fxShake(45, 0.0016);
         }
       });
     }
@@ -2371,20 +2441,11 @@ export class GameScene extends Phaser.Scene {
      *  herramienta (estilo del número de daño de enemigos, en rojo). */
     private showNeedToolText(node: HarvestNode): void {
       const kind = HARVEST_KINDS[node.kind];
-      const x = node.sprite.x + Phaser.Math.Between(-20, 20);
-      const y = node.sprite.y - GameScene.TILE_SIZE * 1.8;   // bien por encima del recurso
-      const text = this.add.text(x, y, `need ${kind.toolSlotId}`, {
-        fontSize:        '32px',
-        color:           '#ffd700',
-        fontStyle:       'bold',
-        stroke:          '#000000',
-        strokeThickness: 7,
-      });
-      text.setOrigin(0.5, 1).setDepth(5000);
-      this.tweens.add({
-        targets: text, y: y - 45, alpha: 0, duration: 1300, ease: 'Power2',
-        onComplete: () => text.destroy(),
-      });
+      spawnFloatingText(this,
+        node.sprite.x + Phaser.Math.Between(-20, 20),
+        node.sprite.y - GameScene.TILE_SIZE * 1.8,   // bien por encima del recurso
+        `need ${kind.toolSlotId}`,
+        { fontSize: 32, color: '#ffd700', strokeThickness: 7, rise: 45, duration: 1300 });
     }
 
     /** Eficiencia de minado del personaje (stat derivado): floor(DEX/5) + pico + talento.
@@ -2426,17 +2487,9 @@ export class GameScene extends Phaser.Scene {
 
     /** Número de daño flotante sobre una mena al picarla (como el daño a enemigos). */
     private showMiningDamage(node: HarvestNode, amount: number): void {
-      const x = node.sprite.x + Phaser.Math.Between(-18, 18);
-      const y = node.sprite.y - GameScene.TILE_SIZE * 1.2;
-      const text = this.add.text(x, y, `-${amount}`, {
-        fontSize: '24px', color: '#ffe08a', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 5,
-      });
-      text.setOrigin(0.5, 1).setDepth(5000);
-      this.tweens.add({
-        targets: text, y: y - 36, alpha: 0, duration: 800, ease: 'Power2',
-        onComplete: () => text.destroy(),
-      });
+      spawnFloatingText(this,
+        node.sprite.x + Phaser.Math.Between(-18, 18), node.sprite.y - GameScene.TILE_SIZE * 1.2,
+        `-${amount}`, { fontSize: 24, color: '#ffe08a', strokeThickness: 5, rise: 36, duration: 800 });
     }
 
     /** Barra de vida del recurso: se crea de forma perezosa cuando el recurso baja del
@@ -2470,17 +2523,9 @@ export class GameScene extends Phaser.Scene {
 
     /** Texto flotante "MISS" sobre una mena cuando el golpe falla por falta de eficiencia. */
     private showMissText(node: HarvestNode): void {
-      const x = node.sprite.x + Phaser.Math.Between(-18, 18);
-      const y = node.sprite.y - GameScene.TILE_SIZE * 1.2;
-      const text = this.add.text(x, y, 'MISS', {
-        fontSize: '26px', color: '#d8d8d8', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 6,
-      });
-      text.setOrigin(0.5, 1).setDepth(5000);
-      this.tweens.add({
-        targets: text, y: y - 40, alpha: 0, duration: 900, ease: 'Power2',
-        onComplete: () => text.destroy(),
-      });
+      spawnFloatingText(this,
+        node.sprite.x + Phaser.Math.Between(-18, 18), node.sprite.y - GameScene.TILE_SIZE * 1.2,
+        'MISS', { fontSize: 26, color: '#d8d8d8', rise: 40, duration: 900 });
     }
 
     private harvestNode(node: HarvestNode): void {
@@ -2532,7 +2577,8 @@ export class GameScene extends Phaser.Scene {
       const impactY = s.y - GameScene.TILE_SIZE * 0.8;
       this.spawnImpactSpark(s.x, impactY);
       this.spawnDebris(s.x, impactY, 8, kind.debris);
-      this.cameras.main.shake(70, 0.0035);
+      this.fxShake(70, 0.0035);
+      this.reg.audio?.play('mine');
 
       if (destroyed) this.destroyNode(node);
     }
@@ -2578,7 +2624,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
       this.spawnDebris(s.x, s.y - GameScene.TILE_SIZE * 0.8, 16, kind.debris);   // estallido mayor
-      this.cameras.main.shake(120, 0.005);
+      this.fxShake(120, 0.005);
       this.tweens.killTweensOf(s);
       const baseScale = this.harvestScale(node.kind);
       this.tweens.add({
@@ -2640,11 +2686,14 @@ export class GameScene extends Phaser.Scene {
     private rangedStrike(): void {
       const cfg = SKILL_REGISTRY['fireball'];
       const target = this.findNearestEnemy(cfg.range * 3);
+      const ts = this.attackTimeScale();
+      this.player.playerAttack(true, ts);   // bastón → estocada (thrust), sincroniza con su capa
+      // Sin objetivo: la estocada se lanza igual (que el botón no se sienta muerto),
+      // solo que al aire y sin proyectil.
       if (!target) return;
-      this.player.playerAttack(true);   // bastón → estocada (thrust), sincroniza con su capa
       // El proyectil sale al ~60% de la animación de ataque.
       const anim  = this.player.getSprite().anims.currentAnim;
-      const delay = anim ? Math.round(anim.duration * 0.6) : 250;
+      const delay = anim ? Math.round(anim.duration * 0.6 / ts) : 250;
       this.time.delayedCall(delay, () => {
         if (this.reg.playerBridge?.isDead || target.isDead) return;
         const { dmg, isCrit } = this.rollAttack(this.playerMagicDamage);
@@ -2659,8 +2708,17 @@ export class GameScene extends Phaser.Scene {
       this.scene.pause();
       setTimeout(() => {
         this.scene.resume();
-        this.cameras.main.shake(100, 0.0035);
+        this.fxShake(100, 0.0035);
       }, 60);
+    }
+
+    // Efectos de pantalla (temblor/destello) respetando el ajuste "screenShake": si el
+    // jugador lo desactiva (partidas AFK largas), no hay sacudidas ni flashes.
+    private fxShake(duration: number, intensity: number): void {
+      if (this.reg.gameSettings?.screenShake ?? true) this.cameras.main.shake(duration, intensity);
+    }
+    private fxFlash(duration: number, r: number, g: number, b: number): void {
+      if (this.reg.gameSettings?.screenShake ?? true) this.cameras.main.flash(duration, r, g, b);
     }
 
     private rollAttack(baseDamage = this.playerDamage): { dmg: number; isCrit: boolean } {
@@ -2669,7 +2727,28 @@ export class GameScene extends Phaser.Scene {
       const critChance = this.reg.charStats?.currentCritChance ?? 10;
       const isCrit     = Math.random() * 100 < critChance;
       const critMult   = isCrit ? (this.reg.charStats?.currentCritDamage ?? 150) / 100 : 1;
-      return { dmg: Math.floor(baseDamage * critMult), isCrit };
+      // Varianza ±10%: que los golpes no peguen siempre el mismo número exacto.
+      const variance = 0.9 + Math.random() * 0.2;
+      return { dmg: Math.floor(baseDamage * variance * critMult), isCrit };
+    }
+
+    /** Multiplicador de velocidad del golpe básico (animación + momento del daño):
+     *  1 + velocidad de ataque/100 (stat derivado de DEX + equipo + buffs). */
+    private attackTimeScale(): number {
+      return 1 + (this.reg.charStats?.currentAttackSpeed ?? 0) / 100;
+    }
+
+    /** Línea de visión: muestrea el segmento cada medio tile; un tile con colisión la
+     *  corta. La usan el bastón y las skills para no apuntar a través de muros. */
+    private hasLineOfSight(x1: number, y1: number, x2: number, y2: number): boolean {
+      const step  = GameScene.TILE_SIZE / 2;
+      const dist  = Phaser.Math.Distance.Between(x1, y1, x2, y2);
+      const steps = Math.floor(dist / step);
+      for (let i = 1; i < steps; i++) {
+        const t = i / steps;
+        if (this.gridPhysics.isTileBlocked(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t)) return false;
+      }
+      return true;
     }
 
     private flashPlayer() {
@@ -2680,49 +2759,27 @@ export class GameScene extends Phaser.Scene {
 
     private showPlayerImmune(): void {
       const sprite = this.player.getSprite();
-      const x = sprite.x + Phaser.Math.Between(-20, 20);
-      const y = sprite.y - sprite.displayHeight * 0.5;
-      const text = this.add.text(x, y, 'IMMUNE', {
-        fontSize: '22px', color: '#f0a020', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 5,
-      });
-      text.setOrigin(0.5, 1).setDepth(5000);
-      this.tweens.add({
-        targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
-        onComplete: () => text.destroy(),
-      });
+      spawnFloatingText(this,
+        sprite.x + Phaser.Math.Between(-20, 20), sprite.y - sprite.displayHeight * 0.5,
+        'IMMUNE', { fontSize: 22, color: '#f0a020', strokeThickness: 5 });
     }
 
     private showPlayerMiss(): void {
       const sprite = this.player.getSprite();
-      const x = sprite.x + Phaser.Math.Between(-20, 20);
-      const y = sprite.y - sprite.displayHeight * 0.5;
-      const text = this.add.text(x, y, 'EVADE', {
-        fontSize: '24px', color: '#1abc9c', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 5,
-      });
-      text.setOrigin(0.5, 1).setDepth(5000);
-      this.tweens.add({
-        targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
-        onComplete: () => text.destroy(),
-      });
+      spawnFloatingText(this,
+        sprite.x + Phaser.Math.Between(-20, 20), sprite.y - sprite.displayHeight * 0.5,
+        'EVADE', { fontSize: 24, color: '#1abc9c', strokeThickness: 5 });
     }
 
     private showPlayerDamage(amount: number, isCrit = false): void {
       const sprite = this.player.getSprite();
-      const x = sprite.x + Phaser.Math.Between(-20, 20);
-      const y = sprite.y - sprite.displayHeight * 0.5;
-      const text = this.add.text(x, y, isCrit ? `-${amount}!` : `-${amount}`, {
-        fontSize: isCrit ? '36px' : '28px',
-        color:    isCrit ? '#ff8800' : '#ff4444',   // crítico en naranja y más grande
-        fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: isCrit ? 7 : 6,
-      });
-      text.setOrigin(0.5, 1).setDepth(5000);
-      this.tweens.add({
-        targets: text, y: y - 35, alpha: 0, duration: 700, ease: 'Power2',
-        onComplete: () => text.destroy(),
-      });
+      spawnFloatingText(this,
+        sprite.x + Phaser.Math.Between(-20, 20), sprite.y - sprite.displayHeight * 0.5,
+        isCrit ? `-${amount}!` : `-${amount}`, {
+          fontSize:        isCrit ? 36 : 28,
+          color:           isCrit ? '#ff8800' : '#ff4444',   // crítico en naranja y más grande
+          strokeThickness: isCrit ? 7 : 6,
+        });
     }
 
     // Empujón corto del jugador alejándose del enemigo que ha hecho crítico.
@@ -3649,7 +3706,10 @@ export class GameScene extends Phaser.Scene {
         const dx = ePos.x - playerPos.x;
         const dy = ePos.y - playerPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist <= RANGE && dist < nearestDist) { nearest = enemy; nearestDist = dist; }
+        if (dist <= RANGE && dist < nearestDist
+          && this.hasLineOfSight(playerPos.x, playerPos.y, ePos.x, ePos.y)) {
+          nearest = enemy; nearestDist = dist;
+        }
       }
       return nearest;
     }

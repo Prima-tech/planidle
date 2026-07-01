@@ -1,37 +1,42 @@
-// Generación procedural de agua: charcas de forma variada + río, autotileado con las
-// piezas de orilla del pack (water-autotile.json). Escribe agua de fondo en `base`,
-// orillas en `agua`, y colisión. Verifica conectividad para no aislar los portales.
+// Generación procedural de agua: lagos/charcas rectangulares con las piezas de
+// orilla del pack (water-autotile.json). El arte del pack (Water_coasts) solo
+// cubre rectángulos redondeados: lados rectos con secuencia inicio/medio/fin,
+// esquinas del rect en hierba pura (sin agua debajo) y follaje en las diagonales
+// interiores — NO hay piezas para escalones diagonales, así que nada de óvalos.
+// Esquema extraído a mano de la charca 5×5 de Glades.tmx.
+// Escribe agua de fondo en `base`, orillas en `agua`, y colisión. Verifica
+// conectividad para no aislar los portales.
+// Devuelve { cells } para que generate.mjs ponga las flores cerca del agua.
 import fs from 'node:fs';
 import path from 'node:path';
 
 const AT = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, 'water-autotile.json'), 'utf8'));
 const K = (x, y) => `${x},${y}`;
-const popcount = (n) => { let c = 0; while (n) { c += n & 1; n >>= 1; } return c; };
 
-function classify(x, y, has) {
-  const inN = has(x, y - 1), inE = has(x + 1, y), inS = has(x, y + 1), inW = has(x - 1, y);
-  const card = (inN ? 0 : 1) | (inE ? 0 : 2) | (inS ? 0 : 4) | (inW ? 0 : 8);
-  if (card) return { t: 'E', m: card };
-  const inNE = has(x + 1, y - 1), inSE = has(x + 1, y + 1), inSW = has(x - 1, y + 1), inNW = has(x - 1, y - 1);
-  const diag = (inNE ? 0 : 1) | (inSE ? 0 : 2) | (inSW ? 0 : 4) | (inNW ? 0 : 8);
-  if (diag) return { t: 'C', m: diag };
-  return null;   // interior → agua sin orilla
+// Secuencia de un lado con esquinas: start, medios variados, end.
+function edgeSeq(rng, side, len) {
+  const seq = [side.start];
+  while (seq.length < len - 1) seq.push(rng.pick(side.mid));
+  if (len >= 2) seq.push(side.end);
+  return seq;
 }
-function coastLocal(cls) {
-  if (cls.t === 'E') {
-    if (AT.edges[cls.m] != null) return AT.edges[cls.m];
-    let best = null, bd = -1;                         // fallback: config con más bits en común
-    for (const k in AT.edges) { const d = 4 - popcount((+k) ^ cls.m); if (d > bd) { bd = d; best = AT.edges[k]; } }
-    return best;
+
+// Lago w×h (relativo a 0,0): fill = rect menos las 4 esquinas; coast por posición.
+function buildPond(rng, w, h) {
+  const R = AT.rect;
+  const fill = new Set(), coast = new Map();
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if ((x === 0 || x === w - 1) && (y === 0 || y === h - 1)) continue;   // esquinas = hierba
+    fill.add(K(x, y));
   }
-  return AT.corners[cls.m] ?? AT.corners[Object.keys(AT.corners)[0]];
+  const n = edgeSeq(rng, R.n, w - 2), s = edgeSeq(rng, R.s, w - 2);
+  const wSeq = edgeSeq(rng, R.w, h - 2), e = edgeSeq(rng, R.e, h - 2);
+  for (let i = 0; i < w - 2; i++) { coast.set(K(1 + i, 0), n[i]); coast.set(K(1 + i, h - 1), s[i]); }
+  for (let i = 0; i < h - 2; i++) { coast.set(K(0, 1 + i), wSeq[i]); coast.set(K(w - 1, 1 + i), e[i]); }
+  coast.set(K(1, 1), R.innerNW); coast.set(K(w - 2, 1), R.innerNE);
+  coast.set(K(1, h - 2), R.innerSW); coast.set(K(w - 2, h - 2), R.innerSE);
+  return { fill, coast };
 }
-
-// --- formas (footprint relativo) ---
-function circle(r) { const s = new Set(); const c = r + 1; for (let y = 0; y <= 2 * r + 2; y++) for (let x = 0; x <= 2 * r + 2; x++) { const dx = x - c, dy = y - c; if (dx * dx + dy * dy <= r * r + r * 0.6) s.add(K(x, y)); } return s; }
-function oval(rx, ry) { const s = new Set(); const cx = rx + 1, cy = ry + 1; for (let y = 0; y <= 2 * ry + 2; y++) for (let x = 0; x <= 2 * rx + 2; x++) { const dx = (x - cx) / rx, dy = (y - cy) / ry; if (dx * dx + dy * dy <= 1.05) s.add(K(x, y)); } return s; }
-
-function bbox(foot) { const xs = [...foot].map(k => +k.split(',')[0]), ys = [...foot].map(k => +k.split(',')[1]); return { minx: Math.min(...xs), miny: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs) + 1, h: Math.max(...ys) - Math.min(...ys) + 1 }; }
 
 // BFS: ¿el spawn alcanza todos los portales evitando `blocked`?
 function connected(W, H, blocked, spawn, portals) {
@@ -47,74 +52,35 @@ function connected(W, H, blocked, spawn, portals) {
   return portals.every(p => seen.has(K(p.x, p.y)));
 }
 
-// coloca un footprint global si cabe y no aísla portales. Devuelve true si lo colocó.
-function tryPlace(gfoot, fordCells, ctx) {
+// Coloca un lago en (ox,oy) si cabe y no aísla portales. Devuelve true si lo colocó.
+function tryPlacePond(pond, ox, oy, ctx) {
   const { W, H, base, agua, collision, occupied, spawn, portals } = ctx;
-  for (const k of gfoot) { const [x, y] = k.split(',').map(Number); if (x < 1 || y < 1 || x >= W - 1 || y >= H - 1) return false; }
-  for (const k of gfoot) { const [x, y] = k.split(',').map(Number); for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (occupied.has(K(x + dx, y + dy))) return false; }
-  const featColl = new Set([...gfoot].filter(k => !fordCells.has(k)));
-  const testBlocked = new Set(collision); for (const k of featColl) testBlocked.add(k);
+  const gFill = new Set([...pond.fill].map(k => { const [x, y] = k.split(',').map(Number); return K(ox + x, oy + y); }));
+  for (const k of gFill) { const [x, y] = k.split(',').map(Number); if (x < 2 || y < 2 || x >= W - 2 || y >= H - 2) return false; }
+  for (const k of gFill) { const [x, y] = k.split(',').map(Number); for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (occupied.has(K(x + dx, y + dy))) return false; }
+  const testBlocked = new Set(collision); for (const k of gFill) testBlocked.add(k);
   if (!connected(W, H, testBlocked, spawn, portals)) return false;
   // commit
-  const has = (x, y) => gfoot.has(K(x, y));
-  for (const k of gfoot) { const [x, y] = k.split(',').map(Number); base[y * W + x] = AT.fillGid; }
-  for (const k of gfoot) { const [x, y] = k.split(',').map(Number); const cls = classify(x, y, has); if (cls) agua[y * W + x] = AT.firstgid + coastLocal(cls); }
-  for (const k of featColl) collision.add(k);
-  for (const k of gfoot) { const [x, y] = k.split(',').map(Number); for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) occupied.add(K(x + dx, y + dy)); }
-  return true;
-}
-
-function offset(foot, ox, oy) { return new Set([...foot].map(k => { const [x, y] = k.split(',').map(Number); return K(ox + x, oy + y); })); }
-
-// El río puede cruzar el borde (sale del mapa) y no usa `occupied`; solo evita el
-// núcleo de spawn/portales y exige que el vado mantenga conectados los portales.
-function placeRiver(foot, fordCells, ctx) {
-  const { W, H, base, agua, collision, occupied, spawn, portals } = ctx;
-  const near = (x, y, px, py, r) => Math.abs(x - px) <= r && Math.abs(y - py) <= r;
-  for (const k of foot) {
-    const [x, y] = k.split(',').map(Number);
-    if (x < 0 || y < 0 || x >= W || y >= H) return false;
-    if (near(x, y, spawn.x, spawn.y, 5)) return false;
-    for (const p of portals) if (near(x, y, p.x, p.y, 2)) return false;
-  }
-  const featColl = new Set([...foot].filter(k => !fordCells.has(k)));
-  const testBlocked = new Set(collision); for (const k of featColl) testBlocked.add(k);
-  if (!connected(W, H, testBlocked, spawn, portals)) return false;
-  const has = (x, y) => foot.has(K(x, y));
-  for (const k of foot) { const [x, y] = k.split(',').map(Number); base[y * W + x] = AT.fillGid; }
-  for (const k of foot) { const [x, y] = k.split(',').map(Number); const cls = classify(x, y, has); if (cls) agua[y * W + x] = AT.firstgid + coastLocal(cls); }
-  for (const k of featColl) collision.add(k);
-  for (const k of foot) { const [x, y] = k.split(',').map(Number); for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (x + dx >= 0 && y + dy >= 0 && x + dx < W && y + dy < H) occupied.add(K(x + dx, y + dy)); }
+  for (const k of gFill) { const [x, y] = k.split(',').map(Number); base[y * W + x] = AT.fillGid; collision.add(k); }
+  for (const [k, local] of pond.coast) { const [x, y] = k.split(',').map(Number); agua[(oy + y) * W + ox + x] = AT.firstgid + local; }
+  for (const k of gFill) { const [x, y] = k.split(',').map(Number); for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) occupied.add(K(x + dx, y + dy)); }
+  for (const k of gFill) ctx.waterCells.add(k);
   return true;
 }
 
 export function generateWater(rng, ctx) {
   const { W, H } = ctx;
-  // --- charcas ---
-  const nPonds = rng.int(2, 4);
-  const shapes = () => rng.chance(0.5) ? circle(rng.int(2, 4)) : oval(rng.int(3, 5), rng.int(2, 3));
-  for (let i = 0, tries = 0; i < nPonds && tries < 120; tries++) {
-    const foot = shapes(); const b = bbox(foot);
-    const ox = rng.int(1, W - b.w - 1), oy = rng.int(1, H - b.h - 1);
-    if (tryPlace(offset(foot, ox, oy), new Set(), ctx)) i++;
+  ctx.waterCells = new Set();
+  // lagos rectangulares de tamaño variado (uno grande + varios medianos)
+  const nPonds = rng.int(3, 5);
+  for (let i = 0, tries = 0; i < nPonds && tries < 150; tries++) {
+    const big = i === 0;   // el primero, más lago que charca
+    const w = big ? rng.int(8, 12) : rng.int(5, 9);
+    const h = big ? rng.int(7, 10) : rng.int(5, 8);
+    if (w > W - 6 || h > H - 6) continue;
+    const pond = buildPond(rng, w, h);
+    const ox = rng.int(2, W - w - 2), oy = rng.int(2, H - h - 2);
+    if (tryPlacePond(pond, ox, oy, ctx)) i++;
   }
-  // --- río (a veces): banda serpenteante que cruza el mapa, con un vado transitable ---
-  if (rng.chance(0.5)) {
-    const vertical = rng.chance(0.5), thick = rng.int(2, 3);
-    const len = vertical ? H : W, dim = vertical ? W : H;
-    const off = rng.int(8, Math.max(9, Math.floor(dim / 2) - 4)) * (rng.chance(0.5) ? 1 : -1);
-    let base0 = Math.floor(dim / 2) + off;
-    base0 = Math.max(thick + 1, Math.min(dim - thick - 2, base0));   // dentro del mapa
-    const amp = rng.int(2, 4), ford = rng.int(Math.floor(len * 0.4), Math.floor(len * 0.6));
-    const foot = new Set(), fordCells = new Set();
-    for (let a = 0; a < len; a++) {
-      const c = base0 + Math.round(amp * Math.sin(a / 5));
-      for (let t = 0; t < thick; t++) {
-        const x = vertical ? c + t : a, y = vertical ? a : c + t;
-        foot.add(K(x, y));
-        if (Math.abs(a - ford) <= 1) fordCells.add(K(x, y));   // 3 celdas de vado (sin colisión)
-      }
-    }
-    placeRiver(foot, fordCells, ctx);
-  }
+  return { cells: ctx.waterCells };
 }

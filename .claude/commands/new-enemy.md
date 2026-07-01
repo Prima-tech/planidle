@@ -22,6 +22,11 @@ Pregunta en un solo mensaje:
 - Daño por golpe (referencia: orc1 = 8)
 - Cooldown entre ataques en ms (referencia: orc1 = 1500)
 - Escala visual (referencia: orc1 normal = 3, orc1 elite = 3.5)
+- Arquetipo de ataque `attackKind`: `melee` (por defecto), `ranged` (dispara proyectil desde 4 tiles y hace kiting, ej. gnoll1), `slam` (golpe de área telegrafiado, ej. golem1) o `charge` (embestida en línea telegrafiada con empujón, ej. lizard1)
+- ¿Aplomo? `noFlinch: true` = recibe daño sin animación de hurt ni retroceso (pesados tipo golem; élites/oblivion lo tienen automático)
+- ¿Furia? `enrages: true` = bajo 30% de vida ataca ×0.8 más rápido con tinte rojizo (ej. orc1) — usar con moderación, es un rasgo distintivo
+- Wind-up del golpe `windUpMs` (ms hasta el impacto, esquivable saliendo del rango): rápido/flojo 250-300 (ratas/slimes), estándar 450-500, lento/fuerte 600+, slam 900
+- Si es `slam`: radio del área `slamRadiusTiles` (referencia: golem1 = 2.4)
 
 ### Paso 3 — Frames de sprites
 
@@ -91,3 +96,5 @@ Con todos los datos recogidos, implementa:
 - Si un sprite es "no tiene", simplemente omite esa key en `actions`
 - Los assets deben estar en `src/assets/sprites/enemy/{type}/`
 - El sistema de elite/oblivion funciona automáticamente: GameScene busca `{type}_elite` y `{type}_oblivion` en `ENEMY_REGISTRY` al matar un enemigo base — no requiere cambios en la escena
+- Élite/oblivion ganan patrones extra automáticamente (por sufijo del type, en `enemy.ts`): wind-up ×0.85/×0.75, élite melee mete un slam cada 3 golpes, oblivion melee cada 4 y además dispara proyectil si el jugador está lejos (rango de inicio 4 tiles) — no configurar nada salvo que se quiera override (`slamEvery`, `attackKind`, `attackRangeTiles`)
+- Efectos con arte propio (opcional): `projectileSpriteKey` (proyectil, se rota hacia el objetivo) y `slamSpriteKey` (anim del impacto, escalada al diámetro del área). Deben ser keys de textura YA CARGADAS en la escena; si existe una anim con la misma key se reproduce. Sin ellos, el efecto es procedural (bola con estela / onda de choque) y ya se ve bien

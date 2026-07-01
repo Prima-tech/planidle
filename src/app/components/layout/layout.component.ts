@@ -46,6 +46,7 @@ import { DialogueService } from 'src/app/services/dialogue.service';
 import { ForgeService } from 'src/app/services/forge.service';
 import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
 import { AdminService } from 'src/app/services/admin.service';
+import { AudioService } from 'src/app/services/audio.service';
 
 @Component({
   selector: 'app-layout',
@@ -111,6 +112,7 @@ export class LayoutComponent implements OnDestroy {
     private forgeService: ForgeService,
     private mapUpgradesService: MapUpgradesService,
     private adminService: AdminService,
+    private audioService: AudioService,
   ) {
     this.loadGame();
   }
@@ -150,7 +152,10 @@ export class LayoutComponent implements OnDestroy {
         this.lastLvl = lvl;
         return;
       }
-      if (lvl > this.lastLvl) this.badges.flag('equip.stats');
+      if (lvl > this.lastLvl) {
+        this.badges.flag('equip.stats');
+        this.audioService.play('levelup');
+      }
       this.lastLvl = lvl;
     });
 
@@ -276,7 +281,15 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.FORGE,            this.forgeService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_UPGRADES,     this.mapUpgradesService);
     this.phaserGame.registry.set(REGISTRY_KEYS.ADMIN,            this.adminService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.AUDIO,            this.audioService);
     this.sceneManager.setGame(this.phaserGame);
+
+    // Audio: precarga los efectos y desbloquea el contexto tras el primer gesto
+    // del usuario (política de autoplay en móvil/navegador).
+    this.audioService.preload();
+    const unlock = () => this.audioService.unlock();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('touchstart', unlock, { once: true });
   }
 
   onRevive(): void {

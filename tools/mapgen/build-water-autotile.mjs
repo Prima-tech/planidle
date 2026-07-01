@@ -1,5 +1,6 @@
-// Extrae de Glades.tmx el mapeo de autotile de agua (config de vecinos → tile de orilla)
-// y lo guarda en water-autotile.json. Ejecutar si cambia el pack:  node tools/mapgen/build-water-autotile.mjs
+// SOLO REFERENCIA: muestrea de Glades.tmx el mapeo vecinos → tile de orilla y lo
+// vuelca en water-autotile.auto.json. El water-autotile.json real usa el esquema
+// "rect" hecho a mano (charca 5×5 + lago de Glades) — NO sobrescribir con este.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -25,6 +26,18 @@ const waterSet = new Set();
 for (const [k, g] of waterBg) if (isW(g)) waterSet.add(k);
 for (const [k, g] of mainSp) if (isC(g)) waterSet.add(k);
 
+// Muestrear SOLO charcas pequeñas/medianas: el lago gigante usa talud de tierra marrón
+// en sus orillas y contamina la votación. Componentes conexas (8-conn), quedarse con las
+// de tamaño <= 80 celdas (las charcas de orilla de hierba limpia).
+const compSeen = new Set(), good = new Set();
+for (const k of waterSet) {
+  if (compSeen.has(k)) continue;
+  const st = [k], cells = []; compSeen.add(k);
+  while (st.length) { const c = st.pop(); cells.push(c); const [x, y] = c.split(',').map(Number);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) { const nk = `${x + dx},${y + dy}`; if (waterSet.has(nk) && !compSeen.has(nk)) { compSeen.add(nk); st.push(nk); } } }
+  if (cells.length >= 6 && cells.length <= 80) for (const c of cells) good.add(c);
+}
+
 const K = (x, y) => `${x},${y}`;
 function classify(x, y, set) {
   const inN = set.has(K(x, y - 1)), inE = set.has(K(x + 1, y)), inS = set.has(K(x, y + 1)), inW = set.has(K(x - 1, y));
@@ -36,7 +49,7 @@ function classify(x, y, set) {
   return null;
 }
 const votes = new Map();
-for (const k of waterSet) {
+for (const k of good) {
   const g = mainSp.get(k); if (!isC(g)) continue;
   const [x, y] = k.split(',').map(Number);
   const key = classify(x, y, waterSet); if (!key) continue;
@@ -50,6 +63,6 @@ for (const [key, t] of votes) {
   if (key[0] === 'E') edges[key.slice(1)] = local; else corners[key.slice(1)] = local;
 }
 const data = { firstgid: COAST_F, fillGid: WATER_F, edges, corners };
-fs.writeFileSync(path.join(import.meta.dirname, 'water-autotile.json'), JSON.stringify(data, null, 1));
+fs.writeFileSync(path.join(import.meta.dirname, 'water-autotile.auto.json'), JSON.stringify(data, null, 1));
 console.log('edges:', edges);
 console.log('corners:', corners);

@@ -61,6 +61,13 @@ export interface CritDamageBreakdown {
   total:     number;  // %
 }
 
+export interface AttackSpeedBreakdown {
+  dex:       number;  // +1% por punto de DEX
+  equipment: number;  // stat attackSpeed de equipo
+  buffs:     number;
+  total:     number;  // % de velocidad extra del golpe básico, capado a +100
+}
+
 export interface MagicDamageBreakdown {
   base:      number;  // DAMAGE_BASE + INT
   equipment: number;
@@ -174,6 +181,7 @@ export class CharacterStatsService {
   readonly evasion$:    Observable<EvasionBreakdown>;
   readonly critChance$: Observable<CritChanceBreakdown>;
   readonly critDamage$: Observable<CritDamageBreakdown>;
+  readonly attackSpeed$: Observable<AttackSpeedBreakdown>;
   readonly freePoints$: Observable<number>;
   readonly hpRegen$:    Observable<RegenBreakdown>;
   readonly mpRegen$:    Observable<RegenBreakdown>;
@@ -278,6 +286,7 @@ export class CharacterStatsService {
     this.evasion$    = defTrigger$.pipe(map(() => this._calcEvasion()));
     this.critChance$ = defTrigger$.pipe(map(() => this._calcCritChance()));
     this.critDamage$ = defTrigger$.pipe(map(() => this._calcCritDamage()));
+    this.attackSpeed$ = defTrigger$.pipe(map(() => this._calcAttackSpeed()));
     this.freePoints$ = merge(this.statsChanged$, this.playerState.state$).pipe(
       startWith(null),
       map(() => this._calcFreePoints()),
@@ -446,6 +455,7 @@ export class CharacterStatsService {
   get currentEvasion():      number { return this._calcEvasion().total; }
   get currentCritChance():   number { return this._calcCritChance().total; }
   get currentCritDamage():   number { return this._calcCritDamage().total; }
+  get currentAttackSpeed():  number { return this._calcAttackSpeed().total; }
   get currentMagicDamage():  number { return this._calcMagicDamage().total; }
   get currentHpRegen():      RegenBreakdown { return this._calcHpRegen(); }
   get currentMpRegen():      RegenBreakdown { return this._calcMpRegen(); }
@@ -474,6 +484,18 @@ export class CharacterStatsService {
     );
     const buffs = this.buff.getValue('critDamage');
     return { base, str, equipment, buffs, total: base + str + equipment + buffs };
+  }
+
+  // Velocidad de ataque del golpe básico: +1% por punto de DEX + equipo (stat
+  // attackSpeed) + buffs. Capada a +100% (el golpe nunca va a más del doble).
+  // GameScene la convierte en timeScale de la animación de ataque: 1 + total/100.
+  private _calcAttackSpeed(): AttackSpeedBreakdown {
+    const dex       = Math.max(0, this.stats.DEX);
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['attackSpeed'] ?? 0), 0
+    );
+    const buffs = this.buff.getValue('attackSpeed');
+    return { dex, equipment, buffs, total: Math.min(100, dex + equipment + buffs) };
   }
 
   private _calcEvasion(): EvasionBreakdown {

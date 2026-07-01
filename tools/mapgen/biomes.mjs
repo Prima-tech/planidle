@@ -43,15 +43,22 @@ export const BIOMES = {
     // (Water_coasts) en Agua. Los tiles de agua se animan en el juego (gamescene).
     // Las charcas/ríos ya NO son stamps: se generan proceduralmente (water.mjs) con
     // formas variadas y autotile de orillas. Aquí solo queda la decoración esparcida.
+    // Marco del mapa: borde de hierba "fin del mundo" mirando hacia afuera, el mismo
+    // que usa home01 (pack pequeño G1/G21/G23/G43 → equivalentes exactos del pack
+    // grande, verificados píxel a píxel). Tiles de ground_grasss (firstgid 1).
+    border: {
+      n: 25, s: 131, w: 77, e: 79,
+      nw: 24, ne: 26, sw: 130, se: 132,
+    },
+    // Solo decoración pequeña (matas y flores). Los objetos grandes (arbustos/
+    // árboles deco_obj*) se quitaron: no aportaban (los arbustos siguen en el marco).
     stamps: [
-      { file: 'deco_detail1', weight: 6 },   // matas/flores/detalles del suelo (abundantes)
-      { file: 'deco_detail2', weight: 6 },
-      { file: 'deco_detail3', weight: 6 },
+      { file: 'deco_detail1', weight: 6, nearWater: true },  // flor azul → solo junto al agua
+      { file: 'deco_detail2', weight: 6 },                   // matas
+      { file: 'deco_detail3', weight: 6, nearWater: true },  // flores amarillas → solo junto al agua
       { file: 'deco_detail4', weight: 6 },
       { file: 'deco_detail5', weight: 6 },
       { file: 'deco_detail6', weight: 6 },
-      { file: 'deco_obj1',    weight: 3 },   // rocas/arbustos pequeños
-      { file: 'deco_obj2',    weight: 3 },
     ],
   },
 };

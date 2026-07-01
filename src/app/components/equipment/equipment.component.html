@@ -377,6 +377,33 @@
       </div>
     </div>
 
+    <!-- Acordeón: Velocidad de ataque -->
+    <div class="ov-accordion" (click)="showAtkSpeedBreakdown = !showAtkSpeedBreakdown">
+      <div class="ov-accordion-header">
+        <span class="ov-label">{{ 'STAT.ATTACK_SPEED' | translate }}</span>
+        <ng-container *ngIf="attackSpeed$ | async as asp">
+          <span class="ov-val">+{{ asp.total }}%</span>
+        </ng-container>
+        <ion-icon class="ov-chevron" [name]="showAtkSpeedBreakdown ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+      <div class="ov-accordion-body" [class.open]="showAtkSpeedBreakdown">
+        <ng-container *ngIf="attackSpeed$ | async as asp">
+          <div class="ov-bk-row">
+            <span>{{ 'STAT.DEXTERITY' | translate }}</span>
+            <span>{{ asp.dex }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="asp.equipment > 0">
+            <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
+            <span class="ov-bonus">+{{ asp.equipment }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="asp.buffs > 0">
+            <span>{{ 'STAT.SKILLS' | translate }}</span>
+            <span class="ov-bonus">+{{ asp.buffs }}%</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
     <!-- Tasa de botín -->
     <div class="ov-accordion" (click)="showDropBreakdown = !showDropBreakdown">
       <div class="ov-accordion-header">

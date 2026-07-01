@@ -91,11 +91,12 @@ interface GameSnapshot {
 | CONST | HP máx / regen | 50 + ×10 / regen=[CONST/2, CONST] |
 | MAG | MP máx / regen | 50 + ×5 / regen=[MAG/2, MAG] |
 | DEX | Defensa / Evasión% | floor(DEX/10), mín 0 |
+| DEX | Vel. de ataque | +1%/punto (+ equipo `attackSpeed` + buffs), cap +100% |
 | STR | Crit extra | +1% daño crít por cada 5 STR |
 
 - Stats arrancan en **0** (mín 0). HP/MP base 50, daño base 10 con todo a 0.
 - Puntos: `(lvl−1)` totales (0 al nivel 1, +1 por nivel), gastados = `sum(stats)`
-- Combate: `effectiveDmg = max(0, dmg − defense)`. Evasión: roll < evasion% → "EVADE". Crítico base 10%.
+- Combate: `effectiveDmg = max(0, dmg − defense)`. Evasión: roll < evasion% → "EVADE". Crítico base 10%. Daño del jugador con varianza ±10%. Golpe básico: cono ~90° al enemigo más cercano (3 tiles).
 - **Sin decimales**: daño (con % de arma y crítico) y demás stats se truncan con `Math.floor` (jugador y enemigo).
 
 ## Enemigos
@@ -104,6 +105,10 @@ interface GameSnapshot {
 - Cada tipo tiene entrada en `ENEMY_REGISTRY` y en `LOOT_TABLES`
 - **Guard crítico:** `if (this.isDead) return` en `takeDamage()` y `die()` — evita doble muerte
 - Spawn escalonado 1 cada 2s al entrar al mapa; respawn tras 3s al morir
+- Esquiva posicional: si el jugador sale del rango durante el wind-up del golpe enemigo → "MISS". Leash 12 tiles: abandona la caza y se cura al máximo (`dropChase()`)
+- Arquetipos de ataque (`attackKind` en config): `melee` (default), `ranged` (proyectil desde 4 tiles + kiting: retrocede si te acercas, ej. gnoll1), `slam` (área telegrafiada, ej. golem1), `charge` (embestida en línea telegrafiada con empujón, ej. lizard1). `windUpMs` = telegrafía hasta el impacto (la anim se sincroniza vía timeScale). Efectos procedurales; con arte propio usar `projectileSpriteKey`/`slamSpriteKey` (keys ya cargadas)
+- Élite/oblivion (por sufijo, automático en `enemy.ts`): wind-up ×0.85/×0.75, aplomo (`noFlinch`: sin hurt/retroceso; golem también por config); élite melee → slam cada 3 golpes; oblivion melee → slam cada 4 + proyectil si el jugador está lejos
+- Enrage (opt-in con `enrages: true`, solo orc1): bajo 30% de vida → wind-up y cooldown ×0.8, "ENRAGE" + tinte rojizo; se le pasa al curarse por leash
 - Portales: detectados en `GameScene.checkPortals()` cada frame → fade → `WorldService.setCurrentMap()` → `scene.restart()`
 
 ## Paneles del footer

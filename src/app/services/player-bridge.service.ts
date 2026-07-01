@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, distinctUntilChanged, map, Subject } from 'rxjs';
-import { IAttack, Player } from '../pnj/player/player';
+import { Player } from '../pnj/player/player';
 import { SceneManager } from '../scenes/scene-manager';
 import { CharacterStatsService } from './character-stats.service';
 import { EquipmentService } from './equipment.service';
@@ -160,11 +160,12 @@ export class PlayerBridgeService {
     this.player.setInitialSprites(sprites);
   }
 
-  setAttackToPlayer(attack: IAttack): void {
-    if (this.isDead) return;
-    // Modo admin: invulnerable al daño de enemigos (ignora ataques que restan HP).
-    if (this.admin.isAdmin && (attack.HP ?? 0) < 0) return;
-    this.player.receiveAttack(attack);
+  /** Aplica `amount` de daño al jugador (sprite + playerState) y gestiona muerte y auto-poción. */
+  damagePlayer(amount: number): void {
+    if (this.isDead || amount <= 0) return;
+    // Modo admin: invulnerable al daño de enemigos.
+    if (this.admin.isAdmin) return;
+    this.player.applyDamage(amount);
     const { HP, HPMax } = this.player.status;
     this.playerState.setHp(HP, HPMax);
     if (HP <= 0) {

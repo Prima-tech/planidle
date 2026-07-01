@@ -4,6 +4,7 @@ import { CharacterStatsService } from '../services/character-stats.service';
 import { WorldService } from '../services/world.service';
 import { Player } from '../pnj/player/player';
 import { PET_REGISTRY, PET_ICON_FRAME, PetConfig } from '../pnj/pet/pet-config';
+import { REGISTRY_KEYS } from '../scenes/game-registry';
 
 export interface LootEntry {
   name: string;
@@ -1000,8 +1001,32 @@ export class GridDrops {
     return best;
   }
 
+  /** Chispa dorada de recogida: anillo + destellitos radiales en el punto del drop.
+   *  Refuerza el bucle core (recoger loot) con un "pop" satisfactorio y barato. */
+  private spawnPickupSparkle(x: number, y: number): void {
+    const ring = this.mainScene.add.circle(x, y, 6, 0xfff2a8, 0);
+    ring.setStrokeStyle(2, 0xffe680, 0.9);
+    ring.setDepth(6000);
+    this.mainScene.tweens.add({
+      targets: ring, scale: 2.6, alpha: 0, duration: 260, ease: 'Quad.easeOut',
+      onComplete: () => ring.destroy(),
+    });
+    for (let i = 0; i < 4; i++) {
+      const s = this.mainScene.add.circle(x, y, Phaser.Math.Between(2, 4), 0xffffff, 1);
+      s.setDepth(6000);
+      const ang  = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      const dist = Phaser.Math.Between(14, 28);
+      this.mainScene.tweens.add({
+        targets: s, x: x + Math.cos(ang) * dist, y: y + Math.sin(ang) * dist - 10,
+        alpha: 0, scale: 0.2, duration: Phaser.Math.Between(220, 340), ease: 'Quad.easeOut',
+        onComplete: () => s.destroy(),
+      });
+    }
+  }
+
   private collectDrop(sprite: Phaser.Physics.Arcade.Sprite, loot: LootEntry): void {
     sprite.disableBody(false, false);
+    this.spawnPickupSparkle(sprite.x, sprite.y);
 
     this.mainScene.tweens.add({
       targets: sprite,
@@ -1018,11 +1043,13 @@ export class GridDrops {
 
     if (loot.type === 'currency') {
       this.playerState.collectCoins(qty);
+      this.mainScene.game.registry.get(REGISTRY_KEYS.AUDIO)?.play('coin');
       return;
     }
 
     if (loot.type === 'special') {
       this.playerState.collectSpecialCoins(qty);
+      this.mainScene.game.registry.get(REGISTRY_KEYS.AUDIO)?.play('coin');
       return;
     }
 

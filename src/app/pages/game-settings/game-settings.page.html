@@ -75,6 +75,57 @@
           </div>
         </div>
 
+        <div class="gs-row">
+          <div class="gs-row-info">
+            <span class="gs-row-title">{{ 'GAME_SETTINGS.SCREEN_SHAKE' | translate }}</span>
+            <span class="gs-row-desc">{{ 'GAME_SETTINGS.SCREEN_SHAKE_DESC' | translate }}</span>
+          </div>
+          <div class="gs-toggle" [class.on]="gs.screenShake" (click)="gs.setScreenShake(!gs.screenShake)">
+            <div class="gs-toggle-thumb"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="gs-section">
+        <p class="gs-section-label">Sonido</p>
+
+        <div class="gs-row">
+          <div class="gs-row-info">
+            <span class="gs-row-title">Silenciar</span>
+            <span class="gs-row-desc">Apaga toda la música y los efectos.</span>
+          </div>
+          <div class="gs-toggle" [class.on]="audio.muted" (click)="audio.toggleMuted()">
+            <div class="gs-toggle-thumb"></div>
+          </div>
+        </div>
+
+        <div class="gs-row gs-row-stack">
+          <div class="gs-row-info">
+            <span class="gs-row-title">Volumen general</span>
+            <span class="gs-row-desc">{{ masterPct }}%</span>
+          </div>
+          <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
+                 [(ngModel)]="masterPct" [disabled]="audio.muted">
+        </div>
+
+        <div class="gs-row gs-row-stack">
+          <div class="gs-row-info">
+            <span class="gs-row-title">Efectos (SFX)</span>
+            <span class="gs-row-desc">{{ sfxPct }}%</span>
+          </div>
+          <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
+                 [(ngModel)]="sfxPct" (change)="previewSfx()" [disabled]="audio.muted">
+        </div>
+
+        <div class="gs-row gs-row-stack">
+          <div class="gs-row-info">
+            <span class="gs-row-title">Música</span>
+            <span class="gs-row-desc">{{ musicPct }}%</span>
+          </div>
+          <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
+                 [(ngModel)]="musicPct" [disabled]="audio.muted">
+        </div>
       </div>
     </ng-container>
 

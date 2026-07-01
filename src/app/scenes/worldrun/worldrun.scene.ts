@@ -979,7 +979,7 @@ export class WorldRunScene extends Phaser.Scene {
     const p = this.reg.playerBridge.player;
     if (p) {
       if (p.status.HP - amount <= 0) { this.playerDie(); return; }
-      this.reg.playerBridge.setAttackToPlayer({ HP: -amount });
+      this.reg.playerBridge.damagePlayer(amount);
     }
     this.player.setTint(0xff5555);
     this.time.delayedCall(110, () => { if (this.player.active) this.player.clearTint(); });

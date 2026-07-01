@@ -28,6 +28,18 @@ export interface ActionConfig {
 
 // ── Config completa de un tipo de enemigo ─────────────────────────────────────
 
+// Arquetipo del ataque:
+//  'melee'  — golpe cuerpo a cuerpo (por defecto); esquivable saliendo del rango
+//             durante el wind-up.
+//  'ranged' — dispara un proyectil al punto donde estás al lanzarlo; esquivable
+//             moviéndote antes de que llegue. Se detiene a attackRangeTiles y
+//             RETROCEDE (kiting) si te acercas a menos de ~2 tiles.
+//  'slam'   — golpe de ÁREA alrededor del enemigo: el círculo naranja crece durante
+//             el wind-up y al completarse daña a quien siga dentro.
+//  'charge' — embestida: telegrafía una LÍNEA hacia ti y sale disparado por ella;
+//             quedarse en la línea = golpe con empujón. Esquivable en perpendicular.
+export type EnemyAttackKind = 'melee' | 'ranged' | 'slam' | 'charge';
+
 export interface EnemyTypeConfig {
   type: string;
   hp: number;
@@ -35,6 +47,20 @@ export interface EnemyTypeConfig {
   speed: number;           // px/s
   damage: number;
   attackCooldown: number;  // ms
+  attackKind?: EnemyAttackKind; // por defecto 'melee'
+  windUpMs?: number;       // ms desde que arranca el golpe hasta el impacto (telegrafía);
+                           // si falta → ~40% de la duración de la anim de ataque.
+                           // Corto = difícil de esquivar (ratas); largo = muy esquivable (golem)
+  attackRangeTiles?: number; // rango al que inicia el ataque; por defecto 2 (melee/slam), 4 (ranged)
+  slamRadiusTiles?: number;  // 'slam': radio del área (por defecto 2.2)
+  slamEvery?: number;      // cada N golpes, el ataque es un slam (élites melee: 3, oblivion: 4, automático)
+  noFlinch?: boolean;      // aplomo: recibe daño sin hurt ni retroceso (golem; élites/oblivion automático)
+  enrages?: boolean;       // furia bajo 30% de vida: wind-up y cooldown ×0.8 + tinte rojizo (solo orc1)
+  // Sprites de efectos (opcionales, para cuando haya arte): deben ser keys de textura
+  // YA CARGADAS en la escena (p.ej. una hoja de skills). Si existe una anim con la
+  // misma key se reproduce. Si faltan → efecto procedural (bola con estela / onda).
+  projectileSpriteKey?: string; // 'ranged': sprite del proyectil (rotado hacia el objetivo)
+  slamSpriteKey?: string;       // 'slam': anim del impacto, escalada al diámetro del área
   displayName?: string;    // nombre visible al jugador (si omitido usa type)
   tint?: number;           // tint visual (0xRRGGBB) — usado para elite/oblivion
   spriteType?: string;     // tipo base cuyos sprites se reusan (omite carga propia)
@@ -83,6 +109,8 @@ const orc1: EnemyTypeConfig = {
   speed: 96,
   damage: 12,
   attackCooldown: 1500,
+  windUpMs: 600,           // pega fuerte pero telegrafiado: se puede esquivar
+  enrages: true,           // bajo 30% de vida entra en furia (ataca ×0.8 más rápido)
   actions: {
     idle: {
       filename: 'orc1_idle_full',
@@ -170,6 +198,7 @@ const slime4: EnemyTypeConfig = {
   speed: 150,
   damage: 7,
   attackCooldown: 1500,
+  windUpMs: 300,           // golpe rápido y flojo: casi imposible de esquivar, poco castigo
   actions: {
     idle: {
       filename: 'Slime1_Idle_with_shadow',
@@ -228,6 +257,7 @@ const slime5: EnemyTypeConfig = {
   speed: 150,
   damage: 8,
   attackCooldown: 1500,
+  windUpMs: 300,
   actions: {
     idle: {
       filename: 'Slime2_Idle_with_shadow',
@@ -338,6 +368,7 @@ const goobling2: EnemyTypeConfig = {
   speed: 115,
   damage: 21,
   attackCooldown: 1700,
+  windUpMs: 450,
   actions: {
     idle:            { filename: 'Idle_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING2_DIR) },
     walk:            { filename: 'Walk_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, GOOBLING2_DIR) },
@@ -365,6 +396,8 @@ const gnoll1: EnemyTypeConfig = {
   speed: 110,
   damage: 16,
   attackCooldown: 1600,
+  attackKind: 'ranged',    // primer enemigo a distancia: escupe desde 4 tiles
+  windUpMs: 500,
   actions: {
     idle:   { filename: 'Gnoll1_Idle_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GNOLL1_DIR) },
     walk:   { filename: 'Gnoll1_Walk_with_shadow',  frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, GNOLL1_DIR) },
@@ -390,6 +423,10 @@ const golem1: EnemyTypeConfig = {
   speed: 70,
   damage: 23,
   attackCooldown: 2000,
+  attackKind: 'slam',      // golpe de ÁREA: círculo telegrafiado ~1s → sal de él o duele
+  windUpMs: 900,
+  slamRadiusTiles: 2.4,
+  noFlinch: true,          // aplomo: tus golpes no lo inmutan (ni hurt ni retroceso)
   actions: {
     idle:   { filename: 'Golem1_Idle_with_shadow',  frameWidth: 128, frameHeight: 128, frameRate: 4,  repeat: -1, directional: true, frames: dirFrames(4, GOLEM1_DIR) },
     walk:   { filename: 'Golem1_Walk_with_shadow',  frameWidth: 128, frameHeight: 128, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(8, GOLEM1_DIR) },
@@ -416,6 +453,7 @@ const rats1: EnemyTypeConfig = {
   speed: 130,
   damage: 9,
   attackCooldown: 1500,
+  windUpMs: 250,           // la más rápida del juego: mordisco casi instantáneo
   actions: {
     idle:   { filename: 'Rat1_Idle_with_shadow',   frameWidth: 128, frameHeight: 128, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(6, RAT1_DIR) },
     walk:   { filename: 'Rat1_Walk_with_shadow',   frameWidth: 128, frameHeight: 128, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, RAT1_DIR) },
@@ -442,6 +480,8 @@ const lizard1: EnemyTypeConfig = {
   speed: 100,
   damage: 19,
   attackCooldown: 1400,
+  attackKind: 'charge',    // embestida en línea telegrafiada: esquívala en perpendicular
+  windUpMs: 600,
   actions: {
     idle:   { filename: 'Lizardman1_Idle_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, LIZARD1_DIR) },
     walk:   { filename: 'Lizardman1_Walk_with_shadow',   frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, LIZARD1_DIR) },
@@ -468,6 +508,7 @@ const goobling1: EnemyTypeConfig = {
   speed: 110,
   damage: 14,
   attackCooldown: 1700,
+  windUpMs: 450,
   actions: {
     idle:            { filename: 'Idle0_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 6,  repeat: -1, directional: true, frames: dirFrames(4, GOOBLING1_DIR) },
     walk:            { filename: 'Walk0_with_shadow',         frameWidth: 64, frameHeight: 64, frameRate: 8,  repeat: -1, directional: true, frames: dirFrames(6, GOOBLING1_DIR) },

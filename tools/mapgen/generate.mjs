@@ -5,6 +5,7 @@ import { makeRng } from './rng.mjs';
 import { loadStamp, buildTmj } from './tmj.mjs';
 import { BIOMES } from './biomes.mjs';
 import { generateWater } from './water.mjs';
+import { generateDirt } from './dirt.mjs';
 
 const STAMP_DIR = path.join(import.meta.dirname, 'stamps');
 
@@ -36,14 +37,34 @@ export function generateMap(opts) {
   };
   reserve(opts.spawn.x, opts.spawn.y, 6);   // zona amplia de spawn (jugador + enemigos)
   for (const p of opts.portals) reserve(p.x, p.y, 3);
-  // borde de 1 tile siempre transitable
-  for (let x = 0; x < W; x++) { clear.add(`${x},0`); clear.add(`${x},${H - 1}`); }
-  for (let y = 0; y < H; y++) { clear.add(`0,${y}`); clear.add(`${W - 1},${y}`); }
+  // banda de 2 tiles del perímetro reservada para el seto del marco (sin stamps)
+  for (let x = 0; x < W; x++) for (const y of [0, 1, H - 2, H - 1]) clear.add(`${x},${y}`);
+  for (let y = 0; y < H; y++) for (const x of [0, 1, W - 2, W - 1]) clear.add(`${x},${y}`);
   for (const k of clear) occupied.add(k);
 
-  // --- agua procedural (charcas de forma variada + río con vado) ANTES de decorar ---
+  // --- agua procedural (lagos rectangulares) ANTES de decorar ---
   // Autotileada con las piezas del pack; verifica que no aísle los portales.
-  generateWater(rng, { W, H, base, agua, collision, occupied, spawn: opts.spawn, portals: opts.portals });
+  const water = generateWater(rng, { W, H, base, agua, collision, occupied, spawn: opts.spawn, portals: opts.portals });
+
+  // --- parches de tierra ---
+  generateDirt(rng, { W, H, base, agua, collision, occupied, grassFill: biome.base.fill });
+
+  // --- celdas "cerca del agua" (radio 6) para la decoración que lo exige (flores) ---
+  const nearWater = new Set(water.cells);
+  {
+    let frontier = [...water.cells];
+    for (let r = 0; r < 6; r++) {
+      const next = [];
+      for (const k of frontier) {
+        const [x, y] = k.split(',').map(Number);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nk = `${x + dx},${y + dy}`;
+          if (!nearWater.has(nk)) { nearWater.add(nk); next.push(nk); }
+        }
+      }
+      frontier = next;
+    }
+  }
 
   // --- cargar stamps del bioma ---
   const stamps = biome.stamps.map(s => ({
@@ -89,6 +110,7 @@ export function generateMap(opts) {
     const st = rng.weighted(stamps);
     const sx = rng.int(1, W - st.data.w - 1);
     const sy = rng.int(1, H - st.data.h - 1);
+    if (st.nearWater && !nearWater.has(`${sx},${sy}`)) continue;  // flores solo junto al agua
     if (!fits(sx, sy, st)) continue;
     place(sx, sy, st);
     done++;
@@ -96,6 +118,22 @@ export function generateMap(opts) {
 
   // Base = césped uniforme. NADA de esparcir tiles "al azar": toda la decoración
   // viene de stamps deliberados (coherentes), nunca de adivinar índices de tile.
+
+  // --- marco del mapa: borde de hierba "fin del mundo" (1 tile, con colisión) ---
+  // Mismo acabado que home01: la hierba termina mirando hacia afuera.
+  const B = biome.border, GFIRST = 1;
+  for (let x = 1; x < W - 1; x++) {
+    base[idx(x, 0)] = GFIRST + B.n;
+    base[idx(x, H - 1)] = GFIRST + B.s;
+  }
+  for (let y = 1; y < H - 1; y++) {
+    base[idx(0, y)] = GFIRST + B.w;
+    base[idx(W - 1, y)] = GFIRST + B.e;
+  }
+  base[idx(0, 0)] = GFIRST + B.nw; base[idx(W - 1, 0)] = GFIRST + B.ne;
+  base[idx(0, H - 1)] = GFIRST + B.sw; base[idx(W - 1, H - 1)] = GFIRST + B.se;
+  for (let x = 0; x < W; x++) { collision.add(`${x},0`); collision.add(`${x},${H - 1}`); }
+  for (let y = 1; y < H - 1; y++) { collision.add(`0,${y}`); collision.add(`${W - 1},${y}`); }
 
   // --- reparar conectividad: el spawn debe alcanzar todos los portales ---
   repairConnectivity({ W, H, collision, placed, spawn: opts.spawn, portals: opts.portals });

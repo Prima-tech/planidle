@@ -10,6 +10,7 @@ export interface GameSettings {
   showJoystick: boolean;
   showFps: boolean;
   showGrid: boolean;          // overlay de rejilla de tiles (debug de posiciones)
+  screenShake: boolean;       // efectos de pantalla (temblor de cámara + destellos)
   parallaxTheme: ParallaxThemeId;
   worldParallax: WorldParallaxId;
 }
@@ -20,6 +21,7 @@ const DEFAULTS: GameSettings = {
   showJoystick: true,
   showFps: false,
   showGrid: false,
+  screenShake: true,
   parallaxTheme: 'sea',
   worldParallax: 'paralax01',
 };
@@ -63,6 +65,10 @@ export class GameSettingsService {
   get showGrid():  boolean { return this._settings.showGrid; }
   get showGrid$()          { return this._subject.pipe(map(s => s.showGrid), distinctUntilChanged()); }
   setShowGrid(v: boolean)  { this.set('showGrid', v); }
+
+  get screenShake():  boolean { return this._settings.screenShake; }
+  get screenShake$()          { return this._subject.pipe(map(s => s.screenShake), distinctUntilChanged()); }
+  setScreenShake(v: boolean)  { this.set('screenShake', v); }
 
   get parallaxTheme(): ParallaxThemeId { return this._settings.parallaxTheme; }
   get parallaxTheme$()                 { return this._subject.pipe(map(s => s.parallaxTheme), distinctUntilChanged()); }

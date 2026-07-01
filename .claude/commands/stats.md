@@ -1,4 +1,4 @@
-# Sistema de Estadísticas del Personaje
+﻿# Sistema de Estadísticas del Personaje
 
 Guía de referencia del sistema de stats, puntos, escalado y regeneración.
 
@@ -48,6 +48,7 @@ Libres      = Disponibles − Gastados
 | DEX | Evasión % | misma fórmula DEX + equipo `evasion` + buffs | `evasion$` |
 | base 10% | Prob. crítico | + equipo `critChance` + talentos + buffs | `critChance$` |
 | base 150% | Daño crítico % | + `floor(STR/5)` + equipo + buffs | `critDamage$` |
+| DEX | Vel. de ataque % | DEX (1%/punto) + equipo `attackSpeed` + buffs, cap +100% — GameScene: timeScale = 1 + total/100 | `attackSpeed$` |
 | CONST | HP regen max | = CONST + equipo `hpRegen` + talentos; min = floor(max/2) | `hpRegen$` |
 | MAG | MP regen max | = MAG + equipo `mpRegen` + talentos; min = floor(max/2) | `mpRegen$` |
 
@@ -56,7 +57,7 @@ Libres      = Disponibles − Gastados
 | Dato | Fuente de verdad | Cómo actualizar |
 |------|-----------------|-----------------|
 | HP barra UI | `playerBridge.player.status$` (Phaser sprite) | `playerBridge.healPlayer(amount)` o `player.resetStatus(hp, hpMax)` |
-| HP numérico guardado | `playerState.snapshot().hp` | se sincroniza automáticamente desde `healPlayer()` y `setAttackToPlayer()` |
+| HP numérico guardado | `playerState.snapshot().hp` | se sincroniza automáticamente desde `healPlayer()` y `damagePlayer()` |
 | MP barra UI | `playerState.state$` | `playerState.setMp(newMp, mpMax)` |
 
 **Nunca** llamar a `playerState.setHp()` directamente para curar — la barra de HP no se actualizará.

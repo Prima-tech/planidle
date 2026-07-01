@@ -1,6 +1,5 @@
 import { Component, inject } from "@angular/core";
 import { ModalController } from "@ionic/angular";
-import { IAttack } from "src/app/pnj/player/player";
 import { SceneManager } from "src/app/scenes/scene-manager";
 import { AsgardService } from "src/app/services/asgard";
 import { PlayerBridgeService } from "src/app/services/player-bridge.service";
@@ -25,8 +24,7 @@ export class testPageComponent {
   }
 
   test() {
-    const attack: IAttack = { HP: -10 };
-    this.playerBridge.setAttackToPlayer(attack);
+    this.playerBridge.damagePlayer(10);
   }
 
   setPlayerDeath() {

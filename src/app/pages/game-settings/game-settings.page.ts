@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
+import { AudioService } from 'src/app/services/audio.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { SaveService, SaveStatus } from 'src/app/services/save.service';
 import { AsgardService } from 'src/app/services/asgard';
@@ -28,6 +29,7 @@ const SAVE_LABELS: Record<SaveStatus, string> = {
 export class GameSettingsPageComponent implements OnInit {
   tab: 0 | 1 | 2 = 0;
   gs = inject(GameSettingsService);
+  audio = inject(AudioService);
   private connection = inject(ConnectionService);
   private saveService = inject(SaveService);
   private asgard = inject(AsgardService);
@@ -52,6 +54,19 @@ export class GameSettingsPageComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.supabaseConnected = await this.connection.isConnected();
   }
+
+  // ── Audio: volúmenes en % para los sliders (el servicio guarda 0..1) ──────────
+  get masterPct(): number { return Math.round(this.audio.masterVolume * 100); }
+  set masterPct(v: number) { this.audio.setMasterVolume(v / 100); }
+
+  get sfxPct(): number { return Math.round(this.audio.sfxVolume * 100); }
+  set sfxPct(v: number) { this.audio.setSfxVolume(v / 100); }
+
+  get musicPct(): number { return Math.round(this.audio.musicVolume * 100); }
+  set musicPct(v: number) { this.audio.setMusicVolume(v / 100); }
+
+  /** Suena un click al soltar el slider de SFX para oír el nivel elegido. */
+  previewSfx(): void { this.audio.unlock(); this.audio.play('ui_click'); }
 
   async save(): Promise<void> {
     this.saveService.conflict$.next(null);

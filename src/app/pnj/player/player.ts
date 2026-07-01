@@ -3,12 +3,8 @@ import { Direction } from "../interfaces/Direction";
 import { AnimationService } from "src/app/scenes/gamescene/animation.service";
 import { playerAnimations, playerTags } from "src/app/scenes/gamescene/constants";
 import { EquipLayerConfig } from "./equip-layer-registry";
+import { spawnFloatingText } from "src/app/scenes/gamescene/floating-text";
 import { Subject } from "rxjs";
-
-export interface IAttack {
-  HP: number;
-
-}
 
 export class Player {
 
@@ -73,12 +69,8 @@ export class Player {
     this.status = v;
   }
 
-  receiveAttack(attack: IAttack) {
-    this.setHP(attack.HP);
-  }
-
-  setHP(HP: number) {
-    this.status.HP = Math.max(0, this.status.HP + HP);
+  applyDamage(amount: number) {
+    this.status.HP = Math.max(0, this.status.HP - amount);
     this.status$.next(this.status);
   }
 
@@ -99,21 +91,9 @@ export class Player {
     const topY = this.sprite.y - this.sprite.displayHeight * 0.9;
 
     // Número principal "+X"
-    const text = this.mainScene.add.text(cx, topY, `+${amount}`, {
-      fontSize:        '30px',
-      color:           '#3ad12f',
-      fontStyle:       'bold',
-      stroke:          '#0a3d08',
-      strokeThickness: 6,
-    });
-    text.setOrigin(0.5, 1).setDepth(5000);
-    this.mainScene.tweens.add({
-      targets:    text,
-      y:          topY - 42,
-      alpha:      0,
-      duration:   900,
-      ease:       'Power2',
-      onComplete: () => text.destroy(),
+    spawnFloatingText(this.mainScene, cx, topY, `+${amount}`, {
+      fontSize: 30, color: '#3ad12f', stroke: '#0a3d08',
+      rise: 42, duration: 900,
     });
 
     // Pequeñas '+' verdes que suben alrededor del sprite
@@ -164,16 +144,21 @@ export class Player {
     this.sprite.play(playerTags.IDLE + Direction.DOWN); // Animación por defecto
   }
 
-  public playerAttack(useThrust = false) {
+  public playerAttack(useThrust = false, timeScale = 1) {
     if (this.isAttacking) return;
     this.isAttacking = true;
     const direction = this.getDirection();
     const tag = useThrust ? playerTags.THRUST : playerTags.ATTACK;
     this.sprite.play(tag + direction);
+    // Velocidad de ataque: acelera SOLO esta animación y se restaura al terminar
+    // (walk/idle comparten el mismo anims manager del sprite). Las capas de equipo
+    // van conducidas por el progreso del cuerpo (syncLayers), así que siguen solas.
+    this.sprite.anims.timeScale = timeScale;
     // Solo espada (slash): las piernas siguen su marcha mientras el torso ataca.
     if (!useThrust) this.beginLegsSplit(direction);
     this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       this.isAttacking = false;
+      this.sprite.anims.timeScale = 1;
       this.endLegsSplit();
       if (this.isMoving) {
         this.sprite.play(playerTags.WALK + this.currentDirection);

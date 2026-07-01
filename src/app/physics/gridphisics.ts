@@ -174,7 +174,7 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist > RANGE || dist === 0) return;
-      if (!this.isInAttackDirection(dx, dy, dir)) return;
+      if (!this.isInAttackDirection(dx, dy, dist, dir)) return;
 
       candidates++;   // TEMP diagnóstico
       if (dist < bestDist) { bestDist = dist; target = enemy; }
@@ -189,10 +189,14 @@ export class GridPhysics extends Phaser.Events.EventEmitter {
     return 1;
   }
 
-  private isInAttackDirection(dx: number, dy: number, dir: Direction): boolean {
+  // Cono de ~90°: el enemigo debe estar a menos de ~45° de la dirección de mirada.
+  // Antes bastaba dot > 0 (medio plano de 180°) y golpeabas enemigos casi de lado.
+  // 0.7 (y no cos45°=0.7071) para que un objetivo en diagonal exacta no falle
+  // por el borde del cono (el auto-ataque encara por eje dominante).
+  private isInAttackDirection(dx: number, dy: number, dist: number, dir: Direction): boolean {
     const vec = this.dirVectors[dir];
     if (!vec) return true;
-    return (dx * vec.x + dy * vec.y) > 0;
+    return (dx * vec.x + dy * vec.y) / dist > 0.7;
   }
 
   /** Check público de colisión en píxeles (lo usa el knockback del jugador). */

@@ -1,4 +1,4 @@
----
+﻿---
 description: Reglas de guardado para este proyecto. Se activa cuando se habla de guardar datos, persistencia, Supabase, StorageService, SaveService, snapshots o sincronización.
 triggers:
   - guardar
@@ -51,7 +51,7 @@ SaveService.forceSave()
 | Dato | Servicio correcto | Nunca hacer |
 |------|------------------|-------------|
 | Monedas, exp, lvl | `PlayerStateService` | Llamar a StorageService directamente |
-| HP del jugador | `PlayerStateService.setHp(hp, hpMax?)` — llamado por `PlayerBridgeService.setAttackToPlayer()` | Modificar `player.status.HP` sin sincronizar a `PlayerStateService` |
+| HP del jugador | `PlayerStateService.setHp(hp, hpMax?)` — llamado por `PlayerBridgeService.damagePlayer()` | Modificar `player.status.HP` sin sincronizar a `PlayerStateService` |
 | Items del inventario | `InventoryService` | Guardar items a mano |
 | Mapa actual | `WorldService` | Mutar `currentMapConfig` sin WorldService |
 | Bajas/kills | `KillService` | |
