@@ -191,6 +191,8 @@ export class GameScene extends Phaser.Scene {
     // Caché de color medio por tile para el minimapa: clave `tilesetName:index` → rgb
     // (0xRRGGBB) o -1 si el tile es (casi) transparente. Estática: persiste entre mapas.
     private static mmTileColors = new Map<string, number>();
+    /** Tilesets que el minimapa ignora (decoración: hierbas/flores del mapgen). */
+    private static readonly MM_DECOR_TILESETS = new Set(['Details']);
     private mmSampleCanvas?: HTMLCanvasElement;
     // NPCs vivos en la escena para detectar cercanía y hablar (fijos de la ciudad +
     // reclutables). `recruit` solo lo llevan los reclutables (Kugo en 1-1).
@@ -1374,9 +1376,26 @@ export class GameScene extends Phaser.Scene {
           for (let x = 0; x < W; x++) {
             const tile = layer.getTileAt(x, y);
             if (!tile || tile.index < 0) continue;
-            const rgb = this.avgTileColor(tile.index);
-            if (rgb < 0) continue;
-            data[y * W + x] = 0xff000000 | rgb;   // marca opaco
+            const packed = this.avgTileColor(tile.index);
+            if (packed < 0) continue;
+            const cov = Math.floor(packed / 0x1000000) / 255;   // cobertura del tile (0..1)
+            const rgb = packed % 0x1000000;
+            const i   = y * W + x;
+            const prev = data[i];
+            if (cov >= 0.9 || prev === 0) {
+              // Tile lleno (suelo/agua) → pisa lo de abajo, como siempre
+              data[i] = 0xff000000 | rgb;
+            } else {
+              // Tile parcial de la capa superior (orillas del agua…): se FUNDE
+              // sobre el color del suelo con el alfa reforzado ×2.5, en vez de
+              // pisarlo con un color diluido — la costa queda suave en el minimapa.
+              // (La decoración de matas/flores ni llega aquí: MM_DECOR_TILESETS.)
+              const a  = Math.min(1, cov * 2.5);
+              const r  = Math.round(((rgb >>> 16) & 0xff) * a + ((prev >>> 16) & 0xff) * (1 - a));
+              const g  = Math.round(((rgb >>> 8)  & 0xff) * a + ((prev >>> 8)  & 0xff) * (1 - a));
+              const b  = Math.round((rgb & 0xff)          * a + (prev & 0xff)          * (1 - a));
+              data[i] = 0xff000000 | (r << 16) | (g << 8) | b;
+            }
             any = true;
           }
         }
@@ -1384,12 +1403,17 @@ export class GameScene extends Phaser.Scene {
       return any ? { cols: W, rows: H, data } : undefined;
     }
 
-    /** Color medio (0xRRGGBB) de un tile, o -1 si es (casi) transparente. Cachea
-     *  por `tilesetName:index`. Trucazo: dibuja la región del tile reducida a 1×1 px
-     *  y lee ese píxel → es el promedio de la región sin recorrer todos los píxeles. */
+    /** Color medio de un tile empaquetado como `cobertura·0x1000000 + 0xRRGGBB`,
+     *  o -1 si es (casi) transparente. El color es la media SOLO de los píxeles
+     *  visibles (ponderada por alfa) — así una flor pequeña conserva su color real
+     *  en vez de diluirse hacia negro — y la cobertura (0-255) dice cuánto tile
+     *  ocupan. Cachea por `tilesetName:index`. Muestrea la región a 4×4 px. */
     private avgTileColor(index: number): number {
       const tileset = this.tilesetForIndex(index);
       if (!tileset) return -1;
+      // Tilesets de pura decoración (matas/flores esparcidas por el mapgen): NO se
+      // pintan en el minimapa — solo meten ruido de puntitos sobre el césped.
+      if (GameScene.MM_DECOR_TILESETS.has(tileset.name)) return -1;
       const key = `${tileset.name}:${index}`;
       const cached = GameScene.mmTileColors.get(key);
       if (cached !== undefined) return cached;
@@ -1401,15 +1425,25 @@ export class GameScene extends Phaser.Scene {
       const tw = tileset.tileWidth, th = tileset.tileHeight;
       if (!this.mmSampleCanvas) this.mmSampleCanvas = document.createElement('canvas');
       const c = this.mmSampleCanvas;
-      c.width = 1; c.height = 1;
+      const S = 4;
+      c.width = S; c.height = S;
       const ctx = c.getContext('2d', { willReadFrequently: true });
       if (!ctx) { GameScene.mmTileColors.set(key, -1); return -1; }
-      ctx.clearRect(0, 0, 1, 1);
-      ctx.drawImage(src, coord.x, coord.y, tw, th, 0, 0, 1, 1);
-      const d = ctx.getImageData(0, 0, 1, 1).data;
-      const rgb = d[3] < 16 ? -1 : (d[0] << 16) | (d[1] << 8) | d[2];   // alfa bajo → vacío
-      GameScene.mmTileColors.set(key, rgb);
-      return rgb;
+      ctx.clearRect(0, 0, S, S);
+      ctx.drawImage(src, coord.x, coord.y, tw, th, 0, 0, S, S);
+      const d = ctx.getImageData(0, 0, S, S).data;
+      let sa = 0, sr = 0, sg = 0, sb = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        const a = d[i + 3];
+        sa += a;
+        sr += d[i] * a; sg += d[i + 1] * a; sb += d[i + 2] * a;
+      }
+      const cov = Math.min(255, Math.round(sa / (S * S)));   // alfa medio 0-255
+      if (cov < 8) { GameScene.mmTileColors.set(key, -1); return -1; }   // ~vacío
+      const r = Math.round(sr / sa), g = Math.round(sg / sa), b = Math.round(sb / sa);
+      const packed = cov * 0x1000000 + ((r << 16) | (g << 8) | b);
+      GameScene.mmTileColors.set(key, packed);
+      return packed;
     }
 
     /** Tileset que contiene un índice global de tile (maneja múltiples tilesets). */

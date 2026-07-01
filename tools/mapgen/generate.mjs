@@ -119,21 +119,25 @@ export function generateMap(opts) {
   // Base = césped uniforme. NADA de esparcir tiles "al azar": toda la decoración
   // viene de stamps deliberados (coherentes), nunca de adivinar índices de tile.
 
-  // --- marco del mapa: borde de hierba "fin del mundo" (1 tile, con colisión) ---
-  // Mismo acabado que home01: la hierba termina mirando hacia afuera.
+  // --- marco del mapa: barranco (labio arriba/lados + pared de roca abajo) ---
   const B = biome.border, GFIRST = 1;
-  for (let x = 1; x < W - 1; x++) {
-    base[idx(x, 0)] = GFIRST + B.n;
-    base[idx(x, H - 1)] = GFIRST + B.s;
-  }
-  for (let y = 1; y < H - 1; y++) {
+  base[idx(0, 0)] = GFIRST + B.nw; base[idx(W - 1, 0)] = GFIRST + B.ne;
+  for (let x = 1; x < W - 1; x++) base[idx(x, 0)] = GFIRST + rng.pick(B.n);
+  for (let y = 1; y < H - 2; y++) {
     base[idx(0, y)] = GFIRST + B.w;
     base[idx(W - 1, y)] = GFIRST + B.e;
   }
-  base[idx(0, 0)] = GFIRST + B.nw; base[idx(W - 1, 0)] = GFIRST + B.ne;
-  base[idx(0, H - 1)] = GFIRST + B.sw; base[idx(W - 1, H - 1)] = GFIRST + B.se;
-  for (let x = 0; x < W; x++) { collision.add(`${x},0`); collision.add(`${x},${H - 1}`); }
-  for (let y = 1; y < H - 1; y++) { collision.add(`0,${y}`); collision.add(`${W - 1},${y}`); }
+  // pared de roca: 2 filas con la variante alineada por columna, sobre base de
+  // tierra (como en Glades: sin tierra debajo la pared queda lavada)
+  for (let x = 0; x < W; x++) {
+    const v = rng.int(0, B.faceTop.length - 1);
+    base[idx(x, H - 2)] = GFIRST + 433;
+    base[idx(x, H - 1)] = GFIRST + 433;
+    agua[idx(x, H - 2)] = GFIRST + B.faceTop[v];
+    agua[idx(x, H - 1)] = GFIRST + B.faceBottom[v];
+  }
+  for (let x = 0; x < W; x++) { collision.add(`${x},0`); collision.add(`${x},${H - 2}`); collision.add(`${x},${H - 1}`); }
+  for (let y = 1; y < H - 2; y++) { collision.add(`0,${y}`); collision.add(`${W - 1},${y}`); }
 
   // --- reparar conectividad: el spawn debe alcanzar todos los portales ---
   repairConnectivity({ W, H, collision, placed, spawn: opts.spawn, portals: opts.portals });
