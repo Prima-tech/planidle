@@ -65,16 +65,20 @@ const W1_HOME_TILESET = {
 // Mapas generados por tools/mapgen (npm run gen:maps). Cada uno usa césped + agua (Water_coasts).
 const GEN_WATER: TilesetConfig = {
   key: 'gen-water-coasts', name: 'Water_coasts',
-  image: 'assets/tilemaps/W1/Water_coasts.png',
+  image: 'assets/tilemaps/biomas/grasslands/Water_coasts.png',
+};
+const GEN_WATER_DETAIL: TilesetConfig = {
+  key: 'gen-water-detail', name: 'Water_detilazation',
+  image: 'assets/tilemaps/biomas/grasslands/water_detilazation.png',
 };
 /** Tileset/tilemap de un mapa generado. El portal de avance va en (width-3, 2): ver manifest.mjs. */
 const gen = (id: string) => ({
   tilemapKey:   `gen-${id}`,
   tilemapJson:  `assets/tilemaps/generated/${id}.tmj`,
   tilesetKey:   'gen-ground-grasss',
-  tilesetImage: 'assets/tilemaps/W1/ground_grasss.png',
+  tilesetImage: 'assets/tilemaps/biomas/grasslands/ground_grasss.png',
   tilesetName:  'ground_grasss',
-  extraTilesets: [GEN_WATER],
+  extraTilesets: [GEN_WATER, GEN_WATER_DETAIL],
 });
 
 /** Portal de salida (esquina superior-izquierda) — devuelve al Modo Mundo (runner).

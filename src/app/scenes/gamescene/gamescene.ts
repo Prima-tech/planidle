@@ -17,6 +17,7 @@ import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
 import { NATIVE_DPR, playerTags } from "./constants";
 import { BuildableDef, PlacedBuilding, stationFrameRect } from "src/app/services/city-build.service";
+import { HOME_CHEST_ID } from "src/app/services/town-chest.service";
 import { PARALLAX_THEMES, ParallaxThemeId, ParallaxLayer, ParallaxTheme } from "./parallax-themes";
 import { Subscription } from "rxjs";
 import { Pet } from "src/app/pnj/pet/pet";
@@ -84,6 +85,8 @@ interface ActiveChest {
   blocked: string[];
   opening: boolean;
   isTownChest?: boolean;
+  /** Cofres de ciudad: ID de su almacén independiente. */
+  chestId?: string;
 }
 
 // Recolección de recursos del mapa (rocas con pico, árboles con hacha…).
@@ -91,8 +94,6 @@ interface ActiveChest {
  *  abajo). `name` = nombre en body-config (bodySpriteFor) para cargar su hoja;
  *  `texKey` = clave de textura propia. Añadir uno = una línea más aquí. */
 const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number }[] = [
-  { name: 'Orc',     texKey: 'npc_orc',     tileX: 34, tileY: 27 },
-  { name: 'Rake',    texKey: 'npc_rake',    tileX: 28, tileY: 23 },
 ];
 
 /** NPCs reclutables: aparecen en un mapa concreto (no el hogar) hasta que se les
@@ -433,6 +434,10 @@ export class GameScene extends Phaser.Scene {
       }
       this.load.tilemapTiledJSON(mapCfg.tilemapKey, mapCfg.tilemapJson);
 
+      // Datos de animación del agua (fotogramas de orillas/agua del pack). Ver initWaterAnimation().
+      if (!this.cache.json.exists('water-anims'))
+        this.load.json('water-anims', 'assets/tilemaps/biomas/grasslands/water-anims.json');
+
       // Solo carga texturas para los enemigos del mapa actual + variantes elite/oblivion.
       // Las texturas persisten entre reinicios de escena (textures.exists guard),
       // así que cada tipo se carga una sola vez en toda la sesión.
@@ -682,13 +687,14 @@ export class GameScene extends Phaser.Scene {
       // Diálogo abierto + ya no hay NPC cerca → cerrarlo (te alejaste).
       if (!nearNpc && this.reg.dialogue?.isOpen) this.reg.dialogue.dismiss();
 
-      // Si la ventana de cofre de ciudad está abierta y el jugador se alejó de
-      // TODOS los cofres de ciudad (fijo + construidos) → cerrar.
-      if (this.reg.summon.townChestIsOpen$.value) {
+      // Si la ventana de cofre de ciudad está abierta y el jugador se alejó del
+      // cofre CONCRETO que abrió (cada cofre es su propio almacén) → cerrar.
+      const openChestId = this.reg.summon.townChestIsOpen$.value;
+      if (openChestId) {
         const pos   = this.player.getPosition();
         const range = GameScene.CHEST_INTERACT_RANGE;
-        const anyNear = this.activeChests.some(c => {
-          if (!c.isTownChest) return false;
+        const near = this.activeChests.some(c => {
+          if (!c.isTownChest || c.chestId !== openChestId) return false;
           // Bordes del sprite (coherente con nearestOpenableChest): si no, al estar
           // pegado a un cofre grande lo daría por "lejos" y lo cerraría al instante.
           const b = c.sprite.getBounds();
@@ -696,7 +702,7 @@ export class GameScene extends Phaser.Scene {
           const dy = Math.max(b.top  - pos.y, 0, pos.y - b.bottom);
           return dx * dx + dy * dy <= range * range;
         });
-        if (!anyNear) this.reg.summon.townChestCloseRequest$.next();
+        if (!near) this.reg.summon.townChestCloseRequest$.next();
       }
 
       // Ventana de edificio (tienda/fragua) abierta: se cierra al ALEJARTE, pero solo
@@ -1196,6 +1202,48 @@ export class GameScene extends Phaser.Scene {
         layer.setDepth(depth++);
         layer.scale = 3;
       }
+      this.initWaterAnimation();
+    }
+
+    /** Anima el agua reproduciendo los flipbooks de Tiled del pack (Phaser no lo hace solo).
+     *  Recorre las casillas de las capas, detecta tiles animados (por tileset+id local vía
+     *  water-anims.json) y cada 150ms les cambia el índice al siguiente fotograma → la espuma
+     *  de las orillas se mueve. El timer se limpia solo al reiniciar la escena. */
+    private initWaterAnimation(): void {
+      const anims = this.cache.json.get('water-anims') as Record<string, Record<string, number[]>>;
+      if (!anims) return;
+      const map = this.currentMap;
+
+      // celdas animadas: capa + posición + fotogramas ya en gid absoluto
+      const cells: Array<{ layer: any; x: number; y: number; frames: number[] }> = [];
+      for (const ld of map.layers) {
+        const layer = ld.tilemapLayer;
+        if (!layer) continue;
+        for (let y = 0; y < map.height; y++) {
+          for (let x = 0; x < map.width; x++) {
+            const tile = ld.data[y]?.[x];
+            if (!tile || tile.index < 0) continue;
+            // tileset dueño de este gid = el de mayor firstgid <= index
+            let name = null, firstgid = 0;
+            for (const ts of map.tilesets)
+              if (tile.index >= ts.firstgid && ts.firstgid >= firstgid) { name = ts.name; firstgid = ts.firstgid; }
+            const table = name && anims[name];
+            const frames = table && table[String(tile.index - firstgid)];
+            if (!frames) continue;
+            cells.push({ layer, x, y, frames: frames.map(f => firstgid + f) });
+          }
+        }
+      }
+      if (!cells.length) return;
+
+      let frame = 0;
+      this.time.addEvent({
+        delay: 150, loop: true,
+        callback: () => {
+          frame++;
+          for (const c of cells) c.layer.putTileAt(c.frames[frame % c.frames.length], c.x, c.y, false);
+        },
+      });
     }
 
     // ── Overlay de rejilla de tiles (debug de posiciones) ───────────────────────
@@ -2832,8 +2880,8 @@ export class GameScene extends Phaser.Scene {
 
     private spawnTownChest(): void {
       const TS  = GameScene.TILE_SIZE;
-      // 4 tiles a la derecha del spawn del jugador (tile 30,30)
-      this.addTownChest(34 * TS + TS / 2, 30 * TS + TS / 2);
+      // 4 tiles a la derecha del spawn del jugador (tile 30,30). Almacén reservado 'home'.
+      this.addTownChest(34 * TS + TS / 2, 30 * TS + TS / 2, HOME_CHEST_ID);
     }
 
     /** NPCs fijos de la ciudad (Asgard): personajes decorativos que se quedan
@@ -2961,7 +3009,7 @@ export class GameScene extends Phaser.Scene {
     /** Crea un cofre de ciudad (fijo o construido) en (x,y) px: sprite, colisión y
      *  sincronización con la ventana compartida. Ambos abren el mismo almacén.
      *  Devuelve el entry y un unsub del sync de frame (para quitarlo en caliente). */
-    private addTownChest(x: number, y: number): {
+    private addTownChest(x: number, y: number, chestId: string): {
       entry: ActiveChest;
       isOpenUnsub: () => void;
     } {
@@ -2975,7 +3023,7 @@ export class GameScene extends Phaser.Scene {
       const blocked = this.computeFootprintTiles(x, y, (32 * 4) / 2);
       for (const k of blocked) this.collisionTiles.add(k);
 
-      const entry = { sprite, col, blocked, opening: false, isTownChest: true };
+      const entry = { sprite, col, blocked, opening: false, isTownChest: true, chestId };
       this.activeChests.push(entry);
 
       // Al terminar la animación: permite reabrir (la ventana ya controla el frame)
@@ -2983,10 +3031,14 @@ export class GameScene extends Phaser.Scene {
         entry.opening = false;
       });
 
-      // Sincroniza el frame con el estado de la ventana Angular:
-      // col+27 = último frame (abierto), col = cerrado
-      const isOpenSub = this.reg.summon.townChestIsOpen$.subscribe(isOpen => {
-        sprite.setFrame(isOpen ? col + 30 : col);
+      // Sincroniza el frame con el estado de la ventana Angular: se ve ABIERTO solo
+      // si la ventana abierta es la de ESTE cofre (col+30 = último frame; col = cerrado).
+      const isOpenSub = this.reg.summon.townChestIsOpen$.subscribe(openId => {
+        // Guarda anti-crash: townChestIsOpen$ es un servicio global que sobrevive a los
+        // restart de escena; si esta suscripción no se limpió a tiempo puede dispararse
+        // sobre un sprite ya destruido (textura sin frames → setFrame peta con 'cutWidth').
+        if (!sprite.active || !sprite.scene) return;
+        sprite.setFrame(openId === chestId ? col + 30 : col);
       });
       const isOpenUnsub = () => isOpenSub.unsubscribe();
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, isOpenUnsub);
@@ -3040,7 +3092,7 @@ export class GameScene extends Phaser.Scene {
       const { x, y } = this.buildingCenterPx(b.tileX, b.tileY);
       const building = { ...b };
       if (def.isTownChest) {
-        const { entry, isOpenUnsub } = this.addTownChest(x, y);
+        const { entry, isOpenUnsub } = this.addTownChest(x, y, building.id ?? HOME_CHEST_ID);
         this.placedBuildings.push({ building, sprite: entry.sprite, blocked: entry.blocked, chestEntry: entry, isOpenUnsub });
       } else {
         const sprite = this.add.sprite(x, y, def.spriteKey, def.frame);
@@ -3365,11 +3417,12 @@ export class GameScene extends Phaser.Scene {
     private confirmBuildPlacement(): void {
       const bp = this.buildPlacement;
       if (!bp || !bp.valid) return;
-      const b: PlacedBuilding = { type: bp.def.type, tileX: bp.tileX, tileY: bp.tileY };
+      // Al mover, conserva el id del edificio original → su almacén (cofre) le sigue.
+      const b: PlacedBuilding = { type: bp.def.type, tileX: bp.tileX, tileY: bp.tileY, id: bp.moving?.id };
       if (bp.moving) {
         this.reg.cityBuild.move(bp.moving, { tileX: bp.tileX, tileY: bp.tileY });  // reubica
       } else {
-        this.reg.cityBuild.add(b);   // persiste (global, compartido) + notifica a Angular
+        this.reg.cityBuild.add(b);   // persiste (global, compartido) + notifica a Angular (asigna b.id)
       }
       this.spawnBuilding(b);         // construcción permanente con colisión en su sitio nuevo
       bp.moving = undefined;         // ya gestionado → que el cleanup no restaure el original
@@ -3380,7 +3433,7 @@ export class GameScene extends Phaser.Scene {
       chest.opening = true;
       chest.sprite.play(`chest_open_${chest.col}`);
       if (chest.isTownChest) {
-        this.reg.summon.townChestOpen$.next();
+        this.reg.summon.townChestOpen$.next(chest.chestId ?? HOME_CHEST_ID);
       }
     }
 

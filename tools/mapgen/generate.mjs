@@ -78,7 +78,7 @@ export function generateMap(opts) {
   };
 
   // --- dispersar stamps por muestreo con rechazo ---
-  const targetCount = Math.round((W * H / 100) * (opts.stampDensity ?? 0));
+  const targetCount = stamps.length ? Math.round((W * H / 100) * (opts.stampDensity ?? 0)) : 0;
   let tries = targetCount * 40, done = 0;
   while (done < targetCount && tries-- > 0) {
     const st = rng.weighted(stamps);

@@ -4,15 +4,24 @@ import { StorageService } from './storage.service';
 import { InventoryItem } from './inventory.service';
 
 /**
- * Cofre de ciudad: almacén de items COMPARTIDO entre todos los personajes.
+ * Cofre de ciudad: almacén de items INDEPENDIENTE por cofre, COMPARTIDO entre
+ * todos los personajes.
  *
- * A diferencia del inventario (que vive en el snapshot por personaje de
- * SaveService), el cofre se persiste en una clave global única
- * (`STORAGE_KEY`) directamente vía StorageService. Así un personaje puede
- * dejar algo y otro personaje recogerlo.
+ * Cada cofre físico tiene su propio ID (`chestId`) y su propio grid, persistido
+ * en una clave global propia (`STORAGE_PREFIX + chestId`) directamente vía
+ * StorageService. Así distintos cofres guardan cosas distintas, y cualquier
+ * personaje puede dejar/recoger de cada uno (es global, no por personaje como el
+ * inventario del snapshot de SaveService).
+ *
+ * Solo hay UNA ventana de cofre abierta a la vez, así que los IDs de celda CDK y
+ * `removeRequest$` operan siempre sobre "el cofre actualmente cargado"; lo único
+ * que distingue a un cofre de otro es qué clave de almacén se carga/guarda.
  */
 
-const STORAGE_KEY = 'town_chest';
+const STORAGE_PREFIX = 'town_chest:';
+
+/** ID reservado del cofre fijo de Asgard (no es una construcción del jugador). */
+export const HOME_CHEST_ID = 'home';
 
 const TABS = 4;
 const ROWS = 4;
@@ -26,7 +35,8 @@ export class TownChestService {
 
   private storage = inject(StorageService);
 
-  private grid: (InventoryItem | null)[][][] | null = null;
+  /** Cache de grids por ID de cofre. */
+  private grids = new Map<string, (InventoryItem | null)[][][]>();
 
   /** IDs CDK de cada celda del cofre (`chest-tab-row-col`). */
   private readonly _cellIds: string[] = (() => {
@@ -42,23 +52,26 @@ export class TownChestService {
     return this._cellIds;
   }
 
-  async load(): Promise<(InventoryItem | null)[][][]> {
-    if (!this.grid) {
-      const saved: (InventoryItem | null)[][][] | null = await this.storage.get(STORAGE_KEY);
-      this.grid = saved ? this.normalize(saved) : this.buildGrid();
+  async load(chestId: string): Promise<(InventoryItem | null)[][][]> {
+    let grid = this.grids.get(chestId);
+    if (!grid) {
+      const saved: (InventoryItem | null)[][][] | null = await this.storage.get(STORAGE_PREFIX + chestId);
+      grid = saved ? this.normalize(saved) : this.buildGrid();
+      this.grids.set(chestId, grid);
     }
-    return this.clone(this.grid);
+    return this.clone(grid);
   }
 
-  async save(grid: (InventoryItem | null)[][][]): Promise<void> {
-    this.grid = this.clone(grid);
-    await this.storage.set(STORAGE_KEY, this.grid);
+  async save(chestId: string, grid: (InventoryItem | null)[][][]): Promise<void> {
+    const copy = this.clone(grid);
+    this.grids.set(chestId, copy);
+    await this.storage.set(STORAGE_PREFIX + chestId, copy);
   }
 
-  /** Vacía por completo el cofre (al borrar el edificio que lo contiene). */
-  async clear(): Promise<void> {
-    this.grid = this.buildGrid();
-    await this.storage.set(STORAGE_KEY, this.grid);
+  /** Vacía por completo un cofre (al borrar el edificio que lo contiene). */
+  async clear(chestId: string): Promise<void> {
+    this.grids.delete(chestId);
+    await this.storage.remove(STORAGE_PREFIX + chestId);
   }
 
   buildGrid(): (InventoryItem | null)[][][] {

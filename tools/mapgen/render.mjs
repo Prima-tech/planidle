@@ -11,7 +11,7 @@ const m = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
 const W = m.width, H = m.height;
 
 // resuelve la imagen real de cada tileset (los .tmj apuntan a W1/)
-const PNG_DIR = path.join(import.meta.dirname, '..', '..', 'src', 'assets', 'tilemaps', 'W1');
+const PNG_DIR = path.join(import.meta.dirname, '..', '..', 'src', 'assets', 'tilemaps', 'biomas', 'grasslands');
 const sets = m.tilesets.map(ts => ({
   firstgid: ts.firstgid, columns: ts.columns,
   png: PNG.sync.read(fs.readFileSync(path.join(PNG_DIR, path.basename(ts.image)))),

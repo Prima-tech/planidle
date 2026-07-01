@@ -136,8 +136,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.skillEquipService.activeSlot       = null;
       this.skillEquipService.selectedAbilityId = null;
     });
-    this.townChestSub = this.summonService.townChestOpen$.subscribe(() => {
-      if (!this.chestModal?.isOpenModal()) this.openChest();
+    this.townChestSub = this.summonService.townChestOpen$.subscribe((chestId) => {
+      if (!this.chestModal?.isOpenModal()) this.openChest(chestId);
       if (!this.inventoryModal?.isOpenModal()) {
         this.openInventory();
         this.inventoryOpenedByChest = true;
@@ -314,18 +314,20 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     }
   }
 
-  openChest() {
+  openChest(chestId: string) {
     if (this.chestModal.isOpenModal()) {
       this.chestModal.close();
     } else {
       this.closeOtherOnSide('left', this.chestModal);
+      // Fijar el ID ANTES de abrir: TownChestComponent lo lee en su ngOnInit para
+      // saber qué almacén cargar (solo hay una ventana de cofre abierta a la vez).
+      this.summonService.townChestIsOpen$.next(chestId);
       this.chestModal.open(TownChestComponent, 'town-chest');
-      this.summonService.townChestIsOpen$.next(true);
     }
   }
 
   onChestModalClosed() {
-    this.summonService.townChestIsOpen$.next(false);
+    this.summonService.townChestIsOpen$.next(null);
   }
 
   onBuildShopModalClosed() {

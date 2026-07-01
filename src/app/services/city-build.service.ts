@@ -102,7 +102,7 @@ export const BUILDABLES: BuildableDef[] = [
     scale: 4,
     tilesW: 3,
     tilesH: 3,
-    unique: true,
+    unique: false,   // varios cofres, cada uno con su almacén independiente
     isTownChest: true,
   },
   {
@@ -163,6 +163,9 @@ export interface PlacedBuilding {
   type: string;
   tileX: number;
   tileY: number;
+  /** ID estable propio de esta construcción. Identifica su almacén (p.ej. el
+   *  cofre de ciudad) para que el contenido le siga aunque se mueva de sitio. */
+  id?: string;
 }
 
 const STORAGE_KEY = 'city_buildings';
@@ -197,17 +200,31 @@ export class CityBuildService {
   private townChest = inject(TownChestService);
   private cache: PlacedBuilding[] | null = null;
 
+  /** ID estable único para una construcción. */
+  private generateBuildingId(): string {
+    return `bld-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  }
+
   /** Carga (y cachea) la lista de construcciones compartida. */
   async load(): Promise<PlacedBuilding[]> {
     if (!this.cache) {
       const saved: PlacedBuilding[] | null = await this.storage.get(STORAGE_KEY);
       this.cache = Array.isArray(saved) ? saved : [];
+      // Backfill de IDs para construcciones guardadas antes de tener ID propio.
+      let changed = false;
+      for (const b of this.cache) {
+        if (!b.id) { b.id = this.generateBuildingId(); changed = true; }
+      }
+      if (changed) await this.storage.set(STORAGE_KEY, this.cache);
     }
     return this.cache.map(b => ({ ...b }));
   }
 
-  /** Persiste una nueva construcción y notifica a Angular. */
+  /** Persiste una nueva construcción y notifica a Angular. Asigna un ID estable
+   *  de forma SÍNCRONA sobre `b` (antes del primer await) para que quien llama
+   *  pueda usar `b.id` justo después sin esperar la promesa. */
   async add(b: PlacedBuilding): Promise<void> {
+    if (!b.id) b.id = this.generateBuildingId();
     if (!this.cache) await this.load();
     this.cache!.push({ ...b });
     await this.storage.set(STORAGE_KEY, this.cache);
@@ -302,9 +319,9 @@ export class CityBuildService {
     if (idx !== -1) this.cache!.splice(idx, 1);
     await this.storage.set(STORAGE_KEY, this.cache);
 
-    // Vaciar el interior si el edificio almacena items (cofre de ciudad)
+    // Vaciar el interior si el edificio almacena items (su propio cofre por ID)
     const def = this.def(b.type);
-    if (def?.isTownChest) await this.townChest.clear();
+    if (def?.isTownChest && b.id) await this.townChest.clear(b.id);
 
     this.pendingDelete$.next(null);
     this.removed$.next(b);

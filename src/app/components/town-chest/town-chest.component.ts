@@ -2,7 +2,8 @@ import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '
 import { CdkDragDrop, CdkDragMove } from '@angular/cdk/drag-drop';
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
-import { TownChestService } from 'src/app/services/town-chest.service';
+import { HOME_CHEST_ID, TownChestService } from 'src/app/services/town-chest.service';
+import { SummonService } from 'src/app/services/summon.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { Subscription } from 'rxjs';
 
@@ -32,8 +33,12 @@ export class TownChestComponent implements OnInit, OnDestroy {
   private saveTimer: any;
   private removeSub: Subscription;
 
+  /** ID del almacén de ESTE cofre (lo fija el footer antes de abrir la ventana). */
+  private chestId: string = HOME_CHEST_ID;
+
   private panelState = inject(PanelStateService);
   private equipmentService = inject(EquipmentService);
+  private summon = inject(SummonService);
 
   constructor(
     private townChest: TownChestService,
@@ -54,6 +59,8 @@ export class TownChestComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Qué cofre abrimos: el footer fijó su ID en townChestIsOpen$ justo antes de abrir.
+    this.chestId = this.summon.townChestIsOpen$.value ?? HOME_CHEST_ID;
     this.activeTabIndex = this.panelState.get('chest.tab', 0);
     this.tabs = ['I', 'II', 'III', 'IV', 'V'].slice(0, this.NUMBER_OF_TABS);
     this.inventoryCellIds = this.equipmentService.inventoryCellIds;
@@ -61,8 +68,8 @@ export class TownChestComponent implements OnInit, OnDestroy {
     // Grid vacío síncrono para que CDK registre los drop lists antes de cargar datos
     this.chest = this.townChest.buildGrid();
 
-    // Cargar el cofre compartido
-    this.townChest.load().then(grid => {
+    // Cargar el almacén de ESTE cofre
+    this.townChest.load(this.chestId).then(grid => {
       this.chest = grid;
     });
 
@@ -75,7 +82,7 @@ export class TownChestComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     clearTimeout(this.saveTimer);
-    this.townChest.save(this.chest);
+    this.townChest.save(this.chestId, this.chest);
     this.removeSub?.unsubscribe();
   }
 
@@ -321,7 +328,7 @@ export class TownChestComponent implements OnInit, OnDestroy {
 
   private triggerSave(): void {
     clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => this.townChest.save(this.chest), 2000);
+    this.saveTimer = setTimeout(() => this.townChest.save(this.chestId, this.chest), 2000);
   }
 
   getSheetPos(frame: number = 0, cols: number = 12, frameSize: number = 32, contentSize?: number): string {

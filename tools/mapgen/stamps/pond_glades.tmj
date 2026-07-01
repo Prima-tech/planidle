@@ -1,0 +1,42 @@
+{
+ "compressionlevel": -1,
+ "width": 5, "height": 5, "tilewidth": 16, "tileheight": 16,
+ "infinite": false, "orientation": "orthogonal", "renderorder": "right-down",
+ "type": "map", "version": "1.10", "tiledversion": "1.12.2",
+ "nextlayerid": 4, "nextobjectid": 4,
+ "tilesets": [],
+ "layers": [
+  {
+   "id": 1, "name": "Base", "type": "tilelayer", "visible": true, "opacity": 1,
+   "x": 0, "y": 0, "width": 5, "height": 5,
+   "data": [
+    2459, 2459, 2459, 2459, 2459,
+    2459, 2459, 2459, 2459, 2459,
+    2459, 2459, 2459, 2459, 2459,
+    2459, 2459, 2459, 2459, 2459,
+    2459, 2459, 2459, 2459, 2459
+   ]
+  },
+  {
+   "id": 2, "name": "Agua", "type": "tilelayer", "visible": true, "opacity": 1,
+   "x": 0, "y": 0, "width": 5, "height": 5,
+   "data": [
+    824, 787, 940, 788, 824,
+    789, 864,   0, 862, 788,
+    825,   0,   0,   0, 823,
+    826, 786,   0, 784, 827,
+    824, 826, 902, 827, 824
+   ]
+  },
+  {
+   "id": 3, "name": "Colisiones", "type": "objectgroup", "visible": true, "opacity": 1,
+   "x": 0, "y": 0, "draworder": "topdown",
+   "properties": [{ "name": "collides", "type": "bool", "value": true }],
+   "objects": [
+    { "id": 1, "name": "", "type": "", "visible": true, "rotation": 0, "x": 16, "y": 0,  "width": 48, "height": 16 },
+    { "id": 2, "name": "", "type": "", "visible": true, "rotation": 0, "x": 0,  "y": 16, "width": 80, "height": 48 },
+    { "id": 3, "name": "", "type": "", "visible": true, "rotation": 0, "x": 16, "y": 64, "width": 48, "height": 16 }
+   ]
+  }
+ ]
+}
