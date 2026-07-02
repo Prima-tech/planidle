@@ -4,7 +4,7 @@
 
 const SEED = 'idle-w1';   // cambia el seed global para "rebarajar" TODOS los mapas a la vez
 
-function level(n, { width, height, density }) {
+function level(n, { width, height, density, frozen }) {
   return {
     id: `1-${n}`, seed: SEED, biome: 'grasslands',
     width, height,
@@ -14,6 +14,9 @@ function level(n, { width, height, density }) {
       { x: width - 3, y: 2 },         // next  (arriba-derecha)
     ],
     stampDensity: density,            // stamps por cada 100 tiles (aprox). Bajo = pocas features.
+    lake: n % 3 === 2,                // el lago de Glades es un hito: solo 1-2, 1-5 y 1-8
+    // frozen: true → mapa editado A MANO en Tiled; gen:maps NO lo regenera.
+    frozen: !!frozen,
   };
 }
 

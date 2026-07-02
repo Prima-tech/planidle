@@ -1,5 +1,6 @@
-// Motor de generación. Compone: base de césped + stamps dispersos + colisiones fusionadas,
-// con zonas despejadas (spawn/portales) y verificación de que se puede caminar a cada portal.
+// Motor de generación. Compone escenas hechas a mano (prefabs liftados de Glades)
+// + agua/tierra procedural + decoración pequeña, con zonas despejadas
+// (spawn/portales) y verificación de que se puede caminar a cada portal.
 import path from 'node:path';
 import { makeRng } from './rng.mjs';
 import { loadStamp, buildTmj } from './tmj.mjs';
@@ -8,13 +9,13 @@ import { generateWater } from './water.mjs';
 import { generateDirt } from './dirt.mjs';
 
 const STAMP_DIR = path.join(import.meta.dirname, 'stamps');
+const FLIP = 0x1FFFFFFF;
 
 /**
  * @param {object} opts
  *   id, seed, width, height, biome,
  *   spawn:{x,y}, portals:[{x,y}],
- *   stampDensity (0..1 aprox: stamps por cada 100 tiles),
- *   variantChance (0..1)
+ *   stampDensity (0..1 aprox: stamps por cada 100 tiles)
  */
 export function generateMap(opts) {
   const biome = BIOMES[opts.biome];
@@ -24,11 +25,12 @@ export function generateMap(opts) {
 
   const base = new Array(W * H).fill(biome.base.fill);
   const agua = new Array(W * H).fill(0);
+  const deco = new Array(W * H).fill(0);   // capa superior de los prefabs (copas, objetos)
   const collision = new Set();          // "x,y" celdas bloqueadas
-  const occupied = new Set();           // celdas ya ocupadas por stamps (para no solapar)
+  const occupied = new Set();           // celdas ya ocupadas (para no solapar)
   const idx = (x, y) => y * W + x;
 
-  // --- zonas despejadas: borde caminable + spawn + portales (con radio) ---
+  // --- zonas despejadas: spawn + portales (con radio) + banda del marco ---
   const clear = new Set();
   const reserve = (cx, cy, r) => {
     for (let y = cy - r; y <= cy + r; y++)
@@ -37,40 +39,16 @@ export function generateMap(opts) {
   };
   reserve(opts.spawn.x, opts.spawn.y, 6);   // zona amplia de spawn (jugador + enemigos)
   for (const p of opts.portals) reserve(p.x, p.y, 3);
-  // banda de 2 tiles del perímetro reservada para el seto del marco (sin stamps)
-  for (let x = 0; x < W; x++) for (const y of [0, 1, H - 2, H - 1]) clear.add(`${x},${y}`);
+  for (let x = 0; x < W; x++) for (const y of [0, 1, H - 3, H - 2, H - 1]) clear.add(`${x},${y}`);
   for (let y = 0; y < H; y++) for (const x of [0, 1, W - 2, W - 1]) clear.add(`${x},${y}`);
   for (const k of clear) occupied.add(k);
 
-  // --- agua procedural (lagos rectangulares) ANTES de decorar ---
-  // Autotileada con las piezas del pack; verifica que no aísle los portales.
-  const water = generateWater(rng, { W, H, base, agua, collision, occupied, spawn: opts.spawn, portals: opts.portals });
+  // El marco (labio + pared de roca) bloquea desde el PRINCIPIO para que todos los
+  // chequeos de conectividad (prefabs, agua) ya cuenten con él. El arte se pinta al final.
+  for (let x = 0; x < W; x++) { collision.add(`${x},0`); collision.add(`${x},${H - 2}`); collision.add(`${x},${H - 1}`); }
+  for (let y = 1; y < H - 2; y++) { collision.add(`0,${y}`); collision.add(`${W - 1},${y}`); }
 
-  // --- parches de tierra ---
-  generateDirt(rng, { W, H, base, agua, collision, occupied, grassFill: biome.base.fill });
-
-  // --- celdas "cerca del agua" (radio 6) para la decoración que lo exige (flores) ---
-  const nearWater = new Set(water.cells);
-  {
-    let frontier = [...water.cells];
-    for (let r = 0; r < 6; r++) {
-      const next = [];
-      for (const k of frontier) {
-        const [x, y] = k.split(',').map(Number);
-        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-          const nk = `${x + dx},${y + dy}`;
-          if (!nearWater.has(nk)) { nearWater.add(nk); next.push(nk); }
-        }
-      }
-      frontier = next;
-    }
-  }
-
-  // --- cargar stamps del bioma ---
-  const stamps = biome.stamps.map(s => ({
-    ...s, data: loadStamp(path.join(STAMP_DIR, `${s.file}.tmj`)),
-  }));
-
+  // --- infraestructura de colocación ---
   const placed = [];                    // {cells:Set, collisionCells:Set} para reparación de conectividad
   const fits = (sx, sy, st) => {
     if (sx < 1 || sy < 1 || sx + st.data.w > W - 1 || sy + st.data.h > H - 1) return false;
@@ -83,7 +61,7 @@ export function generateMap(opts) {
   const place = (sx, sy, st) => {
     const cells = new Set(), collisionCells = new Set();
     for (const [name, data] of Object.entries(st.data.layers)) {
-      const target = name === 'Agua' ? agua : base; // todo lo que no sea "Agua" va a Base
+      const target = name === 'Agua' ? agua : name === 'Deco' ? deco : base;
       for (let y = 0; y < st.data.h; y++)
         for (let x = 0; x < st.data.w; x++) {
           const gid = data[y * st.data.w + x];
@@ -103,7 +81,91 @@ export function generateMap(opts) {
     placed.push({ cells, collisionCells });
   };
 
-  // --- dispersar stamps por muestreo con rechazo ---
+  // BFS: ¿el spawn alcanza todos los portales con la colisión dada?
+  const reachesPortals = (blocked) => {
+    const seen = new Set([`${opts.spawn.x},${opts.spawn.y}`]), q = [[opts.spawn.x, opts.spawn.y]];
+    while (q.length) {
+      const [x, y] = q.pop();
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy, k = `${nx},${ny}`;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H || seen.has(k) || blocked.has(k)) continue;
+        seen.add(k); q.push([nx, ny]);
+      }
+    }
+    return opts.portals.every(p => seen.has(`${p.x},${p.y}`));
+  };
+  // coloca un prefab si cabe y no aísla los portales (su colisión puede ser grande)
+  const tryPrefab = (st, sx, sy, ignoreOccupied = false) => {
+    if (!ignoreOccupied && !fits(sx, sy, st)) return false;
+    if (ignoreOccupied && (sx < 1 || sy < 1 || sx + st.data.w > W - 1 || sy + st.data.h > H - 1)) return false;
+    const testBlocked = new Set(collision);
+    for (const rel of st.data.collision) {
+      const [rx, ry] = rel.split(',').map(Number);
+      testBlocked.add(`${sx + rx},${sy + ry}`);
+    }
+    if (!reachesPortals(testBlocked)) return false;
+    place(sx, sy, st);
+    return true;
+  };
+
+  // --- 1. hito: el lago de Glades, anclado a la esquina inferior derecha (allí
+  //        también sangra por el borde, el marco lo corta igual que en el original) ---
+  // Solo en los mapas que lo piden en el manifiesto: es un hito, no un mueble de serie.
+  let hasLake = false;
+  if (biome.prefabs && opts.lake) {
+    const st = { data: loadStamp(path.join(STAMP_DIR, `${biome.prefabs.lake}.tmj`)) };
+    hasLake = tryPrefab(st, W - st.data.w - 1, H - st.data.h - 2, true);
+  }
+
+  // --- 2. escenas medianas de Glades (ruina, charca, árboles, rocas...) ---
+  if (biome.prefabs) {
+    const scenes = biome.prefabs.scenes.map(s => ({
+      ...s, data: loadStamp(path.join(STAMP_DIR, `${s.file}.tmj`)),
+    }));
+    const nScenes = Math.round(W * H / 800) + rng.int(2, 4) + (hasLake ? 0 : 2);   // sin lago, algo más de chicha
+    const used = new Set();
+    for (let i = 0, tries = 0; i < nScenes && tries < 200; tries++) {
+      const st = rng.weighted(scenes);
+      if (st.unique && used.has(st.file)) continue;            // hitos: máx 1 por mapa
+      const sx = rng.int(2, W - st.data.w - 2), sy = rng.int(2, H - st.data.h - 3);
+      if (tryPrefab(st, sx, sy)) { i++; used.add(st.file); }
+    }
+  }
+
+  // --- 3. agua procedural de relleno (menos si ya hay lago) + parches de tierra ---
+  generateWater(rng, { W, H, base, agua, collision, occupied, spawn: opts.spawn, portals: opts.portals },
+    hasLake ? { nMin: 1, nMax: 2, big: false } : { nMin: 2, nMax: 3, big: true });
+  generateDirt(rng, { W, H, base, agua, collision, occupied, grassFill: biome.base.fill });
+
+  // --- 4. celdas "cerca del agua" (radio 6) para las flores — cuenta TODA el agua
+  //        del mapa (prefabs incluidos), leyendo la capa Base ---
+  const nearWater = new Set();
+  {
+    let frontier = [];
+    for (let i = 0; i < W * H; i++) {
+      const g = base[i] & FLIP;
+      if ((g >= 2459 && g < 5345) || g === 946) {       // Water_detilazation o C203 (agua del lago)
+        const k = `${i % W},${Math.floor(i / W)}`;
+        nearWater.add(k); frontier.push(k);
+      }
+    }
+    for (let r = 0; r < 6; r++) {
+      const next = [];
+      for (const k of frontier) {
+        const [x, y] = k.split(',').map(Number);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nk = `${x + dx},${y + dy}`;
+          if (!nearWater.has(nk)) { nearWater.add(nk); next.push(nk); }
+        }
+      }
+      frontier = next;
+    }
+  }
+
+  // --- 5. decoración pequeña (matas y flores; flores solo junto al agua) ---
+  const stamps = biome.stamps.map(s => ({
+    ...s, data: loadStamp(path.join(STAMP_DIR, `${s.file}.tmj`)),
+  }));
   const targetCount = stamps.length ? Math.round((W * H / 100) * (opts.stampDensity ?? 0)) : 0;
   let tries = targetCount * 40, done = 0;
   while (done < targetCount && tries-- > 0) {
@@ -116,10 +178,7 @@ export function generateMap(opts) {
     done++;
   }
 
-  // Base = césped uniforme. NADA de esparcir tiles "al azar": toda la decoración
-  // viene de stamps deliberados (coherentes), nunca de adivinar índices de tile.
-
-  // --- marco del mapa: barranco (labio arriba/lados + pared de roca abajo) ---
+  // --- 6. arte del marco: barranco (labio arriba/lados + pared de roca abajo) ---
   const B = biome.border, GFIRST = 1;
   base[idx(0, 0)] = GFIRST + B.nw; base[idx(W - 1, 0)] = GFIRST + B.ne;
   for (let x = 1; x < W - 1; x++) base[idx(x, 0)] = GFIRST + rng.pick(B.n);
@@ -136,13 +195,11 @@ export function generateMap(opts) {
     agua[idx(x, H - 2)] = GFIRST + B.faceTop[v];
     agua[idx(x, H - 1)] = GFIRST + B.faceBottom[v];
   }
-  for (let x = 0; x < W; x++) { collision.add(`${x},0`); collision.add(`${x},${H - 2}`); collision.add(`${x},${H - 1}`); }
-  for (let y = 1; y < H - 2; y++) { collision.add(`0,${y}`); collision.add(`${W - 1},${y}`); }
 
   // --- reparar conectividad: el spawn debe alcanzar todos los portales ---
   repairConnectivity({ W, H, collision, placed, spawn: opts.spawn, portals: opts.portals });
 
-  return buildTmj({ width: W, height: H, tilesets: biome.tilesets, base, agua, collision });
+  return buildTmj({ width: W, height: H, tilesets: biome.tilesets, base, agua, deco, collision });
 }
 
 /** BFS sobre celdas no bloqueadas; si un portal no es alcanzable, elimina el stamp culpable más cercano y reintenta. */

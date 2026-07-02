@@ -12,6 +12,10 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 
 let n = 0;
 for (const cfg of MANIFEST) {
+  if (cfg.frozen) {
+    console.log(`— ${cfg.id}  CONGELADO (editado a mano en Tiled) — no se regenera`);
+    continue;
+  }
   const tmj = generateMap(cfg);
   const file = path.join(OUT_DIR, `${cfg.id}.tmj`);
   writeTmj(file, tmj);

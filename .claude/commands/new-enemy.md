@@ -17,9 +17,8 @@ Luego **explora automáticamente** la carpeta `src/assets/sprites/enemy/{type}/`
 ### Paso 2 — Stats
 
 Pregunta en un solo mensaje:
-- HP base
+- **Tier** (= número del mapa donde vive, 1-8): de él salen vida (`tierHp(t)`), daño (`tierDamage(t)`), EXP y oro automáticamente — NO pedir HP/daño a mano salvo que el usuario quiera un override explícito
 - Velocidad en px/s (referencia: orc1 = 96)
-- Daño por golpe (referencia: orc1 = 8)
 - Cooldown entre ataques en ms (referencia: orc1 = 1500)
 - Escala visual (referencia: orc1 normal = 3, orc1 elite = 3.5)
 - Arquetipo de ataque `attackKind`: `melee` (por defecto), `ranged` (dispara proyectil desde 4 tiles y hace kiting, ej. gnoll1), `slam` (golpe de área telegrafiado, ej. golem1) o `charge` (embestida en línea telegrafiada con empujón, ej. lizard1)
@@ -83,8 +82,8 @@ Con todos los datos recogidos, implementa:
    - Define una constante `{TYPE}_DIR: DirOrder` con el orden de dirección indicado por el usuario
 
 2. **`src/app/physics/griddrops.ts`** — añade:
-   - Entrada en `EXP_REWARDS` (y variantes elite/oblivion si aplica)
-   - Entrada en `LOOT_TABLES` (y variantes elite/oblivion si aplica)
+   - Entrada en `LOOT_TABLES` (y variantes elite/oblivion): usa `COIN_TIER(t)` / `COIN_TIER_ELITE(t)` / `COIN_TIER_OBLIVION(t)` para el oro + el material del enemigo
+   - `EXP_REWARDS` es automático (se deriva del `tier` del config) — NO añadir entrada
 
 3. **`src/app/scenes/gamescene/map-config.ts`** — actualiza el spawn del mapa indicado
 

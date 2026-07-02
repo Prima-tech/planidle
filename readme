@@ -1,0 +1,17 @@
+Cómo editarlos en Tiled:
+
+1. Abrir: en Tiled, Archivo → Abrir y eliges directamente src/assets/tilemaps/generated/1-2.tmj. Los tilesets van embebidos y sus imágenes apuntan a ../biomas/grasslands/, así que se ve todo con su arte real, sin configurar nada.
+2. Capas (respeta los nombres, el juego las carga tal cual):
+  - Base — suelo: césped, agua, tierra. Aquí pintas el fondo.
+  - Agua — orillas, piedras, arte medio. Encima de Base.
+  - Deco — copas de árboles y objetos altos. La de más arriba.
+  - Colisiones — capa de objetos (no tiles): rectángulos que bloquean el paso. Con la herramienta de rectángulo (R) añades zonas; selecciona y Supr para quitar. No borres la propiedad collides=true de la capa.
+3. Pintar: selecciona la capa, elige tiles del panel de tilesets (verás los 5: suelo, orillas, agua, árboles/rocas, detalles) y pinta con el sello (B) o rellena (F). La goma (E) borra en la capa activa.
+4. Guardar: Ctrl+S tal cual — Tiled respeta el formato JSON .tmj. No lo exportes a otro formato ni actives compresión de capas (déjalo como está: CSV/array plano).
+5. Comprobar: node tools/mapgen/render.mjs 1-2 te saca el PNG de preview del mapa ya editado, o directamente npm start y entras al nivel.
+
+Dos cuidados:
+- No tapes con colisión el spawn (centro del mapa) ni los portales (arriba-izquierda (2,2) y arriba-derecha (ancho-3, 2)), y deja camino entre ellos.
+- Los tiles de agua se animan solos en el juego (el flipbook se aplica por tile, no hay que hacer nada en Tiled).
+
+Y recuerda la alternativa para arreglos que se repiten: los stamps de tools/mapgen/stamps/ (glades_lake.tmj, etc.) se editan igual en Tiled, y ese arreglo llega a todos los mapas no congelados en la siguiente regeneración.

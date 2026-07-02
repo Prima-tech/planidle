@@ -219,7 +219,9 @@ export class OfflineGainsService {
       if (entry.type === 'currency') {
         coinsPerKill += entry.chance * avgQty;
       } else {
-        const finalChance = Math.min(1, entry.chance * dropMult);
+        // Sin cap a 1: el juego activo dropea con desbordamiento (floor + decimal%
+        // de copia extra, ver rollDrops), cuya media es exactamente chance×mult.
+        const finalChance = entry.chance * dropMult;
         const perHour = killsPerHour * finalChance * avgQty;
         if (perHour > 0) drops.push({ entry, perHour });
       }
@@ -376,7 +378,9 @@ export class OfflineGainsService {
   /** Ganancias AFK explorando: metros (10/min) + mapas desbloqueados al cruzar sus
    *  hitos. Los flags se devuelven para marcarlos al recoger (LayoutComponent). */
   private calculateExploring(snapshot: GameSnapshot, cappedMinutes: number): OfflineGains | null {
-    const exploreMeters = Math.floor(METERS_PER_MINUTE * cappedMinutes);
+    // Talentos de exploración (rama CHR): % de metros extra por expedición AFK.
+    const exploreBonus  = this.talent.getBonus().exploration ?? 0;
+    const exploreMeters = Math.floor(METERS_PER_MINUTE * cappedMinutes * (1 + exploreBonus / 100));
     if (exploreMeters <= 0) return null;
 
     const oldDistance = snapshot.playerState?.explorationDistanceM ?? 0;

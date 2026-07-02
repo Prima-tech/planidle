@@ -19,6 +19,7 @@ export interface HpBreakdown {
   base:      number; // HP_BASE + CONST * 10
   equipment: number;
   talents:   number;
+  percent:   number;  // % de armaduras (hpPercent), sobre el subtotal
   total:     number;
 }
 
@@ -64,6 +65,7 @@ export interface CritDamageBreakdown {
 export interface AttackSpeedBreakdown {
   dex:       number;  // +1% por punto de DEX
   equipment: number;  // stat attackSpeed de equipo
+  talents:   number;  // nodos attackSpeed del árbol (rama DEX)
   buffs:     number;
   total:     number;  // % de velocidad extra del golpe básico, capado a +100
 }
@@ -72,6 +74,7 @@ export interface MagicDamageBreakdown {
   base:      number;  // DAMAGE_BASE + INT
   equipment: number;
   talents:   number;
+  percent:   number;  // % de bastones (magicDamagePercent), sobre el subtotal
   total:     number;
 }
 
@@ -338,7 +341,13 @@ export class CharacterStatsService {
       (sum, slot) => sum + (slot.item?.stats?.['magicDamage'] ?? 0), 0
     );
     const talents = this.talent.getBonus().magicAtk;  // nodos magicAtk + base de habilidades mágicas
-    return { base, equipment, talents, total: base + equipment + talents };
+    // Bastones con magicDamagePercent multiplican el daño mágico total (espejo de
+    // damagePercent en las espadas).
+    const percent = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['magicDamagePercent'] ?? 0), 0
+    );
+    const subtotal = base + equipment + talents;
+    return { base, equipment, talents, percent, total: Math.floor(subtotal * (1 + percent / 100)) };
   }
 
   private _calcHpRegen(): RegenBreakdown {
@@ -437,7 +446,14 @@ export class CharacterStatsService {
       (sum, slot) => sum + (slot.item?.stats?.['hp'] ?? 0), 0
     );
     const talents = this.talent.getBonus().hp;
-    return { base, equipment, talents, total: base + equipment + talents };
+    // Armaduras con hpPercent multiplican la vida total (mismo modelo que
+    // damagePercent en armas): escala con el personaje — clave para las futuras
+    // promociones, donde a nivel 1 un % de poca base es poco.
+    const percent = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['hpPercent'] ?? 0), 0
+    );
+    const subtotal = base + equipment + talents;
+    return { base, equipment, talents, percent, total: Math.floor(subtotal * (1 + percent / 100)) };
   }
 
   private _calcMp(): MpBreakdown {
@@ -494,8 +510,9 @@ export class CharacterStatsService {
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['attackSpeed'] ?? 0), 0
     );
-    const buffs = this.buff.getValue('attackSpeed');
-    return { dex, equipment, buffs, total: Math.min(100, dex + equipment + buffs) };
+    const talents = this.talent.getBonus().attackSpeed ?? 0;
+    const buffs   = this.buff.getValue('attackSpeed');
+    return { dex, equipment, talents, buffs, total: Math.min(100, dex + equipment + talents + buffs) };
   }
 
   private _calcEvasion(): EvasionBreakdown {

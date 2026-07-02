@@ -52,7 +52,7 @@ function mergeCollisionRects(cells, width, height) {
  * Construye el objeto .tmj final.
  * @param {object} o { width, height, tilesets, base:gid[], agua:gid[], collision:Set, imageBase }
  */
-export function buildTmj({ width, height, tilesets, base, agua, collision }) {
+export function buildTmj({ width, height, tilesets, base, agua, deco, collision }) {
   const rects = mergeCollisionRects(collision, width, height);
   let nextObjId = 1;
   const objects = rects.map(r => ({
@@ -81,8 +81,10 @@ export function buildTmj({ width, height, tilesets, base, agua, collision }) {
       },
       // Base (césped, mapa entero) ABAJO; Agua ENCIMA para que el agua se vea
       // sobre la hierba. Antes iban al revés y la Base tapaba el mar por completo.
+      // Deco (objetos de los prefabs: copas, rocas...) va la ÚLTIMA, encima de todo.
       tileLayer(2, 'Base', base),
       tileLayer(3, 'Agua', agua),
+      ...(deco && deco.some(g => g) ? [tileLayer(4, 'Deco', deco)] : []),
     ],
   };
 }

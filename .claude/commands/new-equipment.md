@@ -8,7 +8,7 @@ Guía para crear cascos, armaduras, pantalones, botas y accesorios. Para armas u
 - **Tipo de slot** (`helmet`, `pants`, `boots`, `armor`, `necklace`, `ring1`, `ring2`, `food`, `potion`)
 - **Carpeta de sprites** (ej. `helmets/armet/`)
 - **Enemigos que lo dropean** y **% de drop**
-- **Stats** (ej. `hp: 15`)
+- **Stats** — las armaduras dan **`hpPercent`** (% de vida máxima, NO `hp` plano): escaleras por tier (01→04): casco 4/6/9/13, torso 6/9/13/19, grebas 5/8/11/16, botas 3/5/7/10. El % escala con el personaje (a prueba de promociones/prestigio)
 - **JSON del generador LPC** (opcional) — útil sobre todo para los **nombres** oficiales.
 
 ---

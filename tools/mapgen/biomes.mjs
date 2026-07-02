@@ -51,6 +51,17 @@ export const BIOMES = {
       n: [25, 27, 28], w: 77, e: 79, nw: 24, ne: 26,
       faceTop: [557, 558, 559], faceBottom: [610, 611, 612],
     },
+    // Escenas hechas a mano recortadas de Glades.tmx (tools/mapgen/lift.mjs).
+    // El lago va aparte (anclado a la esquina inferior derecha, como en Glades).
+    prefabs: {
+      lake: 'glades_lake',
+      scenes: [
+        { file: 'glades_ruin', weight: 2, unique: true },   // ruina circular grande (máx 1)
+        { file: 'glades_tower', weight: 1, unique: true },  // pilar en ruinas (máx 1)
+        { file: 'tree_green', weight: 4 },     // árbol verde (sintético, tronco con colisión)
+        { file: 'tree_apple', weight: 3 },     // manzano (sintético)
+      ],
+    },
     // Solo decoración pequeña (matas y flores). Los objetos grandes (arbustos/
     // árboles deco_obj*) se quitaron: no aportaban (los arbustos siguen en el marco).
     stamps: [

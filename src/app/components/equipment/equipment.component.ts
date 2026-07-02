@@ -525,6 +525,9 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       case 'dropRate':   return `+${val}% DROP`;
       case 'miningEfficiency': return `+${val}% MIN`;
       case 'miningDrop':       return `×${1 + val} botín MIN`;
+      case 'attackSpeed':      return `+${val}% VEL`;
+      case 'exploration':      return `+${val}% EXPLO`;
+      case 'alchemy':          return `+${val}% ALQ`;
       default:           return `+${val} ATK`;
     }
   }

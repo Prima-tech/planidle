@@ -17,13 +17,16 @@ src/app/services/save.service.ts            ← persiste TalentSnapshot en GameS
 ### Tipos clave en `talent.service.ts`
 
 ```typescript
-export type SphereType = 'common' | 'normal' | 'rare' | 'epic' | 'legendary';
-// Multiplicadores de poder: 1× / 2× / 4× / 8× / 16×
+export type SphereType = 'normal' | 'rare' | 'epic';
+// Multiplicadores: sin gema ×1 (solo desbloqueado) · normal ×2 · rare ×3 · epic ×5
 
 export interface TalentEffect {
-  type:     'atk' | 'hp' | 'mp' | 'defense' | 'critChance' | 'hpRegen' | 'mpRegen' | 'ability';
-  base:     number;       // valor con esfera common (×1)
-  ability?: string;       // solo si type === 'ability' (ej: 'area_attack')
+  type:     'atk' | 'magicAtk' | 'hp' | 'mp' | 'defense' | 'evasion' | 'critChance'
+          | 'hpRegen' | 'mpRegen' | 'dropRate' | 'miningEfficiency' | 'miningDrop'
+          | 'attackSpeed' | 'exploration' | 'alchemy' | 'ability';
+  base:     number;       // valor sin gema (×1)
+  ability?: string;       // solo si type === 'ability' (clave de SKILL_REGISTRY)
+  school?:  'physical' | 'magic';  // ability: a qué daño suma su base (default magic)
 }
 
 export interface TalentNodeConfig {
@@ -55,7 +58,16 @@ export interface TalentNodeConfig {
 | `'critChance'` | `base × mult` % probabilidad crítico | `CharacterStatsService.critChance$` via `talent.getBonus().critChance` |
 | `'hpRegen'` | `base × mult` puntos extra de HP regen max | `RegenService` via `talent.getBonus().hpRegen` |
 | `'mpRegen'` | `base × mult` puntos extra de MP regen max | `RegenService` via `talent.getBonus().mpRegen` |
-| `'ability'` | Desbloquea habilidad (+ `base × mult` ATK) | `talent.getBonus().abilities[]` |
+| `'magicAtk'` | `base × mult` puntos de daño mágico | `magicDamage$` |
+| `'evasion'` | `base × mult` % de evasión | `evasion$` |
+| `'dropRate'` | `base × mult` % de tasa de botín | `dropRate$` |
+| `'miningEfficiency'` / `'miningDrop'` | minería (eficiencia % / botín extra ×) | menas en gamescene |
+| `'attackSpeed'` | `base × mult` % velocidad de ataque básico | `attackSpeed$` (cap +100 global) |
+| `'exploration'` | `base × mult` % de metros en expediciones AFK del Modo Mundo | `offline-gains.calculateExploring` |
+| `'alchemy'` | `base × mult` % creación de pociones — **efecto pendiente de implementar** | solo suma en getBonus() |
+| `'ability'` | Desbloquea habilidad (+ `base × mult` a su `school`: physical→ATK, magic→M.ATK) | `talent.getBonus().abilities[]` |
+
+**Estructura del árbol principal (`TALENT_NODES`)**: hub `c0` en (10,5) con 6 ramas temáticas de 5 nodos + 2 sub-ramas de 3 desde el nodo 2: STR (dcha: atk/crit + sub minería), VIT (abajo-dcha: hp/def/regen), CHR (abajo-izq: dropRate + sub exploración), INT (izq: magicAtk + sub alquimia), MAG (arriba-izq: mp/regen), DEX (arriba-dcha: evasión/attackSpeed). Nodos grandes = habilidades (máx 2 por rama); pequeños (`small: true` o filler) = atributos. Al añadir tipos nuevos: actualizar también `effectLabel()` en `equipment.component.ts` y `getBonus()`.
 
 ### `getBonus()` — retorno actual
 

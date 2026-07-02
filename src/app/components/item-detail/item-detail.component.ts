@@ -10,7 +10,9 @@ export const STAT_LABELS: Record<string, string> = {
   damage:        'ITEM_STAT.DAMAGE',
   damagePercent: 'ITEM_STAT.DAMAGE_PERCENT',
   magicDamage:   'ITEM_STAT.MAGIC_DAMAGE',
+  magicDamagePercent: 'ITEM_STAT.MAGIC_DAMAGE_PERCENT',
   hp:            'ITEM_STAT.HP',
+  hpPercent:     'ITEM_STAT.HP_PERCENT',
   healing:  'ITEM_STAT.HEALING',
   defense:  'ITEM_STAT.DEFENSE',
   speed:    'ITEM_STAT.SPEED',
@@ -20,7 +22,7 @@ export const STAT_LABELS: Record<string, string> = {
 
 /** Stats que se muestran como porcentaje (sufijo '%'). */
 export function isPercentStat(key: string): boolean {
-  return key === 'damagePercent';
+  return key === 'damagePercent' || key === 'hpPercent' || key === 'magicDamagePercent';
 }
 
 @Component({

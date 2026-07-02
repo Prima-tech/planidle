@@ -142,6 +142,10 @@
             <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ hp.talents }}</span>
           </div>
+          <div class="ov-bk-row" *ngIf="hp.percent > 0">
+            <span>{{ 'STAT.ARMOR' | translate }}</span>
+            <span class="ov-bonus">+{{ hp.percent }}%</span>
+          </div>
         </ng-container>
       </div>
     </div>
@@ -311,6 +315,10 @@
             <span>{{ 'STAT.TALENTS' | translate }}</span>
             <span class="ov-bonus">+{{ mdmg.talents }}</span>
           </div>
+          <div class="ov-bk-row" *ngIf="mdmg.percent > 0">
+            <span>{{ 'STAT.WEAPON' | translate }}</span>
+            <span class="ov-bonus">+{{ mdmg.percent }}%</span>
+          </div>
         </ng-container>
       </div>
     </div>
@@ -395,6 +403,10 @@
           <div class="ov-bk-row" *ngIf="asp.equipment > 0">
             <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
             <span class="ov-bonus">+{{ asp.equipment }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="asp.talents > 0">
+            <span>{{ 'STAT.TALENTS' | translate }}</span>
+            <span class="ov-bonus">+{{ asp.talents }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="asp.buffs > 0">
             <span>{{ 'STAT.SKILLS' | translate }}</span>
@@ -833,6 +845,13 @@
       <div class="tpicker-hint" *ngIf="!canAffordUnlock()">
         {{ 'TALENT.NO_POINTS' | translate }}
       </div>
+    </ng-container>
+
+    <!-- Nodo bloqueado (el camino no llega aún, p.ej. viéndolo en admin): muestra
+         igualmente QUÉ hace + aviso — antes la ficha salía solo con el nombre -->
+    <ng-container *ngIf="!selectedIsUnlocked() && !selectedIsReachable()">
+      <div class="tpicker-active">{{ nodeActiveEffect(selectedNode!) }}</div>
+      <div class="tpicker-hint">{{ 'TALENT.LOCKED_PATH' | translate }}</div>
     </ng-container>
 
     <!-- Nodo desbloqueado: valor + ranura de esfera con acordeón -->

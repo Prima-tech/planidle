@@ -7,7 +7,7 @@ Guía para crear un arma con sprites Phaser, drop de enemigos y slot de equipami
 - **Nombre del arma** (ej. `Cimitar`, `Espada Larga`)
 - **Ruta del spritesheet** (ej. `weapons1/cimitar.png`)
 - **Enemigos que la dropean** y **% de drop**
-- **Stats**: espadas usan `damagePercent: N` (% que multiplica el daño físico total); bastones usan `magicDamage: N` (plano). `damage: N` plano sigue válido para otros items.
+- **Stats**: espadas usan `damagePercent: N` (% que multiplica el daño físico total; escalera 01→06: 8/12/16/20/25/30); bastones usan `magicDamagePercent: N` (% sobre el daño mágico; escalera 01→04: 10/15/21/28). Los planos (`damage`/`magicDamage`) siguen soportados pero NO usarlos en armas nuevas: el % escala con el personaje (a prueba de promociones).
 - **JSON del generador LPC** (si lo hay) — es CLAVE para saber el formato (ver abajo).
 
 ---

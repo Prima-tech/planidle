@@ -86,9 +86,9 @@ interface GameSnapshot {
 
 | Stat | Derivado | Fórmula |
 |------|----------|---------|
-| STR | Daño físico | 10 + STR |
-| INT | Daño mágico | 10 + INT |
-| CONST | HP máx / regen | 50 + ×10 / regen=[CONST/2, CONST] |
+| STR | Daño físico | (10 + STR + equipo) × (1 + damagePercent/100) |
+| INT | Daño mágico | (10 + INT + equipo) × (1 + magicDamagePercent/100) |
+| CONST | HP máx / regen | (50 + ×10 + equipo) × (1 + hpPercent/100) / regen=[CONST/2, CONST] |
 | MAG | MP máx / regen | 50 + ×5 / regen=[MAG/2, MAG] |
 | DEX | Defensa / Evasión% | floor(DEX/10), mín 0 |
 | DEX | Vel. de ataque | +1%/punto (+ equipo `attackSpeed` + buffs), cap +100% |
@@ -103,6 +103,8 @@ interface GameSnapshot {
 
 - Jerarquía: `enemy1` → `enemy1_elite` (tras N kills) → `enemy1_oblivion` (tras N kills elite)
 - Cada tipo tiene entrada en `ENEMY_REGISTRY` y en `LOOT_TABLES`
+- **Dificultad incremental por `tier`** (= nº de mapa, 1-8): vida `tierHp(t)` = 100×1.35^(t−1), daño `tierDamage(t)` = 7×1.25^(t−1) (enemy-config); EXP derivada = 6×1.45^(t−1), élite ×5 / oblivion ×14 (EXP_REWARDS en griddrops); oro `COIN_TIER(t)`/`_ELITE`/`_OBLIVION`. No poner números a mano: asignar tier
+- Bonus de botín (CHR/equipo/mapa) con desbordamiento: chance×mult > 1 → floor copias + decimal% de otra (solo items, no oro)
 - **Guard crítico:** `if (this.isDead) return` en `takeDamage()` y `die()` — evita doble muerte
 - Spawn escalonado 1 cada 2s al entrar al mapa; respawn tras 3s al morir
 - Esquiva posicional: si el jugador sale del rango durante el wind-up del golpe enemigo → "MISS". Leash 12 tiles: abandona la caza y se cura al máximo (`dropChase()`)

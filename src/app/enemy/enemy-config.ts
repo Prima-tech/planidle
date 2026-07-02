@@ -26,6 +26,25 @@ export interface ActionConfig {
   frames: DirectionFrames | OmniFrames;
 }
 
+// ── Dificultad incremental por tier ──────────────────────────────────────────
+// tier = número del mapa donde vive el enemigo (1-1 → 1 … 1-8 → 8). Vida y daño
+// salen de UNA curva geométrica (estilo incremental): cada mapa multiplica al
+// anterior, así el de un mapa nunca puede ser más flojo que el del mapa previo.
+// La EXP por kill se deriva del mismo tier en griddrops (EXP_REWARDS) y el oro
+// de las tablas de botín también. Élite/oblivion multiplican ENCIMA de la base
+// (×3/×8 vida, ×2/×3 daño), como siempre.
+export const TIER_HP_BASE    = 100;
+export const TIER_HP_GROWTH  = 1.35;
+export const TIER_DMG_BASE   = 7;
+export const TIER_DMG_GROWTH = 1.25;
+
+export function tierHp(tier: number): number {
+  return Math.round(TIER_HP_BASE * Math.pow(TIER_HP_GROWTH, tier - 1));
+}
+export function tierDamage(tier: number): number {
+  return Math.round(TIER_DMG_BASE * Math.pow(TIER_DMG_GROWTH, tier - 1));
+}
+
 // ── Config completa de un tipo de enemigo ─────────────────────────────────────
 
 // Arquetipo del ataque:
@@ -42,6 +61,7 @@ export type EnemyAttackKind = 'melee' | 'ranged' | 'slam' | 'charge';
 
 export interface EnemyTypeConfig {
   type: string;
+  tier?: number;           // número de mapa (1..8) — vida/daño/EXP/oro salen de la curva
   hp: number;
   scale: number;
   speed: number;           // px/s
@@ -104,10 +124,11 @@ const ORC1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 const orc1: EnemyTypeConfig = {
   type: 'orc1',
   displayName: 'Orco',
-  hp: 200,                 // mapa 1-3
+  tier: 3,                 // mapa 1-3
+  hp: tierHp(3),
   scale: 3,
   speed: 96,
-  damage: 12,
+  damage: tierDamage(3),
   attackCooldown: 1500,
   windUpMs: 600,           // pega fuerte pero telegrafiado: se puede esquivar
   enrages: true,           // bajo 30% de vida entra en furia (ataca ×0.8 más rápido)
@@ -193,10 +214,11 @@ const SLIME4_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const slime4: EnemyTypeConfig = {
   type: 'slime4',
   displayName: 'Slime',
-  hp: 100,                 // mapa 1-1
+  tier: 1,                 // mapa 1-1
+  hp: tierHp(1),
   scale: 3,
   speed: 150,
-  damage: 7,
+  damage: tierDamage(1),
   attackCooldown: 1500,
   windUpMs: 300,           // golpe rápido y flojo: casi imposible de esquivar, poco castigo
   actions: {
@@ -252,10 +274,11 @@ const SLIME5_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const slime5: EnemyTypeConfig = {
   type: 'slime5',
   displayName: 'Slime mejorado',
-  hp: 125,
+  tier: 2,                 // variante mejorada (sin mapa asignado aún)
+  hp: tierHp(2),
   scale: 3,
   speed: 150,
-  damage: 8,
+  damage: tierDamage(2),
   attackCooldown: 1500,
   windUpMs: 300,
   actions: {
@@ -363,10 +386,11 @@ const GOOBLING2_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 const goobling2: EnemyTypeConfig = {
   type: 'goobling2',
   displayName: 'Goblin',
-  hp: 400,                 // mapa 1-7
+  tier: 7,                 // mapa 1-7
+  hp: tierHp(7),
   scale: 3,
   speed: 115,
-  damage: 21,
+  damage: tierDamage(7),
   attackCooldown: 1700,
   windUpMs: 450,
   actions: {
@@ -391,10 +415,11 @@ const GNOLL1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const gnoll1: EnemyTypeConfig = {
   type: 'gnoll1',
   displayName: 'Gnoll',
-  hp: 300,                 // mapa 1-5
+  tier: 5,                 // mapa 1-5
+  hp: tierHp(5),
   scale: 3,
   speed: 110,
-  damage: 16,
+  damage: tierDamage(5),
   attackCooldown: 1600,
   attackKind: 'ranged',    // primer enemigo a distancia: escupe desde 4 tiles
   windUpMs: 500,
@@ -418,10 +443,11 @@ const GOLEM1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dire
 const golem1: EnemyTypeConfig = {
   type: 'golem1',
   displayName: 'Golem',
-  hp: 450,                 // mapa 1-8
+  tier: 8,                 // mapa 1-8
+  hp: tierHp(8),
   scale: 4.5,
   speed: 70,
-  damage: 23,
+  damage: tierDamage(8),
   attackCooldown: 2000,
   attackKind: 'slam',      // golpe de ÁREA: círculo telegrafiado ~1s → sal de él o duele
   windUpMs: 900,
@@ -448,10 +474,11 @@ const RAT1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Direct
 const rats1: EnemyTypeConfig = {
   type: 'rats1',
   displayName: 'Rata',
-  hp: 150,                 // mapa 1-2
+  tier: 2,                 // mapa 1-2
+  hp: tierHp(2),
   scale: 3,
   speed: 130,
-  damage: 9,
+  damage: tierDamage(2),
   attackCooldown: 1500,
   windUpMs: 250,           // la más rápida del juego: mordisco casi instantáneo
   actions: {
@@ -475,10 +502,11 @@ const LIZARD1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, Dir
 const lizard1: EnemyTypeConfig = {
   type: 'lizard1',
   displayName: 'Hombre Lagarto',
-  hp: 350,                 // mapa 1-6
+  tier: 6,                 // mapa 1-6
+  hp: tierHp(6),
   scale: 3,
   speed: 100,
-  damage: 19,
+  damage: tierDamage(6),
   attackCooldown: 1400,
   attackKind: 'charge',    // embestida en línea telegrafiada: esquívala en perpendicular
   windUpMs: 600,
@@ -503,10 +531,11 @@ const GOOBLING1_DIR: DirOrder = [Direction.DOWN, Direction.UP, Direction.LEFT, D
 const goobling1: EnemyTypeConfig = {
   type: 'goobling1',
   displayName: 'Goblin',
-  hp: 250,                 // mapa 1-4
+  tier: 4,                 // mapa 1-4
+  hp: tierHp(4),
   scale: 3,
   speed: 110,
-  damage: 14,
+  damage: tierDamage(4),
   attackCooldown: 1700,
   windUpMs: 450,
   actions: {

@@ -15,7 +15,13 @@ export interface TalentEffect {
   //   por ahora solo suma en getBonus() y se muestra en la ficha del talento.
   // 'miningDrop': botín extra al minar. El multiplicador de drop de las rocas es
   //   (1 + suma de miningDrop). base 1 sin gema → ×2 (doble); con gema escala.
-  type:     'atk' | 'magicAtk' | 'hp' | 'mp' | 'defense' | 'evasion' | 'critChance' | 'hpRegen' | 'mpRegen' | 'dropRate' | 'miningEfficiency' | 'miningDrop' | 'ability';
+  // 'attackSpeed': % de velocidad de ataque básico (suma al stat derivado de DEX
+  //   en CharacterStatsService._calcAttackSpeed, cap +100% global).
+  // 'exploration': % de metros extra en expediciones AFK del Modo Mundo
+  //   (offline-gains). Futuro: aplicar también a la carrera activa.
+  // 'alchemy': % de potencia/éxito creando pociones. Efecto pendiente (la creación
+  //   de pociones aún no existe); por ahora solo suma en getBonus() y se muestra.
+  type:     'atk' | 'magicAtk' | 'hp' | 'mp' | 'defense' | 'evasion' | 'critChance' | 'hpRegen' | 'mpRegen' | 'dropRate' | 'miningEfficiency' | 'miningDrop' | 'attackSpeed' | 'exploration' | 'alchemy' | 'ability';
   base:     number;
   ability?: string;
   /** Solo para type 'ability': a qué daño suma su `base`. Por defecto 'magic'. */
@@ -76,162 +82,164 @@ export const TALENT_NODES: TalentNodeConfig[] = [
     col: 10, row: 5, requires: [], effect: { type: 'atk', base: 0 } },
 
   // ── Rama 1: Derecha (paso +2 cols) ──────────────────────────────
-  { id: 'n1_1', label: '', icon: 'ellipse-outline', num: 1, small: true, topLabel: 'STR',
+  { id: 'n1_1', label: 'Fuerza I', icon: 'barbell-outline', num: 1, small: true, topLabel: 'STR',
     col: 12, row: 5, requires: ['c0'],   effect: { type: 'atk', base: 1 } },
   { id: 'n1_2', label: 'Tajo de\nGuerrero III', icon: 'flash-outline', num: 2,
     col: 14, row: 5, requires: ['n1_1'], effect: { type: 'ability', base: 22, ability: 'warrior_slash_3', school: 'physical' } },
-  { id: 'n1_3', label: '', icon: 'ellipse-outline', num: 3,
-    col: 16, row: 5, requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
-  { id: 'n1_4', label: '', icon: 'ellipse-outline', num: 4,
-    col: 18, row: 5, requires: ['n1_3'], effect: { type: 'atk', base: 0 } },
-  { id: 'n1_5', label: '', icon: 'ellipse-outline', num: 5,
-    col: 20, row: 5, requires: ['n1_4'], effect: { type: 'atk', base: 0 } },
+  { id: 'n1_3', label: 'Fuerza II', icon: 'barbell-outline', num: 3, small: true,
+    col: 16, row: 5, requires: ['n1_2'], effect: { type: 'atk', base: 2 } },
+  { id: 'n1_4', label: 'Fuerza III', icon: 'barbell-outline', num: 4, small: true,
+    col: 18, row: 5, requires: ['n1_3'], effect: { type: 'atk', base: 2 } },
+  { id: 'n1_5', label: 'Tajo de\nGuerrero V', icon: 'flash-outline', num: 5,
+    col: 20, row: 5, requires: ['n1_4'], effect: { type: 'ability', base: 26, ability: 'warrior_slash_5', school: 'physical' } },
 
   // ── Rama 2: Abajo-derecha (paso +1 col, +1 row) ─────────────────
-  { id: 'n2_1', label: '', icon: 'ellipse-outline', num: 6, small: true, topLabel: 'VIT',
+  { id: 'n2_1', label: 'Vitalidad I', icon: 'heart-outline', num: 6, small: true, topLabel: 'VIT',
     col: 11, row: 6,  requires: ['c0'],   effect: { type: 'hp', base: 5 } },
-  { id: 'n2_2', label: '', icon: 'ellipse-outline', num: 7,
-    col: 12, row: 7,  requires: ['n2_1'], effect: { type: 'atk', base: 0 } },
-  { id: 'n2_3', label: '', icon: 'ellipse-outline', num: 8,
-    col: 13, row: 8,  requires: ['n2_2'], effect: { type: 'atk', base: 0 } },
-  { id: 'n2_4', label: '', icon: 'ellipse-outline', num: 9,
-    col: 14, row: 9,  requires: ['n2_3'], effect: { type: 'atk', base: 0 } },
-  { id: 'n2_5', label: '', icon: 'ellipse-outline', num: 10,
-    col: 15, row: 10, requires: ['n2_4'], effect: { type: 'atk', base: 0 } },
+  { id: 'n2_2', label: 'Vitalidad II', icon: 'heart-outline', num: 7, small: true,
+    col: 12, row: 7,  requires: ['n2_1'], effect: { type: 'hp', base: 5 } },
+  { id: 'n2_3', label: 'Escudo\nde Fuego', icon: 'shield-half-outline', num: 8,
+    col: 13, row: 8,  requires: ['n2_2'], effect: { type: 'ability', base: 8, ability: 'fire_shield' } },
+  { id: 'n2_4', label: 'Guardia II', icon: 'shield-outline', num: 9, small: true,
+    col: 14, row: 9,  requires: ['n2_3'], effect: { type: 'defense', base: 1 } },
+  { id: 'n2_5', label: 'Corazón\nde Roble', icon: 'heart-circle-outline', num: 10, small: true,
+    col: 15, row: 10, requires: ['n2_4'], effect: { type: 'hp', base: 15 } },
 
   // ── Rama 3: Abajo-izquierda (paso -1 col, +1 row) ───────────────
-  { id: 'n3_1', label: '', icon: 'ellipse-outline', num: 11, small: true, topLabel: 'CHR',
+  { id: 'n3_1', label: 'Fortuna I', icon: 'sparkles-outline', num: 11, small: true, topLabel: 'CHR',
     col: 9,  row: 6,  requires: ['c0'],   effect: { type: 'dropRate', base: 1 } },
-  { id: 'n3_2', label: '', icon: 'ellipse-outline', num: 12,
-    col: 8,  row: 7,  requires: ['n3_1'], effect: { type: 'atk', base: 0 } },
-  { id: 'n3_3', label: '', icon: 'ellipse-outline', num: 13,
-    col: 7,  row: 8,  requires: ['n3_2'], effect: { type: 'atk', base: 0 } },
-  { id: 'n3_4', label: '', icon: 'ellipse-outline', num: 14,
-    col: 6,  row: 9,  requires: ['n3_3'], effect: { type: 'atk', base: 0 } },
-  { id: 'n3_5', label: '', icon: 'ellipse-outline', num: 15,
-    col: 5,  row: 10, requires: ['n3_4'], effect: { type: 'atk', base: 0 } },
+  { id: 'n3_2', label: 'Fortuna II', icon: 'sparkles-outline', num: 12, small: true,
+    col: 8,  row: 7,  requires: ['n3_1'], effect: { type: 'dropRate', base: 1 } },
+  { id: 'n3_3', label: 'Fantasma\nde Humo', icon: 'cloud-outline', num: 13,
+    col: 7,  row: 8,  requires: ['n3_2'], effect: { type: 'ability', base: 20, ability: 'smoke_ghost' } },
+  { id: 'n3_4', label: 'Fortuna V', icon: 'sparkles-outline', num: 14, small: true,
+    col: 6,  row: 9,  requires: ['n3_3'], effect: { type: 'dropRate', base: 2 } },
+  { id: 'n3_5', label: 'Bendición\ndel Botín', icon: 'gift-outline', num: 15, small: true,
+    col: 5,  row: 10, requires: ['n3_4'], effect: { type: 'dropRate', base: 3 } },
 
   // ── Rama 4: Izquierda (paso -2 cols) ────────────────────────────
-  { id: 'n4_1', label: '', icon: 'ellipse-outline', num: 16, small: true, topLabel: 'INT',
+  { id: 'n4_1', label: 'Ingenio I', icon: 'bulb-outline', num: 16, small: true, topLabel: 'INT',
     col: 8,  row: 5,  requires: ['c0'],   effect: { type: 'magicAtk', base: 1 } },
-  { id: 'n4_2', label: '', icon: 'ellipse-outline', num: 17,
-    col: 6,  row: 5,  requires: ['n4_1'], effect: { type: 'atk', base: 0 } },
-  { id: 'n4_3', label: '', icon: 'ellipse-outline', num: 18,
-    col: 4,  row: 5,  requires: ['n4_2'], effect: { type: 'atk', base: 0 } },
-  { id: 'n4_4', label: '', icon: 'ellipse-outline', num: 19,
-    col: 2,  row: 5,  requires: ['n4_3'], effect: { type: 'atk', base: 0 } },
-  { id: 'n4_5', label: '', icon: 'ellipse-outline', num: 20,
-    col: 0,  row: 5,  requires: ['n4_4'], effect: { type: 'atk', base: 0 } },
+  { id: 'n4_2', label: 'Ingenio II', icon: 'bulb-outline', num: 17, small: true,
+    col: 6,  row: 5,  requires: ['n4_1'], effect: { type: 'magicAtk', base: 2 } },
+  { id: 'n4_3', label: 'Bola de\nFuego', icon: 'flame-outline', num: 18,
+    col: 4,  row: 5,  requires: ['n4_2'], effect: { type: 'ability', base: 15, ability: 'fireball' } },
+  { id: 'n4_4', label: 'Ingenio III', icon: 'bulb-outline', num: 19, small: true,
+    col: 2,  row: 5,  requires: ['n4_3'], effect: { type: 'magicAtk', base: 2 } },
+  { id: 'n4_5', label: 'Kraken', icon: 'skull-outline', num: 20,
+    col: 0,  row: 5,  requires: ['n4_4'], effect: { type: 'ability', base: 25, ability: 'kraken' } },
 
   // ── Rama 5: Arriba-izquierda (paso -1 col, -1 row) ──────────────
-  { id: 'n5_1', label: '', icon: 'ellipse-outline', num: 21, small: true, topLabel: 'MAG',
+  { id: 'n5_1', label: 'Maná I', icon: 'water-outline', num: 21, small: true, topLabel: 'MAG',
     col: 9,  row: 4,  requires: ['c0'],   effect: { type: 'mp', base: 5 } },
-  { id: 'n5_2', label: '', icon: 'ellipse-outline', num: 22,
-    col: 8,  row: 3,  requires: ['n5_1'], effect: { type: 'atk', base: 0 } },
-  { id: 'n5_3', label: '', icon: 'ellipse-outline', num: 23,
-    col: 7,  row: 2,  requires: ['n5_2'], effect: { type: 'atk', base: 0 } },
-  { id: 'n5_4', label: '', icon: 'ellipse-outline', num: 24,
-    col: 6,  row: 1,  requires: ['n5_3'], effect: { type: 'atk', base: 0 } },
-  { id: 'n5_5', label: '', icon: 'ellipse-outline', num: 25,
-    col: 5,  row: 0,  requires: ['n5_4'], effect: { type: 'atk', base: 0 } },
+  { id: 'n5_2', label: 'Maná II', icon: 'water-outline', num: 22, small: true,
+    col: 8,  row: 3,  requires: ['n5_1'], effect: { type: 'mp', base: 5 } },
+  { id: 'n5_3', label: 'Pico\nde Hielo', icon: 'triangle-outline', num: 23,
+    col: 7,  row: 2,  requires: ['n5_2'], effect: { type: 'ability', base: 12, ability: 'ice_spike' } },
+  { id: 'n5_4', label: 'Serenidad II', icon: 'moon-outline', num: 24, small: true,
+    col: 6,  row: 1,  requires: ['n5_3'], effect: { type: 'mpRegen', base: 2 } },
+  { id: 'n5_5', label: 'Pozo de\nManá', icon: 'infinite-outline', num: 25, small: true,
+    col: 5,  row: 0,  requires: ['n5_4'], effect: { type: 'mp', base: 15 } },
 
   // ── Rama 6: Arriba-derecha (paso +1 col, -1 row) ────────────────
-  { id: 'n6_1', label: '', icon: 'ellipse-outline', num: 26, small: true, topLabel: 'DEX',
+  { id: 'n6_1', label: 'Reflejos I', icon: 'footsteps-outline', num: 26, small: true, topLabel: 'DEX',
     col: 11, row: 4,  requires: ['c0'],   effect: { type: 'evasion', base: 1 } },
-  { id: 'n6_2', label: '', icon: 'ellipse-outline', num: 27,
-    col: 12, row: 3,  requires: ['n6_1'], effect: { type: 'atk', base: 0 } },
-  { id: 'n6_3', label: '', icon: 'ellipse-outline', num: 28,
-    col: 13, row: 2,  requires: ['n6_2'], effect: { type: 'atk', base: 0 } },
-  { id: 'n6_4', label: '', icon: 'ellipse-outline', num: 29,
-    col: 14, row: 1,  requires: ['n6_3'], effect: { type: 'atk', base: 0 } },
-  { id: 'n6_5', label: '', icon: 'ellipse-outline', num: 30,
-    col: 15, row: 0,  requires: ['n6_4'], effect: { type: 'atk', base: 0 } },
+  { id: 'n6_2', label: 'Celeridad I', icon: 'speedometer-outline', num: 27, small: true,
+    col: 12, row: 3,  requires: ['n6_1'], effect: { type: 'attackSpeed', base: 2 } },
+  { id: 'n6_3', label: 'Dash', icon: 'flash-outline', num: 28,
+    col: 13, row: 2,  requires: ['n6_2'], effect: { type: 'ability', base: 0, ability: 'dash', school: 'physical' } },
+  { id: 'n6_4', label: 'Reflejos IV', icon: 'footsteps-outline', num: 29, small: true,
+    col: 14, row: 1,  requires: ['n6_3'], effect: { type: 'evasion', base: 2 } },
+  { id: 'n6_5', label: 'Manos\nde Viento', icon: 'speedometer-outline', num: 30, small: true,
+    col: 15, row: 0,  requires: ['n6_4'], effect: { type: 'attackSpeed', base: 5 } },
 
   // ── Sub-ramas desde el nodo 2 de cada rama · direcciones orgánicas ───────────
 
   // n1_2 (14,5) → sub-A: gira arriba luego derecha · sub-B: gira abajo luego izquierda
-  { id: 's1a1', label: '', icon: 'ellipse-outline', num: 31, small: true,
-    col: 15, row: 4,  requires: ['n1_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's1a2', label: '', icon: 'ellipse-outline', num: 32,
-    col: 16, row: 4,  requires: ['s1a1'], effect: { type: 'atk', base: 0 } },
-  { id: 's1a3', label: '', icon: 'ellipse-outline', num: 33,
-    col: 17, row: 3,  requires: ['s1a2'], effect: { type: 'atk', base: 0 } },
+  { id: 's1a1', label: 'Golpe\nCertero', icon: 'locate-outline', num: 31, small: true,
+    col: 15, row: 4,  requires: ['n1_2'], effect: { type: 'critChance', base: 1 } },
+  { id: 's1a2', label: 'Fuerza IV', icon: 'barbell-outline', num: 32, small: true,
+    col: 16, row: 4,  requires: ['s1a1'], effect: { type: 'atk', base: 2 } },
+  { id: 's1a3', label: 'Punto\nVital', icon: 'locate-outline', num: 33, small: true,
+    col: 17, row: 3,  requires: ['s1a2'], effect: { type: 'critChance', base: 2 } },
   { id: 's1b1', label: 'Eficiencia\nde Minería', icon: 'hammer-outline', num: 34, small: true,
     col: 15, row: 6,  requires: ['n1_2'], effect: { type: 'miningEfficiency', base: 1 } },
   { id: 's1b2', label: 'Doble Botín\nde Minería', icon: 'cube-outline', num: 35, small: true,
     col: 15, row: 7,  requires: ['s1b1'], effect: { type: 'miningDrop', base: 1 } },
-  { id: 's1b3', label: '', icon: 'ellipse-outline', num: 36,
-    col: 16, row: 8,  requires: ['s1b2'], effect: { type: 'atk', base: 0 } },
+  { id: 's1b3', label: 'Minero\nExperto', icon: 'hammer-outline', num: 36, small: true,
+    col: 16, row: 8,  requires: ['s1b2'], effect: { type: 'miningEfficiency', base: 2 } },
 
   // n2_2 (12,7) → sub-A: derecha luego gira abajo · sub-B: abajo luego gira izquierda
-  { id: 's2a1', label: '', icon: 'ellipse-outline', num: 37, small: true,
-    col: 13, row: 7,  requires: ['n2_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's2a2', label: '', icon: 'ellipse-outline', num: 38,
-    col: 14, row: 7,  requires: ['s2a1'], effect: { type: 'atk', base: 0 } },
-  { id: 's2a3', label: '', icon: 'ellipse-outline', num: 39,
-    col: 14, row: 8,  requires: ['s2a2'], effect: { type: 'atk', base: 0 } },
-  { id: 's2b1', label: '', icon: 'ellipse-outline', num: 40,
-    col: 12, row: 8,  requires: ['n2_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's2b2', label: '', icon: 'ellipse-outline', num: 41, small: true,
-    col: 11, row: 9,  requires: ['s2b1'], effect: { type: 'atk', base: 0 } },
-  { id: 's2b3', label: '', icon: 'ellipse-outline', num: 42,
-    col: 11, row: 10, requires: ['s2b2'], effect: { type: 'atk', base: 0 } },
+  { id: 's2a1', label: 'Sanación I', icon: 'pulse-outline', num: 37, small: true,
+    col: 13, row: 7,  requires: ['n2_2'], effect: { type: 'hpRegen', base: 1 } },
+  { id: 's2a2', label: 'Vitalidad III', icon: 'heart-outline', num: 38, small: true,
+    col: 14, row: 7,  requires: ['s2a1'], effect: { type: 'hp', base: 8 } },
+  { id: 's2a3', label: 'Sanación II', icon: 'pulse-outline', num: 39, small: true,
+    col: 14, row: 8,  requires: ['s2a2'], effect: { type: 'hpRegen', base: 2 } },
+  { id: 's2b1', label: 'Guardia I', icon: 'shield-outline', num: 40, small: true,
+    col: 12, row: 8,  requires: ['n2_2'], effect: { type: 'defense', base: 1 } },
+  { id: 's2b2', label: 'Vitalidad IV', icon: 'heart-outline', num: 41, small: true,
+    col: 11, row: 9,  requires: ['s2b1'], effect: { type: 'hp', base: 8 } },
+  { id: 's2b3', label: 'Guardia III', icon: 'shield-outline', num: 42, small: true,
+    col: 11, row: 10, requires: ['s2b2'], effect: { type: 'defense', base: 2 } },
 
   // n3_2 (8,7) → sub-A: izquierda luego gira abajo · sub-B: abajo luego gira derecha
-  { id: 's3a1', label: '', icon: 'ellipse-outline', num: 43, small: true,
-    col: 7,  row: 7,  requires: ['n3_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's3a2', label: '', icon: 'ellipse-outline', num: 44,
-    col: 6,  row: 7,  requires: ['s3a1'], effect: { type: 'atk', base: 0 } },
-  { id: 's3a3', label: '', icon: 'ellipse-outline', num: 45,
-    col: 6,  row: 8,  requires: ['s3a2'], effect: { type: 'atk', base: 0 } },
-  { id: 's3b1', label: '', icon: 'ellipse-outline', num: 46,
-    col: 8,  row: 8,  requires: ['n3_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's3b2', label: '', icon: 'ellipse-outline', num: 47, small: true,
-    col: 9,  row: 9,  requires: ['s3b1'], effect: { type: 'atk', base: 0 } },
-  { id: 's3b3', label: '', icon: 'ellipse-outline', num: 48,
-    col: 9,  row: 10, requires: ['s3b2'], effect: { type: 'atk', base: 0 } },
+  // Sub-rama de EXPLORACIÓN (Modo Mundo): % de metros extra en expediciones AFK
+  { id: 's3a1', label: 'Explorador I', icon: 'compass-outline', num: 43, small: true,
+    col: 7,  row: 7,  requires: ['n3_2'], effect: { type: 'exploration', base: 5 } },
+  { id: 's3a2', label: 'Explorador II', icon: 'compass-outline', num: 44, small: true,
+    col: 6,  row: 7,  requires: ['s3a1'], effect: { type: 'exploration', base: 5 } },
+  { id: 's3a3', label: 'Gran\nExplorador', icon: 'map-outline', num: 45, small: true,
+    col: 6,  row: 8,  requires: ['s3a2'], effect: { type: 'exploration', base: 10 } },
+  { id: 's3b1', label: 'Fortuna III', icon: 'sparkles-outline', num: 46, small: true,
+    col: 8,  row: 8,  requires: ['n3_2'], effect: { type: 'dropRate', base: 1 } },
+  { id: 's3b2', label: 'Fortuna IV', icon: 'sparkles-outline', num: 47, small: true,
+    col: 9,  row: 9,  requires: ['s3b1'], effect: { type: 'dropRate', base: 1 } },
+  { id: 's3b3', label: 'Fortuna VI', icon: 'sparkles-outline', num: 48, small: true,
+    col: 9,  row: 10, requires: ['s3b2'], effect: { type: 'dropRate', base: 2 } },
 
   // n4_2 (6,5) → sub-A: sube luego gira izquierda · sub-B: baja luego gira izquierda
-  { id: 's4a1', label: '', icon: 'ellipse-outline', num: 49, small: true,
-    col: 5,  row: 4,  requires: ['n4_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's4a2', label: '', icon: 'ellipse-outline', num: 50,
-    col: 5,  row: 3,  requires: ['s4a1'], effect: { type: 'atk', base: 0 } },
-  { id: 's4a3', label: '', icon: 'ellipse-outline', num: 51,
-    col: 4,  row: 3,  requires: ['s4a2'], effect: { type: 'atk', base: 0 } },
-  { id: 's4b1', label: '', icon: 'ellipse-outline', num: 52,
-    col: 5,  row: 6,  requires: ['n4_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's4b2', label: '', icon: 'ellipse-outline', num: 53, small: true,
-    col: 4,  row: 6,  requires: ['s4b1'], effect: { type: 'atk', base: 0 } },
-  { id: 's4b3', label: '', icon: 'ellipse-outline', num: 54,
-    col: 4,  row: 7,  requires: ['s4b2'], effect: { type: 'atk', base: 0 } },
+  // Sub-rama de ALQUIMIA (creación de pociones — efecto pendiente de implementar)
+  { id: 's4a1', label: 'Alquimia I', icon: 'flask-outline', num: 49, small: true,
+    col: 5,  row: 4,  requires: ['n4_2'], effect: { type: 'alchemy', base: 2 } },
+  { id: 's4a2', label: 'Alquimia II', icon: 'flask-outline', num: 50, small: true,
+    col: 5,  row: 3,  requires: ['s4a1'], effect: { type: 'alchemy', base: 2 } },
+  { id: 's4a3', label: 'Gran\nAlquimia', icon: 'beaker-outline', num: 51, small: true,
+    col: 4,  row: 3,  requires: ['s4a2'], effect: { type: 'alchemy', base: 4 } },
+  { id: 's4b1', label: 'Ingenio IV', icon: 'bulb-outline', num: 52, small: true,
+    col: 5,  row: 6,  requires: ['n4_2'], effect: { type: 'magicAtk', base: 2 } },
+  { id: 's4b2', label: 'Meditación', icon: 'moon-outline', num: 53, small: true,
+    col: 4,  row: 6,  requires: ['s4b1'], effect: { type: 'mpRegen', base: 1 } },
+  { id: 's4b3', label: 'Erudito', icon: 'library-outline', num: 54, small: true,
+    col: 4,  row: 7,  requires: ['s4b2'], effect: { type: 'magicAtk', base: 3 } },
 
   // n5_2 (8,3) → sub-A: izquierda luego gira arriba · sub-B: arriba luego gira derecha
-  { id: 's5a1', label: '', icon: 'ellipse-outline', num: 55, small: true,
-    col: 7,  row: 3,  requires: ['n5_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's5a2', label: '', icon: 'ellipse-outline', num: 56,
-    col: 6,  row: 3,  requires: ['s5a1'], effect: { type: 'atk', base: 0 } },
-  { id: 's5a3', label: '', icon: 'ellipse-outline', num: 57,
-    col: 6,  row: 2,  requires: ['s5a2'], effect: { type: 'atk', base: 0 } },
-  { id: 's5b1', label: '', icon: 'ellipse-outline', num: 58,
-    col: 8,  row: 2,  requires: ['n5_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's5b2', label: '', icon: 'ellipse-outline', num: 59, small: true,
-    col: 9,  row: 2,  requires: ['s5b1'], effect: { type: 'atk', base: 0 } },
-  { id: 's5b3', label: '', icon: 'ellipse-outline', num: 60,
-    col: 9,  row: 1,  requires: ['s5b2'], effect: { type: 'atk', base: 0 } },
+  { id: 's5a1', label: 'Serenidad I', icon: 'moon-outline', num: 55, small: true,
+    col: 7,  row: 3,  requires: ['n5_2'], effect: { type: 'mpRegen', base: 1 } },
+  { id: 's5a2', label: 'Maná IV', icon: 'water-outline', num: 56, small: true,
+    col: 6,  row: 3,  requires: ['s5a1'], effect: { type: 'mp', base: 8 } },
+  { id: 's5a3', label: 'Serenidad III', icon: 'moon-outline', num: 57, small: true,
+    col: 6,  row: 2,  requires: ['s5a2'], effect: { type: 'mpRegen', base: 2 } },
+  { id: 's5b1', label: 'Maná III', icon: 'water-outline', num: 58, small: true,
+    col: 8,  row: 2,  requires: ['n5_2'], effect: { type: 'mp', base: 5 } },
+  { id: 's5b2', label: 'Foco\nArcano', icon: 'color-wand-outline', num: 59, small: true,
+    col: 9,  row: 2,  requires: ['s5b1'], effect: { type: 'magicAtk', base: 2 } },
+  { id: 's5b3', label: 'Maná V', icon: 'water-outline', num: 60, small: true,
+    col: 9,  row: 1,  requires: ['s5b2'], effect: { type: 'mp', base: 10 } },
 
   // n6_2 (12,3) → sub-A: arriba luego gira izquierda · sub-B: derecha luego gira abajo
-  { id: 's6a1', label: '', icon: 'ellipse-outline', num: 61, small: true,
-    col: 12, row: 2,  requires: ['n6_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's6a2', label: '', icon: 'ellipse-outline', num: 62,
-    col: 11, row: 2,  requires: ['s6a1'], effect: { type: 'atk', base: 0 } },
-  { id: 's6a3', label: '', icon: 'ellipse-outline', num: 63,
-    col: 11, row: 1,  requires: ['s6a2'], effect: { type: 'atk', base: 0 } },
-  { id: 's6b1', label: '', icon: 'ellipse-outline', num: 64,
-    col: 13, row: 3,  requires: ['n6_2'], effect: { type: 'atk', base: 0 } },
-  { id: 's6b2', label: '', icon: 'ellipse-outline', num: 65, small: true,
-    col: 14, row: 3,  requires: ['s6b1'], effect: { type: 'atk', base: 0 } },
-  { id: 's6b3', label: '', icon: 'ellipse-outline', num: 66,
-    col: 14, row: 4,  requires: ['s6b2'], effect: { type: 'atk', base: 0 } },
+  { id: 's6a1', label: 'Celeridad II', icon: 'speedometer-outline', num: 61, small: true,
+    col: 12, row: 2,  requires: ['n6_2'], effect: { type: 'attackSpeed', base: 1 } },
+  { id: 's6a2', label: 'Reflejos II', icon: 'footsteps-outline', num: 62, small: true,
+    col: 11, row: 2,  requires: ['s6a1'], effect: { type: 'evasion', base: 1 } },
+  { id: 's6a3', label: 'Celeridad III', icon: 'speedometer-outline', num: 63, small: true,
+    col: 11, row: 1,  requires: ['s6a2'], effect: { type: 'attackSpeed', base: 2 } },
+  { id: 's6b1', label: 'Reflejos III', icon: 'footsteps-outline', num: 64, small: true,
+    col: 13, row: 3,  requires: ['n6_2'], effect: { type: 'evasion', base: 1 } },
+  { id: 's6b2', label: 'Celeridad IV', icon: 'speedometer-outline', num: 65, small: true,
+    col: 14, row: 3,  requires: ['s6b1'], effect: { type: 'attackSpeed', base: 1 } },
+  { id: 's6b3', label: 'Reflejos V', icon: 'footsteps-outline', num: 66, small: true,
+    col: 14, row: 4,  requires: ['s6b2'], effect: { type: 'evasion', base: 2 } },
 ];
 
 // ── Habilidades de fuego (disponibles sin desbloquear) ────────────────────────
@@ -731,8 +739,8 @@ export class TalentService {
     this.changes$.next();
   }
 
-  getBonus(): { atk: number; magicAtk: number; hp: number; mp: number; defense: number; evasion: number; critChance: number; hpRegen: number; mpRegen: number; dropRate: number; miningEfficiency: number; miningDrop: number; abilities: string[] } {
-    let atk = 0, magicAtk = 0, hp = 0, mp = 0, defense = 0, evasion = 0, critChance = 0, hpRegen = 0, mpRegen = 0, dropRate = 0, miningEfficiency = 0, miningDrop = 0;
+  getBonus(): { atk: number; magicAtk: number; hp: number; mp: number; defense: number; evasion: number; critChance: number; hpRegen: number; mpRegen: number; dropRate: number; miningEfficiency: number; miningDrop: number; attackSpeed: number; exploration: number; alchemy: number; abilities: string[] } {
+    let atk = 0, magicAtk = 0, hp = 0, mp = 0, defense = 0, evasion = 0, critChance = 0, hpRegen = 0, mpRegen = 0, dropRate = 0, miningEfficiency = 0, miningDrop = 0, attackSpeed = 0, exploration = 0, alchemy = 0;
     const abilities: string[] = [];
     for (const node of this.nodes) {
       // Solo cuentan los nodos REALMENTE desbloqueados (admin NO suma bonos, solo
@@ -765,6 +773,12 @@ export class TalentService {
         miningEfficiency += value;
       } else if (node.effect.type === 'miningDrop') {
         miningDrop += value;
+      } else if (node.effect.type === 'attackSpeed') {
+        attackSpeed += value;
+      } else if (node.effect.type === 'exploration') {
+        exploration += value;
+      } else if (node.effect.type === 'alchemy') {
+        alchemy += value;
       } else if (node.effect.type === 'ability') {
         // El base de la habilidad suma a su escuela: físico (guerrero) o mágico (elementales, por defecto).
         if ((node.effect.school ?? 'magic') === 'physical') atk += value;
@@ -772,7 +786,7 @@ export class TalentService {
         if (node.effect.ability) abilities.push(node.effect.ability);
       }
     }
-    return { atk, magicAtk, hp, mp, defense, evasion, critChance, hpRegen, mpRegen, dropRate, miningEfficiency, miningDrop, abilities };
+    return { atk, magicAtk, hp, mp, defense, evasion, critChance, hpRegen, mpRegen, dropRate, miningEfficiency, miningDrop, attackSpeed, exploration, alchemy, abilities };
   }
 
   getSnapshot(): TalentSnapshot {

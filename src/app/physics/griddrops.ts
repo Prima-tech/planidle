@@ -4,6 +4,7 @@ import { CharacterStatsService } from '../services/character-stats.service';
 import { WorldService } from '../services/world.service';
 import { Player } from '../pnj/player/player';
 import { PET_REGISTRY, PET_ICON_FRAME, PetConfig } from '../pnj/pet/pet-config';
+import { ENEMY_REGISTRY } from '../enemy/enemy-config';
 import { REGISTRY_KEYS } from '../scenes/game-registry';
 
 export interface LootEntry {
@@ -32,25 +33,38 @@ export interface LootEntry {
   weaponKind?: 'melee' | 'ranged';  // armas: 'ranged' (bastones) → ataque básico a distancia con proyectil
 }
 
-export const EXP_REWARDS: Record<string, number> = {
-  slime4:          5,  slime4_elite:    25,  slime4_oblivion: 70,
-  slime5:          5,  slime5_elite:    25,  slime5_oblivion: 70,
-  orc1:          100,  orc1_elite:      75,  orc1_oblivion:   200,
-  goobling2:       5,  goobling2_elite: 22,  goobling2_oblivion:  60,
-  gnoll1:          6,  gnoll1_elite:    25,  gnoll1_oblivion:     65,
-  golem1:         18,  golem1_elite:     75,  golem1_oblivion:     195,
-  rats1:           4,  rats1_elite:     20,  rats1_oblivion:      55,
-  lizard1:        12,  lizard1_elite:   50,  lizard1_oblivion:    130,
-  goobling1:       5,  goobling1_elite: 22,  goobling1_oblivion:  60,
-};
+// EXP por kill DERIVADA del tier del enemigo (misma curva incremental que su
+// vida/daño en enemy-config): base 6 × 1.45^(tier−1); élite ×5, oblivion ×14.
+// Antes era una tabla a mano con números al azar (el gólem del 1-8 daba 18 y el
+// orco del 1-3 daba 100). Los enemigos sin tier (animales de caza) dan 3.
+// Valores base resultantes por tier: 6, 9, 13, 18, 27, 38, 56, 81.
+const EXP_TIER_BASE     = 6;
+const EXP_TIER_GROWTH   = 1.45;
+const EXP_ELITE_MULT    = 5;
+const EXP_OBLIVION_MULT = 14;
+
+export const EXP_REWARDS: Record<string, number> = (() => {
+  const out: Record<string, number> = {};
+  for (const [type, cfg] of Object.entries(ENEMY_REGISTRY)) {
+    if (cfg.tier == null) { out[type] = 3; continue; }   // animales de caza
+    const base = Math.round(EXP_TIER_BASE * Math.pow(EXP_TIER_GROWTH, cfg.tier - 1));
+    out[type] = type.endsWith('_oblivion') ? base * EXP_OBLIVION_MULT
+              : type.endsWith('_elite')    ? base * EXP_ELITE_MULT
+              : base;
+  }
+  return out;
+})();
 
 const COIN = (min: number, max: number): LootEntry => ({
   name: 'Oro', type: 'currency', chance: 1.0, minQty: min, maxQty: max,
   mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png',
   animKey: 'coin_spin', scale: 3, order: 10,
 });
-const COIN_ELITE    = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
-const COIN_OBLIVION = (min: number, max: number): LootEntry => ({ ...COIN(min, max), chance: 1.0 });
+// Oro por kill coherente con el tier del enemigo (misma curva que vida/EXP):
+// base [tier, 2·tier+1]; élite [4t, 8t]; oblivion [10t, 20t].
+const COIN_TIER          = (t: number) => COIN(t, t * 2 + 1);
+const COIN_TIER_ELITE    = (t: number) => COIN(t * 4, t * 8);
+const COIN_TIER_OBLIVION = (t: number) => COIN(t * 10, t * 20);
 
 // Moneda de pago (especial): se recoge en `specialCoins` (no en oro). El sprite del
 // drop usa el PNG de la Marca (sin texture precargada → spawnDrop lo carga al vuelo).
@@ -120,61 +134,41 @@ const ORC_FINGER = _enemyMaterial(
 // común sin tocar tabla por tabla.
 export const COMMON_DROPS: LootEntry[] = [];
 
+// Poción de orco (sabor propio del orco, fuera de la curva de oro)
+const ORC_POTION = (chance: number, minQty: number, maxQty: number): LootEntry => ({
+  name: 'Poción', type: 'item', chance, minQty, maxQty, mergeable: true,
+  texture: 'heal_01', icon: 'assets/icon/resources/potions/heal_01.png', scale: 3, order: 5,
+  description: 'Restaura puntos de vida al usarla.', stats: { healing: 6 },
+});
+
 export const LOOT_TABLES: Record<string, LootEntry[]> = {
-  slime4: [
-    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    SLIME_EYE,
-  ],
-  slime4_elite: [
-    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 5, maxQty: 10, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    SLIME_EYE,
-  ],
-  slime4_oblivion: [
-    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 15, maxQty: 30, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    SLIME_EYE,
-  ],
-  slime5: [
-    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 1, maxQty: 2,  mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-  ],
-  slime5_elite: [
-    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 5, maxQty: 10, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-  ],
-  slime5_oblivion: [
-    { name: 'Oro', type: 'currency', chance: 1.0, minQty: 15, maxQty: 30, mergeable: true, texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-  ],
-  orc1: [
-    { name: 'Oro',    type: 'currency', chance: 0.8,  minQty: 1, maxQty: 5,  mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Poción', type: 'item',     chance: 0.4,  minQty: 1, maxQty: 1,  mergeable: true,  texture: 'heal_01', icon: 'assets/icon/resources/potions/heal_01.png', scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
-    ORC_FINGER,
-  ],
-  orc1_elite: [
-    { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 5, maxQty: 15, mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Poción', type: 'item',     chance: 0.8,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'heal_01', icon: 'assets/icon/resources/potions/heal_01.png', scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
-    ORC_FINGER,
-  ],
-  orc1_oblivion: [
-    { name: 'Oro',    type: 'currency', chance: 1.0,  minQty: 15, maxQty: 40, mergeable: true,  texture: 'drop_coin', icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
-    { name: 'Poción', type: 'item',     chance: 1.0,  minQty: 2,  maxQty: 4,  mergeable: true,  texture: 'heal_01', icon: 'assets/icon/resources/potions/heal_01.png', scale: 3, order: 5, description: 'Restaura puntos de vida al usarla.',                    stats: { healing: 6 } },
-    ORC_FINGER,
-  ],
-  goobling2:          [ COIN(1, 3),  GOOBLING2_NAIL ],
-  goobling2_elite:    [ COIN(3, 8),  GOOBLING2_NAIL ],
-  goobling2_oblivion: [ COIN(10, 20), GOOBLING2_NAIL ],
-  gnoll1:             [ COIN(1, 3),  GNOLL_SKIN ],
-  gnoll1_elite:       [ COIN(4, 10), GNOLL_SKIN ],
-  gnoll1_oblivion:    [ COIN(12, 24), GNOLL_SKIN ],
-  golem1:             [ COIN(4, 8),   GOLEM_STONE ],
-  golem1_elite:       [ COIN(10, 22), GOLEM_STONE ],
-  golem1_oblivion:    [ COIN(25, 55), GOLEM_STONE ],
-  rats1:              [ COIN(1, 3),   RAT_REMAINS ],
-  rats1_elite:        [ COIN(3, 8),   RAT_REMAINS ],
-  rats1_oblivion:     [ COIN(10, 20), RAT_REMAINS ],
-  lizard1:            [ COIN(2, 5),   LIZARD_TAIL ],
-  lizard1_elite:      [ COIN(6, 14),  LIZARD_TAIL ],
-  lizard1_oblivion:   [ COIN(18, 38), LIZARD_TAIL ],
-  goobling1:          [ COIN(1, 3),   GOOBLING1_EAR ],
-  goobling1_elite:    [ COIN(3, 8),   GOOBLING1_EAR ],
-  goobling1_oblivion: [ COIN(10, 20), GOOBLING1_EAR ],
+  slime4:             [ COIN_TIER(1),          SLIME_EYE ],
+  slime4_elite:       [ COIN_TIER_ELITE(1),    SLIME_EYE ],
+  slime4_oblivion:    [ COIN_TIER_OBLIVION(1), SLIME_EYE ],
+  slime5:             [ COIN_TIER(2) ],
+  slime5_elite:       [ COIN_TIER_ELITE(2) ],
+  slime5_oblivion:    [ COIN_TIER_OBLIVION(2) ],
+  orc1:               [ COIN_TIER(3),          ORC_POTION(0.4, 1, 1), ORC_FINGER ],
+  orc1_elite:         [ COIN_TIER_ELITE(3),    ORC_POTION(0.8, 1, 2), ORC_FINGER ],
+  orc1_oblivion:      [ COIN_TIER_OBLIVION(3), ORC_POTION(1.0, 2, 4), ORC_FINGER ],
+  goobling2:          [ COIN_TIER(7),          GOOBLING2_NAIL ],
+  goobling2_elite:    [ COIN_TIER_ELITE(7),    GOOBLING2_NAIL ],
+  goobling2_oblivion: [ COIN_TIER_OBLIVION(7), GOOBLING2_NAIL ],
+  gnoll1:             [ COIN_TIER(5),          GNOLL_SKIN ],
+  gnoll1_elite:       [ COIN_TIER_ELITE(5),    GNOLL_SKIN ],
+  gnoll1_oblivion:    [ COIN_TIER_OBLIVION(5), GNOLL_SKIN ],
+  golem1:             [ COIN_TIER(8),          GOLEM_STONE ],
+  golem1_elite:       [ COIN_TIER_ELITE(8),    GOLEM_STONE ],
+  golem1_oblivion:    [ COIN_TIER_OBLIVION(8), GOLEM_STONE ],
+  rats1:              [ COIN_TIER(2),          RAT_REMAINS ],
+  rats1_elite:        [ COIN_TIER_ELITE(2),    RAT_REMAINS ],
+  rats1_oblivion:     [ COIN_TIER_OBLIVION(2), RAT_REMAINS ],
+  lizard1:            [ COIN_TIER(6),          LIZARD_TAIL ],
+  lizard1_elite:      [ COIN_TIER_ELITE(6),    LIZARD_TAIL ],
+  lizard1_oblivion:   [ COIN_TIER_OBLIVION(6), LIZARD_TAIL ],
+  goobling1:          [ COIN_TIER(4),          GOOBLING1_EAR ],
+  goobling1_elite:    [ COIN_TIER_ELITE(4),    GOOBLING1_EAR ],
+  goobling1_oblivion: [ COIN_TIER_OBLIVION(4), GOOBLING1_EAR ],
   default: [
     { name: 'Oro',    type: 'currency', chance: 0.4,  minQty: 1, maxQty: 2,  mergeable: true,  texture: 'drop_coin',   icon: 'assets/sprites/resources/coin.png', animKey: 'coin_spin', scale: 3, order: 10 },
   ],
@@ -183,85 +177,90 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
 // Botas: hojas LPC universales en equip/foot. Icono dedicado en foot/icons; el
 // drop reutiliza la hoja precargada (foot0N_main) en idle_down (312).
 const FOOT_ICONS = 'assets/sprites/player/equip/foot/icons';
-const _boots = (prefix: string, file: string, name: string, hp: number): LootEntry => ({
+const _boots = (prefix: string, file: string, name: string, hpPercent: number): LootEntry => ({
   name,
   category: 'Botas',
   type: 'item',
   chance: 1, minQty: 1, maxQty: 1, mergeable: false,
   texture: `${prefix}_main`, frame: 312, scale: 2.5, order: 2,
   icon: `${FOOT_ICONS}/${file}_icon.png`,
-  stats: { hp },
+  stats: { hpPercent },
 });
 
+// Armaduras en % de vida (hpPercent): el número del sprite ES el tier (01→04).
+// Set completo por tier: T1 +18% · T2 +28% · T3 +40% · T4 +58% (crecimiento ~×1.45,
+// la misma curva incremental que los enemigos). El % escala con el personaje, así
+// las promociones futuras (volver a nivel 1) no rompen el equilibrio.
 const BOOTS_CATALOG: LootEntry[] = [
-  _boots('foot01', 'foot_01', 'Botas de Marfil',   6),
-  _boots('foot02', 'foot_02', 'Botas de Amatista', 12),
-  _boots('foot03', 'foot_03', 'Botas Carmesí',     10),
-  _boots('foot04', 'foot_04', 'Botas de Cobalto',  14),
+  _boots('foot01', 'foot_01', 'Botas de Marfil',   3),
+  _boots('foot02', 'foot_02', 'Botas de Amatista', 5),
+  _boots('foot03', 'foot_03', 'Botas Carmesí',     7),
+  _boots('foot04', 'foot_04', 'Botas de Cobalto',  10),
 ];
 
 // Pantalones: hojas LPC universales en equip/lets_final. Icono dedicado en
 // lets_final/icons; el drop reutiliza la hoja precargada (legs0N_main) idle_down.
 const LEGS_ICONS = 'assets/sprites/player/equip/lets_final/icons';
-const _legs = (prefix: string, file: string, name: string, hp: number): LootEntry => ({
+const _legs = (prefix: string, file: string, name: string, hpPercent: number): LootEntry => ({
   name,
   category: 'Pantalones',
   type: 'item',
   chance: 1, minQty: 1, maxQty: 1, mergeable: false,
   texture: `${prefix}_main`, frame: 312, scale: 2.5, order: 2,
   icon: `${LEGS_ICONS}/${file}_icon.png`,
-  stats: { hp },
+  stats: { hpPercent },
 });
 
 const PANTS_CATALOG: LootEntry[] = [
-  _legs('legs01', 'legs_01', 'Grebas de Cuero',     8),
-  _legs('legs02', 'legs_02', 'Grebas de Obsidiana', 20),
-  _legs('legs03', 'legs_03', 'Grebas Doradas',      16),
-  _legs('legs04', 'legs_04', 'Grebas de Cobalto',   18),
+  _legs('legs01', 'legs_01', 'Grebas de Cuero',     5),
+  _legs('legs02', 'legs_02', 'Grebas de Obsidiana', 8),
+  _legs('legs03', 'legs_03', 'Grebas Doradas',      11),
+  _legs('legs04', 'legs_04', 'Grebas de Cobalto',   16),
 ];
 
 // Armaduras: hojas LPC universales en equip/torso. Icono dedicado recortado en
 // torso/icons; el drop reutiliza la hoja precargada (torso0N_main) en idle_down (312).
 const TORSO_ICONS = 'assets/sprites/player/equip/torso/icons';
-const _armour = (prefix: string, file: string, name: string, hp: number): LootEntry => ({
+const _armour = (prefix: string, file: string, name: string, hpPercent: number): LootEntry => ({
   name,
   category: 'Armadura',
   type: 'item',
   chance: 1, minQty: 1, maxQty: 1, mergeable: false,
   texture: `${prefix}_main`, frame: 312, scale: 2.5, order: 2,
   icon: `${TORSO_ICONS}/${file}_icon.png`,
-  stats: { hp },
+  stats: { hpPercent },
 });
 
 const ARMOUR_CATALOG: LootEntry[] = [
-  _armour('torso01', 'torso_01', 'Coraza de Marfil',    12),
-  _armour('torso02', 'torso_02', 'Coraza de Obsidiana', 28),
-  _armour('torso03', 'torso_03', 'Coraza de Cobalto',   20),
-  _armour('torso04', 'torso_04', 'Coraza Dorada',       24),
+  _armour('torso01', 'torso_01', 'Coraza de Marfil',    6),
+  _armour('torso02', 'torso_02', 'Coraza de Obsidiana', 9),
+  _armour('torso03', 'torso_03', 'Coraza de Cobalto',   13),
+  _armour('torso04', 'torso_04', 'Coraza Dorada',       19),
 ];
 
 // Cascos: hojas LPC universales en equip/helms. Icono dedicado recortado en
 // helms/icons; el drop reutiliza la hoja precargada (helm0N_main) en idle_down (312).
 const HELM_ICONS = 'assets/sprites/player/equip/helms/icons';
-const _helmet = (prefix: string, file: string, name: string, hp: number): LootEntry => ({
+const _helmet = (prefix: string, file: string, name: string, hpPercent: number): LootEntry => ({
   name,
   category: 'Casco',
   type: 'item',
   chance: 1, minQty: 1, maxQty: 1, mergeable: false,
   texture: `${prefix}_main`, frame: 312, scale: 2.5, order: 2,
   icon: `${HELM_ICONS}/${file}_icon.png`,
-  stats: { hp },
+  stats: { hpPercent },
 });
 
 const HELMET_CATALOG: LootEntry[] = [
-  _helmet('helm01', 'helm_01', 'Yelmo de Hierro',   10),
-  _helmet('helm02', 'helm_02', 'Yelmo de Plata',    15),
-  _helmet('helm03', 'helm_03', 'Casco de Cuero',     8),
-  _helmet('helm04', 'helm_04', 'Capacete de Cuero', 12),
+  _helmet('helm01', 'helm_01', 'Yelmo de Hierro',   4),
+  _helmet('helm02', 'helm_02', 'Yelmo de Plata',    6),
+  _helmet('helm03', 'helm_03', 'Casco de Cuero',    9),
+  _helmet('helm04', 'helm_04', 'Capacete de Cuero', 13),
 ];
 
 
-// Espadas: arte en assets/sprites/player/equip/weapons/swords. El icono del
+// Espadas: escalera de damagePercent por número de sprite (01→06): 8/12/16/20/25/30.
+// Arte en assets/sprites/player/equip/weapons/swords. El icono del
 // panel/inventario usa un PNG recortado dedicado (icons/), mientras que el sprite
 // del drop en el mundo reutiliza la hoja LPC ya precargada (sword0X_main).
 const SWORD_ICONS = 'assets/sprites/player/equip/weapons/swords/icons';
@@ -272,7 +271,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword01_main', frame: 130, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_01_icon.png`,
     description: 'Una hoja corta y mellada, comida por el óxido. Apenas corta.',
-    stats: { damagePercent: 10 },
+    stats: { damagePercent: 8 },
   },
   {
     name: 'Cimitarra Dorada', category: 'Arma', type: 'item',
@@ -280,7 +279,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword02_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_02_icon.png`,
     description: 'Sable curvo de filo dorado.',
-    stats: { damagePercent: 15 },
+    stats: { damagePercent: 12 },
   },
   {
     name: 'Hoja Ardiente', category: 'Arma', type: 'item',
@@ -288,7 +287,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword03_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_03_icon.png`,
     description: 'Hoja curva forjada en brasas vivas.',
-    stats: { damagePercent: 20 },
+    stats: { damagePercent: 16 },
   },
   {
     name: 'Sable Rúnico', category: 'Arma', type: 'item',
@@ -296,7 +295,7 @@ const WEAPON_CATALOG: LootEntry[] = [
     texture: 'sword04_main', frame: 624, scale: 2.5, order: 2,
     icon: `${SWORD_ICONS}/sword_04_icon.png`,
     description: 'Sable de acero grabado con runas antiguas.',
-    stats: { damagePercent: 18 },
+    stats: { damagePercent: 20 },
   },
   {
     name: 'Colmillo Carmesí', category: 'Arma', type: 'item',
@@ -319,7 +318,8 @@ const WEAPON_CATALOG: LootEntry[] = [
 // Bastones de mago: arte en assets/sprites/player/equip/weapons/staff/staff. Como
 // las espadas, el icono usa un PNG recortado dedicado (icons/) y el sprite del drop
 // en el mundo reutiliza la hoja LPC ya precargada (staff0X_main, idle_down = frame
-// 240 = 10×24cols). Otorgan daño mágico (magicDamage, escala con INT).
+// 240 = 10×24cols). Otorgan % de daño mágico (magicDamagePercent, multiplica la
+// base 10+INT): escalera por número de sprite (01→04): 10/15/21/28.
 const STAFF_ICONS = 'assets/sprites/player/equip/weapons/staff/staff/icons';
 const STAFF_CATALOG: LootEntry[] = [
   {
@@ -328,7 +328,7 @@ const STAFF_CATALOG: LootEntry[] = [
     texture: 'staff01_main', frame: 240, scale: 2.5, order: 2,
     icon: `${STAFF_ICONS}/staff_01_icon.png`,
     description: 'Bastón retorcido de madera nudosa, canaliza maná básico.',
-    stats: { magicDamage: 12 },
+    stats: { magicDamagePercent: 10 },
   },
   {
     name: 'Báculo de Roble', category: 'Arma', type: 'item', weaponKind: 'ranged',
@@ -336,7 +336,7 @@ const STAFF_CATALOG: LootEntry[] = [
     texture: 'staff02_main', frame: 240, scale: 2.5, order: 2,
     icon: `${STAFF_ICONS}/staff_02_icon.png`,
     description: 'Báculo de roble macizo coronado con resina ambarina.',
-    stats: { magicDamage: 16 },
+    stats: { magicDamagePercent: 15 },
   },
   {
     name: 'Cayado Arcano', category: 'Arma', type: 'item', weaponKind: 'ranged',
@@ -344,7 +344,7 @@ const STAFF_CATALOG: LootEntry[] = [
     texture: 'staff03_main', frame: 240, scale: 2.5, order: 2,
     icon: `${STAFF_ICONS}/staff_03_icon.png`,
     description: 'Cayado grabado con sellos arcanos que arden en rojo.',
-    stats: { magicDamage: 20 },
+    stats: { magicDamagePercent: 21 },
   },
   {
     name: 'Vara de Cristal', category: 'Arma', type: 'item', weaponKind: 'ranged',
@@ -352,7 +352,7 @@ const STAFF_CATALOG: LootEntry[] = [
     texture: 'staff04_main', frame: 240, scale: 2.5, order: 2,
     icon: `${STAFF_ICONS}/staff_04_icon.png`,
     description: 'Vara rematada con un cristal que amplifica el maná.',
-    stats: { magicDamage: 18 },
+    stats: { magicDamagePercent: 28 },
   },
 ];
 
@@ -823,12 +823,22 @@ export class GridDrops {
     const multiplier    = (1 + charBonus / 100) * mapModifier;
     // Tabla propia del enemigo + drops comunes a todos.
     const pool = COMMON_DROPS.length ? [...table, ...COMMON_DROPS] : table;
-    return pool.filter(entry => {
-      const finalChance = entry.type === 'item'
-        ? Math.min(1, entry.chance * multiplier)
-        : entry.chance;
-      return Math.random() < finalChance;
-    });
+    const result: LootEntry[] = [];
+    for (const entry of pool) {
+      if (entry.type !== 'item') {
+        // Oro/monedas especiales: sin bonus (el oro escala por tier del enemigo)
+        if (Math.random() < entry.chance) result.push(entry);
+        continue;
+      }
+      // Bonus de botín con DESBORDAMIENTO (como el multi-drop de minería): la
+      // probabilidad final puede superar 1 → floor(x) copias seguras + el decimal
+      // como probabilidad de una copia extra. Antes se capaba a 1 y el bonus era
+      // inútil en materiales con chance 1.0 (el caso de casi todos los drops).
+      const finalChance = entry.chance * multiplier;
+      const copies = Math.floor(finalChance) + (Math.random() < finalChance % 1 ? 1 : 0);
+      for (let i = 0; i < copies; i++) result.push(entry);
+    }
+    return result;
   }
 
   /**

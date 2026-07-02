@@ -41,8 +41,8 @@ Libres      = Disponibles − Gastados
 | Stat | Derivado | Fórmula | Observable |
 |------|----------|---------|------------|
 | STR | Daño físico | `(10 + STR + equipo plano + talentos) × (1 + Σ damagePercent/100)` | `damage$` |
-| INT | Daño mágico | base = 10 + INT; + equipo `magicDamage` + talentos | `magicDamage$` |
-| CONST | HP máx | 50 + CONST × 10 + equipo + talentos | `hp$` |
+| INT | Daño mágico | `(10 + INT + equipo magicDamage + talentos) × (1 + Σ magicDamagePercent/100)` | `magicDamage$` |
+| CONST | HP máx | `(50 + CONST × 10 + equipo hp + talentos) × (1 + Σ hpPercent/100)` — armaduras dan hpPercent | `hp$` |
 | MAG | MP máx | 50 + MAG × 5 + equipo + talentos | `mp$` |
 | DEX | Defensa | `floor(DEX/10)` + equipo + talentos + buffs | `defense$` |
 | DEX | Evasión % | misma fórmula DEX + equipo `evasion` + buffs | `evasion$` |

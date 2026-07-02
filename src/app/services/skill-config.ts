@@ -190,6 +190,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 19,
     frameRate: 14,
     scale: 1.5,
+    iconPath: 'assets/sprites/skills/water/Water_drop/10.png',
     manaCost: 4,
   },
   ice_crystal: {
@@ -202,6 +203,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2,
+    iconPath: 'assets/sprites/skills/water/Ice_crystal/5.png',
     manaCost: 5,
   },
   water_geyser: {
@@ -214,6 +216,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 7,
     frameRate: 10,
     scale: 2.5,
+    iconPath: 'assets/sprites/skills/water/Geyser/4.png',
     manaCost: 7,
   },
   snowflake: {
@@ -226,6 +229,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 13,
     frameRate: 12,
     scale: 2.5,
+    iconPath: 'assets/sprites/skills/water/Snowflake/7.png',
     manaCost: 8,
   },
   water_splash: {
@@ -239,6 +243,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 2.5,
     aoeRadius: 1.5,
+    iconPath: 'assets/sprites/skills/water/Water_and_splash/Splash/5.png',
     manaCost: 14,
   },
   ice_spike: {
@@ -252,6 +257,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 14,
     scale: 2,
     speed: 380,
+    iconPath: 'assets/sprites/skills/water/Ice_spike/6.png',
     manaCost: 7,
   },
   waterball: {
@@ -265,6 +271,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 14,
     scale: 2,
     speed: 350,
+    iconPath: 'assets/sprites/skills/water/Waterball/8.png',
     manaCost: 8,
   },
   kraken: {
@@ -278,6 +285,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 12,
     scale: 3,
     aoeRadius: 2,
+    iconPath: 'assets/sprites/skills/water/Kraken/10.png',
     manaCost: 25,
   },
   circle_explosion: {
@@ -388,6 +396,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 10,
     frameRate: 12,
     scale: 2,
+    iconPath: 'assets/sprites/skills/smoker/Circle_smoke/Circle_smoke5.png',
     manaCost: 5,
   },
   curved_smoke: {
@@ -401,6 +410,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 16,
     scale: 2,
     speed: 350,
+    iconPath: 'assets/sprites/skills/smoker/Curved_smoke/Curved_smoke12.png',
     manaCost: 8,
   },
   cycled_smoke: {
@@ -413,6 +423,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 6,
     frameRate: 12,
     scale: 1.5,
+    iconPath: 'assets/sprites/skills/smoker/Cycled_smoke/Cycled_smoke3.png',
     manaCost: 4,
   },
   cycled_smoke_long: {
@@ -425,6 +436,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 6,
     frameRate: 10,
     scale: 2,
+    iconPath: 'assets/sprites/skills/smoker/Cycled_smoke_long/Cycled_smoke_long3.png',
     manaCost: 7,
   },
   falling_smoke: {
@@ -437,6 +449,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 16,
     frameRate: 12,
     scale: 2.5,
+    iconPath: 'assets/sprites/skills/smoker/Falling_smoke/Falling_smoke8.png',
     manaCost: 8,
   },
   horisontal_smoke: {
@@ -450,6 +463,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameRate: 14,
     scale: 2,
     speed: 380,
+    iconPath: 'assets/sprites/skills/smoker/Horisontal_smoke/Horisontal_smoke6.png',
     manaCost: 7,
   },
   rising_smoke: {
@@ -462,6 +476,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 14,
     frameRate: 12,
     scale: 2,
+    iconPath: 'assets/sprites/skills/smoker/Rising_smoke/Rising_smoke7.png',
     manaCost: 7,
   },
   smoke_ghost: {
@@ -474,6 +489,7 @@ export const SKILL_REGISTRY: Record<string, SkillConfig> = {
     frameCount: 18,
     frameRate: 12,
     scale: 3,
+    iconPath: 'assets/sprites/skills/smoker/Smoke_ghost/Smoke_ghost9.png',
     manaCost: 20,
   },
   smoke_1: {

@@ -1244,6 +1244,20 @@ export class GameScene extends Phaser.Scene {
       if (!anims) return;
       const map = this.currentMap;
 
+      // La tabla se extrajo del pack GRANDE. Si el mapa usa la versión pequeña del
+      // tileset (home01: Water_coasts de 612 tiles), los mismos números de tile son
+      // OTRO dibujo y los fotogramas caen fuera del tileset → putTileAt con un gid
+      // sin entrada en map.tiles revienta Phaser ("reading '2'"). Solo vale el
+      // tileset cuyo tamaño alcanza el mayor fotograma de su tabla.
+      const setOk = new Map<string, boolean>();
+      for (const ts of map.tilesets) {
+        const table = anims[ts.name];
+        if (!table) { setOk.set(ts.name, false); continue; }
+        let maxFrame = 0;
+        for (const key of Object.keys(table)) for (const f of table[key]) if (f > maxFrame) maxFrame = f;
+        setOk.set(ts.name, ts.total > maxFrame);
+      }
+
       // celdas animadas: capa + posición + fotogramas ya en gid absoluto
       const cells: Array<{ layer: any; x: number; y: number; frames: number[] }> = [];
       for (const ld of map.layers) {
@@ -1257,9 +1271,10 @@ export class GameScene extends Phaser.Scene {
             let name = null, firstgid = 0;
             for (const ts of map.tilesets)
               if (tile.index >= ts.firstgid && ts.firstgid >= firstgid) { name = ts.name; firstgid = ts.firstgid; }
-            const table = name && anims[name];
+            if (!name || !setOk.get(name)) continue;
+            const table = anims[name];
             const frames = table && table[String(tile.index - firstgid)];
-            if (!frames) continue;
+            if (!frames || !frames.length) continue;
             cells.push({ layer, x, y, frames: frames.map(f => firstgid + f) });
           }
         }

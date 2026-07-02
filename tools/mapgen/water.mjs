@@ -68,13 +68,13 @@ function tryPlacePond(pond, ox, oy, ctx) {
   return true;
 }
 
-export function generateWater(rng, ctx) {
+export function generateWater(rng, ctx, opts = {}) {
   const { W, H } = ctx;
   ctx.waterCells = new Set();
-  // lagos rectangulares de tamaño variado (uno grande + varios medianos)
-  const nPonds = rng.int(3, 5);
+  // lagos rectangulares de tamaño variado (con `big`, el primero más lago que charca)
+  const nPonds = rng.int(opts.nMin ?? 3, opts.nMax ?? 5);
   for (let i = 0, tries = 0; i < nPonds && tries < 150; tries++) {
-    const big = i === 0;   // el primero, más lago que charca
+    const big = (opts.big ?? true) && i === 0;
     const w = big ? rng.int(8, 12) : rng.int(5, 9);
     const h = big ? rng.int(7, 10) : rng.int(5, 8);
     if (w > W - 6 || h > H - 6) continue;

@@ -21,14 +21,20 @@ const out = new PNG({ width: W * TILE, height: H * TILE });
 // fondo gris para que se vea el borde del mapa
 out.data.fill(40);
 
-const setFor = (gid) => { let s = sets[0]; for (const t of sets) if (gid >= t.firstgid) s = t; return s; };
+const setFor = (g) => { let s = sets[0]; for (const t of sets) if (g >= t.firstgid) s = t; return s; };
 const blit = (gid, dx, dy) => {
   if (!gid) return;
-  const s = setFor(gid);
-  const local = (gid & 0x1FFFFFFF) - s.firstgid;
+  const g = gid & 0x1FFFFFFF;                          // sin bits de flip
+  const fH = !!(gid & 0x80000000), fV = !!(gid & 0x40000000), fD = !!(gid & 0x20000000);
+  const s = setFor(g);
+  const local = g - s.firstgid;
   const sx = (local % s.columns) * TILE, sy = Math.floor(local / s.columns) * TILE;
   for (let y = 0; y < TILE; y++) for (let x = 0; x < TILE; x++) {
-    const si = ((sy + y) * s.png.width + (sx + x)) * 4;
+    let px = x, py = y;                                // volteos de Tiled: diagonal, luego H/V
+    if (fD) { const t = px; px = py; py = t; }
+    if (fH) px = TILE - 1 - px;
+    if (fV) py = TILE - 1 - py;
+    const si = ((sy + py) * s.png.width + (sx + px)) * 4;
     const di = ((dy + y) * out.width + (dx + x)) * 4;
     const a = s.png.data[si + 3];
     if (a === 0) continue;
@@ -38,7 +44,7 @@ const blit = (gid, dx, dy) => {
 };
 
 const L = {}; for (const l of m.layers) if (l.type === 'tilelayer') L[l.name] = l.data;
-for (const name of ['Base', 'Agua']) {                 // mismo orden de dibujo que el juego (Base abajo, Agua encima)
+for (const name of ['Base', 'Agua', 'Deco']) {         // mismo orden de dibujo que el juego
   const data = L[name]; if (!data) continue;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) blit(data[y * W + x], x * TILE, y * TILE);
 }
