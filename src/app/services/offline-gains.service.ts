@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { GameSnapshot } from './save.service';
 import { MAP_REGISTRY, planetNameForMap, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS, TREE_RESPAWN_MS } from '../scenes/gamescene/map-config';
 import { MapUpgradesService } from './map-upgrades.service';
-import { RUN_UNLOCK_POINTS } from '../scenes/worldrun/run-unlock-points';
+import { starProdPerMin } from './run-milestones';
 import { AfkBonusService } from './afk-bonus.service';
 import { CharacterStatsService } from './character-stats.service';
 import { EquipmentService } from './equipment.service';
@@ -68,6 +68,7 @@ export interface OfflineGains {
   // Exploración (Modo Mundo)
   planetName?: string;
   exploreMeters?: number;        // metros ganados AFK (10/min)
+  exploreStars?: number;         // estrellas de los generadores pasivos (star_prod1/2/3)
   unlockedFlags?: string[];      // flags de mapa a marcar al recoger (idempotente)
   unlockedMapNames?: string[];   // nombres de esos mapas (para el modal)
   // Recolección (minería / tala)
@@ -376,22 +377,19 @@ export class OfflineGainsService {
     };
   }
 
-  /** Ganancias AFK explorando: metros (10/min) + mapas desbloqueados al cruzar sus
-   *  hitos. Los flags se devuelven para marcarlos al recoger (LayoutComponent). */
+  /** Ganancias AFK explorando: metros (10/min) + estrellas de los generadores
+   *  pasivos. Los mapas ya NO se desbloquean por metros (se compran con estrellas
+   *  en el panel de hitos), así que el AFK no cruza/desbloquea nada. */
   private calculateExploring(snapshot: GameSnapshot, cappedMinutes: number): OfflineGains | null {
     // Bonus de exploración: INT (+1%/punto) + talentos exploration (vía charStats).
     const exploreBonus  = this.charStats.currentExplorationBonus ?? 0;
     const exploreMeters = Math.floor(METERS_PER_MINUTE * cappedMinutes * (1 + exploreBonus / 100));
     if (exploreMeters <= 0) return null;
 
-    const oldDistance = snapshot.playerState?.explorationDistanceM ?? 0;
-    const newDistance = oldDistance + exploreMeters;
-
-    // Hitos cruzados POR el AFK: entre la distancia previa y la nueva (exclusivo del
-    // inicio para no re-anunciar uno ya alcanzado). setFlag al recoger es idempotente.
-    const crossed = RUN_UNLOCK_POINTS.filter(
-      pt => pt.distanceM > oldDistance && pt.distanceM <= newDistance,
-    );
+    // Generadores pasivos de estrellas ('star_prod1/2/3'): la MISMA tasa que el tick
+    // en vivo de WorldRunScene, aplicada al tiempo AFK (mismo tope de horas).
+    const exploreStars = Math.floor(
+      starProdPerMin(snapshot.playerState?.runMilestones ?? []) * cappedMinutes);
 
     const mapName = MAP_REGISTRY[snapshot.mapId ?? 'hogar']?.name ?? snapshot.mapId ?? '';
     return {
@@ -404,8 +402,7 @@ export class OfflineGainsService {
       exp:         0,
       planetName:  planetNameForMap(snapshot.mapId ?? 'hogar'),
       exploreMeters,
-      unlockedFlags:    crossed.map(pt => pt.flag),
-      unlockedMapNames: crossed.map(pt => MAP_REGISTRY[pt.mapId]?.name ?? pt.mapId),
+      exploreStars,
     };
   }
 

@@ -29,7 +29,8 @@ import { NotificationBadgeService } from './notification-badge.service';
 
 /** Objetivo de una misión. Discriminado por `type` para crecer con más clases. */
 export type QuestObjective =
-  | KillObjective;
+  | KillObjective
+  | StarsObjective;
 // Futuro: | { type: 'reachLevel'; goal: number }
 //         | { type: 'collectItem'; itemId: string; goal: number }
 //         | { type: 'spendCoins'; goal: number } ...
@@ -41,6 +42,13 @@ export interface KillObjective {
   goal: number;
   family?: string;        // ej. 'slime' casa slime1, slime2, slime1_elite…
   enemyTypes?: string[];  // tipos exactos (tiene prioridad sobre family)
+}
+
+/** Acumular estrellas (moneda de exploración del Modo Mundo). El progreso sigue el
+ *  balance de estrellas del jugador (nunca baja aunque las gaste). */
+export interface StarsObjective {
+  type: 'stars';
+  goal: number;
 }
 
 export interface QuestReward {
@@ -67,6 +75,15 @@ export const MAX_ACTIVE_QUESTS = 5;
 // El orden aquí es el orden de presentación.
 
 export const QUESTS: QuestDef[] = [
+  {
+    id: 'primeras_estrellas',
+    name: 'La llamada de Heimdall',
+    desc: 'Heimdall te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 10 estrellas: toca la pantalla para saltar y recógelas al vuelo.',
+    icon: 'star-outline',
+    track: 'Consigue 10 estrellas',
+    objective: { type: 'stars', goal: 10 },
+    reward: { coins: 100, exp: 40 },
+  },
   {
     id: 'plaga_babosas',
     name: 'Plaga de babosas',
@@ -119,6 +136,7 @@ export class QuestService implements OnDestroy {
   private completedSet = new Set<string>();
   private activeSet = new Set<string>();
   private killSub: Subscription;
+  private starSub: Subscription;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -132,11 +150,20 @@ export class QuestService implements OnDestroy {
     this.killSub = this.kills.killDetail$.subscribe(({ enemyType }) => {
       this.onKill(enemyType);
     });
+    // Estrellas: el progreso sigue el balance actual (max, nunca baja). Las emisiones
+    // previas a loadForChar no importan: loadForChar reemplaza `progress` desde el save.
+    this.starSub = this.playerState.stars$.subscribe(balance => this.onStarsBalance(balance));
   }
 
   ngOnDestroy(): void {
     this.killSub?.unsubscribe();
+    this.starSub?.unsubscribe();
     if (this.persistTimer) clearTimeout(this.persistTimer);
+  }
+
+  /** Definición de una misión por id (para consultarla desde la escena/NPCs). */
+  byId(id: string): QuestDef | undefined {
+    return QUESTS.find(q => q.id === id);
   }
 
   // ── Ciclo de vida (SaveService) ─────────────────────────────────────────────
@@ -150,6 +177,8 @@ export class QuestService implements OnDestroy {
     this.activeSet    = new Set(saved?.active ?? []);
     // Sanea: una completada no puede seguir activa (saves antiguos / coherencia)
     for (const id of [...this.activeSet]) if (this.completedSet.has(id)) this.activeSet.delete(id);
+    // Sincroniza el progreso de estrellas con el balance ya cargado del personaje.
+    this.onStarsBalance(this.playerState.snapshot().stars ?? 0);
     // Si vino del snapshot, sincroniza la clave local para que coincida.
     if (override) this.persistNow();
     // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar.
@@ -269,6 +298,29 @@ export class QuestService implements OnDestroy {
       // Justo al alcanzar el objetivo: enciende el aviso (mismo notif-dot que
       // el punto de stats al subir de nivel) para indicar que se puede cobrar.
       if (this.progress[def.id] >= def.objective.goal) this.badges.flag('equip.quests');
+    }
+    if (changed) {
+      this.notify();
+      this.schedulePersist();
+    }
+  }
+
+  /** Progreso de las misiones de estrellas = balance actual (max, nunca baja aunque
+   *  el jugador gaste estrellas). No autocompleta: al llegar al objetivo espera a
+   *  "Completar" (o a hablar con Heimdall) como el resto. */
+  private onStarsBalance(balance: number): void {
+    let changed = false;
+    for (const def of QUESTS) {
+      if (def.objective.type !== 'stars') continue;
+      if (this.completedSet.has(def.id)) continue;
+      const cur = this.progress[def.id] ?? 0;
+      if (cur >= def.objective.goal) continue;
+      const next = Math.min(def.objective.goal, Math.max(cur, balance));
+      if (next !== cur) {
+        this.progress[def.id] = next;
+        changed = true;
+        if (next >= def.objective.goal) this.badges.flag('equip.quests');
+      }
     }
     if (changed) {
       this.notify();

@@ -3,6 +3,7 @@ import { GameRegistry } from '../game-registry';
 import { mapFeatureId } from '../../services/unlock-config';
 import { planetCapitalForMap } from '../gamescene/map-config';
 import { RUN_UNLOCK_POINTS } from './run-unlock-points';
+import { starProdPerMin } from '../../services/run-milestones';
 import { bodySpriteFor } from '../../pnj/player/body-config';
 import {
   WorldParallaxId, getWorldParallaxSet, worldParallaxKey, worldParallaxPath,
@@ -192,6 +193,17 @@ const ARROW_HIT_X = 46;              // medio ancho de impacto de la flecha
 const SWIPE_MIN_PX = 46;             // desplazamiento mínimo para que un toque sea swipe
 const SWIPE_MAX_MS = 320;            // tiempo máximo del gesto
 
+// --- Escalera de mejoras (hitos comprables con estrellas, ver run-milestones.ts) ---
+// El loop estilo Idle Slayer: matar da estrellas → compras la siguiente mejora →
+// llegas más lejos → más estrellas. Efectos por hito:
+const SPEED_BOOST_PER_TIER = 0.10;   // 'speed1/2/3': +10% de velocidad de carrera cada uno
+const MAGNET_RADIUS_1 = 140;         // 'magnet1': radio (px) que atrae estrellas/corazones
+const MAGNET_RADIUS_2 = 260;         // 'magnet2': radio ampliado
+const MAGNET_PULL = 620;             // px/s a los que vuelan hacia ti los atraídos
+const HEART_HEAL_BOOSTED = 25;       // 'heart_boost': curación del corazón mejorada
+const STAR_PER_KILL = 5;             // estrellas base por enemigo abatido (× estrellas valiosas)
+const SECOND_CHANCE_INVULN_MS = 1500; // 'second_chance': invulnerable tras revivir
+
 // --- Jugador (placeholder: cuerpo LPC corriendo de lado) ---
 const PLAYER_SCALE = 2.1;            // ~2 tiles de alto sobre el suelo. Subir = más grande.
 // LPC expandido: la animación RUN está en las filas 38-41 (8 frames). Run-derecha
@@ -279,6 +291,11 @@ export class WorldRunScene extends Phaser.Scene {
   // Detección de swipes (derecha=dash, abajo=slam) sobre el lienzo.
   private swipeStart: { x: number; y: number; t: number } | null = null;
   private swipeFired = false;
+  // 'second_chance': una resurrección por carrera; invulnerable un instante al revivir.
+  private usedSecondChance = false;
+  private invulnUntil = 0;
+  // Generadores pasivos ('star_prod1/2/3'): fracción de estrella acumulada del tick.
+  private starProdCarry = 0;
 
   // Hitos ya disparados en esta carrera (por flag), para no re-evaluarlos cada frame.
   private firedPoints = new Set<string>();
@@ -402,6 +419,9 @@ export class WorldRunScene extends Phaser.Scene {
     this.lastArrowAt = this.time.now;
     this.swipeStart = null;
     this.swipeFired = false;
+    this.usedSecondChance = false;
+    this.invulnUntil = 0;
+    this.starProdCarry = 0;
     // Textura de la flecha del arco (generada por código, sin asset).
     if (!this.textures.exists(ARROW_KEY)) {
       const g = this.make.graphics({ x: 0, y: 0 }, false);
@@ -491,11 +511,12 @@ export class WorldRunScene extends Phaser.Scene {
 
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
     // la anuló). El control manual está anulado: el único input es saltar. El sprint
-    // multiplica esta velocidad (pico al inicio, decelerando) mientras esté activo.
+    // multiplica esta velocidad (pico al inicio, decelerando) mientras esté activo,
+    // y los hitos 'speed1/2/3' añaden +10% permanente cada uno.
     // Durante la embestida manda DASH_SPEED.
     this.player.setVelocityX(this.dashing
       ? DASH_SPEED
-      : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier());
+      : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier() * this.runSpeedMult());
     if (this.dashing && now - this.lastGhostAt > 45) this.spawnDashGhost(now);
 
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
@@ -507,12 +528,13 @@ export class WorldRunScene extends Phaser.Scene {
     this.updateJump(delta);
     this.updatePlayerAnim(onGround);
     this.updateArrows(now, delta);
+    this.updateStarProduction(delta);
 
     // (La cámara la mueve startFollow tras la física; aquí solo leemos su scroll.)
     this.updateParallax();
     this.recycleChunks();
-    this.updateStars();
-    this.updateHearts();
+    this.updateStars(delta);
+    this.updateHearts(delta);
     this.updateRats();
     this.updateFenixes();
     this.updateFireballs(delta);
@@ -786,31 +808,17 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   /**
-   * Hitos por distancia: la PRIMERA vez que se alcanza uno (su mapa aún sin
-   * desbloquear) se persiste el flag y se muestra el modal de entrada, pausando la
-   * carrera. En carreras posteriores el mapa ya está desbloqueado → sin modal.
-   * `firedPoints` evita reevaluar el mismo hito en cada frame dentro de una carrera.
+   * Carteles de mapa por distancia: los mapas ya NO se desbloquean por metros —
+   * se COMPRAN con estrellas en el panel de hitos (map_1_x, run-milestones.ts).
+   * Al cruzar el cartel de un mapa COMPRADO aparece su botón de entrada (sin
+   * pausar); si no está comprado, el cartel es decorativo. `firedPoints` evita
+   * reevaluar el mismo punto cada frame dentro de una carrera.
    */
   private checkUnlockPoints(): void {
     for (const pt of RUN_UNLOCK_POINTS) {
       if (this.firedPoints.has(pt.flag) || this.distanceM < pt.distanceM) continue;
       this.firedPoints.add(pt.flag);
-
-      // "Primera vez" = el mapa aún no está desbloqueado para ESTE personaje Y su
-      // reclutable (Kugo, desbloqueo global de cuenta) tampoco lo está. Así, si ya
-      // reclutaste a Kugo con otro personaje, un personaje nuevo no vuelve a sufrir
-      // el modal forzado: ve directamente el botón de entrada.
-      const mapUnlocked = this.reg.unlocks.isUnlocked(mapFeatureId(pt.mapId));
-      const recruitDone = !!pt.recruitChar && this.reg.unlocks.isCharacterUnlocked(pt.recruitChar);
-      const firstTime = !mapUnlocked && !recruitDone;
-      this.reg.unlocks.setFlag(pt.flag, 'char');   // persiste el desbloqueo (idempotente)
-
-      if (firstTime) {
-        // Primera vez: modal de entrada (pausa la carrera hasta entrar o cancelar).
-        this.reg.playerBridge.promptMapEntrance(pt.mapId, !pt.firstEver);
-        this.scene.pause();
-      } else {
-        // Ya desbloqueado (o Kugo ya reclutado): botón de entrada, sin pausar.
+      if (this.reg.unlocks.isUnlocked(mapFeatureId(pt.mapId))) {
         this.reg.playerBridge.showMapEntranceHint(pt.mapId);
       }
     }
@@ -843,8 +851,9 @@ export class WorldRunScene extends Phaser.Scene {
   /**
    * Genera estrellas por delante de la cámara (una cada STAR_INTERVAL_M metros) y
    * destruye las que ya quedaron atrás. Mundo infinito: solo existen las cercanas.
+   * Con el imán comprado, las cercanas vuelan hacia el jugador.
    */
-  private updateStars(): void {
+  private updateStars(delta: number): void {
     const scrollX = this.cameras.main.scrollX;
     const spawnUntilX = scrollX + this.scale.width + CHUNK_W;   // un poco más allá del borde derecho
     const groundY = this.groundTopY + SURFACE_INSET;
@@ -859,21 +868,72 @@ export class WorldRunScene extends Phaser.Scene {
       this.nextStarIndex++;
     }
 
-    // Limpieza: las que salieron por la izquierda (sin recoger) se eliminan.
+    // Limpieza + imán: las que salieron por la izquierda (sin recoger) se eliminan.
     for (const obj of this.stars.getChildren()) {
       const star = obj as Phaser.Physics.Arcade.Sprite;
-      if (star.x < scrollX - CHUNK_W) star.destroy();
+      if (star.x < scrollX - CHUNK_W) { star.destroy(); continue; }
+      this.magnetPull(star, delta);
     }
   }
 
-  /** Recoge una estrella: suma al contador (persistido) y la hace desaparecer. */
+  /** Radio del imán según los hitos comprados (0 = sin imán). */
+  private magnetRadius(): number {
+    if (this.ms('magnet2')) return MAGNET_RADIUS_2;
+    if (this.ms('magnet1')) return MAGNET_RADIUS_1;
+    return 0;
+  }
+
+  /** Atrae un coleccionable hacia el jugador si está dentro del radio del imán. */
+  private magnetPull(item: Phaser.Physics.Arcade.Sprite, delta: number): void {
+    const radius = this.magnetRadius();
+    if (radius <= 0 || !item.active) return;
+    const px = this.player.x, py = this.player.y - this.player.displayHeight * 0.5;
+    const d = Phaser.Math.Distance.Between(item.x, item.y, px, py);
+    if (d > radius || d < 6) return;
+    const step = MAGNET_PULL * (delta / 1000);
+    item.x += ((px - item.x) / d) * step;
+    item.y += ((py - item.y) / d) * step;
+    (item.body as Phaser.Physics.Arcade.Body)?.updateFromGameObject?.();
+  }
+
+  /** Valor de cada estrella (recogida o de kill): 1 + hitos "estrellas valiosas". */
+  private starValue(): number {
+    return 1 + (this.ms('star_value1') ? 1 : 0) + (this.ms('star_value2') ? 1 : 0);
+  }
+
+  /** Multiplicador de velocidad por los hitos 'speed1/2/3' (+10% cada uno). */
+  private runSpeedMult(): number {
+    return 1 + SPEED_BOOST_PER_TIER *
+      ((this.ms('speed1') ? 1 : 0) + (this.ms('speed2') ? 1 : 0) + (this.ms('speed3') ? 1 : 0));
+  }
+
+  /** ¿Está comprado este hito del Modo Mundo? (atajo). */
+  private ms(id: string): boolean {
+    return this.reg.playerState.hasRunMilestone(id);
+  }
+
+  /** Recoge una estrella: suma al contador (persistido, × estrellas valiosas). */
   private collectStar(star: Phaser.Physics.Arcade.Sprite): void {
     if (!star.active) return;        // evita doble cobro si dos overlaps caen el mismo frame
     star.disableBody(true, false);   // quita el cuerpo pero deja el sprite para el tween
-    this.reg.playerState.collectStars(1);
+    const n = this.starValue();
+    this.reg.playerState.collectStars(n);
+    if (n > 1) this.showStarGain(star.x, star.y, n);
     this.tweens.add({
       targets: star, y: star.y - 40, alpha: 0, scale: STAR_SCALE * 1.6,
       duration: 250, ease: 'Quad.out', onComplete: () => star.destroy(),
+    });
+  }
+
+  /** "+N ★" dorado flotando (feedback de estrellas ganadas por kills o multiplicadas). */
+  private showStarGain(x: number, y: number, n: number): void {
+    const text = this.add.text(x, y - 20, `+${n} ★`, {
+      fontSize: '22px', color: '#ffd94a', fontStyle: 'bold',
+      stroke: '#5a3d08', strokeThickness: 5,
+    }).setOrigin(0.5, 1).setDepth(5000);
+    this.tweens.add({
+      targets: text, y: y - 62, alpha: 0,
+      duration: 700, ease: 'Power2', onComplete: () => text.destroy(),
     });
   }
 
@@ -889,7 +949,7 @@ export class WorldRunScene extends Phaser.Scene {
    * Genera corazones por delante de la cámara (uno cada HEART_INTERVAL_M metros) y
    * destruye los que ya quedaron atrás. Mismo esquema que updateStars().
    */
-  private updateHearts(): void {
+  private updateHearts(delta: number): void {
     const scrollX = this.cameras.main.scrollX;
     const spawnUntilX = scrollX + this.scale.width + CHUNK_W;
     const groundY = this.groundTopY + SURFACE_INSET;
@@ -905,18 +965,20 @@ export class WorldRunScene extends Phaser.Scene {
 
     for (const obj of this.hearts.getChildren()) {
       const heart = obj as Phaser.Physics.Arcade.Sprite;
-      if (heart.x < scrollX - CHUNK_W) heart.destroy();
+      if (heart.x < scrollX - CHUNK_W) { heart.destroy(); continue; }
+      this.magnetPull(heart, delta);
     }
   }
 
-  /** Recoge un corazón: cura HEART_HEAL de vida y lo hace desaparecer. */
+  /** Recoge un corazón: cura (más con 'heart_boost') y lo hace desaparecer. */
   private collectHeart(heart: Phaser.Physics.Arcade.Sprite): void {
     if (!heart.active) return;
     heart.disableBody(true, false);
+    const heal = this.ms('heart_boost') ? HEART_HEAL_BOOSTED : HEART_HEAL;
     // showNumber=false: el "+X" de healPlayer se pinta sobre el sprite del GameScene
     // (no el del runner), así que aquí lo replicamos sobre NUESTRO jugador.
-    this.reg.playerBridge.healPlayer(HEART_HEAL, false);
-    this.showHealEffect(HEART_HEAL);
+    this.reg.playerBridge.healPlayer(heal, false);
+    this.showHealEffect(heal);
     this.tweens.add({
       targets: heart, y: heart.y - 40, alpha: 0, scale: HEART_SCALE * 1.6,
       duration: 250, ease: 'Quad.out', onComplete: () => heart.destroy(),
@@ -983,13 +1045,20 @@ export class WorldRunScene extends Phaser.Scene {
     const spawnUntilX = scrollX + this.scale.width + CHUNK_W;
     const groundY = this.groundTopY + SURFACE_INSET;
 
-    while (this.startX + this.nextRatIndex * RAT_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
-      const x = this.startX + this.nextRatIndex * RAT_INTERVAL_M * PX_PER_METER;
-      const sprite = this.add.sprite(x, groundY, TEX_RAT)
-        .setOrigin(0.5, 1).setScale(RAT_SCALE).setDepth(4).setFlipX(RAT_FACE_LEFT);
-      sprite.play(RAT_ANIM_IDLE);
-      this.rats.push({ sprite, attacking: false, hit: false });
-      this.nextRatIndex++;
+    if (!this.ms('enemies')) {
+      // Hito "Enemigos" sin comprar: no aparecen. Mantenemos el índice al día para
+      // que, al comprarlo a mitad de carrera, salgan por DELANTE (no un tropel).
+      const aheadM = (spawnUntilX - this.startX) / PX_PER_METER;
+      this.nextRatIndex = Math.max(this.nextRatIndex, Math.floor(aheadM / RAT_INTERVAL_M) + 1);
+    } else {
+      while (this.startX + this.nextRatIndex * RAT_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
+        const x = this.startX + this.nextRatIndex * RAT_INTERVAL_M * PX_PER_METER;
+        const sprite = this.add.sprite(x, groundY, TEX_RAT)
+          .setOrigin(0.5, 1).setScale(RAT_SCALE).setDepth(4).setFlipX(RAT_FACE_LEFT);
+        sprite.play(RAT_ANIM_IDLE);
+        this.rats.push({ sprite, attacking: false, hit: false });
+        this.nextRatIndex++;
+      }
     }
 
     for (let i = this.rats.length - 1; i >= 0; i--) {
@@ -1020,7 +1089,7 @@ export class WorldRunScene extends Phaser.Scene {
       if (absdx < RAT_STOMP_HALF_W && onBack && falling) {
         this.rats.splice(i, 1);
         this.playRatDeath(s);
-        this.reg.playerState.addWorldKills();
+        this.killReward(s.x, s.y - 40);
         this.player.setVelocityY(-RAT_STOMP_BOUNCE);
         continue;
       }
@@ -1047,9 +1116,25 @@ export class WorldRunScene extends Phaser.Scene {
   private damagePlayer(amount: number): void {
     if (this.dead) return;                           // ya muerto: el modal está abierto
     if (this.dashing) return;                        // embistiendo eres invulnerable
+    if (this.time.now < this.invulnUntil) return;    // gracia tras la segunda oportunidad
     const p = this.reg.playerBridge.player;
     if (p) {
-      if (p.status.HP - amount <= 0) { this.playerDie(); return; }
+      if (p.status.HP - amount <= 0) {
+        // 'second_chance': una vez por carrera, el golpe mortal te deja al 50% en
+        // vez de matarte, con un instante de invulnerabilidad (estilo Idle Slayer).
+        if (this.ms('second_chance') && !this.usedSecondChance) {
+          this.usedSecondChance = true;
+          this.invulnUntil = this.time.now + SECOND_CHANCE_INVULN_MS;
+          const half = Math.max(1, Math.floor(p.status.HPMax / 2));
+          this.reg.playerBridge.resetPlayerStatus(half, p.status.HPMax);
+          this.reg.playerState.setHp(half, p.status.HPMax);
+          this.cameras.main.flash(350, 255, 235, 140);
+          this.showHealEffect(half);
+          return;
+        }
+        this.playerDie();
+        return;
+      }
       this.reg.playerBridge.damagePlayer(amount);
     }
     this.player.setTint(0xff5555);
@@ -1117,20 +1202,27 @@ export class WorldRunScene extends Phaser.Scene {
     const spawnUntilX = scrollX + this.scale.width + CHUNK_W;
     const flyY = this.groundTopY + SURFACE_INSET - FENIX_HEIGHT;
 
-    let nextM = FENIX_START_M + this.nextFenixIndex * FENIX_INTERVAL_M;
-    while (this.startX + nextM * PX_PER_METER <= spawnUntilX) {
-      const x = this.startX + nextM * PX_PER_METER;
-      const sprite = this.add.sprite(x, flyY, TEX_FENIX)
-        .setScale(FENIX_SCALE).setDepth(4).setFlipX(FENIX_FACE_LEFT);
-      sprite.play(FENIX_ANIM_FLY);
-      // Balanceo de vuelo: sube y baja suave en bucle.
-      this.tweens.add({
-        targets: sprite, y: flyY - FENIX_BOB, duration: 850,
-        yoyo: true, repeat: -1, ease: 'Sine.inOut',
-      });
-      this.fenixes.push({ sprite, hit: false, attacked: false });
-      this.nextFenixIndex++;
-      nextM = FENIX_START_M + this.nextFenixIndex * FENIX_INTERVAL_M;
+    if (!this.ms('flying_enemies')) {
+      // Hito "Enemigos voladores" sin comprar: no aparecen (índice al día, como las ratas).
+      const aheadM = (spawnUntilX - this.startX) / PX_PER_METER;
+      this.nextFenixIndex = Math.max(this.nextFenixIndex,
+        Math.floor((aheadM - FENIX_START_M) / FENIX_INTERVAL_M) + 1);
+    } else {
+      let nextM = FENIX_START_M + this.nextFenixIndex * FENIX_INTERVAL_M;
+      while (this.startX + nextM * PX_PER_METER <= spawnUntilX) {
+        const x = this.startX + nextM * PX_PER_METER;
+        const sprite = this.add.sprite(x, flyY, TEX_FENIX)
+          .setScale(FENIX_SCALE).setDepth(4).setFlipX(FENIX_FACE_LEFT);
+        sprite.play(FENIX_ANIM_FLY);
+        // Balanceo de vuelo: sube y baja suave en bucle.
+        this.tweens.add({
+          targets: sprite, y: flyY - FENIX_BOB, duration: 850,
+          yoyo: true, repeat: -1, ease: 'Sine.inOut',
+        });
+        this.fenixes.push({ sprite, hit: false, attacked: false });
+        this.nextFenixIndex++;
+        nextM = FENIX_START_M + this.nextFenixIndex * FENIX_INTERVAL_M;
+      }
     }
 
     const falling = (this.player.body?.velocity.y ?? 0) >= 0;
@@ -1159,7 +1251,7 @@ export class WorldRunScene extends Phaser.Scene {
       if (absdx < FENIX_STOMP_HALF_W && rel >= -FENIX_STOMP_ABOVE && rel <= FENIX_STOMP_BELOW && falling) {
         this.fenixes.splice(i, 1);
         this.playFenixDeath(s);
-        this.reg.playerState.addWorldKills();
+        this.killReward(s.x, s.y - 40);
         this.player.setVelocityY(-FENIX_STOMP_BOUNCE);
         continue;
       }
@@ -1278,6 +1370,8 @@ export class WorldRunScene extends Phaser.Scene {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       // No saltar al tocar el botón de salida (zona arriba-izquierda).
       if (pointer.x < 110 && pointer.y < 70) return;
+      // Tocar la pantalla cierra cualquier menú abierto (además de saltar).
+      this.reg.playerBridge.requestCloseMenus();
       this.swipeStart = { x: pointer.x, y: pointer.y, t: this.time.now };
       this.swipeFired = false;
       this.pressJump();
@@ -1440,6 +1534,15 @@ export class WorldRunScene extends Phaser.Scene {
         ARROW_KEY,
       ).setScale(2).setDepth(5);
       this.arrows.push(arrow);
+      // 'double_arrows': una segunda flecha rasante (barre lo que va a ras de suelo).
+      if (this.ms('double_arrows')) {
+        const low = this.add.image(
+          this.player.x + 30,
+          this.groundTopY + SURFACE_INSET - 34,
+          ARROW_KEY,
+        ).setScale(2).setDepth(5);
+        this.arrows.push(low);
+      }
     }
     if (this.arrows.length === 0) return;
 
@@ -1486,6 +1589,21 @@ export class WorldRunScene extends Phaser.Scene {
     }
   }
 
+  /** Generadores pasivos ('star_prod1/2/3'): producen ★/min mientras corres, en
+   *  fracciones acumuladas; al completar una estrella se cobra con su "+N ★".
+   *  (La misma tasa corre AFK explorando, ver OfflineGainsService.) */
+  private updateStarProduction(delta: number): void {
+    const perMin = starProdPerMin(this.reg.playerState.snapshot().runMilestones ?? []);
+    if (perMin <= 0) return;
+    this.starProdCarry += perMin * (delta / 60000);
+    if (this.starProdCarry >= 1) {
+      const n = Math.floor(this.starProdCarry);
+      this.starProdCarry -= n;
+      this.reg.playerState.collectStars(n);
+      this.showStarGain(this.player.x, this.player.y - this.player.displayHeight, n);
+    }
+  }
+
   /** Nube del doble salto: elipse blanca bajo los pies que se expande y desvanece. */
   private showDoubleJumpPuff(): void {
     const puff = this.add.ellipse(this.player.x, this.player.y, 46, 14, 0xffffff, 0.7).setDepth(4);
@@ -1500,7 +1618,7 @@ export class WorldRunScene extends Phaser.Scene {
     const rat = this.rats[i];
     this.rats.splice(i, 1);
     this.playRatDeath(rat.sprite);
-    this.reg.playerState.addWorldKills();
+    this.killReward(rat.sprite.x, rat.sprite.y - 40);
   }
 
   /** Mata el fénix `i` (habilidades) — anim de caída + kill contabilizado. */
@@ -1508,7 +1626,16 @@ export class WorldRunScene extends Phaser.Scene {
     const fenix = this.fenixes[i];
     this.fenixes.splice(i, 1);
     this.playFenixDeath(fenix.sprite);
+    this.killReward(fenix.sprite.x, fenix.sprite.y - 40);
+  }
+
+  /** Recompensa de una baja: el kill del HUD + ESTRELLAS (el loop de Idle Slayer:
+   *  matar da moneda). El valor escala con los hitos "estrellas valiosas". */
+  private killReward(x: number, y: number): void {
     this.reg.playerState.addWorldKills();
+    const n = STAR_PER_KILL * this.starValue();
+    this.reg.playerState.collectStars(n);
+    this.showStarGain(x, y, n);
   }
 
   /** Revienta la bola de fuego `i` (dash/slam/flecha la neutralizan). */

@@ -70,3 +70,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Archivo basura de Windows (redirects a > NUL en Git Bash)
+NUL

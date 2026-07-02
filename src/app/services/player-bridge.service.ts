@@ -69,6 +69,11 @@ export class PlayerBridgeService {
   }
   requestJump(): void { this.jumpRequest$.next(); }
   releaseJump(): void { this.jumpReleaseRequest$.next(); }
+
+  /** Modo Mundo: tocar la pantalla (para saltar) también pide cerrar cualquier menú
+   *  abierto. La escena lo emite en cada pointerdown; footer y top-bar lo escuchan. */
+  readonly closeMenusRequest$ = new Subject<void>();
+  requestCloseMenus(): void { this.closeMenusRequest$.next(); }
   requestExitRun(): void { this.exitRunRequest$.next(); }
   notifyRunDeath(): void { this.runDeath$.next(); }
 

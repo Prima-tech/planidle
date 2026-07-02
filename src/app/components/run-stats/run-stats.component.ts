@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
+import { UnlockService } from 'src/app/services/unlock.service';
 import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones';
 
 /**
@@ -20,6 +21,7 @@ import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones
 export class RunStatsComponent {
   private playerState  = inject(PlayerStateService);
   private playerBridge = inject(PlayerBridgeService);
+  private unlocks      = inject(UnlockService);
 
   readonly stars$    = this.playerState.stars$;
   readonly distance$ = this.playerBridge.runDistanceM$;   // metros de la carrera actual
@@ -44,12 +46,16 @@ export class RunStatsComponent {
 
   owned(id: string): boolean { return this.playerState.hasRunMilestone(id); }
 
-  /** ¿Se puede comprar ahora? (no comprado + estrellas suficientes). */
+  /** ¿Se puede comprar ahora? (no comprado + estrellas suficientes + prerrequisito
+   *  comprado — los mapas van encadenados: 1-2 pide 1-1, etc.). */
   canBuy(m: RunMilestoneDef): boolean {
-    return !this.owned(m.id) && this.playerState.snapshot().stars >= m.cost;
+    if (this.owned(m.id) || this.playerState.snapshot().stars < m.cost) return false;
+    return !m.requires || this.owned(m.requires);
   }
 
   buy(m: RunMilestoneDef): void {
-    this.playerState.buyRunMilestone(m.id, m.cost);
+    if (!this.playerState.buyRunMilestone(m.id, m.cost)) return;
+    // Hitos de mapa: marcar su flag desbloquea la feature 'map.X' (viajar al mapa).
+    if (m.unlockFlag) this.unlocks.setFlag(m.unlockFlag, 'char');
   }
 }

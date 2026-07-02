@@ -95,6 +95,9 @@ interface ActiveChest {
  *  abajo). `name` = nombre en body-config (bodySpriteFor) para cargar su hoja;
  *  `texKey` = clave de textura propia. Añadir uno = una línea más aquí. */
 const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number }[] = [
+  // Heimdall: guardián de Asgard, da la primera misión (explorar → 10 estrellas).
+  // Junto al punto de aparición (spawnPos 30,30) para que sea lo primero que ves.
+  { name: 'Heimdall', texKey: 'npc_heimdall', tileX: 28, tileY: 30 },
 ];
 
 /** NPCs reclutables: aparecen en un mapa concreto (no el hogar) hasta que se les
@@ -452,8 +455,8 @@ export class GameScene extends Phaser.Scene {
         typesToLoad.add(`${base}_elite`);
         typesToLoad.add(`${base}_oblivion`);
       }
-      // Animales de caza: spawnean en todos los mapas no-hogar → cargar siempre.
-      if (mapCfg.id !== 'hogar') for (const t of ANIMAL_TYPES) typesToLoad.add(t);
+      // Animales de caza: solo conejo y ciervo pueden salir (mapas no-hogar) → solo esos.
+      if (mapCfg.id !== 'hogar') for (const t of GameScene.HUNT_ANIMAL_POOL) typesToLoad.add(t);
       for (const type of typesToLoad) {
         const cfg = ENEMY_REGISTRY[type];
         if (!cfg) continue;
@@ -1505,37 +1508,67 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    /** Animales de caza: spawnea unos pocos al azar (tipo + posición) en mapas no-hogar.
-     *  Son enemigos pasivos (vagan, no atacan), 10 HP, golpeables. Reusa spawnEnemy
-     *  (que respawnea al morir). No se añaden a spawnTrackers para no contar en mapStats. */
+    /** Animales de caza del planeta actual (Asgard/Tierra): SOLO conejos y ciervos,
+     *  raros y como mucho UNO a la vez. Enemigos pasivos (vagan, no atacan), golpeables.
+     *  Respawn lento propio (no el de los enemigos) para que sean un encuentro escaso. */
+    private static readonly HUNT_ANIMAL_POOL = ['hare', 'deer'];
+    private static readonly ANIMAL_RESPAWN_MIN_MS = 45_000;   // 45 s
+    private static readonly ANIMAL_RESPAWN_MAX_MS = 120_000;  // 2 min
+    private animalAlive = false;
+
     private initAnimalSpawns(): void {
+      this.animalAlive = false;
       if (this.currentMapConfig.id === 'hogar') return;
-      const mapId = this.currentMapConfig.id;
+      // 1-1: solo conejos, y únicamente si la mejora de mapa "Desbloquear conejos"
+      // está completada (mecánica de la primera caza).
+      if (this.currentMapConfig.id === '1-1' && !this.reg.mapUpgrades?.rabbitUnlocked('1-1')) return;
+      // El primer animal aparece tras un retardo aleatorio (no nada más entrar).
+      this.scheduleHuntAnimal();
+    }
+
+    /** Programa el próximo animal tras un retardo largo aleatorio (rareza). */
+    private scheduleHuntAnimal(): void {
+      const delay = Phaser.Math.Between(GameScene.ANIMAL_RESPAWN_MIN_MS, GameScene.ANIMAL_RESPAWN_MAX_MS);
+      this.time.delayedCall(delay, () => this.spawnHuntAnimal());
+    }
+
+    /** Spawnea UN animal de caza (si no hay ninguno vivo ya). Al morir, reprograma
+     *  el siguiente con otro retardo largo. Nunca coexisten dos. */
+    private spawnHuntAnimal(): void {
+      if (this.animalAlive || this.currentMapConfig.id === 'hogar') return;
+      const pool = this.currentMapConfig.id === '1-1' ? ['hare'] : GameScene.HUNT_ANIMAL_POOL;
+      const type = pool[Phaser.Math.Between(0, pool.length - 1)];
+      const enemyCfg = ENEMY_REGISTRY[type];
+      if (!enemyCfg) return;
+
       const W = this.currentMap.width, H = this.currentMap.height;
       const ZW = 12, ZH = 12;
+      const zx = Phaser.Math.Between(3, Math.max(3, W - ZW - 3));
+      const zy = Phaser.Math.Between(3, Math.max(3, H - ZH - 3));
+      const cfg: SpawnConfig = {
+        enemyType: type,
+        zone: { tileX: zx, tileY: zy, width: ZW, height: ZH },
+        maxCount: 1, behavior: 'passive', visionRadius: 0,
+      };
+      const { x: tileX, y: tileY } = this.pickSpawnTile(cfg);
 
-      // Tipos de animal del mapa. Por defecto: 4 al azar de ANIMAL_TYPES. En 1-1 son
-      // SOLO conejos (liebre) y únicamente si la mejora de mapa "Desbloquear conejos"
-      // está completada (si no, no aparece ningún conejo).
-      let pool = ANIMAL_TYPES;
-      const COUNT = 4;
-      if (mapId === '1-1') {
-        if (!this.reg.mapUpgrades?.rabbitUnlocked(mapId)) return;
-        pool = ['hare'];
-      }
-
-      for (let i = 0; i < COUNT; i++) {
-        const type = pool[Phaser.Math.Between(0, pool.length - 1)];
-        const zx = Phaser.Math.Between(3, Math.max(3, W - ZW - 3));
-        const zy = Phaser.Math.Between(3, Math.max(3, H - ZH - 3));
-        const cfg: SpawnConfig = {
-          enemyType: type,
-          zone: { tileX: zx, tileY: zy, width: ZW, height: ZH },
-          maxCount: 1, behavior: 'passive', visionRadius: 0,
-        };
-        const tracker: SpawnTracker = { config: cfg, count: 0 };
-        this.time.delayedCall(i * 800, () => this.spawnEnemy(cfg, tracker));
-      }
+      const sprite = this.add.sprite(0, 0, `${type}_idle`);
+      sprite.setDepth(2);
+      const enemy = new Enemy(
+        this, sprite,
+        new Phaser.Math.Vector2(tileX, tileY),
+        this.currentMap, enemyCfg, 'passive', 0,
+        () => {
+          const idx = this.enemies.indexOf(enemy);
+          if (idx !== -1) this.enemies.splice(idx, 1);
+          this.animalAlive = false;
+          this.scheduleHuntAnimal();   // el siguiente, otra vez raro
+        },
+        this.collisionTiles,
+      );
+      enemy.setWanderZone(cfg.zone.tileX, cfg.zone.tileY, cfg.zone.width, cfg.zone.height);
+      this.enemies.push(enemy);
+      this.animalAlive = true;
     }
 
     /** Elige un tile de spawn dentro de la zona evitando el entorno del jugador
@@ -1623,7 +1656,7 @@ export class GameScene extends Phaser.Scene {
         typesToRegister.add(`${base}_elite`);
         typesToRegister.add(`${base}_oblivion`);
       }
-      if (this.currentMapConfig.id !== 'hogar') for (const t of ANIMAL_TYPES) typesToRegister.add(t);
+      if (this.currentMapConfig.id !== 'hogar') for (const t of GameScene.HUNT_ANIMAL_POOL) typesToRegister.add(t);
       for (const type of typesToRegister) {
         const cfg = ENEMY_REGISTRY[type];
         if (cfg) this.animService.registerEnemyAnimations(cfg);
@@ -3104,6 +3137,8 @@ export class GameScene extends Phaser.Scene {
      *  reclutamiento y lo desbloquea como personaje (flag global → aparece en el
      *  roster); si no, dice su línea normal. */
     private talkToNpc(npc: typeof this.cityNpcs[0]): void {
+      // Heimdall: dador de la primera misión (diálogo según su estado).
+      if (npc.name === 'Heimdall') { this.talkToHeimdall(); return; }
       if (npc.recruit && !this.reg.unlocks?.isCharacterUnlocked(npc.name)) {
         const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
         this.reg.dialogue?.show(npc.name,
@@ -3112,6 +3147,41 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       this.reg.dialogue?.show(npc.name, this.npcLine(npc.name));
+    }
+
+    /** Heimdall (Asgard): guía de onboarding. Da y fija la primera misión (explorar →
+     *  10 estrellas), informa del progreso, la cobra al completarla y luego apunta a 1-1.
+     *  Portales del hogar: exploración = este (x30), 1-1 = oeste (x17). */
+    private talkToHeimdall(): void {
+      const quests = this.reg.quests;
+      const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
+      const def = quests?.byId('primeras_estrellas');
+      if (!quests || !def) { this.reg.dialogue?.show('Heimdall', '...'); return; }
+
+      // Ya completada → apunta al combate (portal oeste, 1-1).
+      if (quests.isCompleted(def)) {
+        this.reg.dialogue?.show('Heimdall',
+          `Cuando quieras luchar de verdad, ${player}, cruza el portal del oeste hacia 1-1. Ahí te esperan los primeros monstruos.`);
+        return;
+      }
+      // Objetivo alcanzado → cobra aquí mismo y desbloquea el siguiente paso.
+      if (quests.isClaimable(def)) {
+        quests.claim(def);
+        this.reg.dialogue?.show('Heimdall',
+          `¡Diez estrellas, ${player}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.`);
+        return;
+      }
+      // En marcha → informa del progreso.
+      const prog = quests.progressOf(def);
+      if (prog > 0 || quests.isActive(def)) {
+        this.reg.dialogue?.show('Heimdall',
+          `Llevas ${prog}/${quests.goalOf(def)} estrellas. Sigue saltando a por ellas en la exploración (portal del este).`);
+        return;
+      }
+      // Primera vez → da y fija la misión.
+      quests.activate(def);
+      this.reg.dialogue?.show('Heimdall',
+        `Bienvenido a Asgard, ${player}. Soy Heimdall. Antes de luchar, aprende a explorar: cruza el portal del este y trae 10 estrellas. Toca la pantalla para saltar y recógelas al vuelo.`);
     }
 
     /** Línea que dice un NPC al hablarle. Kugo saluda al jugador por su nombre. */

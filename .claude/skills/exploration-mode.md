@@ -85,8 +85,28 @@ Runner lateral 2D estilo **Idle Slayer**, **separado** del juego grid top-down (
 - `update()`: `setVelocityX(RUN_SPEED * currentSprintMultiplier())` cada frame (re-aplicado por si una colisión lo anuló; durante la embestida manda `DASH_SPEED`). Control manual anulado: los inputs son saltar y las habilidades.
 - **Salto variable** (`pressJump`/`updateJump`/`releaseJump`): impulso inicial `JUMP_INITIAL_VELOCITY`, y mientras se mantiene (≤ `JUMP_MAX_HOLD_MS`) se sigue acelerando hacia arriba (`JUMP_HOLD_ACCEL`) hasta el tope `JUMP_MAX_VELOCITY`. Input: tap/hold en el lienzo, barra ESPACIO, **y el botón de ataque de Angular** (`jumpRequest$`/`jumpReleaseRequest$`).
 
-### Habilidades (estilo Idle Slayer, 2026-07-02)
-Cuatro habilidades **comprables con estrellas** en el panel de hitos del HUD (run-stats): `RUN_MILESTONES` en `services/run-milestones.ts` — `double_jump` 15★ · `dash` 40★ · `slam` 80★ · `bow` 150★ (+ `sprint` 1★ que ya existía). La escena las gatea con `playerState.hasRunMilestone(id)` (compra a mitad de carrera = activa al instante). **Las estrellas son PERSISTENTES** (moneda del runner): `goHomeReset` ya NO las resetea (decisión del usuario 2026-07-02; el texto GO_HOME_WARN lo refleja). Estado en la escena (`jumpsUsed`/`dashing`/`slamming`/`arrows`…), reseteado en `create()`.
+### Habilidades y escalera de mejoras (estilo Idle Slayer, 2026-07-02/03)
+**El loop**: matar da estrellas (`killReward` → `collectStars`, "+N ★" dorado) → compras el siguiente hito → llegas más lejos → más estrellas. **Las estrellas son PERSISTENTES** (moneda del runner): `goHomeReset` ya NO las resetea (el texto GO_HOME_WARN lo refleja).
+
+Escalera completa (`RUN_MILESTONES` en `services/run-milestones.ts`, panel de hitos del HUD run-stats; la escena gatea con `hasRunMilestone(id)` — helper `ms(id)` —, compra a mitad de carrera = activa al instante):
+| Hito | ★ | Efecto (dónde) |
+|------|---|----------------|
+| `sprint` | 1 | botón de impulso (PlayerBridgeService, ya existía) |
+| `enemies` | 5 | SIN él no aparecen ratas (gating de spawn en `updateRats`; el índice se mantiene al día para que al comprarlo salgan por delante, no un tropel) |
+| `speed1/2/3` | 8/75/300 | +10% velocidad cada uno (`runSpeedMult` en el setVelocityX del update) |
+| `double_jump` | 15 | 2º salto en el aire (`pressJump`, `jumpsUsed`) |
+| `magnet1/2` | 25/120 | atrae estrellas/corazones a 140/260 px (`magnetPull` en updateStars/updateHearts) |
+| `star_value1/2` | 35/200 | +1 por estrella recogida Y por kill (`starValue()`) |
+| `dash` | 40 | embestida (swipe dcha / D,→) |
+| `flying_enemies` | 50 | SIN él no aparecen fénix (gating en `updateFenixes`, mismo patrón que `enemies`) |
+| `heart_boost` | 60 | corazones curan 25 (`HEART_HEAL_BOOSTED`) |
+| `slam` | 80 | golpe descendente (swipe abajo / S,↓) |
+| `bow` | 150 | arco automático cada 2.8s |
+| `double_arrows` | 250 | 2ª flecha rasante a ras de suelo (en `updateArrows`) |
+| `star_prod1/2/3` | 30/180/400 | GENERADORES pasivos: +6/+18/+36 ★/min (aditivos). Tick en vivo (`updateStarProduction`, carry fraccional) Y AFK explorando (OfflineGainsService → `exploreStars` → fila "Estrellas producidas" del modal AFK → `collectStars` en layout.collectGains). Tasa compartida en `STAR_PROD_TIERS`/`starProdPerMin` (run-milestones.ts, módulo plano) |
+| `second_chance` | 500 | 1×/carrera: el golpe mortal deja al 50% HP + invuln 1.5s (`usedSecondChance`/`invulnUntil` en `damagePlayer`) |
+
+Estado en la escena (`jumpsUsed`/`dashing`/`slamming`/`arrows`/`usedSecondChance`/`invulnUntil`…), reseteado en `create()`.
 - **Doble salto**: `pressJump` en el aire con `jumpsUsed<2` → segundo impulso (`DOUBLE_JUMP_VELOCITY` 700) + nube (`showDoubleJumpPuff`). `jumpsUsed` se recarga al pisar suelo. Funciona también desde el botón de Angular (dos taps).
 - **Embestida / dash** (`startDash`/`endDash`): swipe DERECHA · tecla D o →. Ráfaga horizontal `DASH_SPEED` 1050 durante `DASH_MS` 260 (gravedad off, vy=0), enfriamiento `DASH_COOLDOWN_MS` 2500. **Invulnerable** (`damagePlayer` early-return) y **mata por atropello** (ramas `this.dashing` en `updateRats`/`updateFenixes` con `DASH_KILL_PAD`; revienta bolas de fuego). Estela de fantasmas (`spawnDashGhost` cada 45 ms) + tinte azulado + pose fija.
 - **Golpe descendente / slam** (`startSlam`/`slamImpact`): swipe ABAJO · tecla S o ↓, solo en el aire. Cae a `SLAM_SPEED` 1500; atravesar un fénix bajando lo mata (rama `slamming` en el choque). Al aterrizar: sacudida de cámara + anillo expansivo + mata ratas y revienta bolas en `SLAM_KILL_RADIUS` 110. El slam corta un dash en curso.
@@ -114,10 +134,11 @@ NO usan la clase `Enemy` del grid: son entidades ligeras propias en arrays (`rat
 - **Rata** (`rat.png`, hoja 64×32, una cada `RAT_INTERVAL_M` 25 m): plantada en idle a ras de suelo. Telegrafía ataque al acercarte (`RAT_SENSE_PX`). **A ras de suelo te hace daño** (`RAT_DAMAGE`, `feetAbove < RAT_STOMP_LOW`). **Pisotón** (caer sobre el lomo en la franja `RAT_STOMP_LOW..HIGH` bajando) → la matas sin daño + rebote (`RAT_STOMP_BOUNCE`) + `addWorldKills()`.
 - **Fénix** (`Phoenixling Sprite Sheet.png`, hoja 64×64, vuela a `FENIX_HEIGHT`, balanceo `FENIX_BOB`, uno cada `FENIX_INTERVAL_M` 50 m desde `FENIX_START_M` 25 m — intercalado con las ratas): al acercarte lanza UNA **bola de fuego** (`spawnFireball`, reusa frames `skill_fireball`) que cae al suelo y rueda hacia ti; la esquivas saltándola (`updateFireballs`, daño `FIREBALL_DAMAGE`). Pisotón (caer encima) → muerte sin daño + rebote; choque de otra forma → `FENIX_DAMAGE`.
 
-### Distancia, hitos y desbloqueos
+### Distancia, carteles de mapa y COMPRA de mapas (cambiado 2026-07-03)
 - **Metros:** `distanceM = floor((player.x - startX) / PX_PER_METER)` (`PX_PER_METER = RT = 48`, 1 tile = 1 m). `startX` se retrasa `startDistanceM` metros para que la carrera arranque ya en la entrada del mapa de origen. Texto en pantalla (HUD central) + `reportWorldDistance` (récord + distancia explorada).
-- **Hitos** (`checkUnlockPoints` vs `RUN_UNLOCK_POINTS`): al cruzar `distanceM >= pt.distanceM` por primera vez (su `flag` aún sin marcar) → `unlocks.setFlag(pt.flag,'char')` (idempotente). Si es **primera vez** (mapa no desbloqueado Y `recruitChar` no reclutado) → `promptMapEntrance` + `scene.pause()` (modal de entrada). Si ya estaba → `showMapEntranceHint` (botón, sin pausar). `firedPoints` evita re-evaluar cada frame; los hitos ≤ `startDistanceM` se pre-marcan en `create()` (no re-ofrecer la entrada del mapa del que vienes).
-- `createInterestSigns`: planta `interest_point.png` en cada hito; `createStartSign` (`follow.png`) solo en arranque desde km 0.
+- **Los mapas se COMPRAN con estrellas** en el panel de hitos (run-milestones.ts): `map_1_1` = 10★, `map_1_2`…`map_1_8` = 1000★ cada uno, **encadenados** (`requires` el anterior). Al comprar, `run-stats.buy()` marca su `unlockFlag` (`map_1_x`) en UnlockService → feature `map.1-x` desbloqueada (viajar desde el mapa mundial). **Ya NO se desbloquean por metros** (ni en vivo ni AFK: `calculateExploring` ya no emite `unlockedFlags`).
+- **Carteles** (`RUN_UNLOCK_POINTS`, ahora solo POSICIONES: 1-1@100m … 1-8@3600m): `createInterestSigns` los planta; `checkUnlockPoints` al cruzar uno de un mapa YA COMPRADO muestra `showMapEntranceHint` (botón de entrada, sin pausar); si no está comprado, decorativo. `entryDistanceFor` sigue usándolos para arrancar en el cartel del mapa de origen. El modal `promptMapEntrance`/app-map-entrance-modal quedó sin llamador (se conserva por si se reusa).
+- `createStartSign` (`follow.png`) solo en arranque desde km 0.
 
 ### Muerte
 - `damagePlayer`: si el golpe lleva el HP de `playerBridge.player` a ≤0 → `playerDie()` (NO usa el flujo de combate `death$`/revivir). `playerDie`: `dead=true` (early-return en `update`/`damagePlayer`), `recordDeath()` (sube `totalDeaths`+`currentDeaths`), congela al jugador SIN pausar la escena (la escena debe seguir para que la anim de muerte avance y el fundido de salida funcione), anim `wr_death` (frames 260-265, universal) → `notifyRunDeath()` → `runDeath$`.

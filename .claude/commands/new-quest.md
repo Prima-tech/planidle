@@ -160,8 +160,17 @@ Ejemplo: "alcanza nivel 10", "gasta 1000 monedas", "consigue X ítem".
 
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
+| primeras_estrellas | stars | 10 | Consigue 10 estrellas | 100 monedas + 40 exp |
 | plaga_babosas | kill (cualquiera) | 1 | Mata 1 enemigo | 150 monedas + 60 exp |
 | kill_50 | kill (cualquiera) | 50 | Mata enemigos | 300 monedas + 150 exp |
 | orcs_5 | kill family `orc` | 5 | Mata orcos | 200 monedas + 80 exp |
 
 Al añadir una misión, **actualizar esta tabla**.
+
+## Tipos de objetivo existentes
+
+- **`kill`** — matar enemigos (filtro por `family`/`enemyTypes`). Fuente: `KillService.killDetail$`.
+- **`stars`** — acumular estrellas (moneda de exploración). El progreso sigue el
+  balance de `playerState.stars$` con `max()` (nunca baja aunque las gaste); no
+  autocompleta. La da el NPC **Heimdall** de Asgard (`talkToHeimdall` en gamescene:
+  primera vez la fija, informa del progreso, la cobra y apunta a 1-1). Onboarding.

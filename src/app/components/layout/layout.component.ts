@@ -47,6 +47,7 @@ import { ForgeService } from 'src/app/services/forge.service';
 import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
 import { AdminService } from 'src/app/services/admin.service';
 import { AudioService } from 'src/app/services/audio.service';
+import { QuestService } from 'src/app/services/quest.service';
 
 @Component({
   selector: 'app-layout',
@@ -113,6 +114,7 @@ export class LayoutComponent implements OnDestroy {
     private mapUpgradesService: MapUpgradesService,
     private adminService: AdminService,
     private audioService: AudioService,
+    private questService: QuestService,
   ) {
     this.loadGame();
   }
@@ -282,6 +284,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_UPGRADES,     this.mapUpgradesService);
     this.phaserGame.registry.set(REGISTRY_KEYS.ADMIN,            this.adminService);
     this.phaserGame.registry.set(REGISTRY_KEYS.AUDIO,            this.audioService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.QUESTS,           this.questService);
     this.sceneManager.setGame(this.phaserGame);
 
     // Audio: precarga los efectos y desbloquea el contexto tras el primer gesto
@@ -305,9 +308,11 @@ export class LayoutComponent implements OnDestroy {
 
   collectGains(gains: OfflineGains) {
     if (gains.kind === 'exploring') {
-      // Avanza la distancia explorada (resume desde aquí la próxima carrera) y
-      // desbloquea los mapas que cruzó el AFK (setFlag es idempotente).
+      // Avanza la distancia explorada (resume desde aquí la próxima carrera),
+      // cobra las estrellas de los generadores pasivos y desbloquea los mapas
+      // que cruzó el AFK (setFlag es idempotente).
       this.playerStateService.addExplorationDistance(gains.exploreMeters ?? 0);
+      if (gains.exploreStars) this.playerStateService.collectStars(gains.exploreStars);
       for (const flag of gains.unlockedFlags ?? []) {
         this.unlockService.setFlag(flag, 'char');
       }

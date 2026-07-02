@@ -27,6 +27,7 @@ import { ForgeService } from '../services/forge.service';
 import { MapUpgradesService } from '../services/map-upgrades.service';
 import { AdminService } from '../services/admin.service';
 import { AudioService } from '../services/audio.service';
+import { QuestService } from '../services/quest.service';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
 export const REGISTRY_KEYS = {
@@ -59,6 +60,7 @@ export const REGISTRY_KEYS = {
   MAP_UPGRADES:     'mapUpgradesService',
   ADMIN:            'adminService',
   AUDIO:            'audioService',
+  QUESTS:           'questService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -94,4 +96,5 @@ export class GameRegistry {
   get mapUpgrades():     MapUpgradesService        { return this.game.registry.get(REGISTRY_KEYS.MAP_UPGRADES); }
   get admin():           AdminService              { return this.game.registry.get(REGISTRY_KEYS.ADMIN); }
   get audio():           AudioService              { return this.game.registry.get(REGISTRY_KEYS.AUDIO); }
+  get quests():          QuestService              { return this.game.registry.get(REGISTRY_KEYS.QUESTS); }
 }

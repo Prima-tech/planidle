@@ -314,6 +314,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   buffRatios: Record<string, number> = {};
   private buffSub: Subscription;
   private unlockSub: Subscription;
+  private closeMenusSub?: Subscription;
   private tickInterval: any;
 
   // Avatar de la barra de vida: icono de lo que estoy haciendo ahora mismo
@@ -368,6 +369,11 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.buffSub = this.buffService.buffs$.subscribe(buffs => {
       this.activeBuffs = buffs;
     });
+    // Modo Mundo: tocar la pantalla cierra el panel de info de mapa y el roster.
+    this.closeMenusSub = this.playerBridge.closeMenusRequest$.subscribe(() => {
+      this.mapPanelOpen = false;
+      this.charListOpen = false;
+    });
     this.tickInterval = setInterval(() => {
       this.buffService.tick();
       this.activeBuffs = [...this.activeBuffs];
@@ -388,6 +394,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.buffSub?.unsubscribe();
     this.unlockSub?.unsubscribe();
+    this.closeMenusSub?.unsubscribe();
     clearInterval(this.tickInterval);
   }
 

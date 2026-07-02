@@ -26,6 +26,10 @@
             <span class="afk-label">{{ 'OFFLINE.METERS_EXPLORED' | translate }}</span>
             <span class="afk-value afk-value--exp">+{{ gains.exploreMeters | compactNumber }} m</span>
           </div>
+          <div class="afk-row" *ngIf="gains.exploreStars">
+            <span class="afk-label">{{ 'OFFLINE.STARS_PRODUCED' | translate }}</span>
+            <span class="afk-value afk-value--exp">+{{ gains.exploreStars | compactNumber }} ★</span>
+          </div>
         </div>
 
         <ng-container *ngIf="gains.unlockedMapNames?.length">

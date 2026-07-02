@@ -68,10 +68,9 @@ export const FEATURES: FeatureDef[] = [
   // ── Mapas (char) — destinos de teletransporte ────────────────────────────────
   // Todos los 1-x empiezan BLOQUEADOS (display 'locked' = se ven con candado en el
   // mapa, pero no se puede viajar). 'hogar' no está en el registro → siempre libre.
-  //   · 1-1 se desbloquea al llegar a 100 m en el Modo Mundo (flag 'map_1_1'). La
-  //     PRIMERA vez, la WorldRunScene muestra el modal de entrada (app-map-entrance-modal)
-  //     en lugar de una pastilla; por eso esta feature no define `toast`. Ver WorldRunScene.
-  //   · 1-2…1-8 esperan su propio flag (aún sin definir cómo se ganan).
+  //   · Los flags 'map_1_x' se marcan al COMPRAR el mapa con estrellas en el panel
+  //     de hitos del Modo Mundo (run-milestones.ts: 1-1 = 10★, resto = 1000★
+  //     encadenados). Ya NO se desbloquean por metros recorridos.
   { id: 'map.1-1', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_1' }],
     name: 'Mapa 1-1' },
   { id: 'map.1-2', scope: 'char', display: 'locked', requires: [{ type: 'flag', id: 'map_1_2' }], name: 'Mapa 1-2' },

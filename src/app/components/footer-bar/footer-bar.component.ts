@@ -95,6 +95,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   /** Modal "Has muerto" (Modo Mundo): al aceptar te lleva a la capital del planeta. */
   runDeadOpen = false;
   private runDeathSub?: Subscription;
+  private closeMenusSub?: Subscription;
 
   constructor() { }
 
@@ -125,6 +126,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     });
     // Muerte en el Modo Mundo → modal "Has muerto".
     this.runDeathSub = this.playerBridge.runDeath$.subscribe(() => { this.runDeadOpen = true; });
+    // Modo Mundo: tocar la pantalla cierra todos los paneles del footer.
+    this.closeMenusSub = this.playerBridge.closeMenusRequest$.subscribe(() => this.closeAllPanels());
     this.detailSub = this.skillEquipService.openDetail$.subscribe(() => {
       this.closeOtherOnSide('left', this.skillDetailModal);
       const fromHud = (this.skillEquipService.activeSlot ?? 0) < 0;
@@ -214,6 +217,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.runModeSub?.unsubscribe();
     this.runDeathSub?.unsubscribe();
+    this.closeMenusSub?.unsubscribe();
     this.detailSub?.unsubscribe();
     this.closeSub?.unsubscribe();
     this.sceneStartingSub?.unsubscribe();
