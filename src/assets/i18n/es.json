@@ -271,7 +271,9 @@
     "GOLD": "Oro",
     "XP": "XP",
     "DROPS": "Botín / hora",
-    "NO_ACTIVE_ENEMIES": "Sin enemigos activos"
+    "NO_ACTIVE_ENEMIES": "Sin enemigos activos",
+    "YOUR_POWER": "Tu poder",
+    "MAP_POWER": "Poder del mapa"
   },
   "SUMMON": {
     "NO_ITEMS": "Sin items"
@@ -335,9 +337,17 @@
     "MS_NONE": "Nada por aquí todavía.",
     "MS_SPRINT": "Impulso",
     "MS_SPRINT_DESC": "Ataque de impulso: corre más rápido durante la exploración.",
+    "MS_DJUMP": "Doble salto",
+    "MS_DJUMP_DESC": "Salta otra vez en el aire (toca de nuevo mientras saltas).",
+    "MS_DASH": "Embestida",
+    "MS_DASH_DESC": "Desliza a la derecha (o D/→): ráfaga invulnerable que arrolla a los enemigos.",
+    "MS_SLAM": "Golpe descendente",
+    "MS_SLAM_DESC": "Desliza hacia abajo en el aire (o S/↓): caes en picado y la onda mata a los enemigos cercanos.",
+    "MS_BOW": "Arco",
+    "MS_BOW_DESC": "Dispara flechas solo cada pocos segundos: barre enemigos por delante a tu altura.",
     "GO_HOME_TITLE": "Volver a casa",
     "GO_HOME_MSG": "¿Seguro que quieres volver a casa?",
-    "GO_HOME_WARN": "Perderás el progreso de esta exploración: las estrellas y la distancia actuales se reinician.",
+    "GO_HOME_WARN": "Perderás el progreso de esta exploración: la distancia actual se reinicia (las estrellas se conservan).",
     "GO_HOME_NO": "No",
     "GO_HOME_YES": "Sí",
     "DEATH_TITLE": "Has muerto",

@@ -86,17 +86,17 @@ interface GameSnapshot {
 
 | Stat | Derivado | Fórmula |
 |------|----------|---------|
-| STR | Daño físico | (10 + STR + equipo) × (1 + damagePercent/100) |
-| INT | Daño mágico | (10 + INT + equipo) × (1 + magicDamagePercent/100) |
-| CONST | HP máx / regen | (50 + ×10 + equipo) × (1 + hpPercent/100) / regen=[CONST/2, CONST] |
+| STR | Daño físico / crít / recolección | (10 + STR + equipo) × (1 + damagePercent/100) · +1% daño crít cada 5 · +1 eficiencia de minería Y tala cada 5 |
+| DEX | Vel. de ataque | +1%/punto (+ equipo `attackSpeed` + talentos + buffs), cap +100% — es lo ÚNICO de DEX |
+| CONST | HP máx / regen / defensa | (50 + ×10 + equipo) × (1 + hpPercent/100) · regen=[CONST/2, CONST] · defensa floor(CONST/10) |
+| INT | Daño mágico / exploración | (10 + INT + equipo) × (1 + magicDamagePercent/100) · +1% metros AFK por punto |
 | MAG | MP máx / regen | 50 + ×5 / regen=[MAG/2, MAG] |
-| DEX | Defensa / Evasión% | floor(DEX/10), mín 0 |
-| DEX | Vel. de ataque | +1%/punto (+ equipo `attackSpeed` + buffs), cap +100% |
-| STR | Crit extra | +1% daño crít por cada 5 STR |
+| CHR | Probabilidades y EXP | evasión y prob. crít: floor(CHR/10) · drop, +% EXP de kills y +exp de skills (minería/tala, individuales): floor(CHR/2) |
 
 - Stats arrancan en **0** (mín 0). HP/MP base 50, daño base 10 con todo a 0.
 - Puntos: `(lvl−1)` totales (0 al nivel 1, +1 por nivel), gastados = `sum(stats)`
-- Combate: `effectiveDmg = max(0, dmg − defense)`. Evasión: roll < evasion% → "EVADE". Crítico base 10%. Daño del jugador con varianza ±10%. Golpe básico: cono ~90° al enemigo más cercano (3 tiles).
+- Combate: `effectiveDmg = max(0, dmg − defense)`. Evasión: roll < evasion% → "EVADE". Crítico base 10%. Daño de jugador Y enemigos con varianza ±15% (`rollDamageVariance()` en enemy-config). Golpe básico: cono ~90° al enemigo más cercano (3 tiles).
+- Poder de combate: `combatPowerScore(dps, ehp)` (media geométrica) en character-stats; `charStats.combatPower` para el jugador; el top-bar lo compara con el del enemigo base del mapa en el panel de info de mapa
 - **Sin decimales**: daño (con % de arma y crítico) y demás stats se truncan con `Math.floor` (jugador y enemigo).
 
 ## Enemigos

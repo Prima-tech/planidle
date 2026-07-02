@@ -271,7 +271,9 @@
     "GOLD": "Gold",
     "XP": "XP",
     "DROPS": "Loot / hour",
-    "NO_ACTIVE_ENEMIES": "No active enemies"
+    "NO_ACTIVE_ENEMIES": "No active enemies",
+    "YOUR_POWER": "Your power",
+    "MAP_POWER": "Map power"
   },
   "SUMMON": {
     "NO_ITEMS": "No items"
@@ -335,9 +337,17 @@
     "MS_NONE": "Nothing here yet.",
     "MS_SPRINT": "Sprint",
     "MS_SPRINT_DESC": "Sprint attack: run faster while exploring.",
+    "MS_DJUMP": "Double jump",
+    "MS_DJUMP_DESC": "Jump again mid-air (tap again while jumping).",
+    "MS_DASH": "Dash",
+    "MS_DASH_DESC": "Swipe right (or D/→): an invulnerable burst that mows down enemies.",
+    "MS_SLAM": "Slam",
+    "MS_SLAM_DESC": "Swipe down mid-air (or S/↓): dive down and the shockwave kills nearby enemies.",
+    "MS_BOW": "Bow",
+    "MS_BOW_DESC": "Auto-fires arrows every few seconds, sweeping enemies ahead at your height.",
     "GO_HOME_TITLE": "Return home",
     "GO_HOME_MSG": "Are you sure you want to return home?",
-    "GO_HOME_WARN": "You'll lose this expedition's progress: current stars and distance reset.",
+    "GO_HOME_WARN": "You'll lose this expedition's progress: current distance resets (stars are kept).",
     "GO_HOME_NO": "No",
     "GO_HOME_YES": "Yes",
     "DEATH_TITLE": "You died",

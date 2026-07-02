@@ -44,9 +44,12 @@ Libres      = Disponibles − Gastados
 | INT | Daño mágico | `(10 + INT + equipo magicDamage + talentos) × (1 + Σ magicDamagePercent/100)` | `magicDamage$` |
 | CONST | HP máx | `(50 + CONST × 10 + equipo hp + talentos) × (1 + Σ hpPercent/100)` — armaduras dan hpPercent | `hp$` |
 | MAG | MP máx | 50 + MAG × 5 + equipo + talentos | `mp$` |
-| DEX | Defensa | `floor(DEX/10)` + equipo + talentos + buffs | `defense$` |
-| DEX | Evasión % | misma fórmula DEX + equipo `evasion` + buffs | `evasion$` |
-| base 10% | Prob. crítico | + equipo `critChance` + talentos + buffs | `critChance$` |
+| CONST | Defensa | `floor(CONST/10)` + equipo + talentos + buffs | `defense$` |
+| CHR | Evasión % | `floor(CHR/10)` + equipo `evasion` + talentos + buffs | `evasion$` |
+| CHR | Prob. crítico | base 10% + `floor(CHR/10)` + equipo `critChance` + talentos + buffs | `critChance$` |
+| CHR | Bonus EXP kills % | `floor(CHR/2)` + equipo `expBonus` — lo aplican griddrops y offline-gains | `expBonus$` |
+| CHR | Exp de skills (individual) | `floor(CHR/2)` a miningExp Y woodcuttingExp por separado | `miningExp$` / `woodcuttingExp$` |
+| INT | Exploración % | INT (1%/punto) + talentos exploration — metros AFK del Modo Mundo | `exploration$` |
 | base 150% | Daño crítico % | + `floor(STR/5)` + equipo + buffs | `critDamage$` |
 | DEX | Vel. de ataque % | DEX (1%/punto) + equipo `attackSpeed` + buffs, cap +100% — GameScene: timeScale = 1 + total/100 | `attackSpeed$` |
 | CONST | HP regen max | = CONST + equipo `hpRegen` + talentos; min = floor(max/2) | `hpRegen$` |

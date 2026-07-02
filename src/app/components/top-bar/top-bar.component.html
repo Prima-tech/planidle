@@ -99,6 +99,23 @@
           <!-- ───── PESTAÑA ENEMIGOS ───── -->
           <ng-container *ngIf="mapInfoTab === 'enemies'">
 
+          <!-- Poder de combate: el tuyo vs el recomendado del mapa (verde = vas
+               sobrado, rojo = el mapa te supera) -->
+          <div class="mip-power" *ngIf="d.mapPower > 0">
+            <div class="mip-power-side">
+              <span class="mip-power-label">{{ 'MAP.YOUR_POWER' | translate }}</span>
+              <span class="mip-power-val"
+                    [class.mip-power--good]="d.playerPower >= d.mapPower"
+                    [class.mip-power--bad]="d.playerPower < d.mapPower">{{ d.playerPower | compactNumber }}</span>
+            </div>
+            <ion-icon class="mip-power-vs" name="shield-half-outline"></ion-icon>
+            <div class="mip-power-side">
+              <span class="mip-power-label">{{ 'MAP.MAP_POWER' | translate }}</span>
+              <span class="mip-power-val">{{ d.mapPower | compactNumber }}</span>
+            </div>
+          </div>
+          <div class="mip-divider" *ngIf="d.mapPower > 0 && d.maxEnemies > 0"></div>
+
           <!-- Datos del mapa: máximo de enemigos + velocidad de respawn -->
           <div class="mip-rates" *ngIf="d.maxEnemies > 0">
             <div class="mip-rate">

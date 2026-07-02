@@ -1,6 +1,6 @@
 import { AnimationService } from "../scenes/gamescene/animation.service";
 import { NATIVE_DPR } from "../scenes/gamescene/constants";
-import { EnemyAttackKind, EnemyTypeConfig } from "./enemy-config";
+import { EnemyAttackKind, EnemyTypeConfig, rollDamageVariance } from "./enemy-config";
 import { EnemyBehavior } from "../scenes/gamescene/map-config";
 import { GameScene } from "../scenes/gamescene/gamescene";
 import { REGISTRY_KEYS } from "../scenes/game-registry";
@@ -567,7 +567,7 @@ export class Enemy {
     this.sprite.anims.timeScale = Phaser.Math.Clamp(natural / windUp, 0.2, 3);
 
     const isCrit = Math.random() * 100 < ENEMY_CRIT_CHANCE;
-    const damage = Math.floor(this.damage * (isCrit ? ENEMY_CRIT_MULT : 1));
+    const damage = Math.floor(this.damage * (isCrit ? ENEMY_CRIT_MULT : 1) * rollDamageVariance());
 
     // La embestida gestiona su propio flujo (telegrafía en línea + dash con tween):
     // no debe registrar el handler genérico de ANIMATION_COMPLETE, porque el dash

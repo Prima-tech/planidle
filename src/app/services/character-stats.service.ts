@@ -31,7 +31,7 @@ export interface MpBreakdown {
 }
 
 export interface DefenseBreakdown {
-  dex:       number;
+  vit:       number;  // floor(CONST/10) — la defensa es de Constitución
   equipment: number;
   talents:   number;
   buffs:     number;
@@ -39,7 +39,7 @@ export interface DefenseBreakdown {
 }
 
 export interface EvasionBreakdown {
-  dex:       number;
+  chr:       number;  // floor(CHR/10) — las probabilidades son de Carisma (suerte)
   equipment: number;
   talents:   number;
   buffs:     number;
@@ -48,6 +48,7 @@ export interface EvasionBreakdown {
 
 export interface CritChanceBreakdown {
   base:      number;  // always 10
+  chr:       number;  // floor(CHR/10) — suerte
   equipment: number;
   buffs:     number;
   talents:   number;
@@ -94,7 +95,7 @@ export interface DropRateBreakdown {
 }
 
 export interface MiningEfficiencyBreakdown {
-  dex:       number;  // floor(DEX/5), min 0 (skill base 0, +1 por cada 5 de Destreza)
+  str:       number;  // floor(STR/5), min 0 (la fuerza rige minería Y tala)
   equipment: number;  // stat miningEfficiency del pico equipado (equipo de recolección)
   talents:   number;  // talento miningEfficiency
   manual:    number;  // puntos repartidos a mano en la pestaña de minería
@@ -122,10 +123,30 @@ export interface WoodcuttingPowerBreakdown {
 }
 
 export interface MiningExpBreakdown {
+  chr:       number;  // floor(CHR/2) — Carisma sube la exp de las skills (individual)
   equipment: number;  // bonus de exp de minería de objetos
   talents:   number;
   manual:    number;  // puntos repartidos a mano en la pestaña de minería
   total:     number;  // exp extra por mena recolectada
+}
+
+export interface WoodcuttingExpBreakdown {
+  chr:       number;  // floor(CHR/2) — individual, no comparte con minería
+  equipment: number;  // stat woodcuttingExp del hacha (fuente futura)
+  talents:   number;
+  total:     number;  // exp extra por árbol talado
+}
+
+export interface ExpBonusBreakdown {
+  chr:       number;  // floor(CHR/2) — % de EXP extra al matar enemigos
+  equipment: number;  // stat expBonus de equipo (fuente futura)
+  total:     number;  // %
+}
+
+export interface ExplorationBreakdown {
+  int:       number;  // +1% de metros por punto de INT
+  talents:   number;  // nodos exploration del árbol (rama CHR)
+  total:     number;  // % de metros extra en expediciones AFK del Modo Mundo
 }
 
 /** Atributos de minería que el jugador reparte a mano (sin coste) en la pestaña. */
@@ -144,6 +165,14 @@ export interface BaseStats {
   INT:   number;
   MAG:   number;
   CHR:   number;
+}
+
+/** Poder de combate: media geométrica de daño-por-segundo × vida efectiva.
+ *  La misma fórmula para el jugador y para el enemigo de un mapa → comparables
+ *  en la misma escala. La raíz premia el equilibrio (subir solo daño o solo vida
+ *  rinde menos que repartir) y mantiene los números manejables. */
+export function combatPowerScore(dps: number, effectiveHp: number): number {
+  return Math.round(Math.sqrt(Math.max(0, dps) * Math.max(1, effectiveHp)));
 }
 
 const DEFAULT_BASE_STATS: BaseStats = {
@@ -194,6 +223,9 @@ export class CharacterStatsService {
   readonly miningPower$: Observable<MiningPowerBreakdown>;
   readonly woodcuttingPower$: Observable<WoodcuttingPowerBreakdown>;
   readonly miningExp$:   Observable<MiningExpBreakdown>;
+  readonly woodcuttingExp$: Observable<WoodcuttingExpBreakdown>;
+  readonly expBonus$:    Observable<ExpBonusBreakdown>;
+  readonly exploration$: Observable<ExplorationBreakdown>;
   readonly stats: BaseStats = { ...DEFAULT_BASE_STATS };
 
   /** Puntos de minería repartidos a mano (sin coste) en la pestaña de minería. */
@@ -302,6 +334,9 @@ export class CharacterStatsService {
     this.miningPower$ = mineTrigger$.pipe(map(() => this._calcMiningPower()));
     this.woodcuttingPower$ = mineTrigger$.pipe(map(() => this._calcWoodcuttingPower()));
     this.miningExp$   = mineTrigger$.pipe(map(() => this._calcMiningExp()));
+    this.woodcuttingExp$ = mineTrigger$.pipe(map(() => this._calcWoodcuttingExp()));
+    this.expBonus$    = trigger$.pipe(map(() => this._calcExpBonus()));
+    this.exploration$ = trigger$.pipe(map(() => this._calcExploration()));
 
     trigger$.subscribe(() => {
       this.syncHpMax();
@@ -379,16 +414,17 @@ export class CharacterStatsService {
     return { chr, equipment, talents, total: chr + equipment + talents };
   }
 
-  // Eficiencia de minado: skill base 0, +1 por cada 5 de Destreza (DEX); + pico equipado
-  // + talento miningEfficiency. La usan las menas para decidir el % de acierto al picar.
+  // Eficiencia de minado: skill base 0, +1 por cada 5 de Fuerza (STR — la fuerza rige
+  // minería y tala); + pico equipado + talento miningEfficiency. La usan las menas
+  // para decidir el % de acierto al picar.
   private _calcMiningEfficiency(): MiningEfficiencyBreakdown {
-    const dex       = Math.max(0, Math.floor(this.stats.DEX / 5));
+    const str       = Math.max(0, Math.floor(this.stats.STR / 5));
     const equipment = this.gathering.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['miningEfficiency'] ?? 0), 0
     );
     const talents = this.talent.getBonus().miningEfficiency ?? 0;
     const manual  = this.miningAlloc.miningEfficiency;
-    return { dex, equipment, talents, manual, total: dex + equipment + talents + manual };
+    return { str, equipment, talents, manual, total: str + equipment + talents + manual };
   }
 
   // Eficiencia de tala: skill base 0, +1 por cada 5 de Fuerza (STR); + hacha equipada
@@ -423,15 +459,44 @@ export class CharacterStatsService {
     return { equipment, talents, total: equipment + talents };
   }
 
-  // Exp de minería extra por mena recolectada. Viene de objetos (stat miningExp) y
-  // talentos (fuentes futuras). Base 0.
+  // Exp de minería extra por mena recolectada. CHR (floor/2) + objetos (stat
+  // miningExp) + talentos (fuente futura) + puntos manuales.
   private _calcMiningExp(): MiningExpBreakdown {
+    const chr       = Math.max(0, Math.floor(this.stats.CHR / 2));
     const equipment = this.gathering.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['miningExp'] ?? 0), 0
     );
     const talents = 0;
     const manual  = this.miningAlloc.miningExp;
-    return { equipment, talents, manual, total: equipment + talents + manual };
+    return { chr, equipment, talents, manual, total: chr + equipment + talents + manual };
+  }
+
+  // Exp de tala extra por árbol talado — individual, NO comparte con minería.
+  private _calcWoodcuttingExp(): WoodcuttingExpBreakdown {
+    const chr       = Math.max(0, Math.floor(this.stats.CHR / 2));
+    const equipment = this.gathering.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['woodcuttingExp'] ?? 0), 0
+    );
+    const talents = 0;
+    return { chr, equipment, talents, total: chr + equipment + talents };
+  }
+
+  // % de EXP extra al matar enemigos (CHR = carisma/mentor). Lo aplican griddrops
+  // (kills en vivo) y offline-gains (AFK) sobre EXP_REWARDS.
+  private _calcExpBonus(): ExpBonusBreakdown {
+    const chr       = Math.max(0, Math.floor(this.stats.CHR / 2));
+    const equipment = this.equipment.slots.reduce(
+      (sum, slot) => sum + (slot.item?.stats?.['expBonus'] ?? 0), 0
+    );
+    return { chr, equipment, total: chr + equipment };
+  }
+
+  // % de metros extra en expediciones AFK del Modo Mundo: INT (+1%/punto) +
+  // talentos exploration (rama CHR). Lo consume offline-gains.calculateExploring.
+  private _calcExploration(): ExplorationBreakdown {
+    const int     = Math.max(0, this.stats.INT);
+    const talents = this.talent.getBonus().exploration ?? 0;
+    return { int, talents, total: int + talents };
   }
 
   private syncMpMax(): void {
@@ -466,13 +531,26 @@ export class CharacterStatsService {
   }
 
   get currentDamage():       number { return this._calcDamage().total; }
-  // DEX → defensa/evasión: cada 10 puntos = +1 def / +1% evasión
+  // CONST → defensa (cada 10 = +1 def) · CHR → evasión/crítico (cada 10 = +1%)
   get currentDefense():      number { return this._calcDefense().total; }
   get currentEvasion():      number { return this._calcEvasion().total; }
   get currentCritChance():   number { return this._calcCritChance().total; }
   get currentCritDamage():   number { return this._calcCritDamage().total; }
   get currentAttackSpeed():  number { return this._calcAttackSpeed().total; }
   get currentMagicDamage():  number { return this._calcMagicDamage().total; }
+
+  /** Poder de combate del personaje (mismo baremo que el mapa). Junta ofensiva
+   *  (mejor daño × velocidad × factor de crítico) y supervivencia (HP máx +
+   *  defensa como HP equivalente, ampliado por la evasión). */
+  get combatPower(): number {
+    const dmg = Math.max(this.currentDamage, this.currentMagicDamage);
+    const critFactor = 1 + (this.currentCritChance / 100) * (this.currentCritDamage / 100 - 1);
+    const dps = dmg * (1 + this.currentAttackSpeed / 100) * critFactor;
+    const hpMax = this._calcHp().total;
+    const eva   = Math.min(75, this.currentEvasion);   // tope para que no dispare el poder
+    const ehp   = (hpMax + this.currentDefense * 20) / (1 - eva / 100);
+    return combatPowerScore(dps, ehp);
+  }
   get currentHpRegen():      RegenBreakdown { return this._calcHpRegen(); }
   get currentMpRegen():      RegenBreakdown { return this._calcMpRegen(); }
   get currentDropRateBonus(): number { return this._calcDropRate().total; }
@@ -481,15 +559,19 @@ export class CharacterStatsService {
   get currentMiningPower():      number { return this._calcMiningPower().total; }
   get currentWoodcuttingPower(): number { return this._calcWoodcuttingPower().total; }
   get currentMiningExp():        number { return this._calcMiningExp().total; }
+  get currentWoodcuttingExp():   number { return this._calcWoodcuttingExp().total; }
+  get currentExpBonus():         number { return this._calcExpBonus().total; }
+  get currentExplorationBonus(): number { return this._calcExploration().total; }
 
   private _calcCritChance(): CritChanceBreakdown {
     const base      = 10;
+    const chr       = Math.max(0, Math.floor(this.stats.CHR / 10));
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['critChance'] ?? 0), 0
     );
     const talents = this.talent.getBonus().critChance ?? 0;
     const buffs   = this.buff.getValue('critChance');
-    return { base, equipment, talents, buffs, total: base + equipment + talents + buffs };
+    return { base, chr, equipment, talents, buffs, total: base + chr + equipment + talents + buffs };
   }
 
   private _calcCritDamage(): CritDamageBreakdown {
@@ -516,22 +598,22 @@ export class CharacterStatsService {
   }
 
   private _calcEvasion(): EvasionBreakdown {
-    const dex       = Math.max(0, Math.floor(this.stats.DEX / 10));
+    const chr       = Math.max(0, Math.floor(this.stats.CHR / 10));
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['evasion'] ?? 0), 0
     );
     const talents = this.talent.getBonus().evasion;
     const buffs   = this.buff.getValue('evasion');
-    return { dex, equipment, talents, buffs, total: dex + equipment + talents + buffs };
+    return { chr, equipment, talents, buffs, total: chr + equipment + talents + buffs };
   }
 
   private _calcDefense(): DefenseBreakdown {
-    const dex       = Math.max(0, Math.floor(this.stats.DEX / 10));
+    const vit       = Math.max(0, Math.floor(this.stats.CONST / 10));
     const equipment = this.equipment.slots.reduce(
       (sum, slot) => sum + (slot.item?.stats?.['defense'] ?? 0), 0
     );
     const talents = this.talent.getBonus().defense;
     const buffs   = this.buff.getValue('defense');
-    return { dex, equipment, talents, buffs, total: dex + equipment + talents + buffs };
+    return { vit, equipment, talents, buffs, total: vit + equipment + talents + buffs };
   }
 }

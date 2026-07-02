@@ -181,11 +181,12 @@ export class PlayerStateService {
   }
 
   /** "Volver a casa" desde el Modo Mundo: reinicia el progreso de la expedición
-   *  actual (estrellas y distancia explorada vuelven a 0, contador de muertes a 0).
-   *  Se conserva lo "almacenado": el récord de distancia (worldBestDistanceM) y el
-   *  total de muertes de por vida (totalDeaths), para estadísticas. */
+   *  actual (distancia explorada a 0, contadores de muertes/kills a 0).
+   *  Se conserva lo "almacenado": las ESTRELLAS (moneda persistente con la que se
+   *  compran los hitos/habilidades del runner), el récord de distancia
+   *  (worldBestDistanceM) y el total de muertes de por vida (totalDeaths). */
   goHomeReset(): void {
-    this._patch({ stars: 0, explorationDistanceM: 0, currentDeaths: 0, currentKills: 0 });
+    this._patch({ explorationDistanceM: 0, currentDeaths: 0, currentKills: 0 });
   }
 
   addExp(amount: number): void {

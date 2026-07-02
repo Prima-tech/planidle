@@ -17,7 +17,8 @@ import { miningTier, gemTier, treeTier } from 'src/app/scenes/gamescene/harvest-
 import { UnlockService } from 'src/app/services/unlock.service';
 import { ActivityService, ActivityKind } from 'src/app/services/activity.service';
 import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
-import { CharacterStatsService } from 'src/app/services/character-stats.service';
+import { CharacterStatsService, combatPowerScore } from 'src/app/services/character-stats.service';
+import { ENEMY_REGISTRY } from 'src/app/enemy/enemy-config';
 
 export interface MapPanelData {
   mapId: string;
@@ -30,6 +31,8 @@ export interface MapPanelData {
   oblivionProgress: number;
   maxEnemies: number;       // máximo de enemigos simultáneos del mapa (suma de spawns)
   respawnMs: number;        // tiempo de reaparición tras morir uno
+  playerPower: number;      // poder de combate del personaje
+  mapPower: number;         // poder de combate del enemigo base del mapa (recomendado)
   coinsPerHour: number;
   expPerHour: number;
   drops: AfkDropRate[];
@@ -123,6 +126,14 @@ export class TopBarComponent implements OnInit, OnDestroy {
       const enemyBonus = this.mapUpgrades.extraMaxEnemies(mapId);
       const maxEnemies = spawns.reduce((s, sp) => s + (sp.maxCount ?? 0) + enemyBonus, 0);
 
+      // Poder de combate: jugador vs enemigo base del mapa (misma fórmula). El del
+      // enemigo usa su daño-por-segundo (daño / cooldown) y su vida como "vida efectiva".
+      const playerPower = this.charStats.combatPower;
+      const enemyCfg    = enemyType ? ENEMY_REGISTRY[enemyType] : null;
+      const mapPower     = enemyCfg
+        ? combatPowerScore(enemyCfg.damage / (enemyCfg.attackCooldown / 1000), enemyCfg.hp)
+        : 0;
+
       const rates = this.offlineGains.afkRates(mapId);
 
       // Recursos del mapa (el hogar no genera). Minerales (mena + gema) → pestaña
@@ -175,6 +186,8 @@ export class TopBarComponent implements OnInit, OnDestroy {
         eliteProgress,
         oblivionProgress,
         maxEnemies,
+        playerPower,
+        mapPower,
         // Respawn efectivo = base − reducción de la mejora de mapa "Reaparición" (suelo 500ms).
         respawnMs: Math.max(500, ENEMY_RESPAWN_MS - this.mapUpgrades.respawnReductionMs(mapId)),
         coinsPerHour: rates?.coinsPerHour ?? 0,

@@ -202,9 +202,9 @@
       </div>
       <div class="ov-accordion-body" [class.open]="showDefBreakdown">
         <ng-container *ngIf="defense$ | async as def">
-          <div class="ov-bk-row" *ngIf="def.dex > 0">
-            <span>{{ 'STAT.DEXTERITY' | translate }}</span>
-            <span class="ov-bonus">+{{ def.dex }}</span>
+          <div class="ov-bk-row" *ngIf="def.vit > 0">
+            <span>{{ 'STAT.VITALITY' | translate }}</span>
+            <span class="ov-bonus">+{{ def.vit }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="def.equipment > 0">
             <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
@@ -237,9 +237,9 @@
       </div>
       <div class="ov-accordion-body" [class.open]="showEvasionBreakdown">
         <ng-container *ngIf="evasion$ | async as ev">
-          <div class="ov-bk-row" *ngIf="ev.dex > 0">
-            <span>{{ 'STAT.DEXTERITY' | translate }}</span>
-            <span class="ov-bonus">+{{ ev.dex }}%</span>
+          <div class="ov-bk-row" *ngIf="ev.chr > 0">
+            <span>{{ 'STAT.CHARISMA' | translate }}</span>
+            <span class="ov-bonus">+{{ ev.chr }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="ev.equipment > 0">
             <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
@@ -337,6 +337,10 @@
           <div class="ov-bk-row">
             <span>{{ 'STAT.BASE' | translate }}</span>
             <span>{{ cc.base }}%</span>
+          </div>
+          <div class="ov-bk-row" *ngIf="cc.chr > 0">
+            <span>{{ 'STAT.CHARISMA' | translate }}</span>
+            <span class="ov-bonus">+{{ cc.chr }}%</span>
           </div>
           <div class="ov-bk-row" *ngIf="cc.equipment > 0">
             <span>{{ 'STAT.EQUIPMENT' | translate }}</span>
@@ -451,7 +455,7 @@
       </div>
     </div>
 
-    <!-- Eficiencia de minado: base 0, +1 por cada 5 de Destreza, + pico + talentos -->
+    <!-- Eficiencia de minado: base 0, +1 por cada 5 de Fuerza, + pico + talentos -->
     <div class="ov-accordion" (click)="showMiningEffBreakdown = !showMiningEffBreakdown">
       <div class="ov-accordion-header">
         <span class="ov-label">Eficiencia minado</span>
@@ -462,9 +466,9 @@
       </div>
       <div class="ov-accordion-body" [class.open]="showMiningEffBreakdown">
         <ng-container *ngIf="miningEfficiency$ | async as me">
-          <div class="ov-bk-row" *ngIf="me.dex > 0">
-            <span>{{ 'STAT.DEXTERITY' | translate }}</span>
-            <span class="ov-bonus">+{{ me.dex }}</span>
+          <div class="ov-bk-row" *ngIf="me.str > 0">
+            <span>{{ 'STAT.STRENGTH' | translate }}</span>
+            <span class="ov-bonus">+{{ me.str }}</span>
           </div>
           <div class="ov-bk-row" *ngIf="me.equipment > 0">
             <span>{{ 'STAT.EQUIPMENT' | translate }}</span>

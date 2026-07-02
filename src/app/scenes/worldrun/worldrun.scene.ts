@@ -173,6 +173,25 @@ const JUMP_HOLD_ACCEL = 3200;        // px/s² extra hacia arriba mientras se ma
 const JUMP_MAX_HOLD_MS = 240;        // tiempo máx. que el mantener sigue impulsando
 const JUMP_MAX_VELOCITY = 860;       // tope de velocidad de subida (límite de altura)
 
+// --- Habilidades estilo Idle Slayer ---
+// Controles: TAP salta · TAP en el aire = doble salto · swipe DERECHA = embestida
+// (dash) · swipe ABAJO = golpe descendente (slam). Teclado: ESPACIO / D o → / S o ↓.
+// El arco dispara solo (flecha recta hacia delante cada X segundos, a la altura a la
+// que vayas: saltando puedes flechar a un fénix).
+const DOUBLE_JUMP_VELOCITY = 700;    // impulso del 2º salto (algo menor que el 1º a tope)
+const DASH_SPEED = 1050;             // px/s durante la embestida (~4× la carrera)
+const DASH_MS = 260;                 // duración de la embestida
+const DASH_COOLDOWN_MS = 2500;       // enfriamiento entre embestidas
+const DASH_KILL_PAD = 30;            // margen extra de "atropello" durante el dash
+const SLAM_SPEED = 1500;             // velocidad de caída del golpe descendente
+const SLAM_KILL_RADIUS = 110;        // radio (px) del impacto al aterrizar: mata ratas
+const ARROW_INTERVAL_MS = 2800;      // cadencia del arco automático
+const ARROW_SPEED = 900;             // px/s de la flecha (hacia la derecha)
+const ARROW_KEY = 'wr_arrow';        // textura generada por código (sin asset)
+const ARROW_HIT_X = 46;              // medio ancho de impacto de la flecha
+const SWIPE_MIN_PX = 46;             // desplazamiento mínimo para que un toque sea swipe
+const SWIPE_MAX_MS = 320;            // tiempo máximo del gesto
+
 // --- Jugador (placeholder: cuerpo LPC corriendo de lado) ---
 const PLAYER_SCALE = 2.1;            // ~2 tiles de alto sobre el suelo. Subir = más grande.
 // LPC expandido: la animación RUN está en las filas 38-41 (8 frames). Run-derecha
@@ -247,6 +266,19 @@ export class WorldRunScene extends Phaser.Scene {
   private jumpHeld = false;
   private isJumping = false;
   private jumpHoldMs = 0;
+
+  // Habilidades estilo Idle Slayer (ver constantes DASH_*/SLAM_*/ARROW_*).
+  private jumpsUsed = 0;               // 0 en el suelo · 1 tras saltar · 2 tras el doble salto
+  private dashing = false;
+  private dashUntil = 0;               // time.now hasta el que dura la embestida
+  private dashReadyAt = 0;             // time.now a partir del que se puede volver a embestir
+  private lastGhostAt = 0;             // estela de la embestida (fantasmas del sprite)
+  private slamming = false;            // golpe descendente en curso (hasta aterrizar)
+  private arrows: Phaser.GameObjects.Image[] = [];
+  private lastArrowAt = 0;
+  // Detección de swipes (derecha=dash, abajo=slam) sobre el lienzo.
+  private swipeStart: { x: number; y: number; t: number } | null = null;
+  private swipeFired = false;
 
   // Hitos ya disparados en esta carrera (por flag), para no re-evaluarlos cada frame.
   private firedPoints = new Set<string>();
@@ -360,6 +392,25 @@ export class WorldRunScene extends Phaser.Scene {
 
     this.exiting = false;   // la instancia se reutiliza entre start/stop; rearmar la salida
     this.dead = false;
+    // Habilidades: estado limpio en cada carrera.
+    this.jumpsUsed = 0;
+    this.dashing = false;
+    this.dashUntil = 0;
+    this.dashReadyAt = 0;
+    this.slamming = false;
+    this.arrows = [];
+    this.lastArrowAt = this.time.now;
+    this.swipeStart = null;
+    this.swipeFired = false;
+    // Textura de la flecha del arco (generada por código, sin asset).
+    if (!this.textures.exists(ARROW_KEY)) {
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      g.fillStyle(0x8a6a3a, 1).fillRect(0, 0, 3, 4);                 // plumas
+      g.fillStyle(0xd8b45a, 1).fillRect(3, 1, 14, 2);                // asta
+      g.fillStyle(0xf5f1e0, 1).fillTriangle(17, 0, 22, 2, 17, 4);    // punta
+      g.generateTexture(ARROW_KEY, 22, 4);
+      g.destroy();
+    }
     this.reg.playerState.resetRunKills();   // los enemigos abatidos son por run (HUD)
 
     this.physics.world.gravity.y = GRAVITY_Y;
@@ -434,15 +485,28 @@ export class WorldRunScene extends Phaser.Scene {
     if (this.dead) return;   // muerto: congelado hasta aceptar el modal "Has muerto"
     if (this.exiting) return; // volviendo a casa: no seguir reportando distancia (deshacía el reset de goHomeReset durante el fundido)
 
+    const now = this.time.now;
+    // Fin de la embestida: restaurar la gravedad y volver a la velocidad de carrera.
+    if (this.dashing && now >= this.dashUntil) this.endDash();
+
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
     // la anuló). El control manual está anulado: el único input es saltar. El sprint
     // multiplica esta velocidad (pico al inicio, decelerando) mientras esté activo.
-    this.player.setVelocityX(RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier());
+    // Durante la embestida manda DASH_SPEED.
+    this.player.setVelocityX(this.dashing
+      ? DASH_SPEED
+      : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier());
+    if (this.dashing && now - this.lastGhostAt > 45) this.spawnDashGhost(now);
 
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
-    if (onGround && this.player.body.velocity.y >= 0) this.isJumping = false;
+    if (onGround && this.player.body.velocity.y >= 0) {
+      this.isJumping = false;
+      this.jumpsUsed = 0;                      // en el suelo se recargan ambos saltos
+    }
+    if (this.slamming && onGround) this.slamImpact();   // aterrizaje del golpe descendente
     this.updateJump(delta);
     this.updatePlayerAnim(onGround);
+    this.updateArrows(now, delta);
 
     // (La cámara la mueve startFollow tras la física; aquí solo leemos su scroll.)
     this.updateParallax();
@@ -945,6 +1009,12 @@ export class WorldRunScene extends Phaser.Scene {
       const onBack = feetAbove >= RAT_STOMP_LOW && feetAbove <= RAT_STOMP_HIGH;
       const falling = (this.player.body?.velocity.y ?? 0) >= 0;
 
+      // Embestida: cualquier rata alcanzada durante el dash muere (atropello).
+      if (this.dashing && absdx < RAT_STOMP_HALF_W + DASH_KILL_PAD && feetAbove <= RAT_STOMP_HIGH + 30) {
+        this.killRatAt(i);
+        continue;
+      }
+
       // Pisotón: caes sobre el cuerpo de la rata (dentro de la franja) y bajando →
       // la matas, sin daño, y rebotas.
       if (absdx < RAT_STOMP_HALF_W && onBack && falling) {
@@ -976,6 +1046,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  el jugador MUERE (playerDie). */
   private damagePlayer(amount: number): void {
     if (this.dead) return;                           // ya muerto: el modal está abierto
+    if (this.dashing) return;                        // embistiendo eres invulnerable
     const p = this.reg.playerBridge.player;
     if (p) {
       if (p.status.HP - amount <= 0) { this.playerDie(); return; }
@@ -1078,6 +1149,12 @@ export class WorldRunScene extends Phaser.Scene {
       const absdx = Math.abs(dx);
       const rel = this.player.y - s.y;   // pies del jugador respecto al centro del fénix (neg = encima)
 
+      // Embestida: atravesarlo durante el dash lo mata (atropello aéreo).
+      if (this.dashing && absdx < FENIX_BODY_HALF_W + DASH_KILL_PAD && Math.abs(rel) < FENIX_BODY_HALF_H + 30) {
+        this.killFenixAt(i);
+        continue;
+      }
+
       // Pisotón: caes sobre él (pies en la franja superior de su cuerpo) y bajando.
       if (absdx < FENIX_STOMP_HALF_W && rel >= -FENIX_STOMP_ABOVE && rel <= FENIX_STOMP_BELOW && falling) {
         this.fenixes.splice(i, 1);
@@ -1097,8 +1174,13 @@ export class WorldRunScene extends Phaser.Scene {
         this.spawnFireball(s.x, s.y);
       }
 
-      // Choque sin pisarlo (de lado o subiendo hacia él): daño una vez.
+      // Choque sin pisarlo (de lado o subiendo hacia él): daño una vez… salvo que
+      // vayas en golpe descendente: el slam lo atraviesa y lo mata.
       if (!fenix.hit && absdx < FENIX_BODY_HALF_W && Math.abs(rel) < FENIX_BODY_HALF_H) {
+        if (this.slamming) {
+          this.killFenixAt(i);
+          continue;
+        }
         fenix.hit = true;
         this.damagePlayer(FENIX_DAMAGE);
       }
@@ -1138,9 +1220,11 @@ export class WorldRunScene extends Phaser.Scene {
       }
       // Impacto (solo cuando ya rueda por el suelo): solapa en X y los pies del jugador
       // NO están por encima de la bola (si saltó lo bastante alto, la libra).
+      // Embistiendo la revienta sin daño.
       if (fb.grounded &&
           Math.abs(this.player.x - fb.sprite.x) < FIREBALL_HIT_W &&
           this.player.y > fb.sprite.y - FIREBALL_HIT_H) {
+        if (this.dashing) { this.popFireball(i); continue; }
         this.damagePlayer(FIREBALL_DAMAGE);
         fb.sprite.destroy();
         this.fireballs.splice(i, 1);
@@ -1167,6 +1251,12 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   private updatePlayerAnim(onGround: boolean): void {
+    if (this.dashing) {
+      // Embistiendo: pose fija de impulso (la estela de fantasmas hace el resto).
+      if (this.player.anims.isPlaying) this.player.anims.stop();
+      this.player.setFrame(PLAYER_RUN_AIR_FRAME);
+      return;
+    }
     if (onGround) {
       // Reanudar al aterrizar. Hay que comprobar isPlaying, no solo la key: en el
       // aire hacemos anims.stop() (isPlaying=false) pero currentAnim sigue siendo
@@ -1182,38 +1272,253 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   private bindInput(): void {
-    // Tap en el lienzo: mantener = saltar más alto.
+    // Tap en el lienzo: mantener = saltar más alto. Un tap en el aire = doble salto.
+    // Los gestos (estilo Idle Slayer) se evalúan sobre el mismo toque: swipe DERECHA
+    // = embestida, swipe ABAJO = golpe descendente.
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       // No saltar al tocar el botón de salida (zona arriba-izquierda).
       if (pointer.x < 110 && pointer.y < 70) return;
+      this.swipeStart = { x: pointer.x, y: pointer.y, t: this.time.now };
+      this.swipeFired = false;
       this.pressJump();
     });
-    this.input.on('pointerup', () => this.releaseJump());
-    this.input.on('pointerupoutside', () => this.releaseJump());
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.isDown) this.checkSwipe(pointer);
+    });
+    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      this.checkSwipe(pointer);
+      this.releaseJump();
+      this.swipeStart = null;
+    });
+    this.input.on('pointerupoutside', () => { this.releaseJump(); this.swipeStart = null; });
 
-    // Barra espaciadora (escritorio). addCapture evita que la página haga scroll.
+    // Teclado (escritorio): ESPACIO salta · D o → embestida · S o ↓ golpe descendente.
+    // addCapture evita que la página haga scroll con esas teclas.
     const kb = this.input.keyboard;
     if (kb) {
-      kb.addCapture('SPACE');
+      kb.addCapture(['SPACE', 'D', 'S', 'RIGHT', 'DOWN']);
       kb.on('keydown-SPACE', () => this.pressJump());
       kb.on('keyup-SPACE', () => this.releaseJump());
+      kb.on('keydown-D', () => this.startDash());
+      kb.on('keydown-RIGHT', () => this.startDash());
+      kb.on('keydown-S', () => this.startSlam());
+      kb.on('keydown-DOWN', () => this.startSlam());
     }
   }
 
-  /** Pulsación: arranca el salto si está en el suelo, y marca "mantenido". */
+  /** Evalúa si el toque en curso es un swipe (una vez por toque): derecha = embestida,
+   *  abajo = golpe descendente. El gesto anula el "mantener" del salto que arrancó
+   *  con el pointerdown, para que ese salto se quede en el toque mínimo. */
+  private checkSwipe(pointer: Phaser.Input.Pointer): void {
+    if (!this.swipeStart || this.swipeFired) return;
+    if (this.time.now - this.swipeStart.t > SWIPE_MAX_MS) return;
+    const dx = pointer.x - this.swipeStart.x;
+    const dy = pointer.y - this.swipeStart.y;
+    if (Math.abs(dx) < SWIPE_MIN_PX && Math.abs(dy) < SWIPE_MIN_PX) return;
+    this.swipeFired = true;
+    this.releaseJump();
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      if (dx > 0) this.startDash();
+    } else if (dy > 0) {
+      this.startSlam();
+    }
+  }
+
+  /** Pulsación: salta si está en el suelo; en el aire gasta el DOBLE salto (uno). */
   private pressJump(): void {
-    if (!this.player.body) return;
+    if (!this.player.body || this.dead || this.exiting) return;
     this.jumpHeld = true;
+    if (this.dashing || this.slamming) return;   // durante una habilidad no se salta
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround && !this.isJumping) {
       this.player.setVelocityY(-JUMP_INITIAL_VELOCITY);
       this.isJumping = true;
       this.jumpHoldMs = 0;
+      this.jumpsUsed = 1;
+    } else if (!onGround && this.jumpsUsed < 2 && this.reg.playerState.hasRunMilestone('double_jump')) {
+      // Doble salto (hito comprable con estrellas): un impulso extra en el aire.
+      this.player.setVelocityY(-DOUBLE_JUMP_VELOCITY);
+      this.isJumping = true;
+      this.jumpHoldMs = 0;
+      this.jumpsUsed = 2;
+      this.showDoubleJumpPuff();
     }
   }
 
   private releaseJump(): void {
     this.jumpHeld = false;
+  }
+
+  // --- Embestida (dash) -------------------------------------------------------
+  /** Embestida hacia delante: ráfaga horizontal breve, invulnerable, que MATA a
+   *  cualquier enemigo que toque (el "slayer" de Idle Slayer). Con enfriamiento. */
+  private startDash(): void {
+    if (!this.reg.playerState.hasRunMilestone('dash')) return;   // hito sin comprar
+    const now = this.time.now;
+    if (this.dashing || this.dead || this.exiting || now < this.dashReadyAt) return;
+    if (this.slamming) return;                        // en pleno slam no se embiste
+    this.dashing = true;
+    this.dashUntil = now + DASH_MS;
+    this.dashReadyAt = now + DASH_COOLDOWN_MS;
+    this.lastGhostAt = 0;
+    this.isJumping = false;
+    // Vuelo recto: sin gravedad ni velocidad vertical mientras dura.
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    body.setAllowGravity(false);
+    this.player.setVelocityY(0);
+    this.player.setTint(0x9bd8ff);
+  }
+
+  private endDash(): void {
+    if (!this.dashing) return;
+    this.dashing = false;
+    (this.player.body as Phaser.Physics.Arcade.Body).setAllowGravity(true);
+    this.player.clearTint();
+  }
+
+  /** Estela de la embestida: "fantasmas" del sprite que se desvanecen por detrás. */
+  private spawnDashGhost(now: number): void {
+    this.lastGhostAt = now;
+    const ghost = this.add.image(this.player.x, this.player.y, 'player', this.player.frame.name)
+      .setOrigin(0.5, 1).setScale(PLAYER_SCALE).setDepth(4)
+      .setAlpha(0.45).setTint(0x9bd8ff);
+    this.tweens.add({
+      targets: ghost, alpha: 0, duration: 220, ease: 'Quad.out',
+      onComplete: () => ghost.destroy(),
+    });
+  }
+
+  // --- Golpe descendente (slam) ------------------------------------------------
+  /** Golpe descendente: solo en el aire. Cae en picado; al aterrizar, onda que mata
+   *  a las ratas cercanas (y revienta bolas de fuego). Atravesar a un fénix bajando
+   *  también lo mata (ver updateFenixes). */
+  private startSlam(): void {
+    if (!this.reg.playerState.hasRunMilestone('slam')) return;   // hito sin comprar
+    if (!this.player.body || this.dead || this.exiting || this.slamming) return;
+    const onGround = this.player.body.blocked.down || this.player.body.touching.down;
+    if (onGround) return;
+    if (this.dashing) this.endDash();                 // el slam corta la embestida
+    this.slamming = true;
+    this.isJumping = false;
+    this.jumpHeld = false;
+    this.player.setVelocityY(SLAM_SPEED);
+  }
+
+  /** Aterrizaje del golpe descendente: sacudida, onda expansiva y bajas cercanas. */
+  private slamImpact(): void {
+    this.slamming = false;
+    this.cameras.main.shake(90, 0.004);
+    // Onda expansiva (anillo que crece y se desvanece a ras de suelo).
+    const y = this.groundTopY + SURFACE_INSET;
+    const ring = this.add.ellipse(this.player.x, y, 40, 14).setDepth(4);
+    ring.setStrokeStyle(4, 0xffffff, 0.9);
+    ring.isFilled = false;
+    this.tweens.add({
+      targets: ring, scaleX: SLAM_KILL_RADIUS / 20, scaleY: 2.2, alpha: 0,
+      duration: 280, ease: 'Quad.out', onComplete: () => ring.destroy(),
+    });
+    // Bajas en el radio del impacto: ratas y bolas de fuego rodando.
+    for (let i = this.rats.length - 1; i >= 0; i--) {
+      if (Math.abs(this.rats[i].sprite.x - this.player.x) < SLAM_KILL_RADIUS) this.killRatAt(i);
+    }
+    for (let i = this.fireballs.length - 1; i >= 0; i--) {
+      if (Math.abs(this.fireballs[i].sprite.x - this.player.x) < SLAM_KILL_RADIUS) this.popFireball(i);
+    }
+  }
+
+  // --- Arco automático ---------------------------------------------------------
+  /** Dispara solo cada ARROW_INTERVAL_MS una flecha recta hacia delante a la altura
+   *  del pecho: corriendo barre ratas; saltando puede alcanzar a un fénix. También
+   *  revienta bolas de fuego. Mueve/limpia las flechas y resuelve sus impactos. */
+  private updateArrows(now: number, delta: number): void {
+    if (!this.dead && !this.exiting && now - this.lastArrowAt >= ARROW_INTERVAL_MS
+        && this.reg.playerState.hasRunMilestone('bow')) {
+      this.lastArrowAt = now;
+      const arrow = this.add.image(
+        this.player.x + 30,
+        this.player.y - this.player.displayHeight * 0.55,
+        ARROW_KEY,
+      ).setScale(2).setDepth(5);
+      this.arrows.push(arrow);
+    }
+    if (this.arrows.length === 0) return;
+
+    const dt = delta / 1000;
+    const scrollX = this.cameras.main.scrollX;
+    for (let i = this.arrows.length - 1; i >= 0; i--) {
+      const arrow = this.arrows[i];
+      arrow.x += ARROW_SPEED * dt;
+      // Fuera de pantalla por la derecha → limpiar.
+      if (arrow.x > scrollX + this.scale.width + 100) {
+        arrow.destroy();
+        this.arrows.splice(i, 1);
+        continue;
+      }
+      let spent = false;
+      // Ratas: cuentan si la flecha va baja (ras de suelo, donde está su cuerpo).
+      for (let r = this.rats.length - 1; r >= 0 && !spent; r--) {
+        const s = this.rats[r].sprite;
+        if (Math.abs(arrow.x - s.x) < ARROW_HIT_X && arrow.y > s.y - 100 && arrow.y < s.y + 8) {
+          this.killRatAt(r);
+          spent = true;
+        }
+      }
+      // Fénix: a la altura de su cuerpo.
+      for (let f = this.fenixes.length - 1; f >= 0 && !spent; f--) {
+        const s = this.fenixes[f].sprite;
+        if (Math.abs(arrow.x - s.x) < ARROW_HIT_X && Math.abs(arrow.y - s.y) < FENIX_BODY_HALF_H + 25) {
+          this.killFenixAt(f);
+          spent = true;
+        }
+      }
+      // Bolas de fuego: las revienta en el aire o rodando.
+      for (let b = this.fireballs.length - 1; b >= 0 && !spent; b--) {
+        const s = this.fireballs[b].sprite;
+        if (Math.abs(arrow.x - s.x) < 34 && Math.abs(arrow.y - s.y) < 34) {
+          this.popFireball(b);
+          spent = true;
+        }
+      }
+      if (spent) {
+        arrow.destroy();
+        this.arrows.splice(i, 1);
+      }
+    }
+  }
+
+  /** Nube del doble salto: elipse blanca bajo los pies que se expande y desvanece. */
+  private showDoubleJumpPuff(): void {
+    const puff = this.add.ellipse(this.player.x, this.player.y, 46, 14, 0xffffff, 0.7).setDepth(4);
+    this.tweens.add({
+      targets: puff, scaleX: 1.7, scaleY: 0.6, alpha: 0,
+      duration: 260, ease: 'Quad.out', onComplete: () => puff.destroy(),
+    });
+  }
+
+  /** Mata la rata `i` (habilidades: dash/slam/flecha) — anim + kill contabilizado. */
+  private killRatAt(i: number): void {
+    const rat = this.rats[i];
+    this.rats.splice(i, 1);
+    this.playRatDeath(rat.sprite);
+    this.reg.playerState.addWorldKills();
+  }
+
+  /** Mata el fénix `i` (habilidades) — anim de caída + kill contabilizado. */
+  private killFenixAt(i: number): void {
+    const fenix = this.fenixes[i];
+    this.fenixes.splice(i, 1);
+    this.playFenixDeath(fenix.sprite);
+    this.reg.playerState.addWorldKills();
+  }
+
+  /** Revienta la bola de fuego `i` (dash/slam/flecha la neutralizan). */
+  private popFireball(i: number): void {
+    const fb = this.fireballs[i];
+    this.fireballs.splice(i, 1);
+    this.tweens.add({
+      targets: fb.sprite, alpha: 0, scale: fb.sprite.scale * 1.8,
+      duration: 160, ease: 'Quad.out', onComplete: () => fb.sprite.destroy(),
+    });
   }
 
   /** Salto variable: mientras se mantiene (y dentro de la ventana de tiempo), se

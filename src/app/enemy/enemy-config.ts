@@ -45,6 +45,14 @@ export function tierDamage(tier: number): number {
   return Math.round(TIER_DMG_BASE * Math.pow(TIER_DMG_GROWTH, tier - 1));
 }
 
+// Varianza de daño (±15%): TODO golpe —del jugador y de los enemigos— se multiplica
+// por este factor, así los números no salen siempre idénticos. Un solo mando para
+// ambos bandos.
+export const DAMAGE_VARIANCE = 0.15;
+export function rollDamageVariance(): number {
+  return 1 - DAMAGE_VARIANCE + Math.random() * DAMAGE_VARIANCE * 2;
+}
+
 // ── Config completa de un tipo de enemigo ─────────────────────────────────────
 
 // Arquetipo del ataque:

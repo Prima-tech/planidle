@@ -231,7 +231,8 @@ export class OfflineGainsService {
       enemyType,
       killsPerHour,
       coinsPerHour: Math.floor(killsPerHour * coinsPerKill * this.afkBonus.coinsMult),
-      expPerHour:   Math.floor(killsPerHour * (EXP_REWARDS[enemyType] ?? 10) * this.afkBonus.expMult),
+      expPerHour:   Math.floor(killsPerHour * (EXP_REWARDS[enemyType] ?? 10)
+                      * (1 + this.charStats.currentExpBonus / 100) * this.afkBonus.expMult),
       drops,
     };
   }
@@ -378,8 +379,8 @@ export class OfflineGainsService {
   /** Ganancias AFK explorando: metros (10/min) + mapas desbloqueados al cruzar sus
    *  hitos. Los flags se devuelven para marcarlos al recoger (LayoutComponent). */
   private calculateExploring(snapshot: GameSnapshot, cappedMinutes: number): OfflineGains | null {
-    // Talentos de exploración (rama CHR): % de metros extra por expedición AFK.
-    const exploreBonus  = this.talent.getBonus().exploration ?? 0;
+    // Bonus de exploración: INT (+1%/punto) + talentos exploration (vía charStats).
+    const exploreBonus  = this.charStats.currentExplorationBonus ?? 0;
     const exploreMeters = Math.floor(METERS_PER_MINUTE * cappedMinutes * (1 + exploreBonus / 100));
     if (exploreMeters <= 0) return null;
 

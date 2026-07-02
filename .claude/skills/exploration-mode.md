@@ -82,8 +82,17 @@ Runner lateral 2D estilo **Idle Slayer**, **separado** del juego grid top-down (
 - **`emitSceneReady` (crítico):** WorldRunScene.create emite `playerBridge.emitSceneReady()` (delayedCall 300 ms) para ocultar el `loading-cover`. Imprescindible en el rebote (GameScene retorna antes de su propio emit) o el juego se cuelga en "Cargando". Idempotente en la entrada por portal.
 
 ### Auto-run, salto y cámara
-- `update()`: `setVelocityX(RUN_SPEED * currentSprintMultiplier())` cada frame (re-aplicado por si una colisión lo anuló). Control manual anulado: **el único input es saltar**.
+- `update()`: `setVelocityX(RUN_SPEED * currentSprintMultiplier())` cada frame (re-aplicado por si una colisión lo anuló; durante la embestida manda `DASH_SPEED`). Control manual anulado: los inputs son saltar y las habilidades.
 - **Salto variable** (`pressJump`/`updateJump`/`releaseJump`): impulso inicial `JUMP_INITIAL_VELOCITY`, y mientras se mantiene (≤ `JUMP_MAX_HOLD_MS`) se sigue acelerando hacia arriba (`JUMP_HOLD_ACCEL`) hasta el tope `JUMP_MAX_VELOCITY`. Input: tap/hold en el lienzo, barra ESPACIO, **y el botón de ataque de Angular** (`jumpRequest$`/`jumpReleaseRequest$`).
+
+### Habilidades (estilo Idle Slayer, 2026-07-02)
+Cuatro habilidades **comprables con estrellas** en el panel de hitos del HUD (run-stats): `RUN_MILESTONES` en `services/run-milestones.ts` — `double_jump` 15★ · `dash` 40★ · `slam` 80★ · `bow` 150★ (+ `sprint` 1★ que ya existía). La escena las gatea con `playerState.hasRunMilestone(id)` (compra a mitad de carrera = activa al instante). **Las estrellas son PERSISTENTES** (moneda del runner): `goHomeReset` ya NO las resetea (decisión del usuario 2026-07-02; el texto GO_HOME_WARN lo refleja). Estado en la escena (`jumpsUsed`/`dashing`/`slamming`/`arrows`…), reseteado en `create()`.
+- **Doble salto**: `pressJump` en el aire con `jumpsUsed<2` → segundo impulso (`DOUBLE_JUMP_VELOCITY` 700) + nube (`showDoubleJumpPuff`). `jumpsUsed` se recarga al pisar suelo. Funciona también desde el botón de Angular (dos taps).
+- **Embestida / dash** (`startDash`/`endDash`): swipe DERECHA · tecla D o →. Ráfaga horizontal `DASH_SPEED` 1050 durante `DASH_MS` 260 (gravedad off, vy=0), enfriamiento `DASH_COOLDOWN_MS` 2500. **Invulnerable** (`damagePlayer` early-return) y **mata por atropello** (ramas `this.dashing` en `updateRats`/`updateFenixes` con `DASH_KILL_PAD`; revienta bolas de fuego). Estela de fantasmas (`spawnDashGhost` cada 45 ms) + tinte azulado + pose fija.
+- **Golpe descendente / slam** (`startSlam`/`slamImpact`): swipe ABAJO · tecla S o ↓, solo en el aire. Cae a `SLAM_SPEED` 1500; atravesar un fénix bajando lo mata (rama `slamming` en el choque). Al aterrizar: sacudida de cámara + anillo expansivo + mata ratas y revienta bolas en `SLAM_KILL_RADIUS` 110. El slam corta un dash en curso.
+- **Arco automático** (`updateArrows`): dispara solo cada `ARROW_INTERVAL_MS` 2800 una flecha recta (textura `wr_arrow` GENERADA por código en create, sin asset) a la altura del pecho → corriendo barre ratas, saltando puede flechar a un fénix; también revienta bolas de fuego. `ARROW_SPEED` 900.
+- **Gestos** (`checkSwipe` + `swipeStart`/`swipeFired` en `bindInput`): un swipe ≥`SWIPE_MIN_PX` 46 en ≤`SWIPE_MAX_MS` 320 dispara la habilidad UNA vez por toque y anula el "mantener" del salto que arrancó en el pointerdown (el salto queda en el toque mínimo). Horizontal→dash (dx>0), vertical hacia abajo→slam.
+- Todas las bajas de habilidades pasan por `killRatAt`/`killFenixAt`/`popFireball` → `addWorldKills()` (cuentan en el HUD).
 - **Anim del jugador** (placeholder = cuerpo LPC del personaje, textura `'player'`): en suelo `wr_run` (frames 533-540, fila RUN derecha); en el aire se congela `PLAYER_RUN_AIR_FRAME` (537). `registerAnims` rehace `wr_run`/`wr_death` SIEMPRE (la textura `'player'` se recarga al cambiar de personaje → frames destruidos → crash `sourceSize` si reusas la anim vieja).
 - **Cámara:** `startFollow(player, true, 1, 0)` (solo X; lerpY=0). `scrollY=0` se fija DESPUÉS de startFollow (que centra en Y). Offset coloca al jugador al 25% de la izquierda. `roundPixels=true` (anti-borrón).
 
@@ -144,6 +153,11 @@ Dos sitios muestran dónde está el personaje y ambos tratan `'exploring'` (el `
 | Curación del corazón | `HEART_HEAL` | 10 |
 | Intervalo rata / fénix | `RAT_INTERVAL_M` / `FENIX_INTERVAL_M` (desde `FENIX_START_M` 25) | 25 m / 50 m |
 | Daño rata / fénix / bola | `RAT_DAMAGE` / `FENIX_DAMAGE` / `FIREBALL_DAMAGE` | 30 / 12 / 12 |
+| Doble salto | `DOUBLE_JUMP_VELOCITY` | 700 |
+| Embestida | `DASH_SPEED` / `DASH_MS` / `DASH_COOLDOWN_MS` | 1050 / 260 / 2500 |
+| Golpe descendente | `SLAM_SPEED` / `SLAM_KILL_RADIUS` | 1500 / 110 |
+| Arco automático | `ARROW_INTERVAL_MS` / `ARROW_SPEED` | 2800 / 900 |
+| Gestos | `SWIPE_MIN_PX` / `SWIPE_MAX_MS` | 46 / 320 |
 | AFK explorando | (offline-gains.service) | 10 m/min, tope 8 h |
 
 ---

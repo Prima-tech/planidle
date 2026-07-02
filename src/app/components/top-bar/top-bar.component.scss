@@ -518,6 +518,40 @@ $metal-dark: #6b6357;
   margin: 2px 0;
 }
 
+// Poder de combate: jugador vs mapa
+.mip-power {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 2px 2px 4px;
+}
+.mip-power-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  flex: 1;
+}
+.mip-power-label {
+  font-size: 0.5em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b4226;
+}
+.mip-power-val {
+  font-size: 0.82em;
+  font-weight: bold;
+  color: $text-brown;
+}
+.mip-power--good { color: #2e9e3f; }
+.mip-power--bad  { color: #c0392b; }
+.mip-power-vs {
+  font-size: 0.7em;
+  color: #8a6a4a;
+  flex-shrink: 0;
+}
+
 // AFK rates
 .mip-rates {
   display: flex;

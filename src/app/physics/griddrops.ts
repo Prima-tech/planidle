@@ -808,7 +808,9 @@ export class GridDrops {
     private world?: WorldService,
   ) {
     this.mainScene.events.on('enemyDied', ({ position, type }: { position: Phaser.Math.Vector2, type: string }) => {
-      this.playerState.addExp(EXP_REWARDS[type] ?? 10);
+      // Bonus de EXP (CHR + equipo): % sobre la EXP base del enemigo.
+      const expMult = 1 + (this.charStats?.currentExpBonus ?? 0) / 100;
+      this.playerState.addExp(Math.round((EXP_REWARDS[type] ?? 10) * expMult));
       const drops = this.rollDrops(type);
       // El botín sale despedido desde el enemigo (`from`) y aterriza a cierta
       // distancia, en vez de quedarse pegado al punto de muerte.

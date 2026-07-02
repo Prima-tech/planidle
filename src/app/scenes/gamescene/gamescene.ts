@@ -1,5 +1,5 @@
 import { Enemy } from "src/app/enemy/enemy";
-import { ActionConfig, ENEMY_REGISTRY, EnemyTypeConfig, ANIMAL_TYPES } from "src/app/enemy/enemy-config";
+import { ActionConfig, ENEMY_REGISTRY, EnemyTypeConfig, ANIMAL_TYPES, rollDamageVariance } from "src/app/enemy/enemy-config";
 import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
 import { GridDrops, ITEM_CATALOG } from "src/app/physics/griddrops";
@@ -2641,7 +2641,9 @@ export class GameScene extends Phaser.Scene {
       const kind = HARVEST_KINDS[node.kind];
       // Progresión de la skill de recolección (minería / tala): XP al recolectar.
       // En minería, el atributo "exp mining" suma XP extra por mena.
-      const bonusXp = kind.skill === 'mining' ? (this.reg.charStats?.currentMiningExp ?? 0) : 0;
+      const bonusXp = kind.skill === 'mining'      ? (this.reg.charStats?.currentMiningExp ?? 0)
+                    : kind.skill === 'woodcutting' ? (this.reg.charStats?.currentWoodcuttingExp ?? 0)
+                    : 0;
       this.reg.gatheringSkills?.addXp(kind.skill, kind.xp + bonusXp);
       const s = node.sprite;
       // Suelta el recurso del nodo (árbol → madera; roca/gema → item del tier del mapa).
@@ -2776,8 +2778,8 @@ export class GameScene extends Phaser.Scene {
       const critChance = this.reg.charStats?.currentCritChance ?? 10;
       const isCrit     = Math.random() * 100 < critChance;
       const critMult   = isCrit ? (this.reg.charStats?.currentCritDamage ?? 150) / 100 : 1;
-      // Varianza ±10%: que los golpes no peguen siempre el mismo número exacto.
-      const variance = 0.9 + Math.random() * 0.2;
+      // Varianza ±15%: que los golpes no peguen siempre el mismo número exacto.
+      const variance = rollDamageVariance();
       return { dmg: Math.floor(baseDamage * variance * critMult), isCrit };
     }
 
