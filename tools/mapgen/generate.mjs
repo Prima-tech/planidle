@@ -118,7 +118,7 @@ export function generateMap(opts) {
   }
 
   // --- 2. escenas medianas de Glades (ruina, charca, árboles, rocas...) ---
-  if (biome.prefabs) {
+  if (biome.prefabs && biome.prefabs.scenes.length) {
     const scenes = biome.prefabs.scenes.map(s => ({
       ...s, data: loadStamp(path.join(STAMP_DIR, `${s.file}.tmj`)),
     }));

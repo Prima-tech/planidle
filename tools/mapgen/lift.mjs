@@ -128,6 +128,11 @@ function liftRegion(r) {
     for (const { name, grid } of grids) {
       const gid = grid.get(k);
       if (!gid || (gid & FLIP) === 427) continue;   // 427 = G426 transparente: fuera
+      const g = gid & FLIP;
+      // árboles decorativos fuera (solo debe haber árboles de farmear, que los
+      // pone el juego como nodos): copas 4×5 (locals 0-79) y arbusto alto 2×3
+      const tl = g - 5345;
+      if (tl >= 0 && (tl < 80 || [163, 164, 179, 180, 195, 196].includes(tl))) continue;
       stack.push({ name, gid });
     }
     if (stack.length) stacks[y * r.w + x] = stack;

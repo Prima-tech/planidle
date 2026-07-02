@@ -55,12 +55,9 @@ export const BIOMES = {
     // El lago va aparte (anclado a la esquina inferior derecha, como en Glades).
     prefabs: {
       lake: 'glades_lake',
-      scenes: [
-        { file: 'glades_ruin', weight: 2, unique: true },   // ruina circular grande (máx 1)
-        { file: 'glades_tower', weight: 1, unique: true },  // pilar en ruinas (máx 1)
-        { file: 'tree_green', weight: 4 },     // árbol verde (sintético, tronco con colisión)
-        { file: 'tree_apple', weight: 3 },     // manzano (sintético)
-      ],
+      // Sin árboles ni decoración grande (decisión del usuario: los coloca él a
+      // mano en Tiled). Los stamps siguen en stamps/ por si se recuperan.
+      scenes: [],
     },
     // Solo decoración pequeña (matas y flores). Los objetos grandes (arbustos/
     // árboles deco_obj*) se quitaron: no aportaban (los arbustos siguen en el marco).
