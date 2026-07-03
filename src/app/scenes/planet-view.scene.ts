@@ -637,9 +637,10 @@ export class PlanetViewScene extends Phaser.Scene {
     }
   }
 
-  // Botón «+» (esquina superior izquierda): zoom-out al siguiente nivel
+  // Botón «+» (esquina inferior derecha): zoom-out al siguiente nivel
   private buildPlusButton(onClick: () => void): Phaser.GameObjects.GameObject[] {
-    const bx = 26 * DPR, by = 26 * DPR, r = 16 * DPR;
+    const r = 16 * DPR;
+    const bx = this.scale.width - 26 * DPR, by = this.scale.height - 26 * DPR;
     const bg = this.add.circle(bx, by, r, 0x1e3a5f, 0.92).setStrokeStyle(1.5 * DPR, 0x3498db, 0.8);
     const label = this.add.text(bx, by - DPR, '+', {
       fontSize: `${22 * DPR}px`, color: '#5bc0f8', fontStyle: 'bold',

@@ -56,9 +56,9 @@
 
 </div>
 
-<!-- Botón de mapa: FUERA de la barra, pegado a su izquierda. Abre la interfaz de
-     mapa (world-map-panel); en exploración no hay minimap para abrirlo. Solo
-     disponible tras comprar el hito 'map_1_1' (desbloquear mapa 1-1). -->
-<button class="rs-map-btn" *ngIf="(milestones$ | async)?.includes('map_1_1')" (click)="openMap.emit()">
+<!-- Botón de mapa: FUERA de la barra, pegado a su izquierda. Con 1-1 desbloqueado
+     abre la interfaz de mapa (world-map-panel); sin desbloquear, hace lo mismo que
+     el botón HOME del footer (volver a casa). Lo decide onMapBtn(). -->
+<button class="rs-map-btn" (click)="onMapBtn()">
   <img class="rs-map-btn__icon" src="assets/sprites/resources/world_mode/map.png" alt="" draggable="false" />
 </button>

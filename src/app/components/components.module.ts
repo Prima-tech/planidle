@@ -44,7 +44,6 @@ import { BuildPanelComponent } from './build-panel/build-panel.component';
 import { BuildDeleteModalComponent } from './build-delete-modal/build-delete-modal.component';
 import { BuildShopComponent } from './build-shop/build-shop.component';
 import { ForgeComponent } from './forge/forge.component';
-import { MapEntranceModalComponent } from './map-entrance-modal/map-entrance-modal.component';
 import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.component';
 import { GlobalTalentsComponent } from './global-talents/global-talents.component';
 import { MapChestWindowComponent } from './map-chest-window/map-chest-window.component';
@@ -90,7 +89,6 @@ import { MapChestWindowComponent } from './map-chest-window/map-chest-window.com
     BuildDeleteModalComponent,
     BuildShopComponent,
     ForgeComponent,
-    MapEntranceModalComponent,
     MapTeleportHintComponent,
     GlobalTalentsComponent,
     MapChestWindowComponent,

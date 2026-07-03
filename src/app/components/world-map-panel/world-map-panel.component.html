@@ -39,7 +39,7 @@
       </div>
 
       <button
-        *ngIf="selectedMap.id !== currentMapId && !isMapLocked(selectedMap.id)"
+        *ngIf="canTeleport(selectedMap.id)"
         class="teleport-btn"
         (click)="teleport(selectedMap.id)"
       >

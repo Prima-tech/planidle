@@ -94,10 +94,15 @@ interface ActiveChest {
 /** NPCs fijos de la ciudad (Asgard): personajes decorativos quietos (idle mirando
  *  abajo). `name` = nombre en body-config (bodySpriteFor) para cargar su hoja;
  *  `texKey` = clave de textura propia. Añadir uno = una línea más aquí. */
-const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number }[] = [
-  // Heimdall: guardián de Asgard, da la primera misión (explorar → 10 estrellas).
-  // Junto al punto de aparición (spawnPos 30,30) para que sea lo primero que ves.
-  { name: 'Heimdall', texKey: 'npc_heimdall', tileX: 28, tileY: 30 },
+const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number; questId?: string;
+                   sheet?: string; idle?: { start: number; end: number } }[] = [
+  // Mordekai: NPC de Asgard, da la primera misión (explorar → 5 estrellas). Junto al
+  // punto de aparición (spawnPos 30,30) para que sea lo primero que ves.
+  // `questId` → marcador flotante !/? sobre su cabeza (updateNpcQuestMarkers).
+  // Hoja propia (LPC 24 col, distinta a los cuerpos de 13 col): idle = frame 240
+  // (fila "andar hacia abajo", pose quieta mirando a cámara).
+  { name: 'Mordekai', texKey: 'npc_mordekai', tileX: 28, tileY: 30, questId: 'primeras_estrellas',
+    sheet: 'assets/sprites/players/mordekai.png', idle: { start: 240, end: 240 } },
 ];
 
 /** NPCs reclutables: aparecen en un mapa concreto (no el hogar) hasta que se les
@@ -199,7 +204,7 @@ export class GameScene extends Phaser.Scene {
     private mmSampleCanvas?: HTMLCanvasElement;
     // NPCs vivos en la escena para detectar cercanía y hablar (fijos de la ciudad +
     // reclutables). `recruit` solo lo llevan los reclutables (Kugo en 1-1).
-    private cityNpcs: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string; recruit?: typeof RECRUIT_NPCS[0] }[] = [];
+    private cityNpcs: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string; recruit?: typeof RECRUIT_NPCS[0]; questId?: string; marker?: Phaser.GameObjects.Text }[] = [];
     // Parallax de mar profundo detrás del mapa (cubre el borde azul del juego con
     // dos capas que derivan a distinta velocidad → sensación de profundidad).
     private pxFar?:  Phaser.GameObjects.TileSprite;
@@ -305,7 +310,8 @@ export class GameScene extends Phaser.Scene {
       if (this.reg.world.getCurrentMap()?.id === 'hogar') {
         for (const n of CITY_NPCS) {
           if (!this.textures.exists(n.texKey)) {
-            this.load.spritesheet(n.texKey, bodySpriteFor(n.name), { frameWidth: 64, frameHeight: 64 });
+            // `sheet` = hoja propia del NPC (p.ej. Mordekai); si no, el cuerpo LPC por nombre.
+            this.load.spritesheet(n.texKey, n.sheet ?? bodySpriteFor(n.name), { frameWidth: 64, frameHeight: 64 });
           }
         }
       }
@@ -665,6 +671,7 @@ export class GameScene extends Phaser.Scene {
       if (auto?.isEnabled && !autoPaused) this.runAutoAttack(delta);
       if (auto?.skillsEnabled && !autoPaused) this.runAutoSkills(delta);
       this.updateAutoTargetMarker(auto?.isEnabled === true && !autoPaused);
+      this.updateNpcQuestMarkers();
       this.gridPhysics.update(delta);
 
       // Contexto del botón de acción: cofre cerca → abrir cofre; si no, tienda
@@ -888,6 +895,35 @@ export class GameScene extends Phaser.Scene {
       this.autoTargetMarker
         .setVisible(true)
         .setPosition(t.sprite.x, t.sprite.y - t.sprite.displayHeight * 0.45 + bob);
+    }
+
+    /** Marcador flotante RPG sobre los NPCs con misión (Mordekai): "!" amarillo si la
+     *  misión está disponible o en curso, "?" amarillo si ya se puede entregar, y nada
+     *  si está completada. El texto se crea de forma perezosa por NPC (la instancia de
+     *  escena se reutiliza; el restart destruye el texto pero recrea el array). */
+    private updateNpcQuestMarkers(): void {
+      const quests = this.reg.quests;
+      const bob = Math.sin(this.time.now / 300) * 3;   // balanceo lento
+      for (const npc of this.cityNpcs) {
+        // Referencia muerta tras un restart de escena → soltarla.
+        if (npc.marker && !npc.marker.active) npc.marker = undefined;
+        // Estado de la misión → glifo (o vacío si no hay o está completada).
+        let glyph = '';
+        if (quests && npc.questId && npc.sprite.active) {
+          const def = quests.byId(npc.questId);
+          if (def && !quests.isCompleted(def)) glyph = quests.isClaimable(def) ? '?' : '!';
+        }
+        if (!glyph) { npc.marker?.setVisible(false); continue; }
+        if (!npc.marker) {
+          npc.marker = this.add.text(0, 0, glyph, {
+            fontSize: '60px', color: '#ffd21e', fontStyle: 'bold',
+            stroke: '#5a3b00', strokeThickness: 10,
+          }).setOrigin(0.5, 1).setDepth(6000);
+        }
+        npc.marker.setText(glyph)
+          .setVisible(true)
+          .setPosition(npc.sprite.x, npc.sprite.y - npc.sprite.displayHeight * 0.42 + bob);
+      }
     }
 
     private runAutoSkills(delta: number): void {
@@ -3041,8 +3077,9 @@ export class GameScene extends Phaser.Scene {
     private initCityNpcs(): void {
       for (const n of CITY_NPCS) {
         const animKey = `${n.texKey}_idle_down`;
-        this.ensureNpcAnim(n.texKey, animKey);
-        this.spawnCityNpc(n.name, n.texKey, animKey, n.tileX, n.tileY);
+        const idle = n.idle ?? { start: 312, end: 313 };   // por defecto: layout LPC de 13 col
+        this.ensureNpcAnim(n.texKey, animKey, idle.start, idle.end);
+        this.spawnCityNpc(n.name, n.texKey, animKey, n.tileX, n.tileY, undefined, n.questId, idle.start);
       }
     }
 
@@ -3059,12 +3096,13 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    /** Idle (mirando abajo) de un NPC: frames LPC 312-313, mismo layout que el jugador. */
-    private ensureNpcAnim(texKey: string, animKey: string): void {
+    /** Idle (mirando abajo) de un NPC. Frames por defecto 312-313 (layout LPC de 13
+     *  col); las hojas propias (p.ej. Mordekai, 24 col) pasan sus frames idle. */
+    private ensureNpcAnim(texKey: string, animKey: string, start = 312, end = 313): void {
       if (this.anims.exists(animKey)) return;
       this.anims.create({
         key: animKey,
-        frames: this.anims.generateFrameNumbers(texKey, { start: 312, end: 313 }),
+        frames: this.anims.generateFrameNumbers(texKey, { start, end }),
         frameRate: 2,
         repeat: -1,
       });
@@ -3072,7 +3110,7 @@ export class GameScene extends Phaser.Scene {
 
     /** Coloca un NPC quieto en el tile (tileX,tileY): mismo tamaño/profundidad que el
      *  jugador, idle en bucle, y su tile bloqueado para que no se le pueda pisar. */
-    private spawnCityNpc(name: string, texKey: string, animKey: string, tileX: number, tileY: number, recruit?: typeof RECRUIT_NPCS[0]): void {
+    private spawnCityNpc(name: string, texKey: string, animKey: string, tileX: number, tileY: number, recruit?: typeof RECRUIT_NPCS[0], questId?: string, initialFrame = 312): void {
       const TS = GameScene.TILE_SIZE;
       // --- Ajustes del NPC (tocar estos si no cuadra) ---
       // Misma escala que el jugador (initPlayer: 2.5): con 2.8 los NPCs salían más
@@ -3089,7 +3127,7 @@ export class GameScene extends Phaser.Scene {
       const footX = tileX * TS + TS / 2;
       const footY = tileY * TS + TS / 2;
 
-      const npc = this.add.sprite(footX, footY - FOOT_OFFSET, texKey, 312);
+      const npc = this.add.sprite(footX, footY - FOOT_OFFSET, texKey, initialFrame);
       npc.setScale(SCALE);
       npc.setDepth(footY);
       if (this.anims.exists(animKey)) npc.play(animKey);
@@ -3105,7 +3143,7 @@ export class GameScene extends Phaser.Scene {
         .setDepth(footY - 1);
 
       // Punto de interacción para hablar: los pies del NPC.
-      this.cityNpcs.push({ sprite: npc, x: footX, y: footY, name, recruit });
+      this.cityNpcs.push({ sprite: npc, x: footX, y: footY, name, recruit, questId });
 
       // Bloquea la caja completa alrededor del cuerpo.
       const halfW = Math.floor(COL_W / 2);
@@ -3137,8 +3175,8 @@ export class GameScene extends Phaser.Scene {
      *  reclutamiento y lo desbloquea como personaje (flag global → aparece en el
      *  roster); si no, dice su línea normal. */
     private talkToNpc(npc: typeof this.cityNpcs[0]): void {
-      // Heimdall: dador de la primera misión (diálogo según su estado).
-      if (npc.name === 'Heimdall') { this.talkToHeimdall(); return; }
+      // Mordekai: dador de la primera misión (diálogo según su estado).
+      if (npc.name === 'Mordekai') { this.talkToMordekai(); return; }
       if (npc.recruit && !this.reg.unlocks?.isCharacterUnlocked(npc.name)) {
         const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
         this.reg.dialogue?.show(npc.name,
@@ -3149,39 +3187,39 @@ export class GameScene extends Phaser.Scene {
       this.reg.dialogue?.show(npc.name, this.npcLine(npc.name));
     }
 
-    /** Heimdall (Asgard): guía de onboarding. Da y fija la primera misión (explorar →
-     *  10 estrellas), informa del progreso, la cobra al completarla y luego apunta a 1-1.
+    /** Mordekai (Asgard): guía de onboarding. Da y fija la primera misión (explorar →
+     *  5 estrellas), informa del progreso, la cobra al completarla y luego apunta a 1-1.
      *  Portales del hogar: exploración = este (x30), 1-1 = oeste (x17). */
-    private talkToHeimdall(): void {
+    private talkToMordekai(): void {
       const quests = this.reg.quests;
       const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
       const def = quests?.byId('primeras_estrellas');
-      if (!quests || !def) { this.reg.dialogue?.show('Heimdall', '...'); return; }
+      if (!quests || !def) { this.reg.dialogue?.show('Mordekai', '...'); return; }
 
       // Ya completada → apunta al combate (portal oeste, 1-1).
       if (quests.isCompleted(def)) {
-        this.reg.dialogue?.show('Heimdall',
+        this.reg.dialogue?.show('Mordekai',
           `Cuando quieras luchar de verdad, ${player}, cruza el portal del oeste hacia 1-1. Ahí te esperan los primeros monstruos.`);
         return;
       }
       // Objetivo alcanzado → cobra aquí mismo y desbloquea el siguiente paso.
       if (quests.isClaimable(def)) {
         quests.claim(def);
-        this.reg.dialogue?.show('Heimdall',
-          `¡Diez estrellas, ${player}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.`);
+        this.reg.dialogue?.show('Mordekai',
+          `¡Cinco estrellas, ${player}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.`);
         return;
       }
       // En marcha → informa del progreso.
       const prog = quests.progressOf(def);
       if (prog > 0 || quests.isActive(def)) {
-        this.reg.dialogue?.show('Heimdall',
+        this.reg.dialogue?.show('Mordekai',
           `Llevas ${prog}/${quests.goalOf(def)} estrellas. Sigue saltando a por ellas en la exploración (portal del este).`);
         return;
       }
       // Primera vez → da y fija la misión.
       quests.activate(def);
-      this.reg.dialogue?.show('Heimdall',
-        `Bienvenido a Asgard, ${player}. Soy Heimdall. Antes de luchar, aprende a explorar: cruza el portal del este y trae 10 estrellas. Toca la pantalla para saltar y recógelas al vuelo.`);
+      this.reg.dialogue?.show('Mordekai',
+        `Bienvenido a Asgard, ${player}. Soy Mordekai. Antes de luchar, aprende a explorar: cruza el portal del este y trae 5 estrellas. Toca la pantalla para saltar y recógelas al vuelo.`);
     }
 
     /** Línea que dice un NPC al hablarle. Kugo saluda al jugador por su nombre. */

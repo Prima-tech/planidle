@@ -54,6 +54,8 @@ export interface StarsObjective {
 export interface QuestReward {
   coins?: number;
   exp?: number;
+  /** Hito del Modo Mundo que se otorga al cobrar (p.ej. 'sprint' = Impulso). */
+  runMilestone?: string;
 }
 
 export interface QuestDef {
@@ -77,12 +79,12 @@ export const MAX_ACTIVE_QUESTS = 5;
 export const QUESTS: QuestDef[] = [
   {
     id: 'primeras_estrellas',
-    name: 'La llamada de Heimdall',
-    desc: 'Heimdall te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 10 estrellas: toca la pantalla para saltar y recógelas al vuelo.',
+    name: 'La llamada de Mordekai',
+    desc: 'Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 5 estrellas: toca la pantalla para saltar y recógelas al vuelo. Al cobrarla aprenderás el Impulso.',
     icon: 'star-outline',
-    track: 'Consigue 10 estrellas',
-    objective: { type: 'stars', goal: 10 },
-    reward: { coins: 100, exp: 40 },
+    track: 'Consigue 5 estrellas',
+    objective: { type: 'stars', goal: 5 },
+    reward: { coins: 100, exp: 40, runMilestone: 'sprint' },
   },
   {
     id: 'plaga_babosas',
@@ -307,7 +309,7 @@ export class QuestService implements OnDestroy {
 
   /** Progreso de las misiones de estrellas = balance actual (max, nunca baja aunque
    *  el jugador gaste estrellas). No autocompleta: al llegar al objetivo espera a
-   *  "Completar" (o a hablar con Heimdall) como el resto. */
+   *  "Completar" (o a hablar con Mordekai) como el resto. */
   private onStarsBalance(balance: number): void {
     let changed = false;
     for (const def of QUESTS) {
@@ -343,6 +345,7 @@ export class QuestService implements OnDestroy {
     if (!reward) return;
     if (reward.coins) this.playerState.collectCoins(reward.coins);
     if (reward.exp)   this.playerState.addExp(reward.exp);
+    if (reward.runMilestone) this.playerState.grantRunMilestone(reward.runMilestone);
   }
 
   /** Notifica a la UI: refresca rastreador del HUD y suscriptores de changes$. */

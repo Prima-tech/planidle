@@ -960,6 +960,10 @@
           <ion-icon class="qr-xp" name="star"></ion-icon>
           <span class="qr-amount">{{ q.reward.exp | compactNumber }} EXP</span>
         </span>
+        <span class="quest-reward-item" *ngIf="q.reward.runMilestone === 'sprint'">
+          <ion-icon class="qr-xp" name="flash"></ion-icon>
+          <span class="qr-amount">{{ 'RUN.MS_SPRINT' | translate }}</span>
+        </span>
       </div>
 
       <!-- Objetivo cumplido: botón para cobrar la recompensa -->

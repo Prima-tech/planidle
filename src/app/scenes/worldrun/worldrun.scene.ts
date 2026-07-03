@@ -276,7 +276,6 @@ export class WorldRunScene extends Phaser.Scene {
   private jumpReleaseSub?: Subscription;
   private parallaxSub?: Subscription;
   private enterMapSub?: Subscription;
-  private dismissSub?: Subscription;
   private exitSub?: Subscription;
   // Mapa por cuyo portal se entró al Modo Mundo: determina el planeta (y por tanto su
   // capital) al que vuelve el botón "volver al mapa principal".
@@ -516,10 +515,8 @@ export class WorldRunScene extends Phaser.Scene {
     this.reg.activity?.set('exploring');   // actividad AFK: explorando el Modo Mundo
     this.jumpSub = this.reg.playerBridge.jumpRequest$.subscribe(() => this.pressJump());
     this.jumpReleaseSub = this.reg.playerBridge.jumpReleaseRequest$.subscribe(() => this.releaseJump());
-    // Modal de entrada: "Entrar" viaja al mapa; "Cancelar" reanuda la carrera (la
-    // pausamos al mostrar el modal, ver checkUnlockPoints).
+    // Entrar a un mapa desde el icono de teletransporte (o el mapa mundial): viaja a él.
     this.enterMapSub = this.reg.playerBridge.enterMapRequest$.subscribe(mapId => this.enterMap(mapId));
-    this.dismissSub = this.reg.playerBridge.mapEntranceDismissed$.subscribe(() => this.scene.resume());
     // Botón "volver al mapa principal" (HTML, solo en modo carrera): sale a la capital.
     this.exitSub = this.reg.playerBridge.exitRunRequest$.subscribe(() => this.exitToHome());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -527,7 +524,6 @@ export class WorldRunScene extends Phaser.Scene {
       this.jumpReleaseSub?.unsubscribe();
       this.parallaxSub?.unsubscribe();
       this.enterMapSub?.unsubscribe();
-      this.dismissSub?.unsubscribe();
       this.exitSub?.unsubscribe();
       this.reg.playerBridge.setRunMode(false);
     });
@@ -846,9 +842,9 @@ export class WorldRunScene extends Phaser.Scene {
     this.add.image(x, y, TEX_SIGN).setOrigin(0.5, 1).setScale(SIGN_SCALE).setDepth(4);
   }
 
-  /** Cartel "punto de interés" plantado en cada hito (mismo eje que el contador de
-   *  metros: startX + distancia). Al alcanzarlo se desbloquea su mapa (ver
-   *  checkUnlockPoints). Estáticos: la cámara los deja atrás al avanzar. */
+  /** Cartel "punto de interés" plantado en cada posición de mapa (startX + distancia).
+   *  Al cruzar el de un mapa YA COMPRADO aparece su botón de entrada (checkUnlockPoints);
+   *  si no, es decorativo. Estáticos: la cámara los deja atrás al avanzar. */
   private createInterestSigns(): void {
     this.textures.get(TEX_INTEREST).setFilter(Phaser.Textures.FilterMode.NEAREST);
     const y = this.groundTopY + SURFACE_INSET;
@@ -875,8 +871,8 @@ export class WorldRunScene extends Phaser.Scene {
     }
   }
 
-  /** Viaje al mapa desde el modal de entrada: reanuda (estábamos en pausa) para que
-   *  el fundido se anime y arranca GameScene en el mapa destino. */
+  /** Viaje al mapa desde el icono de teletransporte o el mapa mundial: fundido y
+   *  arranca GameScene en el mapa destino (resume defensivo por si estuviera en pausa). */
   private enterMap(mapId: string): void {
     this.scene.resume();
     this.cameras.main.fadeOut(250, 0, 0, 0);

@@ -35,6 +35,13 @@ export class RunStatsComponent {
   /** Botón de mapa del widget: el layout abre el panel de mapa (world-map-panel). */
   @Output() openMap = new EventEmitter<void>();
 
+  /** Click en el botón de mapa: con 1-1 comprado abre el mapa; si no, sale directo
+   *  a la capital (Asgard) sin modal de confirmación. */
+  onMapBtn(): void {
+    if (this.playerState.hasRunMilestone('map_1_1')) this.openMap.emit();
+    else this.playerBridge.requestExitRun();
+  }
+
   panelOpen = false;
   togglePanel(): void { this.panelOpen = !this.panelOpen; }
 

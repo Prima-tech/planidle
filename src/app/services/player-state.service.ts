@@ -124,6 +124,14 @@ export class PlayerStateService {
     return (this._state$.getValue().runMilestones ?? []).includes(id);
   }
 
+  /** Otorga un hito del Modo Mundo SIN coste (p.ej. recompensa de misión). Idempotente. */
+  grantRunMilestone(id: string): void {
+    const s = this._state$.getValue();
+    const owned = s.runMilestones ?? [];
+    if (owned.includes(id)) return;
+    this._patch({ runMilestones: [...owned, id] });
+  }
+
   /** Compra un hito del Modo Mundo gastando `cost` estrellas. Devuelve false si ya
    *  está comprado o no hay estrellas suficientes. */
   buyRunMilestone(id: string, cost: number): boolean {

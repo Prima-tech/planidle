@@ -40,11 +40,8 @@ export function starProdPerMin(owned: string[]): number {
 // Los efectos viven en WorldRunScene (gateados por hasRunMilestone), salvo
 // 'sprint' (PlayerBridgeService.activateSprint).
 export const RUN_MILESTONES: RunMilestoneDef[] = [
-  {
-    id: 'sprint', cost: 1,
-    labelKey: 'RUN.MS_SPRINT', descKey: 'RUN.MS_SPRINT_DESC',
-    icon: 'flash',
-  },
+  // 'sprint' (Impulso) ya NO se compra con estrellas: se otorga al cobrar la primera
+  // misión "La llamada de Mordekai" (recolectar 5 estrellas). Ver QUESTS en quest.service.
   // Sin estos hitos NO aparecen enemigos (y sin enemigos no hay estrellas por kill):
   // comprarlos es la primera inversión del loop.
   {

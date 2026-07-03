@@ -16,10 +16,9 @@ const CHARACTER_BODY: Record<string, string> = {
   Italien: `${BODY_DIR}/italien.png`,
   Orc:     `${BODY_DIR}/orc.png`,
   Rake:    `${BODY_DIR}/rake.png`,
-  // Heimdall: NPC dador de la primera misión en Asgard. Reutiliza el sheet de Rake
-  // como placeholder (aparece en otro mapa, no coincide en pantalla); soltar un
-  // PNG propio en body/ y cambiar la ruta cuando haya arte dedicado.
-  Heimdall: `${BODY_DIR}/rake.png`,
+  // Mordekai (NPC de la primera misión en Asgard) usa su propia hoja LPC de 24 col
+  // (assets/sprites/players/mordekai.png), cargada directamente en CITY_NPCS (campo
+  // `sheet`), no por aquí.
 };
 
 /** Ruta de la hoja de cuerpo para un personaje (DEFAULT_BODY si no tiene modelo propio). */

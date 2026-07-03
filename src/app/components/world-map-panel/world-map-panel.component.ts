@@ -253,9 +253,27 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     return !this.unlocks.isUnlocked(mapFeatureId(pinId));
   }
 
+  /** ¿Mostrar el botón de teletransporte a este mapa? Desbloqueado y (explorando, o
+   *  no es el mapa actual). En exploración currentMapId está obsoleto (sigue siendo el
+   *  de origen), así que se ofrece también la capital (Asgard) para poder volver. */
+  canTeleport(pinId: string): boolean {
+    if (this.isMapLocked(pinId)) return false;
+    return this.playerBridge.runMode$.value || pinId !== this.currentMapId;
+  }
+
   teleport(pinId: string) {
-    if (pinId === this.currentMapId) return;
     if (this.isMapLocked(pinId)) return;   // destino bloqueado: no se puede viajar
+    // En modo exploración la escena activa es WorldRunScene (no GameScene) y
+    // `currentMapId` está OBSOLETO (sigue siendo el mapa desde el que entraste, p.ej.
+    // Asgard) → el guard `pinId === currentMapId` bloquearía viajar a Asgard y
+    // `restartGameScene` no saldría del runner. Salimos del runner al mapa elegido
+    // (fade + GameScene, vía enterMap) y cerramos el panel del mapa.
+    if (this.playerBridge.runMode$.value) {
+      this.playerBridge.requestEnterMap(pinId);
+      this.playerBridge.requestCloseMenus();
+      return;
+    }
+    if (pinId === this.currentMapId) return;
     this.worldService.setCurrentMap(pinId);
     this.playerBridge.restartGameScene();
   }

@@ -90,22 +90,12 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   readonly runMode$ = this.playerBridge.runMode$;
   private runModeSub: Subscription;
 
-  /** Confirmación de "volver a casa" (Modo Mundo): perder el progreso de la expedición. */
-  confirmHomeOpen = false;
   /** Modal "Has muerto" (Modo Mundo): al aceptar te lleva a la capital del planeta. */
   runDeadOpen = false;
   private runDeathSub?: Subscription;
   private closeMenusSub?: Subscription;
 
   constructor() { }
-
-  // ── Volver a casa (Modo Mundo) ──────────────────────────────────────────────
-  askGoHome():    void { this.confirmHomeOpen = true; }
-  cancelGoHome(): void { this.confirmHomeOpen = false; }
-  confirmGoHome(): void {
-    this.confirmHomeOpen = false;
-    this.playerBridge.requestExitRun();   // WorldRunScene resetea progreso y sale a la capital
-  }
 
   // ── Muerte en el Modo Mundo ─────────────────────────────────────────────────
   acceptDeath(): void {
@@ -118,9 +108,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     // no debe quedarse atascado en la página de skills).
     this.runModeSub = this.runMode$.subscribe(active => {
       if (!active) {
-        // Al salir del Modo Mundo (volver a la ciudad), cerrar los modales de carrera:
+        // Al salir del Modo Mundo (volver a la ciudad), cerrar el modal de muerte:
         // su backdrop (z-index 9999) taparía la ciudad e impediría abrir cualquier menú.
-        this.confirmHomeOpen = false;
         this.runDeadOpen = false;
       }
     });

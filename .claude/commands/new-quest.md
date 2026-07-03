@@ -172,5 +172,5 @@ Al añadir una misión, **actualizar esta tabla**.
 - **`kill`** — matar enemigos (filtro por `family`/`enemyTypes`). Fuente: `KillService.killDetail$`.
 - **`stars`** — acumular estrellas (moneda de exploración). El progreso sigue el
   balance de `playerState.stars$` con `max()` (nunca baja aunque las gaste); no
-  autocompleta. La da el NPC **Heimdall** de Asgard (`talkToHeimdall` en gamescene:
+  autocompleta. La da el NPC **Mordekai** de Asgard (`talkToMordekai` en gamescene:
   primera vez la fija, informa del progreso, la cobra y apunta a 1-1). Onboarding.

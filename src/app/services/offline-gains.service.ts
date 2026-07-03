@@ -69,8 +69,6 @@ export interface OfflineGains {
   planetName?: string;
   exploreMeters?: number;        // metros ganados AFK (10/min)
   exploreStars?: number;         // estrellas de los generadores pasivos (star_prod1/2/3)
-  unlockedFlags?: string[];      // flags de mapa a marcar al recoger (idempotente)
-  unlockedMapNames?: string[];   // nombres de esos mapas (para el modal)
   // Recolección (minería / tala)
   gatherSkill?: GatheringSkillId;
   gatherXp?: number;             // XP de la skill acumulada

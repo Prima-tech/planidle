@@ -32,7 +32,7 @@
 </ion-content>
 
 <app-hud-skill-buttons *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)"></app-hud-skill-buttons>
-<!-- El impulso solo existe si se ha comprado su hito (1 estrella) en el panel de hitos. -->
+<!-- El impulso aparece al otorgar el hito 'sprint' (recompensa de la 1ª misión, 5 estrellas). -->
 <app-sprint-button *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async) && (playerStateService.runMilestones$ | async)?.includes('sprint')"></app-sprint-button>
 <!-- Boost: junto al de impulso. Se desbloquea comprando su hito con estrellas. -->
 <app-fly-button *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async) && (playerStateService.runMilestones$ | async)?.includes('boost')"></app-fly-button>
@@ -58,7 +58,5 @@
 <app-achievement-toast></app-achievement-toast>
 
 <app-build-delete-modal></app-build-delete-modal>
-
-<app-map-entrance-modal></app-map-entrance-modal>
 
 <app-map-teleport-hint *ngIf="dataLoaded && sceneVisible"></app-map-teleport-hint>

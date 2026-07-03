@@ -18,7 +18,7 @@
 
     <ng-container [ngSwitch]="gains.kind">
 
-      <!-- Exploración (Modo Mundo): metros recorridos + mapas desbloqueados -->
+      <!-- Exploración (Modo Mundo): metros recorridos + estrellas producidas -->
       <ng-container *ngSwitchCase="'exploring'">
         <div class="afk-section-label">{{ 'OFFLINE.DISTANCE_TRAVELED' | translate }}</div>
         <div class="afk-rows">
@@ -31,16 +31,6 @@
             <span class="afk-value afk-value--exp">+{{ gains.exploreStars | compactNumber }} ★</span>
           </div>
         </div>
-
-        <ng-container *ngIf="gains.unlockedMapNames?.length">
-          <div class="afk-section-label">{{ 'OFFLINE.MAPS_UNLOCKED' | translate }}</div>
-          <div class="afk-rows">
-            <div class="afk-row" *ngFor="let mapName of gains.unlockedMapNames">
-              <span class="afk-label">{{ mapName }}</span>
-              <ion-icon name="lock-open-outline" class="afk-value afk-value--exp"></ion-icon>
-            </div>
-          </div>
-        </ng-container>
       </ng-container>
 
       <!-- Recolección (minería / tala): nodos + XP de la skill -->
