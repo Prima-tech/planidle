@@ -644,7 +644,7 @@
       <button class="ach-cell" *ngFor="let a of achievements.defs(achScope)"
               [class.unlocked]="achievements.isUnlocked(a)"
               [class.selected]="selectedAch?.id === a.id"
-              [title]="a.name"
+              [title]="a.name | translate"
               (click)="selectAch(a)">
         <ion-icon [name]="a.icon"></ion-icon>
       </button>
@@ -796,9 +796,9 @@
     <div class="ach-info-head">
       <ion-icon [name]="selectedAch.icon"
                 [class.unlocked]="achievements.isUnlocked(selectedAch)"></ion-icon>
-      <span class="ach-info-name">{{ selectedAch.name }}</span>
+      <span class="ach-info-name">{{ selectedAch.name | translate }}</span>
     </div>
-    <p class="ach-info-desc">{{ selectedAch.desc }}</p>
+    <p class="ach-info-desc">{{ selectedAch.desc | translate }}</p>
     <div class="ach-info-progress">
       <div class="ach-bar">
         <div class="ach-bar-fill" [style.width.%]="achievements.ratio(selectedAch) * 100"></div>
@@ -929,7 +929,7 @@
 
       <div class="quest-card-main">
         <div class="quest-card-titlerow">
-          <span class="quest-card-name">{{ q.name }}</span>
+          <span class="quest-card-name">{{ q.name | translate }}</span>
           <ion-icon class="quest-card-pin" *ngIf="!done && !quests.isClaimable(q) && quests.isActive(q)" name="pin"></ion-icon>
           <ion-icon class="quest-card-check" *ngIf="done" name="checkmark-circle"></ion-icon>
           <span class="quest-card-progress" *ngIf="!done" [class.ready]="quests.isClaimable(q)">
@@ -948,7 +948,7 @@
     </button>
 
     <div class="quest-card-body" *ngIf="expandedQuestId === q.id">
-      <p class="quest-card-desc">{{ q.desc }}</p>
+      <p class="quest-card-desc">{{ q.desc | translate }}</p>
 
       <div class="quest-reward" *ngIf="q.reward">
         <span class="quest-reward-label">{{ 'QUESTS.REWARD' | translate }}</span>

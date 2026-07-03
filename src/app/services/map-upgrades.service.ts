@@ -18,19 +18,22 @@ import { LOOT_TABLES } from '../physics/griddrops';
 export interface MapUpgradeDef { id: string; name: string; desc: string; icon: string; effect: string; cost: number; }
 export interface MapMaterial { name: string; icon: string; }
 
+// name/desc son CLAVES i18n (se traducen con `| translate` en la ventana de mejoras
+// de mapa). `effect` es una etiqueta corta/símbolo que se muestra tal cual. Ver
+// MAP_UPGRADES.* en los json.
 export const MAP_UPGRADES: MapUpgradeDef[] = [
-  { id: 'unlockElite',    name: 'Desbloquear Élite',    desc: 'Permite que aparezcan enemigos de Élite en este mapa.',        icon: 'flame-outline',   effect: 'Élite',    cost: 50 },
-  { id: 'unlockOblivion', name: 'Desbloquear Oblivion', desc: 'Permite que aparezcan enemigos de Oblivion (requiere Élite).', icon: 'skull-outline',   effect: 'Oblivion', cost: 100 },
-  { id: 'maxEnemies',     name: 'Enemigos máx.',        desc: 'Aumenta el máximo de enemigos a la vez.',                      icon: 'people-outline',  effect: '+1',       cost: 15 },
-  { id: 'respawn',        name: 'Reaparición',          desc: 'Los enemigos reaparecen antes.',                               icon: 'refresh-outline', effect: '−1s',      cost: 15 },
-  { id: 'ore',            name: 'Menas máx.',           desc: 'Sube en 1 el máximo de menas a la vez.',                       icon: 'diamond-outline', effect: '+1',       cost: 25 },
-  { id: 'oreRespawn',     name: 'Respawn de menas',     desc: 'Las menas reaparecen 1s antes.',                               icon: 'hourglass-outline', effect: '−1s',    cost: 25 },
-  { id: 'unlockGem',      name: 'Desbloquear gemas',    desc: 'Permite que aparezcan gemas (máx. 1 a la vez) en este mapa.',  icon: 'prism-outline',   effect: 'Gemas',    cost: 75 },
-  { id: 'gemRespawnMin',  name: 'Reaparición mín. gema', desc: 'Reduce 10s el tiempo MÍNIMO de reaparición de gemas.',         icon: 'hourglass-outline', effect: '−10s',   cost: 40 },
-  { id: 'gemRespawnMax',  name: 'Reaparición máx. gema', desc: 'Reduce 10s el tiempo MÁXIMO de reaparición de gemas.',         icon: 'hourglass-outline', effect: '−10s',   cost: 40 },
-  { id: 'treeMax',        name: 'Árboles máx.',         desc: 'Sube en 1 el máximo de árboles a la vez.',                     icon: 'leaf-outline',    effect: '+1',       cost: 25 },
-  { id: 'treeRespawn',    name: 'Respawn de árboles',   desc: 'Los árboles reaparecen 1s antes.',                             icon: 'hourglass-outline', effect: '−1s',    cost: 25 },
-  { id: 'unlockRabbit',   name: 'Desbloquear conejos',  desc: 'Permite que aparezcan conejos en este mapa.',                  icon: 'paw-outline',     effect: 'Conejos',  cost: 30 },
+  { id: 'unlockElite',    name: 'MAP_UPGRADES.UNLOCK_ELITE.NAME',    desc: 'MAP_UPGRADES.UNLOCK_ELITE.DESC',    icon: 'flame-outline',   effect: 'Élite',    cost: 50 },
+  { id: 'unlockOblivion', name: 'MAP_UPGRADES.UNLOCK_OBLIVION.NAME', desc: 'MAP_UPGRADES.UNLOCK_OBLIVION.DESC', icon: 'skull-outline',   effect: 'Oblivion', cost: 100 },
+  { id: 'maxEnemies',     name: 'MAP_UPGRADES.MAX_ENEMIES.NAME',     desc: 'MAP_UPGRADES.MAX_ENEMIES.DESC',     icon: 'people-outline',  effect: '+1',       cost: 15 },
+  { id: 'respawn',        name: 'MAP_UPGRADES.RESPAWN.NAME',         desc: 'MAP_UPGRADES.RESPAWN.DESC',         icon: 'refresh-outline', effect: '−1s',      cost: 15 },
+  { id: 'ore',            name: 'MAP_UPGRADES.ORE.NAME',             desc: 'MAP_UPGRADES.ORE.DESC',             icon: 'diamond-outline', effect: '+1',       cost: 25 },
+  { id: 'oreRespawn',     name: 'MAP_UPGRADES.ORE_RESPAWN.NAME',     desc: 'MAP_UPGRADES.ORE_RESPAWN.DESC',     icon: 'hourglass-outline', effect: '−1s',    cost: 25 },
+  { id: 'unlockGem',      name: 'MAP_UPGRADES.UNLOCK_GEM.NAME',      desc: 'MAP_UPGRADES.UNLOCK_GEM.DESC',      icon: 'prism-outline',   effect: 'Gemas',    cost: 75 },
+  { id: 'gemRespawnMin',  name: 'MAP_UPGRADES.GEM_RESPAWN_MIN.NAME', desc: 'MAP_UPGRADES.GEM_RESPAWN_MIN.DESC', icon: 'hourglass-outline', effect: '−10s',   cost: 40 },
+  { id: 'gemRespawnMax',  name: 'MAP_UPGRADES.GEM_RESPAWN_MAX.NAME', desc: 'MAP_UPGRADES.GEM_RESPAWN_MAX.DESC', icon: 'hourglass-outline', effect: '−10s',   cost: 40 },
+  { id: 'treeMax',        name: 'MAP_UPGRADES.TREE_MAX.NAME',        desc: 'MAP_UPGRADES.TREE_MAX.DESC',        icon: 'leaf-outline',    effect: '+1',       cost: 25 },
+  { id: 'treeRespawn',    name: 'MAP_UPGRADES.TREE_RESPAWN.NAME',    desc: 'MAP_UPGRADES.TREE_RESPAWN.DESC',    icon: 'hourglass-outline', effect: '−1s',    cost: 25 },
+  { id: 'unlockRabbit',   name: 'MAP_UPGRADES.UNLOCK_RABBIT.NAME',   desc: 'MAP_UPGRADES.UNLOCK_RABBIT.DESC',   icon: 'paw-outline',     effect: 'Conejos',  cost: 30 },
 ];
 
 const STORAGE_KEY = 'map_upgrades';

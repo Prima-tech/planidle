@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { GameSettingsService } from './services/game-settings.service';
 
 @Component({
   selector: 'app-root',
@@ -8,21 +9,19 @@ import { TranslateService } from '@ngx-translate/core';
   standalone: false,
 })
 export class AppComponent {
-  constructor(private translate: TranslateService) {
+  constructor(
+    private translate: TranslateService,
+    private settings: GameSettingsService,
+  ) {
     this.initApp();
   }
 
 
   initApp() {
-    console.log('init app');
-
-    // Configurar idiomas disponibles
+    // Idiomas disponibles + fallback. El idioma activo se lee de los ajustes
+    // (persistido en localStorage); el selector de ajustes lo cambia en caliente.
     this.translate.addLangs(['en', 'es']);
-
-    // Establecer idioma por defecto
     this.translate.setDefaultLang('es');
-
-    // Usar español como idioma inicial
-    this.translate.use('es');
+    this.translate.use(this.settings.language);
   }
 }

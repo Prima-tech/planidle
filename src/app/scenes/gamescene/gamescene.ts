@@ -204,7 +204,7 @@ export class GameScene extends Phaser.Scene {
     private mmSampleCanvas?: HTMLCanvasElement;
     // NPCs vivos en la escena para detectar cercanía y hablar (fijos de la ciudad +
     // reclutables). `recruit` solo lo llevan los reclutables (Kugo en 1-1).
-    private cityNpcs: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string; recruit?: typeof RECRUIT_NPCS[0]; questId?: string; marker?: Phaser.GameObjects.Text }[] = [];
+    private cityNpcs: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; name: string; recruit?: typeof RECRUIT_NPCS[0]; questId?: string; marker?: Phaser.GameObjects.Image }[] = [];
     // Parallax de mar profundo detrás del mapa (cubre el borde azul del juego con
     // dos capas que derivan a distinta velocidad → sensación de profundidad).
     private pxFar?:  Phaser.GameObjects.TileSprite;
@@ -903,27 +903,60 @@ export class GameScene extends Phaser.Scene {
      *  escena se reutiliza; el restart destruye el texto pero recrea el array). */
     private updateNpcQuestMarkers(): void {
       const quests = this.reg.quests;
+      this.ensureQuestMarkerTextures();
       const bob = Math.sin(this.time.now / 300) * 3;   // balanceo lento
       for (const npc of this.cityNpcs) {
         // Referencia muerta tras un restart de escena → soltarla.
         if (npc.marker && !npc.marker.active) npc.marker = undefined;
-        // Estado de la misión → glifo (o vacío si no hay o está completada).
-        let glyph = '';
+        // Estado de la misión → textura (o nada si no hay misión o está completada).
+        let texKey = '';
         if (quests && npc.questId && npc.sprite.active) {
           const def = quests.byId(npc.questId);
-          if (def && !quests.isCompleted(def)) glyph = quests.isClaimable(def) ? '?' : '!';
+          if (def && !quests.isCompleted(def)) texKey = quests.isClaimable(def) ? 'quest_ques' : 'quest_excl';
         }
-        if (!glyph) { npc.marker?.setVisible(false); continue; }
+        if (!texKey) { npc.marker?.setVisible(false); continue; }
         if (!npc.marker) {
-          npc.marker = this.add.text(0, 0, glyph, {
-            fontSize: '60px', color: '#ffd21e', fontStyle: 'bold',
-            stroke: '#5a3b00', strokeThickness: 10,
-          }).setOrigin(0.5, 1).setDepth(6000);
+          npc.marker = this.add.image(0, 0, texKey).setOrigin(0.5, 1).setDepth(6000).setScale(0.72);
         }
-        npc.marker.setText(glyph)
+        npc.marker.setTexture(texKey)
           .setVisible(true)
           .setPosition(npc.sprite.x, npc.sprite.y - npc.sprite.displayHeight * 0.42 + bob);
       }
+    }
+
+    /** Genera (una vez) las texturas de los iconos de misión "!" y "?" con formas
+     *  (barra/gancho + punto separado), en vez de una fuente cuyo "!" se ve pegado.
+     *  Dorado con contorno oscuro, estilo RPG. */
+    private ensureQuestMarkerTextures(): void {
+      if (this.textures.exists('quest_excl')) return;
+      const DARK = 0x3a2600, GOLD = 0xffd21e, W = 80, H = 120, cx = 40, deg = Phaser.Math.DegToRad;
+
+      // "!" — barra redondeada + punto, con hueco claro entre ambos.
+      let g = this.make.graphics({ x: 0, y: 0 }, false);
+      g.lineStyle(9, DARK, 1);
+      g.strokeRoundedRect(cx - 9, 12, 18, 58, 8);
+      g.strokeCircle(cx, 85, 11);
+      g.fillStyle(GOLD, 1);
+      g.fillRoundedRect(cx - 9, 12, 18, 58, 8);
+      g.fillCircle(cx, 85, 11);
+      g.generateTexture('quest_excl', W, H);
+      g.destroy();
+
+      // "?" — gancho (arco + cola) + punto separado.
+      g = this.make.graphics({ x: 0, y: 0 }, false);
+      const hook = (width: number, color: number) => {
+        g.lineStyle(width, color, 1);
+        g.beginPath();
+        g.arc(cx, 36, 18, deg(150), deg(390), false);   // curva superior (izq→arriba→dcha)
+        g.lineTo(cx, 66);                                 // cola baja hasta el centro
+        g.strokePath();
+      };
+      hook(20, DARK);   // contorno
+      hook(12, GOLD);   // relleno
+      g.lineStyle(9, DARK, 1); g.strokeCircle(cx, 85, 11);
+      g.fillStyle(GOLD, 1); g.fillCircle(cx, 85, 11);
+      g.generateTexture('quest_ques', W, H);
+      g.destroy();
     }
 
     private runAutoSkills(delta: number): void {
@@ -3174,13 +3207,21 @@ export class GameScene extends Phaser.Scene {
     /** Habla con un NPC: si es reclutable y aún no está reclutado, suelta su frase de
      *  reclutamiento y lo desbloquea como personaje (flag global → aparece en el
      *  roster); si no, dice su línea normal. */
+    /** Traduce una clave i18n (con params) usando el TranslateService del registro. */
+    private t(key: string, params?: object): string {
+      return this.reg.translate?.instant(key, params) ?? key;
+    }
+
+    /** Nombre del jugador activo (o "viajero"/"traveler" traducido por defecto). */
+    private playerName(): string {
+      return this.reg.asgard?.selectedPlayer?.name ?? this.t('NPC.DEFAULT_PLAYER_NAME');
+    }
+
     private talkToNpc(npc: typeof this.cityNpcs[0]): void {
       // Mordekai: dador de la primera misión (diálogo según su estado).
       if (npc.name === 'Mordekai') { this.talkToMordekai(); return; }
       if (npc.recruit && !this.reg.unlocks?.isCharacterUnlocked(npc.name)) {
-        const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
-        this.reg.dialogue?.show(npc.name,
-          `Hombre ${player}, ¿qué tal? A partir de ahora puedes elegirme para jugar contigo.`);
+        this.reg.dialogue?.show(npc.name, this.t('NPC.RECRUIT_GREETING', { player: this.playerName() }));
         this.reg.unlocks?.setFlag(npc.recruit.charFlag, 'global');
         return;
       }
@@ -3192,43 +3233,39 @@ export class GameScene extends Phaser.Scene {
      *  Portales del hogar: exploración = este (x30), 1-1 = oeste (x17). */
     private talkToMordekai(): void {
       const quests = this.reg.quests;
-      const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
+      const player = this.playerName();
       const def = quests?.byId('primeras_estrellas');
       if (!quests || !def) { this.reg.dialogue?.show('Mordekai', '...'); return; }
 
       // Ya completada → apunta al combate (portal oeste, 1-1).
       if (quests.isCompleted(def)) {
-        this.reg.dialogue?.show('Mordekai',
-          `Cuando quieras luchar de verdad, ${player}, cruza el portal del oeste hacia 1-1. Ahí te esperan los primeros monstruos.`);
+        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_DONE', { player }));
         return;
       }
       // Objetivo alcanzado → cobra aquí mismo y desbloquea el siguiente paso.
       if (quests.isClaimable(def)) {
         quests.claim(def);
-        this.reg.dialogue?.show('Mordekai',
-          `¡Cinco estrellas, ${player}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.`);
+        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_CLAIM', { player }));
         return;
       }
       // En marcha → informa del progreso.
       const prog = quests.progressOf(def);
       if (prog > 0 || quests.isActive(def)) {
-        this.reg.dialogue?.show('Mordekai',
-          `Llevas ${prog}/${quests.goalOf(def)} estrellas. Sigue saltando a por ellas en la exploración (portal del este).`);
+        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_PROGRESS', { prog, goal: quests.goalOf(def) }));
         return;
       }
       // Primera vez → da y fija la misión.
       quests.activate(def);
-      this.reg.dialogue?.show('Mordekai',
-        `Bienvenido a Asgard, ${player}. Soy Mordekai. Antes de luchar, aprende a explorar: cruza el portal del este y trae 5 estrellas. Toca la pantalla para saltar y recógelas al vuelo.`);
+      this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_INTRO', { player }));
     }
 
     /** Línea que dice un NPC al hablarle. Kugo saluda al jugador por su nombre. */
     private npcLine(name: string): string {
-      const player = this.reg.asgard?.selectedPlayer?.name ?? 'viajero';
+      const player = this.playerName();
       switch (name) {
-        case 'Kugo':    return `${player}, ¡cuánto tiempo!`;
-        case 'Italien': return `Eh, ${player}, ¿listo para la aventura?`;
-        case 'Rake':    return `${player}, cuando quieras partimos.`;
+        case 'Kugo':    return this.t('NPC.KUGO_LINE', { player });
+        case 'Italien': return this.t('NPC.ITALIEN_LINE', { player });
+        case 'Rake':    return this.t('NPC.RAKE_LINE', { player });
         default:        return '...';
       }
     }

@@ -48,6 +48,7 @@ import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
 import { AdminService } from 'src/app/services/admin.service';
 import { AudioService } from 'src/app/services/audio.service';
 import { QuestService } from 'src/app/services/quest.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-layout',
@@ -115,6 +116,7 @@ export class LayoutComponent implements OnDestroy {
     private adminService: AdminService,
     private audioService: AudioService,
     private questService: QuestService,
+    private translateService: TranslateService,
   ) {
     this.loadGame();
   }
@@ -285,6 +287,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.ADMIN,            this.adminService);
     this.phaserGame.registry.set(REGISTRY_KEYS.AUDIO,            this.audioService);
     this.phaserGame.registry.set(REGISTRY_KEYS.QUESTS,           this.questService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.TRANSLATE,        this.translateService);
     this.sceneManager.setGame(this.phaserGame);
 
     // Audio: precarga los efectos y desbloquea el contexto tras el primer gesto

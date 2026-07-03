@@ -6,6 +6,8 @@ import { WorldParallaxId } from '../scenes/worldrun/parallax-sets';
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
+export type AppLanguage = 'es' | 'en';
+
 export interface GameSettings {
   showJoystick: boolean;
   showFps: boolean;
@@ -13,6 +15,7 @@ export interface GameSettings {
   screenShake: boolean;       // efectos de pantalla (temblor de cámara + destellos)
   parallaxTheme: ParallaxThemeId;
   worldParallax: WorldParallaxId;
+  language: AppLanguage;      // idioma de la interfaz (ngx-translate)
 }
 
 const STORAGE_KEY = 'idle_game_settings';
@@ -24,6 +27,7 @@ const DEFAULTS: GameSettings = {
   screenShake: true,
   parallaxTheme: 'sea',
   worldParallax: 'paralax01',
+  language: 'es',
 };
 
 // ── Servicio ───────────────────────────────────────────────────────────────────
@@ -77,6 +81,10 @@ export class GameSettingsService {
   get worldParallax(): WorldParallaxId { return this._settings.worldParallax; }
   get worldParallax$()                 { return this._subject.pipe(map(s => s.worldParallax), distinctUntilChanged()); }
   setWorldParallax(v: WorldParallaxId) { this.set('worldParallax', v); }
+
+  get language(): AppLanguage { return this._settings.language; }
+  get language$()             { return this._subject.pipe(map(s => s.language), distinctUntilChanged()); }
+  setLanguage(v: AppLanguage) { this.set('language', v); }
 
   // ── Persistencia ────────────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 <div class="mcw-root">
-  <div class="mcw-title">Mejoras de mapa</div>
+  <div class="mcw-title">{{ 'MAP_UPGRADES.TITLE' | translate }}</div>
 
   <!-- Material del mapa disponible (el drop de sus enemigos). -->
   <div class="mcw-mat" *ngIf="material as mat">
@@ -10,15 +10,15 @@
 
   <!-- Pestañas: por completar / completados -->
   <div class="mcw-tabs">
-    <button class="mcw-tab" [class.active]="tab === 'pending'" (click)="tab = 'pending'">Por completar</button>
-    <button class="mcw-tab" [class.active]="tab === 'done'" (click)="tab = 'done'">Completados</button>
+    <button class="mcw-tab" [class.active]="tab === 'pending'" (click)="tab = 'pending'">{{ 'MAP_UPGRADES.TAB_PENDING' | translate }}</button>
+    <button class="mcw-tab" [class.active]="tab === 'done'" (click)="tab = 'done'">{{ 'MAP_UPGRADES.TAB_DONE' | translate }}</button>
   </div>
 
   <div class="mcw-list">
     <div class="mcw-upgrade" *ngFor="let u of list" [class.is-done]="tab === 'done'">
       <div class="mcw-up-info">
-        <div class="mcw-up-name">{{ u.name }}
-          <span class="mcw-up-desc">{{ u.desc }}</span>
+        <div class="mcw-up-name">{{ u.name | translate }}
+          <span class="mcw-up-desc">{{ u.desc | translate }}</span>
         </div>
         <span class="mcw-up-effect">{{ u.effect }}</span>
       </div>
@@ -33,13 +33,13 @@
     </div>
 
     <div class="mcw-empty" *ngIf="list.length === 0">
-      {{ tab === 'pending' ? 'No quedan mejoras por completar.' : 'Aún no has completado ninguna mejora.' }}
+      {{ (tab === 'pending' ? 'MAP_UPGRADES.NONE_PENDING' : 'MAP_UPGRADES.NONE_DONE') | translate }}
     </div>
   </div>
 
   <!-- Restablecer: vacía Completados; las mejoras vuelven a "Por completar". -->
   <button class="mcw-reset" [disabled]="!canReset" (click)="reset()">
     <ion-icon name="refresh-outline"></ion-icon>
-    <span>Restablecer</span>
+    <span>{{ 'MAP_UPGRADES.RESET' | translate }}</span>
   </button>
 </div>

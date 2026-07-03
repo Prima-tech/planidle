@@ -29,25 +29,27 @@ export interface AchievementDef {
   icon: string;               // ion-icon
 }
 
+// name/desc son CLAVES i18n: se traducen al mostrarlos (panel de logros con
+// `| translate`, toast con translate.instant). Ver ACHIEVEMENTS.* en los json.
 export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Personaje ──────────────────────────────────────────────────────────────
-  { id: 'kills_10',     name: 'Primer sangre', desc: 'Mata tu primer enemigo.',
+  { id: 'kills_10',     name: 'ACHIEVEMENTS.KILLS_10.NAME', desc: 'ACHIEVEMENTS.KILLS_10.DESC',
     scope: 'char', metric: 'kills', goal: 1, icon: 'flash-outline' },
-  { id: 'kills_100',    name: 'Cazador',      desc: 'Mata 100 enemigos con este personaje.',
+  { id: 'kills_100',    name: 'ACHIEVEMENTS.KILLS_100.NAME', desc: 'ACHIEVEMENTS.KILLS_100.DESC',
     scope: 'char', metric: 'kills', goal: 100, icon: 'skull-outline' },
-  { id: 'kills_1000',   name: 'Exterminador', desc: 'Mata 1000 enemigos con este personaje.',
+  { id: 'kills_1000',   name: 'ACHIEVEMENTS.KILLS_1000.NAME', desc: 'ACHIEVEMENTS.KILLS_1000.DESC',
     scope: 'char', metric: 'kills', goal: 1000, icon: 'flame-outline' },
-  { id: 'level_10',     name: 'Veterano',     desc: 'Alcanza el nivel 10.',
+  { id: 'level_10',     name: 'ACHIEVEMENTS.LEVEL_10.NAME', desc: 'ACHIEVEMENTS.LEVEL_10.DESC',
     scope: 'char', metric: 'level', goal: 10, icon: 'arrow-up-circle-outline' },
-  { id: 'coins_10000',  name: 'Tesorero',     desc: 'Acumula 10.000 monedas a lo largo de tu vida.',
+  { id: 'coins_10000',  name: 'ACHIEVEMENTS.COINS_10000.NAME', desc: 'ACHIEVEMENTS.COINS_10000.DESC',
     scope: 'char', metric: 'lifetimeCoins', goal: 10000, icon: 'cash-outline' },
-  { id: 'deaths_10',    name: 'Inmortal a ratos', desc: 'Muere 10 veces. Pasa hasta en las mejores familias.',
+  { id: 'deaths_10',    name: 'ACHIEVEMENTS.DEATHS_10.NAME', desc: 'ACHIEVEMENTS.DEATHS_10.DESC',
     scope: 'char', metric: 'deaths', goal: 10, icon: 'heart-dislike-outline' },
 
   // ── Globales (toda la cuenta) ──────────────────────────────────────────────
-  { id: 'gkills_1000',  name: 'Plaga',        desc: 'Mata 1000 enemigos entre todos tus personajes.',
+  { id: 'gkills_1000',  name: 'ACHIEVEMENTS.GKILLS_1000.NAME', desc: 'ACHIEVEMENTS.GKILLS_1000.DESC',
     scope: 'global', metric: 'kills', goal: 1000, icon: 'earth-outline' },
-  { id: 'gkills_10000', name: 'Apocalipsis',  desc: 'Mata 10.000 enemigos entre todos tus personajes.',
+  { id: 'gkills_10000', name: 'ACHIEVEMENTS.GKILLS_10000.NAME', desc: 'ACHIEVEMENTS.GKILLS_10000.DESC',
     scope: 'global', metric: 'kills', goal: 10000, icon: 'planet-outline' },
 ];
 

@@ -13,7 +13,7 @@
       <!-- Estado de conexión a Supabase -->
       <div class="gs-conn" [class.gs-conn--on]="supabaseConnected">
         <span class="gs-conn-dot"></span>
-        <span class="gs-conn-text">{{ supabaseConnected ? 'Conectado a Supabase' : 'Sin conexión (local)' }}</span>
+        <span class="gs-conn-text">{{ (supabaseConnected ? 'SETTINGS.CONNECTED' : 'SETTINGS.OFFLINE') | translate }}</span>
       </div>
 
       <!-- Guardar partida + Cerrar sesión: misma línea (dos botones) -->
@@ -36,21 +36,36 @@
         </button>
         <button class="rpg-btn gs-save-btn gs-logout-btn" (click)="logout()">
           <span class="gs-save-icon">🚪</span>
-          <span>Cerrar sesión</span>
+          <span>{{ 'SETTINGS.LOGOUT' | translate }}</span>
         </button>
       </div>
 
       <!-- Borrar todo (acción peligrosa): media línea, a la derecha. -->
       <button class="rpg-btn gs-save-btn gs-danger-btn" (click)="clearAll()">
         <span class="gs-save-icon">🗑</span>
-        <span>Borrar</span>
+        <span>{{ 'SETTINGS.DELETE' | translate }}</span>
       </button>
 
       <!-- Borrar la cuenta de Supabase conectada (nube): solo si hay conexión. -->
       <button *ngIf="supabaseConnected" class="rpg-btn gs-save-btn gs-danger-btn" (click)="clearRemoteAccount()">
         <span class="gs-save-icon">☁🗑</span>
-        <span>Borrar cuenta (nube)</span>
+        <span>{{ 'SETTINGS.DELETE_ACCOUNT' | translate }}</span>
       </button>
+
+      <div class="gs-section">
+        <p class="gs-section-label">{{ 'GAME_SETTINGS.LANGUAGE' | translate }}</p>
+
+        <div class="gs-row gs-row-stack">
+          <div class="gs-row-info">
+            <span class="gs-row-title">{{ 'GAME_SETTINGS.LANGUAGE' | translate }}</span>
+            <span class="gs-row-desc">{{ 'GAME_SETTINGS.LANGUAGE_DESC' | translate }}</span>
+          </div>
+          <div class="gs-options">
+            <button class="gs-option-btn" [class.active]="language === 'es'" (click)="setLanguage('es')">Español</button>
+            <button class="gs-option-btn" [class.active]="language === 'en'" (click)="setLanguage('en')">English</button>
+          </div>
+        </div>
+      </div>
 
       <div class="gs-section">
         <p class="gs-section-label">{{ 'GAME_SETTINGS.INTERFACE' | translate }}</p>
@@ -88,12 +103,12 @@
       </div>
 
       <div class="gs-section">
-        <p class="gs-section-label">Sonido</p>
+        <p class="gs-section-label">{{ 'SETTINGS.SOUND' | translate }}</p>
 
         <div class="gs-row">
           <div class="gs-row-info">
-            <span class="gs-row-title">Silenciar</span>
-            <span class="gs-row-desc">Apaga toda la música y los efectos.</span>
+            <span class="gs-row-title">{{ 'SETTINGS.MUTE' | translate }}</span>
+            <span class="gs-row-desc">{{ 'SETTINGS.MUTE_DESC' | translate }}</span>
           </div>
           <div class="gs-toggle" [class.on]="audio.muted" (click)="audio.toggleMuted()">
             <div class="gs-toggle-thumb"></div>
@@ -102,7 +117,7 @@
 
         <div class="gs-row gs-row-stack">
           <div class="gs-row-info">
-            <span class="gs-row-title">Volumen general</span>
+            <span class="gs-row-title">{{ 'SETTINGS.VOLUME_MASTER' | translate }}</span>
             <span class="gs-row-desc">{{ masterPct }}%</span>
           </div>
           <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
@@ -111,7 +126,7 @@
 
         <div class="gs-row gs-row-stack">
           <div class="gs-row-info">
-            <span class="gs-row-title">Efectos (SFX)</span>
+            <span class="gs-row-title">{{ 'SETTINGS.VOLUME_SFX' | translate }}</span>
             <span class="gs-row-desc">{{ sfxPct }}%</span>
           </div>
           <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
@@ -120,7 +135,7 @@
 
         <div class="gs-row gs-row-stack">
           <div class="gs-row-info">
-            <span class="gs-row-title">Música</span>
+            <span class="gs-row-title">{{ 'SETTINGS.VOLUME_MUSIC' | translate }}</span>
             <span class="gs-row-desc">{{ musicPct }}%</span>
           </div>
           <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
@@ -151,8 +166,8 @@
         <!-- Fondo del Modo Mundo (runner), antes en la pestaña "Mundo" -->
         <div class="gs-row gs-row-stack">
           <div class="gs-row-info">
-            <span class="gs-row-title">Fondo del runner</span>
-            <span class="gs-row-desc">Elige el parallax del Modo Mundo.</span>
+            <span class="gs-row-title">{{ 'SETTINGS.RUNNER_BG' | translate }}</span>
+            <span class="gs-row-desc">{{ 'SETTINGS.RUNNER_BG_DESC' | translate }}</span>
           </div>
           <div class="gs-options">
             <button *ngFor="let s of worldParallaxSets"

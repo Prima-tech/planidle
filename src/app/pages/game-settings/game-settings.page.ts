@@ -1,7 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { map } from 'rxjs';
-import { GameSettingsService } from 'src/app/services/game-settings.service';
+import { TranslateService } from '@ngx-translate/core';
+import { GameSettingsService, AppLanguage } from 'src/app/services/game-settings.service';
 import { AudioService } from 'src/app/services/audio.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { SaveService, SaveStatus } from 'src/app/services/save.service';
@@ -34,6 +35,7 @@ export class GameSettingsPageComponent implements OnInit {
   private saveService = inject(SaveService);
   private asgard = inject(AsgardService);
   private playerState = inject(PlayerStateService);
+  private translate = inject(TranslateService);
   private router = inject(Router);
 
   /** Admin: cantidad de monedas a regalar (1..1.000.000) seleccionada en la barra. */
@@ -53,6 +55,14 @@ export class GameSettingsPageComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.supabaseConnected = await this.connection.isConnected();
+  }
+
+  // ── Idioma: persiste el ajuste y lo aplica EN CALIENTE (translate.use) ─────────
+  get language(): AppLanguage { return this.gs.language; }
+  setLanguage(lang: AppLanguage): void {
+    if (this.gs.language === lang) return;
+    this.gs.setLanguage(lang);
+    this.translate.use(lang);   // recarga todos los pipes `| translate` al vuelo
   }
 
   // ── Audio: volúmenes en % para los sliders (el servicio guarda 0..1) ──────────

@@ -76,40 +76,42 @@ export const MAX_ACTIVE_QUESTS = 5;
 // ── Catálogo de misiones ──────────────────────────────────────────────────────
 // El orden aquí es el orden de presentación.
 
+// Los textos (name/desc/track) son CLAVES i18n: se traducen al mostrarlos con el
+// pipe `| translate` (equipment quest panel, HUD tracker). Ver QUESTS.* en los json.
 export const QUESTS: QuestDef[] = [
   {
     id: 'primeras_estrellas',
-    name: 'La llamada de Mordekai',
-    desc: 'Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 5 estrellas: toca la pantalla para saltar y recógelas al vuelo. Al cobrarla aprenderás el Impulso.',
+    name: 'QUESTS.PRIMERAS_ESTRELLAS.NAME',
+    desc: 'QUESTS.PRIMERAS_ESTRELLAS.DESC',
     icon: 'star-outline',
-    track: 'Consigue 5 estrellas',
+    track: 'QUESTS.PRIMERAS_ESTRELLAS.TRACK',
     objective: { type: 'stars', goal: 5 },
     reward: { coins: 100, exp: 40, runMilestone: 'sprint' },
   },
   {
     id: 'plaga_babosas',
-    name: 'Plaga de babosas',
-    desc: 'Algo se mueve entre la hierba. Acaba con tu primer enemigo.',
+    name: 'QUESTS.PLAGA_BABOSAS.NAME',
+    desc: 'QUESTS.PLAGA_BABOSAS.DESC',
     icon: 'water-outline',
-    track: 'Mata 1 enemigo',
+    track: 'QUESTS.PLAGA_BABOSAS.TRACK',
     objective: { type: 'kill', goal: 1 },
     reward: { coins: 150, exp: 60 },
   },
   {
     id: 'kill_50',
-    name: 'Cazador novato',
-    desc: 'Demuestra tu valía derrotando a 50 enemigos cualesquiera.',
+    name: 'QUESTS.KILL_50.NAME',
+    desc: 'QUESTS.KILL_50.DESC',
     icon: 'skull-outline',
-    track: 'Mata enemigos',
+    track: 'QUESTS.KILL_50.TRACK',
     objective: { type: 'kill', goal: 50 },
     reward: { coins: 300, exp: 150 },
   },
   {
     id: 'orcs_5',
-    name: 'Limpieza de orcos',
-    desc: 'Los orcos acechan la zona. Abate a 5 de ellos.',
+    name: 'QUESTS.ORCS_5.NAME',
+    desc: 'QUESTS.ORCS_5.DESC',
     icon: 'flame-outline',
-    track: 'Mata orcos',
+    track: 'QUESTS.ORCS_5.TRACK',
     objective: { type: 'kill', family: 'orc', goal: 5 },
     reward: { coins: 200, exp: 80 },
   },

@@ -11,7 +11,7 @@
     <div class="quest-tracker-inner" *ngIf="!collapsed">
       <div class="qt-row" *ngFor="let q of list" [class.qt-row--ready]="quests.isClaimable(q)">
         <ion-icon class="qt-icon" [name]="q.icon"></ion-icon>
-        <span class="qt-task">{{ q.track || q.name }}</span>
+        <span class="qt-task">{{ (q.track || q.name) | translate }}</span>
         <ion-icon class="qt-ready" *ngIf="quests.isClaimable(q)" name="checkmark-circle"></ion-icon>
         <span class="qt-count" *ngIf="!quests.isClaimable(q)">{{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}</span>
       </div>

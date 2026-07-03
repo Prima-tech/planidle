@@ -28,6 +28,7 @@ import { MapUpgradesService } from '../services/map-upgrades.service';
 import { AdminService } from '../services/admin.service';
 import { AudioService } from '../services/audio.service';
 import { QuestService } from '../services/quest.service';
+import { TranslateService } from '@ngx-translate/core';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
 export const REGISTRY_KEYS = {
@@ -61,6 +62,7 @@ export const REGISTRY_KEYS = {
   ADMIN:            'adminService',
   AUDIO:            'audioService',
   QUESTS:           'questService',
+  TRANSLATE:        'translateService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -97,4 +99,5 @@ export class GameRegistry {
   get admin():           AdminService              { return this.game.registry.get(REGISTRY_KEYS.ADMIN); }
   get audio():           AudioService              { return this.game.registry.get(REGISTRY_KEYS.AUDIO); }
   get quests():          QuestService              { return this.game.registry.get(REGISTRY_KEYS.QUESTS); }
+  get translate():       TranslateService          { return this.game.registry.get(REGISTRY_KEYS.TRANSLATE); }
 }

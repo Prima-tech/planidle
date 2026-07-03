@@ -82,13 +82,13 @@
 
           <!-- Pestañas laterales, FUERA del panel (a la derecha) -->
           <div class="mip-tabs">
-            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'enemies'" (click)="mapInfoTab = 'enemies'" title="Enemigos">
+            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'enemies'" (click)="mapInfoTab = 'enemies'" [title]="'MAP.TAB_ENEMIES' | translate">
               <ion-icon name="skull-outline"></ion-icon>
             </button>
-            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'mining'" (click)="mapInfoTab = 'mining'" title="Minería">
+            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'mining'" (click)="mapInfoTab = 'mining'" [title]="'MAP.TAB_MINING' | translate">
               <ion-icon name="diamond-outline"></ion-icon>
             </button>
-            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'wood'" (click)="mapInfoTab = 'wood'" title="Tala">
+            <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'wood'" (click)="mapInfoTab = 'wood'" [title]="'MAP.TAB_WOOD' | translate">
               <ion-icon name="leaf-outline"></ion-icon>
             </button>
           </div>
@@ -119,11 +119,11 @@
           <!-- Datos del mapa: máximo de enemigos + velocidad de respawn -->
           <div class="mip-rates" *ngIf="d.maxEnemies > 0">
             <div class="mip-rate">
-              <span class="mip-rate-label">Máx. enemigos</span>
+              <span class="mip-rate-label">{{ 'MAP.MAX_ENEMIES' | translate }}</span>
               <span class="mip-rate-val">{{ d.maxEnemies }}</span>
             </div>
             <div class="mip-rate">
-              <span class="mip-rate-label">Respawn</span>
+              <span class="mip-rate-label">{{ 'MAP.RESPAWN' | translate }}</span>
               <span class="mip-rate-val">{{ d.respawnMs / 1000 }}s</span>
             </div>
           </div>
@@ -203,11 +203,11 @@
 
               <!-- Eficiencia de minado actual del personaje -->
               <div class="mip-eff-head">
-                <span class="mip-eff-label"><ion-icon name="flash-outline"></ion-icon>Tu eficiencia de minado</span>
+                <span class="mip-eff-label"><ion-icon name="flash-outline"></ion-icon>{{ 'MAP.MINING_EFFICIENCY' | translate }}</span>
                 <span class="mip-eff-val">{{ d.playerMiningEff }}</span>
               </div>
 
-              <div class="mip-rates-title">Minería</div>
+              <div class="mip-rates-title">{{ 'MAP.MINING' | translate }}</div>
 
               <!-- Un bloque por mineral: cabecera (recurso) + datos debajo. -->
               <div class="mip-res-block" *ngFor="let m of d.minerals">
@@ -219,31 +219,31 @@
                 </div>
                 <div class="mip-stat-list">
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="diamond-outline"></ion-icon>Máx. simultáneas</span>
+                    <span class="mip-stat-label"><ion-icon name="diamond-outline"></ion-icon>{{ 'MAP.MAX_SIMULTANEOUS' | translate }}</span>
                     <span class="mip-stat-val">{{ m.max }}</span>
                   </div>
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="flash-outline"></ion-icon>Eficiencia para 100%</span>
+                    <span class="mip-stat-label"><ion-icon name="flash-outline"></ion-icon>{{ 'MAP.EFFICIENCY_FOR_100' | translate }}</span>
                     <span class="mip-stat-val">{{ m.efficiency }}</span>
                   </div>
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="cube-outline"></ion-icon>Drop por mena</span>
+                    <span class="mip-stat-label"><ion-icon name="cube-outline"></ion-icon>{{ 'MAP.DROP_PER_ORE' | translate }}</span>
                     <span class="mip-stat-val">
                       ×{{ m.dropGuaranteed }}<span class="mip-stat-sub" *ngIf="m.dropPlusChance > 0"> · {{ m.dropPlusChance }}% ×{{ m.dropGuaranteed + 1 }}</span>
                     </span>
                   </div>
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="hourglass-outline"></ion-icon>Reaparición</span>
+                    <span class="mip-stat-label"><ion-icon name="hourglass-outline"></ion-icon>{{ 'MAP.RESPAWN_TIME' | translate }}</span>
                     <span class="mip-stat-val">{{ m.respawnLabel }}</span>
                   </div>
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="time-outline"></ion-icon>AFK por hora</span>
+                    <span class="mip-stat-label"><ion-icon name="time-outline"></ion-icon>{{ 'MAP.AFK_PER_HOUR' | translate }}</span>
                     <span class="mip-stat-val">{{ m.afkPerHour | compactNumber }}/h</span>
                   </div>
                 </div>
               </div>
 
-              <div class="mip-no-spawn" *ngIf="!d.minerals.length">Sin minería en este mapa</div>
+              <div class="mip-no-spawn" *ngIf="!d.minerals.length">{{ 'MAP.NO_MINING' | translate }}</div>
             </div>
 
             <!-- ───── PESTAÑA TALA ───── -->
@@ -251,11 +251,11 @@
 
               <!-- Eficiencia de tala actual del personaje -->
               <div class="mip-eff-head">
-                <span class="mip-eff-label"><ion-icon name="flash-outline"></ion-icon>Tu eficiencia de tala</span>
+                <span class="mip-eff-label"><ion-icon name="flash-outline"></ion-icon>{{ 'MAP.WOOD_EFFICIENCY' | translate }}</span>
                 <span class="mip-eff-val">{{ d.playerWoodEff }}</span>
               </div>
 
-              <div class="mip-rates-title">Tala</div>
+              <div class="mip-rates-title">{{ 'MAP.WOOD' | translate }}</div>
 
               <div class="mip-res-block" *ngIf="d.wood as w">
                 <div class="coins-section mip-res-head">
@@ -266,31 +266,31 @@
                 </div>
                 <div class="mip-stat-list">
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="leaf-outline"></ion-icon>Máx. simultáneos</span>
+                    <span class="mip-stat-label"><ion-icon name="leaf-outline"></ion-icon>{{ 'MAP.MAX_SIMULTANEOUS_M' | translate }}</span>
                     <span class="mip-stat-val">{{ w.max }}</span>
                   </div>
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="flash-outline"></ion-icon>Eficiencia para 100%</span>
+                    <span class="mip-stat-label"><ion-icon name="flash-outline"></ion-icon>{{ 'MAP.EFFICIENCY_FOR_100' | translate }}</span>
                     <span class="mip-stat-val">{{ w.efficiency }}</span>
                   </div>
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="cube-outline"></ion-icon>Drop por árbol</span>
+                    <span class="mip-stat-label"><ion-icon name="cube-outline"></ion-icon>{{ 'MAP.DROP_PER_TREE' | translate }}</span>
                     <span class="mip-stat-val">
                       ×{{ w.dropGuaranteed }}<span class="mip-stat-sub" *ngIf="w.dropPlusChance > 0"> · {{ w.dropPlusChance }}% ×{{ w.dropGuaranteed + 1 }}</span>
                     </span>
                   </div>
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="hourglass-outline"></ion-icon>Reaparición</span>
+                    <span class="mip-stat-label"><ion-icon name="hourglass-outline"></ion-icon>{{ 'MAP.RESPAWN_TIME' | translate }}</span>
                     <span class="mip-stat-val">{{ w.respawnLabel }}</span>
                   </div>
                   <div class="mip-stat-row">
-                    <span class="mip-stat-label"><ion-icon name="time-outline"></ion-icon>AFK por hora</span>
+                    <span class="mip-stat-label"><ion-icon name="time-outline"></ion-icon>{{ 'MAP.AFK_PER_HOUR' | translate }}</span>
                     <span class="mip-stat-val">{{ w.afkPerHour | compactNumber }}/h</span>
                   </div>
                 </div>
               </div>
 
-              <div class="mip-no-spawn" *ngIf="!d.wood">Sin tala en este mapa</div>
+              <div class="mip-no-spawn" *ngIf="!d.wood">{{ 'MAP.NO_WOOD' | translate }}</div>
             </div>
 
           </div><!-- /mip-content -->

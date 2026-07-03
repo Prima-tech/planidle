@@ -76,7 +76,20 @@
     "PAYLOAD": {
       "WILL_SEND": "Will be sent to Supabase",
       "NO_CHANGES": "No changes — nothing will be sent"
-    }
+    },
+    "CONNECTED": "Connected to Supabase",
+    "OFFLINE": "Offline (local)",
+    "LOGOUT": "Log out",
+    "DELETE": "Delete",
+    "DELETE_ACCOUNT": "Delete account (cloud)",
+    "SOUND": "Sound",
+    "MUTE": "Mute",
+    "MUTE_DESC": "Turns off all music and effects.",
+    "VOLUME_MASTER": "Master volume",
+    "VOLUME_SFX": "Effects (SFX)",
+    "VOLUME_MUSIC": "Music",
+    "RUNNER_BG": "Runner background",
+    "RUNNER_BG_DESC": "Choose the World Mode parallax."
   },
   "GAME_SETTINGS": {
     "GAME": "Game",
@@ -104,7 +117,9 @@
     "PARALLAX_WARP_NEON": "Neon",
     "PARALLAX_LAVA": "Lava",
     "PARALLAX_FOG": "Fog",
-    "PARALLAX_MAGIC": "Magic"
+    "PARALLAX_MAGIC": "Magic",
+    "LANGUAGE": "Language",
+    "LANGUAGE_DESC": "Interface language. Applies instantly."
   },
   "SHOP": {
     "TITLE": "Shop"
@@ -201,7 +216,39 @@
     "CHARACTER": "Character",
     "GLOBAL": "Global",
     "UNLOCKED": "Unlocked!",
-    "PENDING": "Pending"
+    "PENDING": "Pending",
+    "KILLS_10": {
+      "NAME": "First Blood",
+      "DESC": "Kill your first enemy."
+    },
+    "KILLS_100": {
+      "NAME": "Hunter",
+      "DESC": "Kill 100 enemies with this character."
+    },
+    "KILLS_1000": {
+      "NAME": "Exterminator",
+      "DESC": "Kill 1000 enemies with this character."
+    },
+    "LEVEL_10": {
+      "NAME": "Veteran",
+      "DESC": "Reach level 10."
+    },
+    "COINS_10000": {
+      "NAME": "Treasurer",
+      "DESC": "Accumulate 10,000 coins over your lifetime."
+    },
+    "DEATHS_10": {
+      "NAME": "Occasionally Immortal",
+      "DESC": "Die 10 times. Happens to the best of us."
+    },
+    "GKILLS_1000": {
+      "NAME": "Plague",
+      "DESC": "Kill 1000 enemies across all your characters."
+    },
+    "GKILLS_10000": {
+      "NAME": "Apocalypse",
+      "DESC": "Kill 10,000 enemies across all your characters."
+    }
   },
   "GATHER_SKILLS": {
     "MINING": "Mining",
@@ -219,7 +266,27 @@
     "DEACTIVATE": "Remove from HUD",
     "FULL": "Max 5 active",
     "NONE_AVAILABLE": "No quests available.",
-    "NONE_COMPLETED": "You haven't completed any quests yet."
+    "NONE_COMPLETED": "You haven't completed any quests yet.",
+    "PRIMERAS_ESTRELLAS": {
+      "NAME": "Mordekai's Call",
+      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and bring back 5 stars: tap the screen to jump and grab them on the fly. Claiming it teaches you the Sprint.",
+      "TRACK": "Collect 5 stars"
+    },
+    "PLAGA_BABOSAS": {
+      "NAME": "Slime Plague",
+      "DESC": "Something stirs in the grass. Take down your first enemy.",
+      "TRACK": "Kill 1 enemy"
+    },
+    "KILL_50": {
+      "NAME": "Rookie Hunter",
+      "DESC": "Prove your worth by defeating 50 enemies of any kind.",
+      "TRACK": "Kill enemies"
+    },
+    "ORCS_5": {
+      "NAME": "Orc Cleanup",
+      "DESC": "Orcs prowl the area. Cut down 5 of them.",
+      "TRACK": "Kill orcs"
+    }
   },
   "PET": {
     "LEVEL": "Level",
@@ -273,7 +340,25 @@
     "DROPS": "Loot / hour",
     "NO_ACTIVE_ENEMIES": "No active enemies",
     "YOUR_POWER": "Your power",
-    "MAP_POWER": "Map power"
+    "MAP_POWER": "Map power",
+    "TAB_ENEMIES": "Enemies",
+    "TAB_MINING": "Mining",
+    "TAB_WOOD": "Logging",
+    "MAX_ENEMIES": "Max enemies",
+    "RESPAWN": "Respawn",
+    "MINING_EFFICIENCY": "Your mining efficiency",
+    "MINING": "Mining",
+    "MAX_SIMULTANEOUS": "Max at once",
+    "EFFICIENCY_FOR_100": "Efficiency for 100%",
+    "DROP_PER_ORE": "Drop per ore",
+    "RESPAWN_TIME": "Respawn",
+    "AFK_PER_HOUR": "AFK per hour",
+    "NO_MINING": "No mining on this map",
+    "WOOD_EFFICIENCY": "Your logging efficiency",
+    "WOOD": "Logging",
+    "MAX_SIMULTANEOUS_M": "Max at once",
+    "DROP_PER_TREE": "Drop per tree",
+    "NO_WOOD": "No logging on this map"
   },
   "SUMMON": {
     "NO_ITEMS": "No items"
@@ -400,5 +485,76 @@
   "COMMON": {
     "LOADING": "...",
     "LOADING_TEXT": "Loading..."
+  },
+  "TOAST": {
+    "ACHIEVEMENT_UNLOCKED": "Achievement unlocked",
+    "QUEST_COMPLETED": "Quest completed"
+  },
+  "NPC": {
+    "DEFAULT_PLAYER_NAME": "traveler",
+    "RECRUIT_GREETING": "Hey {{player}}, how's it going? From now on you can pick me to play with.",
+    "MORDEKAI_DONE": "When you feel like real fighting, {{player}}, cross the west portal to 1-1. The first monsters await you there.",
+    "MORDEKAI_CLAIM": "Five stars, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
+    "MORDEKAI_PROGRESS": "You have {{prog}}/{{goal}} stars. Keep jumping for them in exploration (east portal).",
+    "MORDEKAI_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Before fighting, learn to explore: cross the east portal and bring back 5 stars. Tap the screen to jump and grab them on the fly.",
+    "KUGO_LINE": "{{player}}, long time no see!",
+    "ITALIEN_LINE": "Hey {{player}}, ready for adventure?",
+    "RAKE_LINE": "{{player}}, we set off whenever you want."
+  },
+  "MAP_UPGRADES": {
+    "TITLE": "Map upgrades",
+    "TAB_PENDING": "To complete",
+    "TAB_DONE": "Completed",
+    "NONE_PENDING": "No upgrades left to complete.",
+    "NONE_DONE": "You haven't completed any upgrade yet.",
+    "RESET": "Reset",
+    "UNLOCK_ELITE": {
+      "NAME": "Unlock Elite",
+      "DESC": "Lets Elite enemies appear on this map."
+    },
+    "UNLOCK_OBLIVION": {
+      "NAME": "Unlock Oblivion",
+      "DESC": "Lets Oblivion enemies appear (requires Elite)."
+    },
+    "MAX_ENEMIES": {
+      "NAME": "Max enemies",
+      "DESC": "Increases the max number of enemies at once."
+    },
+    "RESPAWN": {
+      "NAME": "Respawn",
+      "DESC": "Enemies respawn sooner."
+    },
+    "ORE": {
+      "NAME": "Max ores",
+      "DESC": "Raises the max ores at once by 1."
+    },
+    "ORE_RESPAWN": {
+      "NAME": "Ore respawn",
+      "DESC": "Ores respawn 1s sooner."
+    },
+    "UNLOCK_GEM": {
+      "NAME": "Unlock gems",
+      "DESC": "Lets gems appear (max 1 at once) on this map."
+    },
+    "GEM_RESPAWN_MIN": {
+      "NAME": "Gem min respawn",
+      "DESC": "Reduces the MINIMUM gem respawn time by 10s."
+    },
+    "GEM_RESPAWN_MAX": {
+      "NAME": "Gem max respawn",
+      "DESC": "Reduces the MAXIMUM gem respawn time by 10s."
+    },
+    "TREE_MAX": {
+      "NAME": "Max trees",
+      "DESC": "Raises the max trees at once by 1."
+    },
+    "TREE_RESPAWN": {
+      "NAME": "Tree respawn",
+      "DESC": "Trees respawn 1s sooner."
+    },
+    "UNLOCK_RABBIT": {
+      "NAME": "Unlock rabbits",
+      "DESC": "Lets rabbits appear on this map."
+    }
   }
 }

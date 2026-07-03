@@ -76,9 +76,24 @@
     "PAYLOAD": {
       "WILL_SEND": "Se enviará a Supabase",
       "NO_CHANGES": "Sin cambios — no se enviará nada"
-    }
+    },
+    "CONNECTED": "Conectado a Supabase",
+    "OFFLINE": "Sin conexión (local)",
+    "LOGOUT": "Cerrar sesión",
+    "DELETE": "Borrar",
+    "DELETE_ACCOUNT": "Borrar cuenta (nube)",
+    "SOUND": "Sonido",
+    "MUTE": "Silenciar",
+    "MUTE_DESC": "Apaga toda la música y los efectos.",
+    "VOLUME_MASTER": "Volumen general",
+    "VOLUME_SFX": "Efectos (SFX)",
+    "VOLUME_MUSIC": "Música",
+    "RUNNER_BG": "Fondo del runner",
+    "RUNNER_BG_DESC": "Elige el parallax del Modo Mundo."
   },
   "GAME_SETTINGS": {
+    "LANGUAGE": "Idioma",
+    "LANGUAGE_DESC": "Idioma de la interfaz. Se aplica al instante.",
     "GAME": "Juego",
     "INTERFACE": "Interfaz",
     "SHOW_JOYSTICK": "Mostrar joystick",
@@ -201,7 +216,39 @@
     "CHARACTER": "Personaje",
     "GLOBAL": "Globales",
     "UNLOCKED": "¡Conseguido!",
-    "PENDING": "Pendiente"
+    "PENDING": "Pendiente",
+    "KILLS_10": {
+      "NAME": "Primer sangre",
+      "DESC": "Mata tu primer enemigo."
+    },
+    "KILLS_100": {
+      "NAME": "Cazador",
+      "DESC": "Mata 100 enemigos con este personaje."
+    },
+    "KILLS_1000": {
+      "NAME": "Exterminador",
+      "DESC": "Mata 1000 enemigos con este personaje."
+    },
+    "LEVEL_10": {
+      "NAME": "Veterano",
+      "DESC": "Alcanza el nivel 10."
+    },
+    "COINS_10000": {
+      "NAME": "Tesorero",
+      "DESC": "Acumula 10.000 monedas a lo largo de tu vida."
+    },
+    "DEATHS_10": {
+      "NAME": "Inmortal a ratos",
+      "DESC": "Muere 10 veces. Pasa hasta en las mejores familias."
+    },
+    "GKILLS_1000": {
+      "NAME": "Plaga",
+      "DESC": "Mata 1000 enemigos entre todos tus personajes."
+    },
+    "GKILLS_10000": {
+      "NAME": "Apocalipsis",
+      "DESC": "Mata 10.000 enemigos entre todos tus personajes."
+    }
   },
   "GATHER_SKILLS": {
     "MINING": "Minería",
@@ -219,7 +266,27 @@
     "DEACTIVATE": "Quitar del HUD",
     "FULL": "Máx. 5 activas",
     "NONE_AVAILABLE": "No hay misiones disponibles.",
-    "NONE_COMPLETED": "Aún no has completado ninguna misión."
+    "NONE_COMPLETED": "Aún no has completado ninguna misión.",
+    "PRIMERAS_ESTRELLAS": {
+      "NAME": "La llamada de Mordekai",
+      "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 5 estrellas: toca la pantalla para saltar y recógelas al vuelo. Al cobrarla aprenderás el Impulso.",
+      "TRACK": "Consigue 5 estrellas"
+    },
+    "PLAGA_BABOSAS": {
+      "NAME": "Plaga de babosas",
+      "DESC": "Algo se mueve entre la hierba. Acaba con tu primer enemigo.",
+      "TRACK": "Mata 1 enemigo"
+    },
+    "KILL_50": {
+      "NAME": "Cazador novato",
+      "DESC": "Demuestra tu valía derrotando a 50 enemigos cualesquiera.",
+      "TRACK": "Mata enemigos"
+    },
+    "ORCS_5": {
+      "NAME": "Limpieza de orcos",
+      "DESC": "Los orcos acechan la zona. Abate a 5 de ellos.",
+      "TRACK": "Mata orcos"
+    }
   },
   "PET": {
     "LEVEL": "Nivel",
@@ -273,7 +340,25 @@
     "DROPS": "Botín / hora",
     "NO_ACTIVE_ENEMIES": "Sin enemigos activos",
     "YOUR_POWER": "Tu poder",
-    "MAP_POWER": "Poder del mapa"
+    "MAP_POWER": "Poder del mapa",
+    "TAB_ENEMIES": "Enemigos",
+    "TAB_MINING": "Minería",
+    "TAB_WOOD": "Tala",
+    "MAX_ENEMIES": "Máx. enemigos",
+    "RESPAWN": "Respawn",
+    "MINING_EFFICIENCY": "Tu eficiencia de minado",
+    "MINING": "Minería",
+    "MAX_SIMULTANEOUS": "Máx. simultáneas",
+    "EFFICIENCY_FOR_100": "Eficiencia para 100%",
+    "DROP_PER_ORE": "Drop por mena",
+    "RESPAWN_TIME": "Reaparición",
+    "AFK_PER_HOUR": "AFK por hora",
+    "NO_MINING": "Sin minería en este mapa",
+    "WOOD_EFFICIENCY": "Tu eficiencia de tala",
+    "WOOD": "Tala",
+    "MAX_SIMULTANEOUS_M": "Máx. simultáneos",
+    "DROP_PER_TREE": "Drop por árbol",
+    "NO_WOOD": "Sin tala en este mapa"
   },
   "SUMMON": {
     "NO_ITEMS": "Sin items"
@@ -400,5 +485,76 @@
   "COMMON": {
     "LOADING": "...",
     "LOADING_TEXT": "Cargando..."
+  },
+  "TOAST": {
+    "ACHIEVEMENT_UNLOCKED": "Logro desbloqueado",
+    "QUEST_COMPLETED": "Misión completada"
+  },
+  "NPC": {
+    "DEFAULT_PLAYER_NAME": "viajero",
+    "RECRUIT_GREETING": "Hombre {{player}}, ¿qué tal? A partir de ahora puedes elegirme para jugar contigo.",
+    "MORDEKAI_DONE": "Cuando quieras luchar de verdad, {{player}}, cruza el portal del oeste hacia 1-1. Ahí te esperan los primeros monstruos.",
+    "MORDEKAI_CLAIM": "¡Cinco estrellas, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
+    "MORDEKAI_PROGRESS": "Llevas {{prog}}/{{goal}} estrellas. Sigue saltando a por ellas en la exploración (portal del este).",
+    "MORDEKAI_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Antes de luchar, aprende a explorar: cruza el portal del este y trae 5 estrellas. Toca la pantalla para saltar y recógelas al vuelo.",
+    "KUGO_LINE": "{{player}}, ¡cuánto tiempo!",
+    "ITALIEN_LINE": "Eh, {{player}}, ¿listo para la aventura?",
+    "RAKE_LINE": "{{player}}, cuando quieras partimos."
+  },
+  "MAP_UPGRADES": {
+    "TITLE": "Mejoras de mapa",
+    "TAB_PENDING": "Por completar",
+    "TAB_DONE": "Completados",
+    "NONE_PENDING": "No quedan mejoras por completar.",
+    "NONE_DONE": "Aún no has completado ninguna mejora.",
+    "RESET": "Restablecer",
+    "UNLOCK_ELITE": {
+      "NAME": "Desbloquear Élite",
+      "DESC": "Permite que aparezcan enemigos de Élite en este mapa."
+    },
+    "UNLOCK_OBLIVION": {
+      "NAME": "Desbloquear Oblivion",
+      "DESC": "Permite que aparezcan enemigos de Oblivion (requiere Élite)."
+    },
+    "MAX_ENEMIES": {
+      "NAME": "Enemigos máx.",
+      "DESC": "Aumenta el máximo de enemigos a la vez."
+    },
+    "RESPAWN": {
+      "NAME": "Reaparición",
+      "DESC": "Los enemigos reaparecen antes."
+    },
+    "ORE": {
+      "NAME": "Menas máx.",
+      "DESC": "Sube en 1 el máximo de menas a la vez."
+    },
+    "ORE_RESPAWN": {
+      "NAME": "Respawn de menas",
+      "DESC": "Las menas reaparecen 1s antes."
+    },
+    "UNLOCK_GEM": {
+      "NAME": "Desbloquear gemas",
+      "DESC": "Permite que aparezcan gemas (máx. 1 a la vez) en este mapa."
+    },
+    "GEM_RESPAWN_MIN": {
+      "NAME": "Reaparición mín. gema",
+      "DESC": "Reduce 10s el tiempo MÍNIMO de reaparición de gemas."
+    },
+    "GEM_RESPAWN_MAX": {
+      "NAME": "Reaparición máx. gema",
+      "DESC": "Reduce 10s el tiempo MÁXIMO de reaparición de gemas."
+    },
+    "TREE_MAX": {
+      "NAME": "Árboles máx.",
+      "DESC": "Sube en 1 el máximo de árboles a la vez."
+    },
+    "TREE_RESPAWN": {
+      "NAME": "Respawn de árboles",
+      "DESC": "Los árboles reaparecen 1s antes."
+    },
+    "UNLOCK_RABBIT": {
+      "NAME": "Desbloquear conejos",
+      "DESC": "Permite que aparezcan conejos en este mapa."
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 import { AchievementService } from 'src/app/services/achievement.service';
 import { QuestService } from 'src/app/services/quest.service';
 import { UnlockService } from 'src/app/services/unlock.service';
@@ -25,6 +26,7 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
   private achievements = inject(AchievementService);
   private quests = inject(QuestService);
   private unlocks = inject(UnlockService);
+  private translate = inject(TranslateService);
   private subs: Subscription[] = [];
   private nextId = 0;
 
@@ -33,9 +35,9 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subs.push(
       this.achievements.unlocked$.subscribe(def =>
-        this.show(def.icon, def.name, 'Logro desbloqueado')),
+        this.show(def.icon, def.name, 'TOAST.ACHIEVEMENT_UNLOCKED')),
       this.quests.completed$.subscribe(def =>
-        this.show(def.icon, def.name, 'Misión completada')),
+        this.show(def.icon, def.name, 'TOAST.QUEST_COMPLETED')),
       // Solo las features con `toast` definido muestran pastilla (p.ej. mapas).
       this.unlocks.unlocked$.subscribe(def => {
         if (def.toast) this.show(def.toast.icon, def.name ?? '', def.toast.label);
@@ -48,7 +50,14 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
   }
 
   private show(icon: string, name: string, label: string): void {
-    const toast: Toast = { icon, name, label, id: this.nextId++, leaving: false };
+    // name/label pueden ser claves i18n (logros/misiones) o texto ya literal
+    // (unlocks); instant() traduce las claves y deja el texto plano intacto.
+    const toast: Toast = {
+      icon,
+      name: this.translate.instant(name),
+      label: this.translate.instant(label),
+      id: this.nextId++, leaving: false,
+    };
     this.toasts.push(toast);
 
     setTimeout(() => {

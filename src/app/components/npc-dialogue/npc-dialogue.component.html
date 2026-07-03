@@ -6,7 +6,7 @@
       type="button"
       aria-label="Finalizar conversación"
       (click)="$event.stopPropagation(); dismiss()">✕</button>
-    <div class="dlg-text">{{ line.text }}</div>
-    <div class="dlg-hint" *ngIf="line.hasNext">▼</div>
+    <div class="dlg-text" #dlgText>{{ displayText }}</div>
+    <div class="dlg-hint" *ngIf="!hasMorePages && line.hasNext">▼</div>
   </div>
 </div>
