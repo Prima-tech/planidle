@@ -7,22 +7,23 @@
   </button>
 
   <div class="eq-vtabs">
+    <!-- Equipo: siempre. El resto se desbloquea en el onboarding (ver tabVisible). -->
     <button class="eq-vtab" [class.active]="activeTab === 0" (click)="activeTab = 0">
       <ion-icon name="shield-outline"></ion-icon>
     </button>
-    <button class="eq-vtab" [class.active]="activeTab === 2" (click)="activeTab = 2">
+    <button class="eq-vtab" *ngIf="tabVisible(2)" [class.active]="activeTab === 2" (click)="activeTab = 2">
       <ion-icon name="podium-outline"></ion-icon>
     </button>
-    <button class="eq-vtab" [class.active]="activeTab === 4" (click)="activeTab = 4">
+    <button class="eq-vtab" *ngIf="tabVisible(4)" [class.active]="activeTab === 4" (click)="activeTab = 4">
       <ion-icon name="git-network-outline"></ion-icon>
     </button>
-    <button class="eq-vtab" [class.active]="activeTab === 7" (click)="activeTab = 7">
+    <button class="eq-vtab" *ngIf="tabVisible(7)" [class.active]="activeTab === 7" (click)="activeTab = 7">
       <ion-icon name="leaf-outline"></ion-icon>
     </button>
-    <button class="eq-vtab" [class.active]="activeTab === 5" (click)="activeTab = 5">
+    <button class="eq-vtab" *ngIf="tabVisible(5)" [class.active]="activeTab === 5" (click)="activeTab = 5">
       <ion-icon name="trophy-outline"></ion-icon>
     </button>
-    <button class="eq-vtab" [class.active]="activeTab === 6" (click)="activeTab = 6">
+    <button class="eq-vtab" *ngIf="tabVisible(6)" [class.active]="activeTab === 6" (click)="activeTab = 6">
       <ion-icon name="reader-outline"></ion-icon>
       <span class="notif-dot" *ngIf="badges.has('equip.quests')"></span>
     </button>
@@ -65,15 +66,18 @@
           <ion-icon [name]="showGathering ? 'shield-outline' : 'bag-handle-outline'"></ion-icon>
         </button>
       </div>
-      <!-- Pastilla con los 6 stats base: abre el flyout de reparto de puntos -->
+      <!-- Pastilla con los 6 stats base: abre el flyout de reparto de puntos.
+           Bloqueada hasta tener el 1er punto libre (nivel ≥ 2): se ve, pero no abre. -->
       <div class="base-stats-plaque"
            [class.open]="statsFlyoutOpen"
+           [class.locked]="!statsAllocUnlocked"
            (click)="toggleStatsFlyout()">
         <div class="bsp-cell" *ngFor="let s of statsList">
           <span class="bsp-label">{{ s.label }}</span>
           <span class="bsp-val">{{ charStats.stats[s.key] }}</span>
         </div>
-        <span class="notif-dot" *ngIf="badges.has('equip.stats')"></span>
+        <span class="notif-dot" *ngIf="statsAllocUnlocked && badges.has('equip.stats')"></span>
+        <ion-icon class="bsp-lock" name="lock-closed" *ngIf="!statsAllocUnlocked"></ion-icon>
       </div>
     </div>
 
@@ -814,7 +818,7 @@
   </div>
 
   <!-- Flyout de stats: aparece a la derecha al pinchar la pastilla del tab 0 -->
-  <div class="talent-picker-flyout stats-flyout" *ngIf="activeTab === 0 && statsFlyoutOpen">
+  <div class="talent-picker-flyout stats-flyout" *ngIf="activeTab === 0 && statsFlyoutOpen && statsAllocUnlocked">
     <ng-container *ngIf="{ pts: freePoints$ | async } as vm">
       <div class="stat-points-bar" [class.empty]="vm.pts <= 0">
         <span>{{ 'STAT.FREE_POINTS' | translate }}</span>
@@ -967,7 +971,7 @@
       </div>
 
       <!-- Objetivo cumplido: botón para cobrar la recompensa -->
-      <button class="rpg-btn rpg-btn--sm quest-claim-btn" *ngIf="quests.isClaimable(q)" (click)="quests.claim(q)">
+      <button class="rpg-btn rpg-btn--sm quest-claim-btn" *ngIf="quests.isClaimable(q)" (click)="claimQuest(q)">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         {{ 'QUESTS.CLAIM' | translate }}
       </button>

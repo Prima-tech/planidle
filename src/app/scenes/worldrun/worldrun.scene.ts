@@ -512,6 +512,9 @@ export class WorldRunScene extends Phaser.Scene {
     // Avisar a la UI Angular: oculta minimapa/skills/toggle del footer y convierte
     // el botón de ataque en botón de salto (que emite por jumpRequest$).
     this.reg.playerBridge.setRunMode(true);
+    // El runner es pantalla completa: cierra cualquier ventana que quedara abierta en la
+    // ciudad (inventario, equipo, info de mapa, roster…). Lo escuchan footer y top-bar.
+    this.reg.playerBridge.requestCloseMenus();
     this.reg.activity?.set('exploring');   // actividad AFK: explorando el Modo Mundo
     this.jumpSub = this.reg.playerBridge.jumpRequest$.subscribe(() => this.pressJump());
     this.jumpReleaseSub = this.reg.playerBridge.jumpReleaseRequest$.subscribe(() => this.releaseJump());
@@ -1143,7 +1146,7 @@ export class WorldRunScene extends Phaser.Scene {
       if (absdx < RAT_STOMP_HALF_W && onBack && falling) {
         this.rats.splice(i, 1);
         this.playRatDeath(s);
-        this.killReward(s.x, s.y - 40);
+        this.killRatReward(s.x, s.y - 40);
         this.player.setVelocityY(-RAT_STOMP_BOUNCE);
         continue;
       }
@@ -1740,7 +1743,15 @@ export class WorldRunScene extends Phaser.Scene {
     const rat = this.rats[i];
     this.rats.splice(i, 1);
     this.playRatDeath(rat.sprite);
-    this.killReward(rat.sprite.x, rat.sprite.y - 40);
+    this.killRatReward(rat.sprite.x, rat.sprite.y - 40);
+  }
+
+  /** Recompensa de una rata: la de mundo (estrellas/HUD) + cuenta la baja para las
+   *  misiones de matar (family 'rats'). Solo las ratas la usan (no los fénix), para
+   *  que la misión de la rata no la satisfaga otro enemigo del Modo Mundo. */
+  private killRatReward(x: number, y: number): void {
+    this.killReward(x, y);
+    this.reg.kill?.emitQuestKill('rats_world');
   }
 
   /** Mata el fénix `i` (habilidades) — anim de caída + kill contabilizado. */

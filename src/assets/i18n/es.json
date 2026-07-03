@@ -119,7 +119,9 @@
     "PARALLAX_WARP_NEON": "Neón",
     "PARALLAX_LAVA": "Lava",
     "PARALLAX_FOG": "Niebla",
-    "PARALLAX_MAGIC": "Mágico"
+    "PARALLAX_MAGIC": "Mágico",
+    "CAMERA_BOUNDS": "Cámara limitada al mapa",
+    "CAMERA_BOUNDS_DESC": "La cámara se detiene en el borde del mapa y no muestra el vacío. Desactívalo para seguimiento libre."
   },
   "SHOP": {
     "TITLE": "Tienda"
@@ -272,6 +274,11 @@
       "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 1 estrella: toca la pantalla para saltar y recógela al vuelo. Al cobrarla aprenderás el Impulso.",
       "TRACK": "Consigue 1 estrella"
     },
+    "MATA_RATA": {
+      "NAME": "Rata hachiática",
+      "DESC": "Mordekai quiere que pruebes el acero. Vuelve a la exploración y acaba con 1 rata hachiática, el enemigo de tierra que corretea a ras de suelo.",
+      "TRACK": "Mata 1 rata"
+    },
     "PLAGA_BABOSAS": {
       "NAME": "Plaga de babosas",
       "DESC": "Algo se mueve entre la hierba. Acaba con tu primer enemigo.",
@@ -415,6 +422,7 @@
   },
   "RUN": {
     "RECORD_DISTANCE": "Récord de distancia",
+    "KILLS": "Enemigos abatidos",
     "DEATHS": "Muertes",
     "MILESTONES": "Hitos",
     "MS_PENDING": "Objetivos",
@@ -495,6 +503,8 @@
     "RECRUIT_GREETING": "Hombre {{player}}, ¿qué tal? A partir de ahora puedes elegirme para jugar contigo.",
     "MORDEKAI_DONE": "Cuando quieras luchar de verdad, {{player}}, cruza el portal del oeste hacia 1-1. Ahí te esperan los primeros monstruos.",
     "MORDEKAI_CLAIM": "¡Ya tienes tu estrella, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
+    "MORDEKAI_CLAIM1": "¡Bien hecho, bro! Ahora mata 1 rata hachiática. Las verás en la exploración, correteando a ras de suelo.",
+    "MORDEKAI_CLAIM2": "¡Buena, bro!",
     "MORDEKAI_PROGRESS": "Llevas {{prog}}/{{goal}} estrellas. Sigue saltando a por ellas en la exploración (portal del este).",
     "MORDEKAI_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Antes de luchar, aprende a explorar: cruza el portal del este y trae 1 estrella. Toca la pantalla para saltar y recógela al vuelo.",
     "KUGO_LINE": "{{player}}, ¡cuánto tiempo!",

@@ -32,9 +32,6 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
   pages: string[] = [];
   pageIndex = 0;
 
-  /** Canvas compartido para medir el texto (word-wrap). */
-  private static readonly measureCanvas = document.createElement('canvas');
-
   private static readonly LEAVE_MS = 180;
   /** Ventana tras abrir en la que se ignora el clic (el navegador sintetiza un
    *  'click' al soltar el toque de apertura → pasaría de página al instante). */
@@ -44,7 +41,9 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
   private leaveTimer?: ReturnType<typeof setTimeout>;
 
   ngOnInit(): void {
-    this.sub = this.dialogue.line$.subscribe(line => {
+    // La tecla espacio (desde la escena Phaser) actúa igual que un toque en el cuadro.
+    this.sub = this.dialogue.next$.subscribe(() => this.onBoxClick());
+    this.sub.add(this.dialogue.line$.subscribe(line => {
       if (line) {
         clearTimeout(this.leaveTimer);
         this.leaving = false;
@@ -64,7 +63,7 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
           this.leaving = false;
         }, NpcDialogueComponent.LEAVE_MS);
       }
-    });
+    }));
   }
 
   ngOnDestroy(): void {
@@ -93,33 +92,55 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
 
   dismiss(): void { this.dialogue.dismiss(); }
 
-  /** Corta `line.text` en páginas de 2 líneas visuales según el ancho real del cuadro. */
+  /**
+   * Corta `line.text` en páginas de ≤2 líneas visuales. Mide contra el DOM REAL
+   * (un div oculto que hereda fuente + letter-spacing del cuadro), no con canvas:
+   * measureText ignora el letter-spacing y el kerning, así que subestimaba las líneas
+   * y dejaba el texto en una sola página recortada por el clamp CSS (sin poder avanzar).
+   */
   private paginate(): void {
     const el = this.dlgTextRef?.nativeElement;
     if (!el || !this.line) return;
     const avail = el.clientWidth;
     if (avail <= 0) { setTimeout(() => this.paginate()); return; }   // aún sin layout
 
-    const ctx = NpcDialogueComponent.measureCanvas.getContext('2d');
-    if (!ctx) { this.pages = [this.line.text]; return; }
     const cs = getComputedStyle(el);
-    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4;
+    const maxTwoLines = lineHeight * 2 + 1;   // +1px de tolerancia de redondeo
 
-    // Reservamos hueco para el " …" al final de la línea, para que quepa sin cortar palabra.
-    const lineMax = Math.max(10, avail - ctx.measureText('  …').width);
+    // Div de medición: mismo ancho y tipografía, pero sin recorte y con alto automático.
+    const meas = document.createElement('div');
+    Object.assign(meas.style, {
+      position: 'absolute', visibility: 'hidden', left: '-9999px', top: '0',
+      width: avail + 'px', font: cs.font, fontFamily: cs.fontFamily,
+      fontSize: cs.fontSize, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle,
+      lineHeight: cs.lineHeight, letterSpacing: cs.letterSpacing,
+      wordSpacing: cs.wordSpacing, whiteSpace: 'normal',
+    } as Partial<CSSStyleDeclaration>);
+    // Colgado del cuadro padre (no del propio .dlg-text, que es un -webkit-box con
+    // line-clamp que falsearía el alto). Hereda el letter-spacing real.
+    const host = el.parentElement ?? document.body;
+    host.appendChild(meas);
 
-    const words = this.line.text.split(/\s+/).filter(Boolean);
-    const lines: string[] = [];
-    let cur = '';
-    for (const w of words) {
-      const test = cur ? cur + ' ' + w : w;
-      if (!cur || ctx.measureText(test).width <= lineMax) cur = test;
-      else { lines.push(cur); cur = w; }
+    const fits = (s: string) => { meas.textContent = s; return meas.clientHeight <= maxTwoLines; };
+
+    let pages: string[];
+    if (fits(this.line.text)) {
+      pages = [this.line.text];   // cabe entero en 2 líneas → una sola página
+    } else {
+      // Reservamos el " …" en cada página (todas menos la última lo mostrarán).
+      pages = [];
+      const words = this.line.text.split(/\s+/).filter(Boolean);
+      let cur: string[] = [];
+      for (const w of words) {
+        const test = [...cur, w];
+        if (cur.length && !fits(test.join(' ') + ' …')) { pages.push(cur.join(' ')); cur = [w]; }
+        else cur = test;
+      }
+      if (cur.length) pages.push(cur.join(' '));
     }
-    if (cur) lines.push(cur);
 
-    const pages: string[] = [];
-    for (let i = 0; i < lines.length; i += 2) pages.push(lines.slice(i, i + 2).join(' '));
+    host.removeChild(meas);
     this.pages = pages.length ? pages : [this.line.text];
     this.pageIndex = 0;
   }

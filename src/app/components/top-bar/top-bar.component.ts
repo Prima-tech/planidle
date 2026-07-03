@@ -222,9 +222,12 @@ export class TopBarComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  /** Récord de distancia y muertes de la expedición (Modo Mundo): se muestran en el
-   *  panel desplegable de la barra de vida cuando el personaje está explorando. */
+  /** Récord de distancia, enemigos abatidos y muertes de la expedición (Modo Mundo):
+   *  se muestran en el panel desplegable de la barra de vida al explorar. `kills$` es
+   *  el contador de la expedición actual (se reinicia por run), sube en vivo al matar
+   *  bichos en exploración (addWorldKills). */
   recordDistance$ = this.playerState.worldBestDistanceM$;
+  kills$ = this.playerState.currentKills$;
   deaths$ = this.playerState.currentDeaths$;
 
   /** ¿El personaje está en el Modo Mundo ahora mismo? (la CD del tick lo reevalúa). */

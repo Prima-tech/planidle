@@ -16,6 +16,8 @@ import { AchievementService, AchievementDef, AchievementScope } from 'src/app/se
 import { QuestService, QuestDef } from 'src/app/services/quest.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
+import { DialogueService } from 'src/app/services/dialogue.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-equipment',
@@ -33,6 +35,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   quests = inject(QuestService);
   private playerBridge = inject(PlayerBridgeService);
   private asgard = inject(AsgardService);
+  private dialogue = inject(DialogueService);
+  private translate = inject(TranslateService);
   admin = inject(AdminService);
 
   // Cooldown de la poción auto-equipada (overlay sobre el slot)
@@ -84,6 +88,21 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   /** Muestra el icono de novedad: reclamable y aún no abierta. */
   questIsNew(q: QuestDef): boolean {
     return this.quests.isClaimable(q) && !this.seenQuests.has(q.id);
+  }
+
+  /** Cobra una misión desde el botón "Completar": entrega la recompensa y, si la
+   *  misión define un diálogo de cierre (claimDialogue), CIERRA la ventana de equipo
+   *  y suelta a Mordekai. El diálogo va en modo `manual` para que la escena no lo
+   *  descarte al no estar el jugador junto al NPC (ver GameScene, línea del isManual).
+   *  claim() además encadena y fija la siguiente misión (requires === esta). */
+  claimQuest(q: QuestDef): void {
+    if (!this.quests.isClaimable(q)) return;
+    const dlg = q.claimDialogue;
+    this.quests.claim(q);
+    if (!dlg) return;
+    this.asgard.closeAllMenus();   // cierra la ventana de equipo (modal no persistente)
+    const player = this.asgard.selectedPlayer?.name ?? this.translate.instant('NPC.DEFAULT_PLAYER_NAME');
+    this.dialogue.show(dlg.speaker, this.translate.instant(dlg.text, { player }), { manual: true });
   }
 
   // Vista de equipo (tab 0): combate ↔ recolección comparten el mismo preview
@@ -183,10 +202,46 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this.expandedAchId = this.expandedAchId === a.id ? null : a.id;
   }
 
+  // ── Desbloqueos de onboarding de la ventana de equipo ────────────────────────
+  // Al empezar una partida SOLO se ve la pestaña de Equipo. El resto se desbloquea:
+  //  · Misiones (tab 6): cuando Mordekai da la 1ª misión ('primeras_estrellas' activa/completada).
+  //  · Modificación de stats (flyout de tab 0): al tener el 1er punto libre (nivel ≥ 2).
+  //  · Stats/Talentos/Logros/Recolección (tabs 2/4/5/7): PENDIENTE de condición → de
+  //    momento ocultas (solo visibles en modo admin). Cablear su condición cuando se defina.
+  // Admin ve todo (mismo criterio que el árbol de talentos / isCharacterUnlocked).
+
+  /** Mordekai ya dio la primera misión → se muestra la pestaña de Misiones. */
+  get missionsUnlocked(): boolean {
+    if (this.admin.isAdmin) return true;
+    const def = this.quests.byId('primeras_estrellas');
+    return !!def && (this.quests.isActive(def) || this.quests.isCompleted(def));
+  }
+
+  /** Tienes ya el 1er punto libre (nivel ≥ 2) → puedes abrir la modificación de stats. */
+  get statsAllocUnlocked(): boolean {
+    return this.admin.isAdmin || this.playerState.snapshot().lvl > 1;
+  }
+
+  /** Pestañas Stats/Talentos/Logros/Recolección: aún sin condición → ocultas (salvo admin). */
+  get pendingTabsUnlocked(): boolean {
+    return this.admin.isAdmin;
+  }
+
+  /** ¿Debe verse la pestaña `index`? (Equipo siempre; el resto según su desbloqueo). */
+  tabVisible(index: number): boolean {
+    switch (index) {
+      case 0: return true;
+      case 6: return this.missionsUnlocked;
+      case 2: case 4: case 5: case 7: return this.pendingTabsUnlocked;
+      default: return false;
+    }
+  }
+
   // Flyout de stats (tab 0): se abre al pinchar la pastilla, a la derecha del panel
   statsFlyoutOpen = false;
 
   toggleStatsFlyout(): void {
+    if (!this.statsAllocUnlocked) return;   // bloqueado hasta el 1er punto libre (nivel ≥ 2)
     this.statsFlyoutOpen = !this.statsFlyoutOpen;
     // Al abrirla ya has "visto" el punto nuevo: se apaga el badge
     if (this.statsFlyoutOpen) this.badges.clear('equip.stats');
@@ -550,6 +605,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this._activeTab = this.panelState.get('equip.tab', 0);
     // Tabs ya retiradas (1 recolección fusionada, 3 árbol Phaser) o fuera de rango → al primero
     if (this._activeTab > 7 || this._activeTab === 1 || this._activeTab === 3) this._activeTab = 0;
+    // Si la pestaña restaurada aún no está desbloqueada (onboarding), volver a Equipo.
+    if (!this.tabVisible(this._activeTab)) this._activeTab = 0;
     if (this._activeTab === 4) this.initPan();
     // Publica el estado para el comparador del inventario
     this.equipPanel.open = true;

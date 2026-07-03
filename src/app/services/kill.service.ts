@@ -67,6 +67,15 @@ export class KillService {
     this.schedulePersist();
   }
 
+  /** Baja que SOLO alimenta misiones (killDetail$), sin tocar los contadores
+   *  persistentes (charKills/globalKills), kill$ ni los logros. Para enemigos del
+   *  Modo Mundo (rata de exploración): no son bajas de combate reales pero sí
+   *  cuentan para las misiones de matar. `enemyType` debe casar con la familia
+   *  del objetivo (p.ej. 'rats_world' para family 'rats'). */
+  emitQuestKill(enemyType: string, mapId = 'exploration'): void {
+    this.killDetail$.next({ mapId, enemyType });
+  }
+
   // Con auto-attack hay un kill cada pocos segundos: agrupa las escrituras a
   // storage en una cada 5s en vez de una por kill.
   private schedulePersist(): void {

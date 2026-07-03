@@ -119,7 +119,9 @@
     "PARALLAX_FOG": "Fog",
     "PARALLAX_MAGIC": "Magic",
     "LANGUAGE": "Language",
-    "LANGUAGE_DESC": "Interface language. Applies instantly."
+    "LANGUAGE_DESC": "Interface language. Applies instantly.",
+    "CAMERA_BOUNDS": "Camera bound to map",
+    "CAMERA_BOUNDS_DESC": "The camera stops at the map edge and hides the void. Turn off for free follow."
   },
   "SHOP": {
     "TITLE": "Shop"
@@ -272,6 +274,11 @@
       "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and bring back 1 star: tap the screen to jump and grab it on the fly. Claiming it teaches you the Sprint.",
       "TRACK": "Collect 1 star"
     },
+    "MATA_RATA": {
+      "NAME": "Hatchet Rat",
+      "DESC": "Mordekai wants you to try steel. Head back to exploration and take down 1 hatchet rat, the ground enemy scurrying along the floor.",
+      "TRACK": "Kill 1 rat"
+    },
     "PLAGA_BABOSAS": {
       "NAME": "Slime Plague",
       "DESC": "Something stirs in the grass. Take down your first enemy.",
@@ -415,6 +422,7 @@
   },
   "RUN": {
     "RECORD_DISTANCE": "Distance record",
+    "KILLS": "Enemies slain",
     "DEATHS": "Deaths",
     "MILESTONES": "Milestones",
     "MS_PENDING": "Objectives",
@@ -495,6 +503,8 @@
     "RECRUIT_GREETING": "Hey {{player}}, how's it going? From now on you can pick me to play with.",
     "MORDEKAI_DONE": "When you feel like real fighting, {{player}}, cross the west portal to 1-1. The first monsters await you there.",
     "MORDEKAI_CLAIM": "You got your star, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
+    "MORDEKAI_CLAIM1": "Well done, bro! Now kill 1 hatchet rat. You'll spot them out in exploration, scurrying along the ground.",
+    "MORDEKAI_CLAIM2": "Nice one, bro!",
     "MORDEKAI_PROGRESS": "You have {{prog}}/{{goal}} stars. Keep jumping for them in exploration (east portal).",
     "MORDEKAI_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Before fighting, learn to explore: cross the east portal and bring back 1 star. Tap the screen to jump and grab it on the fly.",
     "KUGO_LINE": "{{player}}, long time no see!",

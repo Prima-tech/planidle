@@ -13,6 +13,7 @@ export interface GameSettings {
   showFps: boolean;
   showGrid: boolean;          // overlay de rejilla de tiles (debug de posiciones)
   screenShake: boolean;       // efectos de pantalla (temblor de cámara + destellos)
+  cameraBounds: boolean;      // la cámara se detiene en el borde del mapa (no muestra el vacío)
   parallaxTheme: ParallaxThemeId;
   worldParallax: WorldParallaxId;
   language: AppLanguage;      // idioma de la interfaz (ngx-translate)
@@ -25,6 +26,7 @@ const DEFAULTS: GameSettings = {
   showFps: false,
   showGrid: false,
   screenShake: true,
+  cameraBounds: true,
   parallaxTheme: 'sea',
   worldParallax: 'paralax01',
   language: 'es',
@@ -73,6 +75,10 @@ export class GameSettingsService {
   get screenShake():  boolean { return this._settings.screenShake; }
   get screenShake$()          { return this._subject.pipe(map(s => s.screenShake), distinctUntilChanged()); }
   setScreenShake(v: boolean)  { this.set('screenShake', v); }
+
+  get cameraBounds():  boolean { return this._settings.cameraBounds; }
+  get cameraBounds$()          { return this._subject.pipe(map(s => s.cameraBounds), distinctUntilChanged()); }
+  setCameraBounds(v: boolean)  { this.set('cameraBounds', v); }
 
   get parallaxTheme(): ParallaxThemeId { return this._settings.parallaxTheme; }
   get parallaxTheme$()                 { return this._subject.pipe(map(s => s.parallaxTheme), distinctUntilChanged()); }

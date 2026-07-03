@@ -251,6 +251,7 @@ export class GameScene extends Phaser.Scene {
     private forgeProducingSub: { unsubscribe(): void } | null = null;
     private statsSub:    { unsubscribe(): void } | null = null;
     private gridSub:     { unsubscribe(): void } | null = null;
+    private cameraSub:   { unsubscribe(): void } | null = null;
     private gridLayer:   Phaser.GameObjects.Container | null = null;   // overlay de rejilla de tiles (debug)
     private magicSub:    { unsubscribe(): void } | null = null;
     private skillSub:    { unsubscribe(): void } | null = null;
@@ -557,6 +558,7 @@ export class GameScene extends Phaser.Scene {
         this.scene.stop('MobileHUDScene');
         this.mobileInput = null;
         this.gridSub?.unsubscribe();
+        this.cameraSub?.unsubscribe();
         this.equipSub?.unsubscribe();
         this.gatherLayerSub?.unsubscribe();
         this.summonSub?.unsubscribe();
@@ -699,8 +701,9 @@ export class GameScene extends Phaser.Scene {
         : nearNode ? HARVEST_KINDS[nearNode.kind].context
         : nearNpc ? 'talk' : 'attack');
 
-      // Diálogo abierto + ya no hay NPC cerca → cerrarlo (te alejaste).
-      if (!nearNpc && this.reg.dialogue?.isOpen) this.reg.dialogue.dismiss();
+      // Diálogo abierto + ya no hay NPC cerca → cerrarlo (te alejaste). Los diálogos
+      // manuales (recompensa de misión) NO se cierran así: solo con toque/cerrar.
+      if (!nearNpc && this.reg.dialogue?.isOpen && !this.reg.dialogue.isManual) this.reg.dialogue.dismiss();
 
       // Si la ventana de cofre de ciudad está abierta y el jugador se alejó del
       // cofre CONCRETO que abrió (cada cofre es su propio almacén) → cerrar.
@@ -898,8 +901,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     /** Marcador flotante RPG sobre los NPCs con misión (Mordekai): "!" amarillo si la
-     *  misión está disponible o en curso, "?" amarillo si ya se puede entregar, y nada
-     *  si está completada. El texto se crea de forma perezosa por NPC (la instancia de
+     *  misión está DISPONIBLE, "!" transparente si ya te la dio (activa/en curso), "?"
+     *  amarillo si se puede entregar, y nada si está completada. Se crea perezosamente
+     *  por NPC (la instancia de
      *  escena se reutiliza; el restart destruye el texto pero recrea el array). */
     private updateNpcQuestMarkers(): void {
       const quests = this.reg.quests;
@@ -908,11 +912,19 @@ export class GameScene extends Phaser.Scene {
       for (const npc of this.cityNpcs) {
         // Referencia muerta tras un restart de escena → soltarla.
         if (npc.marker && !npc.marker.active) npc.marker = undefined;
-        // Estado de la misión → textura (o nada si no hay misión o está completada).
-        let texKey = '';
+        // Estado de la misión → textura + alpha (estilo RPG):
+        //  · disponible (sin dar aún) → "!" amarillo brillante
+        //  · dada / en curso (activa) → "!" transparente ("ya la tienes")
+        //  · objetivo cumplido → "?" brillante (entrégala)
+        //  · completada / sin misión → sin marcador
+        let texKey = '', alpha = 1;
         if (quests && npc.questId && npc.sprite.active) {
           const def = quests.byId(npc.questId);
-          if (def && !quests.isCompleted(def)) texKey = quests.isClaimable(def) ? 'quest_ques' : 'quest_excl';
+          if (def && !quests.isCompleted(def)) {
+            if (quests.isClaimable(def)) { texKey = 'quest_ques'; alpha = 1; }
+            else if (quests.isActive(def)) { texKey = 'quest_excl'; alpha = 0.4; }
+            else { texKey = 'quest_excl'; alpha = 1; }
+          }
         }
         if (!texKey) { npc.marker?.setVisible(false); continue; }
         if (!npc.marker) {
@@ -920,6 +932,7 @@ export class GameScene extends Phaser.Scene {
         }
         npc.marker.setTexture(texKey)
           .setVisible(true)
+          .setAlpha(alpha)
           .setPosition(npc.sprite.x, npc.sprite.y - npc.sprite.displayHeight * 0.42 + bob);
       }
     }
@@ -1405,6 +1418,12 @@ export class GameScene extends Phaser.Scene {
       const playerSprite = this.physics.add.sprite(0, 0, "player");
       playerSprite.setDepth(2);
       playerSprite.scale = 2.5;
+      // Límites de cámara (toggle en ajustes 'cameraBounds', por defecto ON): la cámara
+      // se detiene en el borde del mapa y no muestra el vacío. Reactivo: cambiarlo en
+      // ajustes lo aplica al instante.
+      const gs = this.reg.gameSettings;
+      this.applyCameraBounds(gs ? gs.cameraBounds : true);
+      this.cameraSub = gs?.cameraBounds$.subscribe((v: boolean) => this.applyCameraBounds(v)) ?? null;
       // Seguimiento con lerp (0.2) en vez de clavado: la cámara "persigue" al jugador
       // con un pelín de retardo → sensación de peso/fluidez al moverse. roundPixels=true
       // mantiene el pixel-art nítido (sin shimmer). Subir hacia 1 = más rígido.
@@ -1421,6 +1440,22 @@ export class GameScene extends Phaser.Scene {
       };
       this.reg.playerBridge.setInitialSprites(sprites);
       this.player = this.reg.playerBridge.getPlayer();
+    }
+
+    /** Aplica (o quita) los límites de cámara según el ajuste. ON = la cámara se para
+     *  en el borde del mapa (tiles × TILE_SIZE, con el ×3 de escala incluido) y no se
+     *  ve el vacío; OFF = seguimiento libre (puede asomar fuera del mapa). */
+    private applyCameraBounds(on: boolean): void {
+      if (!this.currentMap) return;
+      if (on) {
+        this.cameras.main.setBounds(
+          0, 0,
+          this.currentMap.width  * GameScene.TILE_SIZE,
+          this.currentMap.height * GameScene.TILE_SIZE,
+        );
+      } else {
+        this.cameras.main.removeBounds();
+      }
     }
 
     // El HUD lee esto cada frame: `enemies` es la referencia viva al array
@@ -2158,8 +2193,9 @@ export class GameScene extends Phaser.Scene {
         if (this.deleteSelecting) { this.handleDeleteSelect(pointer); return; }
         // Pulsar un edificio con ventana propia (la tienda, la fragua…) la abre.
         if (this.handleBuildingWindowTap(pointer)) return;
-        // Un toque en cualquier punto del mapa cierra el diálogo de NPC abierto.
-        if (this.reg.dialogue?.isOpen) { this.reg.dialogue.dismiss(); return; }
+        // Con un diálogo de NPC abierto, un toque en el mapa lo hace avanzar (igual que
+        // el espacio o tocar el cuadro): pasa de página/línea y solo cierra en la última.
+        if (this.reg.dialogue?.isOpen) { this.reg.dialogue.requestNext(); return; }
         this.reg.asgard.closeAllMenus();
         this.onGameClick(pointer);
       });
@@ -2174,8 +2210,9 @@ export class GameScene extends Phaser.Scene {
 
       this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.spaceKey.on('down', () => {
-        // Si ya hay un diálogo abierto, el espacio lo cierra.
-        if (this.reg.dialogue?.isOpen) { this.reg.dialogue.dismiss(); return; }
+        // Si ya hay un diálogo abierto, el espacio actúa como un toque en el cuadro:
+        // avanza de página/línea si quedan más; solo cierra en la última.
+        if (this.reg.dialogue?.isOpen) { this.reg.dialogue.requestNext(); return; }
         this.reg.autoAttack?.pauseAutomation();
         const chest = this.nearestOpenableChest();
         if (chest) { this.openChest(chest); return; }
@@ -3242,10 +3279,11 @@ export class GameScene extends Phaser.Scene {
         this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_DONE', { player }));
         return;
       }
-      // Objetivo alcanzado → cobra aquí mismo y desbloquea el siguiente paso.
+      // Objetivo alcanzado → cobra aquí mismo y desbloquea el siguiente paso (la rata).
+      // Mismo texto que el botón "Completar" de la ventana de equipo (NPC.MORDEKAI_CLAIM1).
       if (quests.isClaimable(def)) {
         quests.claim(def);
-        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_CLAIM', { player }));
+        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_CLAIM1', { player }));
         return;
       }
       // En marcha → informa del progreso.

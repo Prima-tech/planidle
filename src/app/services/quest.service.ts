@@ -68,6 +68,11 @@ export interface QuestDef {
   track?: string;
   objective: QuestObjective;
   reward?: QuestReward;
+  /** Misión previa necesaria: hasta completarla, esta NO aparece (cadena de onboarding). */
+  requires?: string;
+  /** Diálogo (NPC) que sale al COBRARLA desde la ventana de equipo (que se cierra).
+   *  `text` es una clave i18n. Lo dispara la ventana de equipo, no el claim en sí. */
+  claimDialogue?: { speaker: string; text: string };
 }
 
 /** Máximo de misiones activas (fijadas en el HUD) a la vez. */
@@ -88,6 +93,19 @@ export const QUESTS: QuestDef[] = [
     objective: { type: 'stars', goal: 1 },
     // Única recompensa: el Impulso (hito 'sprint'). Sin oro ni EXP.
     reward: { runMilestone: 'sprint' },
+    // Al cobrarla en la ventana de equipo: se cierra y Mordekai suelta el hint de la rata.
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_CLAIM1' },
+  },
+  {
+    id: 'mata_rata',
+    name: 'QUESTS.MATA_RATA.NAME',
+    desc: 'QUESTS.MATA_RATA.DESC',
+    icon: 'skull-outline',
+    track: 'QUESTS.MATA_RATA.TRACK',
+    objective: { type: 'kill', family: 'rats', goal: 1 },
+    reward: { coins: 100 },
+    requires: 'primeras_estrellas',   // aparece solo tras cobrar la de la estrella
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_CLAIM2' },
   },
 ];
 
@@ -159,8 +177,9 @@ export class QuestService implements OnDestroy {
     this.onStarsBalance(this.playerState.snapshot().stars ?? 0);
     // Si vino del snapshot, sincroniza la clave local para que coincida.
     if (override) this.persistNow();
-    // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar.
-    if (this.hasClaimable()) this.badges.flag('equip.quests');
+    // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar
+    // (solo si la UI de misiones ya está desbloqueada; ver flagQuestsBadge).
+    if (this.hasClaimable()) this.flagQuestsBadge();
     this.notify();
   }
 
@@ -184,8 +203,28 @@ export class QuestService implements OnDestroy {
 
   // ── Consultas para la UI ────────────────────────────────────────────────────
 
+  /** ¿Cumple el prerequisito? (sin `requires`, o su misión previa ya completada). */
+  private prereqMet(q: QuestDef): boolean {
+    return !q.requires || this.completedSet.has(q.requires);
+  }
+
+  /** ¿Está desbloqueada la UI de misiones? Espejo de `missionsUnlocked` en la ventana
+   *  de equipo: la pestaña de Misiones solo existe cuando Mordekai ya dio la primera
+   *  ('primeras_estrellas' activa o completada). Antes de eso NO debe encenderse el
+   *  aviso (notif-dot), aunque el balance de estrellas ya haga "reclamable" la 1ª
+   *  misión (p.ej. coger una estrella en exploración antes de hablar con Mordekai):
+   *  el punto rojo apuntaría a una pestaña oculta sin nada que cobrar. */
+  private questsUiUnlocked(): boolean {
+    return this.activeSet.has('primeras_estrellas') || this.completedSet.has('primeras_estrellas');
+  }
+
+  /** Enciende el aviso de misiones, pero solo si la UI ya está desbloqueada. */
+  private flagQuestsBadge(): void {
+    if (this.questsUiUnlocked()) this.badges.flag('equip.quests');
+  }
+
   available(): QuestDef[] {
-    return QUESTS.filter(q => !this.completedSet.has(q.id));
+    return QUESTS.filter(q => !this.completedSet.has(q.id) && this.prereqMet(q));
   }
 
   completed(): QuestDef[] {
@@ -246,6 +285,9 @@ export class QuestService implements OnDestroy {
     if (this.activeSet.has(def.id)) return;
     if (!this.canActivate()) return;
     this.activeSet.add(def.id);
+    // Si al darla ya estaba reclamable (p.ej. cogiste la estrella antes de que
+    // Mordekai te la diera), enciende ahora el aviso: la UI acaba de desbloquearse.
+    if (this.isClaimable(def)) this.flagQuestsBadge();
     this.notify();
     this.persistNow();
   }
@@ -267,6 +309,7 @@ export class QuestService implements OnDestroy {
     for (const def of QUESTS) {
       if (this.completedSet.has(def.id)) continue;
       if (def.objective.type !== 'kill') continue;
+      if (!this.prereqMet(def)) continue;   // misión bloqueada aún: no acumula progreso
       // Ya alcanzó el objetivo: no se autocompleta, espera a "Completar".
       if ((this.progress[def.id] ?? 0) >= def.objective.goal) continue;
       if (!matchesKill(def.objective, enemyType)) continue;
@@ -275,7 +318,7 @@ export class QuestService implements OnDestroy {
       changed = true;
       // Justo al alcanzar el objetivo: enciende el aviso (mismo notif-dot que
       // el punto de stats al subir de nivel) para indicar que se puede cobrar.
-      if (this.progress[def.id] >= def.objective.goal) this.badges.flag('equip.quests');
+      if (this.progress[def.id] >= def.objective.goal) this.flagQuestsBadge();
     }
     if (changed) {
       this.notify();
@@ -297,7 +340,7 @@ export class QuestService implements OnDestroy {
       if (next !== cur) {
         this.progress[def.id] = next;
         changed = true;
-        if (next >= def.objective.goal) this.badges.flag('equip.quests');
+        if (next >= def.objective.goal) this.flagQuestsBadge();
       }
     }
     if (changed) {
@@ -312,6 +355,8 @@ export class QuestService implements OnDestroy {
     this.completedSet.add(def.id);
     this.activeSet.delete(def.id);   // al completarse deja de estar fijada en el HUD
     this.grantReward(def.reward);
+    // Desbloquea y fija en el HUD las misiones encadenadas a esta (requires === def.id).
+    for (const q of QUESTS) if (q.requires === def.id) this.activate(q);
     this.completed$.next(def);
     this.notify();
     this.persistNow();  // los completados se guardan al momento (recompensa ya dada)

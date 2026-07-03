@@ -76,6 +76,10 @@
             <span class="mip-rate-val">{{ (recordDistance$ | async) | compactNumber }} m</span>
           </div>
           <div class="mip-rate">
+            <span class="mip-rate-label">{{ 'RUN.KILLS' | translate }}</span>
+            <span class="mip-rate-val">{{ kills$ | async }}</span>
+          </div>
+          <div class="mip-rate">
             <span class="mip-rate-label">{{ 'RUN.DEATHS' | translate }}</span>
             <span class="mip-rate-val">{{ deaths$ | async }}</span>
           </div>

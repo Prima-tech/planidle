@@ -100,6 +100,16 @@
           </div>
         </div>
 
+        <div class="gs-row">
+          <div class="gs-row-info">
+            <span class="gs-row-title">{{ 'GAME_SETTINGS.CAMERA_BOUNDS' | translate }}</span>
+            <span class="gs-row-desc">{{ 'GAME_SETTINGS.CAMERA_BOUNDS_DESC' | translate }}</span>
+          </div>
+          <div class="gs-toggle" [class.on]="gs.cameraBounds" (click)="gs.setCameraBounds(!gs.cameraBounds)">
+            <div class="gs-toggle-thumb"></div>
+          </div>
+        </div>
+
       </div>
 
       <div class="gs-section">
