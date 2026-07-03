@@ -127,8 +127,10 @@ export class PlayerBridgeService {
   // frame para entrar/salir del modo vuelo; el botón lee los getters de cooldown.
   private flyStart = 0;
 
-  /** Arranca el vuelo si no está en cooldown. Devuelve true si se activó. */
+  /** Arranca el boost si está comprado (hito 'boost') y no está en cooldown.
+   *  Devuelve true si se activó. */
   activateFly(): boolean {
+    if (!this.playerState.hasRunMilestone('boost')) return false;
     if (this.flyOnCooldown) return false;
     this.flyStart = Date.now();
     return true;

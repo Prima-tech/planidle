@@ -70,6 +70,11 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
     icon: 'arrow-up-circle',
   },
   {
+    id: 'hearts', cost: 20,
+    labelKey: 'RUN.MS_HEARTS', descKey: 'RUN.MS_HEARTS_DESC',
+    icon: 'heart-circle',
+  },
+  {
     id: 'magnet1', cost: 25,
     labelKey: 'RUN.MS_MAGNET1', descKey: 'RUN.MS_MAGNET1_DESC',
     icon: 'magnet',
@@ -138,6 +143,11 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
     id: 'speed3', cost: 300,
     labelKey: 'RUN.MS_SPEED3', descKey: 'RUN.MS_SPEED_DESC',
     icon: 'speedometer',
+  },
+  {
+    id: 'boost', cost: 350,
+    labelKey: 'RUN.MS_BOOST', descKey: 'RUN.MS_BOOST_DESC',
+    icon: 'flame',
   },
   {
     id: 'star_prod3', cost: 400,

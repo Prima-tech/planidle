@@ -53,6 +53,9 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   selectedPlanet: { id: string; name: string } | null = null;
   charsOnPlanet: CharOnMap[] = [];
 
+  // DEBUG: estado de la cuadrícula del globo (arranca igual que DEBUG_PIN_GRID en la escena).
+  gridOn = true;
+
   // Planeta cuyo globo se está viendo en la vista detalle (lo reporta la escena).
   // Determina la lista de mapas que se muestra a la izquierda del globo.
   detailPlanetId = '';
@@ -185,6 +188,13 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private async loadCharsOnPlanet(planetId: string) {
     const mapIds = PLANET_MAPS[planetId] ?? [];
     this.charsOnPlanet = await this.loadCharsWhere(m => mapIds.includes(m));
+  }
+
+  /** DEBUG: alterna la cuadrícula de coordenadas del globo (llama a la escena). */
+  toggleGrid() {
+    this.gridOn = !this.gridOn;
+    const scene = this.planetGame?.scene.getScene('PlanetViewScene') as PlanetViewScene | undefined;
+    scene?.setDebugGrid(this.gridOn);
   }
 
   /** Botón de la tarjeta: hace el zoom-in a la vista detalle del planeta */

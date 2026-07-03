@@ -2,6 +2,11 @@
 
   <div class="map-area">
 
+    <!-- DEBUG: activa/desactiva la cuadrícula de coordenadas del globo -->
+    <button class="grid-toggle-btn" [class.active]="gridOn" (click)="toggleGrid()" title="Cuadrícula (debug)">
+      <ion-icon name="grid-outline"></ion-icon>
+    </button>
+
     <!-- Info panel (compartido: se rellena al pulsar un pin del globo) -->
     <div class="map-info-card" *ngIf="selectedMap">
       <div class="info-name">{{ selectedMap.name }}</div>

@@ -193,13 +193,21 @@ const ARROW_HIT_X = 46;              // medio ancho de impacto de la flecha
 const SWIPE_MIN_PX = 46;             // desplazamiento mínimo para que un toque sea swipe
 const SWIPE_MAX_MS = 320;            // tiempo máximo del gesto
 
-// Vuelo / boost (botón junto al de impulso). Dura 10 s (lo mide PlayerBridgeService,
-// flyActive). Mientras vuela: gravedad off, DOBLE de velocidad, controlas la altura
-// manteniendo (subir) o soltando (bajar) el salto, e invulnerable arrasando enemigos.
-const FLY_SPEED_MULT = 5;            // ×5 la velocidad de carrera durante el vuelo
-const FLY_VERTICAL_SPEED = 340;      // px/s de subida al mantener (la bajada es algo menor)
-const FLY_CEILING_Y = 60;            // techo (px desde arriba) para no salir de pantalla
-const FLY_FLOOR_CLEARANCE = 44;      // margen sobre el suelo para que el sprite no se hunda
+// Boost (botón junto al de impulso). Dura 10 s (lo mide PlayerBridgeService, flyActive).
+// Mientras dura: ×5 de velocidad, invulnerable y arrasa enemigos al contacto, con aura.
+// Corre y salta con normalidad (sin vuelo).
+const FLY_SPEED_MULT = 5;            // ×5 la velocidad de carrera durante el boost
+const AURA_KEY = 'wr_fly_aura';      // textura de partícula del aura (generada por código)
+// Aura sprite (Dragon Ball): PNG limpio de 4 frames 100×100 con fondo transparente,
+// extraído de la fila dorada de assets/sprites/test/aura.jpg (tools/jimp, ver memoria).
+const AURA_SHEET = 'wr_aura_sheet';  // spritesheet cargado (aura_gold.png)
+const AURA_ANIM = 'wr_aura_anim';    // animación del aura
+const AURA_FRAME_W = 100;
+const AURA_FRAME_H = 100;
+const AURA_COLS = 4;
+const AURA_SPRITE_SCALE = 1.8;       // tamaño del aura respecto al frame (envuelve al jugador)
+const AURA_Y_OFFSET = 80;            // sube el aura de los pies (origin del jugador) al torso
+const AURA_X_OFFSET = 20;            // ajuste horizontal fino del aura respecto al jugador
 
 // --- Escalera de mejoras (hitos comprables con estrellas, ver run-milestones.ts) ---
 // El loop estilo Idle Slayer: matar da estrellas → compras la siguiente mejora →
@@ -295,6 +303,8 @@ export class WorldRunScene extends Phaser.Scene {
   private lastGhostAt = 0;             // estela de la embestida (fantasmas del sprite)
   private slamming = false;            // golpe descendente en curso (hasta aterrizar)
   private flying = false;              // vuelo / boost en curso (lo dispara el botón vía bridge)
+  private auraEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;  // aura "ki" del vuelo
+  private auraSprite?: Phaser.GameObjects.Sprite;   // aura sprite (hoja DBZ) del vuelo
   private arrows: Phaser.GameObjects.Image[] = [];
   private lastArrowAt = 0;
   // Detección de swipes (derecha=dash, abajo=slam) sobre el lienzo.
@@ -354,6 +364,12 @@ export class WorldRunScene extends Phaser.Scene {
     // Fénix (enemigo volador): hoja con frames de 64×64.
     if (!this.textures.exists(TEX_FENIX)) {
       this.load.spritesheet(TEX_FENIX, FENIX_SHEET, { frameWidth: FENIX_FW, frameHeight: FENIX_FH });
+    }
+    // Aura de vuelo (Dragon Ball): PNG limpio de 4 frames con transparencia. El ?v=
+    // rompe la caché del navegador cuando se regenera el PNG (mismo nombre de archivo).
+    if (!this.textures.exists(AURA_SHEET)) {
+      this.load.spritesheet(AURA_SHEET, 'assets/sprites/world_mode/aura/aura_gold.png?v=3',
+        { frameWidth: AURA_FRAME_W, frameHeight: AURA_FRAME_H });
     }
     // Bola de fuego del fénix: frames sueltos (los suele tener ya GameScene; aseguramos).
     for (let i = 1; i <= FIREBALL_FRAMES; i++) {
@@ -441,6 +457,21 @@ export class WorldRunScene extends Phaser.Scene {
       g.generateTexture(ARROW_KEY, 22, 4);
       g.destroy();
     }
+    // Partícula suave (blob radial) del aura de vuelo: círculos concéntricos de poca
+    // alpha que se acumulan hacia el centro → degradado sin asset.
+    if (!this.textures.exists(AURA_KEY)) {
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      const R = 16;
+      for (let r = R; r > 0; r--) g.fillStyle(0xffffff, 0.06).fillCircle(R, R, r);
+      g.generateTexture(AURA_KEY, R * 2, R * 2);
+      g.destroy();
+    }
+    // La instancia de escena se reutiliza: si una carrera anterior salió volando
+    // (exitToHome hace early-return en update y no llama endFly), limpia el aura.
+    this.auraEmitter?.destroy();
+    this.auraEmitter = undefined;
+    this.auraSprite?.destroy();
+    this.auraSprite = undefined;
     this.reg.playerState.resetRunKills();   // los enemigos abatidos son por run (HUD)
 
     this.physics.world.gravity.y = GRAVITY_Y;
@@ -451,6 +482,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.groundTopY = h - GROUND_BAND_H;
 
     this.registerAnims();
+    this.buildAuraSheet();
     // Construye el parallax del set seleccionado y reacciona a cambios en ajustes
     // (emite el valor actual al suscribir, así que esto también lo construye ya).
     this.parallaxSub = this.reg.gameSettings.worldParallax$.subscribe(id => this.switchParallax(id));
@@ -535,7 +567,8 @@ export class WorldRunScene extends Phaser.Scene {
       : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier() * this.runSpeedMult()
           * (this.flying ? FLY_SPEED_MULT : 1));
     if (this.dashing && now - this.lastGhostAt > 45) this.spawnDashGhost(now);
-    if (this.flying) this.updateFlight();
+    // El aura sprite acompaña al jugador durante el boost.
+    if (this.auraSprite) this.auraSprite.setPosition(this.player.x + AURA_X_OFFSET, this.player.y - AURA_Y_OFFSET);
 
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround && this.player.body.velocity.y >= 0) {
@@ -972,13 +1005,20 @@ export class WorldRunScene extends Phaser.Scene {
     const spawnUntilX = scrollX + this.scale.width + CHUNK_W;
     const groundY = this.groundTopY + SURFACE_INSET;
 
-    while (this.startX + this.nextHeartIndex * HEART_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
-      const x = this.startX + this.nextHeartIndex * HEART_INTERVAL_M * PX_PER_METER;
-      const height = HEART_HEIGHTS[(this.nextHeartIndex - 1) % HEART_HEIGHTS.length];
-      const heart = this.hearts.create(x, groundY - height, HEART_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
-      heart.setScale(HEART_SCALE).setDepth(4);
-      if (this.anims.exists(HEART_ANIM)) heart.play(HEART_ANIM);
-      this.nextHeartIndex++;
+    if (!this.ms('hearts')) {
+      // Hito "Corazones" sin comprar: no aparecen (índice al día, como enemies/fénix,
+      // para que al comprarlo salgan por delante y no un tropel).
+      const aheadM = (spawnUntilX - this.startX) / PX_PER_METER;
+      this.nextHeartIndex = Math.max(this.nextHeartIndex, Math.floor(aheadM / HEART_INTERVAL_M) + 1);
+    } else {
+      while (this.startX + this.nextHeartIndex * HEART_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
+        const x = this.startX + this.nextHeartIndex * HEART_INTERVAL_M * PX_PER_METER;
+        const height = HEART_HEIGHTS[(this.nextHeartIndex - 1) % HEART_HEIGHTS.length];
+        const heart = this.hearts.create(x, groundY - height, HEART_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
+        heart.setScale(HEART_SCALE).setDepth(4);
+        if (this.anims.exists(HEART_ANIM)) heart.play(HEART_ANIM);
+        this.nextHeartIndex++;
+      }
     }
 
     for (const obj of this.hearts.getChildren()) {
@@ -1165,7 +1205,7 @@ export class WorldRunScene extends Phaser.Scene {
   private playerDie(): void {
     if (this.dead) return;
     this.dead = true;
-    if (this.flying) this.endFly();   // restaura orientación/gravedad antes de la anim de muerte
+    if (this.flying) this.endFly();   // quita aura/brillo del boost antes de la anim de muerte
     this.reg.playerState.recordDeath();
     // Congela al jugador SIN pausar la escena (la escena debe seguir corriendo para que
     // la animación de muerte avance y el fundido de exitToHome se anime; pausarla rompía
@@ -1362,12 +1402,6 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   private updatePlayerAnim(onGround: boolean): void {
-    if (this.flying) {
-      // Volando: pose congelada, rotada "mirando al suelo" (el ángulo lo pone startFly).
-      if (this.player.anims.isPlaying) this.player.anims.stop();
-      this.player.setFrame(PLAYER_RUN_AIR_FRAME);
-      return;
-    }
     if (this.dashing) {
       // Embistiendo: pose fija de impulso (la estela de fantasmas hace el resto).
       if (this.player.anims.isPlaying) this.player.anims.stop();
@@ -1447,8 +1481,7 @@ export class WorldRunScene extends Phaser.Scene {
   private pressJump(): void {
     if (!this.player.body || this.dead || this.exiting) return;
     this.jumpHeld = true;
-    // En vuelo, mantener/soltar controla la altura (updateFlight), no salta.
-    if (this.dashing || this.slamming || this.flying) return;   // durante una habilidad no se salta
+    if (this.dashing || this.slamming) return;   // durante una habilidad no se salta
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround && !this.isJumping) {
       this.player.setVelocityY(-JUMP_INITIAL_VELOCITY);
@@ -1476,7 +1509,7 @@ export class WorldRunScene extends Phaser.Scene {
     if (!this.reg.playerState.hasRunMilestone('dash')) return;   // hito sin comprar
     const now = this.time.now;
     if (this.dashing || this.dead || this.exiting || now < this.dashReadyAt) return;
-    if (this.slamming || this.flying) return;         // en pleno slam/vuelo no se embiste
+    if (this.slamming) return;                        // en pleno slam no se embiste
     this.dashing = true;
     this.dashUntil = now + DASH_MS;
     this.dashReadyAt = now + DASH_COOLDOWN_MS;
@@ -1496,50 +1529,71 @@ export class WorldRunScene extends Phaser.Scene {
     this.player.clearTint();
   }
 
-  // --- Vuelo / boost -----------------------------------------------------------
-  /** Entra en modo vuelo: gravedad off, pose "mirando al suelo" (rotado 90°, pivota en
-   *  el centro) y brillo dorado. La velocidad (×2) y el control de altura los aplica
-   *  update()/updateFlight; la invulnerabilidad y el atropello, damagePlayer y los
-   *  updateRats/Fenixes/Fireballs (ramas `this.flying`). Dura mientras flyActive. */
+  // --- Boost (sin vuelo) -------------------------------------------------------
+  /** Entra en modo boost: ×5 velocidad, invulnerable y arrasa enemigos (ramas
+   *  `this.flying` en damagePlayer/updateRats/Fenixes/Fireballs), con brillo dorado +
+   *  aura DBZ. Corre y salta con normalidad (gravedad intacta). Dura mientras flyActive. */
   private startFly(): void {
     this.flying = true;
-    this.isJumping = false;
-    this.slamming = false;
-    if (this.dashing) this.endDash();
-    const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setAllowGravity(false);
-    this.player.setVelocityY(0);
-    // "Mirando al suelo": rotar 90° (la cara pasa a apuntar abajo, la cabeza al frente).
-    // Se pivota sobre los pies (origin 0.5,1, sin tocar) para no hundir el sprite al
-    // volar bajo y no alterar el cuerpo de colisión. Brillo dorado de boost. Se
-    // restaura en endFly. (El offset/feel de la pose se afina en juego.)
-    this.player.setAngle(90).setTint(0xffd27f);
+    this.player.setTint(0xffd27f);
+    this.startFlyAura();
+    // Aura sprite (hoja DBZ) detrás del jugador (depth 4 < jugador 5), envolviéndolo.
+    if (this.anims.exists(AURA_ANIM)) {
+      this.auraSprite = this.add.sprite(this.player.x + AURA_X_OFFSET, this.player.y - AURA_Y_OFFSET, AURA_SHEET, 0)
+        .setScale(AURA_SPRITE_SCALE).setDepth(4);
+      this.auraSprite.play(AURA_ANIM);
+    }
   }
 
-  /** Sale del modo vuelo: restaura gravedad, orientación y tinte. Al soltarlo en el
-   *  aire (fin de los 10 s), el jugador cae con normalidad. */
+  /** Sale del modo boost: quita el brillo y el aura. */
   private endFly(): void {
     if (!this.flying) return;
     this.flying = false;
-    (this.player.body as Phaser.Physics.Arcade.Body).setAllowGravity(true);
-    this.player.setAngle(0).clearTint();
+    this.player.clearTint();
+    this.stopFlyAura();
+    this.auraSprite?.destroy();
+    this.auraSprite = undefined;
   }
 
-  /** Control de altura durante el vuelo: mantener el salto = subir, soltarlo = bajar
-   *  (algo más lento). Se limita a la pantalla (techo arriba, suelo abajo). */
-  private updateFlight(): void {
-    const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.velocity.y = this.jumpHeld ? -FLY_VERTICAL_SPEED : FLY_VERTICAL_SPEED * 0.7;
-    // Suelo del vuelo un poco por encima de la línea real para que el sprite (rotado)
-    // no se hunda en la hierba.
-    const floorLimit = this.groundTopY + SURFACE_INSET - FLY_FLOOR_CLEARANCE;
-    if (this.player.y <= FLY_CEILING_Y) {
-      this.player.y = FLY_CEILING_Y;
-      if (body.velocity.y < 0) body.velocity.y = 0;
-    } else if (this.player.y >= floorLimit) {
-      this.player.y = floorLimit;
-      if (body.velocity.y > 0) body.velocity.y = 0;
-    }
+  /** Registra la animación del aura (4 frames del spritesheet ya limpio). */
+  private buildAuraSheet(): void {
+    if (this.anims.exists(AURA_ANIM)) return;         // ya construido (anims globales)
+    if (!this.textures.exists(AURA_SHEET)) return;    // el png no cargó (no rompe el vuelo)
+    this.anims.create({
+      key: AURA_ANIM,
+      frames: this.anims.generateFrameNumbers(AURA_SHEET, { start: 0, end: AURA_COLS - 1 }),
+      frameRate: 12, repeat: -1,
+    });
+  }
+
+  /** Aura "ki" estilo Dragon Ball: llamas doradas que suben alrededor del cuerpo, en
+   *  modo aditivo (brillo). Sigue al jugador; sin sprites (textura AURA_KEY por código). */
+  private startFlyAura(): void {
+    this.auraEmitter?.destroy();
+    this.auraEmitter = this.add.particles(0, 0, AURA_KEY, {
+      follow: this.player,
+      followOffset: { x: 0, y: -50 },   // el jugador tiene el origen en los pies: subir al torso
+      emitZone: { type: 'random', source: new Phaser.Geom.Ellipse(0, 0, 34, 78) as any },
+      lifespan: 420,
+      frequency: 14,
+      quantity: 2,
+      scale: { start: 0.95, end: 0 },
+      alpha: { start: 0.85, end: 0 },
+      speedX: { min: -45, max: 45 },
+      speedY: { min: -190, max: -70 },   // suben (llama)
+      tint: [0xfff2a0, 0xffcf4d, 0xff9a1f],
+      blendMode: 'ADD',
+    });
+    this.auraEmitter.setDepth(4);   // detrás del jugador (depth 5), como un halo
+  }
+
+  /** Detiene el aura: deja de emitir y la destruye cuando las partículas vivas se apagan. */
+  private stopFlyAura(): void {
+    if (!this.auraEmitter) return;
+    const em = this.auraEmitter;
+    this.auraEmitter = undefined;
+    em.stop();
+    this.time.delayedCall(450, () => em.destroy());
   }
 
   /** Estela de la embestida: "fantasmas" del sprite que se desvanecen por detrás. */
@@ -1560,7 +1614,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  también lo mata (ver updateFenixes). */
   private startSlam(): void {
     if (!this.reg.playerState.hasRunMilestone('slam')) return;   // hito sin comprar
-    if (!this.player.body || this.dead || this.exiting || this.slamming || this.flying) return;
+    if (!this.player.body || this.dead || this.exiting || this.slamming) return;
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround) return;
     if (this.dashing) this.endDash();                 // el slam corta la embestida

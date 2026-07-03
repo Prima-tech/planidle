@@ -19,6 +19,10 @@ const SHADE_KEY  = 'planet_shade';
 // tamaño visual con texto nítido. Las medidas relativas a W/H escalan solas.
 const DPR = Math.min(window.devicePixelRatio || 1, 3);
 
+// DEBUG: pinta una cuadrícula con las coordenadas tx,ty sobre la Tierra para
+// colocar los pines de mapa a ojo. Poner a false cuando ya estén situados.
+const DEBUG_PIN_GRID = true;
+
 // Estilos pixel-art basados en los sprites de referencia (Downloads/Planets):
 // terran (Terran.png), lava (Lava.png), ice (Ice.png), baren (Baren.png),
 // blackhole (Black_hole.png). Para crear un planeta nuevo: copia una entrada,
@@ -28,6 +32,7 @@ export type PixelStyle = 'terran' | 'lava' | 'ice' | 'baren' | 'blackhole';
 interface PlanetDef {
   id: string;
   name: string;
+  seed?: string;         // semilla del dibujo (si falta, usa id). Cambiar → otra tierra/mar
   kind: 'blob' | 'bands' | 'pixel';
   style?: PixelStyle;    // solo para kind 'pixel'
   base: string;          // color de fondo (océano / corteza / hielo / vacío)
@@ -43,7 +48,7 @@ const PLANETS: PlanetDef[] = [
   // terran: [tierra, tierra clara, arena] | lava: [resplandor, lava, lava brillante]
   // ice: [sombra suave, sombra fuerte, brillo] | baren: [cráter, sombra cráter, borde claro]
   // blackhole: [veta tenue, veta media, acento brillante]
-  { id: 'mundo',   name: 'Tierra',  kind: 'pixel', style: 'terran',    base: '#2e62d0', features: ['#4ea33c', '#7ac855', '#e3d291'], cloudAlpha: 1, halo: 0x7fb4f0, orbit: 0.46, size: 22, speed: 0.10 },
+  { id: 'mundo',   name: 'Tierra',  seed: 'tierra-2', kind: 'pixel', style: 'terran',    base: '#2e62d0', features: ['#4ea33c', '#7ac855', '#e3d291'], cloudAlpha: 1, halo: 0x7fb4f0, orbit: 0.46, size: 22, speed: 0.10 },
   { id: 'magmar',  name: 'Magmar',  kind: 'pixel', style: 'lava',      base: '#1c0d08', features: ['#7a1e0e', '#e8502a', '#ffa040'], cloudAlpha: 0, halo: 0xff6a2e, orbit: 0.28, size: 15, speed: 0.16 },
   { id: 'ferrum',  name: 'Ferrum',  kind: 'pixel', style: 'baren',     base: '#8a98a8', features: ['#5a6874', '#46525e', '#aab6c2'], cloudAlpha: 0, halo: 0x9fb0c0, orbit: 0.63, size: 17, speed: 0.08 },
   { id: 'glacius', name: 'Glacius', kind: 'pixel', style: 'ice',       base: '#dde6f2', features: ['#b8c6dc', '#9fb2d0', '#ffffff'], cloudAlpha: 0, halo: 0xcfe0f8, orbit: 0.80, size: 19, speed: 0.06 },
@@ -69,9 +74,9 @@ interface SurfacePin {
 }
 
 const TIERRA_PINS: SurfacePin[] = [
-  { name: 'Asgard', mapId: 'hogar', color: 0xf0c040, tx: 195, ty: 255 },
-  { name: '1-1',   mapId: '1-1',   color: 0x5bc0f8, tx: 220, ty: 230 },
-  { name: '1-2',   mapId: '1-2',   color: 0x5bc0f8, tx: 245, ty: 275 },
+  { name: 'Asgard', mapId: 'hogar', color: 0xf0c040, tx: 200, ty: 300 },
+  { name: '1-1',   mapId: '1-1',   color: 0x5bc0f8, tx: 250, ty: 300 },
+  { name: '1-2',   mapId: '1-2',   color: 0x5bc0f8, tx: 300, ty: 300 },
   { name: '1-3',   mapId: '1-3',   color: 0x5bc0f8, tx: 270, ty: 235 },
   { name: '1-4',   mapId: '1-4',   color: 0x5bc0f8, tx: 295, ty: 278 },
   { name: '1-5',   mapId: '1-5',   color: 0x5bc0f8, tx: 320, ty: 238 },
@@ -178,6 +183,24 @@ const NAME_SYL_C = ['', 'os', 'a', 'ix', 'um', 'ar', 'e', 'is'];
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
+// PRNG determinista (mulberry32) a partir de una semilla string. El dibujo de un
+// planeta usa esto sembrado con su `id`, así la textura es IDÉNTICA en cada recarga
+// (antes se usaba Math.random y la tierra/mar caía en sitios distintos siempre).
+function seededRandom(seedStr: string): () => number {
+  let h = 1779033703 ^ seedStr.length;
+  for (let i = 0; i < seedStr.length; i++) {
+    h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  let a = h >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 function generatePlanets(starId: string): PlanetDef[] {
   const count = Phaser.Math.Between(4, 8);
   const styles = Object.keys(RANDOM_PALETTES) as (keyof typeof RANDOM_PALETTES)[];
@@ -209,6 +232,12 @@ export class PlanetViewScene extends Phaser.Scene {
 
   private mode: ViewMode = 'detail';
   private transitioning = false;
+
+  // Estado del grid de debug (arranca en el valor de la constante; toggle en runtime
+  // vía setDebugGrid, que regenera la textura de la Tierra con/sin cuadrícula).
+  private debugGrid = DEBUG_PIN_GRID;
+  // Planeta en vista detalle (para saber si el globo visible es la Tierra al toggle).
+  private detailDef: PlanetDef | null = null;
 
   // Vista detalle
   private detailC: Phaser.GameObjects.Container | null = null;
@@ -290,6 +319,37 @@ export class PlanetViewScene extends Phaser.Scene {
     // 'constellation' es estática (los brillos van por tweens)
   }
 
+  /** Activa/desactiva la cuadrícula de debug sobre la Tierra (desde Angular).
+   *  REDIBUJA la textura-canvas existente en sitio (sin textures.remove, que dejaría
+   *  el tilesprite/mini con un frame nulo → crash 'glTexture'). Luego re-vincula el
+   *  tilesprite del globo para que copie los píxeles nuevos, sin perder la rotación. */
+  setDebugGrid(on: boolean): void {
+    if (this.debugGrid === on) return;
+    this.debugGrid = on;
+    const earth = PLANETS.find(p => p.id === 'mundo');
+    if (!earth) return;
+
+    const surfKey = this.texKey(earth);
+    const tex = this.textures.get(surfKey) as Phaser.Textures.CanvasTexture;
+    if (!tex || !tex.context) return;
+
+    // Redibuja el contenido de la Tierra sobre el mismo canvas (misma textura/frame).
+    const ctx = tex.context;
+    ctx.clearRect(0, 0, TEX_SIZE, TEX_SIZE);
+    ctx.fillStyle = earth.base;
+    ctx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
+    this.drawPixelStyle(ctx, earth);
+    if (this.debugGrid) this.drawDebugGrid(ctx);
+    tex.refresh();
+
+    // El TileSprite mantiene su propia copia de relleno: re-set (mismo key, ya existe)
+    // la reconstruye desde el canvas actualizado, conservando tilePosition (rotación).
+    if (this.mode === 'detail' && this.detailDef?.id === 'mundo' && this.planet) {
+      this.planet.setTexture(surfKey);
+      this.planet.setTileScale(DPR);
+    }
+  }
+
   /** Llamado desde Angular (botón de la tarjeta de info del planeta) */
   zoomToPlanet(planetId: string): void {
     const planets = this.systemPlanets.get(this.currentStar.id) ?? [];
@@ -369,6 +429,7 @@ export class PlanetViewScene extends Phaser.Scene {
   // ── Vista detalle ───────────────────────────────────────────────────────────
 
   private buildDetailView(def: PlanetDef): void {
+    this.detailDef = def;
     this.detailC?.destroy(true);
     this.planetMask?.destroy();
     this.velX = 0;
@@ -932,6 +993,7 @@ export class PlanetViewScene extends Phaser.Scene {
 
     if (def.kind === 'pixel') {
       this.drawPixelStyle(ctx, def);
+      if (this.debugGrid && def.id === 'mundo') this.drawDebugGrid(ctx);
       canvas.refresh();
       // Sin interpolación al escalar: mantiene los píxeles nítidos
       this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
@@ -1000,6 +1062,51 @@ export class PlanetViewScene extends Phaser.Scene {
     canvas.refresh();
   }
 
+  // DEBUG: cuadrícula de coordenadas de textura (tx,ty) sobre la Tierra. Líneas cada
+  // 32px y etiqueta "tx,ty" en cada intersección de 64. Gira con el globo; lee el
+  // número del punto donde quieras un mapa y pásame ese tx,ty. Se activa con
+  // DEBUG_PIN_GRID. TEX_SIZE = 512 → coords 0..512.
+  private drawDebugGrid(ctx: CanvasRenderingContext2D): void {
+    const minor = 32;
+    const major = 64;
+    ctx.save();
+
+    // Líneas finas cada 32
+    ctx.strokeStyle = 'rgba(255, 60, 60, 0.35)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= TEX_SIZE; x += minor) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, TEX_SIZE); ctx.stroke();
+    }
+    for (let y = 0; y <= TEX_SIZE; y += minor) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(TEX_SIZE, y); ctx.stroke();
+    }
+
+    // Líneas gruesas cada 64
+    ctx.strokeStyle = 'rgba(255, 60, 60, 0.85)';
+    ctx.lineWidth = 2;
+    for (let x = 0; x <= TEX_SIZE; x += major) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, TEX_SIZE); ctx.stroke();
+    }
+    for (let y = 0; y <= TEX_SIZE; y += major) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(TEX_SIZE, y); ctx.stroke();
+    }
+
+    // Etiqueta "tx,ty" en cada intersección de 64
+    ctx.font = 'bold 14px monospace';
+    ctx.textBaseline = 'top';
+    for (let x = 0; x < TEX_SIZE; x += major) {
+      for (let y = 0; y < TEX_SIZE; y += major) {
+        const label = `${x},${y}`;
+        ctx.fillStyle = '#000000';
+        ctx.fillText(label, x + 4, y + 3);
+        ctx.fillStyle = '#ffe000';
+        ctx.fillText(label, x + 3, y + 2);
+      }
+    }
+
+    ctx.restore();
+  }
+
   // ── Generadores pixel-art ───────────────────────────────────────────────────
   // Todos dibujan a 256px y escalan ×2 sin suavizado (bloques de 2px). Cada
   // elemento se replica en ±LOW en ambos ejes para que la textura tilee.
@@ -1024,12 +1131,14 @@ export class PlanetViewScene extends Phaser.Scene {
     o.fillStyle = def.base;
     o.fillRect(0, 0, LOW, LOW);
 
+    // Semilla determinista (def.seed si existe, si no el id) → misma textura al recargar.
+    const rand = seededRandom(def.seed ?? def.id);
     switch (def.style) {
-      case 'lava':      this.styleLava(o, LOW, def, wrapCircle);  break;
-      case 'ice':       this.styleIce(o, LOW, def, wrapCircle);   break;
-      case 'baren':     this.styleBaren(o, LOW, def, wrapCircle); break;
-      case 'blackhole': this.styleBlackhole(o, LOW, def);         break;
-      default:          this.styleTerran(o, LOW, def, wrapCircle);
+      case 'lava':      this.styleLava(o, LOW, def, wrapCircle, rand);  break;
+      case 'ice':       this.styleIce(o, LOW, def, wrapCircle, rand);   break;
+      case 'baren':     this.styleBaren(o, LOW, def, wrapCircle, rand); break;
+      case 'blackhole': this.styleBlackhole(o, LOW, def, rand);         break;
+      default:          this.styleTerran(o, LOW, def, wrapCircle, rand);
     }
 
     ctx.imageSmoothingEnabled = false;
@@ -1038,24 +1147,26 @@ export class PlanetViewScene extends Phaser.Scene {
 
   // Ref Terran.png: océano vivo, continentes con costa de arena, nubes duras
   private styleTerran(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
-                      wrapCircle: (x: number, y: number, r: number) => void): void {
+                      wrapCircle: (x: number, y: number, r: number) => void,
+                      rand: () => number): void {
     const [land, landLight, sand] = def.features;
 
     o.fillStyle = 'rgba(10, 20, 90, 0.22)';
     for (let i = 0; i < 6; i++) {
-      wrapCircle(Math.random() * LOW, Math.random() * LOW, 16 + Math.random() * 28);
+      wrapCircle(rand() * LOW, rand() * LOW, 16 + rand() * 28);
     }
 
-    // Continentes: dos pasadas (arena debajo → tierra encima) para la costa
-    for (let c = 0; c < 5; c++) {
-      const originX = Math.random() * LOW;
-      const originY = Math.random() * LOW;
+    // Continentes: dos pasadas (arena debajo → tierra encima) para la costa.
+    // Más continentes / blobs / radio = más tierra y menos mar.
+    for (let c = 0; c < 8; c++) {
+      const originX = rand() * LOW;
+      const originY = rand() * LOW;
       const blobs: { x: number; y: number; r: number }[] = [];
-      for (let b = 0; b < 10; b++) {
+      for (let b = 0; b < 14; b++) {
         blobs.push({
-          x: originX + (Math.random() - 0.5) * 68,
-          y: originY + (Math.random() - 0.5) * 48,
-          r: 8 + Math.random() * 18,
+          x: originX + (rand() - 0.5) * 90,
+          y: originY + (rand() - 0.5) * 66,
+          r: 11 + rand() * 24,
         });
       }
       o.fillStyle = sand;
@@ -1064,19 +1175,19 @@ export class PlanetViewScene extends Phaser.Scene {
       for (const b of blobs) wrapCircle(b.x, b.y, b.r);
       o.fillStyle = landLight;
       for (const b of blobs) {
-        if (Math.random() < 0.5) wrapCircle(b.x, b.y, b.r * 0.45);
+        if (rand() < 0.5) wrapCircle(b.x, b.y, b.r * 0.45);
       }
     }
 
     // Nubes con sombra gris sutil
     for (let n = 0; n < 9; n++) {
-      const cxn = Math.random() * LOW;
-      const cyn = Math.random() * LOW;
-      const parts = 2 + Math.floor(Math.random() * 3);
+      const cxn = rand() * LOW;
+      const cyn = rand() * LOW;
+      const parts = 2 + Math.floor(rand() * 3);
       for (let p = 0; p < parts; p++) {
-        const px = cxn + (Math.random() - 0.5) * 28;
-        const py = cyn + (Math.random() - 0.5) * 12;
-        const rw = 6 + Math.random() * 12;
+        const px = cxn + (rand() - 0.5) * 28;
+        const py = cyn + (rand() - 0.5) * 12;
+        const rw = 6 + rand() * 12;
         for (const ox of [-LOW, 0, LOW]) {
           for (const oy of [-LOW, 0, LOW]) {
             o.fillStyle = 'rgba(200, 212, 226, 0.85)';
@@ -1096,12 +1207,13 @@ export class PlanetViewScene extends Phaser.Scene {
   // Ref Lava.png: corteza oscura con ríos de lava en tres capas (resplandor →
   // lava → centro brillante) y algunos lagos
   private styleLava(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
-                    wrapCircle: (x: number, y: number, r: number) => void): void {
+                    wrapCircle: (x: number, y: number, r: number) => void,
+                    rand: () => number): void {
     const [glow, lava, bright] = def.features;
 
     o.fillStyle = 'rgba(0, 0, 0, 0.35)';
     for (let i = 0; i < 8; i++) {
-      wrapCircle(Math.random() * LOW, Math.random() * LOW, 14 + Math.random() * 30);
+      wrapCircle(rand() * LOW, rand() * LOW, 14 + rand() * 30);
     }
 
     const drawPath = (pts: number[][], width: number, color: string) => {
@@ -1122,14 +1234,14 @@ export class PlanetViewScene extends Phaser.Scene {
     // Ríos de lava: random walks
     for (let r = 0; r < 7; r++) {
       const pts: number[][] = [];
-      let x = Math.random() * LOW;
-      let y = Math.random() * LOW;
-      let ang = Math.random() * Math.PI * 2;
+      let x = rand() * LOW;
+      let y = rand() * LOW;
+      let ang = rand() * Math.PI * 2;
       for (let s = 0; s < 10; s++) {
         pts.push([x, y]);
-        ang += (Math.random() - 0.5) * 1.2;
-        x += Math.cos(ang) * (12 + Math.random() * 10);
-        y += Math.sin(ang) * (12 + Math.random() * 10);
+        ang += (rand() - 0.5) * 1.2;
+        x += Math.cos(ang) * (12 + rand() * 10);
+        y += Math.sin(ang) * (12 + rand() * 10);
       }
       drawPath(pts, 9, glow);
       drawPath(pts, 5, lava);
@@ -1138,9 +1250,9 @@ export class PlanetViewScene extends Phaser.Scene {
 
     // Lagos de lava
     for (let i = 0; i < 4; i++) {
-      const x = Math.random() * LOW;
-      const y = Math.random() * LOW;
-      const r = 7 + Math.random() * 9;
+      const x = rand() * LOW;
+      const y = rand() * LOW;
+      const r = 7 + rand() * 9;
       o.fillStyle = glow;
       wrapCircle(x, y, r + 3);
       o.fillStyle = lava;
@@ -1152,38 +1264,40 @@ export class PlanetViewScene extends Phaser.Scene {
 
   // Ref Ice.png: superficie pálida moteada con sombras suaves y brillos blancos
   private styleIce(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
-                   wrapCircle: (x: number, y: number, r: number) => void): void {
+                   wrapCircle: (x: number, y: number, r: number) => void,
+                   rand: () => number): void {
     const [shade1, shade2, white] = def.features;
 
     o.fillStyle = shade1;
     for (let i = 0; i < 11; i++) {
-      wrapCircle(Math.random() * LOW, Math.random() * LOW, 12 + Math.random() * 24);
+      wrapCircle(rand() * LOW, rand() * LOW, 12 + rand() * 24);
     }
     o.fillStyle = shade2;
     for (let i = 0; i < 8; i++) {
-      wrapCircle(Math.random() * LOW, Math.random() * LOW, 6 + Math.random() * 14);
+      wrapCircle(rand() * LOW, rand() * LOW, 6 + rand() * 14);
     }
     o.fillStyle = white;
     for (let i = 0; i < 14; i++) {
-      wrapCircle(Math.random() * LOW, Math.random() * LOW, 3 + Math.random() * 8);
+      wrapCircle(rand() * LOW, rand() * LOW, 3 + rand() * 8);
     }
   }
 
   // Ref Baren.png: roca gris con cráteres (borde claro arriba, fondo oscuro,
   // sombra interior desplazada)
   private styleBaren(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
-                     wrapCircle: (x: number, y: number, r: number) => void): void {
+                     wrapCircle: (x: number, y: number, r: number) => void,
+                     rand: () => number): void {
     const [crater, craterShadow, rim] = def.features;
 
     o.fillStyle = 'rgba(0, 0, 0, 0.12)';
     for (let i = 0; i < 8; i++) {
-      wrapCircle(Math.random() * LOW, Math.random() * LOW, 14 + Math.random() * 28);
+      wrapCircle(rand() * LOW, rand() * LOW, 14 + rand() * 28);
     }
 
     for (let c = 0; c < 11; c++) {
-      const x = Math.random() * LOW;
-      const y = Math.random() * LOW;
-      const r = 5 + Math.random() * 11;
+      const x = rand() * LOW;
+      const y = rand() * LOW;
+      const r = 5 + rand() * 11;
       o.fillStyle = rim;
       wrapCircle(x, y - r * 0.18, r + 1.8);
       o.fillStyle = crater;
@@ -1195,7 +1309,8 @@ export class PlanetViewScene extends Phaser.Scene {
 
   // Ref Black_hole.png: vacío negro con vetas horizontales onduladas del disco
   // de acreción (el anillo azul lo pone el borde con def.halo)
-  private styleBlackhole(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef): void {
+  private styleBlackhole(o: CanvasRenderingContext2D, LOW: number, def: PlanetDef,
+                         rand: () => number): void {
     const [wisp1, wisp2, accent] = def.features;
 
     const band = (color: string, width: number, alpha: number, yBase: number, amp: number, phase: number) => {
@@ -1215,16 +1330,16 @@ export class PlanetViewScene extends Phaser.Scene {
 
     for (let i = 0; i < 10; i++) {
       band(
-        Math.random() < 0.5 ? wisp1 : wisp2,
-        6 + Math.random() * 9,
+        rand() < 0.5 ? wisp1 : wisp2,
+        6 + rand() * 9,
         0.5,
-        Math.random() * LOW,
-        4 + Math.random() * 8,
-        Math.random() * Math.PI * 2,
+        rand() * LOW,
+        4 + rand() * 8,
+        rand() * Math.PI * 2,
       );
     }
     for (let i = 0; i < 4; i++) {
-      band(accent, 1.5 + Math.random() * 1.5, 0.8, Math.random() * LOW, 3 + Math.random() * 6, Math.random() * Math.PI * 2);
+      band(accent, 1.5 + rand() * 1.5, 0.8, rand() * LOW, 3 + rand() * 6, rand() * Math.PI * 2);
     }
     o.globalAlpha = 1;
   }
