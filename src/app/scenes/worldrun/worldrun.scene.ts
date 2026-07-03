@@ -155,9 +155,9 @@ const FIREBALL_HIT_H = 26;            // si los pies del jugador quedan por enci
 // --- Mundo / chunks ---
 const CHUNK_TILES = 16;              // ancho de un chunk en tiles
 const CHUNK_W = CHUNK_TILES * RT;    // ancho de un chunk en px de mundo
-// Filas de tiles de suelo visibles (de la hierba al borde inferior). 3 = se ven
-// ~3 tiles en vertical: 1 fila de hierba (suelo_01) + 2 de tierra (suelo_02).
-const GROUND_VISIBLE_ROWS = 3;
+// Filas de tiles de suelo visibles (de la hierba al borde inferior). 2 = se ven
+// ~2 tiles en vertical: 1 fila de hierba (suelo_01) + 1 de tierra (suelo_02).
+const GROUND_VISIBLE_ROWS = 2;
 const GROUND_BAND_H = GROUND_VISIBLE_ROWS * GROUND_TILE;  // alto de la banda de suelo (px pantalla)
 // El colisionador del suelo va casi en el borde superior del tile (suelo_01 tiene
 // la hierba arriba del todo), así el personaje pisa justo sobre la hierba.
