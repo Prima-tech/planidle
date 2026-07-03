@@ -193,6 +193,14 @@ const ARROW_HIT_X = 46;              // medio ancho de impacto de la flecha
 const SWIPE_MIN_PX = 46;             // desplazamiento mínimo para que un toque sea swipe
 const SWIPE_MAX_MS = 320;            // tiempo máximo del gesto
 
+// Vuelo / boost (botón junto al de impulso). Dura 10 s (lo mide PlayerBridgeService,
+// flyActive). Mientras vuela: gravedad off, DOBLE de velocidad, controlas la altura
+// manteniendo (subir) o soltando (bajar) el salto, e invulnerable arrasando enemigos.
+const FLY_SPEED_MULT = 5;            // ×5 la velocidad de carrera durante el vuelo
+const FLY_VERTICAL_SPEED = 340;      // px/s de subida al mantener (la bajada es algo menor)
+const FLY_CEILING_Y = 60;            // techo (px desde arriba) para no salir de pantalla
+const FLY_FLOOR_CLEARANCE = 44;      // margen sobre el suelo para que el sprite no se hunda
+
 // --- Escalera de mejoras (hitos comprables con estrellas, ver run-milestones.ts) ---
 // El loop estilo Idle Slayer: matar da estrellas → compras la siguiente mejora →
 // llegas más lejos → más estrellas. Efectos por hito:
@@ -286,6 +294,7 @@ export class WorldRunScene extends Phaser.Scene {
   private dashReadyAt = 0;             // time.now a partir del que se puede volver a embestir
   private lastGhostAt = 0;             // estela de la embestida (fantasmas del sprite)
   private slamming = false;            // golpe descendente en curso (hasta aterrizar)
+  private flying = false;              // vuelo / boost en curso (lo dispara el botón vía bridge)
   private arrows: Phaser.GameObjects.Image[] = [];
   private lastArrowAt = 0;
   // Detección de swipes (derecha=dash, abajo=slam) sobre el lienzo.
@@ -415,6 +424,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.dashUntil = 0;
     this.dashReadyAt = 0;
     this.slamming = false;
+    this.flying = false;
     this.arrows = [];
     this.lastArrowAt = this.time.now;
     this.swipeStart = null;
@@ -509,15 +519,23 @@ export class WorldRunScene extends Phaser.Scene {
     // Fin de la embestida: restaurar la gravedad y volver a la velocidad de carrera.
     if (this.dashing && now >= this.dashUntil) this.endDash();
 
+    // Vuelo / boost: el botón lo marca activo en el bridge durante 10 s; aquí entramos
+    // y salimos del modo vuelo según ese estado.
+    const flyWanted = this.reg.playerBridge.flyActive;
+    if (flyWanted && !this.flying) this.startFly();
+    else if (!flyWanted && this.flying) this.endFly();
+
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
     // la anuló). El control manual está anulado: el único input es saltar. El sprint
     // multiplica esta velocidad (pico al inicio, decelerando) mientras esté activo,
-    // y los hitos 'speed1/2/3' añaden +10% permanente cada uno.
+    // y los hitos 'speed1/2/3' añaden +10% permanente cada uno. El vuelo la DOBLA.
     // Durante la embestida manda DASH_SPEED.
     this.player.setVelocityX(this.dashing
       ? DASH_SPEED
-      : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier() * this.runSpeedMult());
+      : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier() * this.runSpeedMult()
+          * (this.flying ? FLY_SPEED_MULT : 1));
     if (this.dashing && now - this.lastGhostAt > 45) this.spawnDashGhost(now);
+    if (this.flying) this.updateFlight();
 
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround && this.player.body.velocity.y >= 0) {
@@ -1078,8 +1096,8 @@ export class WorldRunScene extends Phaser.Scene {
       const onBack = feetAbove >= RAT_STOMP_LOW && feetAbove <= RAT_STOMP_HIGH;
       const falling = (this.player.body?.velocity.y ?? 0) >= 0;
 
-      // Embestida: cualquier rata alcanzada durante el dash muere (atropello).
-      if (this.dashing && absdx < RAT_STOMP_HALF_W + DASH_KILL_PAD && feetAbove <= RAT_STOMP_HIGH + 30) {
+      // Embestida o vuelo: cualquier rata alcanzada muere (atropello, sin daño).
+      if ((this.dashing || this.flying) && absdx < RAT_STOMP_HALF_W + DASH_KILL_PAD && feetAbove <= RAT_STOMP_HIGH + 30) {
         this.killRatAt(i);
         continue;
       }
@@ -1115,7 +1133,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  el jugador MUERE (playerDie). */
   private damagePlayer(amount: number): void {
     if (this.dead) return;                           // ya muerto: el modal está abierto
-    if (this.dashing) return;                        // embistiendo eres invulnerable
+    if (this.dashing || this.flying) return;         // embistiendo o volando eres invulnerable
     if (this.time.now < this.invulnUntil) return;    // gracia tras la segunda oportunidad
     const p = this.reg.playerBridge.player;
     if (p) {
@@ -1147,6 +1165,7 @@ export class WorldRunScene extends Phaser.Scene {
   private playerDie(): void {
     if (this.dead) return;
     this.dead = true;
+    if (this.flying) this.endFly();   // restaura orientación/gravedad antes de la anim de muerte
     this.reg.playerState.recordDeath();
     // Congela al jugador SIN pausar la escena (la escena debe seguir corriendo para que
     // la animación de muerte avance y el fundido de exitToHome se anime; pausarla rompía
@@ -1241,8 +1260,8 @@ export class WorldRunScene extends Phaser.Scene {
       const absdx = Math.abs(dx);
       const rel = this.player.y - s.y;   // pies del jugador respecto al centro del fénix (neg = encima)
 
-      // Embestida: atravesarlo durante el dash lo mata (atropello aéreo).
-      if (this.dashing && absdx < FENIX_BODY_HALF_W + DASH_KILL_PAD && Math.abs(rel) < FENIX_BODY_HALF_H + 30) {
+      // Embestida o vuelo: atravesarlo lo mata (atropello aéreo, sin daño).
+      if ((this.dashing || this.flying) && absdx < FENIX_BODY_HALF_W + DASH_KILL_PAD && Math.abs(rel) < FENIX_BODY_HALF_H + 30) {
         this.killFenixAt(i);
         continue;
       }
@@ -1316,7 +1335,7 @@ export class WorldRunScene extends Phaser.Scene {
       if (fb.grounded &&
           Math.abs(this.player.x - fb.sprite.x) < FIREBALL_HIT_W &&
           this.player.y > fb.sprite.y - FIREBALL_HIT_H) {
-        if (this.dashing) { this.popFireball(i); continue; }
+        if (this.dashing || this.flying) { this.popFireball(i); continue; }
         this.damagePlayer(FIREBALL_DAMAGE);
         fb.sprite.destroy();
         this.fireballs.splice(i, 1);
@@ -1343,6 +1362,12 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   private updatePlayerAnim(onGround: boolean): void {
+    if (this.flying) {
+      // Volando: pose congelada, rotada "mirando al suelo" (el ángulo lo pone startFly).
+      if (this.player.anims.isPlaying) this.player.anims.stop();
+      this.player.setFrame(PLAYER_RUN_AIR_FRAME);
+      return;
+    }
     if (this.dashing) {
       // Embistiendo: pose fija de impulso (la estela de fantasmas hace el resto).
       if (this.player.anims.isPlaying) this.player.anims.stop();
@@ -1422,7 +1447,8 @@ export class WorldRunScene extends Phaser.Scene {
   private pressJump(): void {
     if (!this.player.body || this.dead || this.exiting) return;
     this.jumpHeld = true;
-    if (this.dashing || this.slamming) return;   // durante una habilidad no se salta
+    // En vuelo, mantener/soltar controla la altura (updateFlight), no salta.
+    if (this.dashing || this.slamming || this.flying) return;   // durante una habilidad no se salta
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround && !this.isJumping) {
       this.player.setVelocityY(-JUMP_INITIAL_VELOCITY);
@@ -1450,7 +1476,7 @@ export class WorldRunScene extends Phaser.Scene {
     if (!this.reg.playerState.hasRunMilestone('dash')) return;   // hito sin comprar
     const now = this.time.now;
     if (this.dashing || this.dead || this.exiting || now < this.dashReadyAt) return;
-    if (this.slamming) return;                        // en pleno slam no se embiste
+    if (this.slamming || this.flying) return;         // en pleno slam/vuelo no se embiste
     this.dashing = true;
     this.dashUntil = now + DASH_MS;
     this.dashReadyAt = now + DASH_COOLDOWN_MS;
@@ -1468,6 +1494,52 @@ export class WorldRunScene extends Phaser.Scene {
     this.dashing = false;
     (this.player.body as Phaser.Physics.Arcade.Body).setAllowGravity(true);
     this.player.clearTint();
+  }
+
+  // --- Vuelo / boost -----------------------------------------------------------
+  /** Entra en modo vuelo: gravedad off, pose "mirando al suelo" (rotado 90°, pivota en
+   *  el centro) y brillo dorado. La velocidad (×2) y el control de altura los aplica
+   *  update()/updateFlight; la invulnerabilidad y el atropello, damagePlayer y los
+   *  updateRats/Fenixes/Fireballs (ramas `this.flying`). Dura mientras flyActive. */
+  private startFly(): void {
+    this.flying = true;
+    this.isJumping = false;
+    this.slamming = false;
+    if (this.dashing) this.endDash();
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    body.setAllowGravity(false);
+    this.player.setVelocityY(0);
+    // "Mirando al suelo": rotar 90° (la cara pasa a apuntar abajo, la cabeza al frente).
+    // Se pivota sobre los pies (origin 0.5,1, sin tocar) para no hundir el sprite al
+    // volar bajo y no alterar el cuerpo de colisión. Brillo dorado de boost. Se
+    // restaura en endFly. (El offset/feel de la pose se afina en juego.)
+    this.player.setAngle(90).setTint(0xffd27f);
+  }
+
+  /** Sale del modo vuelo: restaura gravedad, orientación y tinte. Al soltarlo en el
+   *  aire (fin de los 10 s), el jugador cae con normalidad. */
+  private endFly(): void {
+    if (!this.flying) return;
+    this.flying = false;
+    (this.player.body as Phaser.Physics.Arcade.Body).setAllowGravity(true);
+    this.player.setAngle(0).clearTint();
+  }
+
+  /** Control de altura durante el vuelo: mantener el salto = subir, soltarlo = bajar
+   *  (algo más lento). Se limita a la pantalla (techo arriba, suelo abajo). */
+  private updateFlight(): void {
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    body.velocity.y = this.jumpHeld ? -FLY_VERTICAL_SPEED : FLY_VERTICAL_SPEED * 0.7;
+    // Suelo del vuelo un poco por encima de la línea real para que el sprite (rotado)
+    // no se hunda en la hierba.
+    const floorLimit = this.groundTopY + SURFACE_INSET - FLY_FLOOR_CLEARANCE;
+    if (this.player.y <= FLY_CEILING_Y) {
+      this.player.y = FLY_CEILING_Y;
+      if (body.velocity.y < 0) body.velocity.y = 0;
+    } else if (this.player.y >= floorLimit) {
+      this.player.y = floorLimit;
+      if (body.velocity.y > 0) body.velocity.y = 0;
+    }
   }
 
   /** Estela de la embestida: "fantasmas" del sprite que se desvanecen por detrás. */
@@ -1488,7 +1560,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  también lo mata (ver updateFenixes). */
   private startSlam(): void {
     if (!this.reg.playerState.hasRunMilestone('slam')) return;   // hito sin comprar
-    if (!this.player.body || this.dead || this.exiting || this.slamming) return;
+    if (!this.player.body || this.dead || this.exiting || this.slamming || this.flying) return;
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround) return;
     if (this.dashing) this.endDash();                 // el slam corta la embestida

@@ -31,6 +31,32 @@ $metal-dark: #6b6357;
   > * { pointer-events: all; }
 }
 
+/* ── Botón de mapa: FUERA de la barra, flotando pegado a su izquierda ──
+   La barra (.rs-block) va en right:12px con width:265px → su borde izquierdo
+   está a 277px del borde derecho. El botón se cuelga justo a su izquierda. */
+.rs-map-btn {
+  position: fixed;
+  top: calc(22px + var(--safe-top, 0px));
+  right: calc(285px + var(--safe-right, 0px));   // 12 + 265 + 8 de hueco
+  z-index: 160;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: filter 0.15s;
+
+  @media (hover: hover) { &:hover { filter: brightness(1.12); } }
+  &:active { filter: brightness(0.9); transform: translateY(1px); }
+  &:focus  { outline: none; }
+
+  &__icon {
+    display: block;
+    width: 36px;
+    height: 36px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 5px rgba(240, 200, 100, 0.45));
+  }
+}
+
 /* ── Widget: contadores en vivo, sin barras ── */
 .rs-widget {
   position: relative;
@@ -174,7 +200,7 @@ $metal-dark: #6b6357;
   right: 0;            // anclado al borde derecho del widget
   left: auto;
   width: 265px;        // mismo ancho que los paneles/banners de la derecha
-  height: calc(100dvh - 156px);   // del borde del widget a ~un poco por encima del footer
+  height: calc(107dvh - 156px);   // del borde del widget a ~un poco por encima del footer
   padding: 9px 7px;
   display: flex;
   flex-direction: column;
@@ -265,28 +291,37 @@ $metal-dark: #6b6357;
   .rs-ms-star { width: 13px; height: 13px; image-rendering: pixelated; }
 }
 
-/* Pestañas: objetivos / completos (mismo estilo que las de la tienda). */
-.rs-tabs {
+/* Pestañas laterales (objetivos / completos): FUERA del panel, pegadas a su borde
+   IZQUIERDO (el panel va anclado al borde derecho de la pantalla). Mismo estilo
+   que las pestañas verticales de la ventana de equipo (.eq-vtab). Cuelgan del
+   bloque (.rs-block, sin overflow) para no quedar recortadas por el panel. */
+.rs-vtabs {
+  position: absolute;
+  top: calc(100% + 16px);        // arranca bajo el botón de mapa, junto al panel
+  right: calc(100% + 6px);       // fuera del bloque, a su izquierda
   display: flex;
-  gap: 5px;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 5;
 }
 
-.rs-tab {
-  flex: 1 1 0;
-  text-align: center;
-  padding: 5px 0;
+.rs-vtab {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   border: 2px solid $outline;
-  border-radius: 5px;
-  font-size: 0.58em;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  user-select: none;
+  border-radius: 6px;
   color: $text-cream;
   background: $wood-btn-dark;
+  cursor: pointer;
+  user-select: none;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s, color 0.15s;
+
+  ion-icon { font-size: 17px; pointer-events: none; }
 
   &.active {
     background: $wood-btn;

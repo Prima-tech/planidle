@@ -22,14 +22,19 @@
     <ion-icon [name]="panelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
   </button>
 
+  <!-- Pestañas laterales (fuera del panel, pegadas a su borde izquierdo), estilo
+       ventana de equipo: objetivos (por comprar) / completos (ya comprados). -->
+  <div class="rs-vtabs" *ngIf="panelOpen">
+    <button class="rs-vtab" [class.active]="tab === 'objetivos'" (click)="tab = 'objetivos'" [title]="'RUN.MS_PENDING' | translate">
+      <ion-icon name="flag-outline"></ion-icon>
+    </button>
+    <button class="rs-vtab" [class.active]="tab === 'completos'" (click)="tab = 'completos'" [title]="'RUN.MS_DONE' | translate">
+      <ion-icon name="checkmark-done-outline"></ion-icon>
+    </button>
+  </div>
+
   <!-- Panel desplegable: hitos comprables con estrellas (abre hasta cerca del footer). -->
   <div class="rs-panel" *ngIf="panelOpen">
-
-    <!-- Pestañas: objetivos (por comprar) / completos (ya comprados) -->
-    <div class="rs-tabs">
-      <div class="rs-tab" [class.active]="tab === 'objetivos'" (click)="tab = 'objetivos'">{{ 'RUN.MS_PENDING' | translate }}</div>
-      <div class="rs-tab" [class.active]="tab === 'completos'" (click)="tab = 'completos'">{{ 'RUN.MS_DONE' | translate }}</div>
-    </div>
 
     <ng-container *ngIf="(milestones$ | async) as owned">
       <ng-container *ngIf="forTab(owned) as list">
@@ -50,3 +55,10 @@
   </div>
 
 </div>
+
+<!-- Botón de mapa: FUERA de la barra, pegado a su izquierda. Abre la interfaz de
+     mapa (world-map-panel); en exploración no hay minimap para abrirlo. Solo
+     disponible tras comprar el hito 'map_1_1' (desbloquear mapa 1-1). -->
+<button class="rs-map-btn" *ngIf="(milestones$ | async)?.includes('map_1_1')" (click)="openMap.emit()">
+  <img class="rs-map-btn__icon" src="assets/sprites/resources/world_mode/map.png" alt="" draggable="false" />
+</button>

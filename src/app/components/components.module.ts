@@ -29,6 +29,7 @@ import { GameSettingsPageComponent } from '../pages/game-settings/game-settings.
 import { HudSkillButtonsComponent } from './hud-skill-buttons/hud-skill-buttons.component';
 import { AttackButtonComponent } from './attack-button/attack-button.component';
 import { SprintButtonComponent } from './sprint-button/sprint-button.component';
+import { FlyButtonComponent } from './fly-button/fly-button.component';
 import { RunStatsComponent } from './run-stats/run-stats.component';
 import { NpcDialogueComponent } from './npc-dialogue/npc-dialogue.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
@@ -74,6 +75,7 @@ import { MapChestWindowComponent } from './map-chest-window/map-chest-window.com
     HudSkillButtonsComponent,
     AttackButtonComponent,
     SprintButtonComponent,
+    FlyButtonComponent,
     RunStatsComponent,
     NpcDialogueComponent,
     WorldMapPanelComponent,
@@ -122,6 +124,7 @@ import { MapChestWindowComponent } from './map-chest-window/map-chest-window.com
     TownChestComponent,
     HudSkillButtonsComponent,
     SprintButtonComponent,
+    FlyButtonComponent,
     RunStatsComponent,
     NpcDialogueComponent,
     EnemyNamePipe,

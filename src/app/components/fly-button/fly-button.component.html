@@ -1,0 +1,15 @@
+<button class="fly-btn"
+        [class.pressed]="pressed"
+        [class.on-cd]="onCooldown"
+        [style.--cd-angle]="cdAngle + 'deg'"
+        (pointerdown)="onPress($event)"
+        (pointerup)="onRelease()"
+        (pointercancel)="onRelease()"
+        (pointerleave)="onRelease()"
+        (contextmenu)="$event.preventDefault()">
+  <span class="fly-btn__shine"></span>
+  <ion-icon name="rocket" class="fly-btn__icon"></ion-icon>
+
+  <div *ngIf="cdAngle > 0" class="fly-cd-overlay"></div>
+  <span *ngIf="cdSeconds" class="fly-cd-text">{{ cdSeconds }}</span>
+</button>

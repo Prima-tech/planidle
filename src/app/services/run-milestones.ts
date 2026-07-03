@@ -57,10 +57,10 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
     labelKey: 'RUN.MS_SPEED1', descKey: 'RUN.MS_SPEED_DESC',
     icon: 'speedometer',
   },
-  // Mapas: se COMPRAN aquí (ya no se desbloquean por metros). El 1-1 es baratito
-  // (primer objetivo); el resto cuestan 1000★ cada uno y van encadenados.
+  // Mapas: se COMPRAN aquí (ya no se desbloquean por metros). El 1-1 cuesta 1★
+  // (primer objetivo, además desbloquea el botón de mapa); el resto 1000★ encadenados.
   {
-    id: 'map_1_1', cost: 10,
+    id: 'map_1_1', cost: 1,
     labelKey: 'RUN.MS_MAP_1_1', descKey: 'RUN.MS_MAP_DESC',
     icon: 'map', unlockFlag: 'map_1_1',
   },

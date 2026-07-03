@@ -34,7 +34,9 @@
 <app-hud-skill-buttons *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)"></app-hud-skill-buttons>
 <!-- El impulso solo existe si se ha comprado su hito (1 estrella) en el panel de hitos. -->
 <app-sprint-button *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async) && (playerStateService.runMilestones$ | async)?.includes('sprint')"></app-sprint-button>
-<app-run-stats *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async)" (openSettings)="footerBar.openGameSettings()"></app-run-stats>
+<!-- Vuelo / boost: junto al de impulso. Disponible siempre en modo mundo. -->
+<app-fly-button *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async)"></app-fly-button>
+<app-run-stats *ngIf="dataLoaded && sceneVisible && (playerBridgeService.runMode$ | async)" (openSettings)="footerBar.openGameSettings()" (openMap)="footerBar.openWorldMap()"></app-run-stats>
 <!-- En exploración no hay botón de saltar: se salta tocando la pantalla (lo gestiona
      WorldRunScene.bindInput con pointerdown). El botón de ataque solo en modo normal. -->
 <app-attack-button *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)"></app-attack-button>

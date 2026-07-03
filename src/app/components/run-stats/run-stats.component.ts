@@ -32,6 +32,9 @@ export class RunStatsComponent {
   /** Botón de ajustes del widget (en exploración no hay minimap): lo abre el layout. */
   @Output() openSettings = new EventEmitter<void>();
 
+  /** Botón de mapa del widget: el layout abre el panel de mapa (world-map-panel). */
+  @Output() openMap = new EventEmitter<void>();
+
   panelOpen = false;
   togglePanel(): void { this.panelOpen = !this.panelOpen; }
 

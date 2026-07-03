@@ -18,6 +18,13 @@ const SPRINT_COOLDOWN_MS = 20_000;   // medido desde la activación (10 s sprint
 const SPRINT_BASE_MULT = 2;          // ×2 sostenido durante todo el sprint
 const SPRINT_BURST_EXTRA = 2;        // pico extra al arrancar (×4) que decae hasta 0
 
+// Vuelo / boost (Modo Mundo): durante 10 s el jugador vuela (gravedad off, controla
+// la altura con el input de salto), va al DOBLE de velocidad y arrasa enemigos al
+// contacto (invulnerable). Luego, enfriamiento antes de repetir. La escena lee
+// flyActive cada frame; el botón lee los getters de cooldown para pintar el aro.
+const FLY_DURATION_MS = 10_000;
+const FLY_COOLDOWN_MS = 30_000;      // medido desde la activación (10 s vuelo + 20 s de espera)
+
 /** Petición de entrada a un mapa (Modo Mundo). `canCancel` = se puede rechazar. */
 export interface MapEntrancePrompt {
   mapId: string;
@@ -64,7 +71,7 @@ export class PlayerBridgeService {
   readonly mapEntranceHint$ = new Subject<string>();
 
   setRunMode(active: boolean): void {
-    if (active) this.sprintStart = 0;   // se entra con el sprint listo
+    if (active) { this.sprintStart = 0; this.flyStart = 0; }   // se entra con sprint y vuelo listos
     this.runMode$.next(active);
   }
   requestJump(): void { this.jumpRequest$.next(); }
@@ -113,6 +120,32 @@ export class PlayerBridgeService {
   get sprintCooldownSeconds(): number {
     if (!this.sprintOnCooldown) return 0;
     return Math.ceil((SPRINT_COOLDOWN_MS - this.sprintElapsed) / 1000);
+  }
+
+  // ── Vuelo / boost (Modo Mundo) ─────────────────────────────────────────────────
+  // Igual que el sprint: un timestamp de activación. WorldRunScene lee flyActive cada
+  // frame para entrar/salir del modo vuelo; el botón lee los getters de cooldown.
+  private flyStart = 0;
+
+  /** Arranca el vuelo si no está en cooldown. Devuelve true si se activó. */
+  activateFly(): boolean {
+    if (this.flyOnCooldown) return false;
+    this.flyStart = Date.now();
+    return true;
+  }
+
+  private get flyElapsed(): number { return Date.now() - this.flyStart; }
+  get flyActive(): boolean { return this.flyStart > 0 && this.flyElapsed < FLY_DURATION_MS; }
+  get flyOnCooldown(): boolean { return this.flyStart > 0 && this.flyElapsed < FLY_COOLDOWN_MS; }
+
+  /** Aro de cooldown del botón: 1 = recién usado, 0 = listo. */
+  get flyCooldownRatio(): number {
+    if (!this.flyOnCooldown) return 0;
+    return 1 - this.flyElapsed / FLY_COOLDOWN_MS;
+  }
+  get flyCooldownSeconds(): number {
+    if (!this.flyOnCooldown) return 0;
+    return Math.ceil((FLY_COOLDOWN_MS - this.flyElapsed) / 1000);
   }
   promptMapEntrance(mapId: string, canCancel: boolean): void {
     this.mapEntrancePrompt$.next({ mapId, canCancel });
