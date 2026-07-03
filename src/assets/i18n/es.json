@@ -269,8 +269,8 @@
     "NONE_COMPLETED": "Aún no has completado ninguna misión.",
     "PRIMERAS_ESTRELLAS": {
       "NAME": "La llamada de Mordekai",
-      "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 5 estrellas: toca la pantalla para saltar y recógelas al vuelo. Al cobrarla aprenderás el Impulso.",
-      "TRACK": "Consigue 5 estrellas"
+      "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 1 estrella: toca la pantalla para saltar y recógela al vuelo. Al cobrarla aprenderás el Impulso.",
+      "TRACK": "Consigue 1 estrella"
     },
     "PLAGA_BABOSAS": {
       "NAME": "Plaga de babosas",
@@ -494,9 +494,9 @@
     "DEFAULT_PLAYER_NAME": "viajero",
     "RECRUIT_GREETING": "Hombre {{player}}, ¿qué tal? A partir de ahora puedes elegirme para jugar contigo.",
     "MORDEKAI_DONE": "Cuando quieras luchar de verdad, {{player}}, cruza el portal del oeste hacia 1-1. Ahí te esperan los primeros monstruos.",
-    "MORDEKAI_CLAIM": "¡Cinco estrellas, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
+    "MORDEKAI_CLAIM": "¡Ya tienes tu estrella, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
     "MORDEKAI_PROGRESS": "Llevas {{prog}}/{{goal}} estrellas. Sigue saltando a por ellas en la exploración (portal del este).",
-    "MORDEKAI_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Antes de luchar, aprende a explorar: cruza el portal del este y trae 5 estrellas. Toca la pantalla para saltar y recógelas al vuelo.",
+    "MORDEKAI_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Antes de luchar, aprende a explorar: cruza el portal del este y trae 1 estrella. Toca la pantalla para saltar y recógela al vuelo.",
     "KUGO_LINE": "{{player}}, ¡cuánto tiempo!",
     "ITALIEN_LINE": "Eh, {{player}}, ¿listo para la aventura?",
     "RAKE_LINE": "{{player}}, cuando quieras partimos."

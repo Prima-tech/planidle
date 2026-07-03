@@ -815,11 +815,9 @@ $metal-dark: #6b6357;
   left: 28px;
   transform: translateX(-50%);
   z-index: 3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px;
   padding: 3px 8px;
+  // El recorte del nombre (ellipsis) va en .char-name-text; el pill NO recorta,
+  // para que el .notif-dot (top/right: -5px) no quede cortado por overflow:hidden.
   background: $wood-btn;
   border: 2px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
@@ -832,6 +830,16 @@ $metal-dark: #6b6357;
   color: $text-brown;
   letter-spacing: 0.03em;
   cursor: pointer;
+}
+
+/* Nombre con recorte (ellipsis) para nombres largos, sin recortar el punto de novedad. */
+.char-name-text {
+  display: inline-block;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 // ── Barras ───────────────────────────────────────────────────────────────────

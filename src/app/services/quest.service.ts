@@ -85,35 +85,9 @@ export const QUESTS: QuestDef[] = [
     desc: 'QUESTS.PRIMERAS_ESTRELLAS.DESC',
     icon: 'star-outline',
     track: 'QUESTS.PRIMERAS_ESTRELLAS.TRACK',
-    objective: { type: 'stars', goal: 5 },
-    reward: { coins: 100, exp: 40, runMilestone: 'sprint' },
-  },
-  {
-    id: 'plaga_babosas',
-    name: 'QUESTS.PLAGA_BABOSAS.NAME',
-    desc: 'QUESTS.PLAGA_BABOSAS.DESC',
-    icon: 'water-outline',
-    track: 'QUESTS.PLAGA_BABOSAS.TRACK',
-    objective: { type: 'kill', goal: 1 },
-    reward: { coins: 150, exp: 60 },
-  },
-  {
-    id: 'kill_50',
-    name: 'QUESTS.KILL_50.NAME',
-    desc: 'QUESTS.KILL_50.DESC',
-    icon: 'skull-outline',
-    track: 'QUESTS.KILL_50.TRACK',
-    objective: { type: 'kill', goal: 50 },
-    reward: { coins: 300, exp: 150 },
-  },
-  {
-    id: 'orcs_5',
-    name: 'QUESTS.ORCS_5.NAME',
-    desc: 'QUESTS.ORCS_5.DESC',
-    icon: 'flame-outline',
-    track: 'QUESTS.ORCS_5.TRACK',
-    objective: { type: 'kill', family: 'orc', goal: 5 },
-    reward: { coins: 200, exp: 80 },
+    objective: { type: 'stars', goal: 1 },
+    // Única recompensa: el Impulso (hito 'sprint'). Sin oro ni EXP.
+    reward: { runMilestone: 'sprint' },
   },
 ];
 

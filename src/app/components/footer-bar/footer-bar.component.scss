@@ -170,6 +170,20 @@ $gold-light: #ffe9a8;
   pointer-events: none;
 }
 
+/* Modo Mundo: el hub va a la ABAJO-DERECHA (el tirador queda pegado al borde derecho
+   y los botones se despliegan hacia la izquierda), para no chocar con impulso/vuelo. */
+.hub.hub--right {
+  left: auto;
+  right: calc(8px + var(--safe-right, 0px));
+  flex-direction: row-reverse;   // tirador a la derecha, botones a su izquierda
+}
+.hub.hub--right:not(.hub--open) .hub-buttons {
+  transform: translateX(12px);   // colapsa hacia el tirador (derecha)
+}
+.hub.hub--right .hub-toggle ion-icon {
+  transform: scaleX(-1);         // el chevron apunta al lado correcto (abre a la izquierda)
+}
+
 :host {
 
   /* Botón único de cambio de página (principal ⇄ skills). Más estrecho que las

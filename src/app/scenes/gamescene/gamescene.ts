@@ -935,10 +935,10 @@ export class GameScene extends Phaser.Scene {
       let g = this.make.graphics({ x: 0, y: 0 }, false);
       g.lineStyle(9, DARK, 1);
       g.strokeRoundedRect(cx - 9, 12, 18, 58, 8);
-      g.strokeCircle(cx, 85, 11);
+      g.strokeCircle(cx, 89, 11);
       g.fillStyle(GOLD, 1);
       g.fillRoundedRect(cx - 9, 12, 18, 58, 8);
-      g.fillCircle(cx, 85, 11);
+      g.fillCircle(cx, 89, 11);
       g.generateTexture('quest_excl', W, H);
       g.destroy();
 
@@ -953,8 +953,8 @@ export class GameScene extends Phaser.Scene {
       };
       hook(20, DARK);   // contorno
       hook(12, GOLD);   // relleno
-      g.lineStyle(9, DARK, 1); g.strokeCircle(cx, 85, 11);
-      g.fillStyle(GOLD, 1); g.fillCircle(cx, 85, 11);
+      g.lineStyle(9, DARK, 1); g.strokeCircle(cx, 89, 11);
+      g.fillStyle(GOLD, 1); g.fillCircle(cx, 89, 11);
       g.generateTexture('quest_ques', W, H);
       g.destroy();
     }

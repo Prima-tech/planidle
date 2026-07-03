@@ -269,8 +269,8 @@
     "NONE_COMPLETED": "You haven't completed any quests yet.",
     "PRIMERAS_ESTRELLAS": {
       "NAME": "Mordekai's Call",
-      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and bring back 5 stars: tap the screen to jump and grab them on the fly. Claiming it teaches you the Sprint.",
-      "TRACK": "Collect 5 stars"
+      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and bring back 1 star: tap the screen to jump and grab it on the fly. Claiming it teaches you the Sprint.",
+      "TRACK": "Collect 1 star"
     },
     "PLAGA_BABOSAS": {
       "NAME": "Slime Plague",
@@ -494,9 +494,9 @@
     "DEFAULT_PLAYER_NAME": "traveler",
     "RECRUIT_GREETING": "Hey {{player}}, how's it going? From now on you can pick me to play with.",
     "MORDEKAI_DONE": "When you feel like real fighting, {{player}}, cross the west portal to 1-1. The first monsters await you there.",
-    "MORDEKAI_CLAIM": "Five stars, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
+    "MORDEKAI_CLAIM": "You got your star, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
     "MORDEKAI_PROGRESS": "You have {{prog}}/{{goal}} stars. Keep jumping for them in exploration (east portal).",
-    "MORDEKAI_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Before fighting, learn to explore: cross the east portal and bring back 5 stars. Tap the screen to jump and grab them on the fly.",
+    "MORDEKAI_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Before fighting, learn to explore: cross the east portal and bring back 1 star. Tap the screen to jump and grab it on the fly.",
     "KUGO_LINE": "{{player}}, long time no see!",
     "ITALIEN_LINE": "Hey {{player}}, ready for adventure?",
     "RAKE_LINE": "{{player}}, we set off whenever you want."

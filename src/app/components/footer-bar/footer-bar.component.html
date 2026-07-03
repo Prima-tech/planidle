@@ -42,8 +42,9 @@
   <ion-icon [name]="locked ? 'lock-closed' : 'lock-open'"></ion-icon>
 </button>
 
-<!-- Hub de botones (abajo-izquierda): el tirador abre/cierra el hub con animación. -->
-<div class="hub" [class.hub--open]="hubOpen">
+<!-- Hub de botones (abajo-izquierda; en Modo Mundo pasa a la derecha para no chocar
+     con los botones de impulso/vuelo). El tirador abre/cierra el hub con animación. -->
+<div class="hub" [class.hub--open]="hubOpen" [class.hub--right]="runMode$ | async">
 
   <!-- Tirador (abrir/cerrar): mismo ancho que un botón pero la mitad de fino. -->
   <button class="hub-toggle" (click)="toggleHub()">

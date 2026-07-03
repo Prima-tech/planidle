@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output, inject, OnDestroy, OnInit } from '@ang
 import { BehaviorSubject, combineLatest, Subscription, map, startWith } from 'rxjs';
 import { AsgardService } from 'src/app/services/asgard';
 import { StorageService } from 'src/app/services/storage.service';
+import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { ActiveBuff, BuffService } from 'src/app/services/buff.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -68,6 +69,11 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private activity     = inject(ActivityService);
   private charStats    = inject(CharacterStatsService);
   private mapUpgrades  = inject(MapUpgradesService);
+  private badges       = inject(NotificationBadgeService);
+
+  /** Indicador de novedad en la pastilla del nombre (abre la ventana de equipo):
+   *  encendido cuando hay algo nuevo dentro (misión reclamable, punto de stats…). */
+  questBadge = false;
 
   valueHP$: any = null;
   valueMP$: any = null;
@@ -315,6 +321,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private buffSub: Subscription;
   private unlockSub: Subscription;
   private closeMenusSub?: Subscription;
+  private badgeSub?: Subscription;
   private tickInterval: any;
 
   // Avatar de la barra de vida: icono de lo que estoy haciendo ahora mismo
@@ -366,6 +373,10 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.refreshCharCount();
     this.unlockSub = this.unlocks.changes$.subscribe(() => this.refreshCharCount());
 
+    // Novedad en la pastilla del nombre: cualquier badge de la ventana de equipo
+    // ('equip.*', p.ej. misión reclamable) enciende el punto. Se apaga al verlo dentro.
+    this.badgeSub = this.badges.changes$.subscribe(() => this.questBadge = this.badges.has('equip'));
+
     this.buffSub = this.buffService.buffs$.subscribe(buffs => {
       this.activeBuffs = buffs;
     });
@@ -395,6 +406,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.buffSub?.unsubscribe();
     this.unlockSub?.unsubscribe();
     this.closeMenusSub?.unsubscribe();
+    this.badgeSub?.unsubscribe();
     clearInterval(this.tickInterval);
   }
 

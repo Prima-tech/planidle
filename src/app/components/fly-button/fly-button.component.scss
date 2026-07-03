@@ -2,16 +2,24 @@
   pointer-events: none;
 }
 
-// Botón de VUELO / boost del Modo Mundo: abajo-izquierda, a la DERECHA del de impulso
-// (sprint 52px + 8px de hueco). Cuadrado con esquinas redondeadas, estilo "ámbar/fuego".
+// Paleta RPG (madera + piedra), igual que el footer.
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$metal-face: linear-gradient(180deg, #cfc7b8 0%, #9b9285 45%, #847b6e 75%, #6b6357 100%);
+$metal-face-pressed: linear-gradient(180deg, #6b6357 0%, #847b6e 25%, #9b9285 60%, #cfc7b8 100%);
+
+// Botón de VUELO / boost del Modo Mundo: misma placa de acero que el de impulso, a su
+// DERECHA (44px + 8px de hueco). Icono naranja "fuego" para distinguirlo.
 .fly-btn {
   position: fixed;
-  left: calc(68px + var(--safe-left, 0px));   // 8px (borde) + 52px (sprint) + 8px (hueco)
-  bottom: calc(60px + var(--safe-bottom, 0px));
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
-  z-index: 150;
+  left: calc(60px + var(--safe-left, 0px));   // 8px (borde) + 44px (impulso) + 8px (hueco)
+  bottom: calc(8px + var(--safe-bottom, 0px));
+  width: 44px;
+  height: 42px;
+  border-radius: 5px;
+  z-index: 160;
   pointer-events: auto;
   padding: 0;
   cursor: pointer;
@@ -20,54 +28,39 @@
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
 
-  background: radial-gradient(circle at 35% 28%, #ffd98a 0%, #f2932c 40%, #c65314 75%, #6e2b06 100%);
-  border: 2px solid rgba(255, 224, 178, 0.4);
+  border: 3px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  background: $metal-face;
   box-shadow:
-    0 3px 10px rgba(0, 0, 0, 0.65),
-    0 0 0 2px rgba(0, 0, 0, 0.45),
-    inset 0 2px 5px rgba(255, 255, 255, 0.30),
-    inset 0 -4px 8px rgba(0, 0, 0, 0.50);
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.45);
 
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: transform 70ms ease-out, box-shadow 70ms ease-out, filter 70ms ease-out;
+  transition: background 0.12s ease-out, filter 0.12s ease-out;
 
   &.pressed {
-    transform: scale(0.88);
-    filter: brightness(1.25);
+    background: $metal-face-pressed;
     box-shadow:
-      0 2px 6px rgba(0, 0, 0, 0.6),
-      0 0 14px rgba(255, 170, 60, 0.85),
-      inset 0 2px 5px rgba(255, 255, 255, 0.35),
-      inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      inset 0 2px 4px rgba(0, 0, 0, 0.4);
   }
 
-  // En cooldown: apagado y sin posibilidad de pulsar (el aro indica el tiempo).
   &.on-cd {
     cursor: not-allowed;
-    filter: grayscale(35%) brightness(0.85);
+    filter: grayscale(45%) brightness(0.8);
   }
-}
-
-// Brillo superior tipo cristal
-.fly-btn__shine {
-  position: absolute;
-  top: 5%;
-  left: 14%;
-  width: 72%;
-  height: 38%;
-  border-radius: 50%;
-  background: linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0));
-  pointer-events: none;
-  z-index: 1;
 }
 
 .fly-btn__icon {
-  font-size: 26px;
-  color: #fff4e2;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  font-size: 23px;
+  color: #ef7a1f;                                   // naranja "fuego" grabado en el acero
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.4)) drop-shadow(0 0 3px rgba(255, 150, 60, 0.6));
   pointer-events: none;
   z-index: 1;
 }
@@ -75,7 +68,7 @@
 .fly-cd-overlay {
   position: absolute;
   inset: 0;
-  border-radius: 10px;
+  border-radius: 5px;
   background: conic-gradient(
     from -90deg,
     rgba(0, 0, 0, 0.72) 0deg var(--cd-angle),
