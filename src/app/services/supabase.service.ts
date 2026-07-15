@@ -118,20 +118,26 @@ export class SupabaseService {
     return await this.supabase.auth.updateUser({ email, password: pass });
   }
 
-  /** ¿La cuenta logueada está BANEADA? Lee `global_data.account.banned` del propio
-   *  usuario (la RLS le deja leer su fila). Esta bandera la marca el PANEL DE ADMIN
-   *  vía la RPC `admin_set_ban`. El login la comprueba y bloquea el acceso.
-   *  Ante cualquier error de red devuelve false (no bloqueamos por un fallo puntual). */
-  async isBanned(): Promise<boolean> {
+  /** ¿La cuenta logueada tiene el acceso BLOQUEADO? Lee `global_data.account` del
+   *  propio usuario (la RLS le deja leer su fila) y devuelve el motivo:
+   *  - 'banned'  → la marcó el PANEL DE ADMIN vía la RPC `admin_set_ban`.
+   *  - 'deleted' → la marcó el propio usuario con "Borrar cuenta (nube)" en ajustes
+   *    (soft-delete: la fila sigue existiendo, pero no se puede volver a entrar).
+   *  El login lo comprueba en todas sus vías y bloquea el acceso. Ante cualquier error
+   *  de red devuelve null (no bloqueamos por un fallo puntual). */
+  async accessBlock(): Promise<'banned' | 'deleted' | null> {
     try {
       const { data: { user } } = await this.supabase.auth.getUser();
-      if (!user) return false;
+      if (!user) return null;
       const { data, error } = await this.supabase
         .from('global_data').select('account').eq('id', user.id).single();
-      if (error) return false;
-      return !!(data as any)?.account?.banned;
+      if (error) return null;
+      const account = (data as any)?.account;
+      if (account?.banned)  return 'banned';
+      if (account?.deleted) return 'deleted';
+      return null;
     } catch {
-      return false;
+      return null;
     }
   }
 
@@ -357,24 +363,13 @@ export class SupabaseService {
     if (error) throw error;
   }
 
-  /** Borra los DATOS de juego de la cuenta en la nube: ELIMINA todas las filas de
-   *  personajes (incluidas las obsoletas) y resetea global_data.account. Al volver a
-   *  entrar, fetchAndSaveLocalData reinserta el roster limpio de ROSTER_TEMPLATE. */
-  async wipeRemoteData(): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('No hay sesión activa');
-
-    const { error: charErr } = await this.supabase
-      .from('characters')
-      .delete()
-      .eq('profile_id', user.id);
-    if (charErr) throw charErr;
-
-    const { error: accErr } = await this.supabase
-      .from('global_data')
-      .update({ account: null, last_modified: new Date().toISOString() })
-      .eq('id', user.id);
-    if (accErr) throw accErr;
+  /** SOFT-DELETE de la cuenta: NO borra nada de la nube, solo marca
+   *  `global_data.account.deleted = true` (merge, sin pisar el resto del account).
+   *  Con la marca puesta, `accessBlock()` devuelve 'deleted' y el login no deja
+   *  volver a entrar con esta cuenta por ninguna vía. Los datos quedan en la BD
+   *  (el panel de admin puede inspeccionarlos o restaurarlos quitando el flag). */
+  async markAccountDeleted(): Promise<void> {
+    await this.saveAccountData({ deleted: true, deletedAt: new Date().toISOString() });
   }
 
 }

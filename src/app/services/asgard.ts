@@ -71,9 +71,9 @@ export class AsgardService {
   // ── Session ───────────────────────────────────────────────────────────────
 
   async setSelectedPlayer(player: any): Promise<void> {
-    // Cambiar de personaje apaga la automatización (auto-ataque y auto-skills)
+    // Cambiar de personaje apaga la automatización (el auto-skills es un talento
+    // global de cuenta, no se toca aquí)
     this.autoAttack.isEnabled = false;
-    this.autoAttack.skillsEnabled = false;
     this.selectedPlayer = new Character(player);
     await this.storageService.set('selected_player', player);
     await this.saveService.loadCharacter(String(player.id));

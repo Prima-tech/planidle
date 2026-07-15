@@ -26,6 +26,7 @@ import { DialogueService } from '../services/dialogue.service';
 import { ForgeService } from '../services/forge.service';
 import { MapUpgradesService } from '../services/map-upgrades.service';
 import { AdminService } from '../services/admin.service';
+import { GlobalTalentsService } from '../services/global-talents.service';
 import { AudioService } from '../services/audio.service';
 import { QuestService } from '../services/quest.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -60,6 +61,7 @@ export const REGISTRY_KEYS = {
   FORGE:            'forgeService',
   MAP_UPGRADES:     'mapUpgradesService',
   ADMIN:            'adminService',
+  GLOBAL_TALENTS:   'globalTalentsService',
   AUDIO:            'audioService',
   QUESTS:           'questService',
   TRANSLATE:        'translateService',
@@ -97,6 +99,7 @@ export class GameRegistry {
   get forge():           ForgeService              { return this.game.registry.get(REGISTRY_KEYS.FORGE); }
   get mapUpgrades():     MapUpgradesService        { return this.game.registry.get(REGISTRY_KEYS.MAP_UPGRADES); }
   get admin():           AdminService              { return this.game.registry.get(REGISTRY_KEYS.ADMIN); }
+  get globalTalents():   GlobalTalentsService      { return this.game.registry.get(REGISTRY_KEYS.GLOBAL_TALENTS); }
   get audio():           AudioService              { return this.game.registry.get(REGISTRY_KEYS.AUDIO); }
   get quests():          QuestService              { return this.game.registry.get(REGISTRY_KEYS.QUESTS); }
   get translate():       TranslateService          { return this.game.registry.get(REGISTRY_KEYS.TRANSLATE); }

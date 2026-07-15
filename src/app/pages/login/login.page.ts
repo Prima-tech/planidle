@@ -52,11 +52,7 @@ export class LoginPage implements OnInit {
         // existe (p. ej. wipe del admin), hasValidServerSession() da false → se queda en
         // el login en vez de entrar como un "invitado fantasma" con datos locales.
         if (this.useSupabase && await this.supabaseService.hasValidServerSession()) {
-            if (await this.supabaseService.isBanned()) {
-                await this.supabaseService.signOut();
-                this.error = this.translate.instant('LOGIN.ERR.BANNED');
-                return;
-            }
+            if (await this.blockIfRestricted()) return;
             this.router.navigate(['/globalposition']);
             return;
         }
@@ -65,6 +61,18 @@ export class LoginPage implements OnInit {
         // viva tras "Cerrar sesión" porque el invitado no tiene credenciales con que
         // volver). Si la hay, el botón ofrecerá "Continuar como invitado (ID)".
         this.guestId = await this.supabaseService.getLocalGuestId();
+    }
+
+    /** Cuenta con acceso BLOQUEADO (baneada por el admin, o soft-delete de "Borrar
+     *  cuenta (nube)"): cierra la sesión, pinta el error y devuelve true. Se comprueba
+     *  en TODAS las vías de entrada (auto-entrada, invitado y email). */
+    private async blockIfRestricted(): Promise<boolean> {
+        const block = await this.supabaseService.accessBlock();
+        if (!block) return false;
+        await this.supabaseService.signOut();
+        this.guestId = null;
+        this.error = this.translate.instant(block === 'deleted' ? 'LOGIN.ERR.DELETED' : 'LOGIN.ERR.BANNED');
+        return true;
     }
 
     /** Reanuda la MISMA cuenta invitada guardada localmente: valida contra el servidor
@@ -80,12 +88,7 @@ export class LoginPage implements OnInit {
                 this.error = this.translate.instant('LOGIN.ERR.CONNECTION');
                 return;
             }
-            if (await this.supabaseService.isBanned()) {
-                await this.supabaseService.signOut();
-                this.guestId = null;
-                this.error = this.translate.instant('LOGIN.ERR.BANNED');
-                return;
-            }
+            if (await this.blockIfRestricted()) return;
             await this.connection.setUseSupabase(true);
             this.adminService.setAdmin(this.admin);
             this.router.navigate(['/globalposition']);
@@ -171,13 +174,9 @@ export class LoginPage implements OnInit {
 
             if (error) { this.error = error.message; return; }
 
-            // 2.5. Comprobar BANEO: el panel de admin marca account.banned.
-            //      Cuenta baneada → cerrar sesión y bloquear el acceso.
-            if (await this.supabaseService.isBanned()) {
-                await this.supabaseService.signOut();
-                this.error = this.translate.instant('LOGIN.ERR.BANNED');
-                return;
-            }
+            // 2.5. Cuenta bloqueada (baneo del admin o soft-delete) → cerrar sesión
+            //      y bloquear el acceso.
+            if (await this.blockIfRestricted()) return;
 
             // 3. Sesión activa + datos en local → al juego
             this.router.navigate(['/globalposition']);

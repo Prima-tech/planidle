@@ -2,9 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { InventoryUnlockService } from './inventory-unlock.service';
 
-// Cambia a false cuando Supabase esté listo para inventario
-const USE_MOCK = true;
-
+// El inventario vive en memoria en este servicio y se persiste (local y Supabase)
+// dentro del GameSnapshot vía SaveService (getSnapshot/restoreFromSnapshot).
 export interface InventoryItem {
   id: string;
   name: string;
@@ -39,34 +38,29 @@ export class InventoryService {
   readonly itemDropped$   = new Subject<InventoryItem>();
   readonly changes$       = new Subject<void>();
   readonly removeRequest$ = new Subject<{ tabIndex: number; row: number; col: number }>();
-  /** Pide al componente de inventario que recargue su grid vivo desde mockGrid (tras un
-   *  consumo externo, p.ej. pagar una mejora de mapa con materiales). */
+  /** Pide al componente de inventario que recargue su grid vivo desde el grid del servicio
+   *  (tras un consumo externo, p.ej. pagar una mejora de mapa con materiales). */
   readonly reload$        = new Subject<void>();
   /** Item que no cabe en el inventario y debe soltarse al suelo (lo escucha la escena Phaser). */
   readonly dropToWorld$   = new Subject<InventoryItem>();
 
-  private mockGrid: (InventoryItem | null)[][][] = this.buildGrid();
+  private grid: (InventoryItem | null)[][][] = this.buildGrid();
 
   private unlock = inject(InventoryUnlockService);
 
   constructor() { }
 
-  async load(inventoryType: string = 'backpack'): Promise<(InventoryItem | null)[][][]> {
-    if (USE_MOCK) return this.clone(this.mockGrid);
-    return this.loadFromSupabase(inventoryType);
+  async load(): Promise<(InventoryItem | null)[][][]> {
+    return this.clone(this.grid);
   }
 
-  async save(grid: (InventoryItem | null)[][][], inventoryType: string = 'backpack'): Promise<void> {
-    if (USE_MOCK) {
-      this.mockGrid = this.clone(grid);
-      this.changes$.next();
-      return;
-    }
-    await this.saveToSupabase(grid, inventoryType);
+  async save(grid: (InventoryItem | null)[][][]): Promise<void> {
+    this.grid = this.clone(grid);
+    this.changes$.next();
   }
 
   addDroppedItem(item: InventoryItem): void {
-    this.addToGrid(this.mockGrid, item);
+    this.addToGrid(this.grid, item);
     this.itemDropped$.next(item);
     this.changes$.next();
   }
@@ -78,7 +72,7 @@ export class InventoryService {
 
   /** Mete el item en el inventario; si está lleno, lo suelta al suelo del mapa. */
   addOrDropToWorld(item: InventoryItem): void {
-    if (this.addToGrid(this.mockGrid, item)) {
+    if (this.addToGrid(this.grid, item)) {
       this.itemDropped$.next(item);
       this.changes$.next();
     } else {
@@ -87,12 +81,12 @@ export class InventoryService {
   }
 
   getSnapshot(): (InventoryItem | null)[][][] {
-    return this.clone(this.mockGrid);
+    return this.clone(this.grid);
   }
 
   restoreFromSnapshot(grid: (InventoryItem | null)[][][]): void {
     if (!grid) return;
-    this.mockGrid = this.clone(grid);
+    this.grid = this.clone(grid);
     this.changes$.next();
   }
 
@@ -107,7 +101,7 @@ export class InventoryService {
         for (let r = 0; r < ROWS; r++)
           for (let c = 0; c < COLS; c++) {
             if (!this.unlock.isUnlocked(t, r, c)) continue;
-            const existing = this.mockGrid[t][r][c];
+            const existing = this.grid[t][r][c];
             if (existing?.mergeable && existing.name === item.name) return true;
           }
     }
@@ -115,7 +109,7 @@ export class InventoryService {
       for (let r = 0; r < ROWS; r++)
         for (let c = 0; c < COLS; c++) {
           if (!this.unlock.isUnlocked(t, r, c)) continue;
-          if (!this.mockGrid[t][r][c]) return true;
+          if (!this.grid[t][r][c]) return true;
         }
     return false;
   }
@@ -156,7 +150,7 @@ export class InventoryService {
     for (let t = 0; t < TABS; t++)
       for (let r = 0; r < ROWS; r++)
         for (let c = 0; c < COLS; c++) {
-          const it = this.mockGrid[t][r][c];
+          const it = this.grid[t][r][c];
           if (it && it.name === name) total += it.sum ?? 1;
         }
     return total;
@@ -170,46 +164,23 @@ export class InventoryService {
     for (let t = 0; t < TABS && left > 0; t++)
       for (let r = 0; r < ROWS && left > 0; r++)
         for (let c = 0; c < COLS && left > 0; c++) {
-          const it = this.mockGrid[t][r][c];
+          const it = this.grid[t][r][c];
           if (!it || it.name !== name) continue;
           const have = it.sum ?? 1;
           const take = Math.min(have, left);
           left -= take;
           if (have - take > 0) it.sum = have - take;
-          else this.mockGrid[t][r][c] = null;
+          else this.grid[t][r][c] = null;
         }
     this.changes$.next();
     // El componente de inventario (si está vivo) trabaja sobre su propio clon y
-    // reescribe mockGrid al guardar; pídele que recargue para que no pise el descuento.
+    // reescribe el grid al guardar; pídele que recargue para que no pise el descuento.
     this.reload$.next();
     return true;
   }
 
   generateId(): string {
-    return `mock-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-  }
-
-  // --- Mock: edita aquí los items de prueba ---
-
-  private seedMockData(): void {
-    this.mockGrid[0][0][1] = { id: 'mock-2', name: 'Escudo',                                         mergeable: false, order: 1, description: 'Escudo de madera reforzado con metal.', stats: { defense: 3 } };
-    this.mockGrid[0][1][0] = { id: 'mock-3', name: 'Poción', icon: 'assets/icon/potion.svg',         mergeable: true,  sum: 1, order: 3, description: 'Restaura puntos de vida al usarla.', stats: { healing: 6 } };
-    this.mockGrid[0][2][2] = { id: 'mock-4', name: 'Hierro',                                         mergeable: true,  sum: 2, order: 4, description: 'Material básico de forja.' };
-    this.mockGrid[0][2][3] = { id: 'mock-5', name: 'Hierro',                                         mergeable: true,  sum: 3, order: 5, description: 'Material básico de forja.' };
-  }
-
-  // --- Supabase (pendiente de implementar) ---
-
-  private async loadFromSupabase(_inventoryType: string): Promise<(InventoryItem | null)[][][]> {
-    // TODO: inyectar SupabaseService y hacer el fetch aquí
-    // SELECT * FROM inventory_slots WHERE character_id = ? AND inventory_type = ?
-    console.warn('[InventoryService] Supabase no implementado — devolviendo grid vacío');
-    return this.buildGrid();
-  }
-
-  private async saveToSupabase(_grid: (InventoryItem | null)[][][], _inventoryType: string): Promise<void> {
-    // TODO: DELETE + INSERT de los slots ocupados
-    console.warn('[InventoryService] Supabase no implementado — guardado omitido');
+    return `itm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   }
 
   // --- Utilidades ---

@@ -15,6 +15,7 @@ import { HarvestKind, HarvestKindId, HARVEST_KINDS, miningTier, gemTier, treeTie
 import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
 import { SPHERE_MULT } from "src/app/services/talent.service";
+import { GlobalTalentsService } from "src/app/services/global-talents.service";
 import { NATIVE_DPR, playerTags } from "./constants";
 import { spawnFloatingText } from "./floating-text";
 import { BuildableDef, PlacedBuilding, stationFrameRect } from "src/app/services/city-build.service";
@@ -671,7 +672,8 @@ export class GameScene extends Phaser.Scene {
       }
       const autoPaused = auto?.isPausedByManual ?? false;
       if (auto?.isEnabled && !autoPaused) this.runAutoAttack(delta);
-      if (auto?.skillsEnabled && !autoPaused) this.runAutoSkills(delta);
+      // Auto-skills: sin toggle manual; lo activa el talento global de Ataque (attack_5).
+      if (this.autoSkillsUnlocked && !autoPaused) this.runAutoSkills(delta);
       this.updateAutoTargetMarker(auto?.isEnabled === true && !autoPaused);
       this.updateNpcQuestMarkers();
       this.gridPhysics.update(delta);
@@ -972,6 +974,22 @@ export class GameScene extends Phaser.Scene {
       g.destroy();
     }
 
+    /** true si el talento global de auto-lanzado de skills (attack_5) está activo. */
+    private get autoSkillsUnlocked(): boolean {
+      return this.reg.globalTalents?.isUnlocked(GlobalTalentsService.AUTO_SKILLS_NODE) ?? false;
+    }
+
+    /** Skills equipadas en ranuras del HUD DESBLOQUEADAS (talentos attack_2/3/4).
+     *  Una skill en una ranura oculta no cuenta: ni auto-cast ni dash. */
+    private unlockedHudSkillIds(): string[] {
+      const gt = this.reg.globalTalents;
+      const out: string[] = [];
+      (this.reg.hudSlots?.slots ?? []).forEach((id, i) => {
+        if (id && gt?.isUnlocked(GlobalTalentsService.SKILL_SLOT_NODES[i])) out.push(id);
+      });
+      return out;
+    }
+
     private runAutoSkills(delta: number): void {
       this.autoSkillGapMs -= delta;
       if (this.autoSkillGapMs > 0) return;
@@ -981,8 +999,8 @@ export class GameScene extends Phaser.Scene {
       if (!talent || !acts) return;
 
       const ids: string[] = [];
-      for (const id of this.reg.hudSlots?.slots ?? []) {
-        if (id && !ids.includes(id)) ids.push(id);
+      for (const id of this.unlockedHudSkillIds()) {
+        if (!ids.includes(id)) ids.push(id);
       }
       const slots = this.reg.skillEquip?.slots;
       if (slots) {
@@ -1471,7 +1489,7 @@ export class GameScene extends Phaser.Scene {
           x: p.tilePos.x * ts + ts / 2,
           y: p.tilePos.y * ts + ts / 2,
         })),
-        townChest: this.currentMapConfig.id === 'hogar'
+        townChest: (this.currentMapConfig.id === 'hogar' && this.townChestAvailable)
           ? { x: 34 * ts + ts / 2, y: 30 * ts + ts / 2 }
           : undefined,
         getBuildings: () => this.getMinimapBuildings(),
@@ -2270,7 +2288,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private isDashEquipped(): boolean {
-      if (this.reg.hudSlots?.slots.some(id => id === 'dash')) return true;
+      if (this.unlockedHudSkillIds().some(id => id === 'dash')) return true;
       const slots = this.reg.skillEquip?.slots;
       if (slots && Object.values(slots).some(id => id === 'dash')) return true;
       return false;
@@ -3072,8 +3090,9 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      // Cofre fijo de ciudad en el mapa Asgard
-      if (this.currentMapConfig.id === 'hogar') {
+      // Cofre fijo de ciudad en el mapa Asgard. Solo si su feature está disponible
+      // (unlock 'panel.chest' = nivel 3, o modo admin): un jugador nuevo no debe verlo.
+      if (this.currentMapConfig.id === 'hogar' && this.townChestAvailable) {
         this.spawnTownChest();
       }
 
@@ -3134,6 +3153,13 @@ export class GameScene extends Phaser.Scene {
         if (dx * dx + dy * dy <= range * range) return chest;
       }
       return null;
+    }
+
+    /** ¿Debe existir el cofre de ciudad? Su feature 'panel.chest' se desbloquea al nivel
+     *  3; en modo admin, siempre. Gatea tanto el sprite del mundo como la marca del
+     *  minimapa, para que un jugador nuevo no vea el cofre en Asgard. */
+    private get townChestAvailable(): boolean {
+      return !!(this.reg.admin?.isAdmin || this.reg.unlocks?.isUnlocked('panel.chest'));
     }
 
     private spawnTownChest(): void {

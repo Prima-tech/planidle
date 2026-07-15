@@ -18,6 +18,7 @@
     "ERR": {
       "CREDENTIALS": "Introduce email y contraseña",
       "BANNED": "Tu cuenta ha sido suspendida.",
+      "DELETED": "Esta cuenta fue eliminada y ya no se puede usar.",
       "CONFIRM_EMAIL": "Cuenta creada: confirma el correo o desactiva \"Confirm email\" en Supabase",
       "CONNECTION": "Error de conexión"
     }
@@ -100,7 +101,7 @@
     },
     "CONFIRM": {
       "OVERWRITE_CLOUD": "La nube tiene una partida MÁS RECIENTE (guardada el {{when}}, probablemente desde otro dispositivo).\n\nSi continúas, la sobrescribirás con esta partida y perderás ese progreso. ¿Sobrescribir?",
-      "DELETE_ACCOUNT": "¿Borrar TODOS los datos de tu cuenta de Supabase? Esta acción no se puede deshacer.",
+      "DELETE_ACCOUNT": "¿Eliminar tu cuenta de Supabase? No podrás volver a acceder con ella. Esta acción no se puede deshacer.",
       "DELETE_ACCOUNT_ERROR": "No se pudo borrar la cuenta. Revisa la conexión e inténtalo de nuevo."
     },
     "LOGOUT": "Cerrar sesión",

@@ -18,6 +18,7 @@
     "ERR": {
       "CREDENTIALS": "Enter email and password",
       "BANNED": "Your account has been suspended.",
+      "DELETED": "This account was deleted and can no longer be used.",
       "CONFIRM_EMAIL": "Account created: confirm your email or disable \"Confirm email\" in Supabase",
       "CONNECTION": "Connection error"
     }
@@ -100,7 +101,7 @@
     },
     "CONFIRM": {
       "OVERWRITE_CLOUD": "The cloud has a MORE RECENT save (saved on {{when}}, probably from another device).\n\nIf you continue, you'll overwrite it with this save and lose that progress. Overwrite?",
-      "DELETE_ACCOUNT": "Delete ALL data from your Supabase account? This action cannot be undone.",
+      "DELETE_ACCOUNT": "Delete your Supabase account? You will no longer be able to sign in with it. This action cannot be undone.",
       "DELETE_ACCOUNT_ERROR": "Could not delete the account. Check your connection and try again."
     },
     "LOGOUT": "Log out",

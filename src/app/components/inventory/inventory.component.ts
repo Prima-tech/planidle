@@ -155,7 +155,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     // Grid vacío síncrono para que CDK registre los drop lists antes de cargar datos
     this.inventories = this.inventoryService.buildGrid();
 
-    // Cargar datos reales (mock o Supabase)
+    // Cargar el grid vivo del servicio (persistido vía SaveService en el snapshot)
     this.inventoryService.load().then(grid => {
       this.inventories = grid;
       // Por si se equipó una mochila menor con el inventario cerrado
@@ -168,7 +168,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     });
 
     // Recargar el grid vivo tras un consumo externo (p.ej. pagar una mejora de mapa
-    // con materiales): el descuento se hizo en mockGrid; re-sincronizamos para no pisarlo.
+    // con materiales): el descuento se hizo en el grid del servicio; re-sincronizamos para no pisarlo.
     this.reloadSub = this.inventoryService.reload$.subscribe(() => {
       this.inventories = this.inventoryService.getSnapshot();
     });

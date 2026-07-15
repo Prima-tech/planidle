@@ -5,6 +5,7 @@ import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
+import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { ModalContainerComponent } from '../modal-container/modal-container.component';
 import { SkillSlotsPanelComponent } from '../skill-slots-panel/skill-slots-panel.component';
@@ -23,9 +24,15 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
   private skillActivation = inject(SkillActivationService);
   private skillEquip      = inject(SkillEquipService);
   private playerState     = inject(PlayerStateService);
+  private globalTalents   = inject(GlobalTalentsService);
 
   readonly slots = this.hudSlots.slots;
   readonly INDICES = [0, 1, 2] as const;
+
+  /** Ranuras del HUD visibles: cada una la desbloquea su nodo de Ataque (talentos
+   *  globales). Si el nodo no está activo, la ranura no aparece. Se recalcula al cambiar
+   *  los talentos globales (changes$). */
+  visibleSlot: boolean[] = [false, false, false];
 
   private currentMp = 0;
 
@@ -53,7 +60,18 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
     this.subs.push(
       this.playerState.state$.subscribe(s => this.currentMp = s.mp)
     );
+    // Visibilidad de las ranuras según los talentos globales de Ataque.
+    this.subs.push(
+      this.globalTalents.changes$.subscribe(() => this.refreshVisibleSlots())
+    );
+    this.refreshVisibleSlots();
     this.startCdLoop();
+  }
+
+  private refreshVisibleSlots(): void {
+    for (let i = 0; i < 3; i++) {
+      this.visibleSlot[i] = this.globalTalents.isUnlocked(GlobalTalentsService.SKILL_SLOT_NODES[i]);
+    }
   }
 
   ngOnDestroy(): void {

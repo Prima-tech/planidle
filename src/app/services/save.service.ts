@@ -301,14 +301,18 @@ export class SaveService {
   }
 
   /**
-   * Botón "Borrar cuenta (nube)": borra los datos de juego de la cuenta de Supabase
-   * con la que se está conectado (snapshots de personajes + datos globales) y, a
-   * continuación, vacía el storage local para que este dispositivo no conserve datos
-   * obsoletos. La cuenta queda como recién creada. El llamador debe recargar después.
+   * Botón "Borrar cuenta (nube)": SOFT-DELETE de la cuenta de Supabase conectada.
+   * 1. Marca `account.deleted` en la nube (no se borra ninguna fila: el login la
+   *    rechaza vía accessBlock() y el admin puede restaurarla quitando el flag).
+   * 2. Destruye la sesión guardada (signOut): sin auto-entrada al reabrir la app y
+   *    sin "Continuar como invitado" en el login.
+   * 3. Vacía el storage local para que el dispositivo no conserve datos obsoletos.
+   * El llamador debe recargar después.
    */
   async wipeRemoteAccountData(): Promise<void> {
-    await this.supabase.wipeRemoteData();   // nube primero (si falla, no borramos local)
-    await this.wipeAllData();               // luego el local de este dispositivo
+    await this.supabase.markAccountDeleted();   // nube primero (si falla, no tocamos nada local)
+    await this.supabase.signOut();              // fuera la sesión persistida del login
+    await this.wipeAllData();                   // luego el local de este dispositivo
   }
 
   /**

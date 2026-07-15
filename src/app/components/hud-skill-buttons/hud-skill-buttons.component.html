@@ -1,7 +1,10 @@
 <app-modal-container #hudModal [persistent]="true"></app-modal-container>
 
 <div class="hud-skills">
-  <div *ngFor="let i of [2, 1, 0]"
+  <!-- *ngIf (no [hidden]): .hud-btn tiene display:flex propio, que pisaría el
+       display:none de [hidden] y el botón se vería igual. -->
+  <ng-container *ngFor="let i of [2, 1, 0]">
+  <div *ngIf="visibleSlot[i]"
        class="hud-btn"
        [class]="'hud-btn-slot-' + i"
        [class.edit-mode]="editMode"
@@ -22,4 +25,5 @@
     <span *ngIf="cdSeconds[i]" class="hud-cd-text">{{ cdSeconds[i] }}</span>
 
   </div>
+  </ng-container>
 </div>

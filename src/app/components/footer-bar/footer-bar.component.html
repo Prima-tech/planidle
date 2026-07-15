@@ -34,11 +34,8 @@
 <button class="auto-attack-fab" *ngIf="!(runMode$ | async) && (autoAttackUnlocked$ | async)" [class.active]="autoAttack.isEnabled" (click)="toggleAutoAttack()">
   <ion-icon name="infinite"></ion-icon>
 </button>
-<button class="auto-skill-fab" *ngIf="!(runMode$ | async)" [class.active]="autoAttack.skillsEnabled" (click)="toggleAutoSkills()">
-  <ion-icon name="sparkles"></ion-icon>
-</button>
 <!-- Candado: edita/usa las habilidades del HUD (mismo tamaño que los FAB de auto). -->
-<button class="lock-fab" *ngIf="!(runMode$ | async)" [class.active]="!locked" (click)="toggleLock()">
+<button class="lock-fab" *ngIf="!(runMode$ | async) && hasHudSkill" [class.active]="!locked" (click)="toggleLock()">
   <ion-icon [name]="locked ? 'lock-closed' : 'lock-open'"></ion-icon>
 </button>
 

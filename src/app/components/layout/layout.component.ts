@@ -46,6 +46,7 @@ import { DialogueService } from 'src/app/services/dialogue.service';
 import { ForgeService } from 'src/app/services/forge.service';
 import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
 import { AdminService } from 'src/app/services/admin.service';
+import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { AudioService } from 'src/app/services/audio.service';
 import { QuestService } from 'src/app/services/quest.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -114,6 +115,7 @@ export class LayoutComponent implements OnDestroy {
     private forgeService: ForgeService,
     private mapUpgradesService: MapUpgradesService,
     private adminService: AdminService,
+    private globalTalentsService: GlobalTalentsService,
     private audioService: AudioService,
     private questService: QuestService,
     private translateService: TranslateService,
@@ -285,6 +287,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.FORGE,            this.forgeService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_UPGRADES,     this.mapUpgradesService);
     this.phaserGame.registry.set(REGISTRY_KEYS.ADMIN,            this.adminService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.GLOBAL_TALENTS,   this.globalTalentsService);
     this.phaserGame.registry.set(REGISTRY_KEYS.AUDIO,            this.audioService);
     this.phaserGame.registry.set(REGISTRY_KEYS.QUESTS,           this.questService);
     this.phaserGame.registry.set(REGISTRY_KEYS.TRANSLATE,        this.translateService);

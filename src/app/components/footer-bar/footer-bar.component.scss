@@ -27,10 +27,9 @@ $icon-metal: #3a342c;     // iconos sobre acero
 $gold: #f0c040;
 $gold-light: #ffe9a8;
 
-// ── FABs de automatización (auto-ataque + auto-skills) ───────────────────────
+// ── FABs de automatización (auto-ataque) ─────────────────────────────────────
 
 .auto-attack-fab,
-.auto-skill-fab,
 .lock-fab {
   position: fixed;
   right: calc(12px + var(--safe-right, 0px));
@@ -84,23 +83,9 @@ $gold-light: #ffe9a8;
   }
 }
 
-.auto-skill-fab {
-  bottom: 52px;
-
-  &.active {
-    background: #6e4a9e;
-    color: #f5e3c8;
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
-      0 0 10px rgba(140, 80, 220, 0.65),
-      0 2px 8px rgba(0, 0, 0, 0.5);
-  }
-}
-
-/* Candado (edición de habilidades del HUD): encima del FAB de auto-skill. */
+/* Candado (edición de habilidades del HUD): encima del FAB de auto-ataque. */
 .lock-fab {
-  bottom: 84px;
+  bottom: 52px;
 
   &.active {
     background: #b8862b;

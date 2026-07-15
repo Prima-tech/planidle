@@ -77,6 +77,13 @@ export class GlobalTalentsService {
   static readonly FORGE_NODE = 'skills_1';
   /** Primer nodo de Ataque: desbloquea el auto-ataque (botón ∞ del HUD). */
   static readonly AUTO_ATTACK_NODE = 'attack_1';
+  /** Nodos de Ataque que desbloquean cada una de las 3 ranuras de habilidad del HUD
+   *  (índice 0/1/2). Encadenan prerrequisitos → se desbloquean en orden. Si el nodo no
+   *  está activo, su ranura no aparece en el HUD. */
+  static readonly SKILL_SLOT_NODES = ['attack_2', 'attack_3', 'attack_4'] as const;
+  /** Nodo de Ataque que activa el auto-lanzado de las skills del HUD (sustituye al
+   *  antiguo FAB ✨: ya no hay toggle manual, lo enciende este talento). */
+  static readonly AUTO_SKILLS_NODE = 'attack_5';
 
   private storage = inject(StorageService);
   private active = new Set<string>();
@@ -86,6 +93,8 @@ export class GlobalTalentsService {
   readonly forgeUpgradesUnlocked$ = new BehaviorSubject<boolean>(false);
   /** true si la mejora de auto-ataque está activa (gatea el botón ∞ del HUD). */
   readonly autoAttackUnlocked$ = new BehaviorSubject<boolean>(false);
+  /** true si el auto-lanzado de skills está activo (nodo AUTO_SKILLS_NODE). */
+  readonly autoSkillsUnlocked$ = new BehaviorSubject<boolean>(false);
   /** Emite tras cualquier cambio (para refrescar la vista). */
   readonly changes$ = new BehaviorSubject<void>(undefined);
 
@@ -96,6 +105,14 @@ export class GlobalTalentsService {
     // Primer nodo de Ataque = auto-ataque: su ficha explica que activa el botón ∞ del HUD.
     const an = GT_NODES.find(n => n.id === GlobalTalentsService.AUTO_ATTACK_NODE);
     if (an) { an.label = 'Auto-ataque'; an.desc = 'Activa el auto-ataque (botón ∞ del HUD). Si no está desbloqueado, el botón no aparece.'; }
+    // Nodos de Ataque 2/3/4 = las 3 ranuras de habilidad del HUD.
+    GlobalTalentsService.SKILL_SLOT_NODES.forEach((id, i) => {
+      const n = GT_NODES.find(x => x.id === id);
+      if (n) { n.label = `Ranura de habilidad ${i + 1}`; n.desc = `Desbloquea la ranura de habilidad ${i + 1} del HUD. Si no está desbloqueada, no aparece.`; }
+    });
+    // Nodo de Ataque 5 = auto-lanzado de las skills del HUD (no hay toggle manual).
+    const sn = GT_NODES.find(n => n.id === GlobalTalentsService.AUTO_SKILLS_NODE);
+    if (sn) { sn.label = 'Auto-habilidades'; sn.desc = 'Lanza automáticamente las habilidades del HUD cuando están listas.'; }
     this.loadPromise = this.load();
   }
 
@@ -129,6 +146,7 @@ export class GlobalTalentsService {
     this.available$.next(this.available);
     this.forgeUpgradesUnlocked$.next(this.active.has(GlobalTalentsService.FORGE_NODE));
     this.autoAttackUnlocked$.next(this.active.has(GlobalTalentsService.AUTO_ATTACK_NODE));
+    this.autoSkillsUnlocked$.next(this.active.has(GlobalTalentsService.AUTO_SKILLS_NODE));
     this.changes$.next();
   }
 

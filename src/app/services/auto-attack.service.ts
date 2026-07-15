@@ -3,15 +3,11 @@ import { Injectable } from '@angular/core';
 @Injectable({ providedIn: 'root' })
 export class AutoAttackService {
   isEnabled = false;
-  /** Lanza automáticamente las skills equipadas cuando están listas (toggle propio) */
-  skillsEnabled = false;
+  // El auto-lanzado de skills ya no tiene toggle manual: lo activa el talento global
+  // de Ataque (GlobalTalentsService.AUTO_SKILLS_NODE) y la escena lo consulta directo.
 
   toggle(): void {
     this.isEnabled = !this.isEnabled;
-  }
-
-  toggleSkills(): void {
-    this.skillsEnabled = !this.skillsEnabled;
   }
 
   // ── Pausa por input manual ──────────────────────────────────────────────────

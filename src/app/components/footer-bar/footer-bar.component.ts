@@ -21,6 +21,7 @@ import { WorldService } from 'src/app/services/world.service';
 import { CityBuildService } from 'src/app/services/city-build.service';
 import { AdminService } from 'src/app/services/admin.service';
 import { GlobalTalentsService } from 'src/app/services/global-talents.service';
+import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 import { BuildPanelComponent } from '../build-panel/build-panel.component';
 import { BuildShopComponent } from '../build-shop/build-shop.component';
 import { ForgeComponent } from '../forge/forge.component';
@@ -66,6 +67,13 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   /** Candado: false = modo edición de habilidades del HUD (skillEquip.hudEditMode). */
   locked = true;
+  /** ¿Hay alguna habilidad equipada en una ranura del HUD VISIBLE (su talento global
+   *  attack_2/3/4 desbloqueado)? El candado (editar HUD) solo tiene sentido si hay algo
+   *  que editar; una skill en una ranura oculta no cuenta. */
+  get hasHudSkill(): boolean {
+    return this.hudSlots.slots.some((s, i) =>
+      !!s && this.globalTalents.isUnlocked(GlobalTalentsService.SKILL_SLOT_NODES[i]));
+  }
   /** Hub de botones (abajo-izquierda): abierto por defecto; el tirador lo colapsa. */
   hubOpen = true;
   /** Id del mapa actual: el botón de construir solo aparece en 'hogar'. */
@@ -81,6 +89,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private cityBuild              = inject(CityBuildService);
   admin                          = inject(AdminService);
   private globalTalents          = inject(GlobalTalentsService);
+  private hudSlots               = inject(HudSkillSlotsService);
 
   /** Auto-ataque desbloqueado (mejora de cuenta attack_1): gatea el FAB ∞ del HUD. */
   readonly autoAttackUnlocked$ = this.globalTalents.autoAttackUnlocked$;
@@ -241,10 +250,6 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   toggleAutoAttack() {
     this.autoAttack.toggle();
-  }
-
-  toggleAutoSkills() {
-    this.autoAttack.toggleSkills();
   }
 
   /** Candado: alterna entre USAR (locked) y EDITAR (unlocked) las habilidades del HUD.
