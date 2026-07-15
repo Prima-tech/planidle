@@ -57,6 +57,64 @@ export class SupabaseService {
     return response;
   }
 
+  /** Alta como INVITADO: crea un usuario anónimo real (UUID sin email) y abre sesión.
+   *  El trigger `handle_new_user` le crea su fila `global_data` + roster igual que a
+   *  cualquiera; después bajamos sus datos a local. La sesión queda PERSISTIDA
+   *  (persistSession) → al reabrir la app revive sola, sin volver a "iniciar sesión".
+   *  Requiere "Anonymous sign-ins" ACTIVADO en el dashboard de Supabase.
+   *  Limitación: la cuenta vive atada a este dispositivo hasta que se vincule un correo
+   *  (`linkEmail`); si se borra el almacenamiento o se desinstala, se pierde. */
+  async signInAnonymously() {
+    const response = await this.supabase.auth.signInAnonymously();
+    if (response.data.user) {
+      await this.fetchAndSaveLocalData(response.data.user.id);
+    }
+    return response;
+  }
+
+  /** ¿La sesión actual es de un INVITADO (anónimo, sin email)? Lo usa el panel de
+   *  ajustes para mostrar el bloque "Vincular correo" solo a los invitados. */
+  async isAnonymous(): Promise<boolean> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    return !!user?.is_anonymous;
+  }
+
+  /** Identidad de la sesión actual para pintar la pastilla de ajustes:
+   *  - anónimo → { isAnonymous: true, id } (el UID de invitado)
+   *  - con email → { isAnonymous: false, email, id }
+   *  Devuelve null si no hay sesión. */
+  async getIdentity(): Promise<{ isAnonymous: boolean; email: string | null; id: string } | null> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) return null;
+    return { isAnonymous: !!user.is_anonymous, email: user.email ?? null, id: user.id };
+  }
+
+  /** Vincula email + contraseña a la cuenta INVITADA actual, convirtiéndola en
+   *  permanente y recuperable desde cualquier dispositivo. NO crea un usuario nuevo:
+   *  mantiene el MISMO `user.id`, así que todos los personajes y datos siguen intactos
+   *  (upgrade in-place). Si el email YA pertenece a otra cuenta, Supabase devuelve error
+   *  (no se pueden fusionar dos cuentas). */
+  async linkEmail(email: string, pass: string) {
+    return await this.supabase.auth.updateUser({ email, password: pass });
+  }
+
+  /** ¿La cuenta logueada está BANEADA? Lee `global_data.account.banned` del propio
+   *  usuario (la RLS le deja leer su fila). Esta bandera la marca el PANEL DE ADMIN
+   *  vía la RPC `admin_set_ban`. El login la comprueba y bloquea el acceso.
+   *  Ante cualquier error de red devuelve false (no bloqueamos por un fallo puntual). */
+  async isBanned(): Promise<boolean> {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) return false;
+      const { data, error } = await this.supabase
+        .from('global_data').select('account').eq('id', user.id).single();
+      if (error) return false;
+      return !!(data as any)?.account?.banned;
+    } catch {
+      return false;
+    }
+  }
+
   // --- GAME DATA MANAGEMENT ---
   /*
   async fetchAndSaveLocalData(userId: string) {

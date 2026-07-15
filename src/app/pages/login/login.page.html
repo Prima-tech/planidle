@@ -14,33 +14,41 @@
 
       <div class="login-form">
 
-        <div class="mode-toggle">
-          <ion-icon [name]="useSupabase ? 'cloud-outline' : 'phone-portrait-outline'" class="input-icon"></ion-icon>
-          <span class="mode-label">{{ useSupabase ? 'Conectar a Supabase' : 'Jugar en local' }}</span>
-          <ion-toggle [(ngModel)]="useSupabase"></ion-toggle>
+        <div class="input-wrapper">
+          <ion-icon name="person-outline" class="input-icon"></ion-icon>
+          <ion-input [(ngModel)]="email" type="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" class="dark-input"></ion-input>
         </div>
-
-        <div class="mode-toggle">
-          <ion-icon [name]="admin ? 'key-outline' : 'game-controller-outline'" class="input-icon"></ion-icon>
-          <span class="mode-label">{{ admin ? 'Modo admin (todo desbloqueado)' : 'Juego normal' }}</span>
-          <ion-toggle [(ngModel)]="admin"></ion-toggle>
+        <div class="input-wrapper">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-input [(ngModel)]="password" type="password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" class="dark-input"></ion-input>
         </div>
-
-        <ng-container *ngIf="useSupabase">
-          <div class="input-wrapper">
-            <ion-icon name="person-outline" class="input-icon"></ion-icon>
-            <ion-input [(ngModel)]="email" type="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" class="dark-input"></ion-input>
-          </div>
-          <div class="input-wrapper">
-            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-            <ion-input [(ngModel)]="password" type="password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" class="dark-input"></ion-input>
-          </div>
-        </ng-container>
 
         <button class="rpg-btn rpg-btn--block login-btn" (click)="login()" [disabled]="loading">{{ 'LOGIN.BUTTON' | translate }}</button>
+
+        <button class="guest-btn" (click)="loginAsGuest()" [disabled]="loading">
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <span>{{ 'LOGIN.GUEST' | translate }}</span>
+        </button>
+
         <p class="login-error" *ngIf="error">{{ error }}</p>
       </div>
 
     </div>
+
+    <div class="mode-toggles">
+      <div class="mode-toggle">
+        <ion-icon [name]="useSupabase ? 'cloud-outline' : 'phone-portrait-outline'" class="input-icon"></ion-icon>
+        <span class="mode-label">{{ (useSupabase ? 'LOGIN.MODE.SUPABASE' : 'LOGIN.MODE.LOCAL') | translate }}</span>
+        <ion-toggle [(ngModel)]="useSupabase"></ion-toggle>
+      </div>
+
+      <div class="mode-toggle">
+        <ion-icon [name]="admin ? 'key-outline' : 'game-controller-outline'" class="input-icon"></ion-icon>
+        <span class="mode-label">{{ (admin ? 'LOGIN.MODE.ADMIN' : 'LOGIN.MODE.NORMAL') | translate }}</span>
+        <ion-toggle [(ngModel)]="admin"></ion-toggle>
+      </div>
+    </div>
+
+    <span class="app-version">v{{ appVersion }}</span>
   </div>
 </ion-content>

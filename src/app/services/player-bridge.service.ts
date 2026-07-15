@@ -297,4 +297,13 @@ export class PlayerBridgeService {
   emitSceneReady(): void {
     this.sceneReady$.next();
   }
+
+  /** Activa/desactiva el teclado GLOBAL de Phaser. Phaser escucha las teclas en `window`
+   *  y hace preventDefault, así que mientras hay un input del DOM enfocado (p. ej. el
+   *  modal de vincular correo) las letras moverían al PJ (WASD) y no llegarían a la caja.
+   *  Apagarlo mientras se escribe deja que el input reciba el texto con normalidad. */
+  setGameKeyboardEnabled(enabled: boolean): void {
+    const keyboard = this.sceneManager.game?.input?.keyboard;
+    if (keyboard) keyboard.enabled = enabled;
+  }
 }

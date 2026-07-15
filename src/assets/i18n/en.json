@@ -5,7 +5,20 @@
     "TAGLINE": "Your adventure awaits",
     "EMAIL_PLACEHOLDER": "Email",
     "PASSWORD_PLACEHOLDER": "Password",
-    "BUTTON": "SIGN IN"
+    "BUTTON": "SIGN IN",
+    "GUEST": "Play as guest",
+    "MODE": {
+      "SUPABASE": "Connect to Supabase",
+      "LOCAL": "Play locally",
+      "ADMIN": "Admin mode (everything unlocked)",
+      "NORMAL": "Normal game"
+    },
+    "ERR": {
+      "CREDENTIALS": "Enter email and password",
+      "BANNED": "Your account has been suspended.",
+      "CONFIRM_EMAIL": "Account created: confirm your email or disable \"Confirm email\" in Supabase",
+      "CONNECTION": "Connection error"
+    }
   },
   "GLOBAL_POSITION": {
     "TITLE": "Select Character",
@@ -79,9 +92,30 @@
     },
     "CONNECTED": "Connected to Supabase",
     "OFFLINE": "Offline (local)",
+    "IDENTITY": {
+      "GUEST": "Guest · UID",
+      "ACCOUNT": "Account · Email"
+    },
+    "CONFIRM": {
+      "OVERWRITE_CLOUD": "The cloud has a MORE RECENT save (saved on {{when}}, probably from another device).\n\nIf you continue, you'll overwrite it with this save and lose that progress. Overwrite?",
+      "DELETE_ACCOUNT": "Delete ALL data from your Supabase account? This action cannot be undone.",
+      "DELETE_ACCOUNT_ERROR": "Could not delete the account. Check your connection and try again."
+    },
     "LOGOUT": "Log out",
     "DELETE": "Delete",
     "DELETE_ACCOUNT": "Delete account (cloud)",
+    "LINK": {
+      "TITLE": "Link your email",
+      "DESC": "You're playing as a guest. Link an email so you don't lose your progress and can log in from another device.",
+      "BTN": "Link account",
+      "OK": "Email linked ✓ — your account is now permanent.",
+      "ERR": {
+        "CREDENTIALS": "Enter email and password",
+        "SHORT_PASSWORD": "Password must be at least 6 characters",
+        "EMAIL_TAKEN": "That email already has an account. Use a different one.",
+        "CONNECTION": "Connection error"
+      }
+    },
     "SOUND": "Sound",
     "MUTE": "Mute",
     "MUTE_DESC": "Turns off all music and effects.",

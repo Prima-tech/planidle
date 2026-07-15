@@ -5,7 +5,20 @@
     "TAGLINE": "Tu aventura te espera",
     "EMAIL_PLACEHOLDER": "Email",
     "PASSWORD_PLACEHOLDER": "Contraseña",
-    "BUTTON": "INGRESAR"
+    "BUTTON": "INGRESAR",
+    "GUEST": "Entrar como invitado",
+    "MODE": {
+      "SUPABASE": "Conectar a Supabase",
+      "LOCAL": "Jugar en local",
+      "ADMIN": "Modo admin (todo desbloqueado)",
+      "NORMAL": "Juego normal"
+    },
+    "ERR": {
+      "CREDENTIALS": "Introduce email y contraseña",
+      "BANNED": "Tu cuenta ha sido suspendida.",
+      "CONFIRM_EMAIL": "Cuenta creada: confirma el correo o desactiva \"Confirm email\" en Supabase",
+      "CONNECTION": "Error de conexión"
+    }
   },
   "GLOBAL_POSITION": {
     "TITLE": "Selecciona Personaje",
@@ -79,9 +92,30 @@
     },
     "CONNECTED": "Conectado a Supabase",
     "OFFLINE": "Sin conexión (local)",
+    "IDENTITY": {
+      "GUEST": "Invitado · UID",
+      "ACCOUNT": "Cuenta · Email"
+    },
+    "CONFIRM": {
+      "OVERWRITE_CLOUD": "La nube tiene una partida MÁS RECIENTE (guardada el {{when}}, probablemente desde otro dispositivo).\n\nSi continúas, la sobrescribirás con esta partida y perderás ese progreso. ¿Sobrescribir?",
+      "DELETE_ACCOUNT": "¿Borrar TODOS los datos de tu cuenta de Supabase? Esta acción no se puede deshacer.",
+      "DELETE_ACCOUNT_ERROR": "No se pudo borrar la cuenta. Revisa la conexión e inténtalo de nuevo."
+    },
     "LOGOUT": "Cerrar sesión",
     "DELETE": "Borrar",
     "DELETE_ACCOUNT": "Borrar cuenta (nube)",
+    "LINK": {
+      "TITLE": "Vincula tu correo",
+      "DESC": "Juegas como invitado. Vincula un correo para no perder tu progreso y poder entrar desde otro dispositivo.",
+      "BTN": "Vincular cuenta",
+      "OK": "Correo vinculado ✓ — tu cuenta ya es permanente.",
+      "ERR": {
+        "CREDENTIALS": "Introduce email y contraseña",
+        "SHORT_PASSWORD": "La contraseña debe tener al menos 6 caracteres",
+        "EMAIL_TAKEN": "Ese correo ya tiene una cuenta. Usa otro distinto.",
+        "CONNECTION": "Error de conexión"
+      }
+    },
     "SOUND": "Sonido",
     "MUTE": "Silenciar",
     "MUTE_DESC": "Apaga toda la música y los efectos.",

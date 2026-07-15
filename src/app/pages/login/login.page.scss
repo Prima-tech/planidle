@@ -4,6 +4,7 @@ ion-content {
 }
 
 .bg-overlay {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,13 +111,24 @@ ion-content {
   }
 }
 
-// ── Toggle de modo (local / Supabase) ─────────────────────────────────────────
+// ── Toggles de modo (abajo a la izquierda, fuera de la pastilla) ──────────────
+
+.mode-toggles {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 240px;
+  max-width: calc(100% - 32px);
+}
 
 .mode-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(10, 15, 35, 0.9);
   border: 1px solid #2e4270;
   border-radius: 7px;
   padding: 4px 12px;
@@ -136,11 +148,61 @@ ion-content {
   }
 }
 
+// ── Botón invitado (secundario, discreto) ─────────────────────────────────────
+
+.guest-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 9px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #2e4270;
+  border-radius: 7px;
+  color: #9fb6d8;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  ion-icon { font-size: 16px; }
+
+  &:hover {
+    background: rgba(52, 152, 219, 0.06);
+    border-color: #3a5a8a;
+    color: #cfe0f8;
+  }
+
+  &:active { transform: translateY(1px); }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
 .login-error {
   color: #e06a6a;
   font-size: 0.72rem;
   margin: 0;
   text-align: center;
+}
+
+// ── Versión (abajo a la derecha) ──────────────────────────────────────────────
+
+.app-version {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  color: #9fb6d8;
+  font-size: 0.68rem;
+  letter-spacing: 0.4px;
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .input-icon {

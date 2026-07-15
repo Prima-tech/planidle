@@ -1,11 +1,13 @@
 
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { GameApiService } from 'src/app/services/game-api.service';
 import { StorageService } from 'src/app/services/storage.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { AdminService } from 'src/app/services/admin.service';
+import { APP_VERSION } from 'src/app/version';
 
 @Component({
     selector: 'app-login',
@@ -22,6 +24,7 @@ export class LoginPage implements OnInit {
     useSupabase = false;
     /** Toggle: true = modo admin (todo desbloqueado) · false = juego normal (oculta lo no desbloqueado). */
     admin = true;
+    readonly appVersion = APP_VERSION;
 
     constructor(
         private router: Router,
@@ -30,12 +33,49 @@ export class LoginPage implements OnInit {
         private supabaseService: SupabaseService,
         private connection: ConnectionService,
         private adminService: AdminService,
+        private translate: TranslateService,
     ) { }
 
     async ngOnInit() {
         await this.connection.load();
         this.useSupabase = this.connection.useSupabase;
         this.admin = this.adminService.isAdmin;
+
+        // Auto-entrada: si ya hay una sesión de Supabase persistida (invitado o cuenta
+        // con email), el jugador nunca "inició sesión" de nuevo — la revivimos y entramos
+        // directos, saltándonos el login. Solo aplica en modo Supabase.
+        if (this.useSupabase && await this.supabaseService.hasSession()) {
+            if (await this.supabaseService.isBanned()) {
+                await this.supabaseService.signOut();
+                this.error = this.translate.instant('LOGIN.ERR.BANNED');
+                return;
+            }
+            this.router.navigate(['/globalposition']);
+        }
+    }
+
+    /** Entra como INVITADO: crea (o revive) una cuenta anónima y va al juego.
+     *  Fuerza modo Supabase para que la sesión anónima se sincronice y persista. */
+    async loginAsGuest() {
+        if (this.loading) return;
+        this.error = '';
+        this.loading = true;
+        try {
+            await this.connection.setUseSupabase(true);
+            this.adminService.setAdmin(this.admin);
+
+            const { error } = await this.supabaseService.signInAnonymously();
+            if (error) {
+                // El error típico aquí es "Anonymous sign-ins are disabled" (dashboard).
+                this.error = error.message;
+                return;
+            }
+            this.router.navigate(['/globalposition']);
+        } catch (e: any) {
+            this.error = e?.message ?? this.translate.instant('LOGIN.ERR.CONNECTION');
+        } finally {
+            this.loading = false;
+        }
     }
 
     async login() {
@@ -56,7 +96,7 @@ export class LoginPage implements OnInit {
         const email = this.email.trim();
         const password = this.password;
         if (!email || !password) {
-            this.error = 'Introduce email y contraseña';
+            this.error = this.translate.instant('LOGIN.ERR.CREDENTIALS');
             return;
         }
 
@@ -72,7 +112,7 @@ export class LoginPage implements OnInit {
                 if (signUpError) { this.error = signUpError.message; return; }
                 // Sin sesión tras el alta → "Confirm email" está activado en Supabase
                 if (!data?.session) {
-                    this.error = 'Cuenta creada: confirma el correo o desactiva "Confirm email" en Supabase';
+                    this.error = this.translate.instant('LOGIN.ERR.CONFIRM_EMAIL');
                     return;
                 }
                 ({ error } = await this.supabaseService.signIn(email, password));
@@ -80,10 +120,18 @@ export class LoginPage implements OnInit {
 
             if (error) { this.error = error.message; return; }
 
+            // 2.5. Comprobar BANEO: el panel de admin marca account.banned.
+            //      Cuenta baneada → cerrar sesión y bloquear el acceso.
+            if (await this.supabaseService.isBanned()) {
+                await this.supabaseService.signOut();
+                this.error = this.translate.instant('LOGIN.ERR.BANNED');
+                return;
+            }
+
             // 3. Sesión activa + datos en local → al juego
             this.router.navigate(['/globalposition']);
         } catch (e: any) {
-            this.error = e?.message ?? 'Error de conexión';
+            this.error = e?.message ?? this.translate.instant('LOGIN.ERR.CONNECTION');
         } finally {
             this.loading = false;
         }

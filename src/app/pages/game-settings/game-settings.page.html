@@ -16,6 +16,17 @@
         <span class="gs-conn-text">{{ (supabaseConnected ? 'SETTINGS.CONNECTED' : 'SETTINGS.OFFLINE') | translate }}</span>
       </div>
 
+      <!-- Identidad: invitado (UID) o cuenta con email -->
+      <div class="gs-identity" *ngIf="identity" [class.gs-identity--guest]="identity.isAnonymous">
+        <span class="gs-identity-icon">{{ identity.isAnonymous ? '👤' : '📧' }}</span>
+        <div class="gs-identity-body">
+          <span class="gs-identity-label">
+            {{ (identity.isAnonymous ? 'SETTINGS.IDENTITY.GUEST' : 'SETTINGS.IDENTITY.ACCOUNT') | translate }}
+          </span>
+          <span class="gs-identity-value">{{ identity.isAnonymous ? identity.id : identity.email }}</span>
+        </div>
+      </div>
+
       <!-- Guardar partida + Cerrar sesión: misma línea (dos botones) -->
       <div class="gs-btn-row">
         <button class="rpg-btn gs-save-btn"
@@ -39,6 +50,15 @@
           <span>{{ 'SETTINGS.LOGOUT' | translate }}</span>
         </button>
       </div>
+
+      <!-- Vincular correo: solo para invitados (cuenta anónima). Convierte la cuenta
+           en permanente/recuperable manteniendo el mismo progreso. -->
+      <button class="rpg-btn gs-save-btn" *ngIf="isGuest" (click)="openLinkModal()">
+        <span class="gs-save-icon">🔗</span>
+        <span>{{ 'SETTINGS.LINK.BTN' | translate }}</span>
+      </button>
+
+      <p class="gs-link-ok" *ngIf="linkOk">{{ 'SETTINGS.LINK.OK' | translate }}</p>
 
       <!-- Borrar todo (acción peligrosa): media línea, a la derecha. -->
       <button class="rpg-btn gs-save-btn gs-danger-btn" (click)="clearAll()">
@@ -231,6 +251,28 @@
       </div>
     </ng-container>
 
+  </div>
+
+  <!-- Modal: vincular correo a la cuenta invitada. Formulario limpio (sin datos precargados). -->
+  <div class="gs-modal-overlay" *ngIf="linkModalOpen" (click)="closeLinkModal()">
+    <div class="gs-modal" (click)="$event.stopPropagation()">
+      <button class="gs-modal-close" (click)="closeLinkModal()" [disabled]="linkLoading">✕</button>
+      <p class="gs-link-title">{{ 'SETTINGS.LINK.TITLE' | translate }}</p>
+      <p class="gs-link-desc">{{ 'SETTINGS.LINK.DESC' | translate }}</p>
+      <div class="gs-link-input">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-input [(ngModel)]="linkEmail" type="email" autocomplete="off" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate"></ion-input>
+      </div>
+      <div class="gs-link-input">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <ion-input [(ngModel)]="linkPassword" type="password" autocomplete="new-password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate"></ion-input>
+      </div>
+      <button class="rpg-btn gs-save-btn" [disabled]="linkLoading" (click)="linkAccount()">
+        <span class="gs-save-icon">🔗</span>
+        <span>{{ 'SETTINGS.LINK.BTN' | translate }}</span>
+      </button>
+      <p class="gs-link-error" *ngIf="linkError">{{ linkError }}</p>
+    </div>
   </div>
 
   <div class="gs-version">v{{ appVersion }}</div>
