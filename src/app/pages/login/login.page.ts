@@ -7,6 +7,7 @@ import { StorageService } from 'src/app/services/storage.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { AdminService } from 'src/app/services/admin.service';
+import { SaveService } from 'src/app/services/save.service';
 import { APP_VERSION } from 'src/app/version';
 
 @Component({
@@ -25,6 +26,9 @@ export class LoginPage implements OnInit {
     /** Toggle: true = modo admin (todo desbloqueado) · false = juego normal (oculta lo no desbloqueado). */
     admin = true;
     readonly appVersion = APP_VERSION;
+    /** ID de la sesión de invitado local pendiente de reanudar (tras cerrar sesión). Si
+     *  no es null, el botón de invitado pasa a "Continuar como invitado (ID)". */
+    guestId: string | null = null;
 
     constructor(
         private router: Router,
@@ -33,6 +37,7 @@ export class LoginPage implements OnInit {
         private supabaseService: SupabaseService,
         private connection: ConnectionService,
         private adminService: AdminService,
+        private saveService: SaveService,
         private translate: TranslateService,
     ) { }
 
@@ -41,16 +46,53 @@ export class LoginPage implements OnInit {
         this.useSupabase = this.connection.useSupabase;
         this.admin = this.adminService.isAdmin;
 
-        // Auto-entrada: si ya hay una sesión de Supabase persistida (invitado o cuenta
-        // con email), el jugador nunca "inició sesión" de nuevo — la revivimos y entramos
-        // directos, saltándonos el login. Solo aplica en modo Supabase.
-        if (this.useSupabase && await this.supabaseService.hasSession()) {
+        // Auto-entrada: si hay una sesión VÁLIDA (confirmada por el servidor), el jugador
+        // nunca "inició sesión" de nuevo — la revivimos y entramos directos, saltándonos
+        // el login. La autenticación requiere red: sin conexión, o si la cuenta ya no
+        // existe (p. ej. wipe del admin), hasValidServerSession() da false → se queda en
+        // el login en vez de entrar como un "invitado fantasma" con datos locales.
+        if (this.useSupabase && await this.supabaseService.hasValidServerSession()) {
             if (await this.supabaseService.isBanned()) {
                 await this.supabaseService.signOut();
                 this.error = this.translate.instant('LOGIN.ERR.BANNED');
                 return;
             }
             this.router.navigate(['/globalposition']);
+            return;
+        }
+
+        // No hubo auto-entrada: ¿hay una sesión de invitado local que reanudar? (queda
+        // viva tras "Cerrar sesión" porque el invitado no tiene credenciales con que
+        // volver). Si la hay, el botón ofrecerá "Continuar como invitado (ID)".
+        this.guestId = await this.supabaseService.getLocalGuestId();
+    }
+
+    /** Reanuda la MISMA cuenta invitada guardada localmente: valida contra el servidor
+     *  (requiere red), reactiva el modo Supabase y entra SIN crear otra cuenta ni borrar
+     *  el progreso. */
+    async resumeGuest() {
+        if (this.loading) return;
+        this.error = '';
+        this.loading = true;
+        try {
+            if (!await this.supabaseService.hasValidServerSession()) {
+                // Sin red, o la cuenta invitada ya no existe (p. ej. wipe del admin).
+                this.error = this.translate.instant('LOGIN.ERR.CONNECTION');
+                return;
+            }
+            if (await this.supabaseService.isBanned()) {
+                await this.supabaseService.signOut();
+                this.guestId = null;
+                this.error = this.translate.instant('LOGIN.ERR.BANNED');
+                return;
+            }
+            await this.connection.setUseSupabase(true);
+            this.adminService.setAdmin(this.admin);
+            this.router.navigate(['/globalposition']);
+        } catch (e: any) {
+            this.error = e?.message ?? this.translate.instant('LOGIN.ERR.CONNECTION');
+        } finally {
+            this.loading = false;
         }
     }
 
@@ -61,15 +103,24 @@ export class LoginPage implements OnInit {
         this.error = '';
         this.loading = true;
         try {
-            await this.connection.setUseSupabase(true);
-            this.adminService.setAdmin(this.admin);
-
-            const { error } = await this.supabaseService.signInAnonymously();
+            // 1. Crear la cuenta invitada (anónima). Si el alta falla (p. ej. "Anonymous
+            //    sign-ins disabled"), NO tocamos nada local: el usuario conserva sus datos.
+            const { data, error } = await this.supabaseService.signInAnonymously();
             if (error) {
-                // El error típico aquí es "Anonymous sign-ins are disabled" (dashboard).
                 this.error = error.message;
                 return;
             }
+
+            // 2. Alta OK → empezar LIMPIO. Una cuenta invitada nueva no debe heredar datos
+            //    locales previos del dispositivo (p. ej. una partida en modo local, con IDs
+            //    negativos y equipo puesto). Borramos el local y repoblamos el roster fresco
+            //    de la cuenta recién creada. (El re-fetch cubre también el caso en que el
+            //    fetch interno de signInAnonymously fallara y dejara el roster viejo.)
+            await this.saveService.wipeAllData();
+            await this.connection.setUseSupabase(true);   // re-fija el modo tras el wipe
+            this.adminService.setAdmin(this.admin);         // re-fija admin tras el wipe
+            if (data?.user) await this.supabaseService.fetchAndSaveLocalData(data.user.id);
+
             this.router.navigate(['/globalposition']);
         } catch (e: any) {
             this.error = e?.message ?? this.translate.instant('LOGIN.ERR.CONNECTION');

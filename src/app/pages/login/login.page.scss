@@ -68,6 +68,15 @@ ion-content {
   text-shadow: 0 0 20px rgba(91, 192, 248, 0.2);
 }
 
+.game-brand-sub {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #5bc0f8;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
 .game-subtitle {
   font-size: 0.65rem;
   color: #4a6a9a;
@@ -183,6 +192,35 @@ ion-content {
     cursor: not-allowed;
     transform: none;
   }
+}
+
+/* Reanudar invitado: algo más marcado que el "nuevo invitado" y con el ID a la derecha. */
+.guest-btn--resume {
+  color: #cfe0f8;
+  border-color: #3a5a8a;
+
+  .guest-id {
+    margin-left: auto;
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: #5bc0f8;
+    opacity: 0.9;
+  }
+}
+
+/* Enlace discreto para descartar el invitado guardado y crear uno nuevo. */
+.guest-new-link {
+  background: none;
+  border: none;
+  color: #4a6a9a;
+  font-family: inherit;
+  font-size: 0.68rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 2px;
+
+  &:hover { color: #9fb6d8; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 .login-error {

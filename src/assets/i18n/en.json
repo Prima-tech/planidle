@@ -7,6 +7,8 @@
     "PASSWORD_PLACEHOLDER": "Password",
     "BUTTON": "SIGN IN",
     "GUEST": "Play as guest",
+    "GUEST_RESUME": "Continue as guest",
+    "GUEST_NEW": "or start a new guest",
     "MODE": {
       "SUPABASE": "Connect to Supabase",
       "LOCAL": "Play locally",

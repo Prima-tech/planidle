@@ -186,9 +186,18 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
     this.playerState.collectCoins(amount);
   }
 
-  /** Cierra sesión de Supabase, vuelve a modo local y regresa al login. */
+  /** Cierra sesión y vuelve al login.
+   *  - Cuenta con email: signOut real (se puede recuperar con email+contraseña).
+   *  - Invitado (anónimo): NO se hace signOut — sin credenciales, destruir la sesión
+   *    perdería la cuenta para siempre. Solo salimos de modo Supabase (para que no
+   *    auto-entre) dejando la sesión viva; en el login saldrá "Continuar como invitado
+   *    (ID)" para reanudarla. */
   async logout(): Promise<void> {
-    await this.connection.logout();
+    if (await this.supabase.getLocalGuestId()) {
+      await this.connection.setUseSupabase(false);   // sin signOut: la sesión invitada sigue viva
+    } else {
+      await this.connection.logout();                // email: signOut normal
+    }
     this.supabaseConnected = false;
     this.asgard.triggerCloseMenu();
     this.router.navigate(['/login']);

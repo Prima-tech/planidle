@@ -5,7 +5,10 @@
 
 <app-top-bar *ngIf="dataLoaded && sceneVisible" (openEquipment)="footerBar.openEquipment()"></app-top-bar>
 <app-quest-tracker *ngIf="dataLoaded && sceneVisible"></app-quest-tracker>
-<ion-content>
+<!-- scrollY=false: el canvas de Phaser vive DENTRO de este ion-content. Si se permite
+     scroll, el overscroll de un panel lo arrastra y el canvas se va de pantalla (negro).
+     El shell del juego es fijo; los paneles que sí scrollean tienen su propio contenedor. -->
+<ion-content [scrollY]="false">
 
   <!-- Zona estática -->
   <div class="zona-estatica">

@@ -7,6 +7,8 @@
     "PASSWORD_PLACEHOLDER": "Contraseña",
     "BUTTON": "INGRESAR",
     "GUEST": "Entrar como invitado",
+    "GUEST_RESUME": "Continuar como invitado",
+    "GUEST_NEW": "o entrar como invitado nuevo",
     "MODE": {
       "SUPABASE": "Conectar a Supabase",
       "LOCAL": "Jugar en local",

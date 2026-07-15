@@ -35,10 +35,20 @@ export class SupabaseService {
 
   // --- AUTHENTICATION ---
 
-  /** ¿Hay sesión de Supabase activa (persistida o recién iniciada)? */
+  /** ¿Hay sesión de Supabase activa (persistida o recién iniciada)? Solo lee el token
+   *  LOCAL, sin validar contra el servidor. */
   async hasSession(): Promise<boolean> {
     const { data } = await this.supabase.auth.getSession();
     return !!data.session;
+  }
+
+  /** ¿Hay sesión VÁLIDA confirmada por el servidor? A diferencia de hasSession() (que
+   *  solo lee el token local), llama a getUser() y valida contra Supabase. Devuelve true
+   *  solo si el servidor confirma el usuario. Sin red, o con la cuenta borrada/expulsada
+   *  (p. ej. wipe del admin) → false: la autenticación requiere conexión. */
+  async hasValidServerSession(): Promise<boolean> {
+    const { data, error } = await this.supabase.auth.getUser();
+    return !error && !!data?.user;
   }
 
   async signUp(email: string, pass: string) {
@@ -77,6 +87,16 @@ export class SupabaseService {
   async isAnonymous(): Promise<boolean> {
     const { data: { user } } = await this.supabase.auth.getUser();
     return !!user?.is_anonymous;
+  }
+
+  /** ID de la sesión de INVITADO guardada LOCALMENTE (sin red), o null si no hay sesión
+   *  o no es de invitado. Lo usa el login para ofrecer "Continuar como invitado (ID)"
+   *  tras cerrar sesión: como el invitado no tiene credenciales, no se destruye su sesión
+   *  al salir, y desde aquí se puede reanudar la MISMA cuenta. */
+  async getLocalGuestId(): Promise<string | null> {
+    const { data } = await this.supabase.auth.getSession();
+    const user = data.session?.user;
+    return user?.is_anonymous ? user.id : null;
   }
 
   /** Identidad de la sesión actual para pintar la pastilla de ajustes:
@@ -213,10 +233,11 @@ export class SupabaseService {
       await this.storageService.set('characters', roster);
       return data;
     } else if (error?.code === 'PGRST116') {
-      // No existe la fila de cuenta. La crea el trigger handle_new_user al
-      // registrarse (único dueño de la creación). Si llegamos aquí, el trigger
-      // falló o es un usuario legacy sin fila.
-      console.error('[Supabase] global_data no existe para el usuario: el trigger handle_new_user debería haberla creado al registrarse.');
+      // No existe la fila de cuenta, o la RLS de SELECT no deja leerla. Normalmente la crea
+      // el trigger handle_new_user al registrarse. Si llegamos aquí: el trigger falló, es un
+      // usuario legacy sin fila, o falta la policy de SELECT propia (id = auth.uid()) en
+      // global_data (solo estaba la de admin) → el invitado no puede leer su fila.
+      console.error('[Supabase] global_data no existe/ilegible para el usuario: revisa el trigger handle_new_user y la RLS de SELECT de global_data.');
     }
     return null;
   }

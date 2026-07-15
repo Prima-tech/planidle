@@ -6,7 +6,8 @@
         <div class="login-emblem">
           <ion-icon name="shield-half-outline" class="emblem-icon"></ion-icon>
         </div>
-        <h1 class="game-title">IDLE RPG</h1>
+        <h1 class="game-title">VALHALLA</h1>
+        <p class="game-brand-sub">Idle RPG</p>
         <p class="game-subtitle">{{ 'LOGIN.TAGLINE' | translate }}</p>
       </div>
 
@@ -25,9 +26,19 @@
 
         <button class="rpg-btn rpg-btn--block login-btn" (click)="login()" [disabled]="loading">{{ 'LOGIN.BUTTON' | translate }}</button>
 
-        <button class="guest-btn" (click)="loginAsGuest()" [disabled]="loading">
+        <button *ngIf="!guestId" class="guest-btn" (click)="loginAsGuest()" [disabled]="loading">
           <ion-icon name="person-circle-outline"></ion-icon>
           <span>{{ 'LOGIN.GUEST' | translate }}</span>
+        </button>
+
+        <button *ngIf="guestId" class="guest-btn guest-btn--resume" (click)="resumeGuest()" [disabled]="loading">
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <span>{{ 'LOGIN.GUEST_RESUME' | translate }}</span>
+          <span class="guest-id">{{ guestId.slice(0, 8) }}</span>
+        </button>
+
+        <button *ngIf="guestId" class="guest-new-link" (click)="loginAsGuest()" [disabled]="loading">
+          {{ 'LOGIN.GUEST_NEW' | translate }}
         </button>
 
         <p class="login-error" *ngIf="error">{{ error }}</p>

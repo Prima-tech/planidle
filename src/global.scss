@@ -50,6 +50,24 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ── Nativo: bloquear rubber-band / scroll-chaining del documento ──────────────
+   En el WebView, el overscroll de un panel de Angular (equipo, tienda, stats…) se
+   encadenaba al documento y arrastraba todo el shell del juego: el canvas de Phaser
+   se iba de pantalla (fondo negro) y solo quedaban los menús anclados. `none` corta
+   ese encadenamiento en la raíz; los paneles internos siguen scrolleando normal. */
+html,
+body {
+  overscroll-behavior: none;
+}
+
+/* Los paneles con scroll propio no propagan su overscroll a los ancestros (defensa
+   por si algún contenedor intermedio fuera scrollable). */
+[class*="-panel"],
+.gs-content,
+.gs-panel {
+  overscroll-behavior: contain;
+}
+
 ion-content {
   scrollbar-width: none;
   /* Firefox */
