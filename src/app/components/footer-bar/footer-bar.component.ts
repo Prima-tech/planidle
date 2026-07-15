@@ -72,8 +72,9 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     return this.hudSlots.slots.some((s, i) =>
       !!s && this.globalTalents.isUnlocked(GlobalTalentsService.SKILL_SLOT_NODES[i]));
   }
-  /** Hub de botones (abajo-izquierda): abierto por defecto; el tirador lo colapsa. */
-  hubOpen = true;
+  /** Hub de botones (abajo-izquierda): arranca COLAPSADO al entrar en la app /
+   *  loguearse; el tirador lo despliega. */
+  hubOpen = false;
   /** Id del mapa actual: el botón de construir solo aparece en 'hogar'. */
   currentMapId = 'hogar';
 

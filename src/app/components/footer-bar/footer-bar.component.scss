@@ -111,15 +111,15 @@ $gold-light: #ffe9a8;
   > * { pointer-events: auto; }
 }
 
-/* Tirador: vertical, la mitad de ancho que un botón (21px) y su misma altura (40px). */
+/* Tirador: lengüeta de acero vertical redondeada, a juego con los orbes del hub. */
 .hub-toggle {
   flex-shrink: 0;
-  width: 21px;
-  height: 40px;
+  width: 20px;
+  height: 42px;
   padding: 0;
-  border: 3px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 4px;
+  /* Anillo UNIFORME: el bisel de 4 colores hace diagonales feas en bordes curvos */
+  border: 2px solid $stone;
+  border-radius: 10px;
   background: $metal-face;
   color: $icon-metal;
   display: flex;
@@ -128,21 +128,102 @@ $gold-light: #ffe9a8;
   cursor: pointer;
   box-shadow:
     0 0 0 1px $outline,
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 2px 6px rgba(0, 0, 0, 0.45);
+    inset 0 0 0 1px $outline,
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    0 3px 8px rgba(0, 0, 0, 0.5);
+  -webkit-tap-highlight-color: transparent;
 
-  ion-icon { font-size: 15px; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35)); }
+  ion-icon { font-size: 14px; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35)); }
   &:active { background: $metal-face-pressed; }
-  &:focus { outline: none; }
+  &:focus, &:focus-visible { outline: none; }
 }
 
-/* Botones del hub: fila que se colapsa hacia el tirador con animación. */
+/* Botones del hub: ORBES de acero pulido (redondos, con reflejo arriba), iconos
+   "grabados" en el metal como las placas del footer. Pisa la placa rectangular
+   que heredan de .icon-menu-wrapper. */
+:host .hub-buttons .icon-menu-wrapper {
+  float: none;
+  margin: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  /* Anillo de piedra UNIFORME: el bisel de 4 colores (luz/sombra por lado) solo
+     funciona en marcos rectangulares; en un círculo se ven las diagonales donde
+     se juntan los colores y parece "un cuadrado redondeado". La luz del anillo
+     la pone un box-shadow inset arriba, que sí sigue la curva. */
+  border: 3px solid $stone;
+  background: radial-gradient(circle at 35% 28%, #e9e2d4 0%, $metal 48%, #847b6e 76%, $metal-dark 100%);
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 2px 3px rgba(255, 255, 255, 0.4),
+    inset 0 -4px 7px rgba(0, 0, 0, 0.3),
+    0 3px 10px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  transition: transform 80ms ease-out, box-shadow 0.15s;
+
+  /* Reflejo superior del acero pulido */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 6%;
+    left: 16%;
+    width: 68%;
+    height: 34%;
+    border-radius: 50%;
+    background: linear-gradient(rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+    pointer-events: none;
+  }
+
+  .footer-ion-icon {
+    color: $icon-metal;
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35));   /* grabado en el acero */
+  }
+
+  &:active {
+    transform: scale(0.9);
+    background: radial-gradient(circle at 35% 72%, #b5ac9d 0%, #847b6e 55%, $metal-dark 100%);
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      inset 0 3px 6px rgba(0, 0, 0, 0.4),
+      0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Panel abierto: acero hundido + icono dorado y halo ámbar (como el footer) */
+  &.active {
+    background: radial-gradient(circle at 35% 72%, #b5ac9d 0%, #847b6e 55%, $metal-dark 100%);
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      inset 0 0 9px rgba(240, 192, 64, 0.5),
+      0 0 12px rgba(240, 192, 64, 0.55),
+      0 3px 10px rgba(0, 0, 0, 0.55);
+
+    .footer-ion-icon {
+      color: $gold;
+      filter: drop-shadow(0 0 3px rgba(240, 192, 64, 0.75));
+    }
+  }
+
+  /* Sin el subrayado dorado de las placas del footer: en un orbe redondo sobra
+     (el estado abierto ya lo marca el halo ámbar). */
+  &.active::after { display: none; }
+}
+
+/* Botones del hub: fila que se colapsa hacia el tirador con animación.
+   OJO: overflow:hidden recorta también las sombras/halos de los orbes en un
+   RECTÁNGULO (se veía un "fondo cuadrado" cortado alrededor de los círculos).
+   El padding + margin negativo agranda la caja de recorte 10px por cada lado
+   sin mover el contenido, para que las sombras redondas respiren. */
 .hub-buttons {
   display: flex;
   align-items: flex-end;
   gap: 8px;
   overflow: hidden;
-  max-width: 240px;
+  padding: 10px;
+  margin: -10px;
+  max-width: 260px;
   opacity: 1;
   transform: translateX(0);
   transition: max-width 0.3s ease, opacity 0.22s ease, transform 0.3s ease;
