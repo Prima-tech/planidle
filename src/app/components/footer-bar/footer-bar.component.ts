@@ -402,19 +402,15 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Botón "abrir tienda" (minimapa): acceso GLOBAL a la tienda construible real.
-   *  Abre la misma ventana que el edificio, pero SIN marcar windowOpen$ (no se cierra
-   *  al alejarse: la proximidad solo aplica al abrirla desde el edificio/espacio). */
+  /** Botón "tienda" (minimapa): TIENDA PREMIUM (de pago, a nivel de cuenta). No tiene
+   *  nada que ver con la tienda construible de la ciudad (BuildShopComponent, que se
+   *  abre desde su edificio con oro del juego). De momento es un placeholder. */
   openShop() {
-    if (this.buildShopModal.isOpenModal()) {
-      this.buildShopModal.close();
+    if (this.shopModal.isOpenModal()) {
+      this.shopModal.close();
     } else {
-      this.closeOtherOnSide('left', this.buildShopModal);
-      this.buildShopModal.open(BuildShopComponent, 'build-shop');
-      if (!this.inventoryModal?.isOpenModal()) {
-        this.openInventory();
-        this.inventoryOpenedByShop = true;
-      }
+      this.closeOtherOnSide('right', this.shopModal);
+      this.shopModal.open(ShopComponent, 'shop');
     }
   }
 

@@ -172,7 +172,11 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   readonly placeholderImgFailed = new Set<string>();
   onPlaceholderImgError(slotId: string): void { this.placeholderImgFailed.add(slotId); }
 
-  readonly loadoutIndices = [0, 1, 2];
+  /** Pestañas de set visibles: solo los sets desbloqueados (tienda premium).
+   *  Con un solo set, la barra de pestañas ni se muestra. */
+  get loadoutIndices(): number[] {
+    return Array.from({ length: this.equipmentService.unlockedLoadouts }, (_, i) => i);
+  }
 
   switchLoadout(index: number): void {
     this.equipmentService.switchLoadout(index);

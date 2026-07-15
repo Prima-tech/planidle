@@ -160,8 +160,41 @@
     "CAMERA_BOUNDS": "Camera bound to map",
     "CAMERA_BOUNDS_DESC": "The camera stops at the map edge and hides the void. Turn off for free follow."
   },
+  "GT": {
+    "TREE": {
+      "ATTACK": "Attack",
+      "SKILLS": "Skills",
+      "EXPLORATION": "Exploration"
+    },
+    "NODE": {
+      "GENERIC_LABEL": "{{tree}} {{lvl}}",
+      "GENERIC_DESC": "{{tree}} talent, level {{lvl}}.",
+      "BRANCH_LABEL": "{{tree}} {{lvl}} (branch)",
+      "BRANCH_DESC": "{{tree}} branch at level {{lvl}}.",
+      "FORGE_LABEL": "Forge upgrades",
+      "FORGE_DESC": "Unlocks the upgrades tab in forges.",
+      "AUTO_ATTACK_LABEL": "Auto-attack",
+      "AUTO_ATTACK_DESC": "Enables auto-attack (the ∞ HUD button). While locked, the button is hidden.",
+      "SKILL_SLOT_LABEL": "Skill slot {{n}}",
+      "SKILL_SLOT_DESC": "Unlocks HUD skill slot {{n}}. While locked, it is hidden.",
+      "AUTO_SKILLS_LABEL": "Auto-skills",
+      "AUTO_SKILLS_DESC": "Automatically casts your HUD skills when they are ready."
+    }
+  },
   "SHOP": {
-    "TITLE": "Shop"
+    "TITLE": "Premium shop",
+    "BUY": "Buy",
+    "OWNED": "Owned",
+    "ITEMS": {
+      "EQUIP_SET_2": {
+        "NAME": "Equipment set II",
+        "DESC": "Unlocks a second switchable equipment set, for ALL your characters."
+      },
+      "EQUIP_SET_3": {
+        "NAME": "Equipment set III",
+        "DESC": "Unlocks a third switchable equipment set, for ALL your characters. Requires set II."
+      }
+    }
   },
   "INVENTORY": {
     "BTN": {

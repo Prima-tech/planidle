@@ -76,7 +76,9 @@ export class PlayerStateService {
     if (!profile) return;
     this._state$.next({
       coins:         profile.coins          ?? 0,
-      specialCoins:  profile.special_coins  ?? 0,
+      // Acepta camelCase (snapshots/EMPTY_STATE) y snake_case (fila legacy de Supabase):
+      // solo con `special_coins` se perdían las Marcas al restaurar un snapshot.
+      specialCoins:  profile.specialCoins ?? profile.special_coins ?? 0,
       stars:         profile.stars          ?? 0,
       worldKills:    profile.worldKills     ?? 0,
       currentKills:  profile.currentKills   ?? 0,
@@ -111,6 +113,15 @@ export class PlayerStateService {
   collectSpecialCoins(amount: number): void {
     const s = this._state$.getValue();
     this._patch({ specialCoins: (s.specialCoins ?? 0) + (amount || 0) });
+  }
+
+  /** Gasta Marcas del condenado (moneda premium). false si no alcanzan. */
+  spendSpecialCoins(amount: number): boolean {
+    const s = this._state$.getValue();
+    const current = s.specialCoins ?? 0;
+    if (!(amount > 0) || current < amount) return false;
+    this._patch({ specialCoins: current - amount });
+    return true;
   }
 
   /** Estrellas del Modo Mundo: contador propio, persistido como las monedas. */

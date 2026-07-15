@@ -23,6 +23,7 @@ import { ConnectionService } from './connection.service';
 import { ForgeService } from './forge.service';
 import { GlobalTalentsService } from './global-talents.service';
 import { MapUpgradesService } from './map-upgrades.service';
+import { AccountShopService } from './account-shop.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -74,9 +75,11 @@ export interface GameSnapshot {
   lastModified: string;
 }
 
-// Oro inicial de un personaje nuevo o tras "Borrar todo".
+// Oro y Marcas del condenado (moneda premium) iniciales de un personaje nuevo
+// o tras "Borrar todo".
 const STARTING_COINS = 500;
-const EMPTY_STATE: PlayerState = { coins: STARTING_COINS, specialCoins: 0, stars: 0, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0, runMilestones: [] };
+const STARTING_SPECIAL_COINS = 100;
+const EMPTY_STATE: PlayerState = { coins: STARTING_COINS, specialCoins: STARTING_SPECIAL_COINS, stars: 0, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0, runMilestones: [] };
 
 @Injectable({ providedIn: 'root' })
 export class SaveService {
@@ -116,6 +119,7 @@ export class SaveService {
     private forge: ForgeService,
     private globalTalents: GlobalTalentsService,
     private mapUpgrades: MapUpgradesService,
+    private accountShop: AccountShopService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
@@ -466,6 +470,7 @@ export class SaveService {
           achievementsGlobal: this.achievements.getGlobalSnapshot(),
           globalTalents: this.globalTalents.getSnapshot(),   // talentos globales de cuenta
           mapUpgrades: this.mapUpgrades.getSnapshot(),       // mejoras de mapa (cofre central)
+          accountShop: this.accountShop.getSnapshot(),       // compras de la tienda premium
         });
       } catch (e) {
         console.warn('[Save] global_data no se pudo actualizar (logros/mejoras de cuenta)', e);

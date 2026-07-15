@@ -160,8 +160,41 @@
     "CAMERA_BOUNDS": "Cámara limitada al mapa",
     "CAMERA_BOUNDS_DESC": "La cámara se detiene en el borde del mapa y no muestra el vacío. Desactívalo para seguimiento libre."
   },
+  "GT": {
+    "TREE": {
+      "ATTACK": "Ataque",
+      "SKILLS": "Skills",
+      "EXPLORATION": "Exploración"
+    },
+    "NODE": {
+      "GENERIC_LABEL": "{{tree}} {{lvl}}",
+      "GENERIC_DESC": "Talento de {{tree}}, nivel {{lvl}}.",
+      "BRANCH_LABEL": "{{tree}} {{lvl}} (rama)",
+      "BRANCH_DESC": "Bifurcación de {{tree}} en el nivel {{lvl}}.",
+      "FORGE_LABEL": "Mejoras de forjas",
+      "FORGE_DESC": "Desbloquea la pestaña de mejoras en las forjas.",
+      "AUTO_ATTACK_LABEL": "Auto-ataque",
+      "AUTO_ATTACK_DESC": "Activa el auto-ataque (botón ∞ del HUD). Si no está desbloqueado, el botón no aparece.",
+      "SKILL_SLOT_LABEL": "Ranura de habilidad {{n}}",
+      "SKILL_SLOT_DESC": "Desbloquea la ranura de habilidad {{n}} del HUD. Si no está desbloqueada, no aparece.",
+      "AUTO_SKILLS_LABEL": "Auto-habilidades",
+      "AUTO_SKILLS_DESC": "Lanza automáticamente las habilidades del HUD cuando están listas."
+    }
+  },
   "SHOP": {
-    "TITLE": "Tienda"
+    "TITLE": "Tienda premium",
+    "BUY": "Comprar",
+    "OWNED": "Comprado",
+    "ITEMS": {
+      "EQUIP_SET_2": {
+        "NAME": "Set de equipo II",
+        "DESC": "Desbloquea un segundo set de equipo intercambiable, para TODOS tus personajes."
+      },
+      "EQUIP_SET_3": {
+        "NAME": "Set de equipo III",
+        "DESC": "Desbloquea un tercer set de equipo intercambiable, para TODOS tus personajes. Requiere el set II."
+      }
+    }
   },
   "INVENTORY": {
     "BTN": {

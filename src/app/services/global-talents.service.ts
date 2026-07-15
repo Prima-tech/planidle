@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 import { StorageService } from './storage.service';
 
 /**
@@ -36,6 +37,8 @@ const GT_LEVELS = 10;
 // Bifurcación cada dos nodos (niveles pares), alternando: arriba, abajo, arriba…
 const GT_BRANCH_LEVELS = [2, 4, 6, 8, 10];
 
+// Los textos (label/desc de árboles y nodos) NO se fijan aquí: los pone y RE-pone
+// applyTexts() vía ngx-translate (claves GT.*), también al cambiar de idioma en caliente.
 function buildNodes(): GtNode[] {
   const out: GtNode[] = [];
   for (const t of GT_TREES) {
@@ -43,9 +46,9 @@ function buildNodes(): GtNode[] {
       const id = `${t.id}_${lvl}`;
       out.push({
         id, tree: t.id, level: lvl, branch: 0,   // línea principal recta
-        label: `${t.label} ${lvl}`,
+        label: '',
         icon: t.icon,
-        desc: `Talento de ${t.label.toLowerCase()}, nivel ${lvl}.`,
+        desc: '',
         cost: 1,
         requires: lvl === 1 ? [] : [`${t.id}_${lvl - 1}`],
       });
@@ -54,9 +57,9 @@ function buildNodes(): GtNode[] {
         const dir = bi % 2 === 0 ? -1 : 1;   // alterna: -1 = arriba, +1 = abajo
         out.push({
           id: `${id}b`, tree: t.id, level: lvl, branch: dir,
-          label: `${t.label} ${lvl} (rama)`,
+          label: '',
           icon: t.icon,
-          desc: `Bifurcación de ${t.label.toLowerCase()} en el nivel ${lvl}.`,
+          desc: '',
           cost: 1,
           requires: [id],
         });
@@ -98,22 +101,40 @@ export class GlobalTalentsService {
   /** Emite tras cualquier cambio (para refrescar la vista). */
   readonly changes$ = new BehaviorSubject<void>(undefined);
 
+  private translate = inject(TranslateService);
+
   constructor() {
-    // El nodo de forja lleva texto propio (es el que gatea las mejoras de la forja).
-    const fn = GT_NODES.find(n => n.id === GlobalTalentsService.FORGE_NODE);
-    if (fn) { fn.label = 'Mejoras de forjas'; fn.desc = 'Desbloquea la pestaña de mejoras en las forjas.'; }
-    // Primer nodo de Ataque = auto-ataque: su ficha explica que activa el botón ∞ del HUD.
-    const an = GT_NODES.find(n => n.id === GlobalTalentsService.AUTO_ATTACK_NODE);
-    if (an) { an.label = 'Auto-ataque'; an.desc = 'Activa el auto-ataque (botón ∞ del HUD). Si no está desbloqueado, el botón no aparece.'; }
-    // Nodos de Ataque 2/3/4 = las 3 ranuras de habilidad del HUD.
-    GlobalTalentsService.SKILL_SLOT_NODES.forEach((id, i) => {
-      const n = GT_NODES.find(x => x.id === id);
-      if (n) { n.label = `Ranura de habilidad ${i + 1}`; n.desc = `Desbloquea la ranura de habilidad ${i + 1} del HUD. Si no está desbloqueada, no aparece.`; }
-    });
-    // Nodo de Ataque 5 = auto-lanzado de las skills del HUD (no hay toggle manual).
-    const sn = GT_NODES.find(n => n.id === GlobalTalentsService.AUTO_SKILLS_NODE);
-    if (sn) { sn.label = 'Auto-habilidades'; sn.desc = 'Lanza automáticamente las habilidades del HUD cuando están listas.'; }
+    // Textos vía i18n: al construir y en cada cambio de idioma (translate.use en caliente
+    // desde ajustes). En el primer applyTexts puede que el JSON aún no haya cargado
+    // (instant devuelve la clave); onLangChange re-aplica en cuanto está listo.
+    this.applyTexts();
+    this.translate.onLangChange.subscribe(() => this.applyTexts());
     this.loadPromise = this.load();
+  }
+
+  /** Pone label/desc de árboles y nodos en el idioma ACTUAL (claves GT.* de i18n). */
+  private applyTexts(): void {
+    const t = (key: string, params?: Record<string, unknown>) => this.translate.instant(key, params);
+
+    for (const tree of GT_TREES) tree.label = t(`GT.TREE.${tree.id.toUpperCase()}`);
+
+    // Genéricos y ramas (el nombre del árbol va interpolado en la clave).
+    for (const n of GT_NODES) {
+      const tree = t(`GT.TREE.${n.tree.toUpperCase()}`);
+      const kind = n.branch !== 0 ? 'BRANCH' : 'GENERIC';
+      n.label = t(`GT.NODE.${kind}_LABEL`, { tree, lvl: n.level });
+      n.desc  = t(`GT.NODE.${kind}_DESC`,  { tree, lvl: n.level });
+    }
+
+    // Nodos con efecto propio: texto específico que explica qué desbloquean.
+    const set = (id: string, key: string, params?: Record<string, unknown>) => {
+      const n = GT_NODES.find(x => x.id === id);
+      if (n) { n.label = t(`GT.NODE.${key}_LABEL`, params); n.desc = t(`GT.NODE.${key}_DESC`, params); }
+    };
+    set(GlobalTalentsService.FORGE_NODE,       'FORGE');
+    set(GlobalTalentsService.AUTO_ATTACK_NODE, 'AUTO_ATTACK');
+    GlobalTalentsService.SKILL_SLOT_NODES.forEach((id, i) => set(id, 'SKILL_SLOT', { n: i + 1 }));
+    set(GlobalTalentsService.AUTO_SKILLS_NODE, 'AUTO_SKILLS');
   }
 
   get total(): number { return GlobalTalentsService.TOTAL_POINTS; }

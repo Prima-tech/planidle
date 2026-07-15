@@ -5,7 +5,14 @@ $stone-light: #a59c8d;
 $stone-dark: #6b6357;
 $wood-bg: #a86f3e;
 $wood-btn: #c08349;
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$cell-bg-light: #8a5e3c;
+$text-brown: #53301c;
 $text-cream: #ecd9b4;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
 
 :host {
   display: block;
@@ -38,13 +45,185 @@ $text-cream: #ecd9b4;
   flex-shrink: 0;
   text-align: center;
   padding: 4px 0 8px;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: $text-cream;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .shop-content {
   flex: 1;
   overflow-y: auto;
+}
+
+/* ── Artículos (desbloqueos de cuenta) ───────────────────────────────────────
+   Ficha con marco metálico + madera oscura (receta 1b del tema): igual que la
+   ficha de talentos y la caja de info del mapa. */
+
+.shop-item {
+  padding: 8px 10px;
+  margin: 0 1px 10px;   /* 1px de aire para el anillo $outline exterior */
+  color: $text-cream;
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.shop-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+/* Icono como celda hundida (receta 3): bisel metálico sobre marrón claro */
+.shop-item-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background-color: $cell-bg-light;
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+
+  ion-icon {
+    font-size: 19px;
+    color: #fceeb8;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  }
+}
+
+/* Nombre estilo placa: serif dorado sobre la madera */
+.shop-item-name {
+  flex: 1;
+  min-width: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: #ffd700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.shop-item-desc {
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: rgba(236, 217, 180, 0.85);
+}
+
+.shop-item-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+}
+
+/* Precio como placa de monedas (receta 6b): madera clara + bisel de piedra */
+.shop-item-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  font-size: 11px;
+  font-weight: 700;
+  color: $text-brown;
+
+  .price-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+}
+
+.shop-buy-btn {
+  margin-left: auto;
+}
+
+/* Comprado: sello dorado centrado, sin botón */
+.shop-item-owned {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #f0c040;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+
+  ion-icon { font-size: 16px; }
+}
+
+/* ── Pie: la Marca del condenado (moneda de la tienda) ───────────────────────
+   Misma pastilla coins-section que el inventario, alineada a la derecha. */
+$text-brown: #53301c;
+
+.shop-footer {
+  flex-shrink: 0;
+  display: flex;
+  padding-top: 8px;
+}
+
+.coins-section {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  height: 26px;
+  padding: 0 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+}
+
+/* Crece para alojar el icono de la Marca a 30px, como en el inventario */
+.special-coins-section {
+  height: 38px;
+  padding: 0 10px;
+}
+
+.special-coin-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.coin-amount {
+  font-size: 0.72em;
+  font-weight: bold;
+  color: $text-brown;
 }

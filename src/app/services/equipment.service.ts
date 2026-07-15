@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { InventoryItem } from './inventory.service';
 import { InventoryUnlockService } from './inventory-unlock.service';
+import { AccountShopService } from './account-shop.service';
 
 export interface EquipmentSlot {
   id: string;
@@ -50,10 +51,10 @@ export class EquipmentService {
   activeLoadout = 0;
   private storedSets: (EquipmentSnapshot | null)[] = [null, null, null];
 
-  /** Cambia el set activo: guarda el actual y restaura el elegido.
-   *  changes$ propaga el cambio a stats, sprites de Phaser y auto-save. */
+  /** Cambia el set activo: guarda el actual y restaura el elegido. Solo entre sets
+   *  DESBLOQUEADOS (tienda premium). changes$ propaga el cambio a stats, sprites y save. */
   switchLoadout(index: number): void {
-    if (index === this.activeLoadout || index < 0 || index >= LOADOUT_COUNT) return;
+    if (index === this.activeLoadout || index < 0 || index >= this.unlockedLoadouts) return;
     this.storedSets[this.activeLoadout] = this.getSnapshot();
     this.activeLoadout = index;
     this.restoreFromSnapshot(this.storedSets[index]);
@@ -82,6 +83,16 @@ export class EquipmentService {
   }
 
   private readonly _unlock = inject(InventoryUnlockService);
+  private readonly _accountShop = inject(AccountShopService);
+
+  /** Sets DISPONIBLES: el 1º es gratis; el 2º y el 3º los desbloquea la tienda
+   *  premium (compras de CUENTA: valen para todos los personajes). */
+  get unlockedLoadouts(): number {
+    let n = 1;
+    if (this._accountShop.isPurchased('equip_set_2')) n++;
+    if (this._accountShop.isPurchased('equip_set_3')) n++;
+    return Math.min(n, LOADOUT_COUNT);
+  }
 
   /** IDs CDK de las celdas de inventario para `cdkDropListConnectedTo`. Solo las
    *  DESBLOQUEADAS: las bloqueadas no se renderizan, y conectarse a ellas dispara el

@@ -2,6 +2,44 @@
   <div class="shop-header">{{ 'SHOP.TITLE' | translate }}</div>
 
   <div class="shop-content">
-    <!-- De momento vacío -->
+    <!-- Tienda PREMIUM: desbloqueos de CUENTA pagados con Marcas del condenado.
+         Hoy: los sets de equipo II y III (pestañas de la ventana de equipo).
+         Ficha = receta 1b del tema (bisel metálico + madera oscura). -->
+    <div class="shop-item" *ngFor="let it of items">
+      <div class="shop-item-head">
+        <div class="shop-item-icon">
+          <ion-icon name="shirt-outline"></ion-icon>
+        </div>
+        <div class="shop-item-name">{{ it.nameKey | translate }}</div>
+      </div>
+
+      <div class="shop-item-desc">{{ it.descKey | translate }}</div>
+
+      <div class="shop-item-footer">
+        <ng-container *ngIf="!owned(it.id); else ownedTpl">
+          <div class="shop-item-price">
+            <img src="assets/icon/brand_of_sacrifice.png" class="price-icon" alt="" draggable="false" />
+            <span>{{ it.price }}</span>
+          </div>
+          <button class="rpg-btn shop-buy-btn" [disabled]="!canBuy(it)" (click)="buy(it.id)">
+            {{ 'SHOP.BUY' | translate }}
+          </button>
+        </ng-container>
+        <ng-template #ownedTpl>
+          <div class="shop-item-owned">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <span>{{ 'SHOP.OWNED' | translate }}</span>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Moneda de la tienda: la Marca del condenado (la misma pastilla que el inventario) -->
+  <div class="shop-footer">
+    <div class="coins-section special-coins-section">
+      <img src="assets/icon/brand_of_sacrifice.png" class="special-coin-icon" alt="" draggable="false" />
+      <span class="coin-amount">{{ specialCoins$ | async | compactNumber }}</span>
+    </div>
   </div>
 </div>

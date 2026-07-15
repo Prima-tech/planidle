@@ -786,8 +786,9 @@
 
   </div><!-- eq-content -->
 
-  <!-- Sets de equipo (combate + recolección vinculados): 3 loadouts compartidos -->
-  <div class="loadout-tabs" *ngIf="activeTab === 0 && !statsFlyoutOpen">
+  <!-- Sets de equipo (combate + recolección vinculados): el 1º es gratis, el 2º y 3º
+       se compran en la tienda premium (cuenta). Con un solo set no hay pestañas. -->
+  <div class="loadout-tabs" *ngIf="activeTab === 0 && !statsFlyoutOpen && loadoutIndices.length > 1">
     <button class="loadout-tab" *ngFor="let i of loadoutIndices"
             [class.active]="equipmentService.activeLoadout === i"
             (click)="switchLoadout(i)">
