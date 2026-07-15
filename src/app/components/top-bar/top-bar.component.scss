@@ -518,6 +518,45 @@ $metal-dark: #6b6357;
   margin: 2px 0;
 }
 
+// ── Pestaña de dominio ───────────────────────────────────────────────────────
+.mip-dominion {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mip-dom-bar { height: 8px; }
+
+.mip-bar-fill--dominion { background: linear-gradient(90deg, #b8860b, #f1c40f); }
+
+.mip-dom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mip-dom-check {
+  font-size: 1.35em;
+  color: rgba(60, 42, 28, 0.45);
+  flex-shrink: 0;
+}
+
+.mip-dom-row--done {
+  .mip-dom-check { color: #3e8e41; }
+  .mip-stat-label,
+  .mip-stat-val { color: rgba(60, 42, 28, 0.55); }
+}
+
+/* Tramo activo de un objetivo incremental (p.ej. "1/2"). */
+.mip-dom-stage {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: rgba(60, 42, 28, 0.5);
+}
+
+.mip-dom-reward { color: rgba(60, 42, 28, 0.7); }
+.mip-dom-reward--on { color: #3e8e41; }
+
 // Poder de combate: jugador vs mapa
 .mip-power {
   display: flex;

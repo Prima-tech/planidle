@@ -435,7 +435,18 @@
     "WOOD": "Logging",
     "MAX_SIMULTANEOUS_M": "Max at once",
     "DROP_PER_TREE": "Drop per tree",
-    "NO_WOOD": "No logging on this map"
+    "NO_WOOD": "No logging on this map",
+    "TAB_DOMINION": "Dominion",
+    "DOMINION": "Map dominion",
+    "DOM_KILL_BASE": "Kill {{n}} enemies",
+    "DOM_KILL_ELITE": "Kill {{n}} elites",
+    "DOM_KILL_OBLIVION": "Kill {{n}} oblivion",
+    "DOM_UNLOCK_ELITE": "Unlock the elite",
+    "DOM_UNLOCK_OBLIVION": "Unlock the oblivion",
+    "DOM_CHEST": "Map upgrades purchased",
+    "DOM_REWARD": "Reward at 100%",
+    "DOM_REWARD_DONE": "Map dominated!",
+    "DOM_REWARD_DROP": "loot on this map"
   },
   "SUMMON": {
     "NO_ITEMS": "No items"

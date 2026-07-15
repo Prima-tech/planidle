@@ -331,17 +331,6 @@ $metal-dark: #6b6357;
 }
 
 // Candado de la pastilla de stats bloqueada.
-.bsp-lock {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 18px;
-  color: $text-cream;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
-  pointer-events: none;
-}
-
 // ── Tab 4: Logros ─────────────────────────────────────────────────────────────
 
 .ach-panel {

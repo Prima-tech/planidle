@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { GameSnapshot } from './save.service';
 import { MAP_REGISTRY, planetNameForMap, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS, TREE_RESPAWN_MS } from '../scenes/gamescene/map-config';
 import { MapUpgradesService } from './map-upgrades.service';
+import { MapDominionService } from './map-dominion.service';
 import { starProdPerMin } from './run-milestones';
 import { AfkBonusService } from './afk-bonus.service';
 import { CharacterStatsService } from './character-stats.service';
@@ -84,6 +85,7 @@ export class OfflineGainsService {
     private equipment: EquipmentService,
     private talent: TalentService,
     private mapUpgrades: MapUpgradesService,
+    private dominion: MapDominionService,
   ) {}
 
   /**
@@ -207,8 +209,10 @@ export class OfflineGainsService {
     const killsPerHour = Math.floor((3600 / secsPerKill) * AFK_GAIN_FACTOR);
     if (killsPerHour <= 0) return null;
 
-    // Drop rate real: bonus del personaje (%) y modificador del mapa sobre la chance base.
-    const dropMult = (1 + this.charStats.currentDropRateBonus / 100) * (mapConfig.dropRateModifier ?? 1);
+    // Drop rate real: bonus del personaje (%), modificador del mapa y bonus de
+    // dominio (mapa dominado) sobre la chance base — mismo cálculo que rollDrops.
+    const dropMult = (1 + this.charStats.currentDropRateBonus / 100) * (mapConfig.dropRateModifier ?? 1)
+      * this.dominion.dropMultiplier(mapId);
     const table    = LOOT_TABLES[enemyType] ?? LOOT_TABLES['default'];
 
     let coinsPerKill = 0;

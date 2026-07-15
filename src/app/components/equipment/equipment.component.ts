@@ -156,16 +156,19 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     food:     { img: 'assets/icon/placeholder/meat.png',   icon: 'restaurant-outline' },
     potion:   { img: 'assets/icon/placeholder/potion.png', icon: 'flask-outline' },
     // ── Recolección ──
+    // Sin `img`: sus PNGs (assets/icon/slots/*.png) no existen aún y referenciarlos
+    // dispara un 404 por slot al abrir la pestaña. Cuando se cree el PNG, añadir aquí
+    // su `img` (ver README de esa carpeta).
     pickaxe:     { icon: 'hammer-outline' },
-    axe:         { img: 'assets/icon/slots/axe.png',      icon: 'cut-outline' },
+    axe:         { icon: 'cut-outline' },
     fishing_rod: { icon: 'fish-outline' },
-    shovel:      { img: 'assets/icon/slots/shovel.png',   icon: 'trail-sign-outline' },
-    lantern:     { img: 'assets/icon/slots/lantern.png',  icon: 'flashlight-outline' },
-    backpack:    { img: 'assets/icon/slots/backpack.png', icon: 'bag-handle-outline' },
-    gloves:      { img: 'assets/icon/slots/gloves.png',   icon: 'hand-left-outline' },
-    belt:        { img: 'assets/icon/slots/belt.png',     icon: 'remove-outline' },
-    compass:     { img: 'assets/icon/slots/compass.png',  icon: 'compass-outline' },
-    pet:         { img: 'assets/icon/slots/pet.png',      icon: 'paw-outline' },
+    shovel:      { icon: 'trail-sign-outline' },
+    lantern:     { icon: 'flashlight-outline' },
+    backpack:    { icon: 'bag-handle-outline' },
+    gloves:      { icon: 'hand-left-outline' },
+    belt:        { icon: 'remove-outline' },
+    compass:     { icon: 'compass-outline' },
+    pet:         { icon: 'paw-outline' },
   };
 
   /** Slots cuyo PNG aún no existe → caen al ionicon de respaldo. */

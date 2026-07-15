@@ -99,6 +99,9 @@
             <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'wood'" (click)="mapInfoTab = 'wood'" [title]="'MAP.TAB_WOOD' | translate">
               <ion-icon name="leaf-outline"></ion-icon>
             </button>
+            <button class="mip-tab" type="button" *ngIf="d.dominion" [class.active]="mapInfoTab === 'dominion'" (click)="mapInfoTab = 'dominion'" [title]="'MAP.TAB_DOMINION' | translate">
+              <ion-icon name="trophy-outline"></ion-icon>
+            </button>
           </div>
 
           <!-- Contenido: min-height fijo para que ambas pestañas midan igual -->
@@ -299,6 +302,41 @@
               </div>
 
               <div class="mip-no-spawn" *ngIf="!d.wood">{{ 'MAP.NO_WOOD' | translate }}</div>
+            </div>
+
+            <!-- ───── PESTAÑA DOMINIO ───── -->
+            <div class="mip-dominion" *ngIf="mapInfoTab === 'dominion' && d.dominion as dom">
+
+              <!-- Cabecera: título + porcentaje, y barra de progreso global -->
+              <div class="mip-eff-head">
+                <span class="mip-eff-label"><ion-icon name="trophy-outline"></ion-icon>{{ 'MAP.DOMINION' | translate }}</span>
+                <span class="mip-eff-val">{{ dom.percent }}%</span>
+              </div>
+              <div class="mip-bar mip-dom-bar">
+                <div class="mip-bar-fill mip-bar-fill--dominion" [style.width.%]="dom.percent"></div>
+              </div>
+
+              <!-- Objetivos: check + etiqueta (con tramo si es incremental) + progreso -->
+              <div class="mip-stat-list mip-dom-list">
+                <div class="mip-stat-row" *ngFor="let s of dom.steps" [class.mip-dom-row--done]="s.done">
+                  <span class="mip-stat-label">
+                    <ion-icon class="mip-dom-check" [name]="s.done ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+                    {{ s.labelKey | translate: s.labelParams }}
+                    <span class="mip-dom-stage" *ngIf="s.stage">{{ s.stage }}</span>
+                  </span>
+                  <span class="mip-stat-val" *ngIf="s.target > 1">{{ s.current | compactNumber }}/{{ s.target | compactNumber }}</span>
+                </div>
+              </div>
+
+              <div class="mip-divider"></div>
+
+              <!-- Recompensa del 100%: bonus de botín permanente en este mapa -->
+              <div class="mip-rate">
+                <span class="mip-rate-label">{{ (dom.dominated ? 'MAP.DOM_REWARD_DONE' : 'MAP.DOM_REWARD') | translate }}</span>
+                <span class="mip-rate-val mip-dom-reward" [class.mip-dom-reward--on]="dom.dominated">
+                  +{{ dominionDropBonus }}% {{ 'MAP.DOM_REWARD_DROP' | translate }}
+                </span>
+              </div>
             </div>
 
           </div><!-- /mip-content -->

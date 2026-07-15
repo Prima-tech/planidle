@@ -18,6 +18,7 @@ import { miningTier, gemTier, treeTier } from 'src/app/scenes/gamescene/harvest-
 import { UnlockService } from 'src/app/services/unlock.service';
 import { ActivityService, ActivityKind } from 'src/app/services/activity.service';
 import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
+import { MapDominionService, DominionState, DOMINION_DROP_BONUS } from 'src/app/services/map-dominion.service';
 import { CharacterStatsService, combatPowerScore } from 'src/app/services/character-stats.service';
 import { ENEMY_REGISTRY } from 'src/app/enemy/enemy-config';
 
@@ -47,6 +48,8 @@ export interface MapPanelData {
   minerals: { name: string; img: string; max: number; efficiency: number; dropGuaranteed: number; dropPlusChance: number; afkPerHour: number; respawnLabel: string }[];
   /** Madera del mapa (pestaña Tala), con sus datos como los minerales; null en el hogar. */
   wood: { name: string; img: string; max: number; efficiency: number; dropGuaranteed: number; dropPlusChance: number; afkPerHour: number; respawnLabel: string } | null;
+  /** Dominio del mapa (pestaña Dominio); null en mapas sin enemigo propio (hogar). */
+  dominion: DominionState | null;
 }
 
 @Component({
@@ -69,6 +72,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private activity     = inject(ActivityService);
   private charStats    = inject(CharacterStatsService);
   private mapUpgrades  = inject(MapUpgradesService);
+  private mapDominion  = inject(MapDominionService);
   private badges       = inject(NotificationBadgeService);
 
   /** Indicador de novedad en la pastilla del nombre (abre la ventana de equipo):
@@ -98,6 +102,8 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.charStats.damage$,
     // mejoras de mapa → recalcula el respawn efectivo (la "Reaparición" lo reduce).
     this.mapUpgrades.changes$,
+    // dominio (kills de cuenta o mejoras) → refresca la pestaña Dominio.
+    this.mapDominion.changes$,
     // eficiencia de minado/tala del personaje → refresca las cabeceras de Minería/Tala.
     this.charStats.miningEfficiency$,
     this.charStats.woodcuttingEfficiency$,
@@ -207,12 +213,16 @@ export class TopBarComponent implements OnInit, OnDestroy {
         playerWoodEff: this.charStats.currentWoodcuttingEfficiency,
         minerals,
         wood,
+        dominion: this.mapDominion.hasDominion(mapId) ? this.mapDominion.state(mapId) : null,
       } as MapPanelData;
     })
   );
 
-  /** Pestaña activa del panel de info del mapa (lateral): enemigos | minería. */
-  mapInfoTab: 'enemies' | 'mining' | 'wood' = 'enemies';
+  /** Pestaña activa del panel de info del mapa (lateral): enemigos | minería | tala | dominio. */
+  mapInfoTab: 'enemies' | 'mining' | 'wood' | 'dominion' = 'enemies';
+
+  /** Bonus de botín (%) del mapa dominado, para la línea de recompensa de la pestaña Dominio. */
+  readonly dominionDropBonus = DOMINION_DROP_BONUS;
 
   /** Ruta del sprite del recurso a partir de su clave de textura (misma fuente que el
    *  juego/harvest-config): rock_tier3 → rocks/tier3_rock.png, tree_tier1 → trees/tree_tier1.png */

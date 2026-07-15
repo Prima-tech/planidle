@@ -45,6 +45,7 @@ import { ActivityService } from 'src/app/services/activity.service';
 import { DialogueService } from 'src/app/services/dialogue.service';
 import { ForgeService } from 'src/app/services/forge.service';
 import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
+import { MapDominionService } from 'src/app/services/map-dominion.service';
 import { AdminService } from 'src/app/services/admin.service';
 import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { AudioService } from 'src/app/services/audio.service';
@@ -114,6 +115,7 @@ export class LayoutComponent implements OnDestroy {
     private dialogueService: DialogueService,
     private forgeService: ForgeService,
     private mapUpgradesService: MapUpgradesService,
+    private mapDominionService: MapDominionService,
     private adminService: AdminService,
     private globalTalentsService: GlobalTalentsService,
     private audioService: AudioService,
@@ -286,6 +288,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.DIALOGUE,         this.dialogueService);
     this.phaserGame.registry.set(REGISTRY_KEYS.FORGE,            this.forgeService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_UPGRADES,     this.mapUpgradesService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.MAP_DOMINION,     this.mapDominionService);
     this.phaserGame.registry.set(REGISTRY_KEYS.ADMIN,            this.adminService);
     this.phaserGame.registry.set(REGISTRY_KEYS.GLOBAL_TALENTS,   this.globalTalentsService);
     this.phaserGame.registry.set(REGISTRY_KEYS.AUDIO,            this.audioService);

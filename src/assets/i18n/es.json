@@ -435,7 +435,18 @@
     "WOOD": "Tala",
     "MAX_SIMULTANEOUS_M": "Máx. simultáneos",
     "DROP_PER_TREE": "Drop por árbol",
-    "NO_WOOD": "Sin tala en este mapa"
+    "NO_WOOD": "Sin tala en este mapa",
+    "TAB_DOMINION": "Dominio",
+    "DOMINION": "Dominio del mapa",
+    "DOM_KILL_BASE": "Mata {{n}} enemigos",
+    "DOM_KILL_ELITE": "Mata {{n}} élites",
+    "DOM_KILL_OBLIVION": "Mata {{n}} oblivion",
+    "DOM_UNLOCK_ELITE": "Desbloquea al élite",
+    "DOM_UNLOCK_OBLIVION": "Desbloquea al oblivion",
+    "DOM_CHEST": "Mejoras de mapa compradas",
+    "DOM_REWARD": "Recompensa al 100%",
+    "DOM_REWARD_DONE": "¡Mapa dominado!",
+    "DOM_REWARD_DROP": "botín en este mapa"
   },
   "SUMMON": {
     "NO_ITEMS": "Sin items"

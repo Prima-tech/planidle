@@ -25,6 +25,7 @@ import { ActivityService } from '../services/activity.service';
 import { DialogueService } from '../services/dialogue.service';
 import { ForgeService } from '../services/forge.service';
 import { MapUpgradesService } from '../services/map-upgrades.service';
+import { MapDominionService } from '../services/map-dominion.service';
 import { AdminService } from '../services/admin.service';
 import { GlobalTalentsService } from '../services/global-talents.service';
 import { AudioService } from '../services/audio.service';
@@ -60,6 +61,7 @@ export const REGISTRY_KEYS = {
   DIALOGUE:         'dialogueService',
   FORGE:            'forgeService',
   MAP_UPGRADES:     'mapUpgradesService',
+  MAP_DOMINION:     'mapDominionService',
   ADMIN:            'adminService',
   GLOBAL_TALENTS:   'globalTalentsService',
   AUDIO:            'audioService',
@@ -98,6 +100,7 @@ export class GameRegistry {
   get dialogue():        DialogueService           { return this.game.registry.get(REGISTRY_KEYS.DIALOGUE); }
   get forge():           ForgeService              { return this.game.registry.get(REGISTRY_KEYS.FORGE); }
   get mapUpgrades():     MapUpgradesService        { return this.game.registry.get(REGISTRY_KEYS.MAP_UPGRADES); }
+  get mapDominion():     MapDominionService        { return this.game.registry.get(REGISTRY_KEYS.MAP_DOMINION); }
   get admin():           AdminService              { return this.game.registry.get(REGISTRY_KEYS.ADMIN); }
   get globalTalents():   GlobalTalentsService      { return this.game.registry.get(REGISTRY_KEYS.GLOBAL_TALENTS); }
   get audio():           AudioService              { return this.game.registry.get(REGISTRY_KEYS.AUDIO); }

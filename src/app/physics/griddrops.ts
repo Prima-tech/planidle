@@ -2,6 +2,7 @@ import { InventoryItem, InventoryService } from '../services/inventory.service';
 import { PlayerStateService } from '../services/player-state.service';
 import { CharacterStatsService } from '../services/character-stats.service';
 import { WorldService } from '../services/world.service';
+import { MapDominionService } from '../services/map-dominion.service';
 import { Player } from '../pnj/player/player';
 import { PET_REGISTRY, PET_ICON_FRAME, PetConfig } from '../pnj/pet/pet-config';
 import { ENEMY_REGISTRY } from '../enemy/enemy-config';
@@ -806,6 +807,7 @@ export class GridDrops {
     private playerState: PlayerStateService,
     private charStats?: CharacterStatsService,
     private world?: WorldService,
+    private dominion?: MapDominionService,
   ) {
     this.mainScene.events.on('enemyDied', ({ position, type }: { position: Phaser.Math.Vector2, type: string }) => {
       // Bonus de EXP (CHR + equipo): % sobre la EXP base del enemigo.
@@ -822,7 +824,9 @@ export class GridDrops {
     const table = LOOT_TABLES[enemyType] ?? LOOT_TABLES['default'];
     const charBonus     = this.charStats?.currentDropRateBonus ?? 0;
     const mapModifier   = this.world?.getCurrentMap()?.dropRateModifier ?? 1.0;
-    const multiplier    = (1 + charBonus / 100) * mapModifier;
+    // Mapa dominado (barra de dominio al 100%) → bonus de botín permanente en este mapa.
+    const dominionMult  = this.dominion?.dropMultiplier(this.world?.getCurrentMap()?.id) ?? 1;
+    const multiplier    = (1 + charBonus / 100) * mapModifier * dominionMult;
     // Tabla propia del enemigo + drops comunes a todos.
     const pool = COMMON_DROPS.length ? [...table, ...COMMON_DROPS] : table;
     const result: LootEntry[] = [];
