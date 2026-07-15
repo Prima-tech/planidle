@@ -128,15 +128,6 @@
     background: transparent;
     overflow: hidden;
   }
-  &.progress {
-    top: 10px;
-    bottom: 53px;
-    right: calc(10px + var(--safe-right, 0px));
-    width: 265px;
-    /* el marco lo pinta el :host del componente (tema madera + piedra) */
-    background: transparent;
-    overflow-y: auto;
-  }
   &.shop {
     top: 10px;
     bottom: 61px;  /* footer ~51px + 10px de aire */

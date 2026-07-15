@@ -2,8 +2,7 @@
 
   <div class="gs-tabs">
     <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">{{ 'GAME_SETTINGS.GAME' | translate }}</button>
-    <button class="gs-tab" [class.active]="tab === 1" (click)="tab = 1">{{ 'GAME_SETTINGS.BACKGROUND' | translate }}</button>
-    <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">Admin</button>
+    <button class="gs-tab" [class.active]="tab === 1" (click)="tab = 1">Admin</button>
   </div>
 
   <div class="gs-content">
@@ -174,81 +173,98 @@
       </div>
     </ng-container>
 
+    <!-- Pestaña Admin: dos sub-pestañas — Admin (lo de siempre) y Fondos (parallax) -->
     <ng-container *ngIf="tab === 1">
-      <div class="gs-section">
-        <p class="gs-section-label">{{ 'GAME_SETTINGS.BACKGROUND' | translate }}</p>
 
-        <div class="gs-row gs-row-stack">
-          <div class="gs-row-info">
-            <span class="gs-row-title">{{ 'GAME_SETTINGS.PARALLAX' | translate }}</span>
-            <span class="gs-row-desc">{{ 'GAME_SETTINGS.PARALLAX_DESC' | translate }}</span>
-          </div>
-          <div class="gs-options">
-            <button *ngFor="let t of parallaxThemes"
-                    class="gs-option-btn"
-                    [class.active]="gs.parallaxTheme === t.id"
-                    (click)="gs.setParallaxTheme(t.id)">
-              {{ t.labelKey | translate }}
+      <div class="gs-tabs gs-subtabs">
+        <button class="gs-tab" [class.active]="adminTab === 0" (click)="adminTab = 0">Admin</button>
+        <button class="gs-tab" [class.active]="adminTab === 1" (click)="adminTab = 1">{{ 'GAME_SETTINGS.BACKGROUND' | translate }}</button>
+        <button class="gs-tab" [class.active]="adminTab === 2" (click)="adminTab = 2">Progreso</button>
+      </div>
+
+      <ng-container *ngIf="adminTab === 0">
+        <div class="gs-section">
+          <p class="gs-section-label">Admin</p>
+
+          <!-- Regalar monedas: barra 1..1.000.000 + placa de oro + botón. -->
+          <div class="gs-row gs-row-stack">
+            <div class="gs-row-info">
+              <span class="gs-row-title">Regalar monedas</span>
+              <span class="gs-row-desc">Suma las monedas elegidas al personaje activo.</span>
+            </div>
+
+            <div class="gs-coins-amount coins-section">
+              <div class="coin-spinner"></div>
+              <span class="coin-amount">{{ adminCoins | number }}</span>
+            </div>
+
+            <input type="range" class="gs-coins-slider"
+                   min="1" [max]="ADMIN_COINS_MAX" step="1"
+                   [(ngModel)]="adminCoins">
+
+            <button class="rpg-btn gs-coins-btn" (click)="grantCoins()">
+              <div class="coin-spinner"></div>
+              <span>Dar monedas</span>
             </button>
           </div>
-        </div>
 
-        <!-- Fondo del Modo Mundo (runner), antes en la pestaña "Mundo" -->
-        <div class="gs-row gs-row-stack">
-          <div class="gs-row-info">
-            <span class="gs-row-title">{{ 'SETTINGS.RUNNER_BG' | translate }}</span>
-            <span class="gs-row-desc">{{ 'SETTINGS.RUNNER_BG_DESC' | translate }}</span>
-          </div>
-          <div class="gs-options">
-            <button *ngFor="let s of worldParallaxSets"
-                    class="gs-option-btn"
-                    [class.active]="gs.worldParallax === s.id"
-                    (click)="gs.setWorldParallax(s.id)">
-              {{ s.label }}
-            </button>
+          <!-- Rejilla de tiles (debug de posiciones) -->
+          <div class="gs-row">
+            <div class="gs-row-info">
+              <span class="gs-row-title">Rejilla del mapa</span>
+              <span class="gs-row-desc">Muestra la cuadrícula de tiles con sus coordenadas.</span>
+            </div>
+            <div class="gs-toggle" [class.on]="gs.showGrid" (click)="gs.setShowGrid(!gs.showGrid)">
+              <div class="gs-toggle-thumb"></div>
+            </div>
           </div>
         </div>
+      </ng-container>
 
-      </div>
-    </ng-container>
+      <ng-container *ngIf="adminTab === 1">
+        <div class="gs-section">
+          <p class="gs-section-label">{{ 'GAME_SETTINGS.BACKGROUND' | translate }}</p>
 
-    <ng-container *ngIf="tab === 2">
-      <div class="gs-section">
-        <p class="gs-section-label">Admin</p>
-
-        <!-- Regalar monedas: barra 1..1.000.000 + placa de oro + botón. -->
-        <div class="gs-row gs-row-stack">
-          <div class="gs-row-info">
-            <span class="gs-row-title">Regalar monedas</span>
-            <span class="gs-row-desc">Suma las monedas elegidas al personaje activo.</span>
+          <div class="gs-row gs-row-stack">
+            <div class="gs-row-info">
+              <span class="gs-row-title">{{ 'GAME_SETTINGS.PARALLAX' | translate }}</span>
+              <span class="gs-row-desc">{{ 'GAME_SETTINGS.PARALLAX_DESC' | translate }}</span>
+            </div>
+            <div class="gs-options">
+              <button *ngFor="let t of parallaxThemes"
+                      class="gs-option-btn"
+                      [class.active]="gs.parallaxTheme === t.id"
+                      (click)="gs.setParallaxTheme(t.id)">
+                {{ t.labelKey | translate }}
+              </button>
+            </div>
           </div>
 
-          <div class="gs-coins-amount coins-section">
-            <div class="coin-spinner"></div>
-            <span class="coin-amount">{{ adminCoins | number }}</span>
+          <!-- Fondo del Modo Mundo (runner), antes en la pestaña "Mundo" -->
+          <div class="gs-row gs-row-stack">
+            <div class="gs-row-info">
+              <span class="gs-row-title">{{ 'SETTINGS.RUNNER_BG' | translate }}</span>
+              <span class="gs-row-desc">{{ 'SETTINGS.RUNNER_BG_DESC' | translate }}</span>
+            </div>
+            <div class="gs-options">
+              <button *ngFor="let s of worldParallaxSets"
+                      class="gs-option-btn"
+                      [class.active]="gs.worldParallax === s.id"
+                      (click)="gs.setWorldParallax(s.id)">
+                {{ s.label }}
+              </button>
+            </div>
           </div>
 
-          <input type="range" class="gs-coins-slider"
-                 min="1" [max]="ADMIN_COINS_MAX" step="1"
-                 [(ngModel)]="adminCoins">
-
-          <button class="rpg-btn gs-coins-btn" (click)="grantCoins()">
-            <div class="coin-spinner"></div>
-            <span>Dar monedas</span>
-          </button>
         </div>
+      </ng-container>
 
-        <!-- Rejilla de tiles (debug de posiciones) -->
-        <div class="gs-row">
-          <div class="gs-row-info">
-            <span class="gs-row-title">Rejilla del mapa</span>
-            <span class="gs-row-desc">Muestra la cuadrícula de tiles con sus coordenadas.</span>
-          </div>
-          <div class="gs-toggle" [class.on]="gs.showGrid" (click)="gs.setShowGrid(!gs.showGrid)">
-            <div class="gs-toggle-thumb"></div>
-          </div>
-        </div>
-      </div>
+      <!-- Progreso: desbloqueo manual de features (antes, ventana propia del footer).
+           `embedded`: sin marco propio, el marco lo pone el panel de ajustes. -->
+      <ng-container *ngIf="adminTab === 2">
+        <app-progress-panel class="embedded"></app-progress-panel>
+      </ng-container>
+
     </ng-container>
 
   </div>

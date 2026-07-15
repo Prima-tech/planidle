@@ -5,7 +5,6 @@
 <app-modal-container #chestModal (closed)="onChestModalClosed()"></app-modal-container>
 <app-modal-container #skillDetailModal [persistent]="true"></app-modal-container>
 <app-modal-container #worldMapModal></app-modal-container>
-<app-modal-container #progressModal></app-modal-container>
 <app-modal-container #shopModal></app-modal-container>
 <app-modal-container #buildModal></app-modal-container>
 <app-modal-container #buildShopModal (closed)="onBuildShopModalClosed()"></app-modal-container>
@@ -53,10 +52,6 @@
     <!-- Invocar: solo en modo admin -->
     <div class="icon-menu-wrapper" *ngIf="admin.isAdmin" [class.active]="summonModal.isOpenModal()" (click)="openSummon()">
       <ion-icon name="flash" class="footer-ion-icon"></ion-icon>
-    </div>
-
-    <div class="icon-menu-wrapper" [class.active]="progressModal.isOpenModal()" (click)="openProgress()">
-      <ion-icon name="rocket" class="footer-ion-icon"></ion-icon>
     </div>
 
     <!-- Talentos globales de la cuenta -->

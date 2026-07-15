@@ -54,6 +54,13 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   flex-shrink: 0;
 }
 
+/* Sub-pestañas (dentro de Admin): mismas tabs, algo más discretas */
+.gs-subtabs {
+  margin-bottom: 8px;
+
+  .gs-tab { font-size: 0.68em; }
+}
+
 .gs-tab {
   flex: 1 1 0;
   text-align: center;

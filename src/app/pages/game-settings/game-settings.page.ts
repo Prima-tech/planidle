@@ -30,7 +30,11 @@ const SAVE_LABELS: Record<SaveStatus, string> = {
   standalone: false
 })
 export class GameSettingsPageComponent implements OnInit, OnDestroy {
-  tab: 0 | 1 | 2 = 0;
+  /** Pestañas principales: 0 = Juego · 1 = Admin. */
+  tab: 0 | 1 = 0;
+  /** Sub-pestañas de Admin: 0 = Admin (monedas, rejilla…) · 1 = Fondos (parallax)
+   *  · 2 = Progreso (desbloqueo de features; antes era ventana propia del footer). */
+  adminTab: 0 | 1 | 2 = 0;
   gs = inject(GameSettingsService);
   audio = inject(AudioService);
   private connection = inject(ConnectionService);

@@ -8,7 +8,6 @@ import { EquipmentComponent } from '../equipment/equipment.component';
 import { SummonComponent } from '../summon/summon.component';
 import { TownChestComponent } from '../town-chest/town-chest.component';
 import { WorldMapPanelComponent } from '../world-map-panel/world-map-panel.component';
-import { ProgressPanelComponent } from '../progress-panel/progress-panel.component';
 import { ShopComponent } from '../shop/shop.component';
 import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
@@ -42,7 +41,6 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('chestModal')       chestModal!:       ModalContainerComponent;
   @ViewChild('skillDetailModal') skillDetailModal!: ModalContainerComponent;
   @ViewChild('worldMapModal')    worldMapModal!:    ModalContainerComponent;
-  @ViewChild('progressModal')    progressModal!:    ModalContainerComponent;
   @ViewChild('shopModal')        shopModal!:        ModalContainerComponent;
   @ViewChild('buildModal')       buildModal!:       ModalContainerComponent;
   @ViewChild('buildShopModal')   buildShopModal!:   ModalContainerComponent;
@@ -233,7 +231,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
       left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal],
-      right: [this.gameSettingsModal, this.inventoryModal, this.worldMapModal, this.progressModal, this.shopModal],
+      right: [this.gameSettingsModal, this.inventoryModal, this.worldMapModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
   }
@@ -242,7 +240,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeAllPanels() {
     [this.gameSettingsModal, this.inventoryModal, this.equipmentModal,
      this.summonModal, this.chestModal, this.skillDetailModal,
-     this.worldMapModal, this.progressModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal]
+     this.worldMapModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal]
       .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
 
@@ -411,15 +409,6 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     } else {
       this.closeOtherOnSide('right', this.shopModal);
       this.shopModal.open(ShopComponent, 'shop');
-    }
-  }
-
-  openProgress() {
-    if (this.progressModal.isOpenModal()) {
-      this.progressModal.close();
-    } else {
-      this.closeOtherOnSide('right', this.progressModal);
-      this.progressModal.open(ProgressPanelComponent, 'progress');
     }
   }
 
