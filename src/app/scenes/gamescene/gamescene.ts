@@ -348,10 +348,10 @@ export class GameScene extends Phaser.Scene {
       }
       // Imagen escénica para los temas de parallax 'scenic_*' (vista de mundo).
       this.load.image('paralax_scene', 'assets/sprites/resources/paralax.jpg');
-      // portal_01.png: 4 col × 4 fila (128×192), cada fila es un portal de 4 frames
-      // (32×48). Fila 0 azul (back), fila 2 naranja (next). Los portales van siempre
-      // abiertos (ya no hay variante gris "bloqueada").
-      this.load.spritesheet('portal', 'assets/sprites/resources/portal_01.png', { frameWidth: 32, frameHeight: 48 });
+      // Portal = arco de piedra con un anillo de energía que brota del centro y se expande
+      // en bucle (portal_rings.png: 32×32, 4 col × 5 fila; frames 0-16 con contenido).
+      // Se tinta por sentido (cálido avanza / frío retrocede). Ver initPortals().
+      this.load.spritesheet('portal_rings', 'assets/sprites/resources/portal_rings.png', { frameWidth: 32, frameHeight: 32 });
 
       // Bolsas (equipo secundario): iconos sueltos usados como sprite del drop al invocar.
       this.load.image('bag_1', 'assets/icon/bags/bag_01.png');
@@ -623,6 +623,7 @@ export class GameScene extends Phaser.Scene {
         this.createDrops();
         this.initItemDropListener();
         this.initPortals();
+        this.spawnPortalGallery();   // TEMPORAL: galería de 4 estilos para elegir
         this.initMapStatsTimers();
         this.initEquipLayers();
         this.initSummonListener();
@@ -1872,32 +1873,156 @@ export class GameScene extends Phaser.Scene {
     }
 
     initPortals() {
-      // Dos variantes del portal — cada fila del sprite es un color:
-      //   azul = back (frames 0-3) · naranja = next (8-11). Siempre abiertos.
-      const portalAnims: [string, number, number][] = [
-        ['portal_blue',   0,  3],
-        ['portal_orange', 8,  11],
-      ];
-      for (const [key, start, end] of portalAnims) {
-        if (!this.anims.exists(key)) {
-          this.anims.create({
-            key,
-            frames: this.anims.generateFrameNumbers('portal', { start, end }),
-            frameRate: 10,
-            repeat: -1,
-          });
-        }
+      // Anim del anillo: frames 0-16 con contenido (17-19 vacíos). Bucle → el anillo
+      // brota del centro del arco y se expande hasta el borde una y otra vez.
+      if (!this.anims.exists('portal_rings_spin')) {
+        this.anims.create({
+          key: 'portal_rings_spin',
+          frames: this.anims.generateFrameNumbers('portal_rings', { start: 0, end: 16 }),
+          frameRate: 12,
+          repeat: -1,
+        });
       }
 
       const TS = GameScene.TILE_SIZE;
       this.currentMapConfig.portals.forEach(portal => {
-        const px = portal.tilePos.x * TS + TS / 2;
-        const py = portal.tilePos.y * TS + TS / 2;
-        const sprite = this.add.sprite(px, py, 'portal').setDepth(1).setScale(2.5);
-        // Color por sentido: naranja avanza ('next'), azul retrocede ('back').
-        sprite.play(portal.direction === 'next' ? 'portal_orange' : 'portal_blue');
+        const cx = portal.tilePos.x * TS + TS / 2;
+        const cy = portal.tilePos.y * TS + TS / 2;
+        // Color por sentido: cálido (ámbar) avanza ('next'), frío (azul) retrocede ('back').
+        const tint = portal.direction === 'next' ? 0xffb060 : 0x60c0ff;
+        const sprite = this.add.sprite(cx, cy, 'portal_rings')
+          .setDepth(1).setScale(4.2).setTint(tint);
+        sprite.play('portal_rings_spin');
         this.activePortals.push({ config: portal, sprite });
       });
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // GALERÍA DE PORTALES (TEMPORAL) — 4 estilos procedurales para elegir cuál mola.
+    // Se plantan en fila cerca del spawn con su etiqueta. Cuando esté decidido:
+    // borrar spawnPortalGallery(), los 4 build*Portal(), drawSpiral() y la llamada
+    // en create(). Nada de esto es un portal funcional (solo visual).
+    // ───────────────────────────────────────────────────────────────────────
+    private spawnPortalGallery(): void {
+      const TS = GameScene.TILE_SIZE;
+      const spawn = this.currentMapConfig.spawnPos ?? { x: 6, y: 6 };
+      const baseY = (spawn.y - 4) * TS + TS / 2;
+      const dxTiles = [-4.5, -1.5, 1.5, 4.5];
+      const items: [string, number, (x: number, y: number, c: number) => void][] = [
+        ['1 Vortice', 0xb060ff, (x, y, c) => this.buildSwirlPortal(x, y, c)],
+        ['2 Charco',  0x40e0b0, (x, y, c) => this.buildPoolPortal(x, y, c)],
+        ['3 Circulo', 0xffb040, (x, y, c) => this.buildRunePortal(x, y, c)],
+        ['4 Grieta',  0x66d0ff, (x, y, c) => this.buildRiftPortal(x, y, c)],
+      ];
+      items.forEach(([label, color, build], i) => {
+        const x = (spawn.x + dxTiles[i]) * TS + TS / 2;
+        build(x, baseY, color);
+        this.add.text(x, baseY - 78, label, {
+          fontSize: '15px', fontStyle: 'bold', color: '#ffffff',
+          stroke: '#000000', strokeThickness: 4,
+        }).setOrigin(0.5).setDepth(6000);
+      });
+    }
+
+    /** Estilo 1 — Vórtice: disco de energía con dos espirales que giran en sentidos
+     *  opuestos + núcleo que late. Aplastado en Y para simular perspectiva de suelo. */
+    private buildSwirlPortal(x: number, y: number, color: number): void {
+      const R = 42;
+      const halo = this.add.graphics({ x, y }).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      halo.fillStyle(color, 0.22); halo.fillEllipse(0, 0, R * 2.3, R * 2.3 * 0.72);
+      const armsA = this.add.graphics({ x, y }).setDepth(3).setBlendMode(Phaser.BlendModes.ADD);
+      this.drawSpiral(armsA, R, 3, 2.2, color, 3);
+      const armsB = this.add.graphics({ x, y }).setDepth(3).setBlendMode(Phaser.BlendModes.ADD);
+      this.drawSpiral(armsB, R * 0.82, 3, -2.6, 0xffffff, 2);
+      const core = this.add.circle(x, y, 8, 0xffffff, 1).setDepth(4).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: armsA, angle: 360, duration: 4200, repeat: -1, ease: 'Linear' });
+      this.tweens.add({ targets: armsB, angle: -360, duration: 3000, repeat: -1, ease: 'Linear' });
+      this.tweens.add({ targets: core, scale: 1.6, alpha: 0.7, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.easeInOut' });
+      this.tweens.add({ targets: halo, alpha: 0.5, yoyo: true, repeat: -1, duration: 950, ease: 'Sine.easeInOut' });
+    }
+
+    private drawSpiral(g: Phaser.GameObjects.Graphics, R: number, arms: number, turns: number, color: number, lw: number): void {
+      const steps = 56;
+      for (let a = 0; a < arms; a++) {
+        g.lineStyle(lw, color, 0.9);
+        g.beginPath();
+        for (let s = 0; s <= steps; s++) {
+          const t = s / steps;
+          const r = t * R;
+          const th = a * (Math.PI * 2 / arms) + t * turns * Math.PI * 2;
+          const px = Math.cos(th) * r, py = Math.sin(th) * r * 0.72;   // aplastado (suelo)
+          if (s === 0) g.moveTo(px, py); else g.lineTo(px, py);
+        }
+        g.strokePath();
+      }
+    }
+
+    /** Estilo 2 — Charco de energía (cenital): óvalo en el suelo que ondula, con anillos
+     *  de onda que se expanden y ascuas que suben. */
+    private buildPoolPortal(x: number, y: number, color: number): void {
+      const w = 88, h = 48;
+      const pool = this.add.ellipse(x, y, w, h, color, 0.5).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.add.ellipse(x, y, w * 0.6, h * 0.6, 0xffffff, 0.35).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: [pool, core], alpha: 0.7, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' });
+      this.time.addEvent({ delay: 900, loop: true, callback: () => {
+        const ring = this.add.ellipse(x, y, w * 0.42, h * 0.42, color, 0).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+        ring.setStrokeStyle(2, color, 0.9);
+        this.tweens.add({ targets: ring, scaleX: 2.4, scaleY: 2.4, alpha: 0, duration: 1400, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+      }});
+      this.time.addEvent({ delay: 220, loop: true, callback: () => {
+        const ex = x + Phaser.Math.Between(-w / 2 + 8, w / 2 - 8);
+        const ember = this.add.circle(ex, y, Phaser.Math.Between(1, 3), 0xffffff, 1).setDepth(3).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: ember, y: y - Phaser.Math.Between(30, 60), alpha: 0, duration: Phaser.Math.Between(700, 1200), ease: 'Quad.easeOut', onComplete: () => ember.destroy() });
+      }});
+    }
+
+    /** Estilo 3 — Círculo mágico (cenital, círculo verdadero): aros + pentagrama + un aro
+     *  de runas que gira, todo con pulso de luz y un haz vertical tenue. */
+    private buildRunePortal(x: number, y: number, color: number): void {
+      const R = 40;
+      const circle = this.add.graphics({ x, y }).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      circle.lineStyle(2.5, color, 0.9);
+      circle.strokeCircle(0, 0, R);
+      circle.strokeCircle(0, 0, R * 0.74);
+      const pts: { x: number; y: number }[] = [];
+      for (let k = 0; k < 5; k++) { const th = -Math.PI / 2 + k * (Math.PI * 2 / 5); pts.push({ x: Math.cos(th) * R * 0.72, y: Math.sin(th) * R * 0.72 }); }
+      const star = this.add.graphics({ x, y }).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      star.lineStyle(2, color, 0.85); star.beginPath();
+      const order = [0, 2, 4, 1, 3, 0];
+      for (let i = 0; i < order.length; i++) { const p = pts[order[i]]; if (i === 0) star.moveTo(p.x, p.y); else star.lineTo(p.x, p.y); }
+      star.strokePath();
+      const runes = this.add.graphics({ x, y }).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      runes.lineStyle(3, color, 0.9);
+      const rr = R * 1.16;
+      for (let k = 0; k < 16; k++) {
+        const th = k * (Math.PI * 2 / 16);
+        runes.beginPath();
+        runes.moveTo(Math.cos(th) * rr, Math.sin(th) * rr);
+        runes.lineTo(Math.cos(th) * (rr + 6), Math.sin(th) * (rr + 6));
+        runes.strokePath();
+      }
+      this.tweens.add({ targets: runes, angle: 360, duration: 16000, repeat: -1, ease: 'Linear' });
+      this.tweens.add({ targets: [circle, star], alpha: 0.5, yoyo: true, repeat: -1, duration: 1300, ease: 'Sine.easeInOut' });
+      const beam = this.add.ellipse(x, y - 42, 22, 92, color, 0.22).setDepth(1).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: beam, alpha: 0.05, scaleX: 0.65, yoyo: true, repeat: -1, duration: 1000, ease: 'Sine.easeInOut' });
+    }
+
+    /** Estilo 4 — Grieta dimensional: rasgadura vertical de luz (núcleo blanco + halo de
+     *  color) que parpadea/vibra, con chispas que escapan a los lados. */
+    private buildRiftPortal(x: number, y: number, color: number): void {
+      const H = 80;
+      const halo = this.add.ellipse(x, y, 36, H + 22, color, 0.18).setDepth(1).setBlendMode(Phaser.BlendModes.ADD);
+      const outer = this.add.ellipse(x, y, 16, H, color, 0.6).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.add.ellipse(x, y, 6, H * 0.9, 0xffffff, 0.95).setDepth(3).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: [outer, core], scaleX: 0.6, yoyo: true, repeat: -1, duration: 140, ease: 'Sine.easeInOut' });
+      this.tweens.add({ targets: halo, alpha: 0.4, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' });
+      this.tweens.add({ targets: core, scaleY: 1.06, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.easeInOut' });
+      this.time.addEvent({ delay: 130, loop: true, callback: () => {
+        const sy = y + Phaser.Math.Between(-H / 2, H / 2);
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        const spark = this.add.circle(x, sy, Phaser.Math.Between(1, 2), 0xffffff, 1).setDepth(4).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: spark, x: x + dir * Phaser.Math.Between(14, 34), alpha: 0, duration: Phaser.Math.Between(300, 600), ease: 'Quad.easeOut', onComplete: () => spark.destroy() });
+      }});
     }
 
     checkPortals(playerPos: Phaser.Math.Vector2) {

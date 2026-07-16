@@ -5,6 +5,7 @@ import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones';
 import { RUN_WEAPONS, RunWeaponDef, weaponStarsPerSec } from 'src/app/scenes/worldrun/run-weapons';
+import { CompactNumberPipe } from 'src/app/pipes/compact-number.pipe';
 
 /**
  * HUD de estadísticas del Modo Mundo (arriba a la derecha, solo en run-mode).
@@ -24,6 +25,7 @@ export class RunStatsComponent {
   private runProgress  = inject(RunProgressService);
   private playerBridge = inject(PlayerBridgeService);
   private unlocks      = inject(UnlockService);
+  private compact      = new CompactNumberPipe();   // formato k/M… para estrellas
 
   readonly milestones$ = this.runProgress.milestones$;
 
@@ -33,9 +35,13 @@ export class RunStatsComponent {
    *  Se basa en la tasa de ARMAS a propósito: es la única fracción visible en el saldo. */
   starsShownText(): string {
     const rate = this.runProgress.weaponStarsPerSecTotal();
-    return (rate > 0 && rate < 1)
-      ? this.runProgress.starsDisplay().toFixed(1)
-      : String(this.runProgress.getStars());
+    if (rate > 0 && rate < 1) {
+      // Fracción visible: el decimal solo aporta con saldos pequeños; en cuanto crece,
+      // formato compacto (k/M…) como todo lo demás.
+      const d = this.runProgress.starsDisplay();
+      return d < 1000 ? d.toFixed(1) : this.compact.transform(d);
+    }
+    return this.compact.transform(this.runProgress.getStars());
   }
 
   /** Estadísticas de por vida de TODA la cuenta (suma de todos los personajes). Se

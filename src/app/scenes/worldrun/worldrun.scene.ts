@@ -270,6 +270,24 @@ const PLAYER_DEATH_FRAMES = { start: 260, end: 265 };   // animación de muerte 
 const PLAYER_ATTACK_FRAMES = { start: 195, end: 200 };  // slash LPC hacia la DERECHA (6 fr)
 const PLAYER_RUN_AIR_FRAME = 537;                     // frame congelado en el aire
 const PLAYER_IDLE_FRAME = 325;                        // IDLE RIGHT
+// Split de piernas durante el slash (combate a ras de suelo): el torso hace el golpe
+// y las piernas siguen corriendo. Se recorta el cuerpo en la cintura y se clona la
+// mitad inferior como un sprite aparte que reproduce 'wr_run'. Misma técnica que el
+// modo normal (player.ts), pero aquí el jugador siempre mira a la derecha y no hay
+// capas de armadura, así que es de una sola dirección. PLAYER_WAIST_Y = línea de corte
+// (px de textura, 0=arriba): subir el valor = corte más abajo (más torso); bajarlo =
+// corte más arriba (más pierna). El torso hace el slash; las piernas van aparte.
+// Corte a 52: por debajo del "pellizco" de la cintura (a 44 la piel del torso chocaba con
+// la cadera del run) Y por debajo del puño recogido del amago (medido en y49-51), para que
+// ese puño no se corte. Corte limpio sin solape → sin piernas fantasma. Verificado con la
+// captura real + galería animada sobre guts.
+const PLAYER_FRAME_W = 64;
+const PLAYER_FRAME_H = 64;
+const PLAYER_WAIST_Y = 52;
+// Sesgo horizontal fino de las piernas (px de MUNDO, +derecha / −izquierda). Se ajustó a
+// +4 (≈ +2px de textura × escala 2.1) para pegar las piernas bajo el torso del puñetazo,
+// que va un poco adelantado a la derecha. Verificado con galería animada sobre guts.
+const PLAYER_LEGS_X_OFFSET = 4;
 
 // El parallax de fondo es configurable (varios sets) desde ajustes; ver parallax-sets.ts.
 
@@ -325,6 +343,7 @@ export class WorldRunScene extends Phaser.Scene {
   private nextPlayerHitAt = 0;         // próximo golpe TUYO permitido (0 = pegas al instante)
   private nextRatHitAt = 0;            // próximo golpe de la rata
   private attackUntil = 0;             // hasta cuándo mantener la anim de slash (no forzar run)
+  private legsSprite?: Phaser.GameObjects.Sprite;      // clon de la mitad inferior (piernas) durante el slash
   private combatHpBar?: Phaser.GameObjects.Graphics;   // barra de vida de la rata en combate
   // Fénix voladores: hover en el aire; lo matas saltándole encima (pisotón). Se
   // generan por delante y se reciclan al quedar atrás. nextFenixIndex 0 = primero a
@@ -496,6 +515,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.nextPlayerHitAt = 0;
     this.nextRatHitAt = 0;
     this.attackUntil = 0;
+    this.legsSprite = undefined;   // el clon anterior se destruyó con la escena; recrear bajo demanda
     this.combatHpBar = undefined;
     this.nextRatIndex   = Math.max(1, Math.floor(skip / RAT_INTERVAL_M));
     this.fenixes = [];
@@ -1617,6 +1637,7 @@ export class WorldRunScene extends Phaser.Scene {
     if (this.dead) return;
     this.dead = true;
     this.fighting = false;
+    this.endLegsSplit();               // por si mueres a mitad de un slash (deshace el recorte del cuerpo)
     this.hideCombatHpBar();            // por si mueres en pleno combate a ras de suelo
     if (this.flying) this.endFly();   // quita aura/brillo del boost antes de la anim de muerte
     this.reg.playerState.recordDeath();
@@ -1817,12 +1838,18 @@ export class WorldRunScene extends Phaser.Scene {
   private updatePlayerAnim(onGround: boolean): void {
     if (this.dashing) {
       // Embistiendo: pose fija de impulso (la estela de fantasmas hace el resto).
+      this.endLegsSplit();   // por si la embestida arranca a mitad de un slash
       if (this.player.anims.isPlaying) this.player.anims.stop();
       this.player.setFrame(PLAYER_RUN_AIR_FRAME);
       return;
     }
-    // Golpeando (combate a ras de suelo): deja terminar el slash sin forzar 'wr_run'.
-    if (onGround && this.time.now < this.attackUntil) return;
+    // Golpeando (combate a ras de suelo): el torso hace el slash y las piernas siguen
+    // corriendo (split del sprite). Mientras dura el corte no forzamos 'wr_run' encima.
+    if (onGround && this.time.now < this.attackUntil) {
+      this.updateLegsSplit();
+      return;
+    }
+    this.endLegsSplit();   // fuera de combate: recompone el sprite entero
     if (onGround) {
       // Reanudar al aterrizar. Hay que comprobar isPlaying, no solo la key: en el
       // aire hacemos anims.stop() (isPlaying=false) pero currentAnim sigue siendo
@@ -1835,6 +1862,57 @@ export class WorldRunScene extends Phaser.Scene {
       if (this.player.anims.isPlaying) this.player.anims.stop();
       this.player.setFrame(PLAYER_RUN_AIR_FRAME);
     }
+  }
+
+  // ── Split de piernas durante el slash ────────────────────────────────────────
+  // SOLO al atacar EN MOVIMIENTO: el cuerpo (this.player) se recorta a la mitad SUPERIOR
+  // ([0,WAIST)) y reproduce 'wr_attack', y un clon (this.legsSprite) muestra la mitad
+  // INFERIOR corriendo ('wr_run'). Corte LIMPIO (no se solapan): así no aparecen las
+  // piernas quietas del slash junto a las que corren (fantasma). El corte va en WAIST=52,
+  // bajo el puño recogido del amago (medido en y49-51) para que ese puño no se corte.
+  // Si estás PARADO (el combate te frena), no hay split: el slash normal completo.
+  private updateLegsSplit(): void {
+    // Parado (velocidad ~0): sin split, el ataque normal de cuerpo entero.
+    const moving = Math.abs((this.player.body as Phaser.Physics.Arcade.Body)?.velocity.x ?? 0) > 1;
+    if (!moving) {
+      this.endLegsSplit();
+      return;
+    }
+
+    // Torso: recorta el cuerpo a la mitad de arriba (deja correr la anim de slash).
+    this.player.setCrop(0, 0, PLAYER_FRAME_W, PLAYER_WAIST_Y);
+
+    // Crea el clon de piernas la primera vez (o si la escena lo destruyó).
+    if (!this.legsSprite || !this.legsSprite.active) {
+      this.legsSprite = this.add.sprite(this.player.x, this.player.y, 'player', PLAYER_IDLE_FRAME);
+      this.legsSprite.setOrigin(this.player.originX, this.player.originY);
+      this.legsSprite.setScale(this.player.scaleX, this.player.scaleY);
+    }
+    const legs = this.legsSprite;
+    legs.setVisible(true);
+    legs.setDepth(this.player.depth - 1);            // detrás del torso (el corte no solapa, da igual, pero coherente)
+    legs.setAlpha(this.player.alpha);
+    legs.setFlipX(this.player.flipX);
+    legs.setCrop(0, PLAYER_WAIST_Y, PLAYER_FRAME_W, PLAYER_FRAME_H - PLAYER_WAIST_Y);
+
+    // Piernas corriendo. Usamos la MISMA anim de carrera del jugador ('wr_run').
+    if (this.anims.exists('wr_run')
+        && (!legs.anims.isPlaying || legs.anims.currentAnim?.key !== 'wr_run')) {
+      legs.play('wr_run');
+    }
+
+    // El cuerpo LPC está centrado en el frame tanto en el slash como en la carrera (medido:
+    // ambos ejes ~x32), así que las piernas van SIN desplazamiento. PLAYER_LEGS_X_OFFSET es
+    // solo un sesgo fino opcional (normalmente 0). Nada de auto-alineado por píxeles: entre
+    // dos animaciones no sincronizadas metía jitter y quedaba peor.
+    const dx = this.player.flipX ? -PLAYER_LEGS_X_OFFSET : PLAYER_LEGS_X_OFFSET;
+    legs.setPosition(this.player.x + dx, this.player.y);
+  }
+
+  /** Deshace el split: quita el recorte del cuerpo y esconde el clon de piernas. */
+  private endLegsSplit(): void {
+    if (this.player?.active && this.player.isCropped) this.player.setCrop();
+    if (this.legsSprite?.active) this.legsSprite.setVisible(false);
   }
 
   private bindInput(): void {

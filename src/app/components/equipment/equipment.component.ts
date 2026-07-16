@@ -95,10 +95,10 @@ export class EquipmentComponent implements OnInit, OnDestroy {
    *  escala al avatar, para que se vea la cara grande y no el cuerpo entero. `null` si la
    *  misión no tiene `giver` (entonces se pinta el icono de categoría). Ajusta HEAD_* si
    *  algún NPC queda descuadrado. */
-  private static readonly GIVER_PX = 46;    // lado del avatar (px)
+  private static readonly GIVER_PX = 31;    // lado del avatar (px)
   private static readonly LPC_FRAME = 64;   // lado del frame LPC (px)
   private static readonly HEAD_X = 16;      // origen X de la cabeza dentro del frame
-  private static readonly HEAD_Y = 4;       // origen Y de la cabeza dentro del frame
+  private static readonly HEAD_Y = 12;      // origen Y de la cabeza dentro del frame (sube el retrato para llenar el plato)
   private static readonly HEAD_SIZE = 32;   // lado de la región de la cabeza (px de origen)
 
   giverStyle(q: QuestDef): Record<string, string> | null {
@@ -176,7 +176,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     armor:    { img: 'assets/icon/placeholder/torso.png', icon: 'shirt-outline' },
     pants:    { img: 'assets/icon/placeholder/pants.png', icon: 'man-outline' },
     boots:    { img: 'assets/icon/placeholder/feet.png', icon: 'footsteps-outline' },
-    weapon:   { icon: 'flash-outline' },
+    weapon:   { img: 'assets/icon/placeholder/sword.png', icon: 'flash-outline' },
     necklace: { img: 'assets/icon/placeholder/neck.png', icon: 'diamond-outline' },
     ring1:    { img: 'assets/icon/placeholder/ring.png', icon: 'ellipse-outline' },
     ring2:    { img: 'assets/icon/placeholder/ring.png', icon: 'ellipse-outline' },
