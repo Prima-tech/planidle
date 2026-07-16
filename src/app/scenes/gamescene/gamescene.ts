@@ -134,6 +134,10 @@ interface HarvestNode {
 export class GameScene extends Phaser.Scene {
 
     static readonly TILE_SIZE = 48;
+    /** Zoom de DISEÑO de la cámara (se multiplica por DPR en initCamera). Con el canvas
+     *  a resolución nativa y CSS a 1/DPR, la escala mundo→pantalla queda en este factor:
+     *  1 unidad de mundo = CAMERA_DESIGN_ZOOM px CSS → worldPerCss = 1/CAMERA_DESIGN_ZOOM. */
+    private static readonly CAMERA_DESIGN_ZOOM = 0.4;
     // Distancia (tiles) a la que el auto-ataque se detiene para disparar con bastón.
     static readonly RANGED_STOP_TILES = 5;
     private gridControls: GridControls;
@@ -1468,15 +1472,32 @@ export class GameScene extends Phaser.Scene {
      *  ve el vacío; OFF = seguimiento libre (puede asomar fuera del mapa). */
     private applyCameraBounds(on: boolean): void {
       if (!this.currentMap) return;
-      if (on) {
-        this.cameras.main.setBounds(
-          0, 0,
-          this.currentMap.width  * GameScene.TILE_SIZE,
-          this.currentMap.height * GameScene.TILE_SIZE,
-        );
-      } else {
-        this.cameras.main.removeBounds();
-      }
+      if (!on) { this.cameras.main.removeBounds(); return; }
+      const W = this.currentMap.width  * GameScene.TILE_SIZE;
+      const H = this.currentMap.height * GameScene.TILE_SIZE;
+      // Extiende los límites en vertical el alto del HUD (top-bar arriba, footer abajo):
+      // así, al pegarse la cámara al borde del mapa, sus filas de arriba/abajo quedan al
+      // ras del HUD (opaco) y se ven enteras, en vez de esconderse detrás. El área extra
+      // fuera del mapa es negra, oculta bajo el HUD.
+      const { top, bottom } = this.hudInsetsWorld();
+      this.cameras.main.setBounds(0, -top, W, H + top + bottom);
+    }
+
+    // Margen que se deja arriba/abajo para que la cámara no pegue el borde del mapa al
+    // HUD, en px CSS. Arriba se da ~el doble del alto del top-bar (72px) para holgura;
+    // abajo, el alto del footer (≈54px).
+    private static readonly HUD_TOP_CSS = 144;
+    private static readonly HUD_BOTTOM_CSS = 54;
+
+    /** Alto (en unidades de mundo) que el HUD superior/inferior solapa sobre el mapa,
+     *  convertido con worldPerCss = 1/zoom-de-diseño (= 2.5). Valores fijos de diseño
+     *  (no se mide el DOM: el host del footer se infla al abrir un panel). */
+    private hudInsetsWorld(): { top: number; bottom: number } {
+      const worldPerCss = 1 / GameScene.CAMERA_DESIGN_ZOOM;
+      return {
+        top:    GameScene.HUD_TOP_CSS    * worldPerCss,
+        bottom: GameScene.HUD_BOTTOM_CSS * worldPerCss,
+      };
     }
 
     // El HUD lee esto cada frame: `enemies` es la referencia viva al array
@@ -2005,7 +2026,7 @@ export class GameScene extends Phaser.Scene {
     initCamera() {
       // 0.4 de zoom de diseño × DPR: con el canvas a resolución nativa, la
       // escala efectiva de los sprites queda alineada con el píxel físico
-      this.cameras.main.setZoom(0.4 * NATIVE_DPR);
+      this.cameras.main.setZoom(GameScene.CAMERA_DESIGN_ZOOM * NATIVE_DPR);
       // Limpiar en NEGRO (no en el azul #48C4F8 del juego): durante el cambio de
       // escena hay 1-2 frames en que el mapa aún no cubre y se veía un "frame azul"
       // + parpadeos. Con la cámara en negro ese hueco y los parpadeos son

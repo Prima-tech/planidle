@@ -110,13 +110,8 @@ $metal-dark: #6b6357;
   color: $text-brown;
 }
 
-/* Tasa de estrellas/seg que generan las armas, junto al contador (solo si > 0). */
-.rs-rate {
-  margin-left: 3px;
-  font-size: 0.55em;
-  font-weight: bold;
-  color: #7a4a1d;
-}
+/* Pastilla de la tasa de estrellas/seg (armas): algo más apagada que el total. */
+.rs-stat--rate .rs-val { color: #7a4a1d; }
 
 /* Botón de ajustes: flotante en la esquina superior derecha, redondo con bisel de
    piedra (mismo que el del minimap). */
@@ -346,37 +341,6 @@ $metal-dark: #6b6357;
   text-align: center;
   color: rgba(83, 48, 28, 0.7);
   padding: 12px 4px;
-}
-
-/* Cabecera de la pestaña de hitos: total de estrellas recogidas de por vida. Pastilla
-   metálica ancha con el icono de estrella + etiqueta + valor a la derecha. */
-.rs-collected {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 9px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, $metal-dark 0%, #4a443a 100%);
-  border: 2px solid;
-  border-color: $metal $metal-dark $metal-dark $metal-dark;
-  box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.12);
-
-  .rs-collected-star { width: 15px; height: 15px; image-rendering: pixelated; flex-shrink: 0; }
-
-  .rs-collected-label {
-    flex: 1;
-    min-width: 0;
-    font-size: 0.6em;
-    font-weight: bold;
-    color: $text-cream;
-  }
-
-  .rs-collected-val {
-    flex-shrink: 0;
-    font-size: 0.74em;
-    font-weight: bold;
-    color: #f0c040;
-  }
 }
 
 /* ── Pestaña de estadísticas: reutiliza la tarjeta .rs-ms (icono + etiqueta) y añade

@@ -25,9 +25,17 @@ export class RunStatsComponent {
   private playerBridge = inject(PlayerBridgeService);
   private unlocks      = inject(UnlockService);
 
-  readonly stars$    = this.runProgress.stars$;
-  readonly starsCollected$ = this.runProgress.starsCollected$;   // total de por vida
   readonly milestones$ = this.runProgress.milestones$;
+
+  /** Texto del total de estrellas de la barra. Si las armas generan una fracción de
+   *  estrella por segundo (0 < ★/s < 1), muestra 1 decimal de la fracción acumulada
+   *  para que se vea subir; si no (0 o ≥ 1), muestra el saldo entero. */
+  starsShownText(): string {
+    const rate = this.runProgress.starsPerSec();
+    return (rate > 0 && rate < 1)
+      ? this.runProgress.starsDisplay().toFixed(1)
+      : String(this.runProgress.getStars());
+  }
 
   /** Estadísticas de por vida de TODA la cuenta (suma de todos los personajes). Se
    *  refrescan con `changes$` (las stats por personaje las vuelca SaveService en cada
@@ -40,8 +48,6 @@ export class RunStatsComponent {
 
   readonly RUN_MILESTONES = RUN_MILESTONES;
   readonly RUN_WEAPONS = RUN_WEAPONS;
-  /** Emite en cada cambio de armas/oro para refrescar niveles y oro/seg en la pestaña. */
-  readonly weapons$ = this.runProgress.weapons$;
 
   /** Botón de ajustes del widget (en exploración no hay minimap): lo abre el layout. */
   @Output() openSettings = new EventEmitter<void>();
@@ -61,7 +67,7 @@ export class RunStatsComponent {
 
   /** Pestaña activa del panel: objetivos (por comprar), completos (ya comprados),
    *  stats (estadísticas de por vida) o weapons (armas generadoras de oro). */
-  tab: 'objetivos' | 'completos' | 'stats' | 'weapons' = 'objetivos';
+  tab: 'objetivos' | 'completos' | 'stats' | 'weapons' = 'weapons';
 
   // ── Armas (generadores de oro estilo Idle Slayer) ─────────────────────────────
   weaponLevel(id: string): number { return this.runProgress.weaponLevel(id); }

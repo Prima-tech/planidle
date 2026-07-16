@@ -69,6 +69,10 @@ export class RunProgressService {
 
   // ── Estrellas ────────────────────────────────────────────────────────────────
   getStars(): number { return this.stars; }
+  /** Total a MOSTRAR: saldo entero + la fracción aún acumulándose del generador de
+   *  armas (para enseñar decimales cuando se produce menos de 1 ★/seg). El saldo real
+   *  (getStars) sigue siendo entero para comprar. */
+  starsDisplay(): number { return this.stars + this.starCarry; }
   /** Total de estrellas recogidas de por vida (no baja al gastar en hitos). */
   getStarsCollected(): number { return this.starsCollected; }
   collectStars(amount: number): void {
