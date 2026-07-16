@@ -387,7 +387,17 @@ $metal-dark: #6b6357;
   // (cubre el padding inferior del panel y el hueco del gap).
   box-shadow: 0 6px 0 6px $wood-bg, 0 -5px 7px -3px rgba(0, 0, 0, 0.45);
 
-  &:disabled { opacity: 0.45; cursor: default; }
+  // Deshabilitado: NADA de opacity. Este botón está anclado (sticky) sobre la lista de
+  // hitos, que scrollea por detrás; bajar la opacidad (lo que hace .rpg-btn:disabled por
+  // defecto) dejaría ver esos hitos a través del botón. Lo apagamos con fondo sólido para
+  // que siga tapando lo de atrás.
+  &:disabled,
+  &.disabled {
+    opacity: 1;
+    filter: saturate(0.55) brightness(0.82);
+    color: rgba(83, 48, 28, 0.72);
+    cursor: default;
+  }
 }
 
 /* ── Pestaña de estadísticas: reutiliza la tarjeta .rs-ms (icono + etiqueta) y añade

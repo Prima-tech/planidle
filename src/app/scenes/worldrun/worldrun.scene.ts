@@ -131,11 +131,8 @@ const RAT_STOMP_LOW = 18;             // por debajo de esto = estás en el suelo
 const RAT_STOMP_HIGH = 52;            // por encima de esto = vas demasiado alto (no pisas)
 const RAT_STOMP_BOUNCE = 520;         // impulso de rebote al pisarla
 // Combate a ras de suelo (le atacas TÚ primero; si no muere de un golpe, os intercambiáis
-// golpes hasta que uno cae, o saltas y lo esquivas). Vida escalada por distancia: cerca del
-// inicio lo revientas de un golpe sin frenar; más lejos aguanta y toca pelear o esquivar.
-const RAT_BASE_HP    = 1;             // vida de una rata en el metro 0 (TEMP: 1 de vida para pruebas)
-const RAT_HP_GROWTH  = 1.5;           // ×vida cada RAT_HP_STEP_M metros
-const RAT_HP_STEP_M  = 100;
+// golpes hasta que uno cae, o saltas y lo esquivas). Vida FIJA: no escala con la distancia.
+const RAT_BASE_HP    = 1;             // vida de una rata (fija en toda la carrera)
 const PLAYER_ATTACK_MS = 430;         // cadencia de TU golpe (≈ lo que dura la anim de slash)
 const RAT_ATTACK_MS    = 900;         // cadencia del golpe de la rata en combate
 
@@ -1467,8 +1464,8 @@ export class WorldRunScene extends Phaser.Scene {
         const sprite = this.add.sprite(x, groundY, TEX_RAT)
           .setOrigin(0.5, 1).setScale(RAT_SCALE).setDepth(4).setFlipX(RAT_FACE_LEFT);
         sprite.play(RAT_ANIM_IDLE);
-        const distM = (x - this.startX) / PX_PER_METER;
-        const hp = Math.max(1, Math.floor(RAT_BASE_HP * Math.pow(RAT_HP_GROWTH, distM / RAT_HP_STEP_M)));
+        // Vida fija: no escala con la distancia recorrida.
+        const hp = Math.max(1, Math.floor(RAT_BASE_HP));
         this.rats.push({ sprite, attacking: false, hp, maxHp: hp });
         this.nextRatIndex++;
       }
