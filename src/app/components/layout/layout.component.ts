@@ -133,7 +133,6 @@ export class LayoutComponent implements OnDestroy {
     this.gainsSub = this.saveService.pendingGains$
       .pipe(filter(g => g !== null))
       .subscribe(gains => {
-        console.log('[OfflineGains] ganancias recibidas:', gains);
         this.pendingGains = gains;
       });
 

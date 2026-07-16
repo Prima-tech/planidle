@@ -46,16 +46,16 @@
 
     </div>
 
+    <!-- Toggles compactos: solo la palabra. ON = ese modo activo
+         (Local ON = jugar en local · Admin ON = modo admin). -->
     <div class="mode-toggles">
       <div class="mode-toggle">
-        <ion-icon [name]="useSupabase ? 'cloud-outline' : 'phone-portrait-outline'" class="input-icon"></ion-icon>
-        <span class="mode-label">{{ (useSupabase ? 'LOGIN.MODE.SUPABASE' : 'LOGIN.MODE.LOCAL') | translate }}</span>
-        <ion-toggle [(ngModel)]="useSupabase"></ion-toggle>
+        <span class="mode-label">Local</span>
+        <ion-toggle [(ngModel)]="localMode"></ion-toggle>
       </div>
 
       <div class="mode-toggle">
-        <ion-icon [name]="admin ? 'key-outline' : 'game-controller-outline'" class="input-icon"></ion-icon>
-        <span class="mode-label">{{ (admin ? 'LOGIN.MODE.ADMIN' : 'LOGIN.MODE.NORMAL') | translate }}</span>
+        <span class="mode-label">Admin</span>
         <ion-toggle [(ngModel)]="admin"></ion-toggle>
       </div>
     </div>

@@ -122,34 +122,37 @@ ion-content {
 
 // ── Toggles de modo (abajo a la izquierda, fuera de la pastilla) ──────────────
 
+/* Pastillas compactas: solo palabra + toggle pequeño */
 .mode-toggles {
   position: absolute;
   left: 16px;
   bottom: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 240px;
-  max-width: calc(100% - 32px);
+  gap: 5px;
+  width: 118px;
 }
 
 .mode-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   background: rgba(10, 15, 35, 0.9);
   border: 1px solid #2e4270;
-  border-radius: 7px;
-  padding: 4px 12px;
+  border-radius: 6px;
+  padding: 1px 4px 1px 9px;
 
   .mode-label {
     flex: 1;
     color: #9fb6d8;
-    font-size: 0.78rem;
+    font-size: 0.66rem;
     letter-spacing: 0.3px;
   }
 
   ion-toggle {
+    transform: scale(0.62);
+    transform-origin: right center;
+    margin: -6px 0;                 /* compensa el alto natural del toggle */
     --background: #1e3a5f;
     --background-checked: #3498db;
     --handle-background: #e0ecff;

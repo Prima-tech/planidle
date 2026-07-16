@@ -23,6 +23,9 @@ export class LoginPage implements OnInit {
     error = '';
     /** Toggle: true = conectar a Supabase · false = jugar en local. */
     useSupabase = false;
+    /** Vista del toggle "Local": ON = jugar en local (inverso de useSupabase). */
+    get localMode(): boolean { return !this.useSupabase; }
+    set localMode(v: boolean) { this.useSupabase = !v; }
     /** Toggle: true = modo admin (todo desbloqueado) · false = juego normal (oculta lo no desbloqueado). */
     admin = true;
     readonly appVersion = APP_VERSION;

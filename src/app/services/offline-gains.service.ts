@@ -250,17 +250,14 @@ export class OfflineGainsService {
     let elapsedMs: number;
     if (overrideElapsedMs != null && Number.isFinite(overrideElapsedMs)) {
       elapsedMs = overrideElapsedMs;
-      console.log('[OfflineGains] elapsed (servidor):', (elapsedMs / 60000).toFixed(1), 'min | mapId:', snapshot?.mapId);
     } else {
       const ref = snapshot?.lastSeen ?? snapshot?.lastModified;
-      console.log('[OfflineGains] ref (cliente):', ref, '| mapId:', snapshot?.mapId);
-      if (!ref) { console.log('[OfflineGains] sin timestamp'); return null; }
+      if (!ref) return null;
       elapsedMs = Date.now() - new Date(ref).getTime();
     }
 
     const elapsedMinutes = elapsedMs / 60000;
-    console.log('[OfflineGains] minutos offline:', elapsedMinutes.toFixed(1));
-    if (elapsedMs / 1000 < MIN_OFFLINE_SECONDS) { console.log('[OfflineGains] < 10 s, ignorado'); return null; }
+    if (elapsedMs / 1000 < MIN_OFFLINE_SECONDS) return null;
 
     const cappedMinutes = Math.min(elapsedMinutes, MAX_OFFLINE_HOURS * 60);
 
@@ -276,12 +273,12 @@ export class OfflineGainsService {
     }
 
     const mapConfig = MAP_REGISTRY[snapshot.mapId ?? 'hogar'];
-    if (!mapConfig || mapConfig.spawns.length === 0) { console.log('[OfflineGains] mapa sin spawns:', snapshot.mapId); return null; }
+    if (!mapConfig || mapConfig.spawns.length === 0) return null;
 
     // AFK real: kills derivados de la DPS del personaje contra la vida del enemigo,
     // con monedas/XP/botín del loot real. El mismo modelo que muestra el panel.
     const rates = this.afkRates(mapConfig.id);
-    if (!rates) { console.log('[OfflineGains] sin tasas de combate:', mapConfig.id); return null; }
+    if (!rates) return null;
 
     const hours = cappedMinutes / 60;
     const kills = Math.floor(rates.killsPerHour * hours);
