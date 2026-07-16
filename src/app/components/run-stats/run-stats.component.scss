@@ -62,7 +62,7 @@ $metal-dark: #6b6357;
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;   // metros a la izquierda, estrellas a la derecha
+  justify-content: flex-end;   // solo el contador de estrellas, alineado a la derecha
   gap: 16px;
   padding: 5px 12px;
   box-sizing: border-box;
@@ -83,7 +83,6 @@ $metal-dark: #6b6357;
 /* Cada contador en su propia pastilla de madera con bisel de piedra (como el
    bloque de monedas del inventario). */
 .rs-stat {
-  margin-right: 17px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -96,8 +95,6 @@ $metal-dark: #6b6357;
   box-shadow:
     0 0 0 1px $outline,
     inset 0 0 0 1px $outline;
-
-  &--meters { gap: 0; }   // la unidad "m" va pegada al número (margin propio)
 }
 
 .rs-img {
@@ -111,14 +108,6 @@ $metal-dark: #6b6357;
   font-size: 0.72em;
   font-weight: bold;
   color: $text-brown;
-}
-
-/* Unidad "m" de los metros: más pequeña y apagada, pegada al número. */
-.rs-unit {
-  margin-left: 2px;
-  font-size: 0.55em;
-  font-weight: bold;
-  color: rgba(83, 48, 28, 0.7);
 }
 
 /* Botón de ajustes: flotante en la esquina superior derecha, redondo con bisel de
@@ -335,4 +324,23 @@ $metal-dark: #6b6357;
   text-align: center;
   color: rgba(83, 48, 28, 0.7);
   padding: 12px 4px;
+}
+
+/* ── Pestaña de estadísticas: reutiliza la tarjeta .rs-ms (icono + etiqueta) y añade
+      el valor grande a la derecha, en una pastilla metálica como el marco del icono. ── */
+.rs-stat-card .rs-ms-name { font-size: 0.7em; }
+
+.rs-stat-val {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 3px 9px;
+  font-size: 0.74em;
+  font-weight: bold;
+  color: $text-cream;
+  background: linear-gradient(180deg, $metal-dark 0%, #4a443a 100%);
+  border: 2px solid;
+  border-color: $metal $metal-dark $metal-dark $metal-dark;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
 }

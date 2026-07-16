@@ -5,6 +5,7 @@ import { ForgeService } from './forge.service';
 import { GlobalTalentsService } from './global-talents.service';
 import { MapUpgradesService } from './map-upgrades.service';
 import { AccountShopService } from './account-shop.service';
+import { RunProgressService } from './run-progress.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -14,7 +15,8 @@ export class SupabaseService {
   constructor(private storageService: StorageService, private forge: ForgeService,
               private globalTalents: GlobalTalentsService,
               private mapUpgrades: MapUpgradesService,
-              private accountShop: AccountShopService) {
+              private accountShop: AccountShopService,
+              private runProgress: RunProgressService) {
     const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
       fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
 
@@ -208,6 +210,10 @@ export class SupabaseService {
 
       // Compras de la tienda premium (account.accountShop): fusiona nube + local.
       await this.accountShop.restore((data as any).account?.accountShop ?? null);
+
+      // Progresión del run COMPARTIDA (account.runProgress): estrellas + hitos +
+      // stats agregadas por personaje. Globales entre personajes.
+      await this.runProgress.restore((data as any).account?.runProgress ?? null);
 
       // Forjas de CUENTA (columna `forges`): globales entre personajes. El tiempo
       // offline lo calcula el SERVIDOR (claim_forge_offline) → no se puede trampear

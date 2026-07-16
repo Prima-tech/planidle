@@ -24,6 +24,8 @@ import { ForgeService } from './forge.service';
 import { GlobalTalentsService } from './global-talents.service';
 import { MapUpgradesService } from './map-upgrades.service';
 import { AccountShopService } from './account-shop.service';
+import { RunProgressService } from './run-progress.service';
+import { RUN_MILESTONES } from './run-milestones';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -79,7 +81,7 @@ export interface GameSnapshot {
 // o tras "Borrar todo".
 const STARTING_COINS = 500;
 const STARTING_SPECIAL_COINS = 100;
-const EMPTY_STATE: PlayerState = { coins: STARTING_COINS, specialCoins: STARTING_SPECIAL_COINS, stars: 0, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0, runMilestones: [] };
+const EMPTY_STATE: PlayerState = { coins: STARTING_COINS, specialCoins: STARTING_SPECIAL_COINS, worldKills: 0, currentKills: 0, worldBestDistanceM: 0, explorationDistanceM: 0, exp: 0, lvl: 1, hp: 100, hpMax: 100, mp: 100, mpMax: 100, lifetimeCoins: 0, totalDeaths: 0, currentDeaths: 0 };
 
 @Injectable({ providedIn: 'root' })
 export class SaveService {
@@ -120,6 +122,7 @@ export class SaveService {
     private globalTalents: GlobalTalentsService,
     private mapUpgrades: MapUpgradesService,
     private accountShop: AccountShopService,
+    private runProgress: RunProgressService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
@@ -188,6 +191,13 @@ export class SaveService {
       // antes de repartir el snapshot: en disco solo se guardó identidad + dinámico.
       SaveService.mapSnapshotItems(snapshot, hydrateItem);
       this.playerState.setFromProfile(snapshot.playerState);
+      // Migración: las estrellas/hitos vivían en el snapshot per-personaje. Fúndelos
+      // (una vez por personaje) en la progresión COMPARTIDA de cuenta (RunProgress).
+      await this.runProgress.mergeLegacyFromChar(
+        charId,
+        (snapshot.playerState as any)?.stars ?? 0,
+        (snapshot.playerState as any)?.runMilestones ?? [],
+      );
       this.inventory.restoreFromSnapshot(snapshot.inventory);
       this.equipment.restoreLoadouts(snapshot.equipmentLoadouts, snapshot.equipment ?? null);
       this.gathering.restoreLoadouts(snapshot.gatheringLoadouts ?? null);
@@ -232,6 +242,14 @@ export class SaveService {
     await this.afkBonus.loadForChar(charId, snapshot?.afkPassives);
     await this.achievements.loadForChar(charId, snapshot?.achievementsChar);
     await this.quests.loadForChar(charId, snapshot?.quests);
+    // Los mapas del run son desbloqueos de CUENTA: reasegura el flag GLOBAL de cada
+    // mapa ya comprado (en RunProgress) ANTES de refrescar los desbloqueos, para que la
+    // feature 'map.X' se otorgue en TODOS los personajes (incl. backfill de compras
+    // antiguas que marcaron el flag solo per-personaje). Idempotente.
+    await this.runProgress.ready();
+    for (const m of RUN_MILESTONES) {
+      if (m.unlockFlag && this.runProgress.has(m.id)) this.unlocks.setFlag(m.unlockFlag, 'global');
+    }
     await this.unlocks.loadForChar(charId);
 
     // Tiempo offline: en modo Supabase lo reclama el SERVIDOR (claim_offline → segundos
@@ -379,6 +397,17 @@ export class SaveService {
       lastSeen:     now,
       lastModified: now,
     };
+    // Vuelca las stats de por vida del run de ESTE personaje al agregado de cuenta
+    // (RunProgress mantiene el total sumado de todos los personajes). Per-personaje
+    // sigue en playerState; el total vive en RunProgress.
+    if (this.charId) {
+      const ps = snapshot.playerState;
+      this.runProgress.reportCharStats(this.charId, {
+        kills:         ps.worldKills ?? 0,
+        deaths:        ps.totalDeaths ?? 0,
+        bestDistanceM: ps.worldBestDistanceM ?? 0,
+      });
+    }
     // Persistir/sincronizar solo identidad + estado dinámico de cada item; los datos
     // estáticos (icono, categoría, stats, descripción…) son del catálogo de la app y
     // se rehidratan al cargar (ver loadCharacter). Reduce el payload y evita enviarlos.
@@ -471,6 +500,7 @@ export class SaveService {
           globalTalents: this.globalTalents.getSnapshot(),   // talentos globales de cuenta
           mapUpgrades: this.mapUpgrades.getSnapshot(),       // mejoras de mapa (cofre central)
           accountShop: this.accountShop.getSnapshot(),       // compras de la tienda premium
+          runProgress: this.runProgress.getSnapshot(),       // estrellas + hitos del run (compartidos)
         });
       } catch (e) {
         console.warn('[Save] global_data no se pudo actualizar (logros/mejoras de cuenta)', e);

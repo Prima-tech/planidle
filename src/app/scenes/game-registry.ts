@@ -30,6 +30,7 @@ import { AdminService } from '../services/admin.service';
 import { GlobalTalentsService } from '../services/global-talents.service';
 import { AudioService } from '../services/audio.service';
 import { QuestService } from '../services/quest.service';
+import { RunProgressService } from '../services/run-progress.service';
 import { TranslateService } from '@ngx-translate/core';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
@@ -66,6 +67,7 @@ export const REGISTRY_KEYS = {
   GLOBAL_TALENTS:   'globalTalentsService',
   AUDIO:            'audioService',
   QUESTS:           'questService',
+  RUN_PROGRESS:     'runProgressService',
   TRANSLATE:        'translateService',
 } as const;
 
@@ -105,5 +107,6 @@ export class GameRegistry {
   get globalTalents():   GlobalTalentsService      { return this.game.registry.get(REGISTRY_KEYS.GLOBAL_TALENTS); }
   get audio():           AudioService              { return this.game.registry.get(REGISTRY_KEYS.AUDIO); }
   get quests():          QuestService              { return this.game.registry.get(REGISTRY_KEYS.QUESTS); }
+  get runProgress():     RunProgressService        { return this.game.registry.get(REGISTRY_KEYS.RUN_PROGRESS); }
   get translate():       TranslateService          { return this.game.registry.get(REGISTRY_KEYS.TRANSLATE); }
 }

@@ -6,11 +6,8 @@
     <img src="assets/icon/menu/config.png" alt="" draggable="false" />
   </button>
 
-  <!-- Widget: metros (izquierda) + estrellas (derecha), sin barras -->
+  <!-- Widget: contador de estrellas (sin barras) -->
   <div class="rs-widget">
-    <div class="rs-stat rs-stat--meters">
-      <span class="rs-val">{{ distance$ | async | compactNumber }}</span><span class="rs-unit">m</span>
-    </div>
     <div class="rs-stat">
       <img class="rs-img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
       <span class="rs-val">{{ stars$ | async }}</span>
@@ -31,27 +28,54 @@
     <button class="rs-vtab" [class.active]="tab === 'completos'" (click)="tab = 'completos'" [title]="'RUN.MS_DONE' | translate">
       <ion-icon name="checkmark-done-outline"></ion-icon>
     </button>
+    <button class="rs-vtab" [class.active]="tab === 'stats'" (click)="tab = 'stats'" [title]="'RUN.STATS' | translate">
+      <ion-icon name="stats-chart-outline"></ion-icon>
+    </button>
   </div>
 
   <!-- Panel desplegable: hitos comprables con estrellas (abre hasta cerca del footer). -->
   <div class="rs-panel" *ngIf="panelOpen">
 
-    <ng-container *ngIf="(milestones$ | async) as owned">
-      <ng-container *ngIf="forTab(owned) as list">
-        <div class="rs-ms" *ngFor="let m of list">
-          <div class="rs-ms-frame"><ion-icon [name]="m.icon"></ion-icon></div>
-          <div class="rs-ms-body">
-            <span class="rs-ms-name">{{ m.labelKey | translate }}</span>
-            <span class="rs-ms-desc">{{ m.descKey | translate }}</span>
-          </div>
-          <button class="rpg-btn rpg-btn--sm rs-ms-buy" *ngIf="tab === 'objetivos'" [disabled]="!canBuy(m)" (click)="buy(m)">
-            <img class="rs-ms-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
-            <span>{{ m.cost }}</span>
-          </button>
+    <!-- Pestaña ESTADÍSTICAS: totales de por vida de toda la cuenta. -->
+    <ng-container *ngIf="tab === 'stats'; else milestonesTab">
+      <ng-container *ngIf="stats$ | async as st">
+        <div class="rs-ms rs-stat-card">
+          <div class="rs-ms-frame"><ion-icon name="trophy"></ion-icon></div>
+          <div class="rs-ms-body"><span class="rs-ms-name">{{ 'RUN.RECORD_DISTANCE' | translate }}</span></div>
+          <span class="rs-stat-val">{{ st.record | compactNumber }} m</span>
         </div>
-        <div class="rs-empty" *ngIf="list.length === 0">{{ 'RUN.MS_NONE' | translate }}</div>
+        <div class="rs-ms rs-stat-card">
+          <div class="rs-ms-frame"><ion-icon name="skull"></ion-icon></div>
+          <div class="rs-ms-body"><span class="rs-ms-name">{{ 'RUN.KILLS' | translate }}</span></div>
+          <span class="rs-stat-val">{{ st.kills | compactNumber }}</span>
+        </div>
+        <div class="rs-ms rs-stat-card">
+          <div class="rs-ms-frame"><ion-icon name="heart-dislike"></ion-icon></div>
+          <div class="rs-ms-body"><span class="rs-ms-name">{{ 'RUN.DEATHS' | translate }}</span></div>
+          <span class="rs-stat-val">{{ st.deaths | compactNumber }}</span>
+        </div>
       </ng-container>
     </ng-container>
+
+    <!-- Pestañas OBJETIVOS / COMPLETOS: hitos comprables o ya comprados. -->
+    <ng-template #milestonesTab>
+      <ng-container *ngIf="(milestones$ | async) as owned">
+        <ng-container *ngIf="forTab(owned) as list">
+          <div class="rs-ms" *ngFor="let m of list">
+            <div class="rs-ms-frame"><ion-icon [name]="m.icon"></ion-icon></div>
+            <div class="rs-ms-body">
+              <span class="rs-ms-name">{{ m.labelKey | translate }}</span>
+              <span class="rs-ms-desc">{{ m.descKey | translate }}</span>
+            </div>
+            <button class="rpg-btn rpg-btn--sm rs-ms-buy" *ngIf="tab === 'objetivos'" [disabled]="!canBuy(m)" (click)="buy(m)">
+              <img class="rs-ms-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+              <span>{{ m.cost }}</span>
+            </button>
+          </div>
+          <div class="rs-empty" *ngIf="list.length === 0">{{ 'RUN.MS_NONE' | translate }}</div>
+        </ng-container>
+      </ng-container>
+    </ng-template>
   </div>
 
 </div>

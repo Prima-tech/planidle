@@ -4,7 +4,10 @@ import { BehaviorSubject, distinctUntilChanged, map, Subject } from 'rxjs';
 export interface PlayerState {
   coins: number;
   specialCoins: number;
-  stars: number;
+  // NOTA: las estrellas (`stars`) y los hitos del run (`runMilestones`) YA NO viven
+  // aquí: son progresión COMPARTIDA de cuenta → RunProgressService (global, no se
+  // resetea al cambiar de personaje). Las stats de por vida del run (worldKills,
+  // totalDeaths, worldBestDistanceM) SÍ siguen siendo per-personaje.
   worldKills: number;        // enemigos abatidos en el Modo Mundo: TOTAL de por vida (stats)
   currentKills: number;      // enemigos abatidos en la EXPEDICIÓN actual (se reinicia por run)
   worldBestDistanceM: number; // mejor distancia (m) alcanzada en una carrera
@@ -19,7 +22,6 @@ export interface PlayerState {
   lifetimeCoins: number;
   totalDeaths: number;       // muertes TOTALES de por vida (para estadísticas; nunca se reinicia)
   currentDeaths: number;     // muertes de la expedición ACTUAL; se reinicia al volver a casa
-  runMilestones: string[];   // hitos del Modo Mundo comprados con estrellas (ids desbloqueados)
 }
 
 export const MAX_LEVEL = 100;
@@ -32,7 +34,6 @@ export function expNeeded(lvl: number): number {
 const INITIAL_STATE: PlayerState = {
   coins: 0,
   specialCoins: 0,
-  stars: 0,
   worldKills: 0,
   currentKills: 0,
   worldBestDistanceM: 0,
@@ -46,7 +47,6 @@ const INITIAL_STATE: PlayerState = {
   lifetimeCoins: 0,
   totalDeaths: 0,
   currentDeaths: 0,
-  runMilestones: [],
 };
 
 @Injectable({ providedIn: 'root' })
@@ -58,12 +58,10 @@ export class PlayerStateService {
   readonly state$        = this._state$.asObservable();
   readonly coins$        = this.state$.pipe(map(s => s.coins || 0),   distinctUntilChanged());
   readonly specialCoins$ = this.state$.pipe(map(s => s.specialCoins), distinctUntilChanged());
-  readonly stars$        = this.state$.pipe(map(s => s.stars ?? 0),    distinctUntilChanged());
   readonly worldKills$   = this.state$.pipe(map(s => s.worldKills ?? 0), distinctUntilChanged());
   readonly currentKills$ = this.state$.pipe(map(s => s.currentKills ?? 0), distinctUntilChanged());
   readonly worldBestDistanceM$ = this.state$.pipe(map(s => s.worldBestDistanceM ?? 0), distinctUntilChanged());
   readonly currentDeaths$ = this.state$.pipe(map(s => s.currentDeaths ?? 0), distinctUntilChanged());
-  readonly runMilestones$ = this.state$.pipe(map(s => s.runMilestones ?? []), distinctUntilChanged());
   readonly totalDeaths$  = this.state$.pipe(map(s => s.totalDeaths ?? 0), distinctUntilChanged());
   readonly exp$          = this.state$.pipe(map(s => s.exp || 0),     distinctUntilChanged());
   readonly lvl$          = this.state$.pipe(map(s => s.lvl),          distinctUntilChanged());
@@ -79,7 +77,6 @@ export class PlayerStateService {
       // Acepta camelCase (snapshots/EMPTY_STATE) y snake_case (fila legacy de Supabase):
       // solo con `special_coins` se perdían las Marcas al restaurar un snapshot.
       specialCoins:  profile.specialCoins ?? profile.special_coins ?? 0,
-      stars:         profile.stars          ?? 0,
       worldKills:    profile.worldKills     ?? 0,
       currentKills:  profile.currentKills   ?? 0,
       worldBestDistanceM: profile.worldBestDistanceM ?? 0,
@@ -93,7 +90,6 @@ export class PlayerStateService {
       lifetimeCoins: profile.lifetimeCoins  ?? 0,
       totalDeaths:   profile.totalDeaths    ?? 0,
       currentDeaths: profile.currentDeaths  ?? 0,
-      runMilestones: profile.runMilestones  ?? [],
     });
   }
 
@@ -124,34 +120,9 @@ export class PlayerStateService {
     return true;
   }
 
-  /** Estrellas del Modo Mundo: contador propio, persistido como las monedas. */
-  collectStars(amount: number): void {
-    const s = this._state$.getValue();
-    this._patch({ stars: (s.stars ?? 0) + amount });
-  }
-
-  /** ¿Está desbloqueado este hito del Modo Mundo? */
-  hasRunMilestone(id: string): boolean {
-    return (this._state$.getValue().runMilestones ?? []).includes(id);
-  }
-
-  /** Otorga un hito del Modo Mundo SIN coste (p.ej. recompensa de misión). Idempotente. */
-  grantRunMilestone(id: string): void {
-    const s = this._state$.getValue();
-    const owned = s.runMilestones ?? [];
-    if (owned.includes(id)) return;
-    this._patch({ runMilestones: [...owned, id] });
-  }
-
-  /** Compra un hito del Modo Mundo gastando `cost` estrellas. Devuelve false si ya
-   *  está comprado o no hay estrellas suficientes. */
-  buyRunMilestone(id: string, cost: number): boolean {
-    const s = this._state$.getValue();
-    const owned = s.runMilestones ?? [];
-    if (owned.includes(id) || (s.stars ?? 0) < cost) return false;
-    this._patch({ stars: (s.stars ?? 0) - cost, runMilestones: [...owned, id] });
-    return true;
-  }
+  // Las estrellas y los hitos del run (antes aquí: collectStars/hasRunMilestone/
+  // grantRunMilestone/buyRunMilestone) se movieron a RunProgressService (progresión
+  // COMPARTIDA de cuenta, no per-personaje). Ver ese servicio.
 
   /** Suma enemigos abatidos en el Modo Mundo: total de por vida + contador de la run. */
   addWorldKills(amount = 1): void {
@@ -201,9 +172,9 @@ export class PlayerStateService {
 
   /** "Volver a casa" desde el Modo Mundo: reinicia el progreso de la expedición
    *  actual (distancia explorada a 0, contadores de muertes/kills a 0).
-   *  Se conserva lo "almacenado": las ESTRELLAS (moneda persistente con la que se
-   *  compran los hitos/habilidades del runner), el récord de distancia
-   *  (worldBestDistanceM) y el total de muertes de por vida (totalDeaths). */
+   *  Se conserva lo "almacenado": el récord de distancia (worldBestDistanceM) y el
+   *  total de muertes de por vida (totalDeaths). Las ESTRELLAS y los hitos son
+   *  progresión de cuenta (RunProgressService) y tampoco se tocan aquí. */
   goHomeReset(): void {
     this._patch({ explorationDistanceM: 0, currentDeaths: 0, currentKills: 0 });
   }

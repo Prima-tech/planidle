@@ -3,6 +3,7 @@ import { GameSnapshot } from './save.service';
 import { MAP_REGISTRY, planetNameForMap, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS, TREE_RESPAWN_MS } from '../scenes/gamescene/map-config';
 import { MapUpgradesService } from './map-upgrades.service';
 import { MapDominionService } from './map-dominion.service';
+import { RunProgressService } from './run-progress.service';
 import { starProdPerMin } from './run-milestones';
 import { AfkBonusService } from './afk-bonus.service';
 import { CharacterStatsService } from './character-stats.service';
@@ -86,6 +87,7 @@ export class OfflineGainsService {
     private talent: TalentService,
     private mapUpgrades: MapUpgradesService,
     private dominion: MapDominionService,
+    private runProgress: RunProgressService,
   ) {}
 
   /**
@@ -386,9 +388,10 @@ export class OfflineGainsService {
     if (exploreMeters <= 0) return null;
 
     // Generadores pasivos de estrellas ('star_prod1/2/3'): la MISMA tasa que el tick
-    // en vivo de WorldRunScene, aplicada al tiempo AFK (mismo tope de horas).
+    // en vivo de WorldRunScene, aplicada al tiempo AFK (mismo tope de horas). Los hitos
+    // ahora son de CUENTA (RunProgress), no del snapshot per-personaje.
     const exploreStars = Math.floor(
-      starProdPerMin(snapshot.playerState?.runMilestones ?? []) * cappedMinutes);
+      starProdPerMin(this.runProgress.getMilestones()) * cappedMinutes);
 
     const mapName = MAP_REGISTRY[snapshot.mapId ?? 'hogar']?.name ?? snapshot.mapId ?? '';
     return {

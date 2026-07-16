@@ -50,6 +50,7 @@ import { AdminService } from 'src/app/services/admin.service';
 import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { AudioService } from 'src/app/services/audio.service';
 import { QuestService } from 'src/app/services/quest.service';
+import { RunProgressService } from 'src/app/services/run-progress.service';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -120,6 +121,7 @@ export class LayoutComponent implements OnDestroy {
     private globalTalentsService: GlobalTalentsService,
     private audioService: AudioService,
     private questService: QuestService,
+    public runProgressService: RunProgressService,
     private translateService: TranslateService,
   ) {
     this.loadGame();
@@ -292,6 +294,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.GLOBAL_TALENTS,   this.globalTalentsService);
     this.phaserGame.registry.set(REGISTRY_KEYS.AUDIO,            this.audioService);
     this.phaserGame.registry.set(REGISTRY_KEYS.QUESTS,           this.questService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.RUN_PROGRESS,     this.runProgressService);
     this.phaserGame.registry.set(REGISTRY_KEYS.TRANSLATE,        this.translateService);
     this.sceneManager.setGame(this.phaserGame);
 
@@ -320,7 +323,7 @@ export class LayoutComponent implements OnDestroy {
       // las estrellas de los generadores pasivos. Los mapas ya NO se desbloquean por
       // metros (se compran con estrellas en el panel de hitos).
       this.playerStateService.addExplorationDistance(gains.exploreMeters ?? 0);
-      if (gains.exploreStars) this.playerStateService.collectStars(gains.exploreStars);
+      if (gains.exploreStars) this.runProgressService.collectStars(gains.exploreStars);
     } else if (gains.kind === 'gathering') {
       // Recolección AFK: XP de la skill (minería/tala) por los nodos acumulados.
       if (gains.gatherSkill) {

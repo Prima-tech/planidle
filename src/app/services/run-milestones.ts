@@ -1,14 +1,15 @@
 /**
- * Hitos del Modo Mundo: mejoras que se compran con estrellas (PlayerState.stars) y
- * se desbloquean por personaje (PlayerState.runMilestones). El panel del HUD de
- * exploración (run-stats) los lista; al comprarlos, su efecto pasa a estar disponible.
+ * Hitos del Modo Mundo: mejoras que se compran con estrellas y se desbloquean para
+ * TODA la cuenta (RunProgressService — progresión compartida entre personajes). El
+ * panel del HUD de exploración (run-stats) los lista; al comprarlos, su efecto pasa a
+ * estar disponible.
  *
  * Añadir un hito = una entrada aquí + sus textos i18n (RUN.MS_*) + cablear su efecto
  * donde corresponda (p.ej. 'sprint' habilita el botón de impulso, ver layout +
  * PlayerBridgeService.activateSprint).
  */
 export interface RunMilestoneDef {
-  id: string;        // id único (también la clave en PlayerState.runMilestones)
+  id: string;        // id único (también la clave en RunProgressService.milestones)
   cost: number;      // coste en estrellas
   labelKey: string;  // i18n: nombre
   descKey: string;   // i18n: descripción del efecto
@@ -37,7 +38,7 @@ export function starProdPerMin(owned: string[]): number {
 
 // Escalera de mejoras estilo Idle Slayer (loop: matar → estrellas → comprar →
 // llegar más lejos). Orden = orden de compra recomendado (costes crecientes).
-// Los efectos viven en WorldRunScene (gateados por hasRunMilestone), salvo
+// Los efectos viven en WorldRunScene (gateados por runProgress.has), salvo
 // 'sprint' (PlayerBridgeService.activateSprint).
 export const RUN_MILESTONES: RunMilestoneDef[] = [
   // 'sprint' (Impulso) ya NO se compra con estrellas: se otorga al cobrar la primera

@@ -3,6 +3,7 @@ import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { StorageService } from './storage.service';
 import { KillService } from './kill.service';
 import { PlayerStateService } from './player-state.service';
+import { RunProgressService } from './run-progress.service';
 import { NotificationBadgeService } from './notification-badge.service';
 
 // Sistema de misiones.
@@ -139,6 +140,7 @@ export class QuestService implements OnDestroy {
     private storage: StorageService,
     private kills: KillService,
     private playerState: PlayerStateService,
+    private runProgress: RunProgressService,
     private badges: NotificationBadgeService,
   ) {
     // killDetail$ solo emite en bajas reales (no en restoreCharKills), así una
@@ -148,7 +150,7 @@ export class QuestService implements OnDestroy {
     });
     // Estrellas: el progreso sigue el balance actual (max, nunca baja). Las emisiones
     // previas a loadForChar no importan: loadForChar reemplaza `progress` desde el save.
-    this.starSub = this.playerState.stars$.subscribe(balance => this.onStarsBalance(balance));
+    this.starSub = this.runProgress.stars$.subscribe(balance => this.onStarsBalance(balance));
   }
 
   ngOnDestroy(): void {
@@ -173,8 +175,8 @@ export class QuestService implements OnDestroy {
     this.activeSet    = new Set(saved?.active ?? []);
     // Sanea: una completada no puede seguir activa (saves antiguos / coherencia)
     for (const id of [...this.activeSet]) if (this.completedSet.has(id)) this.activeSet.delete(id);
-    // Sincroniza el progreso de estrellas con el balance ya cargado del personaje.
-    this.onStarsBalance(this.playerState.snapshot().stars ?? 0);
+    // Sincroniza el progreso de estrellas con el balance actual (global de cuenta).
+    this.onStarsBalance(this.runProgress.getStars());
     // Si vino del snapshot, sincroniza la clave local para que coincida.
     if (override) this.persistNow();
     // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar
@@ -366,7 +368,7 @@ export class QuestService implements OnDestroy {
     if (!reward) return;
     if (reward.coins) this.playerState.collectCoins(reward.coins);
     if (reward.exp)   this.playerState.addExp(reward.exp);
-    if (reward.runMilestone) this.playerState.grantRunMilestone(reward.runMilestone);
+    if (reward.runMilestone) this.runProgress.grant(reward.runMilestone);
   }
 
   /** Notifica a la UI: refresca rastreador del HUD y suscriptores de changes$. */

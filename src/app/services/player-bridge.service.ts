@@ -6,6 +6,7 @@ import { CharacterStatsService } from './character-stats.service';
 import { EquipmentService } from './equipment.service';
 import { InventoryItem } from './inventory.service';
 import { PlayerStateService } from './player-state.service';
+import { RunProgressService } from './run-progress.service';
 import { AdminService } from './admin.service';
 
 /** Poción equipada: se auto-usa al bajar a la mitad de HP, con cooldown. */
@@ -80,7 +81,7 @@ export class PlayerBridgeService {
   /** Arranca el sprint si no está en cooldown. Devuelve true si se activó.
    *  Requiere tener comprado el hito 'sprint' (ver run-milestones / panel de hitos). */
   activateSprint(): boolean {
-    if (!this.playerState.hasRunMilestone('sprint')) return false;
+    if (!this.runProgress.has('sprint')) return false;
     if (this.sprintOnCooldown) return false;
     this.sprintStart = Date.now();
     return true;
@@ -117,7 +118,7 @@ export class PlayerBridgeService {
   /** Arranca el boost si está comprado (hito 'boost') y no está en cooldown.
    *  Devuelve true si se activó. */
   activateFly(): boolean {
-    if (!this.playerState.hasRunMilestone('boost')) return false;
+    if (!this.runProgress.has('boost')) return false;
     if (this.flyOnCooldown) return false;
     this.flyStart = Date.now();
     return true;
@@ -150,6 +151,7 @@ export class PlayerBridgeService {
   constructor(
     private sceneManager: SceneManager,
     private playerState: PlayerStateService,
+    private runProgress: RunProgressService,
     private equipment: EquipmentService,
     private admin: AdminService,
     charStats: CharacterStatsService,

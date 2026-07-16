@@ -4,6 +4,7 @@ import { mapFeatureId } from '../../services/unlock-config';
 import { planetCapitalForMap } from '../gamescene/map-config';
 import { RUN_UNLOCK_POINTS } from './run-unlock-points';
 import { starProdPerMin } from '../../services/run-milestones';
+import { unlockedStarPatterns, STAR_PATTERN_GAP_M, STAR_FIRST_M, STAR_HEIGHT_LEVELS, StarPattern } from './run-star-patterns';
 import { bodySpriteFor } from '../../pnj/player/body-config';
 import {
   WorldParallaxId, getWorldParallaxSet, worldParallaxKey, worldParallaxPath,
@@ -42,22 +43,16 @@ const TEX_INTEREST = 'wr_interest';
 
 // --- Estrellas coleccionables (assets/sprites/resources/world_mode/star/) ---
 // 10 frames de un parpadeo: star.png (frame 1) + star2..star10.png, animados en
-// bucle. Aparece una estrella cada STAR_INTERVAL_M metros, flotando sobre el suelo
-// a la altura del cuerpo del jugador para recogerla al pasar (o con un saltito).
-// El contador (estado del jugador, persistido como las monedas) sale arriba a la
-// derecha. NOTA: si los PNG están vacíos/corruptos, Phaser pinta el cuadro verde
-// "textura faltante" pero la estrella se sigue pudiendo recoger.
+// bucle. Las estrellas salen en GRUPOS (packs) con forma definida — ver
+// run-star-patterns.ts. TODAS van altas (hay que saltar para cogerlas). El contador
+// (estado del jugador, persistido como las monedas) sale arriba a la derecha. NOTA:
+// si los PNG están vacíos/corruptos, Phaser pinta el cuadro verde "textura faltante"
+// pero la estrella se sigue pudiendo recoger.
 const STAR_KEYS = Array.from({ length: 10 }, (_, i) => `wr_star_${i + 1}`);
 const STAR_FILES = STAR_KEYS.map((_, i) =>
   `assets/sprites/resources/world_mode/star/star${i === 0 ? '' : i + 1}.png`);
 const STAR_ANIM = 'wr_star_twinkle';
-const STAR_INTERVAL_M = 25;          // cada cuántos metros aparece una estrella
 const STAR_SCALE = 1.8;
-// Alturas (px sobre la línea del suelo) que van rotando estrella a estrella, para
-// que no salgan todas a la misma altura: 50 = a ras del cuerpo (se recoge corriendo),
-// las más altas piden un saltito (más alto = salto más largo). Ver el salto: con
-// JUMP_MAX_VELOCITY se llega holgado a ~210px.
-const STAR_HEIGHTS = [50, 120, 180, 90, 150];
 
 // --- Corazones coleccionables (assets/sprites/resources/world_mode/hearth/) ---
 // Mismo patrón que las estrellas: 10 frames (heart1..heart10.png) animados en bucle.
@@ -164,22 +159,24 @@ const GROUND_BAND_H = GROUND_VISIBLE_ROWS * GROUND_TILE;  // alto de la banda de
 const SURFACE_INSET = RT * 0.12;
 
 // --- Física / movimiento ---
-const GRAVITY_Y = 2200;
+const GRAVITY_Y = 5500;              // más gravedad = salto más rápido (menos flotante)
 const RUN_SPEED = 260;               // px/s constantes hacia la derecha (bajar = más lento)
 const PX_PER_METER = RT;             // 1 tile = 1 metro
 
 // --- Salto variable (mantener = más alto, con tope) ---
-const JUMP_INITIAL_VELOCITY = 480;   // impulso al pulsar (altura del toque mínimo)
-const JUMP_HOLD_ACCEL = 3200;        // px/s² extra hacia arriba mientras se mantiene
-const JUMP_MAX_HOLD_MS = 240;        // tiempo máx. que el mantener sigue impulsando
-const JUMP_MAX_VELOCITY = 860;       // tope de velocidad de subida (límite de altura)
+// Impulsos y gravedad escalados juntos: el salto es más rápido pero mantiene casi la
+// misma altura alcanzable (las estrellas van colocadas a alturas concretas).
+const JUMP_INITIAL_VELOCITY = 759;   // impulso al pulsar (altura del toque mínimo)
+const JUMP_HOLD_ACCEL = 8000;        // px/s² extra hacia arriba mientras se mantiene
+const JUMP_MAX_HOLD_MS = 167;        // tiempo máx. que el mantener sigue impulsando
+const JUMP_MAX_VELOCITY = 1360;      // tope de velocidad de subida (límite de altura)
 
 // --- Habilidades estilo Idle Slayer ---
 // Controles: TAP salta · TAP en el aire = doble salto · swipe DERECHA = embestida
 // (dash) · swipe ABAJO = golpe descendente (slam). Teclado: ESPACIO / D o → / S o ↓.
 // El arco dispara solo (flecha recta hacia delante cada X segundos, a la altura a la
 // que vayas: saltando puedes flechar a un fénix).
-const DOUBLE_JUMP_VELOCITY = 700;    // impulso del 2º salto (algo menor que el 1º a tope)
+const DOUBLE_JUMP_VELOCITY = 1106;   // impulso del 2º salto (algo menor que el 1º a tope)
 const DASH_SPEED = 1050;             // px/s durante la embestida (~4× la carrera)
 const DASH_MS = 260;                 // duración de la embestida
 const DASH_COOLDOWN_MS = 2500;       // enfriamiento entre embestidas
@@ -252,10 +249,12 @@ export class WorldRunScene extends Phaser.Scene {
   // init() a partir del mapa de origen (ver entryDistanceFor / RUN_UNLOCK_POINTS).
   private startDistanceM = 0;
 
-  // Estrellas vivas en el mundo y el siguiente hito (en "número de estrella") aún
-  // sin generar. nextStarIndex 1 = primera estrella a STAR_INTERVAL_M metros.
+  // Estrellas vivas en el mundo. Salen en packs (run-star-patterns.ts):
+  //  - nextPatternM: metros del ancla del PRÓXIMO pack a plantar.
+  //  - patternCursor: índice del pack en la lista desbloqueada (rota en bucle).
   private stars!: Phaser.Physics.Arcade.Group;
-  private nextStarIndex = 1;
+  private nextPatternM = STAR_FIRST_M;
+  private patternCursor = 0;
   // Corazones: igual que las estrellas pero uno cada HEART_INTERVAL_M metros; curan
   // al recogerlos. nextHeartIndex 1 = primer corazón a HEART_INTERVAL_M metros.
   private hearts!: Phaser.Physics.Arcade.Group;
@@ -417,7 +416,10 @@ export class WorldRunScene extends Phaser.Scene {
     // masa solo para reciclarse en el primer frame. El generador empieza en estos
     // índices y crea lo que toca por delante.
     const skip = this.startDistanceM;
-    this.nextStarIndex  = Math.max(1, Math.floor(skip / STAR_INTERVAL_M));
+    // Packs de estrellas: el primero, por delante del arranque (STAR_FIRST_M como
+    // mínimo). Al reentrar por un portal, plantamos a partir de la distancia de skip.
+    this.nextPatternM   = Math.max(STAR_FIRST_M, skip + STAR_PATTERN_GAP_M);
+    this.patternCursor  = 0;
     this.nextHeartIndex = Math.max(1, Math.floor(skip / HEART_INTERVAL_M));
     this.rats = [];
     this.nextRatIndex   = Math.max(1, Math.floor(skip / RAT_INTERVAL_M));
@@ -899,7 +901,7 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   /**
-   * Genera estrellas por delante de la cámara (una cada STAR_INTERVAL_M metros) y
+   * Genera estrellas por delante de la cámara EN PACKS (run-star-patterns.ts) y
    * destruye las que ya quedaron atrás. Mundo infinito: solo existen las cercanas.
    * Con el imán comprado, las cercanas vuelan hacia el jugador.
    */
@@ -907,15 +909,14 @@ export class WorldRunScene extends Phaser.Scene {
     const scrollX = this.cameras.main.scrollX;
     const spawnUntilX = scrollX + this.scale.width + CHUNK_W;   // un poco más allá del borde derecho
     const groundY = this.groundTopY + SURFACE_INSET;
+    const patterns = this.activeStarPatterns();
 
-    while (this.startX + this.nextStarIndex * STAR_INTERVAL_M * PX_PER_METER <= spawnUntilX) {
-      const x = this.startX + this.nextStarIndex * STAR_INTERVAL_M * PX_PER_METER;
-      // Altura rotada por el índice: cada estrella sale a una altura distinta.
-      const height = STAR_HEIGHTS[(this.nextStarIndex - 1) % STAR_HEIGHTS.length];
-      const star = this.stars.create(x, groundY - height, STAR_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
-      star.setScale(STAR_SCALE).setDepth(4);
-      if (this.anims.exists(STAR_ANIM)) star.play(STAR_ANIM);  // solo si cargaron los frames
-      this.nextStarIndex++;
+    // Planta packs completos mientras su ANCLA entre en la zona de spawn.
+    while (this.startX + this.nextPatternM * PX_PER_METER <= spawnUntilX) {
+      const pattern = patterns[this.patternCursor % patterns.length];
+      this.spawnStarPattern(pattern, this.nextPatternM, groundY);
+      this.nextPatternM += pattern.widthM + STAR_PATTERN_GAP_M;
+      this.patternCursor++;
     }
 
     // Limpieza + imán: las que salieron por la izquierda (sin recoger) se eliminan.
@@ -923,6 +924,24 @@ export class WorldRunScene extends Phaser.Scene {
       const star = obj as Phaser.Physics.Arcade.Sprite;
       if (star.x < scrollX - CHUNK_W) { star.destroy(); continue; }
       this.magnetPull(star, delta);
+    }
+  }
+
+  /** Packs desbloqueados según los hitos comprados (los base + los desbloqueados). */
+  private activeStarPatterns(): StarPattern[] {
+    return unlockedStarPatterns(this.reg.runProgress.getMilestones());
+  }
+
+  /** Planta todas las estrellas de un pack, ancladas en `anchorM` metros. Al pack
+   * entero se le suma una elevación al azar (STAR_HEIGHT_LEVELS): misma forma, altura
+   * variable. El nivel 0 lo deja en la altura más baja (la de siempre). */
+  private spawnStarPattern(pattern: StarPattern, anchorM: number, groundY: number): void {
+    const lift = Phaser.Math.RND.pick(STAR_HEIGHT_LEVELS);
+    for (const p of pattern.points) {
+      const x = this.startX + (anchorM + p.dxM) * PX_PER_METER;
+      const star = this.stars.create(x, groundY - (p.dy + lift), STAR_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
+      star.setScale(STAR_SCALE).setDepth(4);
+      if (this.anims.exists(STAR_ANIM)) star.play(STAR_ANIM);  // solo si cargaron los frames
     }
   }
 
@@ -959,7 +978,7 @@ export class WorldRunScene extends Phaser.Scene {
 
   /** ¿Está comprado este hito del Modo Mundo? (atajo). */
   private ms(id: string): boolean {
-    return this.reg.playerState.hasRunMilestone(id);
+    return this.reg.runProgress.has(id);
   }
 
   /** Recoge una estrella: suma al contador (persistido, × estrellas valiosas). */
@@ -967,7 +986,7 @@ export class WorldRunScene extends Phaser.Scene {
     if (!star.active) return;        // evita doble cobro si dos overlaps caen el mismo frame
     star.disableBody(true, false);   // quita el cuerpo pero deja el sprite para el tween
     const n = this.starValue();
-    this.reg.playerState.collectStars(n);
+    this.reg.runProgress.collectStars(n);
     if (n > 1) this.showStarGain(star.x, star.y, n);
     this.tweens.add({
       targets: star, y: star.y - 40, alpha: 0, scale: STAR_SCALE * 1.6,
@@ -1487,7 +1506,7 @@ export class WorldRunScene extends Phaser.Scene {
       this.isJumping = true;
       this.jumpHoldMs = 0;
       this.jumpsUsed = 1;
-    } else if (!onGround && this.jumpsUsed < 2 && this.reg.playerState.hasRunMilestone('double_jump')) {
+    } else if (!onGround && this.jumpsUsed < 2 && this.reg.runProgress.has('double_jump')) {
       // Doble salto (hito comprable con estrellas): un impulso extra en el aire.
       this.player.setVelocityY(-DOUBLE_JUMP_VELOCITY);
       this.isJumping = true;
@@ -1505,7 +1524,7 @@ export class WorldRunScene extends Phaser.Scene {
   /** Embestida hacia delante: ráfaga horizontal breve, invulnerable, que MATA a
    *  cualquier enemigo que toque (el "slayer" de Idle Slayer). Con enfriamiento. */
   private startDash(): void {
-    if (!this.reg.playerState.hasRunMilestone('dash')) return;   // hito sin comprar
+    if (!this.reg.runProgress.has('dash')) return;   // hito sin comprar
     const now = this.time.now;
     if (this.dashing || this.dead || this.exiting || now < this.dashReadyAt) return;
     if (this.slamming) return;                        // en pleno slam no se embiste
@@ -1612,7 +1631,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  a las ratas cercanas (y revienta bolas de fuego). Atravesar a un fénix bajando
    *  también lo mata (ver updateFenixes). */
   private startSlam(): void {
-    if (!this.reg.playerState.hasRunMilestone('slam')) return;   // hito sin comprar
+    if (!this.reg.runProgress.has('slam')) return;   // hito sin comprar
     if (!this.player.body || this.dead || this.exiting || this.slamming) return;
     const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround) return;
@@ -1651,7 +1670,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  revienta bolas de fuego. Mueve/limpia las flechas y resuelve sus impactos. */
   private updateArrows(now: number, delta: number): void {
     if (!this.dead && !this.exiting && now - this.lastArrowAt >= ARROW_INTERVAL_MS
-        && this.reg.playerState.hasRunMilestone('bow')) {
+        && this.reg.runProgress.has('bow')) {
       this.lastArrowAt = now;
       const arrow = this.add.image(
         this.player.x + 30,
@@ -1718,13 +1737,13 @@ export class WorldRunScene extends Phaser.Scene {
    *  fracciones acumuladas; al completar una estrella se cobra con su "+N ★".
    *  (La misma tasa corre AFK explorando, ver OfflineGainsService.) */
   private updateStarProduction(delta: number): void {
-    const perMin = starProdPerMin(this.reg.playerState.snapshot().runMilestones ?? []);
+    const perMin = starProdPerMin(this.reg.runProgress.getMilestones());
     if (perMin <= 0) return;
     this.starProdCarry += perMin * (delta / 60000);
     if (this.starProdCarry >= 1) {
       const n = Math.floor(this.starProdCarry);
       this.starProdCarry -= n;
-      this.reg.playerState.collectStars(n);
+      this.reg.runProgress.collectStars(n);
       this.showStarGain(this.player.x, this.player.y - this.player.displayHeight, n);
     }
   }
@@ -1767,7 +1786,7 @@ export class WorldRunScene extends Phaser.Scene {
   private killReward(x: number, y: number): void {
     this.reg.playerState.addWorldKills();
     const n = STAR_PER_KILL * this.starValue();
-    this.reg.playerState.collectStars(n);
+    this.reg.runProgress.collectStars(n);
     this.showStarGain(x, y, n);
   }
 
