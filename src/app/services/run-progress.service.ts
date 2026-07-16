@@ -150,34 +150,36 @@ export class RunProgressService {
   }
 
   /** Multiplicador global a la producción PASIVA de estrellas (armas + generadores de
-   *  hitos). Hito 'sardine' → +2%. Aplica a starsPerSec() y starProdPerMinTotal(). */
+   *  hitos). Hito 'sardine' → +2%. Se aplica DENTRO de las tasas de abajo, así ningún
+   *  caller puede olvidarlo. */
   starProdMult(): number { return 1 + (this.has('sardine') ? 0.02 : 0); }
 
-  /** Estrellas/seg total que producen todas las armas (suma de niveles × su tasa),
-   *  ya con el multiplicador de producción (sardine). */
-  starsPerSec(): number {
+  /** Estrellas/seg SOLO de armas (suma de niveles × su tasa), con el multiplicador de
+   *  producción ya aplicado. Parcial: para la tasa "de verdad" usa starsPerSecTotal().
+   *  Solo la usan el tick de armas y el propio starsPerSecTotal(). */
+  weaponStarsPerSecTotal(): number {
     const base = RUN_WEAPONS.reduce((s, w) => s + weaponStarsPerSec(w, this.weaponLevel(w.id)), 0);
     return base * this.starProdMult();
   }
 
-  /** Estrellas/min de los generadores de hitos (STAR_PROD_TIERS), ya con el
-   *  multiplicador de producción (sardine). Úsalo en vez de la función pura. */
+  /** Estrellas/min de los generadores de hitos (STAR_PROD_TIERS), con el multiplicador
+   *  de producción ya aplicado. Úsalo en vez de la función pura starProdPerMin(). */
   starProdPerMinTotal(): number {
     return starProdPerMin(this.milestones) * this.starProdMult();
   }
 
-  /** Estrellas/seg TOTAL de producción pasiva: armas + generadores de hitos (con
-   *  el multiplicador de sardine ya aplicado). Es "tu estrella por segundo actual"
-   *  que usan los hitos 'naranja' (oro) e 'inflacion' (estrellas) por moneda. */
+  /** ÚNICA fuente de verdad de "tu estrella por segundo actual": producción pasiva
+   *  TOTAL = armas + generadores de hitos (con el x% de sardine ya dentro). La usan el
+   *  HUD, la oleada estelar, la caja "1 min", los hitos 'naranja'/'inflacion' y el AFK. */
   starsPerSecTotal(): number {
-    return this.starsPerSec() + this.starProdPerMinTotal() / 60;
+    return this.weaponStarsPerSecTotal() + this.starProdPerMinTotal() / 60;
   }
 
   /** Tick del generador de estrellas de las armas: llámalo desde el bucle de exploración
    *  con el delta (ms). Acumula fracciones y entrega estrellas ENTERAS con `collectStars`
-   *  (suben el saldo y el total recogido). La misma tasa podría correr AFK (pendiente). */
+   *  (suben el saldo y el total recogido). */
   tickWeaponStars(deltaMs: number): void {
-    const perSec = this.starsPerSec();
+    const perSec = this.weaponStarsPerSecTotal();
     if (perSec <= 0) return;
     this.starCarry += perSec * (deltaMs / 1000);
     if (this.starCarry >= 1) {

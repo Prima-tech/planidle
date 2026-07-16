@@ -927,8 +927,14 @@
        [class.quest-card--ready]="!done && quests.isClaimable(q)"
        [class.expanded]="expandedQuestId === q.id">
     <button class="quest-card-head" (click)="toggleQuest(q)">
-      <span class="quest-card-icon-wrap" [class.ready]="!done && quests.isClaimable(q)">
-        <ion-icon class="quest-card-icon" [name]="q.icon"></ion-icon>
+      <span class="quest-card-icon-wrap" [class.quest-card-icon-wrap--portrait]="!!q.giver"
+            [class.ready]="!done && quests.isClaimable(q)">
+        <!-- Retrato del NPC que encarga la misión (si lo hay); si no, icono de categoría. -->
+        <span class="quest-card-giver" *ngIf="giverStyle(q) as gs" [ngStyle]="gs"></span>
+        <ion-icon class="quest-card-icon" *ngIf="!q.giver" [name]="q.icon"></ion-icon>
+        <!-- Badge "novedad": anclado al icono (dentro de la tarjeta), no al borde del
+             botón, para que el overflow:hidden de .quest-card no lo recorte. -->
+        <span class="notif-dot" *ngIf="!done && questIsNew(q)"></span>
       </span>
 
       <div class="quest-card-main">
@@ -948,7 +954,6 @@
 
       <ion-icon class="quest-card-chevron"
                 [name]="expandedQuestId === q.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-      <span class="notif-dot" *ngIf="!done && questIsNew(q)"></span>
     </button>
 
     <div class="quest-card-body" *ngIf="expandedQuestId === q.id">

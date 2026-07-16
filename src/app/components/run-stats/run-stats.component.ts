@@ -27,11 +27,12 @@ export class RunStatsComponent {
 
   readonly milestones$ = this.runProgress.milestones$;
 
-  /** Texto del total de estrellas de la barra. Si las armas generan una fracción de
+  /** Texto del total de estrellas de la barra. Si las ARMAS generan una fracción de
    *  estrella por segundo (0 < ★/s < 1), muestra 1 decimal de la fracción acumulada
-   *  para que se vea subir; si no (0 o ≥ 1), muestra el saldo entero. */
+   *  (starsDisplay = saldo + starCarry de armas) para que se vea subir; si no, entero.
+   *  Se basa en la tasa de ARMAS a propósito: es la única fracción visible en el saldo. */
   starsShownText(): string {
-    const rate = this.runProgress.starsPerSec();
+    const rate = this.runProgress.weaponStarsPerSecTotal();
     return (rate > 0 && rate < 1)
       ? this.runProgress.starsDisplay().toFixed(1)
       : String(this.runProgress.getStars());
@@ -81,8 +82,8 @@ export class RunStatsComponent {
   buyWeapon(w: RunWeaponDef): void { this.runProgress.buyWeapon(w); }
   /** Estrellas/seg que produce un arma a su nivel actual. */
   weaponRate(w: RunWeaponDef): number { return weaponStarsPerSec(w, this.weaponLevel(w.id)); }
-  /** Estrellas/seg total de todas las armas. */
-  starsPerSec(): number { return this.runProgress.starsPerSec(); }
+  /** Estrellas/seg TOTAL de producción pasiva (armas + generadores de hitos). */
+  starsPerSec(): number { return this.runProgress.starsPerSecTotal(); }
 
   /** Hitos ordenados por PRECIO ascendente (los más baratos arriba). Copia para no
    *  mutar RUN_MILESTONES. Empate de precio → mantiene el orden del array. */

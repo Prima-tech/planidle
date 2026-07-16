@@ -74,7 +74,20 @@ export interface QuestDef {
   /** Diálogo (NPC) que sale al COBRARLA desde la ventana de equipo (que se cierra).
    *  `text` es una clave i18n. Lo dispara la ventana de equipo, no el claim en sí. */
   claimDialogue?: { speaker: string; text: string };
+  /** NPC que ENCARGA la misión: su retrato (recortado de la hoja LPC) sale como avatar
+   *  de la tarjeta en la ventana de misiones. Debe existir en NPC_PORTRAITS. */
+  giver?: string;
 }
+
+/** Retrato de un NPC para la ventana de misiones: se recorta el frame idle de su hoja
+ *  LPC (frames 64×64) por CSS. `cols` = columnas de la hoja; `frame` = índice del frame
+ *  idle a mostrar (mismo que usa la escena para pintarlo quieto). */
+export interface NpcPortrait { sheet: string; frame: number; cols: number; }
+
+export const NPC_PORTRAITS: Record<string, NpcPortrait> = {
+  // Mordekai: hoja LPC de 24 columnas, idle = frame 240 (ver CITY_NPCS en gamescene).
+  Mordekai: { sheet: 'assets/sprites/players/mordekai.png', frame: 240, cols: 24 },
+};
 
 /** Máximo de misiones activas (fijadas en el HUD) a la vez. */
 export const MAX_ACTIVE_QUESTS = 5;
@@ -95,6 +108,7 @@ export const QUESTS: QuestDef[] = [
     // Recompensa: 10 de oro. El Impulso ya NO se otorga aquí: se compra con estrellas
     // en el panel de mejoras del run (hito 'sprint', 10★).
     reward: { coins: 10 },
+    giver: 'Mordekai',
     // Al cobrarla en la ventana de equipo: se cierra y Mordekai suelta el hint de la rata.
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_CLAIM1' },
   },
@@ -106,6 +120,7 @@ export const QUESTS: QuestDef[] = [
     track: 'QUESTS.MATA_RATA.TRACK',
     objective: { type: 'kill', family: 'rats', goal: 1 },
     reward: { coins: 100 },
+    giver: 'Mordekai',
     requires: 'primeras_estrellas',   // aparece solo tras cobrar la de la estrella
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_CLAIM2' },
   },

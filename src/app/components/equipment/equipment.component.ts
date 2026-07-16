@@ -13,7 +13,7 @@ import { PanelStateService } from 'src/app/services/panel-state.service';
 import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { AchievementService, AchievementDef, AchievementScope } from 'src/app/services/achievement.service';
-import { QuestService, QuestDef } from 'src/app/services/quest.service';
+import { QuestService, QuestDef, NPC_PORTRAITS } from 'src/app/services/quest.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
 import { DialogueService } from 'src/app/services/dialogue.service';
@@ -88,6 +88,33 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   /** Muestra el icono de novedad: reclamable y aún no abierta. */
   questIsNew(q: QuestDef): boolean {
     return this.quests.isClaimable(q) && !this.seenQuests.has(q.id);
+  }
+
+  /** Estilo (background) para el retrato del NPC que encarga la misión: recorta la CABEZA
+   *  de su frame idle en la hoja LPC (región cuadrada arriba-centro del frame 64×64) y la
+   *  escala al avatar, para que se vea la cara grande y no el cuerpo entero. `null` si la
+   *  misión no tiene `giver` (entonces se pinta el icono de categoría). Ajusta HEAD_* si
+   *  algún NPC queda descuadrado. */
+  private static readonly GIVER_PX = 46;    // lado del avatar (px)
+  private static readonly LPC_FRAME = 64;   // lado del frame LPC (px)
+  private static readonly HEAD_X = 16;      // origen X de la cabeza dentro del frame
+  private static readonly HEAD_Y = 4;       // origen Y de la cabeza dentro del frame
+  private static readonly HEAD_SIZE = 32;   // lado de la región de la cabeza (px de origen)
+
+  giverStyle(q: QuestDef): Record<string, string> | null {
+    const p = q.giver ? NPC_PORTRAITS[q.giver] : null;
+    if (!p) return null;
+    const F = EquipmentComponent.LPC_FRAME;
+    const k = EquipmentComponent.GIVER_PX / EquipmentComponent.HEAD_SIZE;   // cabeza → avatar
+    const col = p.frame % p.cols;
+    const row = Math.floor(p.frame / p.cols);
+    const srcX = col * F + EquipmentComponent.HEAD_X;   // esquina de la cabeza en la hoja
+    const srcY = row * F + EquipmentComponent.HEAD_Y;
+    return {
+      'background-image': `url(${p.sheet})`,
+      'background-size': `${p.cols * F * k}px auto`,     // hoja entera escalada ×k
+      'background-position': `${-srcX * k}px ${-srcY * k}px`,
+    };
   }
 
   /** Cobra una misión desde el botón "Completar": entrega la recompensa y, si la

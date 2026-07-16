@@ -15,7 +15,8 @@ import { HARVEST_KINDS, harvestKindForSkill, miningTier, gemTier, treeTier } fro
 
 const MIN_OFFLINE_SECONDS = 10;
 const MAX_OFFLINE_HOURS   = 8;
-const METERS_PER_MINUTE   = 10; // metros explorados por minuto AFK en el Modo Mundo
+// Fracción de la producción activa de estrellas que rinde el AFK explorando: 1/10.
+const AFK_STAR_FRACTION   = 0.1;
 
 // Cadencia de ataque: el jugador pega una vez por animación de ataque (6 frames a
 // 10 fps ≈ 600 ms). Define la DPS junto con el daño por golpe.
@@ -68,8 +69,7 @@ export interface OfflineGains {
   itemDrops?: AfkItemGain[];     // botín real acumulado (combate o recolección)
   // Exploración (Modo Mundo)
   planetName?: string;
-  exploreMeters?: number;        // metros ganados AFK (10/min)
-  exploreStars?: number;         // estrellas de los generadores pasivos (star_prod1/2/3)
+  exploreStars?: number;         // estrellas ganadas AFK (1/10 de la producción activa)
   // Recolección (minería / tala)
   gatherSkill?: GatheringSkillId;
   gatherXp?: number;             // XP de la skill acumulada
@@ -263,7 +263,7 @@ export class OfflineGainsService {
     const cappedMinutes = Math.min(elapsedMinutes, MAX_OFFLINE_HOURS * 60);
 
     // El AFK continúa la ÚLTIMA acción del personaje (snapshot.activity):
-    //  - exploring → metros en el Modo Mundo
+    //  - exploring → estrellas AFK (1/10 de la producción activa)
     //  - mining/chopping → recolección (recursos + XP de la skill)
     //  - resto (killing/idle) → combate en el mapa
     if (snapshot.activity === 'exploring') {
@@ -377,20 +377,13 @@ export class OfflineGainsService {
     };
   }
 
-  /** Ganancias AFK explorando: metros (10/min) + estrellas de los generadores
-   *  pasivos. Los mapas ya NO se desbloquean por metros (se compran con estrellas
-   *  en el panel de hitos), así que el AFK no cruza/desbloquea nada. */
+  /** Ganancias AFK explorando: SOLO estrellas (ya no se calculan metros). Gana 1/10 de
+   *  tu producción pasiva TOTAL si estuvieses activo (armas + generadores), por segundo.
+   *  starsPerSecTotal ya incluye el multiplicador de sardine. */
   private calculateExploring(snapshot: GameSnapshot, cappedMinutes: number): OfflineGains | null {
-    // Bonus de exploración: INT (+1%/punto) + talentos exploration (vía charStats).
-    const exploreBonus  = this.charStats.currentExplorationBonus ?? 0;
-    const exploreMeters = Math.floor(METERS_PER_MINUTE * cappedMinutes * (1 + exploreBonus / 100));
-    if (exploreMeters <= 0) return null;
-
-    // Generadores pasivos de estrellas ('star_prod1/2/3'): la MISMA tasa que el tick
-    // en vivo de WorldRunScene, aplicada al tiempo AFK (mismo tope de horas). Los hitos
-    // ahora son de CUENTA (RunProgress), no del snapshot per-personaje.
-    const exploreStars = Math.floor(
-      this.runProgress.starProdPerMinTotal() * cappedMinutes);
+    const seconds = cappedMinutes * 60;
+    const exploreStars = Math.floor(this.runProgress.starsPerSecTotal() * AFK_STAR_FRACTION * seconds);
+    if (exploreStars <= 0) return null;   // sin producción no hay nada que mostrar
 
     const mapName = MAP_REGISTRY[snapshot.mapId ?? 'hogar']?.name ?? snapshot.mapId ?? '';
     return {
@@ -402,7 +395,6 @@ export class OfflineGainsService {
       coins:       0,
       exp:         0,
       planetName:  planetNameForMap(snapshot.mapId ?? 'hogar'),
-      exploreMeters,
       exploreStars,
     };
   }

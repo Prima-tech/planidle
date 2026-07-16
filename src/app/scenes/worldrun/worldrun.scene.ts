@@ -117,9 +117,10 @@ const RAT_DEATH_FRAMES  = { start: 4 * RAT_COLS, end: 4 * RAT_COLS + 4 };  // fi
 const RAT_INTERVAL_M = 25;            // una rata cada 25 m
 const RAT_SCALE = 4.4;
 const RAT_FACE_LEFT = true;           // mira hacia el jugador que llega por la izquierda
-// Combate: la rata telegrafía su ataque al acercarte por el suelo y te hace daño al
-// contacto; si saltas y caes sobre su lomo, la matas sin recibir daño (rebote).
-const RAT_DAMAGE = 30;                // daño al jugador al chocar a ras de suelo (×3)
+// Combate: al llegar a ras de suelo le atacas tú; si sobrevive, te devuelve el golpe
+// (RAT_DAMAGE) por cadencia hasta que uno cae. Saltar lo esquiva; caer sobre el lomo lo
+// pisa (rebote sin daño).
+const RAT_DAMAGE = 30;                // daño de cada golpe de la rata en combate a ras de suelo
 const RAT_SENSE_PX = 150;             // distancia a la que empieza su animación de ataque
 const RAT_CONTACT_PX = 60;            // distancia horizontal de contacto (aplica daño)
 const RAT_STOMP_HALF_W = 60;          // medio ancho del lomo para el pisotón
@@ -129,6 +130,14 @@ const RAT_STOMP_HALF_W = 60;          // medio ancho del lomo para el pisotón
 const RAT_STOMP_LOW = 18;             // por debajo de esto = estás en el suelo (choque)
 const RAT_STOMP_HIGH = 52;            // por encima de esto = vas demasiado alto (no pisas)
 const RAT_STOMP_BOUNCE = 520;         // impulso de rebote al pisarla
+// Combate a ras de suelo (le atacas TÚ primero; si no muere de un golpe, os intercambiáis
+// golpes hasta que uno cae, o saltas y lo esquivas). Vida escalada por distancia: cerca del
+// inicio lo revientas de un golpe sin frenar; más lejos aguanta y toca pelear o esquivar.
+const RAT_BASE_HP    = 1;             // vida de una rata en el metro 0 (TEMP: 1 de vida para pruebas)
+const RAT_HP_GROWTH  = 1.5;           // ×vida cada RAT_HP_STEP_M metros
+const RAT_HP_STEP_M  = 100;
+const PLAYER_ATTACK_MS = 430;         // cadencia de TU golpe (≈ lo que dura la anim de slash)
+const RAT_ATTACK_MS    = 900;         // cadencia del golpe de la rata en combate
 
 // --- Fénix (enemigo volador): assets/sprites/enemy/world/fenix ---
 // Hoja 1024×384 con frames de 64×64 (16 cols × 6 filas). Filas (frames reales):
@@ -258,6 +267,7 @@ const PLAYER_SCALE = 2.1;            // ~2 tiles de alto sobre el suelo. Subir =
 // = fila 41 = frames 533-540 (≠ WALK derecha, que es 143-150).
 const PLAYER_RUN_FRAMES = { start: 533, end: 540 };
 const PLAYER_DEATH_FRAMES = { start: 260, end: 265 };   // animación de muerte (cuerpo LPC)
+const PLAYER_ATTACK_FRAMES = { start: 195, end: 200 };  // slash LPC hacia la DERECHA (6 fr)
 const PLAYER_RUN_AIR_FRAME = 537;                     // frame congelado en el aire
 const PLAYER_IDLE_FRAME = 325;                        // IDLE RIGHT
 
@@ -306,8 +316,16 @@ export class WorldRunScene extends Phaser.Scene {
   // Ratas: plantadas en idle; el jugador las mata al pasar a su lado. Mundo infinito:
   // solo existen las cercanas (se generan por delante y se reciclan al quedar atrás).
   // Al morir salen del array y se animan/destruyen por su cuenta (ver playRatDeath).
-  private rats: { sprite: Phaser.GameObjects.Sprite; attacking: boolean; hit: boolean }[] = [];
+  private rats: { sprite: Phaser.GameObjects.Sprite; attacking: boolean; hp: number; maxHp: number }[] = [];
   private nextRatIndex = 1;
+  // Combate terrestre: `fighting` = intercambiando golpes con una rata (frena el auto-run
+  // hasta que uno cae o saltas). `onGround` lo vuelca update() para que updateRats lo lea.
+  private fighting = false;
+  private onGround = false;
+  private nextPlayerHitAt = 0;         // próximo golpe TUYO permitido (0 = pegas al instante)
+  private nextRatHitAt = 0;            // próximo golpe de la rata
+  private attackUntil = 0;             // hasta cuándo mantener la anim de slash (no forzar run)
+  private combatHpBar?: Phaser.GameObjects.Graphics;   // barra de vida de la rata en combate
   // Fénix voladores: hover en el aire; lo matas saltándole encima (pisotón). Se
   // generan por delante y se reciclan al quedar atrás. nextFenixIndex 0 = primero a
   // FENIX_START_M metros.
@@ -472,6 +490,13 @@ export class WorldRunScene extends Phaser.Scene {
     this.starRainUntil = 0;   // sin lluvia de estrellas al arrancar
     this.nextRainStarAt = 0;
     this.rats = [];
+    // Combate a ras de suelo: estado limpio (la instancia se reutiliza; el Graphics de la
+    // barra de vida se destruye con la escena, así que soltamos la referencia para recrearlo).
+    this.fighting = false;
+    this.nextPlayerHitAt = 0;
+    this.nextRatHitAt = 0;
+    this.attackUntil = 0;
+    this.combatHpBar = undefined;
     this.nextRatIndex   = Math.max(1, Math.floor(skip / RAT_INTERVAL_M));
     this.fenixes = [];
     this.nextFenixIndex = Math.max(0, Math.floor((skip - FENIX_START_M) / FENIX_INTERVAL_M));
@@ -633,19 +658,27 @@ export class WorldRunScene extends Phaser.Scene {
       this.spawnSprintGhost(now);
     }
 
+    // Estado en suelo (lo lee updateRats para el combate a ras de suelo).
+    const onGround = this.player.body.blocked.down || this.player.body.touching.down;
+    this.onGround = onGround;
+
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
     // la anuló). El control manual está anulado: el único input es saltar. El sprint
     // multiplica esta velocidad (pico al inicio, decelerando) mientras esté activo.
-    // El vuelo la DOBLA. Durante la embestida manda DASH_SPEED.
-    this.player.setVelocityX(this.dashing
-      ? DASH_SPEED
-      : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier()
-          * (this.flying ? FLY_SPEED_MULT : 1));
+    // El vuelo la DOBLA. Durante la embestida manda DASH_SPEED. Durante el combate a
+    // ras de suelo TE DETIENES (velocidad 0) hasta matar al enemigo o saltar para esquivar.
+    if (this.fighting && onGround && !this.dashing && !this.flying) {
+      this.player.setVelocityX(0);
+    } else {
+      this.player.setVelocityX(this.dashing
+        ? DASH_SPEED
+        : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier()
+            * (this.flying ? FLY_SPEED_MULT : 1));
+    }
     if (this.dashing && now - this.lastGhostAt > 45) this.spawnDashGhost(now);
     // El aura sprite acompaña al jugador durante el boost.
     if (this.auraSprite) this.auraSprite.setPosition(this.player.x + AURA_X_OFFSET, this.player.y - AURA_Y_OFFSET);
 
-    const onGround = this.player.body.blocked.down || this.player.body.touching.down;
     if (onGround && this.player.body.velocity.y >= 0) {
       this.isJumping = false;
       this.jumpsUsed = 0;                      // en el suelo se recargan ambos saltos
@@ -702,6 +735,13 @@ export class WorldRunScene extends Phaser.Scene {
       const deathFrames = this.anims.generateFrameNumbers('player', PLAYER_DEATH_FRAMES);
       if (deathFrames.length) {
         this.anims.create({ key: 'wr_death', frames: deathFrames, frameRate: 9, repeat: 0 });
+      }
+      // Golpe del jugador (slash LPC hacia la derecha). Misma razón que wr_run/wr_death:
+      // rehacerla siempre contra la textura 'player' actual (cambia al cambiar de personaje).
+      this.anims.remove('wr_attack');
+      const attackFrames = this.anims.generateFrameNumbers('player', PLAYER_ATTACK_FRAMES);
+      if (attackFrames.length) {
+        this.anims.create({ key: 'wr_attack', frames: attackFrames, frameRate: 14, repeat: 0 });
       }
     }
     // Parpadeo de la estrella: cada frame es una textura suelta (no spritesheet).
@@ -1057,8 +1097,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  de estrellas/seg actual (armas + generadores de hitos). 0 si no está comprado. */
   private starSurgeBonus(): number {
     if (!this.ms('star_surge')) return 0;
-    const perSec = this.reg.runProgress.starsPerSec()
-      + this.reg.runProgress.starProdPerMinTotal() / 60;
+    const perSec = this.reg.runProgress.starsPerSecTotal();
     return Math.floor(perSec * 0.25);
   }
 
@@ -1225,8 +1264,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  armas (×60) más las ★/min de los hitos de producción. Mínimo 1 para que la caja
    *  siempre dé algo aunque aún no generes nada. */
   private rewardMinuteOfStars(x: number, y: number): void {
-    const perMin = this.reg.runProgress.starsPerSec() * 60
-      + this.reg.runProgress.starProdPerMinTotal();
+    const perMin = this.reg.runProgress.starsPerSecTotal() * 60;
     const n = Math.max(1, Math.floor(perMin));
     this.reg.runProgress.collectStars(n);
     // Banner "Estrellato" con las estrellas otorgadas debajo del nombre.
@@ -1387,9 +1425,10 @@ export class WorldRunScene extends Phaser.Scene {
 
   /**
    * Genera ratas por delante (una cada RAT_INTERVAL_M metros) y resuelve el combate:
-   * a ras de suelo te atacan y te hacen daño; si saltas y caes sobre el lomo las
-   * matas sin daño (pisotón con rebote). Recicla las que quedan atrás. Mundo
-   * infinito: solo existen las cercanas.
+   * a ras de suelo le ATACAS TÚ primero (tu daño de personaje); si tu golpe no lo mata
+   * (tienen vida escalada por distancia), te detienes y os intercambiáis golpes hasta que
+   * uno cae. Puedes ESQUIVAR saltando (o caer sobre el lomo = pisotón con rebote, o
+   * atropellar con dash/vuelo). Recicla las que quedan atrás; mundo infinito.
    */
   private updateRats(): void {
     if (!this.anims.exists(RAT_ANIM_IDLE)) return;   // textura/anim no disponibles
@@ -1408,10 +1447,16 @@ export class WorldRunScene extends Phaser.Scene {
         const sprite = this.add.sprite(x, groundY, TEX_RAT)
           .setOrigin(0.5, 1).setScale(RAT_SCALE).setDepth(4).setFlipX(RAT_FACE_LEFT);
         sprite.play(RAT_ANIM_IDLE);
-        this.rats.push({ sprite, attacking: false, hit: false });
+        const distM = (x - this.startX) / PX_PER_METER;
+        const hp = Math.max(1, Math.floor(RAT_BASE_HP * Math.pow(RAT_HP_GROWTH, distM / RAT_HP_STEP_M)));
+        this.rats.push({ sprite, attacking: false, hp, maxHp: hp });
         this.nextRatIndex++;
       }
     }
+
+    // ¿Sigues intercambiando golpes con alguna rata este frame? (si no, se reanuda la
+    // carrera y se limpian los temporizadores/barra al final del bucle).
+    let fightingNow = false;
 
     for (let i = this.rats.length - 1; i >= 0; i--) {
       const rat = this.rats[i];
@@ -1455,13 +1500,85 @@ export class WorldRunScene extends Phaser.Scene {
         });
       }
 
-      // Daño al contacto si vas a ras de suelo (no saltaste por encima). Una vez.
-      if (!rat.hit && absdx < RAT_CONTACT_PX && feetAbove < RAT_STOMP_LOW) {
-        rat.hit = true;
-        this.damagePlayer(RAT_DAMAGE);
+      // Combate a ras de suelo: llegas por el suelo (no saltaste por encima) y a rango.
+      // Le atacas TÚ primero; si tu golpe no lo mata, empieza el intercambio hasta que
+      // uno cae. Saltar (feetAbove ≥ RAT_STOMP_LOW) rompe el combate y lo esquivas.
+      const inContact = this.onGround && absdx < RAT_CONTACT_PX && feetAbove < RAT_STOMP_LOW;
+      if (inContact) {
+        // Tu golpe, por cadencia. Al primer contacto nextPlayerHitAt=0 → pegas al instante.
+        if (this.time.now >= this.nextPlayerHitAt) {
+          this.playerSlash();
+          rat.hp -= this.playerHitDamage();
+          this.flashRatHurt(s);
+          this.nextPlayerHitAt = this.time.now + PLAYER_ATTACK_MS;
+          if (rat.hp <= 0) {
+            this.killRatAt(i);          // muere: NO te detienes, sigues corriendo
+            this.nextPlayerHitAt = 0;   // listo para el siguiente enemigo
+            continue;
+          }
+        }
+        // Sobrevive: te detienes (fightingNow) y te devuelve el golpe por su cadencia.
+        if (!this.fighting) this.nextRatHitAt = this.time.now + RAT_ATTACK_MS;  // ventaja: golpeas tú primero
+        fightingNow = true;
+        this.drawCombatHpBar(s, rat.hp, rat.maxHp);
+        if (this.time.now >= this.nextRatHitAt) {
+          if (s.active) s.play(RAT_ANIM_ATTACK, true);
+          this.nextRatHitAt = this.time.now + RAT_ATTACK_MS;
+          this.damagePlayer(RAT_DAMAGE);   // puede matarte (playerDie / segunda oportunidad)
+        }
       }
     }
+
+    // Fin del combate este frame (mataste, saltaste o te alejaste): reanuda la carrera,
+    // deja el primer golpe listo para el próximo enemigo y esconde la barra de vida.
+    if (this.fighting && !fightingNow) {
+      this.nextPlayerHitAt = 0;
+      this.hideCombatHpBar();
+    }
+    this.fighting = fightingNow;
   }
+
+  /** Reproduce tu animación de golpe (slash) sin frenar: marca `attackUntil` para que
+   *  updatePlayerAnim no fuerce 'wr_run' encima mientras dura el corte. */
+  private playerSlash(): void {
+    if (!this.anims.exists('wr_attack')) return;
+    this.player.play('wr_attack');
+    // +80 ms de margen sobre la cadencia para que la pose solape con el siguiente golpe
+    // (si no, hay 1 frame en que updatePlayerAnim fuerza 'wr_run' → parpadeo).
+    this.attackUntil = this.time.now + PLAYER_ATTACK_MS + 80;
+  }
+
+  /** Daño de TU golpe en el runner: el mejor entre físico y mágico del personaje (así el
+   *  mago no queda en desventaja), mínimo 1. */
+  private playerHitDamage(): number {
+    const cs = this.reg.charStats;
+    const base = cs ? Math.max(cs.currentDamage, cs.currentMagicDamage) : 10;
+    return Math.max(1, Math.floor(base));
+  }
+
+  /** Destello blanco breve al recibir daño la rata (feedback de impacto). */
+  private flashRatHurt(s: Phaser.GameObjects.Sprite): void {
+    if (!s.active) return;
+    s.setTintFill(0xffffff);
+    this.time.delayedCall(60, () => { if (s.active) s.clearTint(); });
+  }
+
+  /** Barra de vida de la rata en combate (una sola, reutilizada; encima del enemigo). */
+  private drawCombatHpBar(s: Phaser.GameObjects.Sprite, hp: number, maxHp: number): void {
+    if (!this.combatHpBar) this.combatHpBar = this.add.graphics().setDepth(7);
+    const g = this.combatHpBar;
+    const w = 64, h = 7;
+    const x = Math.round(s.x - w / 2);
+    const y = Math.round(s.y - s.displayHeight - 14);
+    const ratio = Phaser.Math.Clamp(hp / maxHp, 0, 1);
+    g.clear();
+    g.fillStyle(0x000000, 0.65); g.fillRect(x - 1, y - 1, w + 2, h + 2);
+    g.fillStyle(0x5a2222, 1);    g.fillRect(x, y, w, h);
+    g.fillStyle(0xe23b3b, 1);    g.fillRect(x, y, Math.round(w * ratio), h);
+    g.setVisible(true);
+  }
+
+  private hideCombatHpBar(): void { this.combatHpBar?.clear(); this.combatHpBar?.setVisible(false); }
 
   /** Aplica daño al jugador y un destello rojo de impacto. Si el golpe llega a 0 HP,
    *  el jugador MUERE (playerDie). */
@@ -1499,6 +1616,8 @@ export class WorldRunScene extends Phaser.Scene {
   private playerDie(): void {
     if (this.dead) return;
     this.dead = true;
+    this.fighting = false;
+    this.hideCombatHpBar();            // por si mueres en pleno combate a ras de suelo
     if (this.flying) this.endFly();   // quita aura/brillo del boost antes de la anim de muerte
     this.reg.playerState.recordDeath();
     // Congela al jugador SIN pausar la escena (la escena debe seguir corriendo para que
@@ -1702,6 +1821,8 @@ export class WorldRunScene extends Phaser.Scene {
       this.player.setFrame(PLAYER_RUN_AIR_FRAME);
       return;
     }
+    // Golpeando (combate a ras de suelo): deja terminar el slash sin forzar 'wr_run'.
+    if (onGround && this.time.now < this.attackUntil) return;
     if (onGround) {
       // Reanudar al aterrizar. Hay que comprobar isPlaying, no solo la key: en el
       // aire hacemos anims.stop() (isPlaying=false) pero currentAnim sigue siendo

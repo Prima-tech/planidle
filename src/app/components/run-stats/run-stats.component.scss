@@ -372,12 +372,20 @@ $metal-dark: #6b6357;
   padding: 12px 4px;
 }
 
-/* Botón "comprar todo lo disponible": ocupa todo el ancho, al pie de la lista de
-   objetivos. Reutiliza el estilo global .rpg-btn (verde de acción). */
+/* Botón "comprar todo lo disponible": ANCLADO al fondo del panel (no scrollea con la
+   lista). `position: sticky; bottom: 0` lo mantiene pegado abajo mientras la lista se
+   desplaza por detrás; `margin-top: auto` lo empuja al fondo cuando la lista es corta.
+   Reutiliza el estilo global .rpg-btn (verde de acción). */
 .rs-buy-all {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   width: 100%;
-  margin-top: 6px;
+  margin-top: auto;   // al fondo aunque la lista no llene el panel
   font-size: 0.62em;
+  // franja de madera bajo el botón para tapar los hitos que scrollean por detrás
+  // (cubre el padding inferior del panel y el hueco del gap).
+  box-shadow: 0 6px 0 6px $wood-bg, 0 -5px 7px -3px rgba(0, 0, 0, 0.45);
 
   &:disabled { opacity: 0.45; cursor: default; }
 }

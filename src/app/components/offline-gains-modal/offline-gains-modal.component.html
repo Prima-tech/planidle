@@ -18,14 +18,10 @@
 
     <ng-container [ngSwitch]="gains.kind">
 
-      <!-- Exploración (Modo Mundo): metros recorridos + estrellas producidas -->
+      <!-- Exploración (Modo Mundo): estrellas producidas AFK (1/10 de la activa) -->
       <ng-container *ngSwitchCase="'exploring'">
-        <div class="afk-section-label">{{ 'OFFLINE.DISTANCE_TRAVELED' | translate }}</div>
+        <div class="afk-section-label">{{ 'OFFLINE.STARS_PRODUCED' | translate }}</div>
         <div class="afk-rows">
-          <div class="afk-row">
-            <span class="afk-label">{{ 'OFFLINE.METERS_EXPLORED' | translate }}</span>
-            <span class="afk-value afk-value--exp">+{{ gains.exploreMeters | compactNumber }} m</span>
-          </div>
           <div class="afk-row" *ngIf="gains.exploreStars">
             <span class="afk-label">{{ 'OFFLINE.STARS_PRODUCED' | translate }}</span>
             <span class="afk-value afk-value--exp">+{{ gains.exploreStars | compactNumber }} ★</span>

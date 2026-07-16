@@ -1926,7 +1926,12 @@ export class GameScene extends Phaser.Scene {
             if (p.config.targetMapId === 'world-run') {
               // El runner reaparece al jugador en la ENTRADA del mapa del que sale
               // (su hito de distancia); 'hogar' no tiene hito → arranca en el km 0.
-              this.launchWorldRun();
+              // Ya estamos DENTRO del fundido y con portalCooldown activo, así que
+              // arrancamos la escena directamente: llamar a launchWorldRun() aquí
+              // aborta por su propio guard `if (portalCooldown) return` y no entraría
+              // nunca al Modo Exploración.
+              this.scene.start('WorldRunScene', { entryMapId: this.currentMapConfig.id });
+              this.scene.stop();
               return;
             }
             this.reg.world.setCurrentMap(p.config.targetMapId);

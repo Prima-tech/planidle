@@ -319,10 +319,8 @@ export class LayoutComponent implements OnDestroy {
 
   collectGains(gains: OfflineGains) {
     if (gains.kind === 'exploring') {
-      // Avanza la distancia explorada (resume desde aquí la próxima carrera) y cobra
-      // las estrellas de los generadores pasivos. Los mapas ya NO se desbloquean por
-      // metros (se compran con estrellas en el panel de hitos).
-      this.playerStateService.addExplorationDistance(gains.exploreMeters ?? 0);
+      // AFK explorando: SOLO cobra estrellas (1/10 de la producción activa). Ya no se
+      // avanzan metros: los mapas se compran con estrellas en el panel de hitos.
       if (gains.exploreStars) this.runProgressService.collectStars(gains.exploreStars);
     } else if (gains.kind === 'gathering') {
       // Recolección AFK: XP de la skill (minería/tala) por los nodos acumulados.

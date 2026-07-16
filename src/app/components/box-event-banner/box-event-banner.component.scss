@@ -1,49 +1,49 @@
-/* Banner del nombre de evento (caja "?") — arriba-centro, DEBAJO de la barra de vida
-   (top-bar). SIN marco de madera: solo texto. Título en letras amarillas y, debajo, las
-   estrellas otorgadas en letras blancas más pequeñas. Puramente informativo (sin
-   interacción). El borde oscuro del texto lo hace legible sobre cualquier fondo. */
-$title: #ffd94a;   // amarillo (igual que el "+N ★" del juego)
-$outline: #5a3d08; // contorno marrón oscuro del texto
+/* Banner del nombre de evento (caja "?") — arriba-centro, DEBAJO de la barra de vida.
+   SIN marco: solo texto. Título en letras amarillas con resplandor y contorno oscuro;
+   debajo, las estrellas otorgadas en letras blancas más pequeñas. Entrada con un pop
+   suave. Puramente informativo (sin interacción). */
 
 .beb {
   position: fixed;
-  top: calc(64px + var(--safe-top, 0px));
+  top: calc(60px + var(--safe-top, 0px));
   left: 50%;
+  transform: translateX(-50%);
   z-index: 950;
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
 
   pointer-events: none;
   white-space: nowrap;
   text-align: center;
 
-  /* Estado oculto (montado, sin visibilidad): centrado en X, algo arriba, transparente. */
+  /* Aparición/desaparición del conjunto (el elemento nace con .beb--visible, así que
+     la transición solo se nota en el fade-out al ocultar). */
   opacity: 0;
-  transform: translate(-50%, -14px) scale(0.92);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.28s ease;
 }
 
-/* Estado visible: baja a su sitio y aparece. */
 .beb--visible {
   opacity: 1;
-  transform: translate(-50%, 0) scale(1);
 }
 
-/* Título: solo letras amarillas con contorno oscuro (sin fondo). */
+/* Título: letras amarillas, resplandor cálido + contorno oscuro para legibilidad. */
 .beb-name {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: $title;
+  color: #ffd23f;
   text-shadow:
-    -1px -1px 0 $outline, 1px -1px 0 $outline,
-    -1px 1px 0 $outline, 1px 1px 0 $outline,
-    0 2px 4px rgba(0, 0, 0, 0.7);
+    0 0 7px rgba(255, 190, 40, 0.7),
+    0 0 16px rgba(255, 150, 20, 0.4),
+    0 2px 3px rgba(0, 0, 0, 0.6),
+    -1px -1px 0 #5a3d08, 1px -1px 0 #5a3d08,
+    -1px 1px 0 #5a3d08, 1px 1px 0 #5a3d08;
+  animation: bebPop 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
 /* Estrellas otorgadas: letras blancas más pequeñas, debajo del nombre. */
@@ -54,6 +54,15 @@ $outline: #5a3d08; // contorno marrón oscuro del texto
   letter-spacing: 0.5px;
   color: #ffffff;
   text-shadow:
-    -1px -1px 0 rgba(0, 0, 0, 0.7), 1px -1px 0 rgba(0, 0, 0, 0.7),
-    -1px 1px 0 rgba(0, 0, 0, 0.7), 1px 1px 0 rgba(0, 0, 0, 0.7);
+    0 0 6px rgba(255, 255, 255, 0.35),
+    -1px -1px 0 rgba(0, 0, 0, 0.6), 1px -1px 0 rgba(0, 0, 0, 0.6),
+    -1px 1px 0 rgba(0, 0, 0, 0.6), 1px 1px 0 rgba(0, 0, 0, 0.6);
+  animation: bebPop 0.38s cubic-bezier(0.2, 1.4, 0.4, 1) 0.08s both;
+}
+
+/* Pop suave: entra pequeño, se pasa un pelín y asienta. */
+@keyframes bebPop {
+  0%   { opacity: 0; transform: translateY(6px) scale(0.7); }
+  60%  { opacity: 1; transform: translateY(0)   scale(1.08); }
+  100% { opacity: 1; transform: translateY(0)   scale(1); }
 }
