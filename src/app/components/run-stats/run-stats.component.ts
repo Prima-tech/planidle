@@ -70,6 +70,11 @@ export class RunStatsComponent {
   tab: 'objetivos' | 'completos' | 'stats' | 'weapons' = 'weapons';
 
   // ── Armas (generadores de oro estilo Idle Slayer) ─────────────────────────────
+  /** Armas que YA han aparecido: su umbral de desbloqueo (`unlockAtStars`) se cubre
+   *  con el PICO de estrellas alcanzado a la vez. El pico es monotónico (no baja al
+   *  gastar), así que una vez visible el arma se queda para siempre. Un RESET TOTAL de
+   *  exploración pone el pico a 0 y las vuelve a ocultar hasta re-alcanzar el umbral. */
+  unlockedWeapons(): RunWeaponDef[] { return this.runProgress.unlockedWeapons(); }
   weaponLevel(id: string): number { return this.runProgress.weaponLevel(id); }
   weaponCost(w: RunWeaponDef): number { return this.runProgress.weaponCost(w); }
   canBuyWeapon(w: RunWeaponDef): boolean { return this.runProgress.canBuyWeapon(w); }
@@ -79,9 +84,16 @@ export class RunStatsComponent {
   /** Estrellas/seg total de todas las armas. */
   starsPerSec(): number { return this.runProgress.starsPerSec(); }
 
-  /** Hitos a mostrar según la pestaña: objetivos = no comprados; completos = comprados. */
+  /** Hitos ordenados por PRECIO ascendente (los más baratos arriba). Copia para no
+   *  mutar RUN_MILESTONES. Empate de precio → mantiene el orden del array. */
+  private byCost(): RunMilestoneDef[] {
+    return [...RUN_MILESTONES].sort((a, b) => a.cost - b.cost);
+  }
+
+  /** Hitos a mostrar según la pestaña: objetivos = no comprados; completos = comprados.
+   *  Ordenados por precio (más baratos primero). */
   forTab(owned: string[]): RunMilestoneDef[] {
-    return RUN_MILESTONES.filter(m =>
+    return this.byCost().filter(m =>
       this.tab === 'objetivos' ? !owned.includes(m.id) : owned.includes(m.id));
   }
 
@@ -92,6 +104,21 @@ export class RunStatsComponent {
   canBuy(m: RunMilestoneDef): boolean {
     if (this.owned(m.id) || this.runProgress.getStars() < m.cost) return false;
     return !m.requires || this.owned(m.requires);
+  }
+
+  /** ¿Queda algún hito comprable AHORA? (habilita el botón "comprar todo"). */
+  canBuyAny(): boolean {
+    return RUN_MILESTONES.some(m => this.canBuy(m));
+  }
+
+  /** Compra todos los hitos que se puedan pagar, de más BARATO a más caro (igual que se
+   *  ven en la lista). Cada compra baja las estrellas, así que se re-evalúa `canBuy` en
+   *  cada paso; una sola pasada basta porque los prerrequisitos (mapas encadenados) son
+   *  más baratos que sus dependientes, así van antes. */
+  buyAllAvailable(): void {
+    for (const m of this.byCost()) {
+      if (this.canBuy(m)) this.buy(m);
+    }
   }
 
   buy(m: RunMilestoneDef): void {

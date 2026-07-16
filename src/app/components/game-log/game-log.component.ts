@@ -4,12 +4,13 @@ import { TranslateService } from '@ngx-translate/core';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { RegenService } from 'src/app/services/regen.service';
+import { RunProgressService } from 'src/app/services/run-progress.service';
 
 interface LogEntry {
   id: number;
   name: string;          // clave de agrupación
   label: string;         // texto visible
-  type: 'drop' | 'coin' | 'regen-hp' | 'regen-mp';
+  type: 'drop' | 'coin' | 'regen-hp' | 'regen-mp' | 'star';
   sum: number;           // cantidad acumulada
   mergeable: boolean;
   fading: boolean;
@@ -37,6 +38,7 @@ export class GameLogComponent implements OnInit, OnDestroy {
     private playerState: PlayerStateService,
     private translate: TranslateService,
     private regen: RegenService,
+    private runProgress: RunProgressService,
   ) {}
 
   ngOnInit() {
@@ -67,6 +69,16 @@ export class GameLogComponent implements OnInit, OnDestroy {
           this.push({ name: '__regen_mp__', label: `MP rec: +${mp}`, type: 'regen-mp', sum: mp, mergeable: true });
         }
       }),
+      // Estrellas del Modo Exploración: cada recogida física suma a una sola línea.
+      this.runProgress.starPicked$.subscribe(amount => {
+        this.push({
+          name:      '__stars__',
+          label:     `+ ${this.translate.instant('GAME_LOG.STARS')}`,
+          type:      'star',
+          sum:       amount,
+          mergeable: true,
+        });
+      }),
     );
   }
 
@@ -85,7 +97,7 @@ export class GameLogComponent implements OnInit, OnDestroy {
     if (existing) {
       existing.sum += data.sum;
       existing.label = this.buildLabel(data.label.split(' ').slice(1).join(' '), existing.sum, data.type);
-      this.bump(existing);
+      if (data.type !== 'star') this.bump(existing);   // estrellas: sin "flashazo" al acumular
       this.scheduleRemoval(existing, VISIBLE_MS + EXTENDED_MS);
     } else {
       const entry: LogEntry = {
@@ -107,6 +119,8 @@ export class GameLogComponent implements OnInit, OnDestroy {
   private buildLabel(name: string, sum: number, type: LogEntry['type']): string {
     if (type === 'regen-hp') return `HP rec: +${sum}`;
     if (type === 'regen-mp') return `MP rec: +${sum}`;
+    // Estrellas: solo icono + contador (sin la palabra "Estrellas").
+    if (type === 'star') return `⭐ ×${sum}`;
     const prefix = type === 'coin' ? '🪙' : '+';
     return sum > 1 ? `${prefix} ${name} ×${sum}` : `${prefix} ${name}`;
   }

@@ -54,6 +54,14 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
     labelKey: 'RUN.MS_STARVAL3', descKey: 'RUN.MS_STARVAL_DESC',
     icon: 'star',
   },
+  // Caja aleatoria: cajas "?" tipo Mario que flotan altas; al saltar y golpearlas
+  // desde abajo dan una recompensa ALEATORIA (min. de generación, lluvia de estrellas…).
+  // Efecto en WorldRunScene (gateado por has()). Colocada por precio entre las primeras.
+  {
+    id: 'random_box', cost: 50,
+    labelKey: 'RUN.MS_RANDOMBOX', descKey: 'RUN.MS_RANDOMBOX_DESC',
+    icon: 'gift',
+  },
   // Sin estos hitos NO aparecen enemigos (y sin enemigos no hay estrellas por kill):
   // comprarlos es la primera inversión del loop.
   {
@@ -61,30 +69,30 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
     labelKey: 'RUN.MS_ENEMIES', descKey: 'RUN.MS_ENEMIES_DESC',
     icon: 'paw',
   },
-  // Mapas: se COMPRAN aquí (ya no se desbloquean por metros). El 1-1 cuesta 1★
-  // (primer objetivo, además desbloquea el botón de mapa); el resto 1000★ encadenados.
+  // Mapas: se COMPRAN aquí (ya no se desbloquean por metros). Todos cuestan 1M★,
+  // encadenados (1-2 pide 1-1, etc.). El 1-1 además desbloquea el botón de mapa.
   {
-    id: 'map_1_1', cost: 1,
+    id: 'map_1_1', cost: 1000000,
     labelKey: 'RUN.MS_MAP_1_1', descKey: 'RUN.MS_MAP_DESC',
     icon: 'map', unlockFlag: 'map_1_1',
   },
   {
-    id: 'double_jump', cost: 15,
+    id: 'double_jump', cost: 1000000,
     labelKey: 'RUN.MS_DJUMP', descKey: 'RUN.MS_DJUMP_DESC',
     icon: 'arrow-up-circle',
   },
   {
-    id: 'hearts', cost: 20,
+    id: 'hearts', cost: 1000000,
     labelKey: 'RUN.MS_HEARTS', descKey: 'RUN.MS_HEARTS_DESC',
     icon: 'heart-circle',
   },
   {
-    id: 'magnet1', cost: 25,
+    id: 'magnet1', cost: 1000000,
     labelKey: 'RUN.MS_MAGNET1', descKey: 'RUN.MS_MAGNET1_DESC',
     icon: 'magnet',
   },
   {
-    id: 'star_prod1', cost: 30,
+    id: 'star_prod1', cost: 1000000,
     labelKey: 'RUN.MS_PROD1', descKey: 'RUN.MS_PROD1_DESC',
     icon: 'hourglass',
   },
@@ -94,71 +102,78 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
     icon: 'star',
   },
   {
-    id: 'dash', cost: 40,
+    id: 'dash', cost: 1000000,
     labelKey: 'RUN.MS_DASH', descKey: 'RUN.MS_DASH_DESC',
     icon: 'play-forward',
   },
   {
-    id: 'flying_enemies', cost: 50,
+    id: 'flying_enemies', cost: 1000000,
     labelKey: 'RUN.MS_FLYING', descKey: 'RUN.MS_FLYING_DESC',
     icon: 'airplane',
   },
   {
-    id: 'heart_boost', cost: 60,
+    id: 'heart_boost', cost: 1000000,
     labelKey: 'RUN.MS_HEART', descKey: 'RUN.MS_HEART_DESC',
     icon: 'heart',
   },
   {
-    id: 'slam', cost: 80,
+    id: 'slam', cost: 1000000,
     labelKey: 'RUN.MS_SLAM', descKey: 'RUN.MS_SLAM_DESC',
     icon: 'arrow-down-circle',
   },
   {
-    id: 'magnet2', cost: 120,
+    id: 'magnet2', cost: 1000000,
     labelKey: 'RUN.MS_MAGNET2', descKey: 'RUN.MS_MAGNET2_DESC',
     icon: 'magnet',
   },
   {
-    id: 'bow', cost: 150,
+    id: 'bow', cost: 1000000,
     labelKey: 'RUN.MS_BOW', descKey: 'RUN.MS_BOW_DESC',
     icon: 'send',
   },
   {
-    id: 'star_prod2', cost: 180,
+    id: 'star_prod2', cost: 1000000,
     labelKey: 'RUN.MS_PROD2', descKey: 'RUN.MS_PROD2_DESC',
     icon: 'timer',
   },
   {
-    id: 'star_value2', cost: 200,
+    id: 'star_value2', cost: 1000000,
     labelKey: 'RUN.MS_STARVAL2', descKey: 'RUN.MS_STARVAL_DESC',
     icon: 'star',
   },
+  // Oleada estelar: cada estrella recogida rinde además un 25% de tu producción de
+  // estrellas/seg actual (armas + generadores). Efecto en WorldRunScene.collectStar.
   {
-    id: 'double_arrows', cost: 250,
+    id: 'star_surge', cost: 200,
+    labelKey: 'RUN.MS_SURGE', descKey: 'RUN.MS_SURGE_DESC',
+    icon: 'sparkles',
+  },
+  {
+    id: 'double_arrows', cost: 1000000,
     labelKey: 'RUN.MS_ARROWS2', descKey: 'RUN.MS_ARROWS2_DESC',
     icon: 'swap-vertical',
   },
   {
-    id: 'boost', cost: 350,
+    id: 'boost', cost: 1000000,
     labelKey: 'RUN.MS_BOOST', descKey: 'RUN.MS_BOOST_DESC',
     icon: 'flame',
   },
   {
-    id: 'star_prod3', cost: 400,
+    id: 'star_prod3', cost: 1000000,
     labelKey: 'RUN.MS_PROD3', descKey: 'RUN.MS_PROD3_DESC',
     icon: 'infinite',
   },
   {
-    id: 'second_chance', cost: 500,
+    id: 'second_chance', cost: 1000000,
     labelKey: 'RUN.MS_REVIVE', descKey: 'RUN.MS_REVIVE_DESC',
     icon: 'refresh-circle',
   },
-  // Resto de mapas (1000★ cada uno, encadenados al anterior).
-  { id: 'map_1_2', cost: 1000, labelKey: 'RUN.MS_MAP_1_2', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_2', requires: 'map_1_1' },
-  { id: 'map_1_3', cost: 1000, labelKey: 'RUN.MS_MAP_1_3', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_3', requires: 'map_1_2' },
-  { id: 'map_1_4', cost: 1000, labelKey: 'RUN.MS_MAP_1_4', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_4', requires: 'map_1_3' },
-  { id: 'map_1_5', cost: 1000, labelKey: 'RUN.MS_MAP_1_5', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_5', requires: 'map_1_4' },
-  { id: 'map_1_6', cost: 1000, labelKey: 'RUN.MS_MAP_1_6', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_6', requires: 'map_1_5' },
-  { id: 'map_1_7', cost: 1000, labelKey: 'RUN.MS_MAP_1_7', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_7', requires: 'map_1_6' },
-  { id: 'map_1_8', cost: 1000, labelKey: 'RUN.MS_MAP_1_8', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_8', requires: 'map_1_7' },
+  // Resto de mapas (1M★ cada uno, encadenados al anterior).
+  { id: 'map_1_2', cost: 1000000, labelKey: 'RUN.MS_MAP_1_2', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_2', requires: 'map_1_1' },
+  { id: 'map_1_3', cost: 1000000, labelKey: 'RUN.MS_MAP_1_3', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_3', requires: 'map_1_2' },
+  { id: 'map_1_4', cost: 1000000, labelKey: 'RUN.MS_MAP_1_4', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_4', requires: 'map_1_3' },
+  { id: 'map_1_5', cost: 1000000, labelKey: 'RUN.MS_MAP_1_5', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_5', requires: 'map_1_4' },
+  { id: 'map_1_6', cost: 1000000, labelKey: 'RUN.MS_MAP_1_6', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_6', requires: 'map_1_5' },
+  { id: 'map_1_7', cost: 1000000, labelKey: 'RUN.MS_MAP_1_7', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_7', requires: 'map_1_6' },
+  { id: 'map_1_8', cost: 1000000, labelKey: 'RUN.MS_MAP_1_8', descKey: 'RUN.MS_MAP_DESC', icon: 'map', unlockFlag: 'map_1_8', requires: 'map_1_7' },
 ];

@@ -50,8 +50,9 @@ const S = 1.0;
 export const STAR_HEIGHT_LEVELS = [0, 60, 120];
 
 /**
- * Packs disponibles. Los primeros (sin `requires`) son los base pedidos:
- * un pack de 3 y otro de 5, con las estrellas juntas. La variedad de altura la da
+ * Packs disponibles. Los primeros (sin `requires`) son los base:
+ * un pack de 3, otro de 5 y un 2×2 (dos abajo + dos arriba), con las estrellas juntas.
+ * La variedad de altura la da
  * la elevación al azar (STAR_HEIGHT_LEVELS). Debajo van ejemplos de packs
  * desbloqueables (dormidos hasta que exista su hito en run-milestones).
  */
@@ -76,6 +77,18 @@ export const STAR_PATTERNS: StarPattern[] = [
       { dxM: 2 * S, dy: H },
       { dxM: 3 * S, dy: H },
       { dxM: 4 * S, dy: H },
+    ],
+  },
+  // Base: 2×2 — dos abajo y dos arriba (cuadrado). La fila de arriba pide un salto un
+  // poco más medido; la de abajo es la altura normal.
+  {
+    id: 'square4',
+    widthM: S,
+    points: [
+      { dxM: 0, dy: H },        // abajo-izquierda
+      { dxM: S, dy: H },        // abajo-derecha
+      { dxM: 0, dy: H + 80 },   // arriba-izquierda
+      { dxM: S, dy: H + 80 },   // arriba-derecha
     ],
   },
 

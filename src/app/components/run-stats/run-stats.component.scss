@@ -372,6 +372,16 @@ $metal-dark: #6b6357;
   padding: 12px 4px;
 }
 
+/* Botón "comprar todo lo disponible": ocupa todo el ancho, al pie de la lista de
+   objetivos. Reutiliza el estilo global .rpg-btn (verde de acción). */
+.rs-buy-all {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 0.62em;
+
+  &:disabled { opacity: 0.45; cursor: default; }
+}
+
 /* ── Pestaña de estadísticas: reutiliza la tarjeta .rs-ms (icono + etiqueta) y añade
       el valor grande a la derecha, en una pastilla metálica como el marco del icono. ── */
 .rs-stat-card .rs-ms-name { font-size: 0.7em; }

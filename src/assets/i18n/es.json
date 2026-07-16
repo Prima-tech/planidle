@@ -514,15 +514,19 @@
     "WEAPONS": "Armas",
     "WPN_SWORD": "Espada",
     "WPN_SHIELD": "Escudo",
+    "WPN_ARMOR": "Armadura",
     "STARS_PER_SEC": "Estrellas por segundo",
     "STARS_PER_SEC_SHORT": "★/s",
     "MS_NONE": "Nada por aquí todavía.",
+    "MS_BUY_ALL": "Comprar todo lo disponible",
     "MS_SPRINT": "Impulso",
     "MS_SPRINT_DESC": "Ataque de impulso: corre más rápido durante la exploración.",
     "MS_ENEMIES": "Enemigos",
     "MS_ENEMIES_DESC": "Aparecen enemigos terrestres en la exploración: mátalos y sueltan estrellas.",
     "MS_FLYING": "Enemigos voladores",
     "MS_FLYING_DESC": "Aparecen enemigos voladores: más peligro y más estrellas.",
+    "MS_RANDOMBOX": "Caja aleatoria",
+    "MS_RANDOMBOX_DESC": "Aparecen cajas \"?\" flotantes: salta y golpéalas desde abajo para una recompensa aleatoria (estrellas, lluvia de estrellas…).",
     "MS_DJUMP": "Doble salto",
     "MS_DJUMP_DESC": "Salta otra vez en el aire (toca de nuevo mientras saltas).",
     "MS_DASH": "Embestida",
@@ -539,6 +543,8 @@
     "MS_STARVAL2": "Estrellas valiosas II",
     "MS_STARVAL3": "Estrellas valiosas III",
     "MS_STARVAL_DESC": "+1 estrella por cada estrella recogida o enemigo abatido.",
+    "MS_SURGE": "Oleada estelar",
+    "MS_SURGE_DESC": "Cada estrella que recojas rinde además un 25% de tus estrellas por segundo actuales.",
     "MS_HEART": "Corazones grandes",
     "MS_HEART_DESC": "Los corazones curan mucho más vida.",
     "MS_ARROWS2": "Flechas dobles",
@@ -574,7 +580,8 @@
     "DEATH_ACCEPT": "Aceptar"
   },
   "GAME_LOG": {
-    "COINS": "Monedas"
+    "COINS": "Monedas",
+    "STARS": "Estrellas"
   },
   "COMMON": {
     "LOADING": "...",

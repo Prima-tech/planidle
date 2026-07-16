@@ -4,6 +4,7 @@
 
 - **NUNCA preguntes si enviar al móvil.** Solo deploy si el usuario lo pide explícitamente.
 - **Al ejecutar una skill**, muestra qué skill y con qué argumentos antes de empezar.
+- **i18n automático:** cada literal de UI nuevo va SIEMPRE con clave i18n traducida en `en.json` Y `es.json` (nunca texto suelto sin traducir). Al añadir cualquier feature con texto visible, crear ambas traducciones en el mismo cambio, sin que haga falta pedirlo.
 
 ## Stack
 

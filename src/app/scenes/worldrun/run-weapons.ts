@@ -40,6 +40,15 @@ export const RUN_WEAPONS: RunWeaponDef[] = [
     starsPerSecPerLevel: 1,
     unlockAtStars: 80,   // aparece al llegar a 80 estrellas a la vez
   },
+  {
+    id: 'armor',
+    labelKey: 'RUN.WPN_ARMOR',
+    img: 'assets/icon/placeholder/torso.png',
+    baseCost: 500,
+    costGrowth: 1.15,
+    starsPerSecPerLevel: 5,
+    unlockAtStars: 500,   // aparece al llegar a 500 estrellas a la vez
+  },
 ];
 
 /** Armas disponibles según el pico de estrellas alcanzado (saldo máximo a la vez). */

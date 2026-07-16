@@ -68,6 +68,36 @@ const HEART_SCALE = 1.8;
 const HEART_HEAL = 10;               // vida que cura al recogerlo
 const HEART_HEIGHTS = [50, 120, 90];
 
+// --- Bloques "?" tipo Mario Bros (procedurales, sin asset) ---
+// Cajas doradas flotantes: al SALTAR y golpearlas DESDE ABAJO (cabezazo) sueltan 1
+// estrella y quedan "gastadas" (no vuelven a dar). Se generan por delante (una cada
+// BLOCK_INTERVAL_MS por TIEMPO) y se reciclan al quedar atrás, como corazones/estrellas.
+// La textura se dibuja por código en buildBlockTextures() (patrón de ARROW/AURA): si
+// luego quieres arte propio, sustituye BLOCK_KEY/BLOCK_USED_KEY por sprites cargados.
+const BLOCK_KEY = 'wr_qblock';        // caja con "?"
+const BLOCK_USED_KEY = 'wr_qblock_used';   // caja gastada (tras el golpe)
+const BLOCK_TEX = 32;                 // px del texture generado
+const BLOCK_SCALE = 1.6;              // 32 → ~51 px en pantalla (~1 tile)
+const BLOCK_DISPLAY = BLOCK_TEX * BLOCK_SCALE;
+// Ritmo de aparición POR TIEMPO (no por distancia): un bloque cada BLOCK_INTERVAL_MS.
+// Parámetro variable: baja para más cajas, sube para menos. 10000 = 1 cada 10 s.
+const BLOCK_INTERVAL_MS = 10000;
+// Centro del bloque sobre la línea de suelo (px). TODOS a la misma altura, alta:
+// pide un salto mantenido para llegar. En reposo NO se tocan (hay que saltar).
+const BLOCK_HEIGHT = 260;
+
+// --- Lluvia de estrellas (recompensa #2 de la Caja aleatoria) ---
+// Durante STAR_RAIN_MS se siembran estrellas normales (coleccionables, mismo grupo que
+// las de siempre) en el MAPA NUEVO que va apareciendo por delante del borde derecho:
+// NO surgen de golpe en mitad de la pantalla, nacen fuera y entran con el scroll. Cada
+// estrella se coloca en un hueco LIBRE (nunca encima de otra). Los patrones normales
+// siguen igual — esto se suma por encima.
+const STAR_RAIN_MS = 10000;          // duración del evento
+const STAR_RAIN_SPAWN_MS = 260;      // cada cuánto se siembra una tanda (mitad de densidad)
+const STAR_RAIN_PER_TICK = 3;        // estrellas por tanda
+const STAR_RAIN_AHEAD_W = 420;       // ancho (px) de la franja de mapa nuevo donde sembrar
+const STAR_RAIN_MIN_GAP = 46;        // distancia mínima entre estrellas (sin solaparse)
+
 // --- Enemigos decorativos (assets/sprites/enemy/world/rat/rat.png) ---
 // Hoja 768×160 con frames de 64×32 (NO 32×32): 12 cols × 5 filas. El contenido va
 // centrado en cada celda de 64px (verificado por alfa: centros en x=32,96,160…).
@@ -258,6 +288,15 @@ export class WorldRunScene extends Phaser.Scene {
   // al recogerlos. nextHeartIndex 1 = primer corazón a HEART_INTERVAL_M metros.
   private hearts!: Phaser.Physics.Arcade.Group;
   private nextHeartIndex = 1;
+  // Bloques "?" tipo Mario: aparece uno cada BLOCK_INTERVAL_MS (por TIEMPO); al
+  // golpearlos desde abajo saltando sueltan 1 estrella. nextBlockAt = instante (ms de
+  // la escena) del próximo spawn.
+  private blocks!: Phaser.Physics.Arcade.Group;
+  private nextBlockAt = 0;
+  // Lluvia de estrellas (recompensa de la Caja aleatoria): activa hasta starRainUntil;
+  // nextRainStarAt = instante de la próxima tanda. Usa el grupo `stars` normal.
+  private starRainUntil = 0;
+  private nextRainStarAt = 0;
   // Ratas: plantadas en idle; el jugador las mata al pasar a su lado. Mundo infinito:
   // solo existen las cercanas (se generan por delante y se reciclan al quedar atrás).
   // Al morir salen del array y se animan/destruyen por su cuenta (ver playRatDeath).
@@ -420,6 +459,9 @@ export class WorldRunScene extends Phaser.Scene {
     this.nextPatternM   = Math.max(STAR_FIRST_M, skip + STAR_PATTERN_GAP_M);
     this.patternCursor  = 0;
     this.nextHeartIndex = Math.max(1, Math.floor(skip / HEART_INTERVAL_M));
+    this.nextBlockAt = this.time.now + BLOCK_INTERVAL_MS;   // primer bloque tras un intervalo
+    this.starRainUntil = 0;   // sin lluvia de estrellas al arrancar
+    this.nextRainStarAt = 0;
     this.rats = [];
     this.nextRatIndex   = Math.max(1, Math.floor(skip / RAT_INTERVAL_M));
     this.fenixes = [];
@@ -490,6 +532,8 @@ export class WorldRunScene extends Phaser.Scene {
     this.createPlayer();
     this.createStars();
     this.createHearts();
+    this.buildBlockTextures();
+    this.createBlocks();
     this.createRats();
     this.createFenixes();
     this.createStartSign();
@@ -586,6 +630,8 @@ export class WorldRunScene extends Phaser.Scene {
     this.recycleChunks();
     this.updateStars(delta);
     this.updateHearts(delta);
+    this.updateBlocks();
+    this.updateStarRain();
     this.updateRats();
     this.updateFenixes();
     this.updateFireballs(delta);
@@ -975,12 +1021,22 @@ export class WorldRunScene extends Phaser.Scene {
     return this.reg.runProgress.has(id);
   }
 
-  /** Recoge una estrella: suma al contador (persistido, × estrellas valiosas). */
+  /** Hito "oleada estelar": cada estrella recogida rinde ADEMÁS un 25% de tu producción
+   *  de estrellas/seg actual (armas + generadores de hitos). 0 si no está comprado. */
+  private starSurgeBonus(): number {
+    if (!this.ms('star_surge')) return 0;
+    const perSec = this.reg.runProgress.starsPerSec()
+      + starProdPerMin(this.reg.runProgress.getMilestones()) / 60;
+    return Math.floor(perSec * 0.25);
+  }
+
+  /** Recoge una estrella: suma al contador (persistido, × estrellas valiosas + oleada). */
   private collectStar(star: Phaser.Physics.Arcade.Sprite): void {
     if (!star.active) return;        // evita doble cobro si dos overlaps caen el mismo frame
     star.disableBody(true, false);   // quita el cuerpo pero deja el sprite para el tween
-    const n = this.starValue();
+    const n = this.starValue() + this.starSurgeBonus();
     this.reg.runProgress.collectStars(n);
+    this.reg.runProgress.starPicked$.next(n);   // game-log abajo-izq (acumula por línea)
     if (n > 1) this.showStarGain(star.x, star.y, n);
     this.tweens.add({
       targets: star, y: star.y - 40, alpha: 0, scale: STAR_SCALE * 1.6,
@@ -1053,6 +1109,195 @@ export class WorldRunScene extends Phaser.Scene {
       targets: heart, y: heart.y - 40, alpha: 0, scale: HEART_SCALE * 1.6,
       duration: 250, ease: 'Quad.out', onComplete: () => heart.destroy(),
     });
+  }
+
+  // ── Bloques "?" tipo Mario Bros ───────────────────────────────────────────────
+  /** Grupo de bloques (sin gravedad, inmóviles) + overlap con el jugador. Usamos
+   *  OVERLAP (no collider sólido) a propósito: así el bloque nunca frena el auto-run
+   *  ni bloquea al jugador de lado; solo detectamos el cabezazo desde abajo. */
+  private createBlocks(): void {
+    this.blocks = this.physics.add.group({ allowGravity: false, immovable: true });
+    this.physics.add.overlap(this.player, this.blocks,
+      (_p, b) => this.hitBlock(b as Phaser.Physics.Arcade.Sprite));
+  }
+
+  /**
+   * Genera bloques POR TIEMPO (uno cada BLOCK_INTERVAL_MS) justo por delante del borde
+   * derecho, y destruye los que quedaron atrás. Puerta del hito 'random_box' (Caja
+   * aleatoria): sin comprar no aparecen y el temporizador se aplaza, para que al
+   * comprarlo el primero salga tras un intervalo completo (no de golpe).
+   */
+  private updateBlocks(): void {
+    const scrollX = this.cameras.main.scrollX;
+    const now = this.time.now;
+
+    if (!this.ms('random_box')) {
+      this.nextBlockAt = now + BLOCK_INTERVAL_MS;
+    } else if (now >= this.nextBlockAt) {
+      const x = scrollX + this.scale.width + 80;   // por delante del borde derecho
+      const y = (this.groundTopY + SURFACE_INSET) - BLOCK_HEIGHT;
+      const block = this.blocks.create(x, y, BLOCK_KEY) as Phaser.Physics.Arcade.Sprite;
+      block.setScale(BLOCK_SCALE).setDepth(4);
+      block.setData('used', false);
+      block.setData('baseY', y);   // altura de reposo (para el rebote del cabezazo)
+      this.nextBlockAt = now + BLOCK_INTERVAL_MS;
+    }
+
+    for (const obj of this.blocks.getChildren()) {
+      const block = obj as Phaser.Physics.Arcade.Sprite;
+      if (block.x < scrollX - CHUNK_W) block.destroy();
+    }
+  }
+
+  /** Overlap jugador↔bloque: solo cuenta si el jugador SUBE (cabezazo desde abajo).
+   *  Cayendo o en el apex no pasa nada — hay que saltar y golpearlo por debajo. */
+  private hitBlock(block: Phaser.Physics.Arcade.Sprite): void {
+    if (!block.active || block.getData('used')) return;
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    if (body.velocity.y >= 0) return;   // no sube: está cayendo/quieto → no es un cabezazo
+    this.bonkBlock(block);
+  }
+
+  /** Golpea el bloque: lo marca gastado, lo rebota, empuja al jugador hacia abajo y
+   *  entrega una recompensa ALEATORIA (ver grantRandomBoxReward). */
+  private bonkBlock(block: Phaser.Physics.Arcade.Sprite): void {
+    block.setData('used', true);
+    block.setTexture(BLOCK_USED_KEY);
+    const baseY = block.getData('baseY') as number;
+    // Rebote del bloque: sube un poco y vuelve (el clásico "bump" de Mario).
+    this.tweens.add({ targets: block, y: baseY - 10, duration: 80, yoyo: true, ease: 'Quad.out' });
+    // El jugador rebota hacia abajo tras el cabezazo.
+    this.player.setVelocityY(160);
+    this.grantRandomBoxReward(block.x, baseY - BLOCK_DISPLAY * 0.5);
+  }
+
+  /**
+   * Recompensa ALEATORIA de la Caja aleatoria. Sortea UNIFORME entre las disponibles
+   * (misma probabilidad cada una → con 2 eventos, 50% y 50%; se reajusta solo al añadir
+   * más):
+   *   #1 · Un minuto de la generación pasiva de estrellas.
+   *   #2 · Lluvia de estrellas: 10 s de estrellas naciendo en el mapa nuevo.
+   * Añadir más = otra entrada en la lista.
+   */
+  private grantRandomBoxReward(x: number, y: number): void {
+    const rewards = [
+      () => this.rewardMinuteOfStars(x, y),
+      () => this.rewardStarRain(),
+    ];
+    Phaser.Math.RND.pick(rewards)();
+  }
+
+  /** Recompensa #1: 1 minuto de la generación pasiva de estrellas — las ★/s de las
+   *  armas (×60) más las ★/min de los hitos de producción. Mínimo 1 para que la caja
+   *  siempre dé algo aunque aún no generes nada. */
+  private rewardMinuteOfStars(x: number, y: number): void {
+    const perMin = this.reg.runProgress.starsPerSec() * 60
+      + starProdPerMin(this.reg.runProgress.getMilestones());
+    const n = Math.max(1, Math.floor(perMin));
+    this.reg.runProgress.collectStars(n);
+    this.popBlockStar(x, y, n);
+  }
+
+  /** Estrella que "sale" del bloque con el "+N ★" flotando: el sprite sube y se
+   *  desvanece (reutiliza el feedback de las estrellas normales). */
+  private popBlockStar(x: number, y: number, n: number): void {
+    this.showStarGain(x, y, n);
+    const star = this.add.sprite(x, y, STAR_KEYS[0]).setScale(STAR_SCALE).setDepth(6);
+    if (this.anims.exists(STAR_ANIM)) star.play(STAR_ANIM);
+    this.tweens.add({
+      targets: star, y: y - 48, alpha: 0, scale: STAR_SCALE * 1.4,
+      duration: 420, ease: 'Quad.out', onComplete: () => star.destroy(),
+    });
+  }
+
+  /** Recompensa #2: activa la LLUVIA DE ESTRELLAS durante STAR_RAIN_MS. Las estrellas
+   *  las va sembrando updateStarRain por toda la pantalla; los patrones normales siguen
+   *  igual (esto se suma por encima). */
+  private rewardStarRain(): void {
+    this.starRainUntil = this.time.now + STAR_RAIN_MS;
+    this.nextRainStarAt = 0;   // primera tanda ya en el próximo frame
+  }
+
+  /** Mientras la lluvia esté activa, siembra tandas de estrellas normales
+   *  (coleccionables, mismo grupo `stars`) en la franja de MAPA NUEVO por delante del
+   *  borde derecho: nacen fuera de pantalla y entran con el scroll (no surgen de golpe
+   *  en mitad de la vista). Cada una en un hueco libre, sin solaparse. La limpieza y el
+   *  imán los gestiona updateStars, igual que cualquier estrella. */
+  private updateStarRain(): void {
+    const now = this.time.now;
+    if (now >= this.starRainUntil || now < this.nextRainStarAt) return;
+    this.nextRainStarAt = now + STAR_RAIN_SPAWN_MS;
+    const groundY = this.groundTopY + SURFACE_INSET;
+    const xBase = this.cameras.main.scrollX + this.scale.width + 40;   // más allá del borde derecho
+    for (let i = 0; i < STAR_RAIN_PER_TICK; i++) {
+      const pos = this.findFreeStarSpot(xBase, groundY);
+      if (!pos) continue;   // no hay hueco sin solapar en esta franja: se salta
+      const star = this.stars.create(pos.x, pos.y, STAR_KEYS[0]) as Phaser.Physics.Arcade.Sprite;
+      star.setScale(STAR_SCALE).setDepth(4);
+      if (this.anims.exists(STAR_ANIM)) star.play(STAR_ANIM);
+    }
+  }
+
+  /** Punto en la franja de mapa nuevo (por delante del borde) que NO solape con ninguna
+   *  estrella ya existente (mín. STAR_RAIN_MIN_GAP). null si tras varios intentos no hay
+   *  hueco libre — así nunca nacen estrellas encima de otras. */
+  private findFreeStarSpot(xBase: number, groundY: number): { x: number; y: number } | null {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const x = xBase + Phaser.Math.Between(0, STAR_RAIN_AHEAD_W);
+      const y = Phaser.Math.Between(60, Math.floor(groundY - 30));
+      let free = true;
+      for (const obj of this.stars.getChildren()) {
+        const s = obj as Phaser.Physics.Arcade.Sprite;
+        if (s.active && Phaser.Math.Distance.Between(x, y, s.x, s.y) < STAR_RAIN_MIN_GAP) {
+          free = false;
+          break;
+        }
+      }
+      if (free) return { x, y };
+    }
+    return null;
+  }
+
+  /** Dibuja por código las texturas del bloque "?" y del bloque gastado (pixel-art,
+   *  sin asset). Idempotente: solo la primera vez. Sustituible por sprites propios. */
+  private buildBlockTextures(): void {
+    const S = BLOCK_TEX;
+    const DARK = 0x3a2708, GOLD = 0xf0b429, HI = 0xffd76b, LO = 0xc07d10;
+    if (!this.textures.exists(BLOCK_KEY)) {
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      g.fillStyle(DARK, 1).fillRect(0, 0, S, S);          // borde oscuro
+      g.fillStyle(GOLD, 1).fillRect(2, 2, S - 4, S - 4);  // cuerpo dorado
+      g.fillStyle(HI, 1).fillRect(2, 2, S - 4, 2);        // biselado arriba/izquierda
+      g.fillStyle(HI, 1).fillRect(2, 2, 2, S - 4);
+      g.fillStyle(LO, 1).fillRect(2, S - 4, S - 4, 2);    // sombra abajo/derecha
+      g.fillStyle(LO, 1).fillRect(S - 4, 2, 2, S - 4);
+      // Remaches en las esquinas.
+      g.fillStyle(DARK, 1);
+      for (const [rx, ry] of [[5, 5], [S - 8, 5], [5, S - 8], [S - 8, S - 8]]) g.fillRect(rx, ry, 3, 3);
+      // Interrogante "?" en bloques (pixel-art a base de rectángulos).
+      g.fillStyle(DARK, 1);
+      g.fillRect(11, 7, 10, 3);   // arco superior
+      g.fillRect(18, 9, 3, 5);    // hombro derecho
+      g.fillRect(14, 13, 5, 3);   // curva al centro
+      g.fillRect(14, 16, 3, 5);   // tallo
+      g.fillRect(14, 23, 3, 3);   // punto
+      g.generateTexture(BLOCK_KEY, S, S);
+      g.destroy();
+      this.textures.get(BLOCK_KEY).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+    if (!this.textures.exists(BLOCK_USED_KEY)) {
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      const BR = 0x7a5a2a, BRHI = 0x9a7a44, BRLO = 0x5a3d1a;
+      g.fillStyle(DARK, 1).fillRect(0, 0, S, S);
+      g.fillStyle(BR, 1).fillRect(2, 2, S - 4, S - 4);
+      g.fillStyle(BRHI, 1).fillRect(2, 2, S - 4, 2);
+      g.fillStyle(BRLO, 1).fillRect(2, S - 4, S - 4, 2);
+      g.fillStyle(DARK, 1);
+      for (const [rx, ry] of [[5, 5], [S - 8, 5], [5, S - 8], [S - 8, S - 8]]) g.fillRect(rx, ry, 3, 3);
+      g.generateTexture(BLOCK_USED_KEY, S, S);
+      g.destroy();
+      this.textures.get(BLOCK_USED_KEY).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
   }
 
   /** Efecto de curación sobre el jugador del runner: "+X" verde que flota hacia

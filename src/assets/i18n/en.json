@@ -514,15 +514,19 @@
     "WEAPONS": "Weapons",
     "WPN_SWORD": "Sword",
     "WPN_SHIELD": "Shield",
+    "WPN_ARMOR": "Armor",
     "STARS_PER_SEC": "Stars per second",
     "STARS_PER_SEC_SHORT": "★/s",
     "MS_NONE": "Nothing here yet.",
+    "MS_BUY_ALL": "Buy all available",
     "MS_SPRINT": "Sprint",
     "MS_SPRINT_DESC": "Sprint attack: run faster while exploring.",
     "MS_ENEMIES": "Enemies",
     "MS_ENEMIES_DESC": "Ground enemies appear while exploring: slay them for stars.",
     "MS_FLYING": "Flying enemies",
     "MS_FLYING_DESC": "Flying enemies appear: more danger, more stars.",
+    "MS_RANDOMBOX": "Random box",
+    "MS_RANDOMBOX_DESC": "Floating \"?\" boxes appear: jump and hit them from below for a random reward (stars, star rain…).",
     "MS_DJUMP": "Double jump",
     "MS_DJUMP_DESC": "Jump again mid-air (tap again while jumping).",
     "MS_DASH": "Dash",
@@ -539,6 +543,8 @@
     "MS_STARVAL2": "Valuable stars II",
     "MS_STARVAL3": "Valuable stars III",
     "MS_STARVAL_DESC": "+1 star per star collected or enemy slain.",
+    "MS_SURGE": "Star surge",
+    "MS_SURGE_DESC": "Each star you collect also grants 25% of your current stars per second.",
     "MS_HEART": "Big hearts",
     "MS_HEART_DESC": "Hearts heal much more health.",
     "MS_ARROWS2": "Double arrows",
@@ -574,7 +580,8 @@
     "DEATH_ACCEPT": "Accept"
   },
   "GAME_LOG": {
-    "COINS": "Coins"
+    "COINS": "Coins",
+    "STARS": "Stars"
   },
   "COMMON": {
     "LOADING": "...",

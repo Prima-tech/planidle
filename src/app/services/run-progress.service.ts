@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { StorageService } from './storage.service';
 import { PlayerStateService } from './player-state.service';
 import { RUN_WEAPONS, RunWeaponDef, weaponUpgradeCost, weaponStarsPerSec, unlockedRunWeapons } from '../scenes/worldrun/run-weapons';
@@ -63,6 +63,9 @@ export class RunProgressService {
   readonly weapons$        = new BehaviorSubject<Record<string, number>>({});
   /** Emite en cualquier cambio (para HUD/paneles que quieran refrescar totales). */
   readonly changes$    = new BehaviorSubject<void>(undefined);
+  /** Emite la cantidad al RECOGER una estrella física (para el game-log de abajo-izq).
+   *  NO lo disparan los generadores pasivos (armas/hitos), solo la recogida real. */
+  readonly starPicked$ = new Subject<number>();
 
   constructor() { this.loadPromise = this.load(); }
 
