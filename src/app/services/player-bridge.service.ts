@@ -54,6 +54,9 @@ export class PlayerBridgeService {
 
   /** El icono de teletransporte pide entrar al mapa; la WorldRunScene lo hace. */
   readonly enterMapRequest$ = new Subject<string>();
+  /** La lista de mapas (panel del mundo) pide entrar al Modo Exploración (runner)
+   *  desde un mapa de grid. La GameScene lo escucha y arranca WorldRunScene. */
+  readonly enterRunRequest$ = new Subject<void>();
   /** Modo Mundo: al pasar por la entrada de un mapa YA desbloqueado, la escena pide
    *  mostrar el icono de teletransporte (arriba-derecha, 10 s). Emite el id del mapa. */
   readonly mapEntranceHint$ = new Subject<string>();
@@ -141,6 +144,10 @@ export class PlayerBridgeService {
    *  la WorldRunScene, que sale de la exploración a ese mapa. */
   requestEnterMap(mapId: string): void {
     this.enterMapRequest$.next(mapId);
+  }
+  /** Entrar al Modo Exploración (runner) desde la lista de mapas del panel del mundo. */
+  requestEnterRun(): void {
+    this.enterRunRequest$.next();
   }
   /** Pasar por una entrada ya desbloqueada: muestra el icono de teletransporte. */
   showMapEntranceHint(mapId: string): void { this.mapEntranceHint$.next(mapId); }

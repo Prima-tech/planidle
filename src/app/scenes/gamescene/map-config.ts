@@ -191,7 +191,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
 
   // w/h DEBEN coincidir con tools/mapgen/manifest.mjs. Spawn = centro (derivado en genLevel).
   // DEV: 1-1 se sirve desde wip/ para poder editar en Tiled en caliente. Al terminar, volver a gen (assets/tilemaps/generated/1-1.tmj).
-  '1-1': { ...genLevel({ id: '1-1', w: 60, h: 50, back: 'hogar', next: '1-2', enemyType: 'slime4',   maxCount: 2, behavior: 'passive',    visionRadius: 5, gemTier: 1 }), tilemapJson: 'assets/tilemaps/wip/1-1.tmj' },
+  '1-1': { ...genLevel({ id: '1-1', w: 80, h: 50, back: 'hogar', next: '1-2', enemyType: 'slime4',   maxCount: 2, behavior: 'passive',    visionRadius: 5, gemTier: 1 }), tilemapJson: 'assets/tilemaps/wip/1-1.tmj' },
   '1-2': genLevel({ id: '1-2', w: 64, h: 54, back: '1-1',   next: '1-3', enemyType: 'rats1',    maxCount: 3, behavior: 'passive',    visionRadius: 5, mineTier: 2, gemTier: 2, treeTier: 2 }),
   '1-3': genLevel({ id: '1-3', w: 68, h: 56, back: '1-2',   next: '1-4', enemyType: 'orc1',     maxCount: 3, behavior: 'passive',    visionRadius: 5, mineTier: 3, gemTier: 3, treeTier: 3 }),
   '1-4': genLevel({ id: '1-4', w: 72, h: 60, back: '1-3',   next: '1-5', enemyType: 'goobling1', maxCount: 4, behavior: 'aggressive', visionRadius: 4, mineTier: 4, gemTier: 4 }),

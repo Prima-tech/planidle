@@ -169,6 +169,13 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     color: $gold;
     background: $wood-btn-dark;
   }
+
+  &.pml-run {                       // Exploración: no es un mapa, es un modo → acento propio
+    color: $text-cream;
+    font-style: italic;
+    background: linear-gradient(180deg, $wood-btn-light, $wood-btn-dark);
+    &.selected { color: $gold; border-color: $gold; }
+  }
 }
 
 // ── Info card (placa oscura) ───────────────────────────────────────────────

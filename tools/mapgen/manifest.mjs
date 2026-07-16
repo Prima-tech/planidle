@@ -23,7 +23,7 @@ function level(n, { width, height, density, frozen }) {
 // density = stamps por cada 100 tiles. Con decoración abundante (matas/flores) va alto;
 // las charcas salen pocas porque pesan poco en el reparto ponderado (ver biomes.mjs).
 export const MANIFEST = [
-  level(1, { width: 60, height: 50, density: 5 }),
+  level(1, { width: 80, height: 50, density: 5 }),
   level(2, { width: 64, height: 54, density: 5.5 }),
   level(3, { width: 68, height: 56, density: 6 }),
   level(4, { width: 72, height: 60, density: 6.5 }),

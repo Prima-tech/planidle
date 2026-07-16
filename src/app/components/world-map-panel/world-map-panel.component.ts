@@ -142,15 +142,25 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
 
   /** Mapas DESBLOQUEADOS del planeta que se está viendo, para la lista de la izquierda
    *  del globo. Pinchar uno gira el globo hacia su pin (focusPlanetMap). */
-  get planetMapList(): { id: string; name: string; current: boolean }[] {
+  get planetMapList(): { id: string; name: string; current: boolean; run?: boolean }[] {
     const ids = PLANET_MAPS[this.detailPlanetId] ?? [];
-    return ids
+    const list: { id: string; name: string; current: boolean; run?: boolean }[] = ids
       .filter(id => !this.isMapLocked(id))
       .map(id => ({
         id,
         name: MAP_REGISTRY[id]?.name ?? id,
         current: id === this.currentMapId,
       }));
+    // Justo debajo de Asgard (hogar): entrada al Modo Exploración (runner). No es un
+    // mapa de grid; su click arranca WorldRunScene (ver enterExploration()).
+    const hogarIdx = list.findIndex(m => m.id === 'hogar');
+    if (hogarIdx >= 0) {
+      list.splice(hogarIdx + 1, 0, {
+        id: 'world-run', name: 'Exploración',
+        current: this.playerBridge.runMode$.value, run: true,
+      });
+    }
+    return list;
   }
 
   /** Pinchar un mapa de la lista: gira el globo para centrar su pin y deja ese mapa
@@ -162,6 +172,13 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       this.selectedMap = MAP_REGISTRY[mapId];
       this.loadCharsOnMap(mapId);
     }
+  }
+
+  /** Entrada "Exploración" de la lista: arranca el Modo Exploración (runner) desde el
+   *  mapa actual y cierra el panel. La GameScene reacciona al enterRunRequest$. */
+  enterExploration() {
+    this.playerBridge.requestEnterRun();
+    this.playerBridge.requestCloseMenus();
   }
 
   private destroyPlanetGame() {

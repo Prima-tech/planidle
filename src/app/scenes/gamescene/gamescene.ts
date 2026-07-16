@@ -158,6 +158,7 @@ export class GameScene extends Phaser.Scene {
     private equipSub:    { unsubscribe(): void } | null = null;
     private gatherLayerSub: { unsubscribe(): void } | null = null;
     private summonSub:   { unsubscribe(): void } | null = null;
+    private enterRunSub: { unsubscribe(): void } | null = null;
     private itemDropSub: { unsubscribe(): void } | null = null;
     private dropToWorldSub: { unsubscribe(): void } | null = null;
     private chestSub:       { unsubscribe(): void } | null = null;
@@ -563,6 +564,7 @@ export class GameScene extends Phaser.Scene {
         this.equipSub?.unsubscribe();
         this.gatherLayerSub?.unsubscribe();
         this.summonSub?.unsubscribe();
+        this.enterRunSub?.unsubscribe();
         this.itemDropSub?.unsubscribe();
         this.dropToWorldSub?.unsubscribe();
         this.chestSub?.unsubscribe();
@@ -620,6 +622,7 @@ export class GameScene extends Phaser.Scene {
         this.initMapStatsTimers();
         this.initEquipLayers();
         this.initSummonListener();
+        this.initEnterRunListener();
         this.initChestListener();
         this.initBuildPlacementListener();
         this.initBuildClearedListener();
@@ -1902,8 +1905,7 @@ export class GameScene extends Phaser.Scene {
             if (p.config.targetMapId === 'world-run') {
               // El runner reaparece al jugador en la ENTRADA del mapa del que sale
               // (su hito de distancia); 'hogar' no tiene hito → arranca en el km 0.
-              this.scene.start('WorldRunScene', { entryMapId: this.currentMapConfig.id });
-              this.scene.stop();
+              this.launchWorldRun();
               return;
             }
             this.reg.world.setCurrentMap(p.config.targetMapId);
@@ -3034,6 +3036,24 @@ export class GameScene extends Phaser.Scene {
           }
         },
       });
+    }
+
+    /** Arranca el Modo Exploración (runner) con fundido, desde el mapa actual: el
+     *  runner reaparece en la ENTRADA de ese mapa (su hito de distancia). Lo usan
+     *  tanto el portal 'world-run' como la lista de mapas del panel del mundo. */
+    private launchWorldRun(): void {
+      if (this.portalCooldown) return;
+      this.portalCooldown = true;
+      this.cameras.main.fadeOut(250, 0, 0, 0);
+      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+        this.scene.start('WorldRunScene', { entryMapId: this.currentMapConfig.id });
+        this.scene.stop();
+      });
+    }
+
+    /** La lista de mapas (panel del mundo) pide entrar al Modo Exploración. */
+    private initEnterRunListener(): void {
+      this.enterRunSub = this.reg.playerBridge.enterRunRequest$.subscribe(() => this.launchWorldRun());
     }
 
     private initSummonListener(): void {

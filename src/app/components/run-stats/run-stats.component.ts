@@ -4,6 +4,7 @@ import { RunProgressService } from 'src/app/services/run-progress.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones';
+import { RUN_WEAPONS, RunWeaponDef, weaponStarsPerSec } from 'src/app/scenes/worldrun/run-weapons';
 
 /**
  * HUD de estadísticas del Modo Mundo (arriba a la derecha, solo en run-mode).
@@ -38,6 +39,9 @@ export class RunStatsComponent {
   })));
 
   readonly RUN_MILESTONES = RUN_MILESTONES;
+  readonly RUN_WEAPONS = RUN_WEAPONS;
+  /** Emite en cada cambio de armas/oro para refrescar niveles y oro/seg en la pestaña. */
+  readonly weapons$ = this.runProgress.weapons$;
 
   /** Botón de ajustes del widget (en exploración no hay minimap): lo abre el layout. */
   @Output() openSettings = new EventEmitter<void>();
@@ -55,9 +59,19 @@ export class RunStatsComponent {
   panelOpen = false;
   togglePanel(): void { this.panelOpen = !this.panelOpen; }
 
-  /** Pestaña activa del panel: objetivos (por comprar), completos (ya comprados) o
-   *  stats (estadísticas de por vida de la cuenta). */
-  tab: 'objetivos' | 'completos' | 'stats' = 'objetivos';
+  /** Pestaña activa del panel: objetivos (por comprar), completos (ya comprados),
+   *  stats (estadísticas de por vida) o weapons (armas generadoras de oro). */
+  tab: 'objetivos' | 'completos' | 'stats' | 'weapons' = 'objetivos';
+
+  // ── Armas (generadores de oro estilo Idle Slayer) ─────────────────────────────
+  weaponLevel(id: string): number { return this.runProgress.weaponLevel(id); }
+  weaponCost(w: RunWeaponDef): number { return this.runProgress.weaponCost(w); }
+  canBuyWeapon(w: RunWeaponDef): boolean { return this.runProgress.canBuyWeapon(w); }
+  buyWeapon(w: RunWeaponDef): void { this.runProgress.buyWeapon(w); }
+  /** Estrellas/seg que produce un arma a su nivel actual. */
+  weaponRate(w: RunWeaponDef): number { return weaponStarsPerSec(w, this.weaponLevel(w.id)); }
+  /** Estrellas/seg total de todas las armas. */
+  starsPerSec(): number { return this.runProgress.starsPerSec(); }
 
   /** Hitos a mostrar según la pestaña: objetivos = no comprados; completos = comprados. */
   forTab(owned: string[]): RunMilestoneDef[] {

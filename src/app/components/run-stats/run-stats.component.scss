@@ -110,6 +110,14 @@ $metal-dark: #6b6357;
   color: $text-brown;
 }
 
+/* Tasa de estrellas/seg que generan las armas, junto al contador (solo si > 0). */
+.rs-rate {
+  margin-left: 3px;
+  font-size: 0.55em;
+  font-weight: bold;
+  color: #7a4a1d;
+}
+
 /* Botón de ajustes: flotante en la esquina superior derecha, redondo con bisel de
    piedra (mismo que el del minimap). */
 .rs-settings {
@@ -265,6 +273,20 @@ $metal-dark: #6b6357;
 .rs-ms-desc {
   font-size: 0.5em;
   color: rgba(83, 48, 28, 0.75);
+}
+
+/* Arma (generador de oro): icono pixel-art en el marco metálico + nivel junto al nombre. */
+.rs-weapon-img {
+  width: 26px;
+  height: 26px;
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+
+.rs-weapon-lvl {
+  font-size: 0.85em;
+  font-weight: 800;
+  color: #7a4a1d;
 }
 
 /* Botón de compra: verde como el "Comprar" de la tienda. */

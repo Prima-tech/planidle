@@ -6,11 +6,12 @@
     <img src="assets/icon/menu/config.png" alt="" draggable="false" />
   </button>
 
-  <!-- Widget: contador de estrellas (sin barras) -->
+  <!-- Widget: contador de estrellas + estrellas/seg generadas por las armas (si > 0) -->
   <div class="rs-widget">
     <div class="rs-stat">
       <img class="rs-img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
       <span class="rs-val">{{ stars$ | async }}</span>
+      <span class="rs-rate" *ngIf="starsPerSec() > 0">+{{ starsPerSec() | number:'1.1-1' }}/s</span>
     </div>
   </div>
 
@@ -28,16 +29,19 @@
     <button class="rs-vtab" [class.active]="tab === 'completos'" (click)="tab = 'completos'" [title]="'RUN.MS_DONE' | translate">
       <ion-icon name="checkmark-done-outline"></ion-icon>
     </button>
+    <button class="rs-vtab" [class.active]="tab === 'weapons'" (click)="tab = 'weapons'" [title]="'RUN.WEAPONS' | translate">
+      <ion-icon name="flash-outline"></ion-icon>
+    </button>
     <button class="rs-vtab" [class.active]="tab === 'stats'" (click)="tab = 'stats'" [title]="'RUN.STATS' | translate">
       <ion-icon name="stats-chart-outline"></ion-icon>
     </button>
   </div>
 
-  <!-- Panel desplegable: hitos comprables con estrellas (abre hasta cerca del footer). -->
-  <div class="rs-panel" *ngIf="panelOpen">
+  <!-- Panel desplegable: hitos / estadísticas / armas (abre hasta cerca del footer). -->
+  <div class="rs-panel" *ngIf="panelOpen" [ngSwitch]="tab">
 
     <!-- Pestaña ESTADÍSTICAS: totales de por vida de toda la cuenta. -->
-    <ng-container *ngIf="tab === 'stats'; else milestonesTab">
+    <ng-container *ngSwitchCase="'stats'">
       <ng-container *ngIf="stats$ | async as st">
         <div class="rs-ms rs-stat-card">
           <div class="rs-ms-frame"><ion-icon name="trophy"></ion-icon></div>
@@ -57,8 +61,30 @@
       </ng-container>
     </ng-container>
 
+    <!-- Pestaña ARMAS: generadores pasivos de ESTRELLAS (estilo Idle Slayer). Cada nivel
+         produce estrellas/seg mientras exploras; se compran con oro. -->
+    <ng-container *ngSwitchCase="'weapons'">
+      <!-- Estrellas/seg total de todas las armas. `weapons$` fuerza el refresco al comprar. -->
+      <div class="rs-collected" *ngIf="weapons$ | async">
+        <img class="rs-collected-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+        <span class="rs-collected-label">{{ 'RUN.STARS_PER_SEC' | translate }}</span>
+        <span class="rs-collected-val">{{ starsPerSec() | number:'1.1-1' }}/s</span>
+      </div>
+      <div class="rs-ms rs-weapon" *ngFor="let w of RUN_WEAPONS">
+        <div class="rs-ms-frame"><img class="rs-weapon-img" [src]="w.img" alt="" draggable="false" /></div>
+        <div class="rs-ms-body">
+          <span class="rs-ms-name">{{ w.labelKey | translate }} <span class="rs-weapon-lvl">Nv {{ weaponLevel(w.id) }}</span></span>
+          <span class="rs-ms-desc">{{ weaponRate(w) | number:'1.1-1' }} {{ 'RUN.STARS_PER_SEC_SHORT' | translate }}</span>
+        </div>
+        <button class="rpg-btn rpg-btn--sm rs-ms-buy" [disabled]="!canBuyWeapon(w)" (click)="buyWeapon(w)">
+          <img class="rs-ms-star" src="assets/sprites/resources/coin.png" alt="" draggable="false" />
+          <span>{{ weaponCost(w) | compactNumber }}</span>
+        </button>
+      </div>
+    </ng-container>
+
     <!-- Pestañas OBJETIVOS / COMPLETOS: hitos comprables o ya comprados. -->
-    <ng-template #milestonesTab>
+    <ng-container *ngSwitchDefault>
       <!-- Total de estrellas recogidas de por vida (no baja al gastar en hitos). -->
       <div class="rs-collected">
         <img class="rs-collected-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
@@ -81,7 +107,7 @@
           <div class="rs-empty" *ngIf="list.length === 0">{{ 'RUN.MS_NONE' | translate }}</div>
         </ng-container>
       </ng-container>
-    </ng-template>
+    </ng-container>
   </div>
 
 </div>

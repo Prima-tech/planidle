@@ -61,8 +61,9 @@
       <button
         *ngFor="let m of planetMapList"
         class="pml-item"
-        [class.selected]="selectedMap?.id === m.id"
-        (click)="focusPlanetMap(m.id)"
+        [class.selected]="m.run ? m.current : selectedMap?.id === m.id"
+        [class.pml-run]="m.run"
+        (click)="m.run ? enterExploration() : focusPlanetMap(m.id)"
       >
         <span class="pml-name">{{ m.name }}</span>
       </button>

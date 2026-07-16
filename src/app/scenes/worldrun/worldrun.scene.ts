@@ -581,6 +581,7 @@ export class WorldRunScene extends Phaser.Scene {
     this.updatePlayerAnim(onGround);
     this.updateArrows(now, delta);
     this.updateStarProduction(delta);
+    this.reg.runProgress.tickWeaponStars(delta);   // generadores de estrellas (armas)
 
     // (La cámara la mueve startFollow tras la física; aquí solo leemos su scroll.)
     this.updateParallax();

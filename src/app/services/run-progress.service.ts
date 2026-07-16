@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { StorageService } from './storage.service';
+import { PlayerStateService } from './player-state.service';
+import { RUN_WEAPONS, RunWeaponDef, weaponUpgradeCost, weaponStarsPerSec } from '../scenes/worldrun/run-weapons';
 
 /**
  * Progresión del MODO EXPLORACIÓN (world run) COMPARTIDA entre todos los personajes
@@ -31,6 +33,7 @@ export interface RunProgressSnapshot {
   stars: number;
   starsCollected: number;   // total de por vida recogido (nunca baja al gastar)
   milestones: string[];
+  weaponLevels: Record<string, number>;   // nivel de cada arma generadora de oro
   perChar: Record<string, RunCharStats>;
   mergedChars: string[];
 }
@@ -41,10 +44,13 @@ const EMPTY_CHAR: RunCharStats = { kills: 0, deaths: 0, bestDistanceM: 0 };
 @Injectable({ providedIn: 'root' })
 export class RunProgressService {
   private storage = inject(StorageService);
+  private playerState = inject(PlayerStateService);
 
   private stars = 0;
   private starsCollected = 0;   // total recogido de por vida (solo sube; comprar NO lo baja)
   private milestones: string[] = [];
+  private weaponLevels: Record<string, number> = {};   // generadores de estrellas (armas)
+  private starCarry = 0;        // fracción de estrella acumulada del tick (no se persiste)
   private perChar: Record<string, RunCharStats> = {};
   private mergedChars = new Set<string>();
   private loadPromise: Promise<void>;
@@ -52,6 +58,7 @@ export class RunProgressService {
   readonly stars$          = new BehaviorSubject<number>(0);
   readonly starsCollected$ = new BehaviorSubject<number>(0);
   readonly milestones$     = new BehaviorSubject<string[]>([]);
+  readonly weapons$        = new BehaviorSubject<Record<string, number>>({});
   /** Emite en cualquier cambio (para HUD/paneles que quieran refrescar totales). */
   readonly changes$    = new BehaviorSubject<void>(undefined);
 
@@ -98,6 +105,49 @@ export class RunProgressService {
     this.changes$.next();
     this.persist();
     return true;
+  }
+
+  // ── Armas: generadores pasivos de ESTRELLAS (estilo Idle Slayer) ──────────────
+  /** Nivel actual de un arma (0 = sin comprar). */
+  weaponLevel(id: string): number { return this.weaponLevels[id] ?? 0; }
+
+  /** Coste (en oro) de subir el arma un nivel más desde su nivel actual. */
+  weaponCost(def: RunWeaponDef): number { return weaponUpgradeCost(def, this.weaponLevel(def.id)); }
+
+  /** ¿Alcanza el oro del jugador para subir el arma un nivel? */
+  canBuyWeapon(def: RunWeaponDef): boolean {
+    return (this.playerState.snapshot().coins ?? 0) >= this.weaponCost(def);
+  }
+
+  /** Sube un nivel el arma gastando oro del jugador. false si no alcanza. */
+  buyWeapon(def: RunWeaponDef): boolean {
+    const cost = this.weaponCost(def);
+    if ((this.playerState.snapshot().coins ?? 0) < cost) return false;
+    this.playerState.addCoins(-cost);   // gasta oro (silencioso)
+    this.weaponLevels = { ...this.weaponLevels, [def.id]: this.weaponLevel(def.id) + 1 };
+    this.weapons$.next(this.weaponLevels);
+    this.changes$.next();
+    this.persist();
+    return true;
+  }
+
+  /** Estrellas/seg total que producen todas las armas (suma de niveles × su tasa). */
+  starsPerSec(): number {
+    return RUN_WEAPONS.reduce((s, w) => s + weaponStarsPerSec(w, this.weaponLevel(w.id)), 0);
+  }
+
+  /** Tick del generador de estrellas de las armas: llámalo desde el bucle de exploración
+   *  con el delta (ms). Acumula fracciones y entrega estrellas ENTERAS con `collectStars`
+   *  (suben el saldo y el total recogido). La misma tasa podría correr AFK (pendiente). */
+  tickWeaponStars(deltaMs: number): void {
+    const perSec = this.starsPerSec();
+    if (perSec <= 0) return;
+    this.starCarry += perSec * (deltaMs / 1000);
+    if (this.starCarry >= 1) {
+      const n = Math.floor(this.starCarry);
+      this.starCarry -= n;
+      this.collectStars(n);
+    }
   }
 
   // ── Stats por personaje + TOTAL de la cuenta ──────────────────────────────────
@@ -160,6 +210,7 @@ export class RunProgressService {
     this.stars$.next(this.stars);
     this.starsCollected$.next(this.starsCollected);
     this.milestones$.next(this.milestones);
+    this.weapons$.next(this.weaponLevels);
     this.changes$.next();
   }
 
@@ -171,6 +222,8 @@ export class RunProgressService {
       ? raw.starsCollected : Math.max(0, this.stars);
     this.milestones = Array.isArray(raw.milestones)
       ? raw.milestones.filter(x => typeof x === 'string') : [];
+    this.weaponLevels = (raw.weaponLevels && typeof raw.weaponLevels === 'object')
+      ? raw.weaponLevels : {};
     this.perChar = (raw.perChar && typeof raw.perChar === 'object') ? raw.perChar : {};
     this.mergedChars = new Set(Array.isArray(raw.mergedChars) ? raw.mergedChars : []);
   }
@@ -182,6 +235,7 @@ export class RunProgressService {
       stars: this.stars,
       starsCollected: this.starsCollected,
       milestones: this.milestones,
+      weaponLevels: this.weaponLevels,
       perChar: this.perChar,
       mergedChars: [...this.mergedChars],
     };
@@ -200,6 +254,10 @@ export class RunProgressService {
       this.starsCollected,
       typeof cloud.starsCollected === 'number' ? cloud.starsCollected : 0);
     this.milestones = [...new Set([...this.milestones, ...(cloud.milestones ?? [])])];
+    // Niveles de arma: monotónicos → nos quedamos con el nivel más alto (nube vs local).
+    for (const [id, lvl] of Object.entries(cloud.weaponLevels ?? {})) {
+      this.weaponLevels[id] = Math.max(this.weaponLevels[id] ?? 0, lvl ?? 0);
+    }
     for (const [id, st] of Object.entries(cloud.perChar ?? {})) {
       const local = this.perChar[id];
       this.perChar[id] = local ? {
@@ -212,6 +270,7 @@ export class RunProgressService {
     this.stars$.next(this.stars);
     this.starsCollected$.next(this.starsCollected);
     this.milestones$.next(this.milestones);
+    this.weapons$.next(this.weaponLevels);
     this.changes$.next();
     this.persist();
   }
