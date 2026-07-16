@@ -14,11 +14,10 @@ $text-cream: #ecd9b4;
   top: 86px;
   left: calc(8px + var(--safe-left, 0px));
   z-index: 45;
-  width: 190px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;   // botón pegado a la izquierda
-  gap: 4px;
+  flex-direction: row;       // botón a la izquierda, lista a su derecha
+  align-items: flex-start;   // alineados por arriba: la 1ª misión queda junto al botón
+  gap: 5px;
   pointer-events: none;
 }
 
@@ -52,7 +51,7 @@ $text-cream: #ecd9b4;
 }
 
 .quest-tracker-inner {
-  width: 100%;
+  width: 175px;              // panel a la derecha del botón: 1ª misión arriba, resto debajo
   display: flex;
   flex-direction: column;
   gap: 3px;
