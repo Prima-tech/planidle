@@ -173,8 +173,12 @@ export const MAP_OBLIVION_THRESHOLD: Record<string, number> = {
 
 export const MAP_REGISTRY: Record<string, MapConfig> = {
 
+  // Asgard usa una COPIA independiente del mapa 1-1 (mismos tilesets biomas/grasslands),
+  // servida desde wip/asgard.tmj para editarla en Tiled sin afectar a 1-1 (son archivos
+  // distintos). `...gen('asgard')` aporta tilemapKey 'gen-asgard' (único) + los tilesets.
   hogar: {
-    ...W1_HOME_TILESET,
+    ...gen('asgard'),
+    tilemapJson: 'assets/tilemaps/wip/asgard.tmj',
     id: 'hogar', name: 'Asgard',
     spawns: [],
     portals: [
@@ -182,11 +186,6 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
       { tilePos: { x: 30, y: 17 }, targetMapId: 'world-run', direction: 'next' }, // entrada al Modo Mundo (runner)
     ],
     spawnPos: { x: 30, y: 30 },
-    extraTilesets: [
-      { key: 'w1-water-detail', name: 'Water_detilazation', image: 'assets/tilemaps/W1/water_detilazation.png' },
-      { key: 'w1-water-coasts', name: 'Water_coasts',       image: 'assets/tilemaps/W1/Water_coasts.png'       },
-      { key: 'w1-ground-copia', name: 'ground_grasss - copia', image: 'assets/tilemaps/W1/ground_grasss.png' },
-    ],
   },
 
   // w/h DEBEN coincidir con tools/mapgen/manifest.mjs. Spawn = centro (derivado en genLevel).

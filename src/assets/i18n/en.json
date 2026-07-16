@@ -102,7 +102,8 @@
     "CONFIRM": {
       "OVERWRITE_CLOUD": "The cloud has a MORE RECENT save (saved on {{when}}, probably from another device).\n\nIf you continue, you'll overwrite it with this save and lose that progress. Overwrite?",
       "DELETE_ACCOUNT": "Delete your Supabase account? You will no longer be able to sign in with it. This action cannot be undone.",
-      "DELETE_ACCOUNT_ERROR": "Could not delete the account. Check your connection and try again."
+      "DELETE_ACCOUNT_ERROR": "Could not delete the account. Check your connection and try again.",
+      "RESET_EXPLORATION": "Reset ALL Exploration Mode progress? You'll lose your stars, purchased upgrades and weapons, and maps will be re-locked. You'll start from scratch. This action cannot be undone."
     },
     "LOGOUT": "Log out",
     "DELETE": "Delete",
@@ -341,8 +342,8 @@
     "NONE_COMPLETED": "You haven't completed any quests yet.",
     "PRIMERAS_ESTRELLAS": {
       "NAME": "Mordekai's Call",
-      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and bring back 1 star: tap the screen to jump and grab it on the fly. Claiming it teaches you the Sprint.",
-      "TRACK": "Collect 1 star"
+      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and gather 100 stars: tap the screen to jump and grab them on the fly. Reward: 10 gold.",
+      "TRACK": "Collect 100 stars"
     },
     "MATA_RATA": {
       "NAME": "Hatchet Rat",
@@ -512,6 +513,7 @@
     "STARS_COLLECTED": "Stars collected",
     "WEAPONS": "Weapons",
     "WPN_SWORD": "Sword",
+    "WPN_SHIELD": "Shield",
     "STARS_PER_SEC": "Stars per second",
     "STARS_PER_SEC_SHORT": "★/s",
     "MS_NONE": "Nothing here yet.",
@@ -529,16 +531,13 @@
     "MS_SLAM_DESC": "Swipe down mid-air (or S/↓): dive down and the shockwave kills nearby enemies.",
     "MS_BOW": "Bow",
     "MS_BOW_DESC": "Auto-fires arrows every few seconds, sweeping enemies ahead at your height.",
-    "MS_SPEED1": "Faster run I",
-    "MS_SPEED2": "Faster run II",
-    "MS_SPEED3": "Faster run III",
-    "MS_SPEED_DESC": "+10% run speed (permanent).",
     "MS_MAGNET1": "Magnet I",
     "MS_MAGNET1_DESC": "Nearby stars and hearts fly to you.",
     "MS_MAGNET2": "Magnet II",
     "MS_MAGNET2_DESC": "Greatly extends the magnet's reach.",
     "MS_STARVAL1": "Valuable stars I",
     "MS_STARVAL2": "Valuable stars II",
+    "MS_STARVAL3": "Valuable stars III",
     "MS_STARVAL_DESC": "+1 star per star collected or enemy slain.",
     "MS_HEART": "Big hearts",
     "MS_HEART_DESC": "Hearts heal much more health.",

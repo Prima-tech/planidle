@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { StorageService } from './storage.service';
 import { PlayerStateService } from './player-state.service';
-import { RUN_WEAPONS, RunWeaponDef, weaponUpgradeCost, weaponStarsPerSec } from '../scenes/worldrun/run-weapons';
+import { RUN_WEAPONS, RunWeaponDef, weaponUpgradeCost, weaponStarsPerSec, unlockedRunWeapons } from '../scenes/worldrun/run-weapons';
 
 /**
  * Progresión del MODO EXPLORACIÓN (world run) COMPARTIDA entre todos los personajes
@@ -32,8 +32,9 @@ export interface RunCharStats {
 export interface RunProgressSnapshot {
   stars: number;
   starsCollected: number;   // total de por vida recogido (nunca baja al gastar)
+  starsPeak: number;        // saldo MÁXIMO alcanzado a la vez (desbloqueo de armas)
   milestones: string[];
-  weaponLevels: Record<string, number>;   // nivel de cada arma generadora de oro
+  weaponLevels: Record<string, number>;   // nivel de cada arma generadora de estrellas
   perChar: Record<string, RunCharStats>;
   mergedChars: string[];
 }
@@ -48,6 +49,7 @@ export class RunProgressService {
 
   private stars = 0;
   private starsCollected = 0;   // total recogido de por vida (solo sube; comprar NO lo baja)
+  private starsPeak = 0;        // saldo máximo alcanzado a la vez (desbloqueo de armas)
   private milestones: string[] = [];
   private weaponLevels: Record<string, number> = {};   // generadores de estrellas (armas)
   private starCarry = 0;        // fracción de estrella acumulada del tick (no se persiste)
@@ -82,9 +84,13 @@ export class RunProgressService {
       this.starsCollected += amount;
       this.starsCollected$.next(this.starsCollected);
     }
+    if (this.stars > this.starsPeak) this.starsPeak = this.stars;   // desbloqueo de armas
     this.stars$.next(this.stars);
     this.persist();
   }
+
+  /** Pico de estrellas alcanzado a la vez (saldo máximo). Desbloquea armas por hito. */
+  getStarsPeak(): number { return this.starsPeak; }
 
   // ── Hitos / desbloqueos ───────────────────────────────────────────────────────
   getMilestones(): string[] { return this.milestones; }
@@ -112,23 +118,27 @@ export class RunProgressService {
   }
 
   // ── Armas: generadores pasivos de ESTRELLAS (estilo Idle Slayer) ──────────────
+  /** Armas ya desbloqueadas (según el pico de estrellas alcanzado). */
+  unlockedWeapons(): RunWeaponDef[] { return unlockedRunWeapons(this.starsPeak); }
+
   /** Nivel actual de un arma (0 = sin comprar). */
   weaponLevel(id: string): number { return this.weaponLevels[id] ?? 0; }
 
-  /** Coste (en oro) de subir el arma un nivel más desde su nivel actual. */
+  /** Coste (en ESTRELLAS) de subir el arma un nivel más desde su nivel actual. */
   weaponCost(def: RunWeaponDef): number { return weaponUpgradeCost(def, this.weaponLevel(def.id)); }
 
-  /** ¿Alcanza el oro del jugador para subir el arma un nivel? */
+  /** ¿Alcanzan las estrellas para subir el arma un nivel? */
   canBuyWeapon(def: RunWeaponDef): boolean {
-    return (this.playerState.snapshot().coins ?? 0) >= this.weaponCost(def);
+    return this.stars >= this.weaponCost(def);
   }
 
-  /** Sube un nivel el arma gastando oro del jugador. false si no alcanza. */
+  /** Sube un nivel el arma gastando ESTRELLAS. false si no alcanza. */
   buyWeapon(def: RunWeaponDef): boolean {
     const cost = this.weaponCost(def);
-    if ((this.playerState.snapshot().coins ?? 0) < cost) return false;
-    this.playerState.addCoins(-cost);   // gasta oro (silencioso)
+    if (this.stars < cost) return false;
+    this.stars -= cost;   // gasta estrellas
     this.weaponLevels = { ...this.weaponLevels, [def.id]: this.weaponLevel(def.id) + 1 };
+    this.stars$.next(this.stars);
     this.weapons$.next(this.weaponLevels);
     this.changes$.next();
     this.persist();
@@ -224,6 +234,10 @@ export class RunProgressService {
     // menos eso se recogió) para no arrancar en 0 con estrellas ya en el bolsillo.
     this.starsCollected = typeof raw.starsCollected === 'number'
       ? raw.starsCollected : Math.max(0, this.stars);
+    // Saves antiguos no traían el pico: siémbralo con el saldo actual (al menos eso se
+    // llegó a tener a la vez) para no re-bloquear armas ya desbloqueadas.
+    this.starsPeak = typeof raw.starsPeak === 'number'
+      ? raw.starsPeak : Math.max(0, this.stars);
     this.milestones = Array.isArray(raw.milestones)
       ? raw.milestones.filter(x => typeof x === 'string') : [];
     this.weaponLevels = (raw.weaponLevels && typeof raw.weaponLevels === 'object')
@@ -232,12 +246,38 @@ export class RunProgressService {
     this.mergedChars = new Set(Array.isArray(raw.mergedChars) ? raw.mergedChars : []);
   }
 
+  /**
+   * RESET TOTAL del Modo Exploración: deja la progresión del runner como recién
+   * empezada — 0 estrellas (saldo, total recogido y pico), sin hitos ni niveles de
+   * arma (0 ★/min y 0 ★/seg) y sin stats por personaje (kills/muertes/récord). Emite
+   * todos los observables y reescribe la clave local. NO sobrescribe la nube: como
+   * `restore()` es aditivo (une hitos, toma el máximo de estrellas/niveles), el
+   * llamador DEBE hacer `SaveService.forceSave(true)` tras esto para pisar el snapshot
+   * de la nube; si no, al re-loguear se re-inflaría todo.
+   */
+  resetExploration(): void {
+    this.stars = 0;
+    this.starsCollected = 0;
+    this.starsPeak = 0;
+    this.milestones = [];
+    this.weaponLevels = {};
+    this.starCarry = 0;
+    this.perChar = {};
+    this.stars$.next(0);
+    this.starsCollected$.next(0);
+    this.milestones$.next([]);
+    this.weapons$.next({});
+    this.changes$.next();
+    this.persist();
+  }
+
   private persist(): void { this.storage.set(STORAGE_KEY, this.getSnapshot()); }
 
   getSnapshot(): RunProgressSnapshot {
     return {
       stars: this.stars,
       starsCollected: this.starsCollected,
+      starsPeak: this.starsPeak,
       milestones: this.milestones,
       weaponLevels: this.weaponLevels,
       perChar: this.perChar,

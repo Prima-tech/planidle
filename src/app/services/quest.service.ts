@@ -91,9 +91,10 @@ export const QUESTS: QuestDef[] = [
     desc: 'QUESTS.PRIMERAS_ESTRELLAS.DESC',
     icon: 'star-outline',
     track: 'QUESTS.PRIMERAS_ESTRELLAS.TRACK',
-    objective: { type: 'stars', goal: 1 },
-    // Única recompensa: el Impulso (hito 'sprint'). Sin oro ni EXP.
-    reward: { runMilestone: 'sprint' },
+    objective: { type: 'stars', goal: 100 },
+    // Recompensa: 10 de oro. El Impulso ya NO se otorga aquí: se compra con estrellas
+    // en el panel de mejoras del run (hito 'sprint', 10★).
+    reward: { coins: 10 },
     // Al cobrarla en la ventana de equipo: se cierra y Mordekai suelta el hint de la rata.
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_CLAIM1' },
   },

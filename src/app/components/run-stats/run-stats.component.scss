@@ -98,8 +98,9 @@ $metal-dark: #6b6357;
 }
 
 .rs-img {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
+  margin-top: -3px;
   image-rendering: pixelated;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
 }
@@ -270,7 +271,7 @@ $metal-dark: #6b6357;
   color: rgba(83, 48, 28, 0.75);
 }
 
-/* Arma (generador de oro): icono pixel-art en el marco metálico + nivel junto al nombre. */
+/* Arma (generador de estrellas): icono pixel-art en el marco metálico + nivel junto al nombre. */
 .rs-weapon-img {
   width: 26px;
   height: 26px;
@@ -282,6 +283,34 @@ $metal-dark: #6b6357;
   font-size: 0.85em;
   font-weight: 800;
   color: #7a4a1d;
+}
+
+/* Precio del arma: se paga con ESTRELLAS → misma pastilla que los contadores de arriba
+   (número + estrella al lado, madera con bisel de piedra), pero clicable. */
+.rs-weapon-buy {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline;
+  cursor: pointer;
+
+  &:focus { outline: none; }
+  &:active:not(.rs-weapon-buy--off) { transform: translateY(1px); }
+}
+
+/* Sin estrellas suficientes: apagado y sin click. */
+.rs-weapon-buy--off {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* Botón de compra: verde como el "Comprar" de la tienda. */

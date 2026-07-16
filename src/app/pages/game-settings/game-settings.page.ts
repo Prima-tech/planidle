@@ -10,6 +10,10 @@ import { SaveService, SaveStatus } from 'src/app/services/save.service';
 import { AsgardService } from 'src/app/services/asgard';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
+import { RunProgressService } from 'src/app/services/run-progress.service';
+import { UnlockService } from 'src/app/services/unlock.service';
+import { mapFeatureId } from 'src/app/services/unlock-config';
+import { RUN_MILESTONES } from 'src/app/services/run-milestones';
 import { PARALLAX_THEME_LIST } from 'src/app/scenes/gamescene/parallax-themes';
 import { WORLD_PARALLAX_SETS } from 'src/app/scenes/worldrun/parallax-sets';
 import { APP_VERSION } from 'src/app/version';
@@ -43,6 +47,8 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
   private asgard = inject(AsgardService);
   private playerState = inject(PlayerStateService);
   private playerBridge = inject(PlayerBridgeService);
+  private runProgress = inject(RunProgressService);
+  private unlocks = inject(UnlockService);
   private translate = inject(TranslateService);
   private router = inject(Router);
 
@@ -188,6 +194,24 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
   grantCoins(): void {
     const amount = Math.max(1, Math.min(this.ADMIN_COINS_MAX, Math.floor(this.adminCoins) || 0));
     this.playerState.collectCoins(amount);
+  }
+
+  /**
+   * Admin: RESET TOTAL del Modo Exploración. Deja la progresión del runner como recién
+   * empezada — 0 estrellas, sin hitos ni armas (0 ★/min), y "descompra" los mapas
+   * (re-bloquea 1-1..1-8). Sobrescribe la nube para que no se re-infle al re-loguear.
+   */
+  async resetExploration(): Promise<void> {
+    if (!confirm(this.translate.instant('SETTINGS.CONFIRM.RESET_EXPLORATION'))) return;
+    this.runProgress.resetExploration();
+    // Quita los flags de mapa comprados y re-bloquea sus features (mapas 1-1..1-8).
+    const mapFlags = RUN_MILESTONES
+      .map(m => m.unlockFlag)
+      .filter((f): f is string => !!f);
+    const mapFeatures = mapFlags.map(f => mapFeatureId(f.slice('map_'.length).replace('_', '-')));
+    this.unlocks.resetUnlocks(mapFlags, mapFeatures);
+    // restore() es aditivo: sin pisar la nube, al re-loguear volvería a inflarse.
+    await this.saveService.forceSave(true);
   }
 
   /** Cierra sesión y vuelve al login.

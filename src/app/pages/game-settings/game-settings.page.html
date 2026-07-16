@@ -218,6 +218,18 @@
               <div class="gs-toggle-thumb"></div>
             </div>
           </div>
+
+          <!-- RESET TOTAL de exploración: 0 estrellas, hitos/armas y mapas descomprados. -->
+          <div class="gs-row gs-row-stack">
+            <div class="gs-row-info">
+              <span class="gs-row-title">Reiniciar exploración</span>
+              <span class="gs-row-desc">Borra todo el progreso del Modo Exploración: 0 estrellas, mejoras y armas descompradas, 0 ★/min y mapas re-bloqueados. Como empezar de cero.</span>
+            </div>
+            <button class="rpg-btn gs-coins-btn gs-danger-btn" (click)="resetExploration()">
+              <span class="gs-save-icon">🗑</span>
+              <span>Reiniciar exploración</span>
+            </button>
+          </div>
         </div>
       </ng-container>
 

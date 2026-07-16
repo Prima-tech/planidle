@@ -102,7 +102,8 @@
     "CONFIRM": {
       "OVERWRITE_CLOUD": "La nube tiene una partida MÁS RECIENTE (guardada el {{when}}, probablemente desde otro dispositivo).\n\nSi continúas, la sobrescribirás con esta partida y perderás ese progreso. ¿Sobrescribir?",
       "DELETE_ACCOUNT": "¿Eliminar tu cuenta de Supabase? No podrás volver a acceder con ella. Esta acción no se puede deshacer.",
-      "DELETE_ACCOUNT_ERROR": "No se pudo borrar la cuenta. Revisa la conexión e inténtalo de nuevo."
+      "DELETE_ACCOUNT_ERROR": "No se pudo borrar la cuenta. Revisa la conexión e inténtalo de nuevo.",
+      "RESET_EXPLORATION": "¿Reiniciar TODO el Modo Exploración? Perderás las estrellas, las mejoras y armas compradas y los mapas se re-bloquearán. Empezarás de cero. Esta acción no se puede deshacer."
     },
     "LOGOUT": "Cerrar sesión",
     "DELETE": "Borrar",
@@ -341,8 +342,8 @@
     "NONE_COMPLETED": "Aún no has completado ninguna misión.",
     "PRIMERAS_ESTRELLAS": {
       "NAME": "La llamada de Mordekai",
-      "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y trae 1 estrella: toca la pantalla para saltar y recógela al vuelo. Al cobrarla aprenderás el Impulso.",
-      "TRACK": "Consigue 1 estrella"
+      "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y reúne 100 estrellas: toca la pantalla para saltar y recógelas al vuelo. Recompensa: 10 de oro.",
+      "TRACK": "Consigue 100 estrellas"
     },
     "MATA_RATA": {
       "NAME": "Rata hachiática",
@@ -512,6 +513,7 @@
     "STARS_COLLECTED": "Estrellas recogidas",
     "WEAPONS": "Armas",
     "WPN_SWORD": "Espada",
+    "WPN_SHIELD": "Escudo",
     "STARS_PER_SEC": "Estrellas por segundo",
     "STARS_PER_SEC_SHORT": "★/s",
     "MS_NONE": "Nada por aquí todavía.",
@@ -529,16 +531,13 @@
     "MS_SLAM_DESC": "Desliza hacia abajo en el aire (o S/↓): caes en picado y la onda mata a los enemigos cercanos.",
     "MS_BOW": "Arco",
     "MS_BOW_DESC": "Dispara flechas solo cada pocos segundos: barre enemigos por delante a tu altura.",
-    "MS_SPEED1": "Correr más I",
-    "MS_SPEED2": "Correr más II",
-    "MS_SPEED3": "Correr más III",
-    "MS_SPEED_DESC": "+10% de velocidad de carrera (permanente).",
     "MS_MAGNET1": "Imán I",
     "MS_MAGNET1_DESC": "Las estrellas y corazones cercanos vuelan hacia ti.",
     "MS_MAGNET2": "Imán II",
     "MS_MAGNET2_DESC": "Amplía mucho el alcance del imán.",
     "MS_STARVAL1": "Estrellas valiosas I",
     "MS_STARVAL2": "Estrellas valiosas II",
+    "MS_STARVAL3": "Estrellas valiosas III",
     "MS_STARVAL_DESC": "+1 estrella por cada estrella recogida o enemigo abatido.",
     "MS_HEART": "Corazones grandes",
     "MS_HEART_DESC": "Los corazones curan mucho más vida.",

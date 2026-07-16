@@ -209,7 +209,6 @@ const AURA_X_OFFSET = 20;            // ajuste horizontal fino del aura respecto
 // --- Escalera de mejoras (hitos comprables con estrellas, ver run-milestones.ts) ---
 // El loop estilo Idle Slayer: matar da estrellas → compras la siguiente mejora →
 // llegas más lejos → más estrellas. Efectos por hito:
-const SPEED_BOOST_PER_TIER = 0.10;   // 'speed1/2/3': +10% de velocidad de carrera cada uno
 const MAGNET_RADIUS_1 = 140;         // 'magnet1': radio (px) que atrae estrellas/corazones
 const MAGNET_RADIUS_2 = 260;         // 'magnet2': radio ampliado
 const MAGNET_PULL = 620;             // px/s a los que vuelan hacia ti los atraídos
@@ -560,12 +559,11 @@ export class WorldRunScene extends Phaser.Scene {
 
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
     // la anuló). El control manual está anulado: el único input es saltar. El sprint
-    // multiplica esta velocidad (pico al inicio, decelerando) mientras esté activo,
-    // y los hitos 'speed1/2/3' añaden +10% permanente cada uno. El vuelo la DOBLA.
-    // Durante la embestida manda DASH_SPEED.
+    // multiplica esta velocidad (pico al inicio, decelerando) mientras esté activo.
+    // El vuelo la DOBLA. Durante la embestida manda DASH_SPEED.
     this.player.setVelocityX(this.dashing
       ? DASH_SPEED
-      : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier() * this.runSpeedMult()
+      : RUN_SPEED * this.reg.playerBridge.currentSprintMultiplier()
           * (this.flying ? FLY_SPEED_MULT : 1));
     if (this.dashing && now - this.lastGhostAt > 45) this.spawnDashGhost(now);
     // El aura sprite acompaña al jugador durante el boost.
@@ -968,13 +966,8 @@ export class WorldRunScene extends Phaser.Scene {
 
   /** Valor de cada estrella (recogida o de kill): 1 + hitos "estrellas valiosas". */
   private starValue(): number {
-    return 1 + (this.ms('star_value1') ? 1 : 0) + (this.ms('star_value2') ? 1 : 0);
-  }
-
-  /** Multiplicador de velocidad por los hitos 'speed1/2/3' (+10% cada uno). */
-  private runSpeedMult(): number {
-    return 1 + SPEED_BOOST_PER_TIER *
-      ((this.ms('speed1') ? 1 : 0) + (this.ms('speed2') ? 1 : 0) + (this.ms('speed3') ? 1 : 0));
+    return 1 + (this.ms('star_value1') ? 1 : 0) + (this.ms('star_value2') ? 1 : 0)
+             + (this.ms('star_value3') ? 1 : 0);
   }
 
   /** ¿Está comprado este hito del Modo Mundo? (atajo). */

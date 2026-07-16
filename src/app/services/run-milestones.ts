@@ -41,19 +41,25 @@ export function starProdPerMin(owned: string[]): number {
 // Los efectos viven en WorldRunScene (gateados por runProgress.has), salvo
 // 'sprint' (PlayerBridgeService.activateSprint).
 export const RUN_MILESTONES: RunMilestoneDef[] = [
-  // 'sprint' (Impulso) ya NO se compra con estrellas: se otorga al cobrar la primera
-  // misión "La llamada de Mordekai" (recolectar 5 estrellas). Ver QUESTS en quest.service.
+  // Impulso: se COMPRA con estrellas (antes lo daba la 1ª misión). Habilita el botón de
+  // impulso en el HUD (ver layout + PlayerBridgeService.activateSprint).
+  {
+    id: 'sprint', cost: 10,
+    labelKey: 'RUN.MS_SPRINT', descKey: 'RUN.MS_SPRINT_DESC',
+    icon: 'flash',
+  },
+  // Estrellas valiosas: 2ª habilidad tras el Impulso. +1 al valor de cada estrella.
+  {
+    id: 'star_value3', cost: 25,
+    labelKey: 'RUN.MS_STARVAL3', descKey: 'RUN.MS_STARVAL_DESC',
+    icon: 'star',
+  },
   // Sin estos hitos NO aparecen enemigos (y sin enemigos no hay estrellas por kill):
   // comprarlos es la primera inversión del loop.
   {
-    id: 'enemies', cost: 5,
+    id: 'enemies', cost: 1000,
     labelKey: 'RUN.MS_ENEMIES', descKey: 'RUN.MS_ENEMIES_DESC',
     icon: 'paw',
-  },
-  {
-    id: 'speed1', cost: 8,
-    labelKey: 'RUN.MS_SPEED1', descKey: 'RUN.MS_SPEED_DESC',
-    icon: 'speedometer',
   },
   // Mapas: se COMPRAN aquí (ya no se desbloquean por metros). El 1-1 cuesta 1★
   // (primer objetivo, además desbloquea el botón de mapa); el resto 1000★ encadenados.
@@ -103,11 +109,6 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
     icon: 'heart',
   },
   {
-    id: 'speed2', cost: 75,
-    labelKey: 'RUN.MS_SPEED2', descKey: 'RUN.MS_SPEED_DESC',
-    icon: 'speedometer',
-  },
-  {
     id: 'slam', cost: 80,
     labelKey: 'RUN.MS_SLAM', descKey: 'RUN.MS_SLAM_DESC',
     icon: 'arrow-down-circle',
@@ -136,11 +137,6 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
     id: 'double_arrows', cost: 250,
     labelKey: 'RUN.MS_ARROWS2', descKey: 'RUN.MS_ARROWS2_DESC',
     icon: 'swap-vertical',
-  },
-  {
-    id: 'speed3', cost: 300,
-    labelKey: 'RUN.MS_SPEED3', descKey: 'RUN.MS_SPEED_DESC',
-    icon: 'speedometer',
   },
   {
     id: 'boost', cost: 350,

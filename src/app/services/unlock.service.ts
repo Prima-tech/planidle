@@ -161,6 +161,28 @@ export class UnlockService {
     await Promise.all(ops);
   }
 
+  /**
+   * Reset SELECTIVO: quita estos flags (global + char) y re-bloquea estas features
+   * (las saca de los Sets de desbloqueadas). Persiste y emite si algo cambió. Lo usa
+   * el reset del Modo Exploración para "descomprar" los mapas (flags 'map_1_x' +
+   * features 'map.X'). Ojo: solo re-bloquea de verdad si además desaparece la
+   * condición que las satisface — por eso se quitan sus flags a la vez.
+   */
+  resetUnlocks(flagIds: string[], featureIds: string[]): void {
+    let global = false, char = false;
+    for (const id of flagIds) {
+      if (this.flagsGlobal.delete(id)) global = true;
+      if (this.flagsChar.delete(id))   char = true;
+    }
+    for (const id of featureIds) {
+      if (this.unlockedGlobal.delete(id)) global = true;
+      if (this.unlockedChar.delete(id))   char = true;
+    }
+    if (global) { this.persist('global'); this.persistFlags('global'); }
+    if (char)   { this.persist('char');   this.persistFlags('char'); }
+    if (global || char) this.changes$.next();
+  }
+
   // ── Internos ────────────────────────────────────────────────────────────────
 
   private def(id: string): FeatureDef | undefined {
