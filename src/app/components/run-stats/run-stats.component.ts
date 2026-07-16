@@ -25,6 +25,7 @@ export class RunStatsComponent {
   private unlocks      = inject(UnlockService);
 
   readonly stars$    = this.runProgress.stars$;
+  readonly starsCollected$ = this.runProgress.starsCollected$;   // total de por vida
   readonly milestones$ = this.runProgress.milestones$;
 
   /** Estadísticas de por vida de TODA la cuenta (suma de todos los personajes). Se

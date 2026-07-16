@@ -509,6 +509,7 @@
     "MS_PENDING": "Objectives",
     "MS_DONE": "Completed",
     "STATS": "Statistics",
+    "STARS_COLLECTED": "Stars collected",
     "MS_NONE": "Nothing here yet.",
     "MS_SPRINT": "Sprint",
     "MS_SPRINT_DESC": "Sprint attack: run faster while exploring.",

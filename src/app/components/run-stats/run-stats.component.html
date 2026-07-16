@@ -59,6 +59,12 @@
 
     <!-- Pestañas OBJETIVOS / COMPLETOS: hitos comprables o ya comprados. -->
     <ng-template #milestonesTab>
+      <!-- Total de estrellas recogidas de por vida (no baja al gastar en hitos). -->
+      <div class="rs-collected">
+        <img class="rs-collected-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+        <span class="rs-collected-label">{{ 'RUN.STARS_COLLECTED' | translate }}</span>
+        <span class="rs-collected-val">{{ starsCollected$ | async | compactNumber }}</span>
+      </div>
       <ng-container *ngIf="(milestones$ | async) as owned">
         <ng-container *ngIf="forTab(owned) as list">
           <div class="rs-ms" *ngFor="let m of list">

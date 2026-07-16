@@ -29,6 +29,7 @@ export interface RunCharStats {
 
 export interface RunProgressSnapshot {
   stars: number;
+  starsCollected: number;   // total de por vida recogido (nunca baja al gastar)
   milestones: string[];
   perChar: Record<string, RunCharStats>;
   mergedChars: string[];
@@ -42,13 +43,15 @@ export class RunProgressService {
   private storage = inject(StorageService);
 
   private stars = 0;
+  private starsCollected = 0;   // total recogido de por vida (solo sube; comprar NO lo baja)
   private milestones: string[] = [];
   private perChar: Record<string, RunCharStats> = {};
   private mergedChars = new Set<string>();
   private loadPromise: Promise<void>;
 
-  readonly stars$      = new BehaviorSubject<number>(0);
-  readonly milestones$ = new BehaviorSubject<string[]>([]);
+  readonly stars$          = new BehaviorSubject<number>(0);
+  readonly starsCollected$ = new BehaviorSubject<number>(0);
+  readonly milestones$     = new BehaviorSubject<string[]>([]);
   /** Emite en cualquier cambio (para HUD/paneles que quieran refrescar totales). */
   readonly changes$    = new BehaviorSubject<void>(undefined);
 
@@ -59,9 +62,15 @@ export class RunProgressService {
 
   // ── Estrellas ────────────────────────────────────────────────────────────────
   getStars(): number { return this.stars; }
+  /** Total de estrellas recogidas de por vida (no baja al gastar en hitos). */
+  getStarsCollected(): number { return this.starsCollected; }
   collectStars(amount: number): void {
     if (!amount) return;
     this.stars = Math.max(0, this.stars + amount);
+    if (amount > 0) {
+      this.starsCollected += amount;
+      this.starsCollected$.next(this.starsCollected);
+    }
     this.stars$.next(this.stars);
     this.persist();
   }
@@ -126,11 +135,15 @@ export class RunProgressService {
     await this.loadPromise;
     if (!charId || this.mergedChars.has(charId)) return;
     this.mergedChars.add(charId);
-    if (legacyStars > 0) this.stars += legacyStars;
+    if (legacyStars > 0) {
+      this.stars += legacyStars;
+      this.starsCollected += legacyStars;   // eran estrellas recogidas históricamente
+    }
     if (legacyMilestones?.length) {
       this.milestones = [...new Set([...this.milestones, ...legacyMilestones])];
     }
     this.stars$.next(this.stars);
+    this.starsCollected$.next(this.starsCollected);
     this.milestones$.next(this.milestones);
     this.changes$.next();
     this.persist();
@@ -145,12 +158,17 @@ export class RunProgressService {
       console.warn('[run-progress] no se pudo restaurar', e);
     }
     this.stars$.next(this.stars);
+    this.starsCollected$.next(this.starsCollected);
     this.milestones$.next(this.milestones);
     this.changes$.next();
   }
 
   private apply(raw: RunProgressSnapshot): void {
     this.stars = typeof raw.stars === 'number' ? raw.stars : 0;
+    // Saves antiguos no traían el total recogido: siémbralo con el saldo actual (al
+    // menos eso se recogió) para no arrancar en 0 con estrellas ya en el bolsillo.
+    this.starsCollected = typeof raw.starsCollected === 'number'
+      ? raw.starsCollected : Math.max(0, this.stars);
     this.milestones = Array.isArray(raw.milestones)
       ? raw.milestones.filter(x => typeof x === 'string') : [];
     this.perChar = (raw.perChar && typeof raw.perChar === 'object') ? raw.perChar : {};
@@ -162,6 +180,7 @@ export class RunProgressService {
   getSnapshot(): RunProgressSnapshot {
     return {
       stars: this.stars,
+      starsCollected: this.starsCollected,
       milestones: this.milestones,
       perChar: this.perChar,
       mergedChars: [...this.mergedChars],
@@ -176,6 +195,10 @@ export class RunProgressService {
     if (!data || typeof data !== 'object') return;
     const cloud = data as RunProgressSnapshot;
     if (typeof cloud.stars === 'number') this.stars = cloud.stars;
+    // Total recogido: monotónico → nos quedamos con el máximo (nube vs local).
+    this.starsCollected = Math.max(
+      this.starsCollected,
+      typeof cloud.starsCollected === 'number' ? cloud.starsCollected : 0);
     this.milestones = [...new Set([...this.milestones, ...(cloud.milestones ?? [])])];
     for (const [id, st] of Object.entries(cloud.perChar ?? {})) {
       const local = this.perChar[id];
@@ -187,6 +210,7 @@ export class RunProgressService {
     }
     this.mergedChars = new Set([...this.mergedChars, ...(cloud.mergedChars ?? [])]);
     this.stars$.next(this.stars);
+    this.starsCollected$.next(this.starsCollected);
     this.milestones$.next(this.milestones);
     this.changes$.next();
     this.persist();
