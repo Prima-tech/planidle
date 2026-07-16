@@ -4,7 +4,6 @@ import { MAP_REGISTRY, planetNameForMap, ENEMY_RESPAWN_MS, ORE_RESPAWN_MS, TREE_
 import { MapUpgradesService } from './map-upgrades.service';
 import { MapDominionService } from './map-dominion.service';
 import { RunProgressService } from './run-progress.service';
-import { starProdPerMin } from './run-milestones';
 import { AfkBonusService } from './afk-bonus.service';
 import { CharacterStatsService } from './character-stats.service';
 import { EquipmentService } from './equipment.service';
@@ -391,7 +390,7 @@ export class OfflineGainsService {
     // en vivo de WorldRunScene, aplicada al tiempo AFK (mismo tope de horas). Los hitos
     // ahora son de CUENTA (RunProgress), no del snapshot per-personaje.
     const exploreStars = Math.floor(
-      starProdPerMin(this.runProgress.getMilestones()) * cappedMinutes);
+      this.runProgress.starProdPerMinTotal() * cappedMinutes);
 
     const mapName = MAP_REGISTRY[snapshot.mapId ?? 'hogar']?.name ?? snapshot.mapId ?? '';
     return {

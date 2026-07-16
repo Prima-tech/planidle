@@ -1058,7 +1058,19 @@ export class GridDrops {
     const qty = Phaser.Math.Between(loot.minQty, loot.maxQty);
 
     if (loot.type === 'currency') {
-      this.playerState.collectCoins(qty);
+      // Hitos de exploración que escalan por moneda recogida (todos de cuenta, RunProgress):
+      //  · monedako  → +500 de oro plano
+      //  · naranja   → +10% de tus estrellas/seg actuales, en ORO
+      //  · inflacion → +20% de tus estrellas/seg actuales, en ESTRELLAS
+      const rp = this.mainScene.game.registry.get(REGISTRY_KEYS.RUN_PROGRESS);
+      const sps = rp?.starsPerSecTotal?.() ?? 0;
+      const monedako = rp?.has('monedako') ? 500 : 0;
+      const naranja  = rp?.has('naranja')  ? Math.floor(sps * 0.10) : 0;
+      this.playerState.collectCoins(qty + monedako + naranja);
+      if (rp?.has('inflacion')) {
+        const stars = Math.floor(sps * 0.20);
+        if (stars > 0) rp.collectStars(stars);
+      }
       this.mainScene.game.registry.get(REGISTRY_KEYS.AUDIO)?.play('coin');
       return;
     }

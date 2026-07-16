@@ -3,7 +3,6 @@ import { GameRegistry } from '../game-registry';
 import { mapFeatureId } from '../../services/unlock-config';
 import { planetCapitalForMap } from '../gamescene/map-config';
 import { RUN_UNLOCK_POINTS } from './run-unlock-points';
-import { starProdPerMin } from '../../services/run-milestones';
 import { unlockedStarPatterns, STAR_PATTERN_GAP_M, STAR_FIRST_M, STAR_HEIGHT_LEVELS, StarPattern } from './run-star-patterns';
 import { bodySpriteFor } from '../../pnj/player/body-config';
 import {
@@ -236,6 +235,13 @@ const AURA_SPRITE_SCALE = 1.8;       // tamaño del aura respecto al frame (envu
 const AURA_Y_OFFSET = 80;            // sube el aura de los pies (origin del jugador) al torso
 const AURA_X_OFFSET = 20;            // ajuste horizontal fino del aura respecto al jugador
 
+// Impulso (sprint): al activarlo, un estallido de líneas de velocidad estilo manga que
+// salen disparadas hacia atrás + estelas del sprite durante el pico inicial (la
+// velocidad la aplica el multiplicador del bridge; esto es puramente visual).
+const SPEED_LINE_KEY = 'wr_speed_line';   // textura de raya (generada por código, sin asset)
+const SPRINT_BURST_MS = 600;              // durante este tiempo tras activar se dejan estelas
+const SPRINT_GHOST_INTERVAL = 55;         // cada cuánto (ms) una estela del sprite
+
 // --- Escalera de mejoras (hitos comprables con estrellas, ver run-milestones.ts) ---
 // El loop estilo Idle Slayer: matar da estrellas → compras la siguiente mejora →
 // llegas más lejos → más estrellas. Efectos por hito:
@@ -337,6 +343,9 @@ export class WorldRunScene extends Phaser.Scene {
   private dashUntil = 0;               // time.now hasta el que dura la embestida
   private dashReadyAt = 0;             // time.now a partir del que se puede volver a embestir
   private lastGhostAt = 0;             // estela de la embestida (fantasmas del sprite)
+  private sprinting = false;           // impulso activo (para detectar el flanco de activación)
+  private sprintBurstUntil = 0;        // time.now hasta el que se dejan estelas tras activar el impulso
+  private lastSprintGhostAt = 0;       // última estela del impulso
   private slamming = false;            // golpe descendente en curso (hasta aterrizar)
   private flying = false;              // vuelo / boost en curso (lo dispara el botón vía bridge)
   private auraEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;  // aura "ki" del vuelo
@@ -508,6 +517,19 @@ export class WorldRunScene extends Phaser.Scene {
       g.generateTexture(AURA_KEY, R * 2, R * 2);
       g.destroy();
     }
+    // Raya de velocidad del impulso: una estela fina afilada en los extremos (forma de
+    // huso), más opaca en el centro → efecto "línea de velocidad" manga sin asset.
+    if (!this.textures.exists(SPEED_LINE_KEY)) {
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      const W = 48, H = 4;
+      for (let x = 0; x < W; x++) {
+        const a = Math.sin((x / (W - 1)) * Math.PI) * 0.9;   // 0 en los bordes, pico en el centro
+        g.fillStyle(0xffffff, a).fillRect(x, 0, 1, H);
+      }
+      g.generateTexture(SPEED_LINE_KEY, W, H);
+      g.destroy();
+    }
+    this.sprinting = false;   // la instancia de escena se reutiliza: arrancar sin impulso
     // La instancia de escena se reutiliza: si una carrera anterior salió volando
     // (exitToHome hace early-return en update y no llama endFly), limpia el aura.
     this.auraEmitter?.destroy();
@@ -600,6 +622,16 @@ export class WorldRunScene extends Phaser.Scene {
     const flyWanted = this.reg.playerBridge.flyActive;
     if (flyWanted && !this.flying) this.startFly();
     else if (!flyWanted && this.flying) this.endFly();
+
+    // Impulso (sprint): detectamos el flanco de activación para lanzar el estallido de
+    // líneas de velocidad una sola vez; durante el pico inicial dejamos estelas.
+    const sprintWanted = this.reg.playerBridge.sprintActive;
+    if (sprintWanted && !this.sprinting) this.startSprint(now);
+    else if (!sprintWanted && this.sprinting) this.sprinting = false;
+    if (this.sprinting && now < this.sprintBurstUntil
+        && now - this.lastSprintGhostAt > SPRINT_GHOST_INTERVAL) {
+      this.spawnSprintGhost(now);
+    }
 
     // Auto-run: velocidad X constante (se re-aplica cada frame por si una colisión
     // la anuló). El control manual está anulado: el único input es saltar. El sprint
@@ -1026,7 +1058,7 @@ export class WorldRunScene extends Phaser.Scene {
   private starSurgeBonus(): number {
     if (!this.ms('star_surge')) return 0;
     const perSec = this.reg.runProgress.starsPerSec()
-      + starProdPerMin(this.reg.runProgress.getMilestones()) / 60;
+      + this.reg.runProgress.starProdPerMinTotal() / 60;
     return Math.floor(perSec * 0.25);
   }
 
@@ -1180,6 +1212,8 @@ export class WorldRunScene extends Phaser.Scene {
    * Añadir más = otra entrada en la lista.
    */
   private grantRandomBoxReward(x: number, y: number): void {
+    // Cada recompensa notifica su propio banner (el nombre y, si da estrellas al
+    // instante, cuántas). El banner (arriba-centro) lo pinta Angular unos segundos.
     const rewards = [
       () => this.rewardMinuteOfStars(x, y),
       () => this.rewardStarRain(),
@@ -1192,9 +1226,11 @@ export class WorldRunScene extends Phaser.Scene {
    *  siempre dé algo aunque aún no generes nada. */
   private rewardMinuteOfStars(x: number, y: number): void {
     const perMin = this.reg.runProgress.starsPerSec() * 60
-      + starProdPerMin(this.reg.runProgress.getMilestones());
+      + this.reg.runProgress.starProdPerMinTotal();
     const n = Math.max(1, Math.floor(perMin));
     this.reg.runProgress.collectStars(n);
+    // Banner "Estrellato" con las estrellas otorgadas debajo del nombre.
+    this.reg.playerBridge.notifyBoxEvent({ nameKey: 'RUN.WR_BOX_EVENT_STAR_MINUTE', amount: n });
     this.popBlockStar(x, y, n);
   }
 
@@ -1216,6 +1252,7 @@ export class WorldRunScene extends Phaser.Scene {
   private rewardStarRain(): void {
     this.starRainUntil = this.time.now + STAR_RAIN_MS;
     this.nextRainStarAt = 0;   // primera tanda ya en el próximo frame
+    this.reg.playerBridge.notifyBoxEvent({ nameKey: 'RUN.WR_BOX_EVENT_STAR_RAIN' });
   }
 
   /** Mientras la lluvia esté activa, siembra tandas de estrellas normales
@@ -1865,6 +1902,51 @@ export class WorldRunScene extends Phaser.Scene {
     });
   }
 
+  // --- Impulso (sprint): efecto de velocidad --------------------------------------
+  /** Arranca el efecto visual del impulso: un estallido de líneas de velocidad al
+   *  pulsar + estelas del sprite durante el pico inicial. La velocidad real la aplica
+   *  currentSprintMultiplier() en el bridge; esto solo lo comunica visualmente. */
+  private startSprint(now: number): void {
+    this.sprinting = true;
+    this.sprintBurstUntil = now + SPRINT_BURST_MS;
+    this.lastSprintGhostAt = 0;
+    this.spawnSpeedLines();
+  }
+
+  /** Estallido de rayas de velocidad (manga): aparecen repartidas por el cuerpo del
+   *  jugador y salen disparadas hacia atrás, apagándose. Un solo disparo, se autolimpia. */
+  private spawnSpeedLines(): void {
+    const px = this.player.x + 40;
+    const py = this.player.y - 60;   // origen del jugador en los pies: subir al torso
+    const emitter = this.add.particles(0, 0, SPEED_LINE_KEY, {
+      x: { min: px - 20, max: px + 90 },
+      y: { min: py - 42, max: py + 55 },
+      lifespan: 260,
+      speedX: { min: -950, max: -640 },        // vuelan hacia atrás, más rápido que el mundo
+      scaleX: { start: 1.5, end: 0.2 },        // se estiran y adelgazan
+      alpha: { start: 0.9, end: 0 },
+      tint: [0xffffff, 0xbfe6ff, 0x8ecbff],    // blanco/celeste = velocidad
+      blendMode: 'ADD',
+      emitting: false,
+    });
+    emitter.setDepth(6);                       // por delante del jugador (depth 5)
+    emitter.explode(16);
+    this.time.delayedCall(340, () => emitter.destroy());
+  }
+
+  /** Estela del impulso: fantasmas del sprite que se desvanecen (como el dash pero en
+   *  tono claro, para no confundirlo con la embestida). Solo durante el pico inicial. */
+  private spawnSprintGhost(now: number): void {
+    this.lastSprintGhostAt = now;
+    const ghost = this.add.image(this.player.x, this.player.y, 'player', this.player.frame.name)
+      .setOrigin(0.5, 1).setScale(PLAYER_SCALE).setDepth(4)
+      .setAlpha(0.4).setTint(0xcfe8ff);
+    this.tweens.add({
+      targets: ghost, alpha: 0, duration: 260, ease: 'Quad.out',
+      onComplete: () => ghost.destroy(),
+    });
+  }
+
   // --- Golpe descendente (slam) ------------------------------------------------
   /** Golpe descendente: solo en el aire. Cae en picado; al aterrizar, onda que mata
    *  a las ratas cercanas (y revienta bolas de fuego). Atravesar a un fénix bajando
@@ -1976,7 +2058,7 @@ export class WorldRunScene extends Phaser.Scene {
    *  fracciones acumuladas; al completar una estrella se cobra con su "+N ★".
    *  (La misma tasa corre AFK explorando, ver OfflineGainsService.) */
   private updateStarProduction(delta: number): void {
-    const perMin = starProdPerMin(this.reg.runProgress.getMilestones());
+    const perMin = this.reg.runProgress.starProdPerMinTotal();
     if (perMin <= 0) return;
     this.starProdCarry += perMin * (delta / 60000);
     if (this.starProdCarry >= 1) {

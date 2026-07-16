@@ -1,0 +1,59 @@
+/* Banner del nombre de evento (caja "?") — arriba-centro, DEBAJO de la barra de vida
+   (top-bar). SIN marco de madera: solo texto. Título en letras amarillas y, debajo, las
+   estrellas otorgadas en letras blancas más pequeñas. Puramente informativo (sin
+   interacción). El borde oscuro del texto lo hace legible sobre cualquier fondo. */
+$title: #ffd94a;   // amarillo (igual que el "+N ★" del juego)
+$outline: #5a3d08; // contorno marrón oscuro del texto
+
+.beb {
+  position: fixed;
+  top: calc(64px + var(--safe-top, 0px));
+  left: 50%;
+  z-index: 950;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+
+  pointer-events: none;
+  white-space: nowrap;
+  text-align: center;
+
+  /* Estado oculto (montado, sin visibilidad): centrado en X, algo arriba, transparente. */
+  opacity: 0;
+  transform: translate(-50%, -14px) scale(0.92);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Estado visible: baja a su sitio y aparece. */
+.beb--visible {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+/* Título: solo letras amarillas con contorno oscuro (sin fondo). */
+.beb-name {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: $title;
+  text-shadow:
+    -1px -1px 0 $outline, 1px -1px 0 $outline,
+    -1px 1px 0 $outline, 1px 1px 0 $outline,
+    0 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Estrellas otorgadas: letras blancas más pequeñas, debajo del nombre. */
+.beb-amount {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.7), 1px -1px 0 rgba(0, 0, 0, 0.7),
+    -1px 1px 0 rgba(0, 0, 0, 0.7), 1px 1px 0 rgba(0, 0, 0, 0.7);
+}

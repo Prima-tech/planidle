@@ -3,6 +3,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { StorageService } from './storage.service';
 import { PlayerStateService } from './player-state.service';
 import { RUN_WEAPONS, RunWeaponDef, weaponUpgradeCost, weaponStarsPerSec, unlockedRunWeapons } from '../scenes/worldrun/run-weapons';
+import { starProdPerMin } from './run-milestones';
 
 /**
  * Progresión del MODO EXPLORACIÓN (world run) COMPARTIDA entre todos los personajes
@@ -148,9 +149,28 @@ export class RunProgressService {
     return true;
   }
 
-  /** Estrellas/seg total que producen todas las armas (suma de niveles × su tasa). */
+  /** Multiplicador global a la producción PASIVA de estrellas (armas + generadores de
+   *  hitos). Hito 'sardine' → +2%. Aplica a starsPerSec() y starProdPerMinTotal(). */
+  starProdMult(): number { return 1 + (this.has('sardine') ? 0.02 : 0); }
+
+  /** Estrellas/seg total que producen todas las armas (suma de niveles × su tasa),
+   *  ya con el multiplicador de producción (sardine). */
   starsPerSec(): number {
-    return RUN_WEAPONS.reduce((s, w) => s + weaponStarsPerSec(w, this.weaponLevel(w.id)), 0);
+    const base = RUN_WEAPONS.reduce((s, w) => s + weaponStarsPerSec(w, this.weaponLevel(w.id)), 0);
+    return base * this.starProdMult();
+  }
+
+  /** Estrellas/min de los generadores de hitos (STAR_PROD_TIERS), ya con el
+   *  multiplicador de producción (sardine). Úsalo en vez de la función pura. */
+  starProdPerMinTotal(): number {
+    return starProdPerMin(this.milestones) * this.starProdMult();
+  }
+
+  /** Estrellas/seg TOTAL de producción pasiva: armas + generadores de hitos (con
+   *  el multiplicador de sardine ya aplicado). Es "tu estrella por segundo actual"
+   *  que usan los hitos 'naranja' (oro) e 'inflacion' (estrellas) por moneda. */
+  starsPerSecTotal(): number {
+    return this.starsPerSec() + this.starProdPerMinTotal() / 60;
   }
 
   /** Tick del generador de estrellas de las armas: llámalo desde el bucle de exploración

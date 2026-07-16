@@ -7,7 +7,16 @@ import { Pipe, PipeTransform } from '@angular/core';
  */
 @Pipe({ name: 'compactNumber', standalone: false })
 export class CompactNumberPipe implements PipeTransform {
+  // Escalera de sufijos (una letra por magnitud, estilo idle): k M B T y luego
+  // q Q s S o n d (cuatrillón…decillón). 1d = 1e33 (coste "aparcado" de mapas/mejoras).
   private static readonly UNITS: { value: number; suffix: string }[] = [
+    { value: 1e33, suffix: 'd' },
+    { value: 1e30, suffix: 'n' },
+    { value: 1e27, suffix: 'o' },
+    { value: 1e24, suffix: 'S' },
+    { value: 1e21, suffix: 's' },
+    { value: 1e18, suffix: 'Q' },
+    { value: 1e15, suffix: 'q' },
     { value: 1e12, suffix: 'T' },
     { value: 1e9,  suffix: 'B' },
     { value: 1e6,  suffix: 'M' },

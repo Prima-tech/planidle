@@ -1,4 +1,4 @@
 <button class="mth" *ngIf="mapId" (click)="enter()">
   <img class="mth-icon" src="assets/sprites/resources/world_mode/map.png" alt="" draggable="false" />
-  <span class="mth-label">Mapa {{ mapId }}</span>
+  <span class="mth-label">{{ 'RUN.WR_TELEPORT_MAP' | translate:{ id: mapId } }}</span>
 </button>

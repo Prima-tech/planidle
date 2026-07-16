@@ -45,6 +45,7 @@ import { BuildDeleteModalComponent } from './build-delete-modal/build-delete-mod
 import { BuildShopComponent } from './build-shop/build-shop.component';
 import { ForgeComponent } from './forge/forge.component';
 import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.component';
+import { BoxEventBannerComponent } from './box-event-banner/box-event-banner.component';
 import { GlobalTalentsComponent } from './global-talents/global-talents.component';
 import { MapChestWindowComponent } from './map-chest-window/map-chest-window.component';
 
@@ -90,6 +91,7 @@ import { MapChestWindowComponent } from './map-chest-window/map-chest-window.com
     BuildShopComponent,
     ForgeComponent,
     MapTeleportHintComponent,
+    BoxEventBannerComponent,
     GlobalTalentsComponent,
     MapChestWindowComponent,
   ],

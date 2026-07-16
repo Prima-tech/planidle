@@ -12,6 +12,10 @@ import { AdminService } from './admin.service';
 /** Poción equipada: se auto-usa al bajar a la mitad de HP, con cooldown. */
 const AUTO_POTION_COOLDOWN_MS = 30_000;
 
+/** Evento de caja "?" (Modo Mundo) para el banner: nombre (clave i18n) y, si el evento
+ *  otorga estrellas al instante (p.ej. Estrellato), cuántas — se pintan debajo del nombre. */
+export interface BoxEventHint { nameKey: string; amount?: number; }
+
 // Sprint (Modo Mundo): empujón de velocidad de SPRINT_DURATION con un pico inicial
 // muy grande que decelera; luego un cooldown antes de poder repetirlo.
 const SPRINT_DURATION_MS = 10_000;
@@ -60,6 +64,11 @@ export class PlayerBridgeService {
   /** Modo Mundo: al pasar por la entrada de un mapa YA desbloqueado, la escena pide
    *  mostrar el icono de teletransporte (arriba-derecha, 10 s). Emite el id del mapa. */
   readonly mapEntranceHint$ = new Subject<string>();
+  /** Modo Mundo: al golpear una caja "?" desde abajo, la escena emite el evento sorteado
+   *  (CLAVE i18n del nombre + cantidad opcional de estrellas); el banner (arriba-centro)
+   *  muestra el nombre y, si viene `amount`, las estrellas otorgadas debajo. */
+  readonly boxEventHint$ = new Subject<BoxEventHint>();
+  notifyBoxEvent(hint: BoxEventHint): void { this.boxEventHint$.next(hint); }
 
   setRunMode(active: boolean): void {
     if (active) { this.sprintStart = 0; this.flyStart = 0; }   // se entra con sprint y vuelo listos

@@ -1,0 +1,4 @@
+<div class="beb" *ngIf="nameKey" [class.beb--visible]="visible">
+  <div class="beb-name">{{ nameKey | translate }}</div>
+  <div class="beb-amount" *ngIf="amount != null">+{{ amount | compactNumber }} ★</div>
+</div>

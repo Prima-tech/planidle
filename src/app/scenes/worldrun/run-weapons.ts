@@ -49,6 +49,24 @@ export const RUN_WEAPONS: RunWeaponDef[] = [
     starsPerSecPerLevel: 5,
     unlockAtStars: 500,   // aparece al llegar a 500 estrellas a la vez
   },
+  {
+    id: 'helmet',
+    labelKey: 'RUN.WPN_HELMET',
+    img: 'assets/icon/placeholder/helm.png',
+    baseCost: 20000,
+    costGrowth: 1.15,
+    starsPerSecPerLevel: 50,
+    unlockAtStars: 20000,   // aparece al llegar a 20k estrellas a la vez
+  },
+  {
+    id: 'boots',
+    labelKey: 'RUN.WPN_BOOTS',
+    img: 'assets/icon/placeholder/feet.png',
+    baseCost: 150000,
+    costGrowth: 1.15,
+    starsPerSecPerLevel: 500,
+    unlockAtStars: 150000,   // aparece al llegar a 150k estrellas a la vez
+  },
 ];
 
 /** Armas disponibles según el pico de estrellas alcanzado (saldo máximo a la vez). */
