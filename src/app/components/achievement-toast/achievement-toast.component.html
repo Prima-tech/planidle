@@ -2,9 +2,13 @@
   <div
     *ngFor="let t of toasts"
     class="ach-toast"
+    [class.ach-toast--gold]="t.variant === 'gold'"
+    [class.ach-toast--scroll]="t.variant === 'scroll'"
     [class.ach-toast--leaving]="t.leaving"
   >
-    <ion-icon [name]="t.icon" class="ach-toast-icon"></ion-icon>
+    <span class="ach-toast-medal">
+      <ion-icon [name]="t.icon" class="ach-toast-icon"></ion-icon>
+    </span>
     <div class="ach-toast-body">
       <span class="ach-toast-label">{{ t.label }}</span>
       <span class="ach-toast-name">{{ t.name }}</span>

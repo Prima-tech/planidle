@@ -114,30 +114,39 @@ export class RunProgressService {
   getStarsPeak(): number { return this.starsPeak; }
 
   // ── Onboarding de exploración (primer login, una sola vez) ────────────────────────
-  // Trayecto guiado con el punto rojo de novedad (.notif-dot): cruzar ONBOARD_STARS ★ →
-  // badge en el botón que abre el panel → abrirlo → badge en la compra de la espada nv1 →
-  // comprarla lo cierra PARA SIEMPRE. Todo DERIVADO de estado persistido (no del
-  // NotificationBadgeService, que es en memoria), así sobrevive recargas y relogin.
+  // Trayecto guiado con el punto rojo de novedad (.notif-dot), en 3 pasos:
+  //   1) cruzar ONBOARD_STARS ★ → badge en el botón que abre el panel.
+  //   2) abrir el panel → badge en la pestaña Armas + compra de la ESPADA nv1.
+  //   3) comprar la espada → badge en la pestaña Objetivos + compra del IMPULSO (sprint).
+  // Comprar el impulso lo cierra PARA SIEMPRE. Cada paso se AUTO-GATEA por su estado
+  // persistido (nivel de espada, hito 'sprint', panel visto), no por un flag global, así
+  // sobrevive recargas/relogin. No usa NotificationBadgeService (es en memoria).
 
-  /** ¿Sigue activo el tutorial? Acaba en cuanto la espada tiene nivel ≥ 1. */
-  private onboardActive(): boolean { return this.weaponLevel('sword') < 1; }
+  /** ¿Falta comprar la espada? (fase 1-2 del tutorial). */
+  private onboardSwordPhase(): boolean { return this.weaponLevel('sword') < 1; }
 
   /** Badge en el botón que ABRE el panel: cruzaste las 10★ y aún no lo has abierto. */
   onboardBadgeOpener(): boolean {
-    return this.onboardActive() && !this.onboardPanelSeen && this.starsPeak >= ONBOARD_STARS;
+    return this.onboardSwordPhase() && !this.onboardPanelSeen && this.starsPeak >= ONBOARD_STARS;
   }
 
-  /** Badge en la compra de la ESPADA nv1: ya abriste el panel y aún no la compraste. */
+  /** Badge en la ESPADA (pestaña Armas + su compra): ya abriste el panel y aún no la tienes. */
   onboardBadgeSword(): boolean {
-    return this.onboardActive() && this.onboardPanelSeen;
+    return this.onboardSwordPhase() && this.onboardPanelSeen;
   }
 
-  /** Marca que el panel se abrió (mueve el badge del botón a la espada). Solo cuenta si el
-   *  tutorial está activo y ya cruzaste el umbral: abrir el panel ANTES de las 10★ no
-   *  consume el paso (la guía aún no ha empezado). Persiste para sobrevivir recargas. */
+  /** Badge en el IMPULSO (pestaña Objetivos + su compra): ya tienes la espada y aún no
+   *  compraste el impulso. Comprarlo cierra el tutorial. */
+  onboardBadgeSprint(): boolean {
+    return !this.onboardSwordPhase() && !this.has('sprint');
+  }
+
+  /** Marca que el panel se abrió (mueve el badge del botón a la espada). Solo cuenta si aún
+   *  falta la espada y ya cruzaste el umbral: abrir el panel ANTES de las 10★ no consume el
+   *  paso (la guía aún no ha empezado). Persiste para sobrevivir recargas. */
   markOnboardPanelSeen(): void {
     if (this.onboardPanelSeen) return;
-    if (!this.onboardActive() || this.starsPeak < ONBOARD_STARS) return;
+    if (!this.onboardSwordPhase() || this.starsPeak < ONBOARD_STARS) return;
     this.onboardPanelSeen = true;
     this.changes$.next();
     this.persist();

@@ -78,9 +78,17 @@ export class RunStatsComponent implements OnDestroy {
 
   /** Badge de novedad en el botón que abre el panel (paso 1 del onboarding: 10★). */
   onboardBadgeOpener(): boolean { return this.runProgress.onboardBadgeOpener(); }
-  /** Badge de novedad en la compra de la ESPADA nv1 (paso 2 del onboarding). */
-  onboardBadgeSword(id: string): boolean {
-    return id === 'sword' && this.runProgress.onboardBadgeSword();
+  /** Badge de novedad en la ESPADA nv1 (paso 2). Sin `id` = pestaña Armas; con `id` = solo
+   *  el botón del arma 'sword'. */
+  onboardBadgeSword(id?: string): boolean {
+    if (id !== undefined && id !== 'sword') return false;
+    return this.runProgress.onboardBadgeSword();
+  }
+  /** Badge de novedad en el IMPULSO (paso 3). Sin `id` = pestaña Objetivos; con `id` = solo
+   *  el botón del hito 'sprint'. */
+  onboardBadgeSprint(id?: string): boolean {
+    if (id !== undefined && id !== 'sprint') return false;
+    return this.runProgress.onboardBadgeSprint();
   }
 
   /** Pestaña activa del panel: objetivos (por comprar), completos (ya comprados),
@@ -96,7 +104,23 @@ export class RunStatsComponent implements OnDestroy {
   weaponLevel(id: string): number { return this.runProgress.weaponLevel(id); }
   weaponCost(w: RunWeaponDef): number { return this.runProgress.weaponCost(w); }
   canBuyWeapon(w: RunWeaponDef): boolean { return this.runProgress.canBuyWeapon(w); }
-  buyWeapon(w: RunWeaponDef): void { this.runProgress.buyWeapon(w); }
+  buyWeapon(w: RunWeaponDef): boolean {
+    const ok = this.runProgress.buyWeapon(w);
+    if (ok) this.flashBought(w.id);   // pulso dorado en el botón (feedback de compra)
+    return ok;
+  }
+
+  // ── Feedback de compra: pulso dorado breve en el botón comprado (arma o mejora) ─
+  // Al comprar (tap o cadena al mantener) el botón brilla vía .efecto-boton-active;
+  // se mantiene mientras sigues comprando y se desvanece poco después. No intrusivo.
+  // boughtPulseId = id del arma/hito que acaba de comprarse (o null).
+  boughtPulseId: string | null = null;
+  private boughtPulseTimer?: ReturnType<typeof setTimeout>;
+  private flashBought(id: string): void {
+    this.boughtPulseId = id;
+    clearTimeout(this.boughtPulseTimer);
+    this.boughtPulseTimer = setTimeout(() => { this.boughtPulseId = null; }, 140);
+  }
 
   // ── Mantener pulsado para comprar en cadena (acelerativo) ────────────────────
   // Estilo idle-game: al mantener el botón de compra de un arma, compra una vez y luego
@@ -136,7 +160,7 @@ export class RunStatsComponent implements OnDestroy {
     if (this.holdTimer) { clearTimeout(this.holdTimer); this.holdTimer = undefined; }
   }
 
-  ngOnDestroy(): void { this.stopWeaponHold(); }
+  ngOnDestroy(): void { this.stopWeaponHold(); clearTimeout(this.boughtPulseTimer); }
 
   /** Estrellas/seg que produce un arma a su nivel actual. */
   weaponRate(w: RunWeaponDef): number { return weaponStarsPerSec(w, this.weaponLevel(w.id)); }
@@ -187,6 +211,7 @@ export class RunStatsComponent implements OnDestroy {
 
   buy(m: RunMilestoneDef): void {
     if (!this.runProgress.buy(m.id, m.cost)) return;
+    this.flashBought(m.id);   // pulso dorado en el botón (mismo efecto que las armas)
     // Hitos de mapa: marcar su flag desbloquea la feature 'map.X' (viajar al mapa).
     // Scope 'global': el flag es de CUENTA, así el mapa comprado en un personaje se
     // desbloquea para TODOS (la feature 'map.X', aunque sea 'char', se satisface con

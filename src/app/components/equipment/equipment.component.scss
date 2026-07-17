@@ -1185,6 +1185,16 @@ $metal-dark: #6b6357;
   }
 }
 
+// Las sub-pestañas de logros están pegadas a los bordes de .eq-content (overflow: auto/hidden),
+// que RECORTA todo lo que asome fuera de su caja — tanto por la derecha como por ARRIBA. El
+// .notif-dot sobresale por defecto a top:-5px / right:-5px, así que quedaba cortado ("interno,
+// no sale por fuera"). Solución: darle hueco DENTRO de .eq-content para que el punto asome
+// sobre la pestaña sin cruzar el recorte:
+//   · margin-top en la fila de tabs → cabe el asomo por arriba (5px del punto + su sombra).
+//   · right:0 en la tab de la derecha (globales) → asoma por arriba sin salirse por el lado.
+.ach-panel .talent-tree-tabs { margin-top: 10px; }   // 5px del asomo + sombra + pico del pulso (×1.18)
+.ach-panel .talent-tree-tab:last-child .notif-dot { right: 0; }
+
 // Estado vacío (Skills)
 .talent-empty {
   display: flex;

@@ -317,9 +317,45 @@ $metal-dark: #6b6357;
     0 0 0 1px $outline,
     inset 0 0 0 1px $outline;
   cursor: pointer;
+  // Desvanecido suave del brillo de compra al soltar (al quitar .efecto-boton-active).
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
 
   &:focus { outline: none; }
   &:active:not(.rs-weapon-buy--off) { transform: translateY(1px); }
+}
+
+/* efecto-boton-active: pulso dorado breve + anillo que se expande al comprar
+   (feedback sutil, reutilizable). Se aplica unos ms al comprar (ver flashBought).
+   Se mantiene mientras compras en cadena y se desvanece al soltar. */
+.efecto-boton-active {
+  position: relative;   // ancla del anillo ::before en cualquier botón
+  border-color: #ffe08a #b8862a #b8862a #d8a53a;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px rgba(255, 235, 150, 0.55),
+    0 0 10px 2px rgba(255, 205, 90, 0.75);
+  animation: efecto-boton-pop 0.18s ease-out;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 220, 120, 0.9);
+    pointer-events: none;
+    animation: efecto-boton-ring 0.3s ease-out forwards;
+  }
+}
+
+@keyframes efecto-boton-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.09); }
+  100% { transform: scale(1); }
+}
+
+@keyframes efecto-boton-ring {
+  0%   { opacity: 0.85; transform: scale(0.92); }
+  100% { opacity: 0;    transform: scale(1.4); }
 }
 
 /* Sin estrellas suficientes: apagado y sin click. */
@@ -331,10 +367,13 @@ $metal-dark: #6b6357;
 /* Botón de compra: verde como el "Comprar" de la tienda. */
 /* Comprar objetivo: estilo global .rpg-btn--sm; aquí solo maquetación */
 .rs-ms-buy {
+  position: relative;   // ancla del .notif-dot (badge de onboarding del Impulso)
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 3px;
+  // Desvanecido suave del brillo de compra (.efecto-boton-active) al quitarse.
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
 
   &:focus { outline: none; }
 

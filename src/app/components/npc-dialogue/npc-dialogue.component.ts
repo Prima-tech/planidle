@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { DialogueService, DialogueLine } from 'src/app/services/dialogue.service';
+import { NPC_PORTRAITS } from 'src/app/services/quest.service';
 
 /**
  * Cuadro de diálogo de NPC. Escucha DialogueService.line$ (lo dispara la escena
@@ -69,6 +70,31 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
     clearTimeout(this.leaveTimer);
+  }
+
+  /** Retrato del hablante: recorta la CABEZA de su frame idle en la hoja LPC (misma
+   *  receta que el retrato del NPC en el panel de misiones) y la escala al avatar.
+   *  `null` si el hablante no tiene entrada en NPC_PORTRAITS → el hueco se oculta. */
+  private static readonly AV_PX = 46;       // lado del retrato (px)
+  private static readonly LPC_FRAME = 64;   // lado del frame LPC
+  private static readonly HEAD_X = 16;      // origen X de la cabeza dentro del frame
+  private static readonly HEAD_Y = 12;      // origen Y de la cabeza dentro del frame
+  private static readonly HEAD_SIZE = 32;   // lado de la región de la cabeza (px de origen)
+
+  get portraitStyle(): Record<string, string> | null {
+    const p = this.line ? NPC_PORTRAITS[this.line.speaker] : null;
+    if (!p) return null;
+    const F = NpcDialogueComponent.LPC_FRAME;
+    const k = NpcDialogueComponent.AV_PX / NpcDialogueComponent.HEAD_SIZE;   // cabeza → avatar
+    const col = p.frame % p.cols;
+    const row = Math.floor(p.frame / p.cols);
+    const srcX = col * F + NpcDialogueComponent.HEAD_X;
+    const srcY = row * F + NpcDialogueComponent.HEAD_Y;
+    return {
+      'background-image': `url(${p.sheet})`,
+      'background-size': `${p.cols * F * k}px auto`,
+      'background-position': `${-srcX * k}px ${-srcY * k}px`,
+    };
   }
 
   /** Texto visible: la página actual, con "…" si la frase continúa. */

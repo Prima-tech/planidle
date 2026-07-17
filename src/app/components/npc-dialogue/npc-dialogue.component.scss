@@ -1,16 +1,8 @@
-/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+/* ===== Diálogo NPC — estilo JRPG moderno (barra oscura + hilo dorado + retrato) ===== */
 $outline: #3a2c20;
-$stone: #8f8678;
-$stone-light: #a59c8d;
-$stone-dark: #6b6357;
-$wood-btn: #c08349;
-$wood-btn-light: #d99a5c;
-$wood-btn-dark: #8a5530;
-$text-cream: #ecd9b4;
-$metal-light: #cfc7b8;
-$metal: #9b9285;
-$metal-dark: #6b6357;
 $gold: #ffe08a;
+$gold-2: #f0c040;
+$gold-d: #b8922a;
 
 // Overlay NO bloqueante: deja pasar el toque al juego (para seguir moviéndote y que
 // el diálogo se cierre al alejarte). Solo el cuadro captura el toque (para cerrarlo).
@@ -20,99 +12,99 @@ $gold: #ffe08a;
   z-index: 400;
   display: flex;
   align-items: flex-end;
-  justify-content: flex-start;   // abajo a la IZQUIERDA (antes centrado)
+  justify-content: flex-start;   // abajo a la IZQUIERDA
   padding: 0 14px calc(72px + var(--safe-bottom, 0px)) calc(10px + var(--safe-left, 0px));
   pointer-events: none;
 }
 
-// Bocadillo: marco metálico + madera oscura con vetas (receta 1b del rpg-theme) + un
-// hilo dorado interior y la placa del nombre sobresaliendo por arriba.
+// Barra oscura con degradado, borde fino e hilo dorado en el borde superior.
 .dlg-box {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  max-width: 380px;   // un poco más largos (antes 270px)
-  padding: 18px 18px 17px;
-  color: $text-cream;
-  background:
-    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 14px),
-    linear-gradient(180deg, lighten($wood-btn-dark, 5%), $wood-btn-dark 60%, darken($wood-btn-dark, 5%));
-  border: 3px solid;
-  border-color: $metal-light $metal-dark $metal-dark $metal;
-  border-radius: 9px;
-  box-shadow:
-    0 0 0 1px $outline,                         // contorno exterior
-    inset 0 0 0 1px $outline,                    // contorno interior
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),     // reflejo metálico superior
-    0 9px 24px rgba(0, 0, 0, 0.55);              // elevación
+  max-width: 380px;
+  padding: 14px 16px;
+  color: #e8ebf2;
+  background: linear-gradient(180deg, #26262e, #141419);
+  border: 1px solid #3a3a46;
+  border-radius: 11px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
   cursor: pointer;
-  animation: dlg-pop 170ms cubic-bezier(0.18, 0.9, 0.3, 1.25);
+  animation: dlg-in 220ms cubic-bezier(0.2, 0.85, 0.3, 1) both;
 
-  // Hilo dorado interior (doble marco clásico de bocadillo RPG).
+  // Hilo dorado en el borde superior.
   &::before {
     content: '';
     position: absolute;
-    inset: 4px;
-    border: 1px solid rgba(255, 224, 138, 0.22);
-    border-radius: 5px;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 11px 11px 0 0;
+    background: linear-gradient(90deg, $gold-2, $gold, $gold-2);
     pointer-events: none;
   }
 
-  // Animación de salida (al cerrarse / alejarse).
+  // Animación de salida (al cerrarse / alejarse). Gana a la de entrada por especificidad.
   &.leaving {
     animation: dlg-out 180ms ease-in forwards;
     pointer-events: none;
   }
 }
 
-// Placa del nombre, sobresaliendo por el borde superior izquierdo (madera + piedra).
-.dlg-speaker {
-  position: absolute;
-  top: -13px;
-  left: 14px;
-  padding: 2px 12px;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  color: $gold;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
-  background: linear-gradient(180deg, $wood-btn-light, $wood-btn 55%, $wood-btn-dark);
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+// Retrato circular del NPC (recorte del sprite LPC, ver portraitStyle en el TS).
+.dlg-avatar {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: #17171d;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  border: 2px solid $gold-2;
+  box-shadow: 0 0 10px rgba(240, 192, 64, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
 }
 
-// Icono de finalizar conversación, sobresaliendo por el borde superior derecho
-// (piedra + marco metálico, a juego con la placa del nombre).
-.dlg-close {
+// Nombre en pestaña dorada, sobresaliendo por el borde superior izquierdo.
+.dlg-speaker {
   position: absolute;
   top: -12px;
-  right: 10px;
-  width: 26px;
-  height: 26px;
+  left: 16px;
+  padding: 2px 14px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1a1408;
+  background: linear-gradient(180deg, $gold, $gold-d);
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+// Botón de finalizar, círculo oscuro sobresaliendo por el borde superior derecho.
+.dlg-close {
+  position: absolute;
+  top: -11px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
-  color: $text-cream;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
-  background: linear-gradient(180deg, $stone-light, $stone 55%, $stone-dark);
-  border: 2px solid;
-  border-color: $metal-light $metal-dark $metal-dark $metal;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  color: #c9ccd6;
+  background: #2a2a33;
+  border: 1px solid #45454f;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
   pointer-events: auto;
   cursor: pointer;
 
@@ -120,13 +112,13 @@ $gold: #ffe08a;
 }
 
 .dlg-text {
-  margin-top: 3px;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 16px;
-  line-height: 1.4;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  // Máximo 2 líneas visuales con "…" (red de seguridad; la paginación en TS ya corta
-  // la frase en trozos de 2 líneas, esto evita desbordes si la medición se queda corta).
+  flex: 1 1 auto;
+  min-width: 0;   // permite encoger para que el clamp/paginación midan bien
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #e8ebf2;
+  // Máximo 2 líneas visuales con "…" (red de seguridad; la paginación en TS ya corta).
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -144,17 +136,22 @@ $gold: #ffe08a;
   animation: dlg-bob 0.9s ease-in-out infinite;
 }
 
-@keyframes dlg-pop {
-  from { transform: translateY(12px) scale(0.96); opacity: 0; }
-  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+@keyframes dlg-in {
+  from { transform: translateY(22px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
 @keyframes dlg-out {
-  from { transform: translateY(0)    scale(1);    opacity: 1; }
-  to   { transform: translateY(14px) scale(0.95); opacity: 0; }
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(14px); opacity: 0; }
 }
 
 @keyframes dlg-bob {
   0%, 100% { transform: translateY(0);   opacity: 1;    }
   50%      { transform: translateY(2px); opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dlg-box { animation-duration: 0.01ms; }
+  .dlg-hint { animation: none; }
 }

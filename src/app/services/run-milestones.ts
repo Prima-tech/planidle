@@ -48,7 +48,7 @@ export const RUN_MILESTONES: RunMilestoneDef[] = [
   // Impulso: se COMPRA con estrellas (antes lo daba la 1ª misión). Habilita el botón de
   // impulso en el HUD (ver layout + PlayerBridgeService.activateSprint).
   {
-    id: 'sprint', cost: 10,
+    id: 'sprint', cost: 15,
     labelKey: 'RUN.MS_SPRINT', descKey: 'RUN.MS_SPRINT_DESC',
     icon: 'flash',
   },

@@ -5,10 +5,15 @@ import { AchievementService } from 'src/app/services/achievement.service';
 import { QuestService } from 'src/app/services/quest.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 
+/** Diseño del toast: 'gold' = placa de oro (logros y desbloqueos) · 'scroll' =
+ *  pergamino (misiones). */
+type ToastVariant = 'gold' | 'scroll';
+
 interface Toast {
   icon: string;
   name: string;
   label: string;   // texto pequeño superior ("Logro desbloqueado" / "Misión completada")
+  variant: ToastVariant;
   id: number;
   leaving: boolean;
 }
@@ -34,13 +39,16 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subs.push(
+      // Logros → placa de oro.
       this.achievements.unlocked$.subscribe(def =>
-        this.show(def.icon, def.name, 'TOAST.ACHIEVEMENT_UNLOCKED')),
+        this.show(def.icon, def.name, 'TOAST.ACHIEVEMENT_UNLOCKED', 'gold')),
+      // Misiones → pergamino.
       this.quests.completed$.subscribe(def =>
-        this.show(def.icon, def.name, 'TOAST.QUEST_COMPLETED')),
-      // Solo las features con `toast` definido muestran pastilla (p.ej. mapas).
+        this.show(def.icon, def.name, 'TOAST.QUEST_COMPLETED', 'scroll')),
+      // Solo las features con `toast` definido muestran pastilla (p.ej. mapas). Usan
+      // el diseño de placa (desbloqueo genérico).
       this.unlocks.unlocked$.subscribe(def => {
-        if (def.toast) this.show(def.toast.icon, def.name ?? '', def.toast.label);
+        if (def.toast) this.show(def.toast.icon, def.name ?? '', def.toast.label, 'gold');
       }),
     );
   }
@@ -49,13 +57,14 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
   }
 
-  private show(icon: string, name: string, label: string): void {
+  private show(icon: string, name: string, label: string, variant: ToastVariant): void {
     // name/label pueden ser claves i18n (logros/misiones) o texto ya literal
     // (unlocks); instant() traduce las claves y deja el texto plano intacto.
     const toast: Toast = {
       icon,
       name: this.translate.instant(name),
       label: this.translate.instant(label),
+      variant,
       id: this.nextId++, leaving: false,
     };
     this.toasts.push(toast);

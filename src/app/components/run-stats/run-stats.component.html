@@ -36,6 +36,8 @@
     </button>
     <button class="rs-vtab" [class.active]="tab === 'objetivos'" (click)="tab = 'objetivos'" [title]="'RUN.MS_PENDING' | translate">
       <ion-icon name="flag-outline"></ion-icon>
+      <!-- Onboarding paso 3: guía hacia Objetivos mientras falte comprar el Impulso. -->
+      <span class="notif-dot" *ngIf="onboardBadgeSprint()"></span>
     </button>
     <button class="rs-vtab" [class.active]="tab === 'completos'" (click)="tab = 'completos'" [title]="'RUN.MS_DONE' | translate">
       <ion-icon name="checkmark-done-outline"></ion-icon>
@@ -80,7 +82,8 @@
         </div>
         <!-- Mantener pulsado = compra en cadena acelerada (hasta quedarte sin estrellas).
              Un tap normal compra una sola vez. Eventos de puntero (móvil + escritorio). -->
-        <button class="rs-weapon-buy" [class.rs-weapon-buy--off]="!canBuyWeapon(w)" [disabled]="!canBuyWeapon(w)"
+        <button class="rs-weapon-buy" [class.rs-weapon-buy--off]="!canBuyWeapon(w)"
+                [class.efecto-boton-active]="boughtPulseId === w.id" [disabled]="!canBuyWeapon(w)"
                 (pointerdown)="startWeaponHold(w, $event)" (pointerup)="stopWeaponHold()"
                 (pointerleave)="stopWeaponHold()" (pointercancel)="stopWeaponHold()">
           <span class="rs-val">{{ weaponCost(w) | compactNumber }}</span>
@@ -101,9 +104,12 @@
               <span class="rs-ms-name">{{ m.labelKey | translate }}</span>
               <span class="rs-ms-desc">{{ m.descKey | translate }}</span>
             </div>
-            <button class="rpg-btn rpg-btn--sm rs-ms-buy" *ngIf="tab === 'objetivos'" [disabled]="!canBuy(m)" (click)="buy(m)">
+            <button class="rpg-btn rpg-btn--sm rs-ms-buy" *ngIf="tab === 'objetivos'"
+                    [class.efecto-boton-active]="boughtPulseId === m.id" [disabled]="!canBuy(m)" (click)="buy(m)">
               <span>{{ m.cost }}</span>
               <img class="rs-ms-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+              <!-- Onboarding paso 3: badge de novedad en la compra del Impulso (sprint). -->
+              <span class="notif-dot" *ngIf="onboardBadgeSprint(m.id)"></span>
             </button>
           </div>
           <div class="rs-empty" *ngIf="list.length === 0">{{ 'RUN.MS_NONE' | translate }}</div>
