@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { GameSettingsService } from './services/game-settings.service';
+import { AppStyleService } from './services/app-style.service';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,9 @@ export class AppComponent {
   constructor(
     private translate: TranslateService,
     private settings: GameSettingsService,
+    // Instanciar el servicio de estilo al arrancar aplica data-appstyle en <html>
+    // antes de pintar nada (evita parpadeo del tema).
+    private appStyle: AppStyleService,
   ) {
     this.initApp();
   }

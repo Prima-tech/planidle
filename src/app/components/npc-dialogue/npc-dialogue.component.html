@@ -8,6 +8,6 @@
       (click)="$event.stopPropagation(); dismiss()">✕</button>
     <div class="dlg-avatar" *ngIf="portraitStyle" [ngStyle]="portraitStyle"></div>
     <div class="dlg-text" #dlgText>{{ displayText }}</div>
-    <div class="dlg-hint" *ngIf="!hasMorePages && line.hasNext">▼</div>
+    <div class="dlg-hint" *ngIf="hasMorePages || line.hasNext">▼</div>
   </div>
 </div>

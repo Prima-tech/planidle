@@ -44,6 +44,12 @@
       "LOCAL": "Saved locally (local mode, no cloud)",
       "ERROR": "Sync error — data safe locally"
     },
+    "STYLE": {
+      "TITLE": "Style",
+      "WOOD": "Wood",
+      "DARK": "Dark",
+      "CYBERPUNK": "Cyberpunk"
+    },
     "SECTION": {
       "WORLD": "World",
       "CHARACTER": "Character",

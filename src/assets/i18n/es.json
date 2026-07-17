@@ -44,6 +44,12 @@
       "LOCAL": "Guardado en local (modo local, sin nube)",
       "ERROR": "Error al sincronizar — datos a salvo en local"
     },
+    "STYLE": {
+      "TITLE": "Estilo",
+      "WOOD": "Madera",
+      "DARK": "Oscuro",
+      "CYBERPUNK": "Ciberpunk"
+    },
     "SECTION": {
       "WORLD": "Mundo",
       "CHARACTER": "Personaje",

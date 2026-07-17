@@ -213,6 +213,41 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   line-height: 1;
 }
 
+/* Selector de estilo visual (tema) de la app: botones wood; el activo, dorado. */
+.gs-style {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.gs-style-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba($text-cream, 0.6);
+}
+.gs-style-btns {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+.gs-style-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 0.72em;
+
+  &.active {
+    border-color: #ffe6a0 #a8781f #a8781f #d8a53a;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px rgba(255, 235, 150, 0.5),
+      0 0 8px rgba(240, 192, 64, 0.55);
+    filter: brightness(1.06);
+  }
+}
+
 .gs-identity-body {
   display: flex;
   flex-direction: column;

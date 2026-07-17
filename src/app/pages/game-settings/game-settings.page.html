@@ -26,6 +26,21 @@
         </div>
       </div>
 
+      <!-- Selector de estilo visual de la app: un botón por estilo, uno activo. -->
+      <div class="gs-style">
+        <span class="gs-style-label">{{ 'SETTINGS.STYLE.TITLE' | translate }}</span>
+        <div class="gs-style-btns">
+          <button
+            *ngFor="let s of appStyle.styles"
+            type="button"
+            class="rpg-btn gs-style-btn"
+            [class.active]="appStyle.isActive(s.id)"
+            (click)="appStyle.set(s.id)">
+            {{ s.nameKey | translate }}
+          </button>
+        </div>
+      </div>
+
       <!-- Guardar partida + Cerrar sesión: misma línea (dos botones) -->
       <div class="gs-btn-row">
         <!-- Guardar en la nube: acción manual. Sin lógica de estado (el auto-save

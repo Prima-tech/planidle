@@ -6,6 +6,7 @@ import { AudioService } from 'src/app/services/audio.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { SaveService } from 'src/app/services/save.service';
+import { AppStyleService } from 'src/app/services/app-style.service';
 import { AsgardService } from 'src/app/services/asgard';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -34,6 +35,7 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
   private connection = inject(ConnectionService);
   private supabase = inject(SupabaseService);
   private saveService = inject(SaveService);
+  appStyle = inject(AppStyleService);
   private asgard = inject(AsgardService);
   private playerState = inject(PlayerStateService);
   private playerBridge = inject(PlayerBridgeService);

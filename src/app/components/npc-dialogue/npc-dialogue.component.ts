@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { DialogueService, DialogueLine } from 'src/app/services/dialogue.service';
 import { NPC_PORTRAITS } from 'src/app/services/quest.service';
@@ -23,6 +23,7 @@ import { NPC_PORTRAITS } from 'src/app/services/quest.service';
 })
 export class NpcDialogueComponent implements OnInit, OnDestroy {
   private dialogue = inject(DialogueService);
+  private zone = inject(NgZone);
 
   @ViewChild('dlgText') private dlgTextRef?: ElementRef<HTMLElement>;
 
@@ -42,9 +43,12 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
   private leaveTimer?: ReturnType<typeof setTimeout>;
 
   ngOnInit(): void {
+    // La escena Phaser corre FUERA de la zona de Angular, así que line$/next$ emiten
+    // fuera de zona: hay que reentrar en NgZone para que el cambio se detecte, se
+    // renderice el cuadro y `paginate()` (en el setTimeout) encuentre ya el DOM.
     // La tecla espacio (desde la escena Phaser) actúa igual que un toque en el cuadro.
-    this.sub = this.dialogue.next$.subscribe(() => this.onBoxClick());
-    this.sub.add(this.dialogue.line$.subscribe(line => {
+    this.sub = this.dialogue.next$.subscribe(() => this.zone.run(() => this.onBoxClick()));
+    this.sub.add(this.dialogue.line$.subscribe(line => this.zone.run(() => {
       if (line) {
         clearTimeout(this.leaveTimer);
         this.leaving = false;
@@ -64,7 +68,7 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
           this.leaving = false;
         }, NpcDialogueComponent.LEAVE_MS);
       }
-    }));
+    })));
   }
 
   ngOnDestroy(): void {
@@ -75,11 +79,15 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
   /** Retrato del hablante: recorta la CABEZA de su frame idle en la hoja LPC (misma
    *  receta que el retrato del NPC en el panel de misiones) y la escala al avatar.
    *  `null` si el hablante no tiene entrada en NPC_PORTRAITS → el hueco se oculta. */
+  // ── Mandos del encuadre del retrato (tócalos para ajustar a ojo) ──────────────
   private static readonly AV_PX = 46;       // lado del retrato (px)
   private static readonly LPC_FRAME = 64;   // lado del frame LPC
-  private static readonly HEAD_X = 16;      // origen X de la cabeza dentro del frame
-  private static readonly HEAD_Y = 12;      // origen Y de la cabeza dentro del frame
-  private static readonly HEAD_SIZE = 32;   // lado de la región de la cabeza (px de origen)
+  private static readonly HEAD_X = 15;      // origen X de la cabeza dentro del frame (↑ = paneo a la derecha)
+  private static readonly HEAD_Y = 10;      // origen Y de la cabeza dentro del frame (↑ = paneo hacia abajo)
+  private static readonly HEAD_SIZE = 36;   // región de la cabeza (px origen) → ZOOM: ↓ más cerca, ↑ más lejos
+  // Ajuste fino, en PÍXELES DEL AVATAR ya escalados (positivo = mueve el retrato a la derecha / abajo).
+  private static readonly NUDGE_X = 0;
+  private static readonly NUDGE_Y = 0;
 
   get portraitStyle(): Record<string, string> | null {
     const p = this.line ? NPC_PORTRAITS[this.line.speaker] : null;
@@ -90,10 +98,12 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
     const row = Math.floor(p.frame / p.cols);
     const srcX = col * F + NpcDialogueComponent.HEAD_X;
     const srcY = row * F + NpcDialogueComponent.HEAD_Y;
+    const posX = -srcX * k + NpcDialogueComponent.NUDGE_X;
+    const posY = -srcY * k + NpcDialogueComponent.NUDGE_Y;
     return {
       'background-image': `url(${p.sheet})`,
       'background-size': `${p.cols * F * k}px auto`,
-      'background-position': `${-srcX * k}px ${-srcY * k}px`,
+      'background-position': `${posX}px ${posY}px`,
     };
   }
 

@@ -1,11 +1,27 @@
-/* ===== Diálogo NPC — estilo JRPG moderno (barra oscura + hilo dorado + retrato) ===== */
+/* ===== Diálogo NPC =====
+   BASE = estilo WOOD (principal): marco de piedra biselado + madera cálida,
+   placa dorada y retrato del NPC (paleta canónica de la app).
+   Override DARK  (:host-context[data-appstyle="dark"])      = barra JRPG moderna.
+   Override CYBER (:host-context[data-appstyle="cyberpunk"]) = HUD negro con
+   corchetes de verde fósforo en las esquinas.
+   El atributo lo pone AppStyleService en <html>. */
 $outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$wood-btn: #c08349;
+$wood-btn-light: #d99a5c;
+$wood-btn-dark: #8a5530;
+$text-cream: #ecd9b4;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
 $gold: #ffe08a;
 $gold-2: #f0c040;
 $gold-d: #b8922a;
 
-// Overlay NO bloqueante: deja pasar el toque al juego (para seguir moviéndote y que
-// el diálogo se cierre al alejarte). Solo el cuadro captura el toque (para cerrarlo).
+// Overlay NO bloqueante: deja pasar el toque al juego. Solo el cuadro lo captura.
 .dlg-overlay {
   position: fixed;
   inset: 0;
@@ -17,7 +33,7 @@ $gold-d: #b8922a;
   pointer-events: none;
 }
 
-// Barra oscura con degradado, borde fino e hilo dorado en el borde superior.
+/* ───────────────── WOOD (base) · piedra clásica + madera ───────────────── */
 .dlg-box {
   position: relative;
   display: flex;
@@ -25,86 +41,90 @@ $gold-d: #b8922a;
   gap: 12px;
   width: 100%;
   max-width: 380px;
-  padding: 14px 16px;
-  color: #e8ebf2;
-  background: linear-gradient(180deg, #26262e, #141419);
-  border: 1px solid #3a3a46;
-  border-radius: 11px;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
+  padding: 14px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 15px),
+    $wood-bg;
+  border: 3px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 9px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 9px 22px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
   pointer-events: auto;
   cursor: pointer;
-  animation: dlg-in 220ms cubic-bezier(0.2, 0.85, 0.3, 1) both;
+  animation: dlg-pop 170ms cubic-bezier(0.18, 0.9, 0.3, 1.25);
 
-  // Hilo dorado en el borde superior.
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    border-radius: 11px 11px 0 0;
-    background: linear-gradient(90deg, $gold-2, $gold, $gold-2);
-    pointer-events: none;
-  }
-
-  // Animación de salida (al cerrarse / alejarse). Gana a la de entrada por especificidad.
   &.leaving {
     animation: dlg-out 180ms ease-in forwards;
     pointer-events: none;
   }
 }
 
-// Retrato circular del NPC (recorte del sprite LPC, ver portraitStyle en el TS).
+// Retrato del NPC (recorte del sprite LPC vía portraitStyle). Marco metálico.
 .dlg-avatar {
   flex: 0 0 auto;
   width: 46px;
   height: 46px;
-  border-radius: 50%;
-  background-color: #17171d;
+  border-radius: 6px;
+  background-color: #2a1c10;
   background-repeat: no-repeat;
-  image-rendering: pixelated;
-  border: 2px solid $gold-2;
-  box-shadow: 0 0 10px rgba(240, 192, 64, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-// Nombre en pestaña dorada, sobresaliendo por el borde superior izquierdo.
+// Placa del nombre (madera + piedra), sobresaliendo arriba-izquierda.
 .dlg-speaker {
   position: absolute;
-  top: -12px;
-  left: 16px;
-  padding: 2px 14px;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  top: -13px;
+  left: 14px;
+  padding: 2px 12px;
+  font-family: Georgia, 'Times New Roman', serif;
   font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #1a1408;
-  background: linear-gradient(180deg, $gold, $gold-d);
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: $gold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  background: linear-gradient(180deg, $wood-btn-light, $wood-btn 55%, $wood-btn-dark);
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
-// Botón de finalizar, círculo oscuro sobresaliendo por el borde superior derecho.
+// Botón de finalizar (piedra + metal), arriba-derecha.
 .dlg-close {
   position: absolute;
-  top: -11px;
-  right: 12px;
-  width: 24px;
-  height: 24px;
+  top: -12px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  font-size: 12px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
-  color: #c9ccd6;
-  background: #2a2a33;
-  border: 1px solid #45454f;
-  border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  color: $text-cream;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  background: linear-gradient(180deg, $stone-light, $stone 55%, $stone-dark);
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   pointer-events: auto;
   cursor: pointer;
 
@@ -114,18 +134,17 @@ $gold-d: #b8922a;
 .dlg-text {
   flex: 1 1 auto;
   min-width: 0;   // permite encoger para que el clamp/paginación midan bien
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  font-size: 15px;
-  line-height: 1.45;
-  color: #e8ebf2;
-  // Máximo 2 líneas visuales con "…" (red de seguridad; la paginación en TS ya corta).
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
 
-// Flechita "tocar/espacio para continuar" parpadeando en la esquina.
+// Flechita "tocar/espacio para continuar".
 .dlg-hint {
   position: absolute;
   right: 12px;
@@ -134,6 +153,161 @@ $gold-d: #b8922a;
   color: $gold;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   animation: dlg-bob 0.9s ease-in-out infinite;
+}
+
+/* ───────────────── DARK · barra JRPG moderna ───────────────── */
+:host-context([data-appstyle="dark"]) {
+  .dlg-box {
+    color: #e8ebf2;
+    background: linear-gradient(180deg, #26262e, #141419);
+    border: 1px solid #3a3a46;
+    border-radius: 11px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
+    animation: dlg-in 220ms cubic-bezier(0.2, 0.85, 0.3, 1) both;
+
+    // Hilo dorado en el borde superior.
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 11px 11px 0 0;
+      background: linear-gradient(90deg, $gold-2, $gold, $gold-2);
+      pointer-events: none;
+    }
+
+    // La salida debe ganar a la entrada de este tema (más específico que la base).
+    &.leaving {
+      animation: dlg-out 180ms ease-in forwards;
+    }
+  }
+
+  .dlg-avatar {
+    border-radius: 50%;
+    background-color: #17171d;
+    border: 2px solid $gold-2;
+    box-shadow: 0 0 10px rgba(240, 192, 64, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  }
+
+  .dlg-speaker {
+    top: -12px;
+    left: 16px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1a1408;
+    text-shadow: none;
+    background: linear-gradient(180deg, $gold, $gold-d);
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  }
+
+  .dlg-close {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 12px;
+    color: #c9ccd6;
+    text-shadow: none;
+    background: #2a2a33;
+    border: 1px solid #45454f;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  }
+
+  .dlg-text {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #e8ebf2;
+    text-shadow: none;
+  }
+}
+
+/* ───────────────── CYBERPUNK · HUD negro con corchetes fósforo ───────────────── */
+// Base negra dominante; el verde fósforo (#21ff9a) solo como acento (corchetes de
+// esquina, placa, glow). "N4" de la galería.
+:host-context([data-appstyle="cyberpunk"]) {
+  .dlg-box {
+    color: #dbeee4;
+    background: linear-gradient(180deg, rgba(6, 9, 8, 0.96), rgba(3, 5, 5, 0.97));
+    border: 1px solid rgba(33, 255, 154, 0.14);
+    border-radius: 2px;
+    box-shadow:
+      inset 0 0 24px rgba(0, 0, 0, 0.6),
+      0 10px 24px rgba(0, 0, 0, 0.6);
+    text-shadow: none;
+
+    // Corchetes fósforo en dos esquinas opuestas (HUD de mira).
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      pointer-events: none;
+      border: 2px solid #21ff9a;
+      border-radius: 0;
+      box-shadow: 0 0 8px rgba(33, 255, 154, 0.6);
+    }
+    &::before { top: 4px; left: 4px; right: auto; bottom: auto; border-right: none; border-bottom: none; }
+    &::after  { bottom: 4px; right: 4px; top: auto; left: auto; border-left: none; border-top: none; }
+  }
+
+  .dlg-avatar {
+    border-radius: 2px;
+    background-color: #050807;
+    border: 1px solid rgba(33, 255, 154, 0.35);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .dlg-speaker {
+    top: -11px;
+    padding: 2px 12px;
+    font-family: 'Consolas', 'SF Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #21ff9a;
+    text-shadow: 0 0 8px rgba(33, 255, 154, 0.5);
+    background: #080d0b;
+    border: 1px solid rgba(33, 255, 154, 0.5);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(33, 255, 154, 0.25);
+  }
+
+  .dlg-close {
+    top: -10px;
+    font-family: 'Consolas', 'SF Mono', ui-monospace, monospace;
+    color: #21ff9a;
+    text-shadow: none;
+    background: #080d0b;
+    border: 1px solid rgba(33, 255, 154, 0.4);
+    border-radius: 2px;
+    box-shadow: none;
+  }
+
+  .dlg-text {
+    font-family: 'Consolas', 'SF Mono', ui-monospace, monospace;
+    font-size: 14.5px;
+    line-height: 1.42;
+    color: #dbeee4;
+    text-shadow: none;
+  }
+
+  .dlg-hint {
+    color: #21ff9a;
+    text-shadow: 0 0 8px rgba(33, 255, 154, 0.8);
+  }
+}
+
+@keyframes dlg-pop {
+  from { transform: translateY(12px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
 }
 
 @keyframes dlg-in {
