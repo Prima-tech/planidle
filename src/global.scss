@@ -234,3 +234,69 @@ ion-content::part(scroll)::-webkit-scrollbar {
   border-width: 2px;
   border-radius: 6px;
 }
+
+/* ═══════════════ Estilos de app · superficies COMPARTIDAS (data-appstyle) ═══════════════
+   Wood es la base (arriba). Cada estilo redefine aquí las clases compartidas por muchos
+   paneles: el botón de acción .rpg-btn, la pastilla de monedas .coins-section y el botón
+   de cerrar .close-btn del modal-container. Al vivir en global.scss cambian en TODA la
+   app de una vez. El marco y las tripas de cada panel se tematizan en su propio SCSS.
+   Ver skill app-styles. */
+@mixin app-shared($btn-bg, $btn-bd, $btn-col, $btn-active-bg, $coins-bg, $coins-bd, $coins-col, $accent, $btn-font: null) {
+  .rpg-btn {
+    background: $btn-bg;
+    border-color: $btn-bd;
+    color: $btn-col;
+    text-shadow: none;
+    @if $btn-font != null { font-family: $btn-font; }
+
+    &:hover  { background: $btn-bg; filter: brightness(1.13); }
+    &:active { background: $btn-active-bg; color: $btn-col; filter: none; }
+  }
+
+  .coins-section {
+    background: $coins-bg;
+    border-color: $coins-bd;
+    box-shadow: none;
+  }
+  .coin-amount { color: $coins-col; }
+
+  .close-btn {
+    background: rgba(0, 0, 0, 0.35);
+    border-color: $accent;
+    color: $accent;
+    &:active { background: rgba(0, 0, 0, 0.5); }
+  }
+}
+
+html[data-appstyle="cyberpunk"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, #12211b, #0a0f0d), $btn-bd: rgba(33,255,154,.45), $btn-col: #21ff9a, $btn-active-bg: #050807,
+    $coins-bg: #0a0f0d, $coins-bd: rgba(33,255,154,.35), $coins-col: #dbeee4, $accent: #21ff9a,
+    $btn-font: ('Consolas','SF Mono',ui-monospace,monospace)
+  );
+}
+html[data-appstyle="arcano"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, #3a2d5e, #221a3a), $btn-bd: #6d4bd6, $btn-col: #f0e9ff, $btn-active-bg: #160f28,
+    $coins-bg: #1a1330, $coins-bd: #6d4bd6, $coins-col: #ece6ff, $accent: #9d7ff0
+  );
+}
+html[data-appstyle="sangre"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, #3a1518, #1a1012), $btn-bd: #6b1620, $btn-col: #e8c4a8, $btn-active-bg: #12080a,
+    $coins-bg: #12080a, $coins-bd: #6b1620, $coins-col: #f0d8ce, $accent: #cf3a48
+  );
+}
+html[data-appstyle="holo"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, rgba(16,38,58,.9), rgba(10,24,40,.92)), $btn-bd: rgba(80,180,255,.5), $btn-col: #dceefc, $btn-active-bg: rgba(6,16,28,.92),
+    $coins-bg: rgba(10,26,42,.7), $coins-bd: rgba(80,180,255,.4), $coins-col: #dceefc, $accent: #4db8ff,
+    $btn-font: ('Consolas','SF Mono',ui-monospace,monospace)
+  );
+}
+html[data-appstyle="real"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, #26356a, #182248), $btn-bd: #caa23c, $btn-col: #ffe9a8, $btn-active-bg: #111838,
+    $coins-bg: #182248, $coins-bd: #caa23c, $coins-col: #f0e6cc, $accent: #e0b53c
+  );
+}

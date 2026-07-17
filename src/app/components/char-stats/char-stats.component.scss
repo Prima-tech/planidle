@@ -161,3 +161,112 @@ $metal-dark: #6b6357;
   color: #f0c040;
   font-weight: 700;
 }
+
+/* ═══════════════ Char-stats · overrides por estilo (data-appstyle) ═══════════════
+   Base = wood (arriba). Cada estilo repinta la placa, la insignia de nivel, título,
+   etiquetas/valores, barra de XP y acentos con su paleta. */
+@mixin cs-style(
+  $font, $text, $muted, $title, $accent, $dmg,
+  $panel-bg, $bd, $panel-shadow, $radius,
+  $badge-bg, $badge-col, $track-bg, $track-bd, $xp-fill
+) {
+  background: $panel-bg;
+  border: 2px solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .cs-title-row { border-bottom-color: $accent; }
+
+  .cs-level-badge {
+    background: $badge-bg;
+    border: 2px solid $bd;
+    color: $badge-col;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .cs-title {
+    color: $title;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    @if $font != null { font-family: $font; }
+  }
+
+  .cs-label { color: $muted; }
+  .cs-val   { color: $text; }
+  .cs-xp    { color: $muted; }
+  .cs-max   { color: $accent; }
+  .cs-dmg   { color: $dmg; }
+
+  .cs-xp-track {
+    background: $track-bg;
+    border: 1px solid $track-bd;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.55);
+  }
+  .cs-xp-fill { background: $xp-fill; }
+
+  .cs-divider { background: $accent; opacity: 0.35; }
+
+  .cs-bk-row { color: $muted; }
+  .cs-bonus  { color: $accent; }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include cs-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $title: #6fd8a8, $accent: #21ff9a, $dmg: #ff5a6e,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 20px rgba(0,0,0,.6), 0 4px 14px rgba(0,0,0,.6)), $radius: 3px,
+    $badge-bg: #0a0f0d, $badge-col: #21ff9a, $track-bg: #06120d, $track-bd: rgba(33,255,154,.3),
+    $xp-fill: linear-gradient(90deg,#0f8a5a,#21ff9a)
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include cs-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $title: #b79cff, $accent: #9d7ff0, $dmg: #ff6ba8,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 4px 14px rgba(0,0,0,.55)), $radius: 10px,
+    $badge-bg: #160f28, $badge-col: #b79cff, $track-bg: #0d0a18, $track-bd: #3a2d5e,
+    $xp-fill: linear-gradient(90deg,#5b3bc4,#9d7ff0)
+  );
+}
+
+/* SANGRE · negro rojizo + granate */
+:host-context([data-appstyle="sangre"]) {
+  @include cs-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $title: #d98a92, $accent: #cf3a48, $dmg: #e23b32,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 4px 14px rgba(0,0,0,.6)), $radius: 8px,
+    $badge-bg: #12080a, $badge-col: #e8c4a8, $track-bg: #0a0506, $track-bd: #3a1518,
+    $xp-fill: linear-gradient(90deg,#8e0f16,#e23b32)
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include cs-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $title: #8fd4ff, $accent: #4db8ff, $dmg: #ff6a5a,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 18px rgba(0,0,0,.5), 0 0 14px rgba(77,184,255,.28), 0 4px 14px rgba(0,0,0,.5)), $radius: 4px,
+    $badge-bg: rgba(10,26,42,.7), $badge-col: #8fd4ff, $track-bg: #06121e, $track-bd: rgba(80,180,255,.28),
+    $xp-fill: linear-gradient(90deg,#1c6fc0,#4db8ff)
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include cs-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $title: #ffe9a8, $accent: #e0b53c, $dmg: #ff7a5e,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 4px 14px rgba(0,0,0,.55)), $radius: 12px,
+    $badge-bg: #182248, $badge-col: #ffe9a8, $track-bg: #0a0e22, $track-bd: #3a2f12,
+    $xp-fill: linear-gradient(90deg,#b5851f,#ffe9a8)
+  );
+}

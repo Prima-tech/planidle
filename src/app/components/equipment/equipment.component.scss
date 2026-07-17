@@ -2346,3 +2346,349 @@ $metal-dark: #6b6357;
   display: block;
   margin: 10px auto 0;
 }
+
+/* ═══════════════ Equipamiento · overrides por estilo (data-appstyle) ═══════════════
+   La base es wood (arriba). Cada estilo redefine con su paleta: panel raíz, pestañas
+   verticales + sets, marco/asa del preview, placas (base-stats, overview, skills),
+   rejilla de logros, casillas equipables, filas de stats + botones, árbol de talentos
+   (viewport, nodos, líneas, picker, esferas) y barras de progreso. Solo color/borde/
+   sombra/tipografía — nunca tamaños ni layout. El mixin emite las props sobre el host
+   (:host-context) y los selectores hijos. Ver skill app-styles. */
+@mixin equipment-style(
+  $font, $text, $muted, $title, $accent, $accent-soft, $sel-glow,
+  $panel-bg, $bd, $panel-shadow, $radius,
+  $tab-bg, $tab-bd, $tab-col, $tab-active-bg, $tab-active-col, $tab-active-bd,
+  $frame-bg, $frame-bd,
+  $plaque-bg, $plaque-bd,
+  $cell-bg, $cell-bd,
+  $track, $track-bd, $bar,
+  $btn-bg, $btn-bd, $btn-col,
+  $node-bg,
+  $claim-bg, $claim-col, $claim-bd, $claim-glow,
+  $bw: 2px, $tab-tt: none, $good: #4fbf5a, $bad: #d8493a
+) {
+  // ── Panel raíz ─────────────────────────────────────────────────────────────
+  background: $panel-bg;
+  border: $bw solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .eq-content::-webkit-scrollbar-thumb { background: $accent-soft; }
+
+  // ── Pestañas verticales + sets + sub-pestañas de árbol ─────────────────────
+  .eq-vtab, .loadout-tab, .talent-tree-tab {
+    background: $tab-bg;
+    border-color: $tab-bd;
+    color: $tab-col;
+    text-transform: $tab-tt;
+    box-shadow: none;
+
+    &.active, &:hover {
+      background: $tab-active-bg;
+      color: $tab-active-col;
+      border-color: $tab-active-bd;
+      box-shadow: none;
+    }
+  }
+
+  // ── Marco del preview + asa ────────────────────────────────────────────────
+  .preview-frame {
+    background: $frame-bg;
+    border-color: $frame-bd;
+  }
+  .preview-corner-btn {
+    background: $tab-bg;
+    border-color: $tab-bd;
+    color: $accent;
+    @media (hover: hover) { &:hover { background: $tab-active-bg; } }
+    &:active { background: $tab-active-bg; color: $tab-active-col; }
+  }
+
+  // ── Placa de stats base ────────────────────────────────────────────────────
+  .base-stats-plaque {
+    background: $plaque-bg;
+    border-color: $plaque-bd;
+    &:hover { background: $plaque-bg; filter: brightness(1.1); }
+    &.open {
+      background: $plaque-bg;
+      box-shadow: 0 0 0 1px $bd, 0 0 8px $accent-soft;
+    }
+    &.locked:hover { background: $plaque-bg; }
+  }
+  .bsp-label { color: $muted; }
+  .bsp-val   { color: $text; }
+
+  // ── Overview (placas + acordeón + nivel) ───────────────────────────────────
+  .ov-row, .ov-level-card, .ov-accordion {
+    background: $plaque-bg;
+    border-color: $plaque-bd;
+  }
+  .ov-accordion:active { background: $plaque-bg; filter: brightness(1.12); }
+  .ov-accordion-body { background: $frame-bg; }
+  .ov-label, .ov-level-exp { color: $muted; }
+  .ov-level-num { color: $text; }
+  .ov-val,
+  .ov-val--highlight, .ov-val--hp, .ov-val--mp, .ov-val--def,
+  .ov-val--evasion, .ov-val--crit, .ov-val--drop { color: $text; }
+  .ov-bk-row { color: $text; }
+  .ov-bonus  { color: $title; }
+  .ov-exp-track { background: $track; box-shadow: inset 0 0 0 1px $track-bd; }
+  .ov-exp-fill  { background: $bar; }
+
+  // ── Logros ─────────────────────────────────────────────────────────────────
+  .ach-grid { background: $plaque-bg; border-color: $plaque-bd; }
+  .ach-cell {
+    background: $cell-bg;
+    border-color: $cell-bd;
+    &.unlocked ion-icon { color: $accent; filter: drop-shadow(0 0 4px $accent-soft); }
+    &.selected {
+      border-color: $accent;
+      box-shadow: 0 0 0 1px $bd, inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 0 8px $accent-soft;
+    }
+  }
+  .ach-info-name { color: $title; }
+  .ach-info-desc, .ach-info-count { color: $muted; }
+  .ach-info-head ion-icon {
+    background: $cell-bg;
+    border-color: $cell-bd;
+    color: $text;
+    &.unlocked { color: $accent; }
+  }
+  .ach-bar { background: $track; border-color: $track-bd; }
+  .ach-bar-fill { background: $bar; }
+  .ach-info-state {
+    background: $cell-bg;
+    border-color: $cell-bd;
+    color: $muted;
+    &.unlocked { color: $accent; }
+  }
+  .ach-reward-done { background: $cell-bg; border-color: $cell-bd; color: $muted; }
+  .ach-claim-btn {
+    background: $claim-bg;
+    border-color: $claim-bd;
+    color: $claim-col;
+    box-shadow: 0 0 0 1px $bd, inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 8px $claim-glow;
+    text-shadow: none;
+  }
+
+  // ── Casillas equipables ────────────────────────────────────────────────────
+  .equip-slot { background: $cell-bg; border-color: $cell-bd; }
+  .equip-slot.occupied { border-color: $cell-bd; }
+  .equip-item.selected { border-color: $accent; box-shadow: $sel-glow; }
+
+  // ── Filas de stats + botones ───────────────────────────────────────────────
+  .stat-row { background: $cell-bg; border-color: $cell-bd; }
+  .stat-label { color: $text; }
+  .stat-val   { color: $title; }
+  .stat-points-bar {
+    background: $cell-bg;
+    border-color: $cell-bd;
+    color: $title;
+    &.empty { color: $muted; }
+  }
+  .stat-btn, .talent-zoom-btn, .talent-expand-btn {
+    background: $btn-bg;
+    border-color: $btn-bd;
+    color: $btn-col;
+    box-shadow: 0 0 0 1px $bd, inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    &:hover  { filter: brightness(1.14); background: $btn-bg; }
+    &:active { filter: brightness(0.88); background: $btn-bg; color: $btn-col; }
+  }
+  .stat-btn.plus  { color: $good; }
+  .stat-btn.minus { color: $bad; }
+
+  // Flyout de stats (tab 0): pisa los chips de madera con selectores más específicos
+  .talent-picker-flyout.stats-flyout {
+    .stat-points-bar {
+      background: $cell-bg;
+      border-color: $track-bd;
+      color: $text;
+      strong { color: $accent; }
+      &.empty strong { color: $muted; }
+    }
+    .stat-row   { background: $cell-bg; border-color: $cell-bd; }
+    .stat-label { color: $text; }
+    .stat-val   { color: $title; }
+  }
+
+  // ── Árbol de talentos ──────────────────────────────────────────────────────
+  .talent-viewport { border-color: $cell-bd; }
+  .talent-viewport:not(.talent-viewport--classic) { background: $frame-bg; }
+  .talent-viewport--classic { border-color: $frame-bd; }
+
+  .tnode {
+    border-color: $plaque-bd;
+    background: $node-bg;
+    &--available, &--slotted { background: $node-bg; }
+    &--unlockable { border-color: $accent; }
+    &--selected {
+      border-color: $accent;
+      box-shadow: 0 0 0 1px $bd, inset 0 0 0 1px $bd, 0 0 12px $accent-soft;
+    }
+  }
+  .tnode-icon, .tnode-num { color: $text; }
+  .tnode-toplabel { color: $title; }
+  .tline--active {
+    stroke: $accent;
+    filter: drop-shadow(0 0 3px $accent-soft);
+  }
+
+  // Picker + esferas
+  .talent-picker-flyout {
+    background: $panel-bg;
+    border-color: $bd;
+    box-shadow: $panel-shadow;
+  }
+  .tpicker-name { color: $title; }
+  .tpicker-img  { background: $cell-bg; border-color: $plaque-bd; }
+  .tpicker-active {
+    background: $tab-bg;
+    border-color: $tab-bd;
+    color: $text;
+  }
+  .tpicker-slot { background: $cell-bg; border-color: $cell-bd; }
+  .tpicker-gem-count { background: $cell-bg; border-color: $cell-bd; color: $text; }
+  .tpicker-accordion-empty { color: $muted; }
+  .tpicker-hint { color: $bad; }
+
+  .tpoints, .tsphere { background: $tab-bg; border-color: $tab-bd; }
+  .tpoints-count, .tsphere-label, .tsphere-count { color: $text; }
+
+  // ── Misiones ───────────────────────────────────────────────────────────────
+  .quest-section-head, .quest-card-body, .quest-card-icon-wrap {
+    background: $plaque-bg;
+    border-color: $plaque-bd;
+    color: $text;
+  }
+  .quest-card {
+    background: $panel-bg;
+    border-color: $bd;
+    &.expanded { border-color: $accent; }
+  }
+  .quest-card-track { background: $track; border-color: $track-bd; }
+  .quest-card-track-fill { background: $bar; }
+  .quest-card-desc { color: $muted; }
+  .quest-activate-btn {
+    background: $tab-bg;
+    border-color: $tab-bd;
+    color: $tab-col;
+    &.active { background: $cell-bg; color: $accent; border-color: $accent; }
+  }
+  .quest-reward-item { background: $tab-bg; border-color: $tab-bd; }
+  .qr-amount { color: $text; }
+
+  // ── Skills de recolección ──────────────────────────────────────────────────
+  .skill-head, .skill-stat-row { background: $plaque-bg; border-color: $plaque-bd; }
+  .skill-icon-badge {
+    background: $cell-bg;
+    ion-icon { color: $text; }
+  }
+  .skill-name, .skill-stat-label { color: $text; }
+  .skill-stat-val, .skill-level-max { color: $title; }
+  .skill-level { color: $muted; }
+  .skill-xp-track { background: $track; box-shadow: inset 0 0 0 1px $track-bd; }
+  .skill-xp-fill  { background: $bar; }
+  .skill-xp-label { color: $text; }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include equipment-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $title: #6fd8a8, $accent: #21ff9a, $accent-soft: rgba(33,255,154,.16), $sel-glow: (0 0 10px rgba(33,255,154,.55)),
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.6)), $radius: 3px,
+    $tab-bg: #0a0f0d, $tab-bd: rgba(33,255,154,.3), $tab-col: #9fd8bf,
+    $tab-active-bg: #21ff9a, $tab-active-col: #04140c, $tab-active-bd: #21ff9a,
+    $frame-bg: #06120d, $frame-bd: rgba(33,255,154,.2),
+    $plaque-bg: #0a0f0d, $plaque-bd: rgba(33,255,154,.22),
+    $cell-bg: #0a0f0d, $cell-bd: rgba(33,255,154,.18),
+    $track: #06120d, $track-bd: rgba(33,255,154,.22), $bar: linear-gradient(90deg,#12b877,#21ff9a),
+    $btn-bg: #0a0f0d, $btn-bd: rgba(33,255,154,.4), $btn-col: #21ff9a,
+    $node-bg: radial-gradient(circle at 32% 28%, #0e1a14, #06120d 72%),
+    $claim-bg: linear-gradient(180deg,#21ff9a,#12b877), $claim-col: #04140c, $claim-bd: #21ff9a, $claim-glow: rgba(33,255,154,.5),
+    $tab-tt: uppercase, $good: #35ffa0, $bad: #ff5a6e
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include equipment-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $title: #b79cff, $accent: #9d7ff0, $accent-soft: rgba(157,127,240,.16), $sel-glow: (0 0 10px rgba(157,127,240,.6)),
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)), $radius: 10px,
+    $tab-bg: #1a1330, $tab-bd: #3a2d5e, $tab-col: #d8ccf5,
+    $tab-active-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $tab-active-col: #f0e9ff, $tab-active-bd: #b79cff,
+    $frame-bg: #0d0a18, $frame-bd: #3a2d5e,
+    $plaque-bg: #1a1330, $plaque-bd: #3a2d5e,
+    $cell-bg: #160f28, $cell-bd: #0d0a18,
+    $track: #0d0a18, $track-bd: #3a2d5e, $bar: linear-gradient(90deg,#7a50e6,#9d7ff0),
+    $btn-bg: #160f28, $btn-bd: #6d4bd6, $btn-col: #b79cff,
+    $node-bg: radial-gradient(circle at 32% 28%, #2a1f48, #160f28 72%),
+    $claim-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $claim-col: #f0e9ff, $claim-bd: #b79cff, $claim-glow: rgba(157,127,240,.5),
+    $good: #6be0c0, $bad: #ff6b8a
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include equipment-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $title: #d98a92, $accent: #cf3a48, $accent-soft: rgba(207,58,72,.16), $sel-glow: (0 0 10px rgba(207,58,72,.55)),
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)), $radius: 8px,
+    $tab-bg: #12080a, $tab-bd: #3a1518, $tab-col: #e8c4a8,
+    $tab-active-bg: #6b1620, $tab-active-col: #f0d8ce, $tab-active-bd: #cf3a48,
+    $frame-bg: #0a0506, $frame-bd: #3a1518,
+    $plaque-bg: #12080a, $plaque-bd: #3a1518,
+    $cell-bg: #1a0f11, $cell-bd: #0a0506,
+    $track: #0a0506, $track-bd: #3a1518, $bar: linear-gradient(90deg,#8e0f16,#e23b32),
+    $btn-bg: #12080a, $btn-bd: #6b1620, $btn-col: #e8c4a8,
+    $node-bg: radial-gradient(circle at 32% 28%, #2a1315, #1a0f11 72%),
+    $claim-bg: linear-gradient(180deg,#cf3a48,#8e1420), $claim-col: #f5e0d8, $claim-bd: #cf3a48, $claim-glow: rgba(207,58,72,.5),
+    $good: #6fca6f, $bad: #ff6b6b
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include equipment-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $title: #8fd4ff, $accent: #4db8ff, $accent-soft: rgba(77,184,255,.16), $sel-glow: (0 0 10px rgba(77,184,255,.6)),
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)), $radius: 4px,
+    $tab-bg: rgba(10,26,42,.7), $tab-bd: rgba(80,180,255,.35), $tab-col: #8fd4ff,
+    $tab-active-bg: #4db8ff, $tab-active-col: #06131f, $tab-active-bd: #4db8ff,
+    $frame-bg: rgba(6,16,28,.7), $frame-bd: rgba(80,180,255,.3),
+    $plaque-bg: rgba(10,26,42,.6), $plaque-bd: rgba(80,180,255,.28),
+    $cell-bg: rgba(10,26,42,.6), $cell-bd: rgba(80,180,255,.22),
+    $track: #06121e, $track-bd: rgba(80,180,255,.28), $bar: linear-gradient(90deg,#1c6fc0,#4db8ff),
+    $btn-bg: rgba(10,26,42,.7), $btn-bd: rgba(80,180,255,.5), $btn-col: #4db8ff,
+    $node-bg: radial-gradient(circle at 32% 28%, rgba(20,44,70,.9), rgba(6,16,28,.9) 72%),
+    $claim-bg: linear-gradient(180deg,#4db8ff,#1c6fc0), $claim-col: #06131f, $claim-bd: #4db8ff, $claim-glow: rgba(77,184,255,.5),
+    $tab-tt: uppercase, $good: #4bd0a0, $bad: #ff6a5a
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include equipment-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $title: #ffe9a8, $accent: #e0b53c, $accent-soft: rgba(224,181,60,.18), $sel-glow: (0 0 10px rgba(224,181,60,.5)),
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)), $radius: 12px,
+    $tab-bg: #182248, $tab-bd: #3a4a80, $tab-col: #f0e6cc,
+    $tab-active-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $tab-active-col: #3a2a08, $tab-active-bd: #8a6a1f,
+    $frame-bg: #0e1430, $frame-bd: #8a6a1f,
+    $plaque-bg: #182248, $plaque-bd: #8a6a1f,
+    $cell-bg: #182248, $cell-bd: #0e1430,
+    $track: #0a0e22, $track-bd: #3a2f12, $bar: linear-gradient(90deg,#b5851f,#ffe9a8),
+    $btn-bg: #182248, $btn-bd: #caa23c, $btn-col: #ffe9a8,
+    $node-bg: radial-gradient(circle at 32% 28%, #26356a, #182248 72%),
+    $claim-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $claim-col: #3a2a08, $claim-bd: #8a6a1f, $claim-glow: rgba(224,181,60,.55),
+    $good: #7ad07a, $bad: #ff7a5e
+  );
+}

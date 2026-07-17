@@ -473,3 +473,161 @@ $metal-dark: #6b6357;
   box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.12);
   white-space: nowrap;
 }
+
+/* ═══════════════ HUD Modo Mundo · overrides por estilo (data-appstyle) ═══════════════
+   Base wood (arriba). El mixin repinta widget, pastillas, tirador, panel, tarjetas de
+   hito, pestañas verticales y textos con la paleta de cada tema. Los botones globales
+   (.rpg-btn: .rs-buy-all, .rs-ms-buy) NO se tocan (solo la franja de máscara del sticky). */
+@mixin rs-style(
+  $panel, $panel-solid, $bd, $radius, $shadow,
+  $text, $muted, $title, $accent, $accent-soft, $on-accent,
+  $cell, $cell-bd, $pill, $font: null
+) {
+  .rs-widget {
+    background: $panel;
+    border: 2px solid $bd;
+    border-radius: $radius;
+    box-shadow: $shadow;
+    @if $font != null { font-family: $font; }
+    .rs-block--open & { border-radius: $radius $radius 0 0; }
+  }
+
+  .rs-stat,
+  .rs-weapon-buy {
+    background: $pill;
+    border: 2px solid $accent-soft;
+    box-shadow: none;
+  }
+  .rs-val { color: $text; }
+  .rs-stat--rate .rs-val { color: $muted; }
+
+  .rs-settings {
+    background: $pill;
+    border: 2px solid $accent-soft;
+    box-shadow: none;
+  }
+
+  .rs-open-btn {
+    background: $panel;
+    border-color: $accent-soft;
+    border-top: none;
+    color: $accent;
+    box-shadow:
+      -1px 0 0 rgba(0, 0, 0, 0.4), 1px 0 0 rgba(0, 0, 0, 0.4),
+       0 1px 0 rgba(0, 0, 0, 0.4), 0 3px 5px rgba(0, 0, 0, 0.5);
+    &:active { color: $accent; }
+  }
+
+  .rs-panel {
+    background: $panel;
+    border: 2px solid $bd;
+    border-top: none;
+    border-radius: 0 0 $radius $radius;
+    box-shadow: $shadow;
+    @if $font != null { font-family: $font; }
+    &::-webkit-scrollbar-thumb { background: $accent-soft; }
+  }
+
+  .rs-ms {
+    background: $cell;
+    border: 2px solid $cell-bd;
+    color: $text;
+    box-shadow: none;
+  }
+  .rs-ms-frame {
+    background: $cell;
+    border: 2px solid $accent-soft;
+    box-shadow: none;
+    ion-icon { color: $accent; }
+  }
+  .rs-ms-name { color: $text; }
+  .rs-ms-desc { color: $muted; }
+  .rs-weapon-lvl { color: $accent; }
+
+  .rs-vtab {
+    background: $pill;
+    border: 2px solid $accent-soft;
+    color: $muted;
+    box-shadow: none;
+    &.active {
+      background: $accent;
+      color: $on-accent;
+      box-shadow: 0 0 8px $accent-soft;
+    }
+  }
+
+  .rs-empty { color: $muted; }
+
+  .rs-stat-val {
+    background: $cell;
+    border: 2px solid $cell-bd;
+    color: $text;
+    box-shadow: none;
+  }
+
+  // Franja de máscara del botón sticky "comprar todo": recolorada al fondo del tema
+  // para que siga tapando los hitos que scrollean por detrás (sin tocar .rpg-btn).
+  .rs-buy-all {
+    box-shadow: 0 6px 0 6px $panel-solid, 0 -5px 7px -3px rgba(0, 0, 0, 0.45);
+  }
+}
+
+:host-context([data-appstyle="cyberpunk"]) {
+  @include rs-style(
+    $panel: linear-gradient(180deg, rgba(6, 9, 8, 0.96), rgba(3, 5, 5, 0.97)), $panel-solid: #050807,
+    $bd: rgba(33, 255, 154, 0.28), $radius: 3px,
+    $shadow: (inset 0 0 24px rgba(0, 0, 0, 0.6), 0 0 14px rgba(33, 255, 154, 0.12), 0 8px 24px rgba(0, 0, 0, 0.6)),
+    $text: #dbeee4, $muted: rgba(180, 220, 200, 0.72), $title: #6fd8a8,
+    $accent: #21ff9a, $accent-soft: rgba(33, 255, 154, 0.3), $on-accent: #04140c,
+    $cell: #0a0f0d, $cell-bd: rgba(33, 255, 154, 0.18), $pill: #0a0f0d,
+    $font: ('Consolas', 'SF Mono', ui-monospace, monospace)
+  );
+}
+
+:host-context([data-appstyle="arcano"]) {
+  @include rs-style(
+    $panel: linear-gradient(180deg, #221a3a, #140f24), $panel-solid: #140f24,
+    $bd: #6d4bd6, $radius: 10px,
+    $shadow: (0 0 14px rgba(122, 80, 230, 0.35), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #ece6ff, $muted: rgba(216, 204, 245, 0.62), $title: #b79cff,
+    $accent: #9d7ff0, $accent-soft: #3a2d5e, $on-accent: #160f28,
+    $cell: #160f28, $cell-bd: #3a2d5e, $pill: #1a1330,
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
+
+:host-context([data-appstyle="sangre"]) {
+  @include rs-style(
+    $panel: linear-gradient(180deg, #1a1012, #0c0708), $panel-solid: #0c0708,
+    $bd: #6b1620, $radius: 8px,
+    $shadow: (0 0 14px rgba(150, 20, 30, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6)),
+    $text: #f0d8ce, $muted: rgba(240, 216, 206, 0.6), $title: #d98a92,
+    $accent: #cf3a48, $accent-soft: #3a1518, $on-accent: #f0d8ce,
+    $cell: #12080a, $cell-bd: #3a1518, $pill: #12080a,
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
+
+:host-context([data-appstyle="holo"]) {
+  @include rs-style(
+    $panel: linear-gradient(180deg, rgba(10, 24, 40, 0.94), rgba(6, 16, 28, 0.96)), $panel-solid: #06101c,
+    $bd: rgba(80, 180, 255, 0.45), $radius: 4px,
+    $shadow: (inset 0 0 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(77, 184, 255, 0.28), 0 8px 24px rgba(0, 0, 0, 0.5)),
+    $text: #dceefc, $muted: rgba(220, 238, 252, 0.6), $title: #8fd4ff,
+    $accent: #4db8ff, $accent-soft: rgba(80, 180, 255, 0.22), $on-accent: #06131f,
+    $cell: rgba(10, 26, 42, 0.6), $cell-bd: rgba(80, 180, 255, 0.22), $pill: rgba(10, 26, 42, 0.7),
+    $font: ('Consolas', 'SF Mono', ui-monospace, monospace)
+  );
+}
+
+:host-context([data-appstyle="real"]) {
+  @include rs-style(
+    $panel: linear-gradient(180deg, #1e2a56, #111838), $panel-solid: #111838,
+    $bd: #caa23c, $radius: 12px,
+    $shadow: (0 0 0 1px rgba(224, 181, 60, 0.3), 0 0 12px rgba(224, 181, 60, 0.22), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #f0e6cc, $muted: rgba(240, 230, 204, 0.62), $title: #ffe9a8,
+    $accent: #e0b53c, $accent-soft: rgba(224, 181, 60, 0.3), $on-accent: #2a1e06,
+    $cell: #182248, $cell-bd: #0e1430, $pill: #182248,
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}

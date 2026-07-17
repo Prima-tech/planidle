@@ -242,3 +242,154 @@ $metal-dark: #6b6357;
   &:active:not(:disabled) { background: #6f4426; }
   &:disabled { opacity: 0.4; cursor: default; }
 }
+
+/* ═══════════════ Map-chest · overrides por estilo (data-appstyle) ═══════════════
+   Base = wood (arriba). Cada estilo redefine panel, título, pastilla de material,
+   pestañas, tarjetas de mejora, chip de efecto y botones con su paleta. */
+@mixin mcw-style(
+  $font, $text, $muted, $accent, $title,
+  $panel-bg, $bd, $panel-shadow,
+  $inset-bg, $inset-bd,
+  $tab-bg, $tab-bd, $tab-col, $tab-active-bg, $tab-active-col, $tab-active-bd,
+  $btn-bg, $btn-bd, $btn-col,
+  $chip-bg, $chip-bd, $chip-col,
+  $bw: 2px, $radius: 10px
+) {
+  background: $panel-bg;
+  border: $bw solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .mcw-title { color: $title; text-shadow: none; }
+
+  .mcw-mat {
+    background: $inset-bg;
+    border-color: $inset-bd;
+    box-shadow: none;
+    .mcw-mat-name  { color: $title; text-shadow: none; }
+    .mcw-mat-count { color: $text; }
+  }
+
+  .mcw-tab {
+    background: $tab-bg;
+    border-color: $tab-bd;
+    color: $tab-col;
+    &.active {
+      background: $tab-active-bg;
+      color: $tab-active-col;
+      border-color: $tab-active-bd;
+      box-shadow: none;
+    }
+  }
+
+  .mcw-empty { color: $muted; }
+
+  .mcw-upgrade {
+    background: $inset-bg;
+    border-color: $inset-bd;
+    box-shadow: none;
+  }
+  .mcw-up-icon { color: $title; }
+  .mcw-up-name { color: $title; }
+  .mcw-up-desc { color: $muted; }
+  .mcw-up-effect {
+    background: $chip-bg;
+    border-color: $chip-bd;
+    box-shadow: none;
+    color: $chip-col;
+  }
+  .mcw-up-btn {
+    background: $btn-bg;
+    border-color: $btn-bd;
+    color: $btn-col;
+    &:active:not(:disabled) { filter: brightness(0.88); background: $btn-bg; }
+  }
+  .mcw-reset {
+    background: $btn-bg;
+    border-color: $btn-bd;
+    color: $btn-col;
+    &:active:not(:disabled) { filter: brightness(0.88); background: $btn-bg; }
+  }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include mcw-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $accent: #21ff9a, $title: #6fd8a8,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 0 14px rgba(33,255,154,.12), 0 8px 24px rgba(0,0,0,.6)),
+    $inset-bg: #0a0f0d, $inset-bd: rgba(33,255,154,.18),
+    $tab-bg: #0a0f0d, $tab-bd: rgba(33,255,154,.3), $tab-col: #9fd8bf,
+    $tab-active-bg: #21ff9a, $tab-active-col: #04140c, $tab-active-bd: #21ff9a,
+    $btn-bg: #0a0f0d, $btn-bd: rgba(33,255,154,.4), $btn-col: #21ff9a,
+    $chip-bg: #06120d, $chip-bd: rgba(33,255,154,.3), $chip-col: #21ff9a,
+    $radius: 3px
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include mcw-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $accent: #9d7ff0, $title: #b79cff,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)),
+    $inset-bg: #1a1330, $inset-bd: #3a2d5e,
+    $tab-bg: #160f28, $tab-bd: #3a2d5e, $tab-col: #d8ccf5,
+    $tab-active-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $tab-active-col: #f0e9ff, $tab-active-bd: #b79cff,
+    $btn-bg: #160f28, $btn-bd: #6d4bd6, $btn-col: #b79cff,
+    $chip-bg: #160f28, $chip-bd: #6d4bd6, $chip-col: #b79cff,
+    $radius: 10px
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include mcw-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $accent: #cf3a48, $title: #d98a92,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)),
+    $inset-bg: #1a0f11, $inset-bd: #3a1518,
+    $tab-bg: #12080a, $tab-bd: #3a1518, $tab-col: #e8c4a8,
+    $tab-active-bg: #6b1620, $tab-active-col: #f0d8ce, $tab-active-bd: #cf3a48,
+    $btn-bg: #12080a, $btn-bd: #6b1620, $btn-col: #e8c4a8,
+    $chip-bg: #12080a, $chip-bd: #6b1620, $chip-col: #e8c4a8,
+    $radius: 8px
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include mcw-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $accent: #4db8ff, $title: #8fd4ff,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)),
+    $inset-bg: rgba(10,26,42,.6), $inset-bd: rgba(80,180,255,.22),
+    $tab-bg: rgba(10,26,42,.7), $tab-bd: rgba(80,180,255,.35), $tab-col: #8fd4ff,
+    $tab-active-bg: #4db8ff, $tab-active-col: #06131f, $tab-active-bd: #4db8ff,
+    $btn-bg: rgba(10,26,42,.7), $btn-bd: rgba(80,180,255,.5), $btn-col: #4db8ff,
+    $chip-bg: rgba(6,16,28,.7), $chip-bd: rgba(80,180,255,.4), $chip-col: #4db8ff,
+    $radius: 4px
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include mcw-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $accent: #e0b53c, $title: #ffe9a8,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)),
+    $inset-bg: #182248, $inset-bd: #0e1430,
+    $tab-bg: #182248, $tab-bd: #3a4a80, $tab-col: #f0e6cc,
+    $tab-active-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $tab-active-col: #3a2a08, $tab-active-bd: #8a6a1f,
+    $btn-bg: #182248, $btn-bd: #caa23c, $btn-col: #ffe9a8,
+    $chip-bg: #141c3a, $chip-bd: #caa23c, $chip-col: #ffe9a8,
+    $radius: 12px
+  );
+}

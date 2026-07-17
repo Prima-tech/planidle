@@ -227,3 +227,123 @@ $text-brown: #53301c;
   font-weight: bold;
   color: $text-brown;
 }
+
+/* ═══════════════ Tienda premium · overrides por estilo (data-appstyle) ═══════════════
+   Base = wood (arriba). Cada estilo redefine el panel, la cabecera, las fichas de
+   artículo, el icono/celda, precio (pastilla de monedas propia) y el pie con su
+   paleta. El mixin emite las props directamente bajo :host-context. */
+@mixin shop-style(
+  $font, $text, $muted, $title, $accent,
+  $panel-bg, $bd, $panel-shadow,
+  $item-bg, $item-bd, $cell-bg, $cell-bd,
+  $coins-bg, $coins-bd, $coins-col,
+  $bw: 2px, $radius: 10px
+) {
+  .shop-panel {
+    background: $panel-bg;
+    border: $bw solid $bd;
+    border-radius: $radius;
+    box-shadow: $panel-shadow;
+    color: $text;
+    @if $font != null { font-family: $font; }
+  }
+  .shop-header { color: $title; }
+
+  .shop-item {
+    background: $item-bg;
+    border-color: $item-bd;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 4px 16px rgba(0, 0, 0, 0.6);
+  }
+  .shop-item-icon {
+    background-color: $cell-bg;
+    border-color: $cell-bd;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.4),
+      inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  .shop-item-name { color: $title; }
+  .shop-item-desc { color: $muted; }
+  .shop-item-owned { color: $accent; }
+
+  .shop-item-price {
+    background: $coins-bg;
+    border-color: $coins-bd;
+    box-shadow: none;
+    color: $coins-col;
+  }
+
+  .coins-section {
+    background: $coins-bg;
+    border-color: $coins-bd;
+    box-shadow: none;
+  }
+  .coin-amount { color: $coins-col; }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include shop-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $title: #6fd8a8, $accent: #21ff9a,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.6)),
+    $item-bg: #0a0f0d, $item-bd: rgba(33,255,154,.28), $cell-bg: #06120d, $cell-bd: rgba(33,255,154,.18),
+    $coins-bg: #0a0f0d, $coins-bd: rgba(33,255,154,.3), $coins-col: #dbeee4,
+    $radius: 3px
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include shop-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $title: #b79cff, $accent: #9d7ff0,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)),
+    $item-bg: #1a1330, $item-bd: #3a2d5e, $cell-bg: #160f28, $cell-bd: #0d0a18,
+    $coins-bg: #1a1330, $coins-bd: #6d4bd6, $coins-col: #ece6ff,
+    $radius: 10px
+  );
+}
+
+/* SANGRE · negro rojizo + granate */
+:host-context([data-appstyle="sangre"]) {
+  @include shop-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $title: #d98a92, $accent: #cf3a48,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)),
+    $item-bg: #1a0f11, $item-bd: #3a1518, $cell-bg: #12080a, $cell-bd: #0a0506,
+    $coins-bg: #12080a, $coins-bd: #6b1620, $coins-col: #f0d8ce,
+    $radius: 8px
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include shop-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $title: #8fd4ff, $accent: #4db8ff,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)),
+    $item-bg: rgba(10,26,42,.6), $item-bd: rgba(80,180,255,.28), $cell-bg: rgba(6,16,28,.7), $cell-bd: rgba(80,180,255,.22),
+    $coins-bg: rgba(10,26,42,.7), $coins-bd: rgba(80,180,255,.4), $coins-col: #dceefc,
+    $radius: 4px
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include shop-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $title: #ffe9a8, $accent: #e0b53c,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)),
+    $item-bg: #182248, $item-bd: #8a6a1f, $cell-bg: #0e1430, $cell-bd: #8a6a1f,
+    $coins-bg: #182248, $coins-bd: #caa23c, $coins-col: #f0e6cc,
+    $radius: 12px
+  );
+}

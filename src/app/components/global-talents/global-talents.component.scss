@@ -310,3 +310,181 @@ $metal-dark: #6b6357;
   &:disabled { opacity: 0.4; cursor: default; }
   &--relock { background: #a83a32; border-color: #d9665c #6e231e #6e231e #a83a32; }
 }
+
+/* ═══════════════ Mejoras de cuenta · overrides por estilo (data-appstyle) ═══════════════
+   La base es wood (arriba). Cada estilo redefine el panel raíz, cabecera, placas de
+   Lvl/Puntos, botón de expandir, lienzo con scroll, etiquetas de fila, líneas activas
+   del árbol, nodos (locked/unlockable/unlocked), ficha flotante y su botón, con la
+   paleta del tema. El mixin emite las props del panel sobre el host (:host-context)
+   + los selectores hijos. */
+@mixin gt-style(
+  $font, $text, $muted, $title, $accent, $accent-soft, $value-col, $icon-col,
+  $panel-bg, $bd, $panel-shadow,
+  $plate-bg, $plate-bd,
+  $canvas-bg, $canvas-bd, $thumb,
+  $node-bg, $node-bd, $node-col,
+  $flyout-bg, $flyout-bd,
+  $btn-bg, $btn-bd, $btn-col, $danger,
+  $good, $good-soft,
+  $bw: 2px, $radius: 10px
+) {
+  // Panel raíz (el propio :host)
+  background: $panel-bg;
+  border: $bw solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .gt-header { color: $title; }
+
+  // Placas de Lvl / Puntos
+  .gt-level, .gt-points {
+    background: $plate-bg;
+    border-color: $plate-bd;
+    color: $text;
+  }
+  .gt-level-value, .gt-points-value { color: $value-col; }
+
+  // Botón de expandir/reducir
+  .gt-expand-btn {
+    background: $btn-bg;
+    border-color: $btn-bd;
+    color: $accent;
+    &:active { background: $plate-bg; color: $text; }
+  }
+
+  // Lienzo con scroll interno
+  .gt-canvas-scroll {
+    background: $canvas-bg;
+    border-color: $canvas-bd;
+    &::-webkit-scrollbar-thumb { background: $thumb; }
+  }
+
+  .gt-tree-label { color: $title; }
+
+  // Líneas del árbol: la conexión activa al acento
+  .gt-line--active { stroke: $accent; }
+
+  // Nodos
+  .gt-node {
+    background: $node-bg;
+    border-color: $node-bd;
+    color: $node-col;
+
+    &--locked   { border-color: $node-bd; }
+    &--unlockable {
+      border-color: $accent;
+      color: $accent;
+      box-shadow: 0 0 6px $accent-soft;
+    }
+    &--unlocked {
+      background: $plate-bg;
+      border-color: $good;
+      color: $text;
+      box-shadow: 0 0 6px $good-soft;
+    }
+  }
+
+  // Ficha flotante
+  .gt-flyout {
+    background: $flyout-bg;
+    border-color: $flyout-bd;
+  }
+  .gt-flyout-name  { color: $title; }
+  .gt-flyout-icon  { color: $icon-col; }
+  .gt-flyout-desc  { color: $muted; }
+  .gt-flyout-state { color: $good; }
+  .gt-flyout-hint  { color: $muted; }
+  .gt-flyout-btn {
+    background: $btn-bg;
+    border-color: $btn-bd;
+    color: $btn-col;
+    &--relock { background: $danger; border-color: $danger; color: #fff; }
+  }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include gt-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $title: #6fd8a8, $accent: #21ff9a, $accent-soft: rgba(33,255,154,.55), $value-col: #21ff9a, $icon-col: #21ff9a,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.6)),
+    $plate-bg: #0a0f0d, $plate-bd: rgba(33,255,154,.3),
+    $canvas-bg: #06120d, $canvas-bd: rgba(33,255,154,.2), $thumb: rgba(33,255,154,.4),
+    $node-bg: #0a0f0d, $node-bd: rgba(33,255,154,.18), $node-col: rgba(180,220,200,.55),
+    $flyout-bg: #0a0f0d, $flyout-bd: rgba(33,255,154,.3),
+    $btn-bg: #0a0f0d, $btn-bd: rgba(33,255,154,.4), $btn-col: #21ff9a, $danger: #ff5a6e,
+    $good: #35ffa0, $good-soft: rgba(53,255,160,.55),
+    $radius: 3px
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include gt-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $title: #b79cff, $accent: #9d7ff0, $accent-soft: rgba(157,127,240,.55), $value-col: #b79cff, $icon-col: #b79cff,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)),
+    $plate-bg: #1a1330, $plate-bd: #3a2d5e,
+    $canvas-bg: #160f28, $canvas-bd: #3a2d5e, $thumb: #6d4bd6,
+    $node-bg: #160f28, $node-bd: #3a2d5e, $node-col: rgba(216,204,245,.5),
+    $flyout-bg: #1a1330, $flyout-bd: #6d4bd6,
+    $btn-bg: #160f28, $btn-bd: #6d4bd6, $btn-col: #b79cff, $danger: #ff6b8a,
+    $good: #6be0c0, $good-soft: rgba(107,224,192,.5),
+    $radius: 10px
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include gt-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $title: #d98a92, $accent: #cf3a48, $accent-soft: rgba(207,58,72,.55), $value-col: #e8c4a8, $icon-col: #e8c4a8,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)),
+    $plate-bg: #1a0f11, $plate-bd: #3a1518,
+    $canvas-bg: #12080a, $canvas-bd: #3a1518, $thumb: #6b1620,
+    $node-bg: #12080a, $node-bd: #3a1518, $node-col: rgba(240,216,206,.5),
+    $flyout-bg: #1a0f11, $flyout-bd: #6b1620,
+    $btn-bg: #12080a, $btn-bd: #6b1620, $btn-col: #e8c4a8, $danger: #ff5a52,
+    $good: #6fca6f, $good-soft: rgba(111,202,111,.5),
+    $radius: 8px
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include gt-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $title: #8fd4ff, $accent: #4db8ff, $accent-soft: rgba(77,184,255,.55), $value-col: #8fd4ff, $icon-col: #4db8ff,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)),
+    $plate-bg: rgba(10,26,42,.6), $plate-bd: rgba(80,180,255,.22),
+    $canvas-bg: rgba(6,16,28,.7), $canvas-bd: rgba(80,180,255,.3), $thumb: rgba(80,180,255,.5),
+    $node-bg: rgba(10,26,42,.6), $node-bd: rgba(80,180,255,.22), $node-col: rgba(220,238,252,.5),
+    $flyout-bg: rgba(10,26,42,.85), $flyout-bd: rgba(80,180,255,.45),
+    $btn-bg: rgba(10,26,42,.7), $btn-bd: rgba(80,180,255,.5), $btn-col: #4db8ff, $danger: #ff6a5a,
+    $good: #5fe0b0, $good-soft: rgba(95,224,176,.5),
+    $radius: 4px
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include gt-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $title: #ffe9a8, $accent: #e0b53c, $accent-soft: rgba(224,181,60,.55), $value-col: #ffe9a8, $icon-col: #e0b53c,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)),
+    $plate-bg: #182248, $plate-bd: #8a6a1f,
+    $canvas-bg: #141c3a, $canvas-bd: #8a6a1f, $thumb: #caa23c,
+    $node-bg: #182248, $node-bd: #0e1430, $node-col: rgba(240,230,204,.5),
+    $flyout-bg: #182248, $flyout-bd: #caa23c,
+    $btn-bg: #182248, $btn-bd: #caa23c, $btn-col: #ffe9a8, $danger: #ff7a5e,
+    $good: #7ad07a, $good-soft: rgba(122,208,122,.5),
+    $radius: 12px
+  );
+}

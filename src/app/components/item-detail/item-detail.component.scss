@@ -257,3 +257,116 @@ $text-cream: #ecd9b4;
   font-size: 0.72em;
   color: #6b4226;
 }
+
+/* ═══════════════ Item-detail (ficha/tooltip) · overrides por estilo (data-appstyle)
+   Base = wood (arriba). Cada estilo repinta el panel, las placas (cabecera/stats/
+   descripción/nivel de mascota), nombre y textos. Rarezas y deltas (verde/rojo) se
+   mantienen semánticos. */
+@mixin id-style(
+  $font, $text, $muted, $title, $accent,
+  $panel-bg, $bd, $panel-shadow, $radius,
+  $plate-bg, $plate-bd, $inset-bg, $inset-bd
+) {
+  .detail-panel {
+    background: $panel-bg;
+    border: 2px solid $bd;
+    border-radius: $radius;
+    box-shadow: $panel-shadow;
+    color: $text;
+    @if $font != null { font-family: $font; }
+  }
+
+  .detail-header,
+  .detail-stats,
+  .detail-description,
+  .detail-pet-level {
+    background: $plate-bg;
+    border: 2px solid $plate-bd;
+    box-shadow: none;
+  }
+
+  .detail-name {
+    color: $title;
+    @if $font != null { font-family: $font; }
+  }
+  .detail-bound { color: $muted; }
+  .detail-bound-char { color: $accent; }
+
+  .detail-description { color: $text; }
+
+  .pet-level-label { color: $muted; }
+  .pet-level-value { color: $accent; }
+  .pet-exp-text    { color: $text; }
+  .pet-exp-bar {
+    background: $inset-bg;
+    box-shadow: inset 0 0 0 1px $inset-bd;
+  }
+  .pet-stat-row { border-top-color: $inset-bd; }
+
+  .stat-label { color: $muted; }
+  .stat-value { color: $text; }
+
+  .detail-quantity { color: $muted; }
+
+  .detail-icon-fallback {
+    background: $inset-bg;
+    border-color: $inset-bd;
+    color: $text;
+  }
+  .detail-icon-name { color: $muted; }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include id-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $title: #6fd8a8, $accent: #21ff9a,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 20px rgba(0,0,0,.6), -4px 4px 20px rgba(0,0,0,.6)), $radius: 3px,
+    $plate-bg: #0d1512, $plate-bd: rgba(33,255,154,.2), $inset-bg: #06120d, $inset-bd: rgba(33,255,154,.2)
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include id-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $title: #b79cff, $accent: #9d7ff0,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), -4px 4px 20px rgba(0,0,0,.55)), $radius: 10px,
+    $plate-bg: #1a1330, $plate-bd: #3a2d5e, $inset-bg: #0d0a18, $inset-bd: #3a2d5e
+  );
+}
+
+/* SANGRE · negro rojizo + granate */
+:host-context([data-appstyle="sangre"]) {
+  @include id-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $title: #d98a92, $accent: #cf3a48,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), -4px 4px 20px rgba(0,0,0,.6)), $radius: 8px,
+    $plate-bg: #1a0f11, $plate-bd: #3a1518, $inset-bg: #0a0506, $inset-bd: #3a1518
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include id-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $title: #8fd4ff, $accent: #4db8ff,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 18px rgba(0,0,0,.5), 0 0 14px rgba(77,184,255,.28), -4px 4px 20px rgba(0,0,0,.5)), $radius: 4px,
+    $plate-bg: rgba(10,26,42,.6), $plate-bd: rgba(80,180,255,.25), $inset-bg: #06121e, $inset-bd: rgba(80,180,255,.25)
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include id-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $title: #ffe9a8, $accent: #e0b53c,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), -4px 4px 20px rgba(0,0,0,.55)), $radius: 12px,
+    $plate-bg: #182248, $plate-bd: #0e1430, $inset-bg: #0a0e22, $inset-bd: #3a2f12
+  );
+}

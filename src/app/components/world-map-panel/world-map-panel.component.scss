@@ -425,3 +425,155 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     color: rgba($text-cream, 0.6);
   }
 }
+
+/* ═══════════════ World-map · overrides por estilo (data-appstyle) ═══════════════
+   Base = wood (arriba). El panel real es .panel-layout (el :host solo posiciona).
+   Cada estilo redefine panel, área del mapa, placas de mapa, tarjeta de info,
+   botones y nota de bloqueo con su paleta. Canvas del globo (.planet-area) intacto. */
+@mixin wmp-style(
+  $font, $text, $muted, $accent, $title,
+  $panel-bg, $bd, $panel-shadow,
+  $area-bg, $area-bd, $area-shadow,
+  $card-bg, $card-bd, $cell-bg, $cell-bd,
+  $btn-bg, $btn-bd, $btn-col, $btn-active-bg, $btn-active-col,
+  $item-bg, $item-bd, $item-col, $item-active-bg,
+  $bw: 2px, $radius: 10px
+) {
+  .panel-layout {
+    background: $panel-bg;
+    border: $bw solid $bd;
+    border-radius: $radius;
+    box-shadow: $panel-shadow;
+    color: $text;
+    @if $font != null { font-family: $font; }
+  }
+
+  .map-area {
+    background: $area-bg;
+    border-color: $area-bd;
+    box-shadow: $area-shadow;
+  }
+
+  .grid-toggle-btn {
+    background: $btn-bg;
+    border-color: $btn-bd;
+    color: $btn-col;
+    box-shadow: none;
+    &.active { background: $btn-active-bg; color: $btn-active-col; box-shadow: none; }
+  }
+
+  .pml-item {
+    background: $item-bg;
+    border-color: $item-bd;
+    color: $item-col;
+    &:hover  { filter: brightness(1.14); background: $item-bg; }
+    &:active { filter: brightness(0.88); background: $item-bg; color: $item-col; }
+    &.selected { border-color: $accent; color: $accent; background: $item-active-bg; }
+    &.pml-run {
+      color: $text;
+      background: $item-bg;
+      &.selected { color: $accent; border-color: $accent; }
+    }
+  }
+
+  .map-info-card {
+    background: $card-bg;
+    border-color: $card-bd;
+
+    .info-name {
+      color: $title;
+      &::after { background: linear-gradient(90deg, transparent, $accent, transparent); }
+    }
+    .info-section-label { color: $muted; }
+    .enemy-frame { background: $cell-bg; border-color: $cell-bd; }
+    .info-char.current .char-frame { border-color: $accent; }
+    .info-char-name { color: $muted; }
+    .info-no-enemies { color: $muted; }
+    .teleport-btn {
+      background: $btn-bg;
+      border-color: $btn-bd;
+      color: $btn-col;
+    }
+  }
+
+  .map-locked-note {
+    background: $cell-bg;
+    border-color: $cell-bd;
+    ion-icon { color: $muted; }
+  }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include wmp-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $accent: #21ff9a, $title: #6fd8a8,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 0 14px rgba(33,255,154,.12), 0 8px 24px rgba(0,0,0,.6)),
+    $area-bg: #06120d, $area-bd: rgba(33,255,154,.2), $area-shadow: (inset 0 0 14px rgba(0,0,0,.6)),
+    $card-bg: #0a0f0d, $card-bd: rgba(33,255,154,.28), $cell-bg: #0a0f0d, $cell-bd: rgba(33,255,154,.18),
+    $btn-bg: #0a0f0d, $btn-bd: rgba(33,255,154,.4), $btn-col: #21ff9a, $btn-active-bg: #21ff9a, $btn-active-col: #04140c,
+    $item-bg: #0a0f0d, $item-bd: rgba(33,255,154,.3), $item-col: #dbeee4, $item-active-bg: #06120d,
+    $radius: 3px
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include wmp-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $accent: #9d7ff0, $title: #b79cff,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)),
+    $area-bg: #160f28, $area-bd: #3a2d5e, $area-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $card-bg: #1a1330, $card-bd: #6d4bd6, $cell-bg: #1a1330, $cell-bd: #0d0a18,
+    $btn-bg: #160f28, $btn-bd: #6d4bd6, $btn-col: #b79cff, $btn-active-bg: #9d7ff0, $btn-active-col: #160f28,
+    $item-bg: #1a1330, $item-bd: #3a2d5e, $item-col: #ece6ff, $item-active-bg: #160f28,
+    $radius: 10px
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include wmp-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $accent: #cf3a48, $title: #d98a92,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)),
+    $area-bg: #12080a, $area-bd: #3a1518, $area-shadow: (inset 0 0 12px rgba(0,0,0,.55)),
+    $card-bg: #1a0f11, $card-bd: #6b1620, $cell-bg: #1a0f11, $cell-bd: #0a0506,
+    $btn-bg: #12080a, $btn-bd: #6b1620, $btn-col: #e8c4a8, $btn-active-bg: #6b1620, $btn-active-col: #f0d8ce,
+    $item-bg: #1a0f11, $item-bd: #3a1518, $item-col: #f0d8ce, $item-active-bg: #12080a,
+    $radius: 8px
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include wmp-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $accent: #4db8ff, $title: #8fd4ff,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)),
+    $area-bg: rgba(6,16,28,.7), $area-bd: rgba(80,180,255,.3), $area-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $card-bg: rgba(10,26,42,.7), $card-bd: rgba(80,180,255,.45), $cell-bg: rgba(10,26,42,.6), $cell-bd: rgba(80,180,255,.22),
+    $btn-bg: rgba(10,26,42,.7), $btn-bd: rgba(80,180,255,.5), $btn-col: #4db8ff, $btn-active-bg: #4db8ff, $btn-active-col: #06131f,
+    $item-bg: rgba(10,26,42,.7), $item-bd: rgba(80,180,255,.35), $item-col: #dceefc, $item-active-bg: rgba(6,16,28,.8),
+    $radius: 4px
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include wmp-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $accent: #e0b53c, $title: #ffe9a8,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)),
+    $area-bg: #141c3a, $area-bd: #8a6a1f, $area-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $card-bg: #182248, $card-bd: #caa23c, $cell-bg: #182248, $cell-bd: #0e1430,
+    $btn-bg: #182248, $btn-bd: #caa23c, $btn-col: #ffe9a8, $btn-active-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $btn-active-col: #3a2a08,
+    $item-bg: #182248, $item-bd: #3a4a80, $item-col: #f0e6cc, $item-active-bg: #141c3a,
+    $radius: 12px
+  );
+}

@@ -313,3 +313,131 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
       inset 0 2px 5px rgba(0, 0, 0, 0.4);
   }
 }
+
+/* ═══════════════ Ganancias offline · overrides por estilo (data-appstyle) ═══════════════
+   Base wood arriba. Cada estilo redefine panel, cabecera, insignia, chips, agrupaciones,
+   filas, celdas de botín y botón recoger con su paleta (ver skill app-styles). Los valores
+   de EXP conservan su verde de "ganancia"; el oro toma el acento del tema. */
+@mixin afk-style(
+  $font, $tt, $panel-bg, $bd, $shadow, $radius, $text, $muted, $title, $accent,
+  $cell-bg, $cell-bd, $group-bg, $group-bd, $badge, $badge-col,
+  $btn-bg, $btn-col, $btn-bd, $coins, $exp: #7ec96a
+) {
+  .afk-panel {
+    background: $panel-bg;
+    border: 2px solid $bd;
+    border-radius: $radius;
+    box-shadow: $shadow;
+    color: $text;
+    @if $font != null { font-family: $font; }
+  }
+  .afk-header { border-bottom: 2px solid rgba(0, 0, 0, 0.3); box-shadow: none; }
+  .afk-header-icon {
+    background: $badge;
+    border: 1px solid $bd;
+    color: $badge-col;
+    box-shadow: none;
+  }
+  .afk-title { color: $title; text-transform: $tt; text-shadow: none; }
+  .afk-subtitle { color: $muted; }
+  .afk-chip {
+    background: $cell-bg;
+    border: 1px solid $cell-bd;
+    color: $text;
+    box-shadow: none;
+    ion-icon { color: $accent; }
+  }
+  .afk-section-label {
+    color: $muted;
+    &::before { background: $accent; border-color: $bd; }
+  }
+  .afk-rows { background: $group-bg; border: 2px solid $group-bd; box-shadow: none; }
+  .afk-row + .afk-row { border-top: 1px solid rgba(0, 0, 0, 0.35); box-shadow: none; }
+  .afk-label { color: $muted; }
+  .afk-value {
+    color: $text;
+    text-shadow: none;
+    &--coins { color: $coins; }
+    &--exp   { color: $exp; }
+  }
+  .afk-drops { background: $group-bg; border: 2px solid $group-bd; box-shadow: none; }
+  .afk-drop-icon {
+    background: $cell-bg;
+    border: 1px solid $cell-bd;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+  .afk-drop-qty { color: $coins; }
+  .afk-collect-btn {
+    background: $btn-bg;
+    border: 2px solid $btn-bd;
+    color: $btn-col;
+    text-shadow: none;
+    &:hover  { filter: brightness(1.12); background: $btn-bg; }
+    &:active { filter: brightness(0.9); background: $btn-bg; color: $btn-col; transform: translateY(1px); box-shadow: none; }
+  }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include afk-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $tt: uppercase,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.6)), $radius: 3px,
+    $text: #dbeee4, $muted: rgba(180,220,200,.72), $title: #6fd8a8, $accent: #21ff9a,
+    $cell-bg: #0a0f0d, $cell-bd: rgba(33,255,154,.18), $group-bg: #06120d, $group-bd: rgba(33,255,154,.2),
+    $badge: #0a0f0d, $badge-col: #21ff9a,
+    $btn-bg: #0a0f0d, $btn-col: #21ff9a, $btn-bd: rgba(33,255,154,.4), $coins: #21ff9a, $exp: #6fd8a8
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include afk-style(
+    $font: (Georgia,'Times New Roman',serif), $tt: none,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)), $radius: 10px,
+    $text: #ece6ff, $muted: rgba(216,204,245,.62), $title: #b79cff, $accent: #9d7ff0,
+    $cell-bg: #160f28, $cell-bd: #3a2d5e, $group-bg: #1a1330, $group-bd: #3a2d5e,
+    $badge: linear-gradient(180deg,#8a63f0,#5b3bc4), $badge-col: #f0e9ff,
+    $btn-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $btn-col: #f0e9ff, $btn-bd: #b79cff, $coins: #b79cff
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include afk-style(
+    $font: (Georgia,'Times New Roman',serif), $tt: none,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)), $radius: 8px,
+    $text: #f0d8ce, $muted: rgba(240,216,206,.6), $title: #d98a92, $accent: #cf3a48,
+    $cell-bg: #12080a, $cell-bd: #3a1518, $group-bg: #150a0c, $group-bd: #3a1518,
+    $badge: linear-gradient(180deg,#7a1622,#4a0c14), $badge-col: #f0d8ce,
+    $btn-bg: linear-gradient(180deg,#7a1622,#4a0c14), $btn-col: #f0d8ce, $btn-bd: #a83240, $coins: #e8c4a8
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include afk-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $tt: uppercase,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)), $radius: 4px,
+    $text: #dceefc, $muted: rgba(220,238,252,.6), $title: #8fd4ff, $accent: #4db8ff,
+    $cell-bg: rgba(10,26,42,.6), $cell-bd: rgba(80,180,255,.22), $group-bg: rgba(6,16,28,.7), $group-bd: rgba(80,180,255,.3),
+    $badge: rgba(10,26,42,.7), $badge-col: #8fd4ff,
+    $btn-bg: rgba(10,26,42,.7), $btn-col: #4db8ff, $btn-bd: rgba(80,180,255,.5), $coins: #8fd4ff
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include afk-style(
+    $font: (Georgia,'Times New Roman',serif), $tt: none,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)), $radius: 12px,
+    $text: #f0e6cc, $muted: rgba(240,230,204,.62), $title: #ffe9a8, $accent: #e0b53c,
+    $cell-bg: #182248, $cell-bd: #0e1430, $group-bg: #141c3a, $group-bd: #8a6a1f,
+    $badge: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $badge-col: #3a2a08,
+    $btn-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $btn-col: #3a2a08, $btn-bd: #8a6a1f, $coins: #ffe9a8
+  );
+}

@@ -196,3 +196,150 @@ $purple: #6e4a67;
   .empty-icon { font-size: 32px; color: $wood-btn-light; }
   p { font-size: 12px; margin: 0; line-height: 1.4; }
 }
+
+/* ═══════════════ Skill-slots · overrides por estilo (data-appstyle) ═══════════════
+   Base = wood (arriba). Cada estilo repinta panel, título, pestañas, rejilla,
+   celdas de habilidad (+ activa con acento), botón de vaciar y estado vacío. */
+@mixin ss-style(
+  $font, $text, $muted, $title, $accent, $danger,
+  $panel-bg, $bd, $panel-shadow, $radius,
+  $tab-bg, $tab-bd, $tab-col, $tab-active-bg, $tab-active-col,
+  $grid-bg, $grid-shadow, $cell-bg, $cell-bd, $active-bg,
+  $tab-tt: none
+) {
+  background: $panel-bg;
+  border: 2px solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .panel-title {
+    color: $title;
+    border-bottom-color: $bd;
+    @if $font != null { font-family: $font; }
+  }
+
+  .clear-slot-btn {
+    background: $tab-bg;
+    border: 2px solid $bd;
+    color: $danger;
+    box-shadow: none;
+    &:active { background: $danger; color: #fff; }
+  }
+
+  .tabs .tab-btn {
+    background: $tab-bg;
+    border: 2px solid $tab-bd;
+    border-radius: 5px;
+    color: $tab-col;
+    text-transform: $tab-tt;
+    box-shadow: none;
+    &.active, &:hover {
+      background: $tab-active-bg;
+      color: $tab-active-col;
+      border-color: $accent;
+      box-shadow: none;
+    }
+  }
+
+  .ability-grid {
+    background: $grid-bg;
+    border: 4px solid $bd;
+    box-shadow: $grid-shadow;
+  }
+
+  .ability-btn {
+    background: $cell-bg;
+    border: 2px solid $cell-bd;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+
+    .ability-icon  { color: $text; }
+    .ability-label { color: $muted; }
+
+    &:active, &.active {
+      background: $active-bg;
+      border-color: $accent;
+      box-shadow: inset 0 0 0 1px $accent;
+      .ability-icon  { color: $accent; }
+      .ability-label { color: $text; }
+    }
+  }
+
+  .empty-state {
+    color: $muted;
+    .empty-icon { color: $accent; }
+  }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include ss-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $title: #6fd8a8, $accent: #21ff9a, $danger: #ff5a6e,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.6)), $radius: 3px,
+    $tab-bg: #0a0f0d, $tab-bd: rgba(33,255,154,.3), $tab-col: #9fd8bf,
+    $tab-active-bg: #21ff9a, $tab-active-col: #04140c,
+    $grid-bg: #06120d, $grid-shadow: (inset 0 0 14px rgba(0,0,0,.6)),
+    $cell-bg: #0a0f0d, $cell-bd: rgba(33,255,154,.18), $active-bg: rgba(33,255,154,.16),
+    $tab-tt: uppercase
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include ss-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $title: #b79cff, $accent: #9d7ff0, $danger: #ff6b8a,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)), $radius: 10px,
+    $tab-bg: #1a1330, $tab-bd: #3a2d5e, $tab-col: #d8ccf5,
+    $tab-active-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $tab-active-col: #f0e9ff,
+    $grid-bg: #160f28, $grid-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $cell-bg: #1a1330, $cell-bd: #0d0a18, $active-bg: rgba(157,127,240,.22)
+  );
+}
+
+/* SANGRE · negro rojizo + granate */
+:host-context([data-appstyle="sangre"]) {
+  @include ss-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $title: #d98a92, $accent: #cf3a48, $danger: #ff5a52,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)), $radius: 8px,
+    $tab-bg: #12080a, $tab-bd: #3a1518, $tab-col: #e8c4a8,
+    $tab-active-bg: #6b1620, $tab-active-col: #f0d8ce,
+    $grid-bg: #12080a, $grid-shadow: (inset 0 0 12px rgba(0,0,0,.55)),
+    $cell-bg: #1a0f11, $cell-bd: #0a0506, $active-bg: rgba(207,58,72,.22)
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include ss-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $title: #8fd4ff, $accent: #4db8ff, $danger: #ff6a5a,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)), $radius: 4px,
+    $tab-bg: rgba(10,26,42,.7), $tab-bd: rgba(80,180,255,.35), $tab-col: #8fd4ff,
+    $tab-active-bg: #4db8ff, $tab-active-col: #06131f,
+    $grid-bg: rgba(6,16,28,.7), $grid-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $cell-bg: rgba(10,26,42,.6), $cell-bd: rgba(80,180,255,.22), $active-bg: rgba(77,184,255,.2),
+    $tab-tt: uppercase
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include ss-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $title: #ffe9a8, $accent: #e0b53c, $danger: #ff7a5e,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)), $radius: 12px,
+    $tab-bg: #182248, $tab-bd: #3a4a80, $tab-col: #f0e6cc,
+    $tab-active-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $tab-active-col: #3a2a08,
+    $grid-bg: #141c3a, $grid-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $cell-bg: #182248, $cell-bd: #0e1430, $active-bg: rgba(224,181,60,.2)
+  );
+}

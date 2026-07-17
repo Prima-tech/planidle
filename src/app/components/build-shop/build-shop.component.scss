@@ -547,3 +547,233 @@ $metal-dark: #6b6357;
 
 /* Comprar: estilo global .rpg-btn; aquí solo la separación superior */
 .shop-buy-btn { margin-top: 6px; }
+
+/* ═══════════════ Build-shop · overrides por estilo (data-appstyle) ═══════════════
+   La base es wood (arriba). Cada estilo redefine panel raíz, título, pestañas
+   Comprar/Vender, rejilla + celdas, card seleccionada, pastilla de monedas propia,
+   panel de detalle (placa de icono, nombre/desc/stats), botones de cantidad y textos
+   con su paleta. Solo colores/fondos/bordes/sombras/tipografía — misma disposición. */
+@mixin build-shop-style(
+  $text, $muted, $title, $accent, $on-accent,
+  $panel-bg, $bd, $radius, $panel-shadow,
+  $tab-bg, $tab-bd, $tab-col, $tab-active-bg, $tab-active-col, $tab-active-bd,
+  $grid-bg, $grid-bd,
+  $cell-bg, $cell-bd, $cell-inset, $sel-glow,
+  $coins-bg, $coins-bd, $coins-col,
+  $plate-bg, $plate-bd,
+  $icon-plate-bg, $icon-plate-bd,
+  $btn-bg, $btn-bd, $btn-col,
+  $scroll-thumb, $stock-col, $out-col,
+  $font: null, $tt: none, $bw: 2px
+) {
+  // ── Panel raíz ─────────────────────────────────────────────────────────────
+  background: $panel-bg;
+  border: $bw solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .shop-title { color: $title; }
+
+  // ── Pestañas Comprar / Vender ──────────────────────────────────────────────
+  .shop-tab {
+    background: $tab-bg;
+    border-color: $tab-bd;
+    color: $tab-col;
+    text-transform: $tt;
+    box-shadow: none;
+
+    &.active {
+      background: $tab-active-bg;
+      color: $tab-active-col;
+      border-color: $tab-active-bd;
+      box-shadow: none;
+    }
+  }
+
+  .sell-hint { color: $muted; }
+
+  // ── Rejillas (venta / compra) ──────────────────────────────────────────────
+  .sell-grid,
+  .shop-grid,
+  .shop-grid--slider {
+    background: $grid-bg;
+    border-color: $grid-bd;
+  }
+  .shop-grid--slider::-webkit-scrollbar-thumb {
+    background: $scroll-thumb;
+    border-color: $bd;
+  }
+
+  // ── Celdas ─────────────────────────────────────────────────────────────────
+  .sell-cell,
+  .shop-card-frame {
+    background-color: $cell-bg;
+    border-color: $cell-bd;
+    box-shadow: $cell-inset;
+  }
+  .shop-card--empty { border-color: $cell-bd; }
+
+  .sell-item .item-fallback { color: $text; }
+  .sell-item .item-sum,
+  .shop-card-stock { color: $stock-col; }
+  .shop-card-stock--out { color: $out-col; }
+
+  .shop-card { color: $text; }
+  .shop-card.selected .shop-card-frame {
+    border-color: $accent;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), $sel-glow;
+  }
+
+  .sell-total-label,
+  .shop-gold-label { color: $text; }
+
+  // ── Pastilla de monedas propia del componente ──────────────────────────────
+  .coins-section {
+    background: $coins-bg;
+    border-color: $coins-bd;
+    box-shadow: none;
+  }
+  .coin-amount { color: $coins-col; }
+
+  // ── Panel de detalle ───────────────────────────────────────────────────────
+  .shop-detail {
+    background: $panel-bg;
+    border: $bw solid $bd;
+    border-radius: $radius;
+    box-shadow: $panel-shadow;
+    color: $text;
+  }
+  .shop-detail-close {
+    border-color: $bd;
+    color: $text;
+  }
+  .shop-detail-icon {
+    background: $icon-plate-bg;
+    border-color: $icon-plate-bd;
+  }
+  .shop-detail-name,
+  .shop-detail-desc,
+  .shop-detail-stats {
+    background: $plate-bg;
+    border-color: $plate-bd;
+    color: $text;
+  }
+  .shop-stat-label { color: $muted; }
+  .shop-stat-value { color: $text; }
+
+  .shop-qty-btn {
+    background: $btn-bg;
+    border-color: $btn-bd;
+    color: $btn-col;
+    box-shadow: none;
+    &:not([disabled]):active { background: $btn-bg; color: $btn-col; filter: brightness(1.2); }
+  }
+  .shop-qty-val { color: $text; }
+
+  .shop-detail-stock {
+    color: $muted;
+    &.out { color: $out-col; }
+  }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include build-shop-style(
+    $text: #dbeee4, $muted: rgba(180,220,200,.72), $title: #6fd8a8, $accent: #21ff9a, $on-accent: #04140c,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28), $radius: 3px,
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.6)),
+    $tab-bg: #0a0f0d, $tab-bd: rgba(33,255,154,.3), $tab-col: #9fd8bf,
+    $tab-active-bg: #21ff9a, $tab-active-col: #04140c, $tab-active-bd: #21ff9a,
+    $grid-bg: #06120d, $grid-bd: rgba(33,255,154,.2),
+    $cell-bg: #0a0f0d, $cell-bd: rgba(33,255,154,.18), $cell-inset: (inset 0 0 6px rgba(0,0,0,.6)),
+    $sel-glow: (0 0 8px rgba(33,255,154,.55)),
+    $coins-bg: #0a0f0d, $coins-bd: rgba(33,255,154,.3), $coins-col: #dbeee4,
+    $plate-bg: #0a0f0d, $plate-bd: rgba(33,255,154,.2),
+    $icon-plate-bg: linear-gradient(180deg,#0f1613,#0a0f0d), $icon-plate-bd: rgba(33,255,154,.4),
+    $btn-bg: #0a0f0d, $btn-bd: rgba(33,255,154,.4), $btn-col: #21ff9a,
+    $scroll-thumb: #0a0f0d, $stock-col: #35ffa0, $out-col: #ff5a6e,
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $tt: uppercase
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include build-shop-style(
+    $text: #ece6ff, $muted: rgba(216,204,245,.62), $title: #b79cff, $accent: #9d7ff0, $on-accent: #160f28,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6, $radius: 10px,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)),
+    $tab-bg: #1a1330, $tab-bd: #3a2d5e, $tab-col: #d8ccf5,
+    $tab-active-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $tab-active-col: #f0e9ff, $tab-active-bd: #b79cff,
+    $grid-bg: #160f28, $grid-bd: #3a2d5e,
+    $cell-bg: #1a1330, $cell-bd: #0d0a18, $cell-inset: (inset 0 2px 4px rgba(0,0,0,.5)),
+    $sel-glow: (0 0 8px rgba(157,127,240,.6)),
+    $coins-bg: #1a1330, $coins-bd: #6d4bd6, $coins-col: #ece6ff,
+    $plate-bg: #160f28, $plate-bd: #3a2d5e,
+    $icon-plate-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $icon-plate-bd: #b79cff,
+    $btn-bg: #160f28, $btn-bd: #6d4bd6, $btn-col: #b79cff,
+    $scroll-thumb: #160f28, $stock-col: #b79cff, $out-col: #ff6b8a,
+    $font: (Georgia,'Times New Roman',serif)
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include build-shop-style(
+    $text: #f0d8ce, $muted: rgba(240,216,206,.6), $title: #d98a92, $accent: #cf3a48, $on-accent: #f0d8ce,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620, $radius: 8px,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)),
+    $tab-bg: #12080a, $tab-bd: #3a1518, $tab-col: #e8c4a8,
+    $tab-active-bg: #6b1620, $tab-active-col: #f0d8ce, $tab-active-bd: #cf3a48,
+    $grid-bg: #12080a, $grid-bd: #3a1518,
+    $cell-bg: #1a0f11, $cell-bd: #0a0506, $cell-inset: (inset 0 2px 4px rgba(0,0,0,.55)),
+    $sel-glow: (0 0 8px rgba(207,58,72,.55)),
+    $coins-bg: #12080a, $coins-bd: #6b1620, $coins-col: #f0d8ce,
+    $plate-bg: #1a0f11, $plate-bd: #3a1518,
+    $icon-plate-bg: linear-gradient(180deg,#e8c4a8,#c08a6a), $icon-plate-bd: #6b1620,
+    $btn-bg: #12080a, $btn-bd: #6b1620, $btn-col: #e8c4a8,
+    $scroll-thumb: #12080a, $stock-col: #e8c4a8, $out-col: #ff5a52,
+    $font: (Georgia,'Times New Roman',serif)
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include build-shop-style(
+    $text: #dceefc, $muted: rgba(220,238,252,.6), $title: #8fd4ff, $accent: #4db8ff, $on-accent: #06131f,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45), $radius: 4px,
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)),
+    $tab-bg: rgba(10,26,42,.7), $tab-bd: rgba(80,180,255,.35), $tab-col: #8fd4ff,
+    $tab-active-bg: #4db8ff, $tab-active-col: #06131f, $tab-active-bd: #4db8ff,
+    $grid-bg: rgba(6,16,28,.7), $grid-bd: rgba(80,180,255,.3),
+    $cell-bg: rgba(10,26,42,.6), $cell-bd: rgba(80,180,255,.22), $cell-inset: (inset 0 0 6px rgba(0,0,0,.45)),
+    $sel-glow: (0 0 8px rgba(77,184,255,.6)),
+    $coins-bg: rgba(10,26,42,.7), $coins-bd: rgba(80,180,255,.4), $coins-col: #dceefc,
+    $plate-bg: rgba(10,26,42,.6), $plate-bd: rgba(80,180,255,.22),
+    $icon-plate-bg: linear-gradient(180deg,rgba(20,50,80,.85),rgba(10,26,42,.85)), $icon-plate-bd: rgba(80,180,255,.45),
+    $btn-bg: rgba(10,26,42,.7), $btn-bd: rgba(80,180,255,.5), $btn-col: #4db8ff,
+    $scroll-thumb: rgba(10,26,42,.9), $stock-col: #8fd4ff, $out-col: #ff6a5a,
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $tt: uppercase
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include build-shop-style(
+    $text: #f0e6cc, $muted: rgba(240,230,204,.62), $title: #ffe9a8, $accent: #e0b53c, $on-accent: #3a2a08,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c, $radius: 12px,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)),
+    $tab-bg: #182248, $tab-bd: #3a4a80, $tab-col: #f0e6cc,
+    $tab-active-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $tab-active-col: #3a2a08, $tab-active-bd: #8a6a1f,
+    $grid-bg: #141c3a, $grid-bd: #8a6a1f,
+    $cell-bg: #182248, $cell-bd: #0e1430, $cell-inset: (inset 0 2px 4px rgba(0,0,0,.5)),
+    $sel-glow: (0 0 8px rgba(224,181,60,.5)),
+    $coins-bg: #182248, $coins-bd: #caa23c, $coins-col: #f0e6cc,
+    $plate-bg: #182248, $plate-bd: #8a6a1f,
+    $icon-plate-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $icon-plate-bd: #8a6a1f,
+    $btn-bg: #182248, $btn-bd: #caa23c, $btn-col: #ffe9a8,
+    $scroll-thumb: #182248, $stock-col: #ffe9a8, $out-col: #ff7a5e,
+    $font: (Georgia,'Times New Roman',serif)
+  );
+}

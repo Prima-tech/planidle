@@ -585,3 +585,242 @@ $gold-light: #ffe9a8;
   &--cancel  { background: $wood-btn-dark; color: $text-cream; }
   &--confirm { background: #a03325; color: #f5e3c8; }
 }
+
+/* ═══════════════ Footer-bar · overrides por estilo (data-appstyle) ═══════════════
+   Base = wood + piedra + placas de acero (arriba). Cada estilo repinta la viga
+   (ion-toolbar), las placas/orbes de botón, iconos, el estado activo con acento del
+   tema y el modal de confirmación. Se mantienen tamaños/posiciones. Los estados
+   semánticos de los FAB (auto-ataque rojo, candado dorado) se conservan. */
+@mixin footer-style(
+  $font, $text, $muted, $accent, $accent-soft, $icon-col,
+  $toolbar-bg, $bevel-l, $bevel, $bevel-d,
+  $btn-face, $btn-face-pressed, $btn-bd,
+  $orb-face, $orb-pressed,
+  $panel-bg, $panel-bd, $radius, $panel-shadow
+) {
+  ion-toolbar {
+    --background: #{$toolbar-bg};
+    --border-color: transparent;
+    border-image: linear-gradient(180deg, $bevel-l 0 30%, $bevel 30% 70%, $bevel-d 70% 100%) 1;
+    box-shadow:
+      0 -2px 0 rgba(0, 0, 0, 0.6),
+      inset 0 2px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  // ── Placas de botón del footer ──────────────────────────────────────────────
+  .icon-menu-wrapper {
+    border-color: $btn-bd;
+    background: $btn-face;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+      inset 0 2px 0 rgba(255, 255, 255, 0.08);
+
+    &:active {
+      background: $btn-face-pressed;
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    &.active {
+      background: $btn-face-pressed;
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        inset 0 0 9px $accent-soft,
+        0 0 9px $accent-soft;
+
+      .footer-ion-icon {
+        color: $accent;
+        filter: drop-shadow(0 0 3px $accent-soft);
+      }
+    }
+
+    &.active::after {
+      background: linear-gradient(90deg, transparent, $accent 50%, transparent);
+      box-shadow: 0 0 4px $accent-soft;
+    }
+  }
+
+  .footer-ion-icon {
+    color: $icon-col;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  }
+
+  // ── Toggle de página ────────────────────────────────────────────────────────
+  .page-toggle {
+    border-color: $btn-bd;
+    background: $btn-face;
+    color: $icon-col;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      inset 0 2px 0 rgba(255, 255, 255, 0.08);
+    &:active {
+      background: $btn-face-pressed;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    ion-icon { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)); }
+  }
+
+  // ── FABs (base themed; activo semántico intacto) ────────────────────────────
+  .auto-attack-fab,
+  .lock-fab {
+    border-color: $btn-bd;
+    background: $btn-face;
+    color: $icon-col;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.5);
+    ion-icon { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)); }
+  }
+
+  // ── Hub (tirador + orbes) ───────────────────────────────────────────────────
+  .hub-toggle {
+    border-color: $btn-bd;
+    background: $btn-face;
+    color: $icon-col;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+      inset 0 2px 0 rgba(255, 255, 255, 0.1),
+      0 3px 8px rgba(0, 0, 0, 0.5);
+    ion-icon { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)); }
+    &:active { background: $btn-face-pressed; }
+  }
+
+  .hub-buttons .icon-menu-wrapper {
+    border-color: $btn-bd;
+    background: $orb-face;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+      inset 0 2px 3px rgba(255, 255, 255, 0.15),
+      inset 0 -4px 7px rgba(0, 0, 0, 0.35),
+      0 3px 10px rgba(0, 0, 0, 0.55);
+
+    .footer-ion-icon { color: $icon-col; }
+
+    &:active {
+      background: $orb-pressed;
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        inset 0 3px 6px rgba(0, 0, 0, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    &.active {
+      background: $orb-pressed;
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        inset 0 0 9px $accent-soft,
+        0 0 12px $accent-soft,
+        0 3px 10px rgba(0, 0, 0, 0.55);
+      .footer-ion-icon {
+        color: $accent;
+        filter: drop-shadow(0 0 3px $accent-soft);
+      }
+    }
+  }
+
+  .skill-placeholder { color: $muted; }
+
+  // ── Modal "volver a casa" (confirmación) ────────────────────────────────────
+  .rh-panel {
+    background: $panel-bg;
+    border: 2px solid $panel-bd;
+    border-radius: $radius;
+    box-shadow: $panel-shadow;
+    color: $text;
+  }
+  .rh-header .rh-icon { color: $text; }
+  .rh-title {
+    color: $accent;
+    text-shadow: none;
+    @if $font != null { font-family: $font; }
+  }
+  .rh-divider { background: rgba(255, 255, 255, 0.08); box-shadow: none; }
+  .rh-body .rh-msg  { color: $text; }
+  .rh-body .rh-warn { color: $muted; }
+  .rh-btn--cancel { background: $btn-face; border-color: $btn-bd; color: $text; }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include footer-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $accent: #21ff9a, $accent-soft: rgba(33,255,154,.5), $icon-col: #9fd8bf,
+    $toolbar-bg: (repeating-linear-gradient(90deg, rgba(33,255,154,.04) 0 1px, transparent 1px 7px), linear-gradient(180deg,#0a0f0d,#050807)),
+    $bevel-l: rgba(33,255,154,.45), $bevel: rgba(33,255,154,.3), $bevel-d: rgba(33,255,154,.15),
+    $btn-face: linear-gradient(180deg,#0e1613,#070b0a), $btn-face-pressed: linear-gradient(180deg,#070b0a,#0e1613),
+    $btn-bd: rgba(33,255,154,.3),
+    $orb-face: radial-gradient(circle at 35% 28%,#16211c 0%,#0a0f0d 55%,#050807 100%),
+    $orb-pressed: radial-gradient(circle at 35% 72%,#0a0f0d 0%,#070b0a 55%,#050807 100%),
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $panel-bd: rgba(33,255,154,.28),
+    $radius: 3px, $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 0 60px rgba(0,0,0,.9))
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include footer-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $accent: #9d7ff0, $accent-soft: rgba(122,80,230,.5), $icon-col: #d8ccf5,
+    $toolbar-bg: linear-gradient(180deg,#221a3a,#140f24),
+    $bevel-l: #8a63f0, $bevel: #6d4bd6, $bevel-d: #3a2d5e,
+    $btn-face: linear-gradient(180deg,#241c40,#160f28), $btn-face-pressed: linear-gradient(180deg,#160f28,#241c40),
+    $btn-bd: #6d4bd6,
+    $orb-face: radial-gradient(circle at 35% 28%,#2c2350 0%,#1a1330 55%,#0d0a18 100%),
+    $orb-pressed: radial-gradient(circle at 35% 72%,#1a1330 0%,#140f24 55%,#0d0a18 100%),
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $panel-bd: #6d4bd6,
+    $radius: 10px, $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 0 60px rgba(0,0,0,.9))
+  );
+}
+
+/* SANGRE · negro rojizo + granate */
+:host-context([data-appstyle="sangre"]) {
+  @include footer-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $accent: #cf3a48, $accent-soft: rgba(150,20,30,.55), $icon-col: #e8c4a8,
+    $toolbar-bg: linear-gradient(180deg,#1a1012,#0c0708),
+    $bevel-l: #a83240, $bevel: #6b1620, $bevel-d: #3a1518,
+    $btn-face: linear-gradient(180deg,#1e1214,#12080a), $btn-face-pressed: linear-gradient(180deg,#12080a,#1e1214),
+    $btn-bd: #6b1620,
+    $orb-face: radial-gradient(circle at 35% 28%,#241416 0%,#1a0f11 55%,#0a0506 100%),
+    $orb-pressed: radial-gradient(circle at 35% 72%,#1a0f11 0%,#12080a 55%,#0a0506 100%),
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $panel-bd: #6b1620,
+    $radius: 8px, $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 0 60px rgba(0,0,0,.9))
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include footer-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $accent: #4db8ff, $accent-soft: rgba(77,184,255,.5), $icon-col: #8fd4ff,
+    $toolbar-bg: linear-gradient(180deg,rgba(10,24,40,.96),rgba(6,16,28,.97)),
+    $bevel-l: rgba(80,180,255,.5), $bevel: rgba(80,180,255,.4), $bevel-d: rgba(80,180,255,.22),
+    $btn-face: linear-gradient(180deg,rgba(14,30,48,.9),rgba(6,16,28,.92)), $btn-face-pressed: linear-gradient(180deg,rgba(6,16,28,.92),rgba(14,30,48,.9)),
+    $btn-bd: rgba(80,180,255,.4),
+    $orb-face: radial-gradient(circle at 35% 28%,rgba(18,38,58,.92) 0%,rgba(10,26,42,.9) 55%,rgba(6,16,28,.92) 100%),
+    $orb-pressed: radial-gradient(circle at 35% 72%,rgba(10,26,42,.9) 0%,rgba(6,16,28,.92) 55%,rgba(4,12,22,.94) 100%),
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $panel-bd: rgba(80,180,255,.45),
+    $radius: 4px, $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 0 60px rgba(0,0,0,.9))
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include footer-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $accent: #e0b53c, $accent-soft: rgba(224,181,60,.5), $icon-col: #f0e6cc,
+    $toolbar-bg: linear-gradient(180deg,#1e2a56,#111838),
+    $bevel-l: #ffe9a8, $bevel: #caa23c, $bevel-d: #8a6414,
+    $btn-face: linear-gradient(180deg,#22305e,#141c3a), $btn-face-pressed: linear-gradient(180deg,#141c3a,#22305e),
+    $btn-bd: #caa23c,
+    $orb-face: radial-gradient(circle at 35% 28%,#263468 0%,#182248 55%,#0e1430 100%),
+    $orb-pressed: radial-gradient(circle at 35% 72%,#182248 0%,#111838 55%,#0e1430 100%),
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $panel-bd: #caa23c,
+    $radius: 12px, $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 0 60px rgba(0,0,0,.9))
+  );
+}

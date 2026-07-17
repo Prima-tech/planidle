@@ -145,7 +145,8 @@ añaden como reglas extra dentro del mismo bloque `:host-context`.
 - Piezas ya tematizadas en los 6 estilos: barra de vida + desplegable (`top-bar`,
   mixin `appstyle-bar`), misiones activas (`quest-tracker`, minimal-flotante, mixin
   `quest-theme`), bocadillo de diálogo de NPC (`npc-dialogue`, mixin `dialog-theme`),
-  marco del minimapa (`layout.component.scss`, mixin `minimap-style`) e inventario
-  (`inventory.component.scss`, mixin `inventory-style`).
+  marco del minimapa (`layout.component.scss`, mixin `minimap-style`), inventario
+  (`inventory.component.scss`, mixin `inventory-style`) y registro de chat
+  (`chat-log.component.scss`, mixin `chat-theme`; historial en `DialogueService.history$`).
 - ⚠️ El INTERIOR del minimapa (fondo/barrido/rejilla) se dibuja en Phaser
   (`mobile-hud.scene.ts`) y aún NO varía por estilo — pendiente.

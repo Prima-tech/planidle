@@ -167,3 +167,86 @@
   .ach-toast,
   .ach-toast::after { animation-duration: 0.01ms !important; }
 }
+
+/* ═══════════════ Avisos de logro/misión · overrides por estilo (data-appstyle) ═══════════════
+   Base: placa de oro (logros) + pergamino (misiones). Cada estilo repinta ambas superficies
+   (fondo/borde/sombra + medalla + textos) con su paleta. Se conservan pop/sweep/unfurl. */
+:host-context([data-appstyle="cyberpunk"]) {
+  .ach-toast--gold,
+  .ach-toast--scroll {
+    background: linear-gradient(180deg, rgba(6, 9, 8, 0.96), rgba(3, 5, 5, 0.97));
+    border: 2px solid rgba(33, 255, 154, 0.28);
+    border-radius: 3px;
+    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6), 0 0 14px rgba(33, 255, 154, 0.2), 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+  .ach-toast--scroll::before,
+  .ach-toast--scroll::after { background: linear-gradient(90deg, #0a0f0d, #21ff9a, #0a0f0d); box-shadow: 0 0 0 1px #04140c; }
+  .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #0f1613, #04140c) !important; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.7), 0 0 8px rgba(33, 255, 154, 0.35) !important; }
+  .ach-toast-icon  { color: #21ff9a; }
+  .ach-toast-label { color: #6fd8a8; }
+  .ach-toast-name  { color: #dbeee4; font-family: 'Consolas', 'SF Mono', ui-monospace, monospace; text-transform: uppercase; text-shadow: 0 0 6px rgba(33, 255, 154, 0.4); }
+}
+
+:host-context([data-appstyle="arcano"]) {
+  .ach-toast--gold,
+  .ach-toast--scroll {
+    background: linear-gradient(180deg, #221a3a, #140f24);
+    border: 2px solid #6d4bd6;
+    border-radius: 10px;
+    box-shadow: 0 0 14px rgba(122, 80, 230, 0.35), 0 8px 24px rgba(0, 0, 0, 0.55);
+  }
+  .ach-toast--scroll::before,
+  .ach-toast--scroll::after { background: linear-gradient(90deg, #160f28, #9d7ff0, #160f28); box-shadow: 0 0 0 1px #0d0a18; }
+  .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #8a63f0, #3a2d5e) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(157, 127, 240, 0.4) !important; }
+  .ach-toast-icon  { color: #b79cff; }
+  .ach-toast-label { color: #b79cff; }
+  .ach-toast-name  { color: #ece6ff; text-shadow: none; }
+}
+
+:host-context([data-appstyle="sangre"]) {
+  .ach-toast--gold,
+  .ach-toast--scroll {
+    background: linear-gradient(180deg, #1a1012, #0c0708);
+    border: 2px solid #6b1620;
+    border-radius: 8px;
+    box-shadow: 0 0 14px rgba(150, 20, 30, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+  .ach-toast--scroll::before,
+  .ach-toast--scroll::after { background: linear-gradient(90deg, #12080a, #cf3a48, #12080a); box-shadow: 0 0 0 1px #0a0506; }
+  .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #b8433a, #6b1620) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(207, 58, 72, 0.4) !important; }
+  .ach-toast-icon  { color: #e8c4a8; }
+  .ach-toast-label { color: #d98a92; }
+  .ach-toast-name  { color: #f0d8ce; text-shadow: none; }
+}
+
+:host-context([data-appstyle="holo"]) {
+  .ach-toast--gold,
+  .ach-toast--scroll {
+    background: linear-gradient(180deg, rgba(10, 24, 40, 0.94), rgba(6, 16, 28, 0.96));
+    border: 2px solid rgba(80, 180, 255, 0.45);
+    border-radius: 4px;
+    box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(77, 184, 255, 0.28), 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+  .ach-toast--scroll::before,
+  .ach-toast--scroll::after { background: linear-gradient(90deg, rgba(10, 26, 42, 0.9), #4db8ff, rgba(10, 26, 42, 0.9)); box-shadow: 0 0 0 1px #06131f; }
+  .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #4db8ff, #0a1a2a) !important; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5), 0 0 8px rgba(77, 184, 255, 0.4) !important; }
+  .ach-toast-icon  { color: #8fd4ff; }
+  .ach-toast-label { color: #8fd4ff; }
+  .ach-toast-name  { color: #dceefc; font-family: 'Consolas', 'SF Mono', ui-monospace, monospace; text-transform: uppercase; text-shadow: 0 0 6px rgba(77, 184, 255, 0.4); }
+}
+
+:host-context([data-appstyle="real"]) {
+  .ach-toast--gold,
+  .ach-toast--scroll {
+    background: linear-gradient(180deg, #1e2a56, #111838);
+    border: 2px solid #caa23c;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(224, 181, 60, 0.3), 0 0 12px rgba(224, 181, 60, 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
+  }
+  .ach-toast--scroll::before,
+  .ach-toast--scroll::after { background: linear-gradient(90deg, #182248, #e0b53c, #182248); box-shadow: 0 0 0 1px #0e1430; }
+  .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #ffe9a8, #b5851f) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 8px rgba(224, 181, 60, 0.4) !important; }
+  .ach-toast-icon  { color: #3a2a08; }
+  .ach-toast-label { color: #ffe9a8; }
+  .ach-toast-name  { color: #f0e6cc; text-shadow: none; }
+}

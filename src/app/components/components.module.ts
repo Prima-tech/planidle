@@ -15,6 +15,7 @@ import { MapSelectedCellComponent } from './map-selected-cell/map-selected-cell.
 import { ModalContainerComponent } from './modal-container/modal-container.component';
 import { testPageComponent } from '../pages/test/test.page';
 import { GameLogComponent } from './game-log/game-log.component';
+import { ChatLogComponent } from './chat-log/chat-log.component';
 import { OfflineGainsModalComponent } from './offline-gains-modal/offline-gains-modal.component';
 import { DeathModalComponent } from './death-modal/death-modal.component';
 import { EquipmentComponent } from './equipment/equipment.component';
@@ -85,6 +86,7 @@ import { MapChestWindowComponent } from './map-chest-window/map-chest-window.com
     ProgressPanelComponent,
     AchievementToastComponent,
     QuestTrackerComponent,
+    ChatLogComponent,
     ShopComponent,
     BuildPanelComponent,
     BuildDeleteModalComponent,
@@ -132,6 +134,7 @@ import { MapChestWindowComponent } from './map-chest-window/map-chest-window.com
     CharacterSpriteComponent,
     AchievementToastComponent,
     QuestTrackerComponent,
+    ChatLogComponent,
   ]
 })
 export class ComponentModule {}

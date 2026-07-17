@@ -604,3 +604,254 @@ $metal-dark: #6b6357;
 .cdk-drag-preview .item-icon-sheet,
 .cdk-drag-preview .item-icon { image-rendering: pixelated; }
 .cdk-drag-placeholder { opacity: 0.3; }
+
+/* ═══════════════ Forja · overrides por estilo (data-appstyle) ═══════════════
+   La base es wood (arriba). Cada estilo redefine panel, cabecera, pestañas,
+   tarjeta de producción, celdas/slots, botón de forja, aro/barras de progreso,
+   etiquetas y panel de recetas con su paleta (ver skill app-styles). El mixin
+   emite las props del panel directamente sobre el host (:host-context) + hijos. */
+@mixin forge-style(
+  $font, $text, $muted, $title, $accent,
+  $panel-bg, $bd, $panel-shadow, $radius,
+  $card-bg, $card-bd,
+  $tab-bg, $tab-col, $tab-active-bg, $tab-active-col,
+  $cell-bg, $cell-bd,
+  $slot-bg, $slot-bd,
+  $tag-bg, $tag-col,
+  $bar, $bar-total, $ring, $track,
+  $bw: 2px, $tt: none
+) {
+  // Panel raíz (el propio :host)
+  background: $panel-bg;
+  border: $bw solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  // Cabecera / título de la ventana
+  .forge-title {
+    background: $card-bg;
+    border-color: $card-bd;
+    color: $title;
+    text-shadow: 0 0 8px rgba($accent, 0.5), 0 1px 2px rgba(0, 0, 0, 0.7);
+  }
+
+  // Pestañas Forja / Mejoras
+  .forge-tab {
+    background: $tab-bg;
+    border-color: $card-bd;
+    color: $tab-col;
+    text-transform: $tt;
+    &.is-active {
+      background: $tab-active-bg;
+      color: $tab-active-col;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 8px rgba($accent, 0.4);
+    }
+  }
+
+  .forge-upgrades-empty { color: $muted; }
+
+  // Tarjeta de producción
+  .forge-prod-section {
+    background: $card-bg;
+    border-color: $card-bd;
+  }
+
+  .forge-label { color: $muted; text-transform: $tt; }
+
+  .forge-slider::-webkit-scrollbar-thumb { background: rgba($accent, 0.4); }
+
+  // Casillas del slider
+  .forge-cell {
+    background: $cell-bg;
+    border-color: $cell-bd;
+    &.cdk-drop-list-receiving,
+    &.cdk-drop-list-dragging { outline-color: $accent; }
+  }
+
+  // Flechas de flujo → acento incandescente del tema
+  .forge-arrow {
+    color: $accent;
+    text-shadow: 0 0 6px rgba($accent, 0.55), 0 1px 2px rgba(0, 0, 0, 0.6);
+  }
+
+  // Slots de forja (material / combustible / salida)
+  .forge-mat-cell,
+  .forge-fuel-cell,
+  .forge-out-cell {
+    background: $slot-bg;
+    border-color: $slot-bd;
+    &.cdk-drop-list-receiving,
+    &.cdk-drop-list-dragging { outline-color: $accent; }
+  }
+
+  // Aro de progreso de la unidad
+  .forge-ring-fill {
+    stroke: $ring;
+    filter: drop-shadow(0 0 2px rgba($accent, 0.7));
+  }
+
+  // Boca de la fragua (botón de producir)
+  .forge-prod-btn {
+    background: $slot-bg;
+    border-color: $slot-bd;
+    color: $text;
+    &.is-producing {
+      background: radial-gradient(circle at 50% 60%,
+        rgba($accent, 0.9), rgba($accent, 0.35) 55%, rgba(0, 0, 0, 0.6) 100%);
+      border-color: $slot-bd;
+      box-shadow: 0 0 14px rgba($accent, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.5);
+      animation: none;
+    }
+  }
+
+  // Etiquetas (Mineral / Combustible / Produciendo / Salida)
+  .forge-tag {
+    background: $tag-bg;
+    border-color: $card-bd;
+    color: $tag-col;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  }
+
+  .forge-prod-select { color: $text; }
+
+  // Control play/pausa
+  .forge-ctrl--play {
+    background: $slot-bg;
+    border-color: $slot-bd;
+    color: $text;
+    &:active:not(:disabled) { background: $slot-bg; filter: brightness(0.88); }
+    &.is-active {
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 8px rgba($accent, 0.6);
+    }
+  }
+
+  // Barras de progreso (unidad = acento, lote total = acento claro/secundario)
+  .forge-progress {
+    background: $track;
+    border-color: $cell-bd;
+    span { background: $bar; }
+    &.forge-progress--total span { background: $bar-total; }
+  }
+  .forge-prod-bar {
+    background: $track;
+    border-color: $cell-bd;
+    span { background: $bar; }
+  }
+
+  // Cronómetros
+  .forge-timer {
+    color: $title;
+    text-shadow: 0 0 6px rgba($accent, 0.45), 0 1px 2px rgba(0, 0, 0, 0.7);
+  }
+
+  // Panel de recetas (flyout)
+  .forge-recipe-panel {
+    background: $panel-bg;
+    border: $bw solid $bd;
+    border-radius: $radius;
+    box-shadow: $panel-shadow;
+  }
+  .forge-recipe-title { color: $muted; text-transform: $tt; }
+  .forge-recipe-cell {
+    background: $cell-bg;
+    border-color: $cell-bd;
+  }
+
+  .forge-prod-cell {
+    background: $cell-bg;
+    border-color: $cell-bd;
+  }
+
+  .item-fallback { color: $text; }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include forge-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4,
+    $muted: rgba(180,220,200,.72), $title: #6fd8a8, $accent: #21ff9a,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.6)), $radius: 3px,
+    $card-bg: #06120d, $card-bd: rgba(33,255,154,.22),
+    $tab-bg: #0a0f0d, $tab-col: #9fd8bf, $tab-active-bg: #21ff9a, $tab-active-col: #04140c,
+    $cell-bg: #0a0f0d, $cell-bd: rgba(33,255,154,.18),
+    $slot-bg: #06120d, $slot-bd: rgba(33,255,154,.22),
+    $tag-bg: #0a0f0d, $tag-col: #6fd8a8,
+    $bar: linear-gradient(180deg,#35ffa0,#0f9e5e), $bar-total: linear-gradient(180deg,#3fe0ff,#1785a8),
+    $ring: #21ff9a, $track: #06120d,
+    $tt: uppercase
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include forge-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff,
+    $muted: rgba(216,204,245,.62), $title: #b79cff, $accent: #9d7ff0,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)), $radius: 10px,
+    $card-bg: #1a1330, $card-bd: #3a2d5e,
+    $tab-bg: #160f28, $tab-col: #d8ccf5,
+    $tab-active-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $tab-active-col: #f0e9ff,
+    $cell-bg: #160f28, $cell-bd: #0d0a18,
+    $slot-bg: #1a1330, $slot-bd: #3a2d5e,
+    $tag-bg: #160f28, $tag-col: #b79cff,
+    $bar: linear-gradient(180deg,#5be0ff,#1f8fd0), $bar-total: linear-gradient(180deg,#8a63f0,#5b3bc4),
+    $ring: #9d7ff0, $track: #0d0a18
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include forge-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce,
+    $muted: rgba(240,216,206,.6), $title: #d98a92, $accent: #cf3a48,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)), $radius: 8px,
+    $card-bg: #1a0f11, $card-bd: #3a1518,
+    $tab-bg: #12080a, $tab-col: #e8c4a8, $tab-active-bg: #6b1620, $tab-active-col: #f0d8ce,
+    $cell-bg: #12080a, $cell-bd: #0a0506,
+    $slot-bg: #1a0f11, $slot-bd: #3a1518,
+    $tag-bg: #12080a, $tag-col: #e8c4a8,
+    $bar: linear-gradient(180deg,#e23b32,#8e0f16), $bar-total: linear-gradient(180deg,#7a5cc0,#3a2470),
+    $ring: #cf3a48, $track: #0a0506
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include forge-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc,
+    $muted: rgba(220,238,252,.6), $title: #8fd4ff, $accent: #4db8ff,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)), $radius: 4px,
+    $card-bg: rgba(10,26,42,.6), $card-bd: rgba(80,180,255,.28),
+    $tab-bg: rgba(10,26,42,.6), $tab-col: #8fd4ff, $tab-active-bg: #4db8ff, $tab-active-col: #06131f,
+    $cell-bg: rgba(10,26,42,.6), $cell-bd: rgba(80,180,255,.22),
+    $slot-bg: rgba(10,26,42,.6), $slot-bd: rgba(80,180,255,.28),
+    $tag-bg: rgba(10,26,42,.6), $tag-col: #8fd4ff,
+    $bar: linear-gradient(180deg,#4db8ff,#1c6fc0), $bar-total: linear-gradient(180deg,#8fd4ff,#4db8ff),
+    $ring: #4db8ff, $track: rgba(6,16,28,.7),
+    $tt: uppercase
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include forge-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc,
+    $muted: rgba(240,230,204,.62), $title: #ffe9a8, $accent: #e0b53c,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)), $radius: 12px,
+    $card-bg: #182248, $card-bd: #8a6a1f,
+    $tab-bg: #182248, $tab-col: #f0e6cc,
+    $tab-active-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $tab-active-col: #3a2a08,
+    $cell-bg: #182248, $cell-bd: #0e1430,
+    $slot-bg: #182248, $slot-bd: #8a6a1f,
+    $tag-bg: #182248, $tag-col: #ffe9a8,
+    $bar: linear-gradient(180deg,#6fa0ff,#2f56c0), $bar-total: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f),
+    $ring: #e0b53c, $track: #0e1430
+  );
+}

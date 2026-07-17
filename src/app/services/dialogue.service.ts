@@ -9,6 +9,13 @@ export interface DialogueLine {
   hasNext: boolean;
 }
 
+/** Entrada del registro de chat (historial de líneas ya mostradas). */
+export interface ChatEntry {
+  id: number;
+  speaker: string;
+  text: string;
+}
+
 /**
  * Diálogos de NPC. La escena Phaser llama a `show(speaker, text)` al hablar con un
  * NPC; el componente Angular (app-npc-dialogue) pinta el cuadro. `text` puede ser
@@ -21,6 +28,13 @@ export class DialogueService {
   /** Petición de "continuar" desde fuera (tecla espacio). El componente la trata
    *  igual que un toque en el cuadro: avanza de página, de línea, o cierra. */
   readonly next$ = new Subject<void>();
+
+  /** Registro de chat: cada línea mostrada (NPC: texto) se acumula aquí para el
+   *  componente de chat (app-chat-log). Cap a HISTORY_MAX (las más viejas caen). */
+  readonly history$ = new BehaviorSubject<ChatEntry[]>([]);
+  private static readonly HISTORY_MAX = 60;
+  private _history: ChatEntry[] = [];
+  private historyId = 0;
 
   private speaker = '';
   private lines: string[] = [];
@@ -71,10 +85,20 @@ export class DialogueService {
   requestNext(): void { if (this.line$.value) this.next$.next(); }
 
   private emit(): void {
+    const speaker = this.speaker;
+    const text = this.lines[this.index];
     this.line$.next({
-      speaker: this.speaker,
-      text: this.lines[this.index],
+      speaker,
+      text,
       hasNext: this.index < this.lines.length - 1,
     });
+    this.pushHistory(speaker, text);
+  }
+
+  /** Añade la línea al registro de chat (cap a HISTORY_MAX). */
+  private pushHistory(speaker: string, text: string): void {
+    this._history.push({ id: this.historyId++, speaker, text });
+    if (this._history.length > DialogueService.HISTORY_MAX) this._history.shift();
+    this.history$.next([...this._history]);
   }
 }

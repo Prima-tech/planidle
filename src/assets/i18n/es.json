@@ -656,6 +656,11 @@
     "COINS": "Monedas",
     "STARS": "Estrellas"
   },
+  "CHAT": {
+    "TITLE": "Chat",
+    "EMPTY": "Aún no has hablado con nadie.",
+    "CLOSE": "Cerrar"
+  },
   "COMMON": {
     "LOADING": "...",
     "LOADING_TEXT": "Cargando..."

@@ -46,3 +46,54 @@
   40%  { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
+
+/* ═══════════════ Registro de mensajes · overrides por estilo (data-appstyle) ═══════════════
+   Base: texto suelto sin fondo (arriba). Cada estilo mete una píldora translúcida bajo
+   cada entrada (fondo + borde + tipografía del tema). No se toca el color de las
+   entradas semánticas (.drop/.coin/.regen-*) — mantienen su color propio. */
+:host-context([data-appstyle="cyberpunk"]) .log-entry {
+  padding: 2px 6px;
+  background: rgba(6, 9, 8, 0.55);
+  border: 1px solid rgba(33, 255, 154, 0.28);
+  border-radius: 3px;
+  font-family: 'Consolas', 'SF Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+}
+
+:host-context([data-appstyle="arcano"]) .log-entry {
+  padding: 2px 6px;
+  background: rgba(20, 15, 36, 0.55);
+  border: 1px solid #3a2d5e;
+  border-radius: 8px;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+:host-context([data-appstyle="sangre"]) .log-entry {
+  padding: 2px 6px;
+  background: rgba(12, 7, 8, 0.55);
+  border: 1px solid #3a1518;
+  border-radius: 6px;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+:host-context([data-appstyle="holo"]) .log-entry {
+  padding: 2px 6px;
+  background: rgba(6, 16, 28, 0.5);
+  border: 1px solid rgba(80, 180, 255, 0.22);
+  border-radius: 4px;
+  font-family: 'Consolas', 'SF Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.85);
+}
+
+:host-context([data-appstyle="real"]) .log-entry {
+  padding: 2px 6px;
+  background: rgba(17, 24, 56, 0.55);
+  border: 1px solid #0e1430;
+  border-radius: 6px;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}

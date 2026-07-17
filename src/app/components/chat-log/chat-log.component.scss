@@ -1,0 +1,218 @@
+/* ===== Registro de chat de NPCs — estilo chat de juego =====
+   Base = WOOD (panel oscuro, marco de piedra, nombres en oro, texto crema).
+   Overrides por tema con :host-context([data-appstyle="…"]) vía mixin chat-theme. */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-btn: #c08349;
+$wood-btn-dark: #8a5530;
+$cell-bg: #38241d;
+$text-cream: #ecd9b4;
+$gold: #ffe08a;
+$gold-2: #f0c040;
+
+// ── Botón bocadillo (abajo-izquierda, sobre el tirador del hub) ───────────────
+.chat-fab {
+  position: fixed;
+  left: calc(8px + var(--safe-left, 0px));
+  bottom: calc(58px + var(--safe-bottom, 0px));
+  z-index: 159;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 50%;
+  background: linear-gradient(180deg, $wood-btn, $wood-btn-dark);
+  color: $gold-2;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, 0 2px 8px rgba(0, 0, 0, 0.5);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
+  ion-icon { font-size: 20px; }
+
+  &:focus, &:focus-visible { outline: none; }
+  &:active { transform: scale(0.92); }
+  &--open { background: $cell-bg; color: $gold; }
+}
+
+// Punto de no leídos.
+.chat-unread {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: #c0392b;
+  border: 1.5px solid $outline;
+  border-radius: 8px;
+}
+
+// ── Ventana de chat ───────────────────────────────────────────────────────────
+.chat-window {
+  position: fixed;
+  left: calc(8px + var(--safe-left, 0px));
+  bottom: calc(104px + var(--safe-bottom, 0px));
+  z-index: 159;
+  width: min(300px, calc(100vw - 16px));
+  max-height: 44vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(28, 19, 12, 0.95);
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 9px;
+  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, 0 6px 18px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  animation: chat-in 0.18s ease-out both;
+}
+
+@keyframes chat-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 9px;
+  background: linear-gradient(180deg, $wood-btn, $wood-btn-dark);
+  border-bottom: 2px solid $outline;
+  color: $text-cream;
+}
+.chat-head-icon { font-size: 15px; color: $text-cream; }
+.chat-title {
+  flex: 1;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.chat-close {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  color: $text-cream;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  ion-icon { font-size: 16px; }
+  &:active { transform: scale(0.9); }
+}
+
+.chat-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 7px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.chat-empty {
+  margin: auto;
+  font-size: 11px;
+  font-style: italic;
+  text-align: center;
+  color: rgba(236, 217, 180, 0.55);
+}
+
+.chat-msg {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #e6d3b0;
+  word-break: break-word;
+}
+.chat-speaker,
+.chat-colon {
+  font-weight: 800;
+  color: $gold-2;
+}
+.chat-colon { margin-right: 3px; }
+
+/* ═══════════════ Temas (data-appstyle) ═══════════════ */
+@mixin chat-theme($fab-bg, $fab-edge, $fab-icon, $win-bg, $win-edge, $radius, $head-bg, $head-col, $speaker, $text, $muted) {
+  .chat-fab {
+    background: $fab-bg;
+    border: 1px solid $fab-edge;
+    color: $fab-icon;
+    &--open { background: $win-bg; color: $fab-icon; }
+  }
+  .chat-window {
+    background: $win-bg;
+    border: 1px solid $win-edge;
+    border-radius: $radius;
+  }
+  .chat-head {
+    background: $head-bg;
+    border-bottom-color: $win-edge;
+    color: $head-col;
+  }
+  .chat-head-icon { color: $head-col; }
+  .chat-close { color: $head-col; }
+  .chat-speaker, .chat-colon { color: $speaker; }
+  .chat-msg { color: $text; }
+  .chat-empty { color: $muted; }
+}
+
+:host-context([data-appstyle="cyberpunk"]) {
+  @include chat-theme(
+    $fab-bg: rgba(6, 10, 9, 0.9), $fab-edge: rgba(33, 255, 154, 0.45), $fab-icon: #21ff9a,
+    $win-bg: rgba(4, 8, 7, 0.96), $win-edge: rgba(33, 255, 154, 0.3), $radius: 3px,
+    $head-bg: #080d0b, $head-col: #21ff9a,
+    $speaker: #21ff9a, $text: #cfe8dd, $muted: rgba(180, 220, 200, 0.55)
+  );
+}
+:host-context([data-appstyle="arcano"]) {
+  @include chat-theme(
+    $fab-bg: rgba(22, 15, 40, 0.92), $fab-edge: rgba(122, 80, 230, 0.5), $fab-icon: #b79cff,
+    $win-bg: rgba(16, 11, 30, 0.96), $win-edge: rgba(122, 80, 230, 0.4), $radius: 9px,
+    $head-bg: linear-gradient(180deg, #5b3bc4, #2e1f52), $head-col: #f0e9ff,
+    $speaker: #b79cff, $text: #e6dcff, $muted: rgba(216, 204, 245, 0.55)
+  );
+}
+:host-context([data-appstyle="sangre"]) {
+  @include chat-theme(
+    $fab-bg: rgba(20, 10, 12, 0.92), $fab-edge: rgba(168, 50, 64, 0.5), $fab-icon: #d98a92,
+    $win-bg: rgba(14, 8, 9, 0.96), $win-edge: rgba(107, 22, 32, 0.7), $radius: 7px,
+    $head-bg: linear-gradient(180deg, #7a1622, #3a0a10), $head-col: #f0d0c4,
+    $speaker: #e0616e, $text: #ecd2c8, $muted: rgba(230, 190, 180, 0.55)
+  );
+}
+:host-context([data-appstyle="holo"]) {
+  @include chat-theme(
+    $fab-bg: rgba(6, 16, 26, 0.92), $fab-edge: rgba(80, 180, 255, 0.5), $fab-icon: #4db8ff,
+    $win-bg: rgba(5, 12, 20, 0.96), $win-edge: rgba(80, 180, 255, 0.35), $radius: 4px,
+    $head-bg: #0a1826, $head-col: #8fd4ff,
+    $speaker: #4db8ff, $text: #d3e8fa, $muted: rgba(200, 225, 245, 0.55)
+  );
+}
+:host-context([data-appstyle="real"]) {
+  @include chat-theme(
+    $fab-bg: rgba(14, 20, 44, 0.92), $fab-edge: rgba(202, 162, 60, 0.6), $fab-icon: #e0b53c,
+    $win-bg: rgba(12, 16, 36, 0.96), $win-edge: rgba(202, 162, 60, 0.5), $radius: 10px,
+    $head-bg: linear-gradient(180deg, #e0b53c, #9c7a1e), $head-col: #2a1e06,
+    $speaker: #e0b53c, $text: #ece0c4, $muted: rgba(230, 220, 190, 0.55)
+  );
+}

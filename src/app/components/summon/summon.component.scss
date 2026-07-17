@@ -518,4 +518,181 @@ $purple: #6e4a67;         // selección
   color: rgba(236, 217, 180, 0.55);
 }
 
+/* ═══════════════ Invocación · overrides por estilo (data-appstyle) ═══════════════
+   La base es wood (arriba). Un mixin reemite el panel raíz + pestañas, cabeceras,
+   fichas/celdas, insets/frames, acordeón, tiers de minería y textos con la paleta
+   de cada tema. Emite las props del panel directamente sobre el host
+   (:host-context) y el resto sobre los selectores hijos. Rarezas (élite/oblivion)
+   conservan su color semántico. */
+@mixin summon-style(
+  $panel, $bcol, $bw, $radius, $shadow,
+  $text, $muted, $title, $accent, $on-accent,
+  $cell, $cell-bd, $frame, $tab, $tab-hover, $inset,
+  $plate: null, $font: inherit, $tt: none,
+  $elite: #b8862a, $oblivion: #6e4a9e
+) {
+  $plate: if($plate == null, $cell, $plate);
+
+  // ── Panel raíz (el propio :host) ─────────────────────────────────────────────
+  background: $panel;
+  border: $bw solid $bcol;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  color: $text;
+  @if $font != inherit { font-family: $font; }
+
+  // ── Pestañas principales + subpestañas de ítems ──────────────────────────────
+  .summon-tab,
+  .item-subtab {
+    background: $tab;
+    border-color: $bcol;
+    color: $muted;
+    text-transform: $tt;
+    box-shadow: none;
+
+    &.active,
+    &:hover {
+      background: $accent;
+      color: $on-accent;
+      box-shadow: none;
+    }
+  }
+
+  // ── Títulos y etiquetas ──────────────────────────────────────────────────────
+  .group-name,
+  .mining-title { color: $title; text-transform: $tt; }
+
+  .tier-label,
+  .item-name,
+  .chest-label,
+  .mining-name { color: $text; }
+
+  .icon-num,
+  .accordion-count,
+  .accordion-chevron,
+  .item-empty,
+  .mining-empty { color: $muted; }
+
+  // ── Fichas / casillas ────────────────────────────────────────────────────────
+  .enemy-card {
+    background: $cell;
+    border-color: $cell-bd;
+    color: $text;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+    &:active:not([disabled]) { background: $tab-hover; }
+    &.elite    { border-color: $elite; }
+    &.oblivion { border-color: $oblivion; }
+  }
+
+  .item-card,
+  .chest-card,
+  .icon-card {
+    background: $cell;
+    border-color: $cell-bd;
+    color: $text;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+    &:active { background: $tab-hover; }
+  }
+
+  // ── Insets / frames hundidos ─────────────────────────────────────────────────
+  .enemy-frame,
+  .item-frame,
+  .icon-frame {
+    background: $frame;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  // ── Acordeón de armaduras ────────────────────────────────────────────────────
+  .accordion-section { border-color: $bcol; }
+  .accordion-header {
+    background: $tab;
+    box-shadow: none;
+
+    &:hover,
+    &:active { background: $tab-hover; }
+  }
+  .accordion-title { color: $text; }
+  .accordion-body  { background: $inset; }
+
+  // ── Placa de tier de minería ─────────────────────────────────────────────────
+  .mining-frame {
+    background: $plate;
+    border-color: $bcol;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.4),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, rgba(6, 9, 8, 0.96), rgba(3, 5, 5, 0.97)),
+    $bcol: rgba(33, 255, 154, 0.28), $bw: 2px, $radius: 3px,
+    $shadow: (inset 0 0 24px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.6)),
+    $text: #dbeee4, $muted: rgba(180, 220, 200, 0.72), $title: #6fd8a8,
+    $accent: #21ff9a, $on-accent: #04140c,
+    $cell: #0a0f0d, $cell-bd: rgba(33, 255, 154, 0.18), $frame: #06120d,
+    $tab: #0a0f0d, $tab-hover: #0f1613, $inset: #06120d,
+    $font: ('Consolas', 'SF Mono', ui-monospace, monospace), $tt: uppercase
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, #221a3a, #140f24), $bcol: #6d4bd6, $bw: 2px, $radius: 10px,
+    $shadow: (0 0 14px rgba(122, 80, 230, 0.35), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #ece6ff, $muted: rgba(216, 204, 245, 0.62), $title: #b79cff,
+    $accent: #9d7ff0, $on-accent: #160f28,
+    $cell: #160f28, $cell-bd: #3a2d5e, $frame: #0d0a18,
+    $tab: #1a1330, $tab-hover: #241a40, $inset: #0d0a18,
+    $plate: linear-gradient(180deg, #8a63f0, #5b3bc4),
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, #1a1012, #0c0708), $bcol: #6b1620, $bw: 2px, $radius: 8px,
+    $shadow: (0 0 14px rgba(150, 20, 30, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6)),
+    $text: #f0d8ce, $muted: rgba(240, 216, 206, 0.6), $title: #d98a92,
+    $accent: #cf3a48, $on-accent: #f5e0d8,
+    $cell: #12080a, $cell-bd: #3a1518, $frame: #0a0506,
+    $tab: #1a0f11, $tab-hover: #241618, $inset: #0a0506,
+    $elite: #e8c4a8,
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
+
+/* HOLO AZUL · sci-fi holográfico */
+:host-context([data-appstyle="holo"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, rgba(10, 24, 40, 0.94), rgba(6, 16, 28, 0.96)),
+    $bcol: rgba(80, 180, 255, 0.45), $bw: 2px, $radius: 4px,
+    $shadow: (inset 0 0 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(77, 184, 255, 0.28), 0 8px 24px rgba(0, 0, 0, 0.5)),
+    $text: #dceefc, $muted: rgba(220, 238, 252, 0.6), $title: #8fd4ff,
+    $accent: #4db8ff, $on-accent: #061420,
+    $cell: rgba(10, 26, 42, 0.6), $cell-bd: rgba(80, 180, 255, 0.22), $frame: #06121e,
+    $tab: rgba(10, 26, 42, 0.6), $tab-hover: rgba(16, 40, 60, 0.75), $inset: rgba(77, 184, 255, 0.06),
+    $font: ('Consolas', 'SF Mono', ui-monospace, monospace), $tt: uppercase
+  );
+}
+
+/* REAL · oro ornamentado + azul real */
+:host-context([data-appstyle="real"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, #1e2a56, #111838), $bcol: #caa23c, $bw: 2px, $radius: 12px,
+    $shadow: (0 0 0 1px rgba(224, 181, 60, 0.3), 0 0 12px rgba(224, 181, 60, 0.22), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #f0e6cc, $muted: rgba(240, 230, 204, 0.62), $title: #ffe9a8,
+    $accent: #e0b53c, $on-accent: #2a1e06,
+    $cell: #182248, $cell-bd: #0e1430, $frame: #0a0e22,
+    $tab: #16204a, $tab-hover: #1e2a56, $inset: #0e1430,
+    $plate: linear-gradient(180deg, #ffe9a8, #e0b53c 60%, #b5851f),
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
 

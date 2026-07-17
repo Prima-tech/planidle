@@ -141,3 +141,115 @@ $text-cream: #ecd9b4;
       inset 0 2px 4px rgba(0, 0, 0, 0.35);
   }
 }
+
+/* ═══════════════ Skill-detail · overrides por estilo (data-appstyle) ═══════════════
+   Base = wood (arriba). Cada estilo repinta panel, icono enmarcado, nombre (título),
+   placas (id técnico / valor) y botón equipar con su paleta. */
+@mixin sd-style(
+  $font, $text, $muted, $title, $accent,
+  $panel-bg, $bd, $panel-shadow, $radius,
+  $cell-bg, $cell-bd,
+  $btn-bg, $btn-bd, $btn-col, $btn-active
+) {
+  background: $panel-bg;
+  border: 2px solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .detail-icon-wrap {
+    background: $cell-bg;
+    border-color: $cell-bd;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.55), 0 0 0 2px $bd;
+  }
+  .detail-icon { color: $text; }
+
+  .detail-name {
+    color: $title;
+    @if $font != null { font-family: $font; }
+  }
+
+  .detail-ability {
+    background: $cell-bg;
+    border: 2px solid $bd;
+    color: $muted;
+    box-shadow: none;
+  }
+  .detail-value {
+    background: $cell-bg;
+    border: 2px solid $bd;
+    color: $accent;
+    box-shadow: none;
+  }
+
+  .equip-btn {
+    background: $btn-bg;
+    border: 2px solid $btn-bd;
+    color: $btn-col;
+    box-shadow: none;
+    &:hover  { filter: brightness(1.14); background: $btn-bg; }
+    &:active { background: $btn-active; color: #fff; }
+    &:disabled { filter: none; background: $cell-bg; border-color: $cell-bd; color: $muted; box-shadow: none; }
+  }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include sd-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $title: #6fd8a8, $accent: #21ff9a,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.6)), $radius: 3px,
+    $cell-bg: #0a0f0d, $cell-bd: rgba(33,255,154,.18),
+    $btn-bg: #0a0f0d, $btn-bd: rgba(33,255,154,.4), $btn-col: #21ff9a, $btn-active: #21ff9a
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include sd-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $title: #b79cff, $accent: #9d7ff0,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)), $radius: 10px,
+    $cell-bg: #160f28, $cell-bd: #3a2d5e,
+    $btn-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $btn-bd: #6d4bd6, $btn-col: #f0e9ff, $btn-active: #5b3bc4
+  );
+}
+
+/* SANGRE · negro rojizo + granate */
+:host-context([data-appstyle="sangre"]) {
+  @include sd-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $title: #d98a92, $accent: #cf3a48,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)), $radius: 8px,
+    $cell-bg: #12080a, $cell-bd: #3a1518,
+    $btn-bg: #6b1620, $btn-bd: #cf3a48, $btn-col: #f0d8ce, $btn-active: #cf3a48
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include sd-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $title: #8fd4ff, $accent: #4db8ff,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)), $radius: 4px,
+    $cell-bg: rgba(10,26,42,.6), $cell-bd: rgba(80,180,255,.22),
+    $btn-bg: rgba(10,26,42,.7), $btn-bd: rgba(80,180,255,.5), $btn-col: #4db8ff, $btn-active: #4db8ff
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include sd-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $title: #ffe9a8, $accent: #e0b53c,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)), $radius: 12px,
+    $cell-bg: #182248, $cell-bd: #0e1430,
+    $btn-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $btn-bd: #caa23c, $btn-col: #3a2a08, $btn-active: #b5851f
+  );
+}

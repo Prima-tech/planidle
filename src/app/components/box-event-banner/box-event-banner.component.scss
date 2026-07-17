@@ -66,3 +66,63 @@
   60%  { opacity: 1; transform: translateY(0)   scale(1.08); }
   100% { opacity: 1; transform: translateY(0)   scale(1); }
 }
+
+/* ═══════════════ Aviso de evento · overrides por estilo (data-appstyle) ═══════════════
+   Sin marco (solo texto): cada estilo recolorea el título con su acento + resplandor,
+   y las estrellas con su texto. Contorno oscuro conservado para legibilidad sobre el juego. */
+:host-context([data-appstyle="cyberpunk"]) {
+  .beb-name {
+    font-family: 'Consolas', 'SF Mono', ui-monospace, monospace;
+    color: #21ff9a;
+    text-shadow:
+      0 0 8px rgba(33, 255, 154, 0.7), 0 0 18px rgba(33, 255, 154, 0.4),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #04140c, 1px -1px 0 #04140c, -1px 1px 0 #04140c, 1px 1px 0 #04140c;
+  }
+  .beb-amount { color: #dbeee4; }
+}
+
+:host-context([data-appstyle="arcano"]) {
+  .beb-name {
+    color: #b79cff;
+    text-shadow:
+      0 0 8px rgba(157, 127, 240, 0.7), 0 0 18px rgba(122, 80, 230, 0.4),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #140f24, 1px -1px 0 #140f24, -1px 1px 0 #140f24, 1px 1px 0 #140f24;
+  }
+  .beb-amount { color: #ece6ff; }
+}
+
+:host-context([data-appstyle="sangre"]) {
+  .beb-name {
+    color: #d98a92;
+    text-shadow:
+      0 0 8px rgba(207, 58, 72, 0.7), 0 0 18px rgba(150, 20, 30, 0.45),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #0c0708, 1px -1px 0 #0c0708, -1px 1px 0 #0c0708, 1px 1px 0 #0c0708;
+  }
+  .beb-amount { color: #f0d8ce; }
+}
+
+:host-context([data-appstyle="holo"]) {
+  .beb-name {
+    font-family: 'Consolas', 'SF Mono', ui-monospace, monospace;
+    color: #8fd4ff;
+    text-shadow:
+      0 0 8px rgba(77, 184, 255, 0.7), 0 0 18px rgba(77, 184, 255, 0.4),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #06131f, 1px -1px 0 #06131f, -1px 1px 0 #06131f, 1px 1px 0 #06131f;
+  }
+  .beb-amount { color: #dceefc; }
+}
+
+:host-context([data-appstyle="real"]) {
+  .beb-name {
+    color: #ffe9a8;
+    text-shadow:
+      0 0 8px rgba(224, 181, 60, 0.7), 0 0 18px rgba(224, 181, 60, 0.4),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #111838, 1px -1px 0 #111838, -1px 1px 0 #111838, 1px 1px 0 #111838;
+  }
+  .beb-amount { color: #f0e6cc; }
+}

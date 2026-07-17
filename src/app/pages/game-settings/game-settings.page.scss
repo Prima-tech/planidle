@@ -618,3 +618,163 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
 
   .coin-spinner { width: 18px; height: 18px; }
 }
+
+/* ═══════════════ Panel de Ajustes · overrides por estilo (data-appstyle) ═══════════════
+   Base wood (arriba). El mixin repinta el panel, pestañas, secciones/filas (conexión,
+   identidad, ajustes), toggles, chips del selector de estilo, opciones y el modal de
+   vincular correo con la paleta de cada tema. Los botones globales (.rpg-btn: gs-save/
+   logout/danger) y la placa de oro (.coins-section) NO se tocan. */
+@mixin gs-style(
+  $panel, $bd, $radius, $shadow,
+  $text, $muted, $title, $accent, $accent-soft, $on-accent,
+  $cell, $cell-bd, $pill, $font: null
+) {
+  .gs-panel {
+    background: $panel;
+    border: 2px solid $bd;
+    border-radius: $radius;
+    box-shadow: $shadow;
+    color: $text;
+    @if $font != null { font-family: $font; }
+  }
+
+  .gs-tab {
+    background: $pill;
+    border: 2px solid $accent-soft;
+    color: $muted;
+    box-shadow: none;
+    &.active, &:hover {
+      background: $accent;
+      color: $on-accent;
+      border-color: $accent;
+      box-shadow: none;
+    }
+  }
+
+  // Superficies internas (conexión, identidad, filas de ajuste)
+  .gs-conn,
+  .gs-identity,
+  .gs-row {
+    background: $cell;
+    border: 2px solid $cell-bd;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+  }
+
+  .gs-conn-text,
+  .gs-row-title,
+  .gs-identity-value { color: $text; }
+
+  .gs-row-desc,
+  .gs-identity-label,
+  .gs-style-label { color: $muted; }
+  .gs-identity--guest .gs-identity-value { color: $muted; }
+
+  .gs-section-label { color: $title; }
+  .gs-version { color: $muted; }
+
+  // Opciones (botones de valor): pastilla del tema; seleccionada → acento
+  .gs-option-btn {
+    background: $pill;
+    border: 2px solid $accent-soft;
+    color: $text;
+    box-shadow: none;
+    &.active {
+      background: $accent;
+      color: $on-accent;
+      border-color: $accent;
+      box-shadow: 0 0 10px $accent-soft;
+    }
+  }
+
+  // Toggle: se conserva la semántica rojo(off)/verde(on); solo se retematiza el marco
+  // y el pomo con la madera/acento del tema.
+  .gs-toggle {
+    border: 2px solid $accent-soft;
+  }
+  .gs-toggle-thumb {
+    background: $accent;
+    border: 1px solid $bd;
+  }
+
+  // Chips del selector de estilo: el activo con anillo de acento del tema
+  .gs-style-btn.active {
+    border-color: $accent;
+    box-shadow: 0 0 0 1px $bd, 0 0 8px $accent-soft;
+  }
+
+  // Modal de vincular correo
+  .gs-modal {
+    background: $panel;
+    border: 2px solid $bd;
+    border-radius: $radius;
+    box-shadow: $shadow;
+  }
+  .gs-modal-close {
+    background: $pill;
+    border: 2px solid $accent-soft;
+    color: $text;
+  }
+  .gs-link-title { color: $accent; }
+  .gs-link-desc  { color: $muted; }
+  .gs-link-input {
+    background: $cell;
+    border: 2px solid $cell-bd;
+    ion-icon { color: $muted; }
+    ion-input { --color: #{$text}; }
+  }
+}
+
+:host-context([data-appstyle="cyberpunk"]) {
+  @include gs-style(
+    $panel: linear-gradient(180deg, rgba(6, 9, 8, 0.96), rgba(3, 5, 5, 0.97)), $bd: rgba(33, 255, 154, 0.28), $radius: 3px,
+    $shadow: (inset 0 0 24px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.6)),
+    $text: #dbeee4, $muted: rgba(180, 220, 200, 0.72), $title: #6fd8a8,
+    $accent: #21ff9a, $accent-soft: rgba(33, 255, 154, 0.3), $on-accent: #04140c,
+    $cell: #0a0f0d, $cell-bd: rgba(33, 255, 154, 0.18), $pill: #0a0f0d,
+    $font: ('Consolas', 'SF Mono', ui-monospace, monospace)
+  );
+}
+
+:host-context([data-appstyle="arcano"]) {
+  @include gs-style(
+    $panel: linear-gradient(180deg, #221a3a, #140f24), $bd: #6d4bd6, $radius: 10px,
+    $shadow: (0 0 14px rgba(122, 80, 230, 0.35), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #ece6ff, $muted: rgba(216, 204, 245, 0.62), $title: #b79cff,
+    $accent: #9d7ff0, $accent-soft: #3a2d5e, $on-accent: #160f28,
+    $cell: #160f28, $cell-bd: #3a2d5e, $pill: #1a1330,
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
+
+:host-context([data-appstyle="sangre"]) {
+  @include gs-style(
+    $panel: linear-gradient(180deg, #1a1012, #0c0708), $bd: #6b1620, $radius: 8px,
+    $shadow: (0 0 14px rgba(150, 20, 30, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6)),
+    $text: #f0d8ce, $muted: rgba(240, 216, 206, 0.6), $title: #d98a92,
+    $accent: #cf3a48, $accent-soft: #3a1518, $on-accent: #f0d8ce,
+    $cell: #12080a, $cell-bd: #3a1518, $pill: #12080a,
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
+
+:host-context([data-appstyle="holo"]) {
+  @include gs-style(
+    $panel: linear-gradient(180deg, rgba(10, 24, 40, 0.94), rgba(6, 16, 28, 0.96)), $bd: rgba(80, 180, 255, 0.45), $radius: 4px,
+    $shadow: (inset 0 0 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(77, 184, 255, 0.28), 0 8px 24px rgba(0, 0, 0, 0.5)),
+    $text: #dceefc, $muted: rgba(220, 238, 252, 0.6), $title: #8fd4ff,
+    $accent: #4db8ff, $accent-soft: rgba(80, 180, 255, 0.22), $on-accent: #06131f,
+    $cell: rgba(10, 26, 42, 0.6), $cell-bd: rgba(80, 180, 255, 0.22), $pill: rgba(10, 26, 42, 0.7),
+    $font: ('Consolas', 'SF Mono', ui-monospace, monospace)
+  );
+}
+
+:host-context([data-appstyle="real"]) {
+  @include gs-style(
+    $panel: linear-gradient(180deg, #1e2a56, #111838), $bd: #caa23c, $radius: 12px,
+    $shadow: (0 0 0 1px rgba(224, 181, 60, 0.3), 0 0 12px rgba(224, 181, 60, 0.22), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #f0e6cc, $muted: rgba(240, 230, 204, 0.62), $title: #ffe9a8,
+    $accent: #e0b53c, $accent-soft: rgba(224, 181, 60, 0.3), $on-accent: #2a1e06,
+    $cell: #182248, $cell-bd: #0e1430, $pill: #182248,
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}

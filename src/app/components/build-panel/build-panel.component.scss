@@ -106,3 +106,92 @@ $text-cream: #ecd9b4;
 }
 
 .build-delete-btn { margin-top: 6px; }
+
+/* ═══════════════ Build-panel · overrides por estilo (data-appstyle) ═══════════════
+   Base = wood (arriba). Cada estilo redefine panel, título, tarjetas, marcos internos
+   y textos con su paleta. Los botones Mover/Borrar usan .rpg-btn (global). */
+@mixin bp-style(
+  $font, $text, $muted, $accent, $title,
+  $panel-bg, $bd, $panel-shadow,
+  $card-bg, $card-bd, $card-inset, $frame-bg,
+  $bw: 2px, $radius: 10px
+) {
+  background: $panel-bg;
+  border: $bw solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .build-title { color: $title; }
+  .build-card {
+    background: $card-bg;
+    border-color: $card-bd;
+    box-shadow: $card-inset;
+    color: $text;
+    &:active { filter: brightness(1.12); background: $card-bg; }
+  }
+  .build-frame { background: $frame-bg; }
+  .build-label { color: $text; }
+  .build-empty { color: $muted; }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include bp-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $accent: #21ff9a, $title: #6fd8a8,
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 0 14px rgba(33,255,154,.12), 0 8px 24px rgba(0,0,0,.6)),
+    $card-bg: #0a0f0d, $card-bd: rgba(33,255,154,.18), $card-inset: (inset 0 0 6px rgba(0,0,0,.6)), $frame-bg: #06120d,
+    $radius: 3px
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include bp-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $accent: #9d7ff0, $title: #b79cff,
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)),
+    $card-bg: #1a1330, $card-bd: #3a2d5e, $card-inset: (inset 0 2px 4px rgba(0,0,0,.5)), $frame-bg: #0d0a18,
+    $radius: 10px
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include bp-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $accent: #cf3a48, $title: #d98a92,
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)),
+    $card-bg: #1a0f11, $card-bd: #3a1518, $card-inset: (inset 0 2px 4px rgba(0,0,0,.55)), $frame-bg: #0a0506,
+    $radius: 8px
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include bp-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $accent: #4db8ff, $title: #8fd4ff,
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)),
+    $card-bg: rgba(10,26,42,.6), $card-bd: rgba(80,180,255,.22), $card-inset: (inset 0 0 6px rgba(0,0,0,.45)), $frame-bg: rgba(6,16,28,.7),
+    $radius: 4px
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include bp-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $accent: #e0b53c, $title: #ffe9a8,
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)),
+    $card-bg: #182248, $card-bd: #0e1430, $card-inset: (inset 0 2px 4px rgba(0,0,0,.5)), $frame-bg: #0e1430,
+    $radius: 12px
+  );
+}

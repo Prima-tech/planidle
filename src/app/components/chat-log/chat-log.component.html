@@ -1,0 +1,25 @@
+<!-- Botón de chat (abajo-izquierda, sobre el tirador del hub) -->
+<button class="chat-fab" [class.chat-fab--open]="open" (click)="toggle()"
+        [attr.aria-label]="'CHAT.TITLE' | translate">
+  <ion-icon [name]="open ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'"></ion-icon>
+  <span class="chat-unread" *ngIf="unread > 0 && !open">{{ unread > 9 ? '9+' : unread }}</span>
+</button>
+
+<!-- Ventana de chat -->
+<div class="chat-window" *ngIf="open">
+  <div class="chat-head">
+    <ion-icon class="chat-head-icon" name="chatbubbles"></ion-icon>
+    <span class="chat-title">{{ 'CHAT.TITLE' | translate }}</span>
+    <button class="chat-close" (click)="toggle()" [attr.aria-label]="'CHAT.CLOSE' | translate">
+      <ion-icon name="close"></ion-icon>
+    </button>
+  </div>
+
+  <div class="chat-body" #body>
+    <p class="chat-empty" *ngIf="entries.length === 0">{{ 'CHAT.EMPTY' | translate }}</p>
+    <div class="chat-msg" *ngFor="let e of entries">
+      <span class="chat-speaker">{{ e.speaker }}</span><span class="chat-colon">:</span>
+      <span class="chat-text">{{ e.text }}</span>
+    </div>
+  </div>
+</div>
