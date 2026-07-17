@@ -39,6 +39,11 @@
   },
   "SETTINGS": {
     "TITLE": "Ajustes",
+    "SAVE_MSG": {
+      "CLOUD": "Partida subida a la nube ✓",
+      "LOCAL": "Guardado en local (modo local, sin nube)",
+      "ERROR": "Error al sincronizar — datos a salvo en local"
+    },
     "SECTION": {
       "WORLD": "Mundo",
       "CHARACTER": "Personaje",
@@ -51,10 +56,6 @@
       "GAME_SCENE": "Escena de juego",
       "CHANGE_PLAYER": "Cambiar personaje",
       "SAVE_IDLE": "Guardar partida",
-      "SAVE_LOCAL": "Guardando local...",
-      "SAVE_REMOTE": "Sincronizando...",
-      "SAVE_SAVED": "Guardado",
-      "SAVE_ERROR": "Error al sincronizar",
       "LOCAL_DATA": "Datos locales",
       "VIEW_CHANGES": "Ver cambios",
       "SUPABASE_PAYLOAD": "Payload Supabase",

@@ -26,18 +26,20 @@
 
         <button class="rpg-btn rpg-btn--block login-btn" (click)="login()" [disabled]="loading">{{ 'LOGIN.BUTTON' | translate }}</button>
 
-        <button *ngIf="!guestId" class="guest-btn" (click)="loginAsGuest()" [disabled]="loading">
+        <!-- Invitado = cuenta anónima en la NUBE. En modo Local (toggle ON) no aplica:
+             se ocultan todas sus variantes para no contradecir la elección. -->
+        <button *ngIf="!localMode && !guestId" class="guest-btn" (click)="loginAsGuest()" [disabled]="loading">
           <ion-icon name="person-circle-outline"></ion-icon>
           <span>{{ 'LOGIN.GUEST' | translate }}</span>
         </button>
 
-        <button *ngIf="guestId" class="guest-btn guest-btn--resume" (click)="resumeGuest()" [disabled]="loading">
+        <button *ngIf="!localMode && guestId" class="guest-btn guest-btn--resume" (click)="resumeGuest()" [disabled]="loading">
           <ion-icon name="person-circle-outline"></ion-icon>
           <span>{{ 'LOGIN.GUEST_RESUME' | translate }}</span>
           <span class="guest-id">{{ guestId.slice(0, 8) }}</span>
         </button>
 
-        <button *ngIf="guestId" class="guest-new-link" (click)="loginAsGuest()" [disabled]="loading">
+        <button *ngIf="!localMode && guestId" class="guest-new-link" (click)="loginAsGuest()" [disabled]="loading">
           {{ 'LOGIN.GUEST_NEW' | translate }}
         </button>
 

@@ -38,6 +38,7 @@ export interface RunProgressSnapshot {
   weaponLevels: Record<string, number>;   // nivel de cada arma generadora de estrellas
   perChar: Record<string, RunCharStats>;
   mergedChars: string[];
+  onboardPanelSeen?: boolean;   // onboarding: ¿ya abrió el panel? (paso 1→2 del tutorial)
 }
 
 const STORAGE_KEY = 'run_progress';
@@ -53,6 +54,11 @@ const EMPTY_CHAR: RunCharStats = { kills: 0, deaths: 0, bestDistanceM: 0 };
  *  explotar. ES EL ÚNICO MANDO: súbelo para permitir bonos mayores, bájalo para cortar antes. */
 const FEEDBACK_SOFT_CAP = 2000;
 
+/** Estrellas necesarias para arrancar el ONBOARDING de exploración (primer login): al
+ *  cruzarlas aparece el badge en el botón que abre el panel → abrir → badge en la compra
+ *  de la espada nv1 → comprarla cierra el tutorial para siempre. */
+const ONBOARD_STARS = 10;
+
 @Injectable({ providedIn: 'root' })
 export class RunProgressService {
   private storage = inject(StorageService);
@@ -66,6 +72,7 @@ export class RunProgressService {
   private starCarry = 0;        // fracción de estrella acumulada del tick (no se persiste)
   private perChar: Record<string, RunCharStats> = {};
   private mergedChars = new Set<string>();
+  private onboardPanelSeen = false;   // onboarding de exploración (paso 1→2). Ver ONBOARD_STARS.
   private loadPromise: Promise<void>;
 
   readonly stars$          = new BehaviorSubject<number>(0);
@@ -105,6 +112,36 @@ export class RunProgressService {
 
   /** Pico de estrellas alcanzado a la vez (saldo máximo). Desbloquea armas por hito. */
   getStarsPeak(): number { return this.starsPeak; }
+
+  // ── Onboarding de exploración (primer login, una sola vez) ────────────────────────
+  // Trayecto guiado con el punto rojo de novedad (.notif-dot): cruzar ONBOARD_STARS ★ →
+  // badge en el botón que abre el panel → abrirlo → badge en la compra de la espada nv1 →
+  // comprarla lo cierra PARA SIEMPRE. Todo DERIVADO de estado persistido (no del
+  // NotificationBadgeService, que es en memoria), así sobrevive recargas y relogin.
+
+  /** ¿Sigue activo el tutorial? Acaba en cuanto la espada tiene nivel ≥ 1. */
+  private onboardActive(): boolean { return this.weaponLevel('sword') < 1; }
+
+  /** Badge en el botón que ABRE el panel: cruzaste las 10★ y aún no lo has abierto. */
+  onboardBadgeOpener(): boolean {
+    return this.onboardActive() && !this.onboardPanelSeen && this.starsPeak >= ONBOARD_STARS;
+  }
+
+  /** Badge en la compra de la ESPADA nv1: ya abriste el panel y aún no la compraste. */
+  onboardBadgeSword(): boolean {
+    return this.onboardActive() && this.onboardPanelSeen;
+  }
+
+  /** Marca que el panel se abrió (mueve el badge del botón a la espada). Solo cuenta si el
+   *  tutorial está activo y ya cruzaste el umbral: abrir el panel ANTES de las 10★ no
+   *  consume el paso (la guía aún no ha empezado). Persiste para sobrevivir recargas. */
+  markOnboardPanelSeen(): void {
+    if (this.onboardPanelSeen) return;
+    if (!this.onboardActive() || this.starsPeak < ONBOARD_STARS) return;
+    this.onboardPanelSeen = true;
+    this.changes$.next();
+    this.persist();
+  }
 
   // ── Hitos / desbloqueos ───────────────────────────────────────────────────────
   getMilestones(): string[] { return this.milestones; }
@@ -291,6 +328,7 @@ export class RunProgressService {
       ? raw.weaponLevels : {};
     this.perChar = (raw.perChar && typeof raw.perChar === 'object') ? raw.perChar : {};
     this.mergedChars = new Set(Array.isArray(raw.mergedChars) ? raw.mergedChars : []);
+    this.onboardPanelSeen = raw.onboardPanelSeen === true;
   }
 
   /**
@@ -310,6 +348,7 @@ export class RunProgressService {
     this.weaponLevels = {};
     this.starCarry = 0;
     this.perChar = {};
+    this.onboardPanelSeen = false;   // reset total → el tutorial vuelve a estar disponible
     this.stars$.next(0);
     this.starsCollected$.next(0);
     this.milestones$.next([]);
@@ -329,6 +368,7 @@ export class RunProgressService {
       weaponLevels: this.weaponLevels,
       perChar: this.perChar,
       mergedChars: [...this.mergedChars],
+      onboardPanelSeen: this.onboardPanelSeen,
     };
   }
 
@@ -358,6 +398,8 @@ export class RunProgressService {
       } : { ...st };
     }
     this.mergedChars = new Set([...this.mergedChars, ...(cloud.mergedChars ?? [])]);
+    // Onboarding: monotónico (una vez abierto el panel, seguido en cualquier dispositivo).
+    this.onboardPanelSeen = this.onboardPanelSeen || cloud.onboardPanelSeen === true;
     this.stars$.next(this.stars);
     this.starsCollected$.next(this.starsCollected);
     this.milestones$.next(this.milestones);

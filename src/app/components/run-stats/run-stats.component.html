@@ -22,6 +22,8 @@
   <!-- Tirador: despliega el panel hacia abajo -->
   <button class="rs-open-btn" (click)="togglePanel()">
     <ion-icon [name]="panelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    <!-- Onboarding paso 1: badge de novedad al cruzar las 10★ (hasta abrir el panel). -->
+    <span class="notif-dot" *ngIf="onboardBadgeOpener()"></span>
   </button>
 
   <!-- Pestañas laterales (fuera del panel, pegadas a su borde izquierdo), estilo
@@ -29,6 +31,8 @@
   <div class="rs-vtabs" *ngIf="panelOpen">
     <button class="rs-vtab" [class.active]="tab === 'weapons'" (click)="tab = 'weapons'" [title]="'RUN.WEAPONS' | translate">
       <ion-icon name="flash-outline"></ion-icon>
+      <!-- Onboarding paso 2: guía hacia la pestaña de Armas mientras falte comprar la espada. -->
+      <span class="notif-dot" *ngIf="onboardBadgeSword('sword')"></span>
     </button>
     <button class="rs-vtab" [class.active]="tab === 'objetivos'" (click)="tab = 'objetivos'" [title]="'RUN.MS_PENDING' | translate">
       <ion-icon name="flag-outline"></ion-icon>
@@ -81,6 +85,8 @@
                 (pointerleave)="stopWeaponHold()" (pointercancel)="stopWeaponHold()">
           <span class="rs-val">{{ weaponCost(w) | compactNumber }}</span>
           <img class="rs-img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+          <!-- Onboarding paso 2: badge de novedad en la compra de la espada nv1. -->
+          <span class="notif-dot" *ngIf="onboardBadgeSword(w.id)"></span>
         </button>
       </div>
     </ng-container>

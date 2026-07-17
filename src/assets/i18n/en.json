@@ -39,6 +39,11 @@
   },
   "SETTINGS": {
     "TITLE": "Settings",
+    "SAVE_MSG": {
+      "CLOUD": "Game uploaded to the cloud ✓",
+      "LOCAL": "Saved locally (local mode, no cloud)",
+      "ERROR": "Sync error — data safe locally"
+    },
     "SECTION": {
       "WORLD": "World",
       "CHARACTER": "Character",
@@ -51,10 +56,6 @@
       "GAME_SCENE": "Game scene",
       "CHANGE_PLAYER": "Change character",
       "SAVE_IDLE": "Save game",
-      "SAVE_LOCAL": "Saving locally...",
-      "SAVE_REMOTE": "Syncing...",
-      "SAVE_SAVED": "Saved",
-      "SAVE_ERROR": "Sync error",
       "LOCAL_DATA": "Local data",
       "VIEW_CHANGES": "View changes",
       "SUPABASE_PAYLOAD": "Supabase payload",

@@ -70,7 +70,18 @@ export class RunStatsComponent implements OnDestroy {
   }
 
   panelOpen = false;
-  togglePanel(): void { this.panelOpen = !this.panelOpen; }
+  togglePanel(): void {
+    this.panelOpen = !this.panelOpen;
+    // Onboarding: abrir el panel mueve el badge del botón a la compra de la espada.
+    if (this.panelOpen) this.runProgress.markOnboardPanelSeen();
+  }
+
+  /** Badge de novedad en el botón que abre el panel (paso 1 del onboarding: 10★). */
+  onboardBadgeOpener(): boolean { return this.runProgress.onboardBadgeOpener(); }
+  /** Badge de novedad en la compra de la ESPADA nv1 (paso 2 del onboarding). */
+  onboardBadgeSword(id: string): boolean {
+    return id === 'sword' && this.runProgress.onboardBadgeSword();
+  }
 
   /** Pestaña activa del panel: objetivos (por comprar), completos (ya comprados),
    *  stats (estadísticas de por vida) o weapons (armas generadoras de oro). */

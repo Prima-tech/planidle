@@ -1,12 +1,11 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { map } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { GameSettingsService, AppLanguage } from 'src/app/services/game-settings.service';
 import { AudioService } from 'src/app/services/audio.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
-import { SaveService, SaveStatus } from 'src/app/services/save.service';
+import { SaveService } from 'src/app/services/save.service';
 import { AsgardService } from 'src/app/services/asgard';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -17,15 +16,6 @@ import { RUN_MILESTONES } from 'src/app/services/run-milestones';
 import { PARALLAX_THEME_LIST } from 'src/app/scenes/gamescene/parallax-themes';
 import { WORLD_PARALLAX_SETS } from 'src/app/scenes/worldrun/parallax-sets';
 import { APP_VERSION } from 'src/app/version';
-
-const SAVE_LABELS: Record<SaveStatus, string> = {
-  idle:     'SETTINGS.BTN.SAVE_IDLE',
-  local:    'SETTINGS.BTN.SAVE_LOCAL',
-  remote:   'SETTINGS.BTN.SAVE_REMOTE',
-  saved:    'SETTINGS.BTN.SAVE_SAVED',
-  error:    'SETTINGS.BTN.SAVE_ERROR',
-  conflict: 'SETTINGS.BTN.SAVE_ERROR',
-};
 
 @Component({
   selector: 'app-game-settings-page',
@@ -62,6 +52,10 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
   /** ¿Conectado a Supabase? (modo Supabase + sesión activa). Se calcula al abrir. */
   supabaseConnected = false;
 
+  /** Mensaje breve bajo el botón Guardar tras pulsarlo (clave i18n o ''). */
+  saveMsg = '';
+  private saveMsgTimer: any;
+
   /** ¿La sesión actual es de un INVITADO (anónimo)? Muestra el bloque "Vincular correo". */
   isGuest = false;
   /** Identidad para la pastilla: email (cuenta) o UID (invitado). null = sin sesión. */
@@ -73,11 +67,6 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
   linkError = '';
   linkOk = false;
   linkLoading = false;
-
-  // Guardado de la partida (botón movido aquí desde la pantalla admin).
-  readonly saveStatus$ = this.saveService.status$;
-  readonly saveLabel$  = this.saveStatus$.pipe(map(s => SAVE_LABELS[s]));
-  readonly isSaving$   = this.saveStatus$.pipe(map(s => s === 'local' || s === 'remote'));
 
   async ngOnInit(): Promise<void> {
     this.supabaseConnected = await this.connection.isConnected();
@@ -109,6 +98,7 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
     // Red de seguridad: si el panel se cierra con el modal abierto, no dejar el
     // teclado del juego apagado.
     this.playerBridge.setGameKeyboardEnabled(true);
+    clearTimeout(this.saveMsgTimer);
   }
 
   /** Vincula email + contraseña a la cuenta invitada actual → cuenta permanente.
@@ -176,6 +166,7 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
   previewSfx(): void { this.audio.unlock(); this.audio.play('ui_click'); }
 
   async save(): Promise<void> {
+    this.saveMsg = '';
     this.saveService.conflict$.next(null);
     await this.saveService.forceSave();
 
@@ -187,7 +178,23 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
       const when = new Date(conflict.remoteLastModified).toLocaleString();
       const ok = confirm(this.translate.instant('SETTINGS.CONFIRM.OVERWRITE_CLOUD', { when }));
       if (ok) await this.saveService.forceSave(true);
+      else { this.flashSaveMsg('SETTINGS.SAVE_MSG.LOCAL'); return; }
     }
+
+    // Feedback puntual del clic (no del auto-save): a la nube solo si estás en modo
+    // Supabase; en modo local el guardado remoto se omite y solo escribe en local.
+    if (this.saveService.status$.value === 'error') {
+      this.flashSaveMsg('SETTINGS.SAVE_MSG.ERROR');
+    } else {
+      this.flashSaveMsg(this.connection.useSupabase ? 'SETTINGS.SAVE_MSG.CLOUD' : 'SETTINGS.SAVE_MSG.LOCAL');
+    }
+  }
+
+  /** Muestra un mensaje breve tras pulsar Guardar (se borra solo a los 3 s). */
+  private flashSaveMsg(key: string): void {
+    this.saveMsg = key;
+    clearTimeout(this.saveMsgTimer);
+    this.saveMsgTimer = setTimeout(() => this.saveMsg = '', 3000);
   }
 
   /** Admin: suma al personaje activo la cantidad de monedas de la barra. */
@@ -231,13 +238,6 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  /** Wipe TOTAL de la cuenta (todos los personajes y datos globales) + recarga limpia. */
-  async clearAll(): Promise<void> {
-    await this.saveService.wipeAllData();
-    this.asgard.triggerCloseMenu();
-    await this.router.navigateByUrl('/login');
-    window.location.reload();
-  }
 
   /** Borra los datos de la cuenta de Supabase conectada (nube + local) y vuelve al login. */
   async clearRemoteAccount(): Promise<void> {

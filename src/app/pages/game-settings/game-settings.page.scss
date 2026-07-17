@@ -154,11 +154,6 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   width: 100%;
   margin-bottom: 12px;
   &:focus { outline: none; }
-
-  // El estado se ve por el icono: guardado = ✓ verde, error = ✕ rojo.
-  &.saving { opacity: 0.65; cursor: not-allowed; }
-  &.saved  .gs-save-icon { color: #7bc36a; }
-  &.error  .gs-save-icon { color: #e08a7a; }
 }
 
 .gs-save-icon { display: inline-flex; }

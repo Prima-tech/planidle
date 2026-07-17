@@ -28,27 +28,20 @@
 
       <!-- Guardar partida + Cerrar sesión: misma línea (dos botones) -->
       <div class="gs-btn-row">
-        <button class="rpg-btn gs-save-btn"
-                [class.saving]="isSaving$ | async"
-                [class.saved]="(saveStatus$ | async) === 'saved'"
-                [class.error]="(saveStatus$ | async) === 'error'"
-                [disabled]="isSaving$ | async"
-                (click)="save()">
-          <span class="gs-save-icon">
-            <span *ngIf="(saveStatus$ | async) === 'idle'">💾</span>
-            <span *ngIf="(saveStatus$ | async) === 'local'">⏳</span>
-            <span *ngIf="(saveStatus$ | async) === 'remote'">☁</span>
-            <span *ngIf="(saveStatus$ | async) === 'saved'">✓</span>
-            <span *ngIf="(saveStatus$ | async) === 'error'">✕</span>
-            <span *ngIf="(saveStatus$ | async) === 'conflict'">⚠</span>
-          </span>
-          <span>{{ saveLabel$ | async | translate }}</span>
+        <!-- Guardar en la nube: acción manual. Sin lógica de estado (el auto-save
+             sigue guardando local por su cuenta; este botón fuerza la subida). -->
+        <button class="rpg-btn gs-save-btn" (click)="save()">
+          <span class="gs-save-icon">☁</span>
+          <span>{{ 'SETTINGS.BTN.SAVE_IDLE' | translate }}</span>
         </button>
         <button class="rpg-btn gs-save-btn gs-logout-btn" (click)="logout()">
           <span class="gs-save-icon">🚪</span>
           <span>{{ 'SETTINGS.LOGOUT' | translate }}</span>
         </button>
       </div>
+
+      <!-- Confirmación puntual del clic en Guardar (nube / local / error). -->
+      <p class="gs-link-ok" *ngIf="saveMsg">{{ saveMsg | translate }}</p>
 
       <!-- Vincular correo: solo para invitados (cuenta anónima). Convierte la cuenta
            en permanente/recuperable manteniendo el mismo progreso. -->
@@ -58,12 +51,6 @@
       </button>
 
       <p class="gs-link-ok" *ngIf="linkOk">{{ 'SETTINGS.LINK.OK' | translate }}</p>
-
-      <!-- Borrar todo (acción peligrosa): media línea, a la derecha. -->
-      <button class="rpg-btn gs-save-btn gs-danger-btn" (click)="clearAll()">
-        <span class="gs-save-icon">🗑</span>
-        <span>{{ 'SETTINGS.DELETE' | translate }}</span>
-      </button>
 
       <!-- Borrar la cuenta de Supabase conectada (nube): solo si hay conexión. -->
       <button *ngIf="supabaseConnected" class="rpg-btn gs-save-btn gs-danger-btn" (click)="clearRemoteAccount()">
