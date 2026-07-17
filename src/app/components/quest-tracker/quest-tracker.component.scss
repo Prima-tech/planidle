@@ -120,3 +120,67 @@ $green-d: #1f7a2f;
 
 // Misión lista para cobrar: el nombre en verde claro.
 .qt-row--ready .qt-task { color: #bff0c6; }
+
+/* ═══════════════ Temas (data-appstyle) ═══════════════
+   Mantiene el look minimal-flotante; solo cambia acentos/tintes por tema.
+   Barra de estado izquierda: $inprog = en progreso, $ready = lista para cobrar
+   (el ✓ y el nombre completado también usan $ready). */
+@mixin quest-theme($toggle-bg, $row-bg, $edge, $accent, $text, $count, $inprog, $ready, $ready-text) {
+  .qt-toggle {
+    background: $toggle-bg;
+    border-color: $edge;
+    ion-icon { color: $accent; }
+    .qt-toggle-count { color: $accent; }
+  }
+  .qt-row {
+    background: $row-bg;
+    border-color: $edge;
+    border-left-color: $inprog;
+    &--ready { border-left-color: $ready; }
+  }
+  .qt-icon { color: $accent; }
+  .qt-task { color: $text; }
+  .qt-count { color: $count; }
+  .qt-ready { color: $ready; }
+  .qt-row--ready .qt-task { color: $ready-text; }
+}
+
+:host-context([data-appstyle="cyberpunk"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(6, 10, 9, 0.7), $row-bg: rgba(6, 10, 9, 0.7), $edge: rgba(33, 255, 154, 0.2),
+    $accent: #21ff9a, $text: #dbeee4, $count: rgba(180, 220, 200, 0.85),
+    $inprog: #3fe0ff, $ready: #21ff9a, $ready-text: #b8ffe0
+  );
+}
+
+:host-context([data-appstyle="arcano"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(22, 15, 40, 0.72), $row-bg: rgba(22, 15, 40, 0.68), $edge: rgba(122, 80, 230, 0.28),
+    $accent: #b79cff, $text: #ece6ff, $count: rgba(216, 204, 245, 0.85),
+    $inprog: #9d7ff0, $ready: #6be0c0, $ready-text: #c8ffe8
+  );
+}
+
+:host-context([data-appstyle="sangre"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(20, 10, 12, 0.72), $row-bg: rgba(20, 10, 12, 0.68), $edge: rgba(168, 50, 64, 0.3),
+    $accent: #d98a92, $text: #f0d8ce, $count: rgba(230, 190, 180, 0.85),
+    $inprog: #d9863a, $ready: #6fca6f, $ready-text: #c6f0c6
+  );
+}
+
+:host-context([data-appstyle="holo"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(6, 16, 26, 0.72), $row-bg: rgba(6, 16, 26, 0.68), $edge: rgba(80, 180, 255, 0.28),
+    $accent: #4db8ff, $text: #dceefc, $count: rgba(200, 225, 245, 0.85),
+    $inprog: #4db8ff, $ready: #5fe07a, $ready-text: #bff0c6
+  );
+}
+
+:host-context([data-appstyle="real"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(14, 20, 44, 0.72), $row-bg: rgba(14, 20, 44, 0.68), $edge: rgba(202, 162, 60, 0.3),
+    $accent: #e0b53c, $text: #f0e6cc, $count: rgba(230, 220, 190, 0.85),
+    $inprog: #e0b53c, $ready: #7ad07a, $ready-text: #cdefcd
+  );
+}

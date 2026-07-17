@@ -142,5 +142,10 @@ añaden como reglas extra dentro del mismo bloque `:host-context`.
 
 - `wood` es el estilo PRINCIPAL: toda pieza nueva se maqueta primero en wood.
 - Lo que no tenga override para un estilo cae al look wood (no rompe, pero no va a juego).
-- Piezas ya tematizadas: barra de vida + desplegable (los 6) y bocadillo de diálogo
-  (wood + cyberpunk; el resto pendiente).
+- Piezas ya tematizadas en los 6 estilos: barra de vida + desplegable (`top-bar`,
+  mixin `appstyle-bar`), misiones activas (`quest-tracker`, minimal-flotante, mixin
+  `quest-theme`), bocadillo de diálogo de NPC (`npc-dialogue`, mixin `dialog-theme`),
+  marco del minimapa (`layout.component.scss`, mixin `minimap-style`) e inventario
+  (`inventory.component.scss`, mixin `inventory-style`).
+- ⚠️ El INTERIOR del minimapa (fondo/barrido/rejilla) se dibuja en Phaser
+  (`mobile-hud.scene.ts`) y aún NO varía por estilo — pendiente.

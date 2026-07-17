@@ -233,6 +233,127 @@ $gold-d: #b8922a;
   }
 }
 
+/* ═══════════════ Bocadillo por tema (data-appstyle) ═══════════════
+   Mantiene la anatomía base; solo cambia colores/tipografía por tema, a juego con
+   la barra de vida. */
+@mixin dialog-theme(
+  $bg, $border, $radius, $box-glow, $text,
+  $name-bg, $name-col, $name-bd,
+  $av-bg, $av-bd, $av-radius,
+  $close-bg, $close-col, $close-bd, $hint,
+  $name-font: inherit, $name-tr: none, $text-font: inherit, $accent-shadow: none
+) {
+  .dlg-box {
+    color: $text;
+    background: $bg;
+    border: $border;
+    border-radius: $radius;
+    box-shadow: $box-glow;
+    text-shadow: none;
+  }
+  .dlg-avatar {
+    background-color: $av-bg;
+    border: $av-bd;
+    border-radius: $av-radius;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+  .dlg-speaker {
+    color: $name-col;
+    background: $name-bg;
+    border: $name-bd;
+    border-radius: 6px;
+    font-family: $name-font;
+    text-transform: $name-tr;
+    text-shadow: $accent-shadow;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+  .dlg-close {
+    color: $close-col;
+    background: $close-bg;
+    border: $close-bd;
+    border-radius: 6px;
+    text-shadow: none;
+    box-shadow: none;
+  }
+  .dlg-text {
+    color: $text;
+    font-family: $text-font;
+    text-shadow: none;
+  }
+  .dlg-hint {
+    color: $hint;
+    text-shadow: $accent-shadow;
+  }
+}
+
+/* ───── ARCANO · cristal de maná ───── */
+:host-context([data-appstyle="arcano"]) {
+  @include dialog-theme(
+    $bg: linear-gradient(180deg, #221a3a, #140f24), $border: 2px solid #6d4bd6, $radius: 10px,
+    $box-glow: (0 0 18px rgba(122, 80, 230, 0.28), inset 0 0 20px rgba(122, 80, 230, 0.1), 0 10px 24px rgba(0, 0, 0, 0.55)),
+    $text: #ece6ff,
+    $name-bg: linear-gradient(180deg, #8a63f0, #5b3bc4), $name-col: #f0e9ff, $name-bd: 1px solid #b79cff,
+    $av-bg: #160f28, $av-bd: 2px solid #6d4bd6, $av-radius: 8px,
+    $close-bg: #160f28, $close-col: #d9c8ff, $close-bd: 1px solid rgba(122, 80, 230, 0.5),
+    $hint: #b79cff, $name-font: (Georgia, serif), $accent-shadow: 0 0 6px rgba(122, 80, 230, 0.6)
+  );
+}
+
+/* ───── SANGRE · dark fantasy gótico ───── */
+:host-context([data-appstyle="sangre"]) {
+  @include dialog-theme(
+    $bg: linear-gradient(180deg, #1a1012, #0c0708), $border: 2px solid #6b1620, $radius: 8px,
+    $box-glow: (0 0 16px rgba(150, 20, 30, 0.26), inset 0 0 20px rgba(120, 10, 20, 0.13), 0 10px 24px rgba(0, 0, 0, 0.6)),
+    $text: #f0d8ce,
+    $name-bg: linear-gradient(180deg, #7a1622, #4a0c14), $name-col: #f0d0c4, $name-bd: 1px solid #a83240,
+    $av-bg: #140a0c, $av-bd: 2px solid #6b1620, $av-radius: 6px,
+    $close-bg: #140a0c, $close-col: #f0d0c4, $close-bd: 1px solid #a83240,
+    $hint: #d98a92, $name-font: (Georgia, serif), $accent-shadow: 0 1px 2px rgba(0, 0, 0, 0.8)
+  );
+}
+
+/* ───── HOLO AZUL · sci-fi holográfico ───── */
+:host-context([data-appstyle="holo"]) {
+  @include dialog-theme(
+    $bg: linear-gradient(180deg, rgba(8, 18, 30, 0.95), rgba(4, 10, 18, 0.97)),
+    $border: 1px solid rgba(80, 180, 255, 0.4), $radius: 4px,
+    $box-glow: (0 0 18px rgba(60, 150, 255, 0.2), inset 0 0 20px rgba(60, 150, 255, 0.06), 0 10px 24px rgba(0, 0, 0, 0.6)),
+    $text: #dceefc,
+    $name-bg: #0a1826, $name-col: #8fd4ff, $name-bd: 1px solid rgba(80, 180, 255, 0.5),
+    $av-bg: #061420, $av-bd: 1px solid rgba(80, 180, 255, 0.45), $av-radius: 3px,
+    $close-bg: #0a1826, $close-col: #8fd4ff, $close-bd: 1px solid rgba(80, 180, 255, 0.5),
+    $hint: #4db8ff,
+    $name-font: ('Consolas', 'SF Mono', ui-monospace, monospace), $name-tr: uppercase,
+    $text-font: ('Segoe UI', system-ui, sans-serif), $accent-shadow: 0 0 8px rgba(77, 184, 255, 0.5)
+  );
+
+  // Filete azul superior (HUD).
+  .dlg-box::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #4db8ff, transparent);
+    box-shadow: 0 0 8px rgba(77, 184, 255, 0.7);
+    pointer-events: none;
+  }
+}
+
+/* ───── REAL · oro ornamentado + azul real ───── */
+:host-context([data-appstyle="real"]) {
+  @include dialog-theme(
+    $bg: linear-gradient(180deg, #1e2a56, #111838), $border: 2px solid #caa23c, $radius: 12px,
+    $box-glow: (0 0 0 1px #3a2f12, inset 0 1px 0 rgba(255, 230, 160, 0.25), 0 10px 24px rgba(0, 0, 0, 0.55)),
+    $text: #f0e6cc,
+    $name-bg: linear-gradient(180deg, #ffe9a8, #e0b53c 55%, #b5851f), $name-col: #3a2a08, $name-bd: 2px solid #8a6414,
+    $av-bg: #0e1430, $av-bd: 2px solid #caa23c, $av-radius: 50%,
+    $close-bg: #14183a, $close-col: #ffe9a8, $close-bd: 1px solid #8a6414,
+    $hint: #e0b53c, $name-font: (Georgia, serif), $accent-shadow: 0 1px 0 rgba(255, 255, 255, 0.3)
+  );
+}
+
 @keyframes dlg-pop {
   from { transform: translateY(12px) scale(0.96); opacity: 0; }
   to   { transform: translateY(0)    scale(1);    opacity: 1; }

@@ -487,3 +487,187 @@ $purple: #6e4a67;         // celda seleccionada
   padding-right: 8px;
 }
 
+/* ═══════════════ Inventario · overrides por estilo (data-appstyle) ═══════════════
+   La base es wood (arriba). Cada estilo redefine panel, pestañas, rejilla, celdas,
+   ítem seleccionado, botones, monedas, menú Split y modal de borrar con su paleta
+   (ver skill app-styles). El mixin emite las props del panel directamente sobre el
+   host (:host-context) + los selectores hijos. */
+@mixin inventory-style(
+  $font, $text, $muted, $accent, $accent-soft, $sel-glow,
+  $panel-bg, $bd, $panel-shadow,
+  $tab-bg, $tab-bd, $tab-col, $tab-active-bg, $tab-active-col, $tab-active-bd,
+  $grid-bg, $grid-bd, $grid-shadow,
+  $cell-bg, $cell-bd, $cell-inset,
+  $btn-bg, $btn-bd, $btn-col, $danger,
+  $coins-bg, $coins-bd, $coins-col,
+  $bw: 2px, $radius: 10px, $tab-radius: 5px, $tab-tt: none, $grid-bw: 2px, $btn-bw: 2px
+) {
+  // Panel (el propio :host)
+  background: $panel-bg;
+  border: $bw solid $bd;
+  border-radius: $radius;
+  box-shadow: $panel-shadow;
+  color: $text;
+  @if $font != null { font-family: $font; }
+
+  .tab {
+    background: $tab-bg;
+    border: 1px solid $tab-bd;
+    border-radius: $tab-radius;
+    color: $tab-col;
+    text-transform: $tab-tt;
+    box-shadow: none;
+  }
+  .tab.active, .tab:hover {
+    background: $tab-active-bg;
+    color: $tab-active-col;
+    border-color: $tab-active-bd;
+    box-shadow: none;
+  }
+
+  .inventory-grid {
+    background: $grid-bg;
+    border: $grid-bw solid $grid-bd;
+    box-shadow: $grid-shadow;
+  }
+
+  .inventory-cell {
+    background: $cell-bg;
+    border-color: $cell-bd;
+    box-shadow: $cell-inset;
+  }
+
+  .inventory-item.selected {
+    background: $accent-soft;
+    border-color: $accent;
+    box-shadow: $sel-glow;
+  }
+
+  .btn-action {
+    background: $btn-bg;
+    border: $btn-bw solid $btn-bd;
+    color: $btn-col;
+    &:hover  { filter: brightness(1.14); background: $btn-bg; }
+    &:active { filter: brightness(0.88); background: $btn-bg; color: $btn-col; }
+  }
+  .btn-danger {
+    color: $danger;
+    &:hover  { color: $danger; }
+    &:active { background: $danger; color: #fff; }
+  }
+
+  .coins-section {
+    background: $coins-bg;
+    border: 1px solid $coins-bd;
+    box-shadow: none;
+  }
+  .coin-amount { color: $coins-col; }
+
+  // Menú Split
+  .split-menu {
+    background: $grid-bg;
+    border: 2px solid $bd;
+    color: $text;
+  }
+  .split-menu button { background: $btn-bg; border: 2px solid $btn-bd; color: $btn-col; }
+  .split-menu input  { background: $cell-bg; border: 2px solid $bd; color: $text; }
+
+  // Modal de borrar
+  .modal {
+    background: $panel-bg;
+    border: $bw solid $bd;
+    border-radius: $radius;
+    box-shadow: $panel-shadow;
+    color: $text;
+  }
+  .modal-title { color: $accent; }
+  .modal-item-preview { background: $cell-bg; border-color: $bd; }
+  .modal-item-name { color: $text; }
+  .modal-warning { color: $muted; }
+}
+
+/* CYBERPUNK · negro + fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include inventory-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dbeee4, $muted: rgba(180,220,200,.72),
+    $accent: #21ff9a, $accent-soft: rgba(33,255,154,.10), $sel-glow: (0 0 10px rgba(33,255,154,.55)),
+    $panel-bg: linear-gradient(180deg,rgba(6,9,8,.96),rgba(3,5,5,.97)), $bd: rgba(33,255,154,.28),
+    $panel-shadow: (inset 0 0 24px rgba(0,0,0,.6), 0 0 14px rgba(33,255,154,.12), 0 8px 24px rgba(0,0,0,.6)),
+    $tab-bg: #0a0f0d, $tab-bd: rgba(33,255,154,.3), $tab-col: #9fd8bf,
+    $tab-active-bg: #21ff9a, $tab-active-col: #04140c, $tab-active-bd: #21ff9a,
+    $grid-bg: #06120d, $grid-bd: rgba(33,255,154,.2), $grid-shadow: (inset 0 0 14px rgba(0,0,0,.6)),
+    $cell-bg: #0a0f0d, $cell-bd: rgba(33,255,154,.18), $cell-inset: (inset 0 0 6px rgba(0,0,0,.6)),
+    $btn-bg: #0a0f0d, $btn-bd: rgba(33,255,154,.4), $btn-col: #21ff9a, $danger: #ff5a6e,
+    $coins-bg: #0a0f0d, $coins-bd: rgba(33,255,154,.3), $coins-col: #dbeee4,
+    $radius: 3px, $tab-radius: 2px, $tab-tt: uppercase
+  );
+}
+
+/* ARCANO · violeta + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include inventory-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #ece6ff, $muted: rgba(216,204,245,.62),
+    $accent: #9d7ff0, $accent-soft: rgba(157,127,240,.14), $sel-glow: (0 0 10px rgba(157,127,240,.6)),
+    $panel-bg: linear-gradient(180deg,#221a3a,#140f24), $bd: #6d4bd6,
+    $panel-shadow: (0 0 14px rgba(122,80,230,.35), 0 8px 24px rgba(0,0,0,.55)),
+    $tab-bg: #1a1330, $tab-bd: #3a2d5e, $tab-col: #d8ccf5,
+    $tab-active-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $tab-active-col: #f0e9ff, $tab-active-bd: #b79cff,
+    $grid-bg: #160f28, $grid-bd: #3a2d5e, $grid-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $cell-bg: #1a1330, $cell-bd: #0d0a18, $cell-inset: (inset 0 2px 4px rgba(0,0,0,.5)),
+    $btn-bg: #160f28, $btn-bd: #6d4bd6, $btn-col: #b79cff, $danger: #ff6b8a,
+    $coins-bg: #1a1330, $coins-bd: #6d4bd6, $coins-col: #ece6ff,
+    $radius: 10px
+  );
+}
+
+/* SANGRE · negro rojizo + granate, texto hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include inventory-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0d8ce, $muted: rgba(240,216,206,.6),
+    $accent: #cf3a48, $accent-soft: rgba(207,58,72,.14), $sel-glow: (0 0 10px rgba(207,58,72,.55)),
+    $panel-bg: linear-gradient(180deg,#1a1012,#0c0708), $bd: #6b1620,
+    $panel-shadow: (0 0 14px rgba(150,20,30,.45), 0 8px 24px rgba(0,0,0,.6)),
+    $tab-bg: #12080a, $tab-bd: #3a1518, $tab-col: #e8c4a8,
+    $tab-active-bg: #6b1620, $tab-active-col: #f0d8ce, $tab-active-bd: #cf3a48,
+    $grid-bg: #12080a, $grid-bd: #3a1518, $grid-shadow: (inset 0 0 12px rgba(0,0,0,.55)),
+    $cell-bg: #1a0f11, $cell-bd: #0a0506, $cell-inset: (inset 0 2px 4px rgba(0,0,0,.55)),
+    $btn-bg: #12080a, $btn-bd: #6b1620, $btn-col: #e8c4a8, $danger: #ff5a52,
+    $coins-bg: #12080a, $coins-bd: #6b1620, $coins-col: #f0d8ce,
+    $radius: 8px
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include inventory-style(
+    $font: ('Consolas','SF Mono',ui-monospace,monospace), $text: #dceefc, $muted: rgba(220,238,252,.6),
+    $accent: #4db8ff, $accent-soft: rgba(77,184,255,.12), $sel-glow: (0 0 10px rgba(77,184,255,.6)),
+    $panel-bg: linear-gradient(180deg,rgba(10,24,40,.94),rgba(6,16,28,.96)), $bd: rgba(80,180,255,.45),
+    $panel-shadow: (inset 0 0 22px rgba(0,0,0,.5), 0 0 16px rgba(77,184,255,.28), 0 8px 24px rgba(0,0,0,.5)),
+    $tab-bg: rgba(10,26,42,.7), $tab-bd: rgba(80,180,255,.35), $tab-col: #8fd4ff,
+    $tab-active-bg: #4db8ff, $tab-active-col: #06131f, $tab-active-bd: #4db8ff,
+    $grid-bg: rgba(6,16,28,.7), $grid-bd: rgba(80,180,255,.3), $grid-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $cell-bg: rgba(10,26,42,.6), $cell-bd: rgba(80,180,255,.22), $cell-inset: (inset 0 0 6px rgba(0,0,0,.45)),
+    $btn-bg: rgba(10,26,42,.7), $btn-bd: rgba(80,180,255,.5), $btn-col: #4db8ff, $danger: #ff6a5a,
+    $coins-bg: rgba(10,26,42,.7), $coins-bd: rgba(80,180,255,.4), $coins-col: #dceefc,
+    $radius: 4px, $tab-radius: 4px, $tab-tt: uppercase
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include inventory-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6cc, $muted: rgba(240,230,204,.62),
+    $accent: #e0b53c, $accent-soft: rgba(224,181,60,.14), $sel-glow: (0 0 10px rgba(224,181,60,.5)),
+    $panel-bg: linear-gradient(180deg,#1e2a56,#111838), $bd: #caa23c,
+    $panel-shadow: (0 0 0 1px rgba(224,181,60,.3), 0 0 12px rgba(224,181,60,.22), 0 8px 24px rgba(0,0,0,.55)),
+    $tab-bg: #182248, $tab-bd: #3a4a80, $tab-col: #f0e6cc,
+    $tab-active-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $tab-active-col: #3a2a08, $tab-active-bd: #8a6a1f,
+    $grid-bg: #141c3a, $grid-bd: #8a6a1f, $grid-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $cell-bg: #182248, $cell-bd: #0e1430, $cell-inset: (inset 0 2px 4px rgba(0,0,0,.5)),
+    $btn-bg: #182248, $btn-bd: #caa23c, $btn-col: #ffe9a8, $danger: #ff7a5e,
+    $coins-bg: #182248, $coins-bd: #caa23c, $coins-col: #f0e6cc,
+    $radius: 12px
+  );
+}
+
