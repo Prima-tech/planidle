@@ -5,15 +5,15 @@ import { BehaviorSubject } from 'rxjs';
  * Estilo visual (tema) de TODA la app. Selector en Ajustes (un botón por estilo,
  * uno activo a la vez). Se persiste en localStorage y se aplica pintando el
  * atributo `data-appstyle` en <html>; las piezas que quieran variar por tema usan
- * `:host-context([data-appstyle="dark"]) …` en su SCSS.
+ * `:host-context([data-appstyle="cyberpunk"]) …` en su SCSS.
  *
  * - `wood` es el estilo PRINCIPAL (por defecto). Toda pieza nueva se maqueta en
  *   wood salvo indicación expresa.
- * - `dark` y `cyberpunk` solo redefinen, de momento, el bocadillo de diálogo de
- *   NPC. Lo que no tenga override cae al look wood automáticamente (base sin
- *   `:host-context`).
+ * - El resto de estilos redefinen la barra de vida (top-bar) y, algunos, el
+ *   bocadillo de diálogo. Lo que no tenga override cae al look wood automáticamente
+ *   (base sin `:host-context`).
  */
-export type AppStyleId = 'wood' | 'dark' | 'cyberpunk';
+export type AppStyleId = 'wood' | 'cyberpunk' | 'arcano' | 'sangre' | 'holo' | 'real';
 
 export interface AppStyleDef {
   id: AppStyleId;
@@ -22,8 +22,11 @@ export interface AppStyleDef {
 
 export const APP_STYLES: AppStyleDef[] = [
   { id: 'wood', nameKey: 'SETTINGS.STYLE.WOOD' },
-  { id: 'dark', nameKey: 'SETTINGS.STYLE.DARK' },
   { id: 'cyberpunk', nameKey: 'SETTINGS.STYLE.CYBERPUNK' },
+  { id: 'arcano', nameKey: 'SETTINGS.STYLE.ARCANE' },
+  { id: 'sangre', nameKey: 'SETTINGS.STYLE.BLOOD' },
+  { id: 'holo', nameKey: 'SETTINGS.STYLE.HOLO' },
+  { id: 'real', nameKey: 'SETTINGS.STYLE.ROYAL' },
 ];
 
 const STORAGE_KEY = 'app_style';
@@ -62,7 +65,7 @@ export class AppStyleService {
   private read(): AppStyleId {
     try {
       const v = localStorage.getItem(STORAGE_KEY);
-      if (v === 'wood' || v === 'dark' || v === 'cyberpunk') return v;
+      if (v === 'wood' || v === 'cyberpunk' || v === 'arcano' || v === 'sangre' || v === 'holo' || v === 'real') return v;
     } catch { /* sin storage */ }
     return DEFAULT;
   }

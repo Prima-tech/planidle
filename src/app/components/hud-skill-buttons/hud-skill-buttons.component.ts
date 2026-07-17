@@ -91,6 +91,20 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
     return this.nodeAt(index)?.icon ?? null;
   }
 
+  /** Clase de color del orbe según el elemento de la habilidad (derivado del id /
+   *  iconPath de la familia). Vacío → azul por defecto (ranura vacía, dash, etc.). */
+  elemClass(index: number): string {
+    const ability = this.nodeAt(index)?.effect?.ability ?? '';
+    if (!ability) return '';
+    const s = (ability + ' ' + (this.iconOf(index) ?? '')).toLowerCase();
+    if (/blood/.test(s)) return 'elem-blood';
+    if (/fire|lava|magma|phoenix|fenix|flower|pillar|hurricane|explos/.test(s)) return 'elem-fire';
+    if (/water|ice|snow|kraken|geyser/.test(s)) return 'elem-water';
+    if (/smoke|smoker|ghost/.test(s)) return 'elem-shadow';
+    if (/slash|attack|warrior/.test(s)) return 'elem-physical';
+    return '';
+  }
+
   private nodeAt(index: number) {
     const nodeId = this.slots[index];
     return nodeId ? this.talentService.nodes.find(n => n.id === nodeId) : null;

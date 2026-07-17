@@ -55,7 +55,7 @@
   /* Anillo de piedra UNIFORME (el bisel de 4 colores hace diagonales en bordes
      curvos). La luz la ponen las sombras: arco claro arriba por fuera y el mapa
      "hundido" en el aro por dentro. */
-  border: 6px solid #8f8678;
+  border: 8px solid #8f8678;
   border-radius: 50%;
   box-shadow:
     0 0 0 2px #3a2c20,
@@ -198,6 +198,144 @@
   width: 23px;
   height: 23px;
   flex-shrink: 0;   /* el botón es flex y si no lo encoge para que quepa (32px) */
+}
+
+/* ═══════════════ Minimapa · overrides por estilo (data-appstyle) ═══════════════
+   El minimapa base es wood (arriba). Cada estilo redefine el ARO (grueso, 8px),
+   los 3 BOTONES (orbes redondos), la PLACA del nombre y el tinte de los iconos con
+   la paleta del tema (ver skill app-styles). La MOCHILA conserva su PNG a color;
+   ajustes y tienda se tiñen al color de icono del tema.
+   NOTA: el interior del radar (barrido/rejilla) se dibuja en Phaser (mobile-hud). */
+@mixin minimap-style(
+  $frame-col, $frame-shadow,
+  $btn-bg, $btn-bd, $btn-shadow, $btn-active-bg,
+  $accent, $icon-col, $glow,
+  $name-bg, $name-col, $name-bd, $name-radius,
+  $name-font: null, $name-tt: none, $name-ls: 0.05em, $name-shadow: none, $name-box: none
+) {
+  .minimap-frame {
+    border: 8px solid $frame-col;   // aro grueso
+    box-shadow: $frame-shadow;
+  }
+
+  .minimap-name {
+    background: $name-bg;
+    color: $name-col;
+    border: $name-bd;
+    border-radius: $name-radius;
+    letter-spacing: $name-ls;
+    text-transform: $name-tt;
+    text-shadow: $name-shadow;
+    box-shadow: $name-box;
+    @if $name-font != null { font-family: $name-font; font-weight: 700; }
+  }
+
+  // Botones: orbes REDONDOS con la paleta del tema.
+  .minimap-btn {
+    background: $btn-bg;
+    border: $btn-bd;
+    border-radius: 50%;
+    color: $icon-col;
+    box-shadow: $btn-shadow;
+
+    &::before { display: none; }               // fuera el reflejo de acero
+    ion-icon { filter: drop-shadow(0 0 4px $glow); }
+
+    &:active {
+      transform: scale(0.9);
+      background: $btn-active-bg;
+      box-shadow: 0 0 12px $glow;
+    }
+  }
+
+  // Mochila: PNG a color (sin teñir), más gorda.
+  .minimap-btn--bag .minimap-btn-img { width: 28px; height: 28px; }
+
+  // Ajustes: silueta tintada al color de icono vía máscara (el png solo da la forma).
+  .minimap-btn--settings .minimap-btn-img { display: none; }
+  .minimap-btn--settings::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 25px;
+    height: 25px;
+    background: $icon-col;
+    -webkit-mask: url('../../../assets/icon/menu/config.png') center / contain no-repeat;
+    mask: url('../../../assets/icon/menu/config.png') center / contain no-repeat;
+    filter: drop-shadow(0 0 3px $glow);
+    pointer-events: none;
+  }
+
+  // Tienda: ion-icon al color de icono, más grande.
+  .minimap-btn--shop ion-icon { font-size: 23px; }
+}
+
+/* CYBERPUNK · negro + verde fósforo */
+:host-context([data-appstyle="cyberpunk"]) {
+  @include minimap-style(
+    $frame-col: #060a08,
+    $frame-shadow: (0 0 0 1px rgba(33,255,154,.35), inset 0 0 0 1px rgba(33,255,154,.28), 0 0 12px rgba(33,255,154,.2), 0 4px 12px rgba(0,0,0,.6)),
+    $btn-bg: #0a0f0d, $btn-bd: 1px solid rgba(33,255,154,.45),
+    $btn-shadow: (inset 0 0 8px rgba(0,0,0,.6), 0 0 8px rgba(33,255,154,.15)), $btn-active-bg: #050807,
+    $accent: #21ff9a, $icon-col: #21ff9a, $glow: rgba(33,255,154,.6),
+    $name-bg: #080d0b, $name-col: #21ff9a, $name-bd: 1px solid rgba(33,255,154,.5), $name-radius: 2px,
+    $name-font: ('Consolas','SF Mono',ui-monospace,monospace), $name-tt: uppercase, $name-ls: .1em,
+    $name-shadow: 0 0 8px rgba(33,255,154,.55), $name-box: 0 0 10px rgba(33,255,154,.22)
+  );
+}
+
+/* ARCANO · violeta profundo + malva */
+:host-context([data-appstyle="arcano"]) {
+  @include minimap-style(
+    $frame-col: #221a3a,
+    $frame-shadow: (0 0 0 2px #6d4bd6, inset 0 0 0 1px rgba(157,127,240,.4), 0 0 14px rgba(122,80,230,.45), 0 4px 12px rgba(0,0,0,.6)),
+    $btn-bg: #160f28, $btn-bd: 2px solid #6d4bd6,
+    $btn-shadow: (inset 0 0 8px rgba(0,0,0,.5), 0 0 8px rgba(122,80,230,.3)), $btn-active-bg: #0f0a1e,
+    $accent: #9d7ff0, $icon-col: #9d7ff0, $glow: rgba(122,80,230,.55),
+    $name-bg: linear-gradient(180deg,#8a63f0,#5b3bc4), $name-col: #f0e9ff, $name-bd: 1px solid #b79cff, $name-radius: 6px,
+    $name-font: (Georgia,'Times New Roman',serif), $name-shadow: 0 1px 2px rgba(0,0,0,.6)
+  );
+}
+
+/* SANGRE · negro rojizo + granate, iconos hueso */
+:host-context([data-appstyle="sangre"]) {
+  @include minimap-style(
+    $frame-col: #1a1012,
+    $frame-shadow: (0 0 0 2px #6b1620, inset 0 0 0 1px rgba(207,58,72,.35), 0 0 14px rgba(150,20,30,.5), 0 4px 12px rgba(0,0,0,.65)),
+    $btn-bg: #12080a, $btn-bd: 2px solid #6b1620,
+    $btn-shadow: (inset 0 0 8px rgba(0,0,0,.6), 0 0 8px rgba(150,20,30,.35)), $btn-active-bg: #0a0506,
+    $accent: #cf3a48, $icon-col: #e8c4a8, $glow: rgba(150,20,30,.55),
+    $name-bg: linear-gradient(180deg,#3a0f14,#1a0a0c), $name-col: #e8c4a8, $name-bd: 1px solid #6b1620, $name-radius: 8px,
+    $name-font: (Georgia,'Times New Roman',serif), $name-shadow: 0 1px 2px rgba(0,0,0,.7)
+  );
+}
+
+/* HOLO · cristal azul translúcido */
+:host-context([data-appstyle="holo"]) {
+  @include minimap-style(
+    $frame-col: rgba(8,18,30,.55),
+    $frame-shadow: (0 0 0 1px rgba(80,180,255,.5), inset 0 0 0 1px rgba(80,180,255,.35), 0 0 16px rgba(77,184,255,.4), 0 4px 12px rgba(0,0,0,.5)),
+    $btn-bg: rgba(10,26,42,.7), $btn-bd: 1px solid rgba(80,180,255,.5),
+    $btn-shadow: (inset 0 0 8px rgba(0,0,0,.4), 0 0 10px rgba(77,184,255,.2)), $btn-active-bg: rgba(6,16,28,.85),
+    $accent: #4db8ff, $icon-col: #4db8ff, $glow: rgba(77,184,255,.55),
+    $name-bg: #0a1a2a, $name-col: #8fd4ff, $name-bd: 1px solid rgba(80,180,255,.5), $name-radius: 4px,
+    $name-font: ('Consolas','SF Mono',ui-monospace,monospace), $name-tt: uppercase, $name-ls: .1em, $name-shadow: 0 0 8px rgba(77,184,255,.5)
+  );
+}
+
+/* REAL · azul real + oro */
+:host-context([data-appstyle="real"]) {
+  @include minimap-style(
+    $frame-col: #1e2a56,
+    $frame-shadow: (0 0 0 2px #caa23c, inset 0 0 0 1px rgba(224,181,60,.5), 0 0 12px rgba(224,181,60,.3), 0 4px 12px rgba(0,0,0,.6)),
+    $btn-bg: #182248, $btn-bd: 2px solid #caa23c,
+    $btn-shadow: (inset 0 0 8px rgba(0,0,0,.5), 0 0 8px rgba(224,181,60,.25)), $btn-active-bg: #0e1430,
+    $accent: #e0b53c, $icon-col: #e0b53c, $glow: rgba(224,181,60,.5),
+    $name-bg: linear-gradient(180deg,#ffe9a8,#e0b53c 60%,#b5851f), $name-col: #3a2a08, $name-bd: 1px solid #8a6a1f, $name-radius: 6px,
+    $name-font: (Georgia,'Times New Roman',serif)
+  );
 }
 
 ::ng-deep {

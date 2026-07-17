@@ -47,8 +47,11 @@
     "STYLE": {
       "TITLE": "Style",
       "WOOD": "Wood",
-      "DARK": "Dark",
-      "CYBERPUNK": "Cyberpunk"
+      "CYBERPUNK": "Cyberpunk",
+      "ARCANE": "Arcane",
+      "BLOOD": "Blood",
+      "HOLO": "Holo Blue",
+      "ROYAL": "Royal"
     },
     "SECTION": {
       "WORLD": "World",

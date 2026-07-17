@@ -6,7 +6,7 @@
   <ng-container *ngFor="let i of [2, 1, 0]">
   <div *ngIf="visibleSlot[i]"
        class="hud-btn"
-       [class]="'hud-btn-slot-' + i"
+       [class]="'hud-btn-slot-' + i + (elemClass(i) ? ' ' + elemClass(i) : '')"
        [class.edit-mode]="editMode"
        [class.no-target]="!editMode && noTarget(i)"
        [class.no-mana]="!editMode && noMana(i)"

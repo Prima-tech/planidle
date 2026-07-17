@@ -77,9 +77,16 @@
   pointer-events: none;
 }
 
-// Contexto cofre: botón dorado en vez de rojo
+// Contexto cofre / tienda / forja / mina / tala: botón dorado en vez de rojo
 .attack-btn.ctx-chest {
   background: radial-gradient(circle at 35% 28%, #ffe066 0%, #c8960a 40%, #7a5b00 75%, #4a3800 100%);
   border-color: rgba(255, 240, 150, 0.5);
+  transition: background 0.2s, border-color 0.2s, transform 70ms ease-out, box-shadow 70ms ease-out;
+}
+
+// Contexto hablar (NPC): botón verde — el color diferencia "hablar" de "loot"
+.attack-btn.ctx-talk {
+  background: radial-gradient(circle at 35% 28%, #9fe98a 0%, #3f9e2a 40%, #1d5e12 75%, #0c3006 100%);
+  border-color: rgba(190, 240, 170, 0.5);
   transition: background 0.2s, border-color 0.2s, transform 70ms ease-out, box-shadow 70ms ease-out;
 }

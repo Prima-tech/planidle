@@ -1,9 +1,10 @@
 /* ===== Diálogo NPC =====
    BASE = estilo WOOD (principal): marco de piedra biselado + madera cálida,
    placa dorada y retrato del NPC (paleta canónica de la app).
-   Override DARK  (:host-context[data-appstyle="dark"])      = barra JRPG moderna.
    Override CYBER (:host-context[data-appstyle="cyberpunk"]) = HUD negro con
    corchetes de verde fósforo en las esquinas.
+   El resto de estilos (arcano/sangre/holo/real) no redefinen el diálogo aún: caen
+   al look wood de la base.
    El atributo lo pone AppStyleService en <html>. */
 $outline: #3a2c20;
 $stone: #8f8678;
@@ -153,79 +154,6 @@ $gold-d: #b8922a;
   color: $gold;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   animation: dlg-bob 0.9s ease-in-out infinite;
-}
-
-/* ───────────────── DARK · barra JRPG moderna ───────────────── */
-:host-context([data-appstyle="dark"]) {
-  .dlg-box {
-    color: #e8ebf2;
-    background: linear-gradient(180deg, #26262e, #141419);
-    border: 1px solid #3a3a46;
-    border-radius: 11px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
-    animation: dlg-in 220ms cubic-bezier(0.2, 0.85, 0.3, 1) both;
-
-    // Hilo dorado en el borde superior.
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      border-radius: 11px 11px 0 0;
-      background: linear-gradient(90deg, $gold-2, $gold, $gold-2);
-      pointer-events: none;
-    }
-
-    // La salida debe ganar a la entrada de este tema (más específico que la base).
-    &.leaving {
-      animation: dlg-out 180ms ease-in forwards;
-    }
-  }
-
-  .dlg-avatar {
-    border-radius: 50%;
-    background-color: #17171d;
-    border: 2px solid $gold-2;
-    box-shadow: 0 0 10px rgba(240, 192, 64, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
-  }
-
-  .dlg-speaker {
-    top: -12px;
-    left: 16px;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #1a1408;
-    text-shadow: none;
-    background: linear-gradient(180deg, $gold, $gold-d);
-    border: none;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-  }
-
-  .dlg-close {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    font-size: 12px;
-    color: #c9ccd6;
-    text-shadow: none;
-    background: #2a2a33;
-    border: 1px solid #45454f;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-  }
-
-  .dlg-text {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    font-size: 15px;
-    line-height: 1.45;
-    color: #e8ebf2;
-    text-shadow: none;
-  }
 }
 
 /* ───────────────── CYBERPUNK · HUD negro con corchetes fósforo ───────────────── */

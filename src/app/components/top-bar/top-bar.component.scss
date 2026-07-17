@@ -1307,4 +1307,254 @@ $phos: #21ff9a;
   .mip-passive-status--on { color: $phos; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   Estilos de la barra de vida por tema (data-appstyle). Un mixin genera todo el
+   override (tarjeta + asas + roster + desplegable) a partir de la paleta del tema.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+@mixin appstyle-bar(
+  $panel, $bcol, $radius,
+  $accent, $accent-soft, $on-accent,
+  $text, $muted, $title,
+  $name-bg, $name-col, $name-bd,
+  $av-bg, $av-bd, $av-radius,
+  $lvl-bg, $lvl-col,
+  $track, $track-bd, $hp, $mp, $hp-glow, $mp-glow,
+  $num-col, $inset, $pill-bg,
+  $bw: 1px, $name-font: inherit, $name-tr: none, $num-font: inherit,
+  $good: #5fd06a, $bad: #ef5a52
+) {
+  // ── Tarjeta de vida ───────────────────────────────────────────────────────
+  .char-widget {
+    background: $panel;
+    border: $bw solid $bcol;
+    border-radius: $radius;
+    box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.45), 0 4px 14px rgba(0, 0, 0, 0.6);
+  }
+  .char-block--open .char-widget { border-radius: $radius $radius 0 0; }
 
+  .char-name-pill {
+    background: $name-bg;
+    color: $name-col;
+    border: $name-bd;
+    border-radius: 5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    font-family: $name-font;
+    text-transform: $name-tr;
+    letter-spacing: 0.05em;
+  }
+
+  .avatar-icon {
+    background: $av-bg;
+    border: $av-bd;
+    border-radius: $av-radius;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+  .avatar-lvl {
+    background: $lvl-bg;
+    color: $lvl-col;
+    border: 1px solid rgba(0, 0, 0, 0.55);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  }
+
+  .bar-track {
+    background: $track;
+    border: 1px solid $track-bd;
+    border-radius: 5px;
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.6);
+  }
+  .bar-fill {
+    &--hp { background: $hp; box-shadow: $hp-glow; }
+    &--mp { background: $mp; box-shadow: $mp-glow; }
+  }
+  .bar-num {
+    color: $num-col;
+    font-family: $num-font;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  }
+
+  // ── Asas del widget (tirador + selector de personaje) ──────────────────────
+  .map-open-btn {
+    background: $panel;
+    border-color: $accent-soft;
+    border-top: none;
+    color: $accent;
+    box-shadow:
+      -1px 0 0 rgba(0, 0, 0, 0.4),
+       1px 0 0 rgba(0, 0, 0, 0.4),
+       0 1px 0 rgba(0, 0, 0, 0.4),
+       0 3px 5px rgba(0, 0, 0, 0.5);
+    &:active { color: $accent; }
+  }
+  .char-switch-btn {
+    background: $panel;
+    color: $accent;
+    border-top-color: $accent-soft;
+    border-right-color: $accent-soft;
+    border-bottom-color: $accent-soft;
+    box-shadow: 1px 0 0 rgba(0, 0, 0, 0.4), 4px 0 4px rgba(0, 0, 0, 0.4);
+    &:active { color: $accent; }
+  }
+  .char-roster {
+    background: $panel;
+    border: $bw solid $bcol;
+    border-radius: $radius;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  }
+  .char-roster-item {
+    background: $pill-bg;
+    border: 1px solid $track-bd;
+    border-radius: 6px;
+    color: $text;
+    box-shadow: none;
+    &.current { border-color: $accent; color: $accent; }
+  }
+  .char-roster-map { color: $muted; }
+
+  // ── Desplegable de info de mapa ────────────────────────────────────────────
+  .map-info-panel {
+    background: $panel;
+    border: $bw solid $bcol;
+    border-top: none;
+    border-radius: 0 0 $radius $radius;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.65);
+  }
+  .mip-tab {
+    background: $pill-bg;
+    border: 1px solid $accent-soft;
+    border-radius: 5px;
+    color: $muted;
+    box-shadow: none;
+    &.active { background: $accent; color: $on-accent; box-shadow: 0 0 8px $accent-soft; }
+  }
+
+  .mip-stat-row { background: $inset; }
+  .mip-eff-head { background: $inset; }
+  .mip-divider  { background: $accent-soft; }
+  .mip-bar { background: $track; border: 1px solid $track-bd; }
+
+  .mip-mining-name,
+  .mip-stat-val,
+  .mip-eff-val,
+  .mip-rate-val,
+  .mip-power-val,
+  .coin-amount,
+  .mip-passive-name { color: $text; }
+
+  .mip-stat-label,
+  .mip-eff-label,
+  .mip-rate-label,
+  .mip-power-label,
+  .mip-spawn-count,
+  .mip-stat-sub,
+  .mip-drop-rate,
+  .mip-drop-fallback,
+  .mip-no-spawn,
+  .mip-passive-desc,
+  .xp-tag { color: $muted; }
+
+  .mip-rates-title { color: $title; }
+  .mip-power-vs    { color: $muted; }
+  .mip-power--good { color: $good; }
+  .mip-power--bad  { color: $bad; }
+
+  .mip-dom-check { color: $muted; }
+  .mip-dom-row--done {
+    .mip-dom-check { color: $accent; }
+    .mip-stat-label,
+    .mip-stat-val { color: $muted; }
+  }
+  .mip-dom-stage      { color: $muted; }
+  .mip-dom-reward     { color: $muted; }
+  .mip-dom-reward--on { color: $accent; }
+
+  .coins-section { background: $pill-bg; border: 1px solid $accent-soft; box-shadow: none; }
+  .mip-passive-btn { background: $pill-bg; border: 1px solid $accent-soft; color: $accent; box-shadow: none; }
+  .mip-passive-status--on { color: $accent; }
+}
+
+/* ───────────────── ARCANO · cristal de maná (púrpura + turquesa) ───────────────── */
+:host-context([data-appstyle="arcano"]) {
+  @include appstyle-bar(
+    $panel: linear-gradient(180deg, #221a3a, #140f24), $bcol: #6d4bd6, $bw: 2px, $radius: 10px,
+    $accent: #9d7ff0, $accent-soft: rgba(122, 80, 230, 0.45), $on-accent: #160f28,
+    $text: #ece6ff, $muted: rgba(216, 204, 245, 0.62), $title: #b79cff,
+    $name-bg: linear-gradient(180deg, #8a63f0, #5b3bc4), $name-col: #f0e9ff, $name-bd: 1px solid #b79cff,
+    $name-font: (Georgia, serif),
+    $av-bg: #160f28, $av-bd: 2px solid #6d4bd6, $av-radius: 8px,
+    $lvl-bg: linear-gradient(180deg, #d9c8ff, #9d7ff0), $lvl-col: #160f28,
+    $track: #0d0a18, $track-bd: #3a2d5e,
+    $hp: linear-gradient(180deg, #ff6ba8, #c0246a), $mp: linear-gradient(180deg, #5be0ff, #1f8fd0),
+    $hp-glow: 0 0 8px rgba(255, 90, 160, 0.45), $mp-glow: 0 0 8px rgba(80, 210, 255, 0.45),
+    $num-col: #f0e9ff, $inset: rgba(122, 80, 230, 0.08), $pill-bg: #1a1330,
+    $good: #6be0c0, $bad: #ff6b8a
+  );
+}
+
+/* ───────────────── SANGRE · dark fantasy gótico (negro + carmesí) ───────────────── */
+:host-context([data-appstyle="sangre"]) {
+  @include appstyle-bar(
+    $panel: linear-gradient(180deg, #1a1012, #0c0708), $bcol: #6b1620, $bw: 2px, $radius: 8px,
+    $accent: #cf3a48, $accent-soft: rgba(150, 20, 30, 0.5), $on-accent: #f5e0d8,
+    $text: #f0d8ce, $muted: rgba(230, 190, 180, 0.6), $title: #d98a92,
+    $name-bg: linear-gradient(180deg, #7a1622, #4a0c14), $name-col: #f0d0c4, $name-bd: 1px solid #a83240,
+    $name-font: (Georgia, serif),
+    $av-bg: #140a0c, $av-bd: 2px solid #6b1620, $av-radius: 6px,
+    $lvl-bg: linear-gradient(180deg, #e8c4a8, #c08a6a), $lvl-col: #1a0a0c,
+    $track: #0a0506, $track-bd: #3a1216,
+    $hp: linear-gradient(180deg, #e23b32, #8e0f16), $mp: linear-gradient(180deg, #7a5cc0, #3a2470),
+    $hp-glow: 0 0 8px rgba(200, 30, 30, 0.45), $mp-glow: 0 0 8px rgba(120, 80, 200, 0.4),
+    $num-col: #f0d0c4, $inset: rgba(150, 20, 30, 0.07), $pill-bg: #1a0e10,
+    $good: #6fca6f, $bad: #ff6b6b
+  );
+}
+
+/* ───────────────── HOLO AZUL · sci-fi holográfico ───────────────── */
+:host-context([data-appstyle="holo"]) {
+  @include appstyle-bar(
+    $panel: linear-gradient(180deg, rgba(8, 18, 30, 0.95), rgba(4, 10, 18, 0.97)),
+    $bcol: rgba(80, 180, 255, 0.4), $bw: 1px, $radius: 4px,
+    $accent: #4db8ff, $accent-soft: rgba(77, 184, 255, 0.4), $on-accent: #061420,
+    $text: #dceefc, $muted: rgba(200, 225, 245, 0.62), $title: #8fd4ff,
+    $name-bg: #0a1826, $name-col: #8fd4ff, $name-bd: 1px solid rgba(80, 180, 255, 0.5),
+    $name-font: ('Consolas', 'SF Mono', ui-monospace, monospace), $name-tr: uppercase,
+    $av-bg: #061420, $av-bd: 1px solid rgba(80, 180, 255, 0.45), $av-radius: 3px,
+    $lvl-bg: #4db8ff, $lvl-col: #061420,
+    $track: #06121e, $track-bd: rgba(80, 180, 255, 0.28),
+    $hp: linear-gradient(180deg, #ff6a5a, #c0292b), $mp: linear-gradient(180deg, #4db8ff, #1c6fc0),
+    $hp-glow: 0 0 10px rgba(255, 80, 70, 0.5), $mp-glow: 0 0 10px rgba(77, 184, 255, 0.5),
+    $num-col: #cfeaff, $num-font: ('Consolas', 'SF Mono', ui-monospace, monospace),
+    $inset: rgba(77, 184, 255, 0.06), $pill-bg: #0a1826
+  );
+
+  // Filete azul superior (HUD).
+  .char-widget::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #4db8ff, transparent);
+    box-shadow: 0 0 8px rgba(77, 184, 255, 0.7);
+    pointer-events: none;
+    z-index: 4;
+  }
+}
+
+/* ───────────────── REAL · oro ornamentado + azul real ───────────────── */
+:host-context([data-appstyle="real"]) {
+  @include appstyle-bar(
+    $panel: linear-gradient(180deg, #1e2a56, #111838), $bcol: #caa23c, $bw: 2px, $radius: 12px,
+    $accent: #e0b53c, $accent-soft: rgba(202, 162, 60, 0.5), $on-accent: #2a1e06,
+    $text: #f0e6cc, $muted: rgba(230, 220, 190, 0.62), $title: #e0b53c,
+    $name-bg: linear-gradient(180deg, #ffe9a8, #e0b53c 55%, #b5851f), $name-col: #3a2a08, $name-bd: 2px solid #8a6414,
+    $name-font: (Georgia, serif),
+    $av-bg: #0e1430, $av-bd: 2px solid #caa23c, $av-radius: 50%,
+    $lvl-bg: linear-gradient(180deg, #ffe9a8, #e0b53c), $lvl-col: #3a2a08,
+    $track: #0a0e22, $track-bd: #3a2f12,
+    $hp: linear-gradient(180deg, #ff7a5e, #c0392b), $mp: linear-gradient(180deg, #6fa0ff, #2f56c0),
+    $hp-glow: inset 0 1px 0 rgba(255, 255, 255, 0.35), $mp-glow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    $num-col: #ffeec4, $inset: rgba(202, 162, 60, 0.08), $pill-bg: #16204a,
+    $good: #7ad07a, $bad: #ef5a52
+  );
+}

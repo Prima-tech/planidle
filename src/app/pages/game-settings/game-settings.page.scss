@@ -229,14 +229,17 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   color: rgba($text-cream, 0.6);
 }
 .gs-style-btns {
-  display: flex;
-  gap: 8px;
-  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 6px;
+  flex: 1 1 100%;   // ocupa toda la fila; los chips envuelven en varias filas
 }
 .gs-style-btn {
-  flex: 1;
-  padding: 8px 10px;
-  font-size: 0.72em;
+  padding: 7px 8px;
+  font-size: 0.7em;
+  white-space: nowrap;
+  border-radius: 9px;
+  min-width: 0;   // permite que el texto se ajuste dentro de su celda
 
   &.active {
     border-color: #ffe6a0 #a8781f #a8781f #d8a53a;

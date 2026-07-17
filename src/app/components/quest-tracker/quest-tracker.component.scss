@@ -1,12 +1,16 @@
-/* ===== Tema madera + piedra (pixel-art RPG) ===== */
+/* ===== Misiones activas — MINIMAL FLOTANTE (base) =====
+   Filas flotantes translúcidas con barra de estado a la izquierda (ámbar en
+   progreso / verde lista para cobrar) y el "ojo" como pastilla ghost.
+   Base = look neutro/oscuro (sirve en todos los temas); cada estilo puede
+   redefinir acentos con :host-context([data-appstyle="…"]). */
 $outline: #3a2c20;
-$stone: #8f8678;
-$stone-light: #a59c8d;
-$stone-dark: #6b6357;
-$wood-bg: #a86f3e;
 $cell-bg: #38241d;
-$cell-border: #21130e;
 $text-cream: #ecd9b4;
+$gold: #ffe08a;
+$gold-2: #f0c040;
+$amber: #e0a53c;
+$green: #3aa64a;
+$green-d: #1f7a2f;
 
 // Cuelga bajo el widget de personaje (top-bar mide 72px + ~10px de margen).
 .quest-tracker {
@@ -15,58 +19,47 @@ $text-cream: #ecd9b4;
   left: calc(8px + var(--safe-left, 0px));
   z-index: 45;
   display: flex;
-  flex-direction: row;       // botón a la izquierda, lista a su derecha
-  align-items: flex-start;   // alineados por arriba: la 1ª misión queda junto al botón
+  flex-direction: row;       // ojo a la izquierda, lista a su derecha
+  align-items: flex-start;   // alineados por arriba: la 1ª misión queda junto al ojo
   gap: 5px;
   pointer-events: none;
 }
 
-// Botón de ocultar/mostrar (a la izquierda, sobre la lista)
+// "Ojo" de ocultar/mostrar — pastilla ghost translúcida.
 .qt-toggle {
   pointer-events: all;
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 3px 6px;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
-  background: $wood-bg;
-  color: $text-cream;
+  padding: 4px 7px;
+  background: rgba(20, 16, 12, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 7px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
   cursor: pointer;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    0 2px 6px rgba(0, 0, 0, 0.5);
+  -webkit-tap-highlight-color: transparent;   // sin flash gris al tocar en móvil
 
-  ion-icon { font-size: 14px; color: #f0c040; }
+  ion-icon { font-size: 15px; color: $gold; }
 
   .qt-toggle-count {
-    font-size: 0.6em;
-    font-weight: 700;
-    color: #f0c040;
+    font-size: 0.62em;
+    font-weight: 800;
+    color: $gold;
   }
 
-  &:active { background: $cell-bg; }
+  &:active { background: rgba(20, 16, 12, 0.8); }
+  // El clic con ratón dejaba el outline de foco pegado (borde blanco).
+  &:focus { outline: none; }
 }
 
+// Lista: sin panel; solo una columna de filas flotantes.
 .quest-tracker-inner {
-  width: 175px;              // panel a la derecha del botón: 1ª misión arriba, resto debajo
+  width: 186px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 5px 7px;
-  box-sizing: border-box;
-  background:
-    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
-    rgba(168, 111, 62, 0.92);
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 7px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    0 2px 8px rgba(0, 0, 0, 0.55);
+  gap: 4px;
   animation: qt-in 0.18s ease-out both;
 }
 
@@ -75,16 +68,27 @@ $text-cream: #ecd9b4;
   to   { opacity: 1; transform: translateY(0); }
 }
 
+// Fila = pastilla translúcida con barra de estado a la izquierda.
 .qt-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  padding: 5px 9px 5px 8px;
   line-height: 1.1;
+  background: rgba(18, 14, 10, 0.66);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid $amber;   // en progreso
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+  &--ready { border-left-color: $green; }
 }
 
 .qt-icon {
   font-size: 14px;
-  color: #5a3a1d;
+  color: $gold;
   flex-shrink: 0;
 }
 
@@ -93,26 +97,26 @@ $text-cream: #ecd9b4;
   min-width: 0;
   font-size: 0.62em;
   font-weight: 700;
-  color: #3d2417;
+  color: #efe6d2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .qt-count {
   flex-shrink: 0;
   font-size: 0.6em;
   font-weight: 800;
-  color: #5a3a1d;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: #d9b45a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .qt-ready {
   flex-shrink: 0;
   font-size: 13px;
-  color: #1f7a2f;
+  color: #5fe07a;
 }
 
-// Misión lista para cobrar: el nombre en verde oscuro
-.qt-row--ready .qt-task { color: #1f6b2a; }
+// Misión lista para cobrar: el nombre en verde claro.
+.qt-row--ready .qt-task { color: #bff0c6; }
