@@ -696,3 +696,45 @@ $purple: #6e4a67;         // selección
   );
 }
 
+/* SYLVAN · bosque élfico verde + dorado */
+:host-context([data-appstyle="sylvan"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, #1f3324, #122018), $bcol: #3c6b3e, $bw: 2px, $radius: 10px,
+    $shadow: (0 0 0 1px rgba(216, 200, 120, 0.25), 0 0 14px rgba(80, 140, 60, 0.3), 0 8px 24px rgba(0, 0, 0, 0.5)),
+    $text: #e8f0d8, $muted: rgba(220, 232, 200, 0.62), $title: #d8c878,
+    $accent: #9fd06a, $on-accent: #16240f,
+    $cell: #16241a, $cell-bd: #0c140f, $frame: #0f1a12,
+    $tab: #1c3322, $tab-hover: #24402c, $inset: rgba(159, 208, 106, 0.08),
+    $plate: linear-gradient(180deg, #5a8f4c, #33612f),
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
+
+/* EMBER · obsidiana + brasa (mayúsculas) */
+:host-context([data-appstyle="ember"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, #1a1512, #0a0706), $bcol: #5a2410, $bw: 2px, $radius: 5px,
+    $shadow: (0 0 0 1px rgba(255, 122, 42, 0.25), inset 0 -18px 30px rgba(255, 90, 20, 0.12), 0 0 16px rgba(255, 90, 20, 0.2), 0 8px 24px rgba(0, 0, 0, 0.6)),
+    $text: #f0dccb, $muted: rgba(240, 220, 200, 0.6), $title: #ffb066,
+    $accent: #ff7a2a, $on-accent: #1a0c04,
+    $cell: #140f0c, $cell-bd: #050302, $frame: #0d0a08,
+    $tab: #1a120c, $tab-hover: #241a12, $inset: rgba(255, 122, 42, 0.08),
+    $plate: linear-gradient(180deg, #ff8a3a, #b04010),
+    $font: ('Segoe UI', system-ui, sans-serif), $tt: uppercase
+  );
+}
+
+/* DESERT · faraónico oro + turquesa */
+:host-context([data-appstyle="desert"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, #2c2a1e, #171509), $bcol: #b8963c, $bw: 2px, $radius: 8px,
+    $shadow: (0 0 0 1px rgba(230, 200, 90, 0.3), 0 0 12px rgba(184, 150, 60, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #f0e6c8, $muted: rgba(240, 230, 200, 0.6), $title: #e6c85a,
+    $accent: #3fd0c0, $on-accent: #0a2420,
+    $cell: #1c190f, $cell-bd: #0c0a05, $frame: #131109,
+    $tab: #241f12, $tab-hover: #302a18, $inset: rgba(63, 208, 192, 0.08),
+    $plate: linear-gradient(180deg, #f0d878, #b8963c),
+    $font: (Georgia, 'Times New Roman', serif)
+  );
+}
+

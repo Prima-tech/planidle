@@ -126,3 +126,37 @@
   }
   .beb-amount { color: #f0e6cc; }
 }
+
+:host-context([data-appstyle="sylvan"]) {
+  .beb-name {
+    color: #d8c878;
+    text-shadow:
+      0 0 8px rgba(159, 208, 106, 0.7), 0 0 18px rgba(80, 140, 60, 0.4),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #122018, 1px -1px 0 #122018, -1px 1px 0 #122018, 1px 1px 0 #122018;
+  }
+  .beb-amount { color: #e8f0d8; }
+}
+
+:host-context([data-appstyle="ember"]) {
+  .beb-name {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #ffb066;
+    text-shadow:
+      0 0 8px rgba(255, 122, 42, 0.7), 0 0 18px rgba(255, 90, 20, 0.4),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #0a0706, 1px -1px 0 #0a0706, -1px 1px 0 #0a0706, 1px 1px 0 #0a0706;
+  }
+  .beb-amount { color: #f0dccb; }
+}
+
+:host-context([data-appstyle="desert"]) {
+  .beb-name {
+    color: #e6c85a;
+    text-shadow:
+      0 0 8px rgba(63, 208, 192, 0.7), 0 0 18px rgba(63, 208, 192, 0.4),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #171509, 1px -1px 0 #171509, -1px 1px 0 #171509, 1px 1px 0 #171509;
+  }
+  .beb-amount { color: #f0e6c8; }
+}

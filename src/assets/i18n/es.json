@@ -51,7 +51,10 @@
       "ARCANE": "Arcano",
       "BLOOD": "Sangre",
       "HOLO": "Holo azul",
-      "ROYAL": "Real"
+      "ROYAL": "Real",
+      "SYLVAN": "Silvano",
+      "EMBER": "Brasa",
+      "DESERT": "Desierto"
     },
     "SECTION": {
       "WORLD": "Mundo",

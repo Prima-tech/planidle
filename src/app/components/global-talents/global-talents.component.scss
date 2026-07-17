@@ -488,3 +488,54 @@ $metal-dark: #6b6357;
     $radius: 12px
   );
 }
+
+/* SYLVAN · bosque élfico, verde + oro pálido */
+:host-context([data-appstyle="sylvan"]) {
+  @include gt-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #e8f0d8, $muted: rgba(220,232,200,.62),
+    $title: #d8c878, $accent: #9fd06a, $accent-soft: rgba(159,208,106,.16), $value-col: #d8c878, $icon-col: #d8c878,
+    $panel-bg: linear-gradient(180deg,#1f3324,#122018), $bd: #3c6b3e,
+    $panel-shadow: (0 0 0 1px rgba(216,200,120,.25), 0 0 14px rgba(80,140,60,.3), 0 8px 24px rgba(0,0,0,.5)),
+    $plate-bg: #1c3322, $plate-bd: #2e4a30,
+    $canvas-bg: #132018, $canvas-bd: #2e4a30, $thumb: #3c6b3e,
+    $node-bg: #16241a, $node-bd: #2e4a30, $node-col: rgba(220,232,200,.5),
+    $flyout-bg: #1c3322, $flyout-bd: #3c6b3e,
+    $btn-bg: #1c3322, $btn-bd: #3c6b3e, $btn-col: #cfe0a8, $danger: #e8705a,
+    $good: #9fd06a, $good-soft: rgba(159,208,106,.5),
+    $radius: 10px
+  );
+}
+
+/* EMBER · obsidiana + brasa */
+:host-context([data-appstyle="ember"]) {
+  @include gt-style(
+    $font: ('Segoe UI',system-ui,sans-serif), $text: #f0dccb, $muted: rgba(240,220,200,.6),
+    $title: #ffb066, $accent: #ff7a2a, $accent-soft: rgba(255,90,20,.4), $value-col: #ffb066, $icon-col: #ffb066,
+    $panel-bg: linear-gradient(180deg,#1a1512,#0a0706), $bd: #5a2410,
+    $panel-shadow: (0 0 0 1px rgba(255,122,42,.25), inset 0 -18px 30px rgba(255,90,20,.12), 0 0 16px rgba(255,90,20,.2), 0 8px 24px rgba(0,0,0,.6)),
+    $plate-bg: #1a120c, $plate-bd: #3a1e10,
+    $canvas-bg: #0f0b09, $canvas-bd: #3a1e10, $thumb: #5a2410,
+    $node-bg: #140f0c, $node-bd: #3a1e10, $node-col: rgba(240,220,200,.5),
+    $flyout-bg: #1a120c, $flyout-bd: #5a2410,
+    $btn-bg: #1a120c, $btn-bd: #5a2410, $btn-col: #ffb066, $danger: #ff6a3a,
+    $good: #7ad06a, $good-soft: rgba(122,208,106,.5),
+    $radius: 5px
+  );
+}
+
+/* DESERT · faraónico, arena + turquesa */
+:host-context([data-appstyle="desert"]) {
+  @include gt-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6c8, $muted: rgba(240,230,200,.6),
+    $title: #e6c85a, $accent: #3fd0c0, $accent-soft: rgba(63,208,192,.4), $value-col: #e6c85a, $icon-col: #e6c85a,
+    $panel-bg: linear-gradient(180deg,#2c2a1e,#171509), $bd: #b8963c,
+    $panel-shadow: (0 0 0 1px rgba(230,200,90,.3), 0 0 12px rgba(184,150,60,.25), 0 8px 24px rgba(0,0,0,.55)),
+    $plate-bg: #241f12, $plate-bd: #4a3d18,
+    $canvas-bg: #181509, $canvas-bd: #4a3d18, $thumb: #b8963c,
+    $node-bg: #1c190f, $node-bd: #4a3d18, $node-col: rgba(240,230,200,.5),
+    $flyout-bg: #241f12, $flyout-bd: #b8963c,
+    $btn-bg: #241f12, $btn-bd: #b8963c, $btn-col: #e6c85a, $danger: #e8705a,
+    $good: #6be0b0, $good-soft: rgba(107,224,176,.5),
+    $radius: 8px
+  );
+}

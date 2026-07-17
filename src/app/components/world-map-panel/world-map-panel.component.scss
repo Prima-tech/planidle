@@ -577,3 +577,48 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     $radius: 12px
   );
 }
+
+/* SYLVAN · bosque verde + oro pálido */
+:host-context([data-appstyle="sylvan"]) {
+  @include wmp-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #e8f0d8, $muted: rgba(220,232,200,.62),
+    $accent: #9fd06a, $title: #d8c878,
+    $panel-bg: linear-gradient(180deg,#1f3324,#122018), $bd: #3c6b3e,
+    $panel-shadow: (0 0 0 1px rgba(216,200,120,.25), 0 0 14px rgba(80,140,60,.3), 0 8px 24px rgba(0,0,0,.5)),
+    $area-bg: #132018, $area-bd: #2e4a30, $area-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $card-bg: #16241a, $card-bd: #3c6b3e, $cell-bg: #16241a, $cell-bd: #0c140f,
+    $btn-bg: #1c3322, $btn-bd: #3c6b3e, $btn-col: #cfe0a8, $btn-active-bg: linear-gradient(180deg,#5a8f4c,#33612f), $btn-active-col: #f0f5d8,
+    $item-bg: #16241a, $item-bd: #2e4a30, $item-col: #e8f0d8, $item-active-bg: #132018,
+    $radius: 10px
+  );
+}
+
+/* EMBER · brasas + naranja fuego */
+:host-context([data-appstyle="ember"]) {
+  @include wmp-style(
+    $font: ('Segoe UI',system-ui,sans-serif), $text: #f0dccb, $muted: rgba(240,220,200,.6),
+    $accent: #ff7a2a, $title: #ffb066,
+    $panel-bg: linear-gradient(180deg,#1a1512,#0a0706), $bd: #5a2410,
+    $panel-shadow: (0 0 0 1px rgba(255,122,42,.25), inset 0 -18px 30px rgba(255,90,20,.12), 0 0 16px rgba(255,90,20,.2), 0 8px 24px rgba(0,0,0,.6)),
+    $area-bg: #0f0b09, $area-bd: #3a1e10, $area-shadow: (inset 0 0 12px rgba(0,0,0,.55)),
+    $card-bg: #140f0c, $card-bd: #5a2410, $cell-bg: #140f0c, $cell-bd: #050302,
+    $btn-bg: #1a120c, $btn-bd: #5a2410, $btn-col: #ffb066, $btn-active-bg: linear-gradient(180deg,#ff8a3a,#b04010), $btn-active-col: #1a0c04,
+    $item-bg: #140f0c, $item-bd: #3a1e10, $item-col: #f0dccb, $item-active-bg: #0f0b09,
+    $radius: 5px
+  );
+}
+
+/* DESERT · arena dorada + turquesa */
+:host-context([data-appstyle="desert"]) {
+  @include wmp-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6c8, $muted: rgba(240,230,200,.6),
+    $accent: #3fd0c0, $title: #e6c85a,
+    $panel-bg: linear-gradient(180deg,#2c2a1e,#171509), $bd: #b8963c,
+    $panel-shadow: (0 0 0 1px rgba(230,200,90,.3), 0 0 12px rgba(184,150,60,.25), 0 8px 24px rgba(0,0,0,.55)),
+    $area-bg: #181509, $area-bd: #4a3d18, $area-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $card-bg: #1c190f, $card-bd: #b8963c, $cell-bg: #1c190f, $cell-bd: #0c0a05,
+    $btn-bg: #241f12, $btn-bd: #b8963c, $btn-col: #e6c85a, $btn-active-bg: linear-gradient(180deg,#f0d878,#b8963c), $btn-active-col: #2a2010,
+    $item-bg: #1c190f, $item-bd: #4a3d18, $item-col: #f0e6c8, $item-active-bg: #181509,
+    $radius: 8px
+  );
+}

@@ -184,3 +184,27 @@ $green-d: #1f7a2f;
     $inprog: #e0b53c, $ready: #7ad07a, $ready-text: #cdefcd
   );
 }
+
+:host-context([data-appstyle="sylvan"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(18, 32, 24, 0.72), $row-bg: rgba(18, 32, 24, 0.68), $edge: rgba(159, 208, 106, 0.28),
+    $accent: #d8c878, $text: #e8f0d8, $count: rgba(220, 232, 200, 0.85),
+    $inprog: #d8c878, $ready: #9fd06a, $ready-text: #d6f0b8
+  );
+}
+
+:host-context([data-appstyle="ember"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(10, 7, 6, 0.72), $row-bg: rgba(10, 7, 6, 0.68), $edge: rgba(255, 122, 42, 0.3),
+    $accent: #ffb066, $text: #f0dccb, $count: rgba(240, 220, 200, 0.85),
+    $inprog: #ff7a2a, $ready: #7ad06a, $ready-text: #c6f0bc
+  );
+}
+
+:host-context([data-appstyle="desert"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(23, 21, 9, 0.72), $row-bg: rgba(23, 21, 9, 0.68), $edge: rgba(63, 208, 192, 0.3),
+    $accent: #e6c85a, $text: #f0e6c8, $count: rgba(240, 230, 200, 0.85),
+    $inprog: #e6c85a, $ready: #6be0b0, $ready-text: #bff0dc
+  );
+}

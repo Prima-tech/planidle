@@ -855,3 +855,58 @@ $metal-dark: #6b6357;
     $ring: #e0b53c, $track: #0e1430
   );
 }
+
+/* SYLVAN · bosque élfico, verde + oro pálido */
+:host-context([data-appstyle="sylvan"]) {
+  @include forge-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #e8f0d8,
+    $muted: rgba(220,232,200,.62), $title: #d8c878, $accent: #9fd06a,
+    $panel-bg: linear-gradient(180deg,#1f3324,#122018), $bd: #3c6b3e,
+    $panel-shadow: (0 0 0 1px rgba(216,200,120,.25), 0 0 14px rgba(80,140,60,.3), 0 8px 24px rgba(0,0,0,.5)), $radius: 10px,
+    $card-bg: #1c3322, $card-bd: #2e4a30,
+    $tab-bg: #1c3322, $tab-col: #cfe0a8,
+    $tab-active-bg: linear-gradient(180deg,#5a8f4c,#33612f), $tab-active-col: #f0f5d8,
+    $cell-bg: #16241a, $cell-bd: #0c140f,
+    $slot-bg: #1c3322, $slot-bd: #2e4a30,
+    $tag-bg: #1c3322, $tag-col: #d8c878,
+    $bar: linear-gradient(90deg,#5f9a3c,#9fd06a), $bar-total: linear-gradient(180deg,#5a8f4c,#33612f),
+    $ring: #9fd06a, $track: #0f1a12
+  );
+}
+
+/* EMBER · obsidiana + brasa, etiquetas MAYÚSCULAS */
+:host-context([data-appstyle="ember"]) {
+  @include forge-style(
+    $font: ('Segoe UI',system-ui,sans-serif), $text: #f0dccb,
+    $muted: rgba(240,220,200,.6), $title: #ffb066, $accent: #ff7a2a,
+    $panel-bg: linear-gradient(180deg,#1a1512,#0a0706), $bd: #5a2410,
+    $panel-shadow: (0 0 0 1px rgba(255,122,42,.25), inset 0 -18px 30px rgba(255,90,20,.12), 0 0 16px rgba(255,90,20,.2), 0 8px 24px rgba(0,0,0,.6)), $radius: 5px,
+    $card-bg: #1a120c, $card-bd: #3a1e10,
+    $tab-bg: #1a120c, $tab-col: #ffb066,
+    $tab-active-bg: linear-gradient(180deg,#ff8a3a,#b04010), $tab-active-col: #1a0c04,
+    $cell-bg: #140f0c, $cell-bd: #050302,
+    $slot-bg: #1a120c, $slot-bd: #3a1e10,
+    $tag-bg: #1a120c, $tag-col: #ffb066,
+    $bar: linear-gradient(90deg,#c04d10,#ff7a2a), $bar-total: linear-gradient(180deg,#ff8a3a,#b04010),
+    $ring: #ff7a2a, $track: #0d0a08,
+    $tt: uppercase
+  );
+}
+
+/* DESERT · faraónico, arena + turquesa */
+:host-context([data-appstyle="desert"]) {
+  @include forge-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6c8,
+    $muted: rgba(240,230,200,.6), $title: #e6c85a, $accent: #3fd0c0,
+    $panel-bg: linear-gradient(180deg,#2c2a1e,#171509), $bd: #b8963c,
+    $panel-shadow: (0 0 0 1px rgba(230,200,90,.3), 0 0 12px rgba(184,150,60,.25), 0 8px 24px rgba(0,0,0,.55)), $radius: 8px,
+    $card-bg: #241f12, $card-bd: #4a3d18,
+    $tab-bg: #241f12, $tab-col: #e6c85a,
+    $tab-active-bg: linear-gradient(180deg,#f0d878,#b8963c), $tab-active-col: #2a2010,
+    $cell-bg: #1c190f, $cell-bd: #0c0a05,
+    $slot-bg: #241f12, $slot-bd: #4a3d18,
+    $tag-bg: #241f12, $tag-col: #e6c85a,
+    $bar: linear-gradient(90deg,#1a8f86,#3fd0c0), $bar-total: linear-gradient(180deg,#f0d878,#b8963c),
+    $ring: #3fd0c0, $track: #131109
+  );
+}

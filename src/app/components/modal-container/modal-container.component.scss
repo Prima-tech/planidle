@@ -195,3 +195,18 @@
   background: linear-gradient(180deg, #1e2a56, #111838);
   box-shadow: 0 0 12px rgba(224, 181, 60, 0.22), 0 8px 32px rgba(0, 0, 0, 0.6);
 }
+
+:host-context([data-appstyle="sylvan"]) .modal-window.character {
+  background: linear-gradient(180deg, #1f3324, #122018);
+  box-shadow: 0 0 14px rgba(80, 140, 60, 0.3), 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+:host-context([data-appstyle="ember"]) .modal-window.character {
+  background: linear-gradient(180deg, #1a1512, #0a0706);
+  box-shadow: 0 0 16px rgba(255, 90, 20, 0.2), 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+:host-context([data-appstyle="desert"]) .modal-window.character {
+  background: linear-gradient(180deg, #2c2a1e, #171509);
+  box-shadow: 0 0 12px rgba(184, 150, 60, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6);
+}

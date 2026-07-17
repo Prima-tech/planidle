@@ -111,3 +111,34 @@ $text-cream: #ecd9b4;
     0 0 0 1px rgba(224, 181, 60, 0.3), 0 0 12px rgba(224, 181, 60, 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
   .mth-label { color: #ffe9a8; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85); }
 }
+
+:host-context([data-appstyle="sylvan"]) .mth {
+  background: linear-gradient(180deg, #1f3324, #122018);
+  border: 2px solid #3c6b3e;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(216, 200, 120, 0.25), 0 0 14px rgba(80, 140, 60, 0.3), 0 8px 24px rgba(0, 0, 0, 0.5);
+  .mth-label { color: #d8c878; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85); }
+}
+
+:host-context([data-appstyle="ember"]) .mth {
+  background: linear-gradient(180deg, #1a1512, #0a0706);
+  border: 2px solid #5a2410;
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px rgba(255, 122, 42, 0.25), inset 0 -18px 30px rgba(255, 90, 20, 0.12), 0 0 16px rgba(255, 90, 20, 0.2), 0 8px 24px rgba(0, 0, 0, 0.6);
+  .mth-label {
+    color: #ffb066;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  }
+}
+
+:host-context([data-appstyle="desert"]) .mth {
+  background: linear-gradient(180deg, #2c2a1e, #171509);
+  border: 2px solid #b8963c;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px rgba(230, 200, 90, 0.3), 0 0 12px rgba(184, 150, 60, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55);
+  .mth-label { color: #e6c85a; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85); }
+}

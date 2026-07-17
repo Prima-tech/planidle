@@ -51,7 +51,10 @@
       "ARCANE": "Arcane",
       "BLOOD": "Blood",
       "HOLO": "Holo Blue",
-      "ROYAL": "Royal"
+      "ROYAL": "Royal",
+      "SYLVAN": "Sylvan",
+      "EMBER": "Ember",
+      "DESERT": "Desert"
     },
     "SECTION": {
       "WORLD": "World",

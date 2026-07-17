@@ -338,6 +338,45 @@
   );
 }
 
+/* SYLVAN · bosque verde + oro pálido */
+:host-context([data-appstyle="sylvan"]) {
+  @include minimap-style(
+    $frame-col: #1f3324,
+    $frame-shadow: (0 0 0 2px #3c6b3e, inset 0 0 0 1px rgba(159,208,106,.4), 0 0 14px rgba(80,140,60,.45), 0 4px 12px rgba(0,0,0,.6)),
+    $btn-bg: #1c3322, $btn-bd: 2px solid #3c6b3e,
+    $btn-shadow: (inset 0 0 8px rgba(0,0,0,.5), 0 0 8px rgba(80,140,60,.3)), $btn-active-bg: #122018,
+    $accent: #9fd06a, $icon-col: #9fd06a, $glow: rgba(159,208,106,.55),
+    $name-bg: linear-gradient(180deg,#5a8f4c,#33612f), $name-col: #f0f5d8, $name-bd: 1px solid #a8d86a, $name-radius: 10px,
+    $name-font: (Georgia,'Times New Roman',serif), $name-shadow: 0 1px 2px rgba(0,0,0,.6)
+  );
+}
+
+/* EMBER · brasas + naranja fuego */
+:host-context([data-appstyle="ember"]) {
+  @include minimap-style(
+    $frame-col: #1a1512,
+    $frame-shadow: (0 0 0 2px #5a2410, inset 0 0 0 1px rgba(255,122,42,.4), 0 0 16px rgba(255,90,20,.5), 0 4px 12px rgba(0,0,0,.65)),
+    $btn-bg: #1a120c, $btn-bd: 2px solid #5a2410,
+    $btn-shadow: (inset 0 0 8px rgba(0,0,0,.6), 0 0 8px rgba(255,90,20,.35)), $btn-active-bg: #0a0706,
+    $accent: #ff7a2a, $icon-col: #ff7a2a, $glow: rgba(255,122,42,.6),
+    $name-bg: linear-gradient(180deg,#ff8a3a,#b04010), $name-col: #1a0c04, $name-bd: 1px solid #ffb066, $name-radius: 5px,
+    $name-font: ('Segoe UI',system-ui,sans-serif), $name-tt: uppercase, $name-ls: .1em, $name-shadow: 0 1px 2px rgba(0,0,0,.6)
+  );
+}
+
+/* DESERT · arena dorada + turquesa */
+:host-context([data-appstyle="desert"]) {
+  @include minimap-style(
+    $frame-col: #2c2a1e,
+    $frame-shadow: (0 0 0 2px #b8963c, inset 0 0 0 1px rgba(63,208,192,.4), 0 0 12px rgba(184,150,60,.35), 0 4px 12px rgba(0,0,0,.6)),
+    $btn-bg: #241f12, $btn-bd: 2px solid #b8963c,
+    $btn-shadow: (inset 0 0 8px rgba(0,0,0,.5), 0 0 8px rgba(184,150,60,.3)), $btn-active-bg: #171509,
+    $accent: #3fd0c0, $icon-col: #3fd0c0, $glow: rgba(63,208,192,.5),
+    $name-bg: linear-gradient(180deg,#f0d878,#b8963c), $name-col: #2a2010, $name-bd: 1px solid #e6c85a, $name-radius: 8px,
+    $name-font: (Georgia,'Times New Roman',serif), $name-shadow: 0 1px 2px rgba(0,0,0,.6)
+  );
+}
+
 ::ng-deep {
   ion-content {
       --padding-bottom: 0;

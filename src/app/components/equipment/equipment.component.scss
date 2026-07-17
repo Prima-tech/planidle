@@ -2692,3 +2692,63 @@ $metal-dark: #6b6357;
     $good: #7ad07a, $bad: #ff7a5e
   );
 }
+
+/* SYLVAN · bosque élfico + serif */
+:host-context([data-appstyle="sylvan"]) {
+  @include equipment-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #e8f0d8, $muted: rgba(220,232,200,.62),
+    $title: #d8c878, $accent: #9fd06a, $accent-soft: rgba(159,208,106,.16), $sel-glow: (0 0 10px rgba(159,208,106,.55)),
+    $panel-bg: linear-gradient(180deg,#1f3324,#122018), $bd: #3c6b3e,
+    $panel-shadow: (0 0 0 1px rgba(216,200,120,.25), 0 0 14px rgba(80,140,60,.3), 0 8px 24px rgba(0,0,0,.5)), $radius: 10px,
+    $tab-bg: #1c3322, $tab-bd: #2e4a30, $tab-col: #cfe0a8,
+    $tab-active-bg: linear-gradient(180deg,#5a8f4c,#33612f), $tab-active-col: #f0f5d8, $tab-active-bd: #a8d86a,
+    $frame-bg: #0f1a12, $frame-bd: #2e4a30,
+    $plaque-bg: #1c3322, $plaque-bd: #2e4a30,
+    $cell-bg: #16241a, $cell-bd: #0c140f,
+    $track: #0f1a12, $track-bd: #2e4a30, $bar: linear-gradient(90deg,#6fa03e,#9fd06a),
+    $btn-bg: #1c3322, $btn-bd: #3c6b3e, $btn-col: #cfe0a8,
+    $node-bg: radial-gradient(circle at 32% 28%, #1f3324, #16241a 72%),
+    $claim-bg: linear-gradient(180deg,#5a8f4c,#33612f), $claim-col: #f0f5d8, $claim-bd: #a8d86a, $claim-glow: rgba(159,208,106,.5),
+    $good: #9fd06a, $bad: #e8705a
+  );
+}
+
+/* EMBER · obsidiana + brasa */
+:host-context([data-appstyle="ember"]) {
+  @include equipment-style(
+    $font: ('Segoe UI',system-ui,sans-serif), $text: #f0dccb, $muted: rgba(240,220,200,.6),
+    $title: #ffb066, $accent: #ff7a2a, $accent-soft: rgba(255,90,20,.4), $sel-glow: (0 0 12px rgba(255,122,42,.6)),
+    $panel-bg: linear-gradient(180deg,#1a1512,#0a0706), $bd: #5a2410,
+    $panel-shadow: (0 0 0 1px rgba(255,122,42,.25), inset 0 -18px 30px rgba(255,90,20,.12), 0 0 16px rgba(255,90,20,.2), 0 8px 24px rgba(0,0,0,.6)), $radius: 5px,
+    $tab-bg: #1a120c, $tab-bd: #3a1e10, $tab-col: #ffb066,
+    $tab-active-bg: linear-gradient(180deg,#ff8a3a,#b04010), $tab-active-col: #1a0c04, $tab-active-bd: #ffb066,
+    $frame-bg: #0d0a08, $frame-bd: #3a1e10,
+    $plaque-bg: #1a120c, $plaque-bd: #3a1e10,
+    $cell-bg: #140f0c, $cell-bd: #050302,
+    $track: #0d0a08, $track-bd: #3a1e10, $bar: linear-gradient(90deg,#c05010,#ff7a2a),
+    $btn-bg: #1a120c, $btn-bd: #5a2410, $btn-col: #ffb066,
+    $node-bg: radial-gradient(circle at 32% 28%, #1a1512, #140f0c 72%),
+    $claim-bg: linear-gradient(180deg,#ff8a3a,#b04010), $claim-col: #1a0c04, $claim-bd: #ffb066, $claim-glow: rgba(255,122,42,.5),
+    $tab-tt: uppercase, $good: #7ad06a, $bad: #ff6a3a
+  );
+}
+
+/* DESERT · faraónico + serif */
+:host-context([data-appstyle="desert"]) {
+  @include equipment-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6c8, $muted: rgba(240,230,200,.6),
+    $title: #e6c85a, $accent: #3fd0c0, $accent-soft: rgba(63,208,192,.4), $sel-glow: (0 0 10px rgba(63,208,192,.55)),
+    $panel-bg: linear-gradient(180deg,#2c2a1e,#171509), $bd: #b8963c,
+    $panel-shadow: (0 0 0 1px rgba(230,200,90,.3), 0 0 12px rgba(184,150,60,.25), 0 8px 24px rgba(0,0,0,.55)), $radius: 8px,
+    $tab-bg: #241f12, $tab-bd: #4a3d18, $tab-col: #e6c85a,
+    $tab-active-bg: linear-gradient(180deg,#f0d878,#b8963c), $tab-active-col: #2a2010, $tab-active-bd: #e6c85a,
+    $frame-bg: #131109, $frame-bd: #4a3d18,
+    $plaque-bg: #241f12, $plaque-bd: #4a3d18,
+    $cell-bg: #1c190f, $cell-bd: #0c0a05,
+    $track: #131109, $track-bd: #4a3d18, $bar: linear-gradient(90deg,#1a8f86,#3fd0c0),
+    $btn-bg: #241f12, $btn-bd: #b8963c, $btn-col: #e6c85a,
+    $node-bg: radial-gradient(circle at 32% 28%, #2c2a1e, #1c190f 72%),
+    $claim-bg: linear-gradient(180deg,#f0d878,#b8963c), $claim-col: #2a2010, $claim-bd: #e6c85a, $claim-glow: rgba(63,208,192,.5),
+    $good: #6be0b0, $bad: #e8705a
+  );
+}

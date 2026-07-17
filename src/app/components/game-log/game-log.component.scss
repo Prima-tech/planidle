@@ -97,3 +97,31 @@
   font-family: Georgia, 'Times New Roman', serif;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
+
+:host-context([data-appstyle="sylvan"]) .log-entry {
+  padding: 2px 6px;
+  background: rgba(18, 32, 24, 0.55);
+  border: 1px solid #0c140f;
+  border-radius: 10px;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+:host-context([data-appstyle="ember"]) .log-entry {
+  padding: 2px 6px;
+  background: rgba(10, 7, 6, 0.55);
+  border: 1px solid #050302;
+  border-radius: 5px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.85);
+}
+
+:host-context([data-appstyle="desert"]) .log-entry {
+  padding: 2px 6px;
+  background: rgba(23, 21, 9, 0.55);
+  border: 1px solid #0c0a05;
+  border-radius: 8px;
+  font-family: Georgia, 'Times New Roman', serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}

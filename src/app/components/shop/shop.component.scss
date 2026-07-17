@@ -347,3 +347,42 @@ $text-brown: #53301c;
     $radius: 12px
   );
 }
+
+/* SYLVAN · bosque élfico */
+:host-context([data-appstyle="sylvan"]) {
+  @include shop-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #e8f0d8, $muted: rgba(220,232,200,.62),
+    $title: #d8c878, $accent: #9fd06a,
+    $panel-bg: linear-gradient(180deg,#1f3324,#122018), $bd: #3c6b3e,
+    $panel-shadow: (0 0 0 1px rgba(216,200,120,.25), 0 0 14px rgba(80,140,60,.3), 0 8px 24px rgba(0,0,0,.5)),
+    $item-bg: #1c3322, $item-bd: #2e4a30, $cell-bg: #16241a, $cell-bd: #0c140f,
+    $coins-bg: #1c3322, $coins-bd: #3c6b3e, $coins-col: #f0f5d8,
+    $radius: 10px
+  );
+}
+
+/* EMBER · obsidiana + brasa */
+:host-context([data-appstyle="ember"]) {
+  @include shop-style(
+    $font: ('Segoe UI',system-ui,sans-serif), $text: #f0dccb, $muted: rgba(240,220,200,.6),
+    $title: #ffb066, $accent: #ff7a2a,
+    $panel-bg: linear-gradient(180deg,#1a1512,#0a0706), $bd: #5a2410,
+    $panel-shadow: (0 0 0 1px rgba(255,122,42,.25), inset 0 -18px 30px rgba(255,90,20,.12), 0 0 16px rgba(255,90,20,.2), 0 8px 24px rgba(0,0,0,.6)),
+    $item-bg: #1a120c, $item-bd: #3a1e10, $cell-bg: #140f0c, $cell-bd: #050302,
+    $coins-bg: #1a120c, $coins-bd: #5a2410, $coins-col: #f0dccb,
+    $radius: 5px
+  );
+}
+
+/* DESERT · faraónico */
+:host-context([data-appstyle="desert"]) {
+  @include shop-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6c8, $muted: rgba(240,230,200,.6),
+    $title: #e6c85a, $accent: #3fd0c0,
+    $panel-bg: linear-gradient(180deg,#2c2a1e,#171509), $bd: #b8963c,
+    $panel-shadow: (0 0 0 1px rgba(230,200,90,.3), 0 0 12px rgba(184,150,60,.25), 0 8px 24px rgba(0,0,0,.55)),
+    $item-bg: #241f12, $item-bd: #4a3d18, $cell-bg: #1c190f, $cell-bd: #0c0a05,
+    $coins-bg: #241f12, $coins-bd: #b8963c, $coins-col: #f0e6c8,
+    $radius: 8px
+  );
+}

@@ -370,3 +370,36 @@ $text-cream: #ecd9b4;
     $plate-bg: #182248, $plate-bd: #0e1430, $inset-bg: #0a0e22, $inset-bd: #3a2f12
   );
 }
+
+/* SYLVAN · bosque verde + oro pálido */
+:host-context([data-appstyle="sylvan"]) {
+  @include id-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #e8f0d8, $muted: rgba(220,232,200,.62),
+    $title: #d8c878, $accent: #9fd06a,
+    $panel-bg: linear-gradient(180deg,#1f3324,#122018), $bd: #3c6b3e,
+    $panel-shadow: (0 0 0 1px rgba(216,200,120,.25), 0 0 14px rgba(80,140,60,.3), -4px 4px 20px rgba(0,0,0,.5)), $radius: 10px,
+    $plate-bg: #16241a, $plate-bd: #2e4a30, $inset-bg: #0f1a12, $inset-bd: #2e4a30
+  );
+}
+
+/* EMBER · brasa negra + naranja fuego */
+:host-context([data-appstyle="ember"]) {
+  @include id-style(
+    $font: ('Segoe UI',system-ui,sans-serif), $text: #f0dccb, $muted: rgba(240,220,200,.6),
+    $title: #ffb066, $accent: #ff7a2a,
+    $panel-bg: linear-gradient(180deg,#1a1512,#0a0706), $bd: #5a2410,
+    $panel-shadow: (0 0 0 1px rgba(255,122,42,.25), inset 0 -18px 30px rgba(255,90,20,.12), 0 0 16px rgba(255,90,20,.2), -4px 4px 20px rgba(0,0,0,.6)), $radius: 5px,
+    $plate-bg: #140f0c, $plate-bd: #3a1e10, $inset-bg: #0d0a08, $inset-bd: #3a1e10
+  );
+}
+
+/* DESERT · arena dorada + turquesa */
+:host-context([data-appstyle="desert"]) {
+  @include id-style(
+    $font: (Georgia,'Times New Roman',serif), $text: #f0e6c8, $muted: rgba(240,230,200,.6),
+    $title: #e6c85a, $accent: #3fd0c0,
+    $panel-bg: linear-gradient(180deg,#2c2a1e,#171509), $bd: #b8963c,
+    $panel-shadow: (0 0 0 1px rgba(230,200,90,.3), 0 0 12px rgba(184,150,60,.25), -4px 4px 20px rgba(0,0,0,.55)), $radius: 8px,
+    $plate-bg: #1c190f, $plate-bd: #4a3d18, $inset-bg: #131109, $inset-bd: #4a3d18
+  );
+}

@@ -300,3 +300,22 @@ html[data-appstyle="real"] {
     $coins-bg: #182248, $coins-bd: #caa23c, $coins-col: #f0e6cc, $accent: #e0b53c
   );
 }
+html[data-appstyle="sylvan"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, #2c5236, #1c3322), $btn-bd: #3c6b3e, $btn-col: #cfe0a8, $btn-active-bg: #122018,
+    $coins-bg: #1c3322, $coins-bd: #6a9f56, $coins-col: #e8f0d8, $accent: #9fd06a
+  );
+}
+html[data-appstyle="ember"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, #2a1a10, #1a120c), $btn-bd: #5a2410, $btn-col: #ffb066, $btn-active-bg: #0a0706,
+    $coins-bg: #1a120c, $coins-bd: #b5501e, $coins-col: #f0dccb, $accent: #ff7a2a,
+    $btn-font: ('Segoe UI', system-ui, sans-serif)
+  );
+}
+html[data-appstyle="desert"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, #34301e, #241f12), $btn-bd: #b8963c, $btn-col: #e6c85a, $btn-active-bg: #171509,
+    $coins-bg: #241f12, $coins-bd: #b8963c, $coins-col: #f0e6c8, $accent: #3fd0c0
+  );
+}

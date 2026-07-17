@@ -354,6 +354,47 @@ $gold-d: #b8922a;
   );
 }
 
+/* ───── SYLVAN · bosque esmeralda + oro pálido ───── */
+:host-context([data-appstyle="sylvan"]) {
+  @include dialog-theme(
+    $bg: linear-gradient(180deg, #1f3324, #122018), $border: 2px solid #3c6b3e, $radius: 10px,
+    $box-glow: (0 0 0 1px rgba(216, 200, 120, 0.25), 0 0 14px rgba(80, 140, 60, 0.3), 0 8px 24px rgba(0, 0, 0, 0.5)),
+    $text: #e8f0d8,
+    $name-bg: linear-gradient(180deg, #5a8f4c, #33612f), $name-col: #f0f5d8, $name-bd: 1px solid #a8d86a,
+    $av-bg: #16241a, $av-bd: 2px solid #6a9f56, $av-radius: 8px,
+    $close-bg: #16241a, $close-col: #d8c878, $close-bd: 1px solid rgba(159, 208, 106, 0.16),
+    $hint: #9fd06a, $name-font: (Georgia, serif), $accent-shadow: 0 0 10px rgba(159, 208, 106, 0.55)
+  );
+}
+
+/* ───── EMBER · brasa + carbón ───── */
+:host-context([data-appstyle="ember"]) {
+  @include dialog-theme(
+    $bg: linear-gradient(180deg, #1a1512, #0a0706), $border: 2px solid #5a2410, $radius: 5px,
+    $box-glow: (0 0 0 1px rgba(255, 122, 42, 0.25), inset 0 -18px 30px rgba(255, 90, 20, 0.12), 0 0 16px rgba(255, 90, 20, 0.2), 0 8px 24px rgba(0, 0, 0, 0.6)),
+    $text: #f0dccb,
+    $name-bg: linear-gradient(180deg, #ff8a3a, #b04010), $name-col: #1a0c04, $name-bd: 1px solid #ffb066,
+    $av-bg: #140f0c, $av-bd: 2px solid #b5501e, $av-radius: 4px,
+    $close-bg: #140f0c, $close-col: #ffb066, $close-bd: 1px solid rgba(255, 90, 20, 0.4),
+    $hint: #ff7a2a,
+    $name-font: ('Segoe UI', system-ui, sans-serif), $name-tr: uppercase,
+    $text-font: ('Segoe UI', system-ui, sans-serif), $accent-shadow: 0 0 12px rgba(255, 122, 42, 0.6)
+  );
+}
+
+/* ───── DESERT · duna dorada + turquesa ───── */
+:host-context([data-appstyle="desert"]) {
+  @include dialog-theme(
+    $bg: linear-gradient(180deg, #2c2a1e, #171509), $border: 2px solid #b8963c, $radius: 8px,
+    $box-glow: (0 0 0 1px rgba(230, 200, 90, 0.3), 0 0 12px rgba(184, 150, 60, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #f0e6c8,
+    $name-bg: linear-gradient(180deg, #f0d878, #b8963c), $name-col: #2a2010, $name-bd: 1px solid #e6c85a,
+    $av-bg: #1c190f, $av-bd: 2px solid #b8963c, $av-radius: 6px,
+    $close-bg: #1c190f, $close-col: #e6c85a, $close-bd: 1px solid rgba(63, 208, 192, 0.4),
+    $hint: #3fd0c0, $name-font: (Georgia, serif), $accent-shadow: 0 0 10px rgba(63, 208, 192, 0.55)
+  );
+}
+
 @keyframes dlg-pop {
   from { transform: translateY(12px) scale(0.96); opacity: 0; }
   to   { transform: translateY(0)    scale(1);    opacity: 1; }

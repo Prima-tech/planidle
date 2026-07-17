@@ -16,10 +16,10 @@ $gold-2: #f0c040;
 .chat-fab {
   position: fixed;
   left: calc(8px + var(--safe-left, 0px));
-  bottom: calc(58px + var(--safe-bottom, 0px));
-  z-index: 159;
-  width: 38px;
-  height: 38px;
+  bottom: calc(56px + var(--safe-bottom, 0px));
+  z-index: 161;   // POR ENCIMA de la ventana (160) → sigue pulsable para cerrar
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,7 +33,7 @@ $gold-2: #f0c040;
   outline: none;
   -webkit-tap-highlight-color: transparent;
 
-  ion-icon { font-size: 20px; }
+  ion-icon { font-size: 17px; }
 
   &:focus, &:focus-visible { outline: none; }
   &:active { transform: scale(0.92); }
@@ -64,8 +64,10 @@ $gold-2: #f0c040;
 .chat-window {
   position: fixed;
   left: calc(8px + var(--safe-left, 0px));
-  bottom: calc(104px + var(--safe-bottom, 0px));
-  z-index: 159;
+  // Se abre MÁS ABAJO: su borde inferior queda justo sobre el hub, tapando el botón
+  // (que asoma por encima en la esquina inferior-izq como cierre).
+  bottom: calc(50px + var(--safe-bottom, 0px));
+  z-index: 160;
   width: min(300px, calc(100vw - 16px));
   max-height: 44vh;
   display: flex;
@@ -84,47 +86,14 @@ $gold-2: #f0c040;
   to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
-.chat-head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 6px 6px 9px;
-  background: linear-gradient(180deg, $wood-btn, $wood-btn-dark);
-  border-bottom: 2px solid $outline;
-  color: $text-cream;
-}
-.chat-head-icon { font-size: 15px; color: $text-cream; }
-.chat-title {
-  flex: 1;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-}
-.chat-close {
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  background: none;
-  border: none;
-  color: $text-cream;
-  cursor: pointer;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-  ion-icon { font-size: 16px; }
-  &:active { transform: scale(0.9); }
-}
-
 .chat-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 7px 9px;
+  // padding-bottom extra: deja hueco para que el botón (que asoma por encima en la
+  // esquina inferior-izq) no tape el último mensaje.
+  padding: 7px 9px 40px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -152,7 +121,7 @@ $gold-2: #f0c040;
 .chat-colon { margin-right: 3px; }
 
 /* ═══════════════ Temas (data-appstyle) ═══════════════ */
-@mixin chat-theme($fab-bg, $fab-edge, $fab-icon, $win-bg, $win-edge, $radius, $head-bg, $head-col, $speaker, $text, $muted) {
+@mixin chat-theme($fab-bg, $fab-edge, $fab-icon, $win-bg, $win-edge, $radius, $speaker, $text, $muted) {
   .chat-fab {
     background: $fab-bg;
     border: 1px solid $fab-edge;
@@ -164,13 +133,6 @@ $gold-2: #f0c040;
     border: 1px solid $win-edge;
     border-radius: $radius;
   }
-  .chat-head {
-    background: $head-bg;
-    border-bottom-color: $win-edge;
-    color: $head-col;
-  }
-  .chat-head-icon { color: $head-col; }
-  .chat-close { color: $head-col; }
   .chat-speaker, .chat-colon { color: $speaker; }
   .chat-msg { color: $text; }
   .chat-empty { color: $muted; }
@@ -180,7 +142,6 @@ $gold-2: #f0c040;
   @include chat-theme(
     $fab-bg: rgba(6, 10, 9, 0.9), $fab-edge: rgba(33, 255, 154, 0.45), $fab-icon: #21ff9a,
     $win-bg: rgba(4, 8, 7, 0.96), $win-edge: rgba(33, 255, 154, 0.3), $radius: 3px,
-    $head-bg: #080d0b, $head-col: #21ff9a,
     $speaker: #21ff9a, $text: #cfe8dd, $muted: rgba(180, 220, 200, 0.55)
   );
 }
@@ -188,7 +149,6 @@ $gold-2: #f0c040;
   @include chat-theme(
     $fab-bg: rgba(22, 15, 40, 0.92), $fab-edge: rgba(122, 80, 230, 0.5), $fab-icon: #b79cff,
     $win-bg: rgba(16, 11, 30, 0.96), $win-edge: rgba(122, 80, 230, 0.4), $radius: 9px,
-    $head-bg: linear-gradient(180deg, #5b3bc4, #2e1f52), $head-col: #f0e9ff,
     $speaker: #b79cff, $text: #e6dcff, $muted: rgba(216, 204, 245, 0.55)
   );
 }
@@ -196,7 +156,6 @@ $gold-2: #f0c040;
   @include chat-theme(
     $fab-bg: rgba(20, 10, 12, 0.92), $fab-edge: rgba(168, 50, 64, 0.5), $fab-icon: #d98a92,
     $win-bg: rgba(14, 8, 9, 0.96), $win-edge: rgba(107, 22, 32, 0.7), $radius: 7px,
-    $head-bg: linear-gradient(180deg, #7a1622, #3a0a10), $head-col: #f0d0c4,
     $speaker: #e0616e, $text: #ecd2c8, $muted: rgba(230, 190, 180, 0.55)
   );
 }
@@ -204,7 +163,6 @@ $gold-2: #f0c040;
   @include chat-theme(
     $fab-bg: rgba(6, 16, 26, 0.92), $fab-edge: rgba(80, 180, 255, 0.5), $fab-icon: #4db8ff,
     $win-bg: rgba(5, 12, 20, 0.96), $win-edge: rgba(80, 180, 255, 0.35), $radius: 4px,
-    $head-bg: #0a1826, $head-col: #8fd4ff,
     $speaker: #4db8ff, $text: #d3e8fa, $muted: rgba(200, 225, 245, 0.55)
   );
 }
@@ -212,7 +170,27 @@ $gold-2: #f0c040;
   @include chat-theme(
     $fab-bg: rgba(14, 20, 44, 0.92), $fab-edge: rgba(202, 162, 60, 0.6), $fab-icon: #e0b53c,
     $win-bg: rgba(12, 16, 36, 0.96), $win-edge: rgba(202, 162, 60, 0.5), $radius: 10px,
-    $head-bg: linear-gradient(180deg, #e0b53c, #9c7a1e), $head-col: #2a1e06,
     $speaker: #e0b53c, $text: #ece0c4, $muted: rgba(230, 220, 190, 0.55)
+  );
+}
+:host-context([data-appstyle="sylvan"]) {
+  @include chat-theme(
+    $fab-bg: rgba(31, 51, 36, 0.92), $fab-edge: rgba(159, 208, 106, 0.5), $fab-icon: #9fd06a,
+    $win-bg: rgba(18, 32, 24, 0.96), $win-edge: rgba(159, 208, 106, 0.4), $radius: 10px,
+    $speaker: #9fd06a, $text: #e8f0d8, $muted: rgba(220, 232, 200, 0.62)
+  );
+}
+:host-context([data-appstyle="ember"]) {
+  @include chat-theme(
+    $fab-bg: rgba(26, 21, 18, 0.92), $fab-edge: rgba(255, 122, 42, 0.5), $fab-icon: #ff7a2a,
+    $win-bg: rgba(10, 7, 6, 0.96), $win-edge: rgba(255, 122, 42, 0.4), $radius: 5px,
+    $speaker: #ff7a2a, $text: #f0dccb, $muted: rgba(240, 220, 200, 0.6)
+  );
+}
+:host-context([data-appstyle="desert"]) {
+  @include chat-theme(
+    $fab-bg: rgba(44, 42, 30, 0.92), $fab-edge: rgba(63, 208, 192, 0.5), $fab-icon: #3fd0c0,
+    $win-bg: rgba(23, 21, 9, 0.96), $win-edge: rgba(63, 208, 192, 0.4), $radius: 8px,
+    $speaker: #3fd0c0, $text: #f0e6c8, $muted: rgba(240, 230, 200, 0.6)
   );
 }
