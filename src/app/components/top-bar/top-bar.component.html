@@ -36,6 +36,8 @@
             <div class="avatar-icon">
               <img *ngIf="activityIcon" [src]="activityIcon" class="avatar-activity-img" alt="">
               <span *ngIf="!activityIcon" class="avatar-zzz">Zzz</span>
+              <!-- Insignia de nivel del personaje -->
+              <span class="avatar-lvl">{{ lvl$ | async }}</span>
             </div>
           </div>
 
@@ -45,6 +47,7 @@
               <div class="bar-row">
                 <div class="bar-track">
                   <div class="bar-fill bar-fill--hp" [style.width.%]="hp.ratio * 100"></div>
+                  <span class="bar-num">{{ hp.current }}/{{ hp.max }}</span>
                 </div>
               </div>
             </ng-container>
@@ -53,6 +56,7 @@
               <div class="bar-row">
                 <div class="bar-track">
                   <div class="bar-fill bar-fill--mp" [style.width.%]="mp.ratio * 100"></div>
+                  <span class="bar-num">{{ mp.current }}/{{ mp.max }}</span>
                 </div>
               </div>
             </ng-container>
