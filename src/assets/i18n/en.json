@@ -664,6 +664,20 @@
     "EMPTY": "You haven't talked to anyone yet.",
     "CLOSE": "Close"
   },
+  "CHAT_AMBIENT": {
+    "GENERIC": {
+      "L1": "Anyone else's feet aching after all this walking?",
+      "L2": "I could really go for a hot meal right about now.",
+      "L3": "Did you hear something moving in the bushes?",
+      "L4": "Keep your guard up, these woods aren't safe.",
+      "L5": "One day I'll retire and open a little shop."
+    },
+    "MORDEKAI": {
+      "CHEESE": "So... which do you prefer, edam or havarti?",
+      "L1": "A good blade is like a good cheese: it takes time.",
+      "L2": "Don't tell anyone, but I hid a wheel of gouda in the cellar."
+    }
+  },
   "COMMON": {
     "LOADING": "...",
     "LOADING_TEXT": "Loading..."

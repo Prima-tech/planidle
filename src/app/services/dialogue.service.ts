@@ -84,6 +84,12 @@ export class DialogueService {
   /** Pide continuar (tecla espacio). Lo resuelve el componente (páginas/líneas/cierre). */
   requestNext(): void { if (this.line$.value) this.next$.next(); }
 
+  /** Publica una línea SOLO en el registro de chat, sin abrir el bocadillo del NPC.
+   *  Para la charla ambiental de otros personajes (AmbientChatService). */
+  postChat(speaker: string, text: string): void {
+    this.pushHistory(speaker, text);
+  }
+
   private emit(): void {
     const speaker = this.speaker;
     const text = this.lines[this.index];

@@ -664,6 +664,20 @@
     "EMPTY": "Aún no has hablado con nadie.",
     "CLOSE": "Cerrar"
   },
+  "CHAT_AMBIENT": {
+    "GENERIC": {
+      "L1": "¿A alguien más le duelen los pies de tanto andar?",
+      "L2": "Ahora mismo me comía un buen plato caliente.",
+      "L3": "¿Habéis oído algo moverse entre los arbustos?",
+      "L4": "Ojo avizor, estos bosques no son seguros.",
+      "L5": "Algún día me retiraré y abriré una tiendecita."
+    },
+    "MORDEKAI": {
+      "CHEESE": "¿Qué preferís, el edam o el havarti?",
+      "L1": "Una buena espada es como un buen queso: requiere tiempo.",
+      "L2": "No se lo digáis a nadie, pero escondí una rueda de gouda en el sótano."
+    }
+  },
   "COMMON": {
     "LOADING": "...",
     "LOADING_TEXT": "Cargando..."

@@ -129,7 +129,7 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
   dismiss(): void { this.dialogue.dismiss(); }
 
   /**
-   * Corta `line.text` en páginas de ≤2 líneas visuales. Mide contra el DOM REAL
+   * Corta `line.text` en páginas de ≤3 líneas visuales. Mide contra el DOM REAL
    * (un div oculto que hereda fuente + letter-spacing del cuadro), no con canvas:
    * measureText ignora el letter-spacing y el kerning, así que subestimaba las líneas
    * y dejaba el texto en una sola página recortada por el clamp CSS (sin poder avanzar).
@@ -142,7 +142,8 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
 
     const cs = getComputedStyle(el);
     const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4;
-    const maxTwoLines = lineHeight * 2 + 1;   // +1px de tolerancia de redondeo
+    // Nº de líneas visibles por página (debe coincidir con -webkit-line-clamp del .dlg-text).
+    const maxLines = lineHeight * 3 + 1;   // 3 líneas (+1px de tolerancia de redondeo)
 
     // Div de medición: mismo ancho y tipografía, pero sin recorte y con alto automático.
     const meas = document.createElement('div');
@@ -158,11 +159,11 @@ export class NpcDialogueComponent implements OnInit, OnDestroy {
     const host = el.parentElement ?? document.body;
     host.appendChild(meas);
 
-    const fits = (s: string) => { meas.textContent = s; return meas.clientHeight <= maxTwoLines; };
+    const fits = (s: string) => { meas.textContent = s; return meas.clientHeight <= maxLines; };
 
     let pages: string[];
     if (fits(this.line.text)) {
-      pages = [this.line.text];   // cabe entero en 2 líneas → una sola página
+      pages = [this.line.text];   // cabe entero en 3 líneas → una sola página
     } else {
       // Reservamos el " …" en cada página (todas menos la última lo mostrarán).
       pages = [];

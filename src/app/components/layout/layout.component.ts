@@ -32,6 +32,7 @@ import { AutoAttackService } from 'src/app/services/auto-attack.service';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { RegenService } from 'src/app/services/regen.service';
+import { AmbientChatService } from 'src/app/services/ambient-chat.service';
 import { APP_VERSION } from 'src/app/version';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
@@ -123,6 +124,7 @@ export class LayoutComponent implements OnDestroy {
     private questService: QuestService,
     public runProgressService: RunProgressService,
     private translateService: TranslateService,
+    private ambientChatService: AmbientChatService,
   ) {
     this.loadGame();
   }
@@ -132,6 +134,7 @@ export class LayoutComponent implements OnDestroy {
     // la app recarga directamente en el juego sin volver a pasar por el login.
     this.connectionService.load();
     this.regenService.start();
+    this.ambientChatService.start();   // charla ambiental de otros personajes en el chat
     this.gainsSub = this.saveService.pendingGains$
       .pipe(filter(g => g !== null))
       .subscribe(gains => {
@@ -190,6 +193,7 @@ export class LayoutComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.regenService.stop();
+    this.ambientChatService.stop();
     this.gainsSub?.unsubscribe();
     this.deathSub?.unsubscribe();
     this.sceneStartingSub?.unsubscribe();
