@@ -22,6 +22,7 @@
     </button>
     <button class="eq-vtab" *ngIf="tabVisible(5)" [class.active]="activeTab === 5" (click)="activeTab = 5">
       <ion-icon name="trophy-outline"></ion-icon>
+      <span class="notif-dot" *ngIf="badges.has('equip.achievements')"></span>
     </button>
     <button class="eq-vtab" *ngIf="tabVisible(6)" [class.active]="activeTab === 6" (click)="activeTab = 6">
       <ion-icon name="reader-outline"></ion-icon>

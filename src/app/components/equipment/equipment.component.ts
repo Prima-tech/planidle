@@ -58,6 +58,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     }
     if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; this.selectedEquippedItem = null; }
     if (v !== 5) { this.selectedAch = null; this.expandedAchId = null; }
+    if (v === 5) this.badges.clear('equip.achievements');
     if (v === 6) this.badges.clear('equip.quests');
   }
 
@@ -215,7 +216,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this.selectedEquippedItem = null;   // el equipo cambió; cierra la ficha
   }
 
-  // ── Logros (tab 4) ───────────────────────────────────────────────────────────
+  // ── Logros (tab 5) ───────────────────────────────────────────────────────────
 
   achScope: AchievementScope = 'char';
   selectedAch: AchievementDef | null = null;
@@ -240,7 +241,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   // Al empezar una partida SOLO se ve la pestaña de Equipo. El resto se desbloquea:
   //  · Misiones (tab 6): cuando Mordekai da la 1ª misión ('primeras_estrellas' activa/completada).
   //  · Modificación de stats (flyout de tab 0): al tener el 1er punto libre (nivel ≥ 2).
-  //  · Stats/Talentos/Logros/Recolección (tabs 2/4/5/7): PENDIENTE de condición → de
+  //  · Logros (tab 5): al completar el 1er logro (hasAnyUnlocked).
+  //  · Stats/Talentos/Recolección (tabs 2/4/7): PENDIENTE de condición → de
   //    momento ocultas (solo visibles en modo admin). Cablear su condición cuando se defina.
   // Admin ve todo (mismo criterio que el árbol de talentos / isCharacterUnlocked).
 
@@ -256,17 +258,23 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     return this.admin.isAdmin || this.playerState.snapshot().lvl > 1;
   }
 
-  /** Pestañas Stats/Talentos/Logros/Recolección: aún sin condición → ocultas (salvo admin). */
+  /** Pestañas Stats/Talentos/Recolección: aún sin condición → ocultas (salvo admin). */
   get pendingTabsUnlocked(): boolean {
     return this.admin.isAdmin;
+  }
+
+  /** Has completado al menos un logro → se muestra la pestaña de Logros. */
+  get achievementsUnlocked(): boolean {
+    return this.admin.isAdmin || this.achievements.hasAnyUnlocked();
   }
 
   /** ¿Debe verse la pestaña `index`? (Equipo siempre; el resto según su desbloqueo). */
   tabVisible(index: number): boolean {
     switch (index) {
       case 0: return true;
+      case 5: return this.achievementsUnlocked;
       case 6: return this.missionsUnlocked;
-      case 2: case 4: case 5: case 7: return this.pendingTabsUnlocked;
+      case 2: case 4: case 7: return this.pendingTabsUnlocked;
       default: return false;
     }
   }

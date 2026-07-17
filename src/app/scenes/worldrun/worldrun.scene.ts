@@ -1200,13 +1200,31 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   // ── Bloques "?" tipo Mario Bros ───────────────────────────────────────────────
-  /** Grupo de bloques (sin gravedad, inmóviles) + overlap con el jugador. Usamos
-   *  OVERLAP (no collider sólido) a propósito: así el bloque nunca frena el auto-run
-   *  ni bloquea al jugador de lado; solo detectamos el cabezazo desde abajo. */
+  /** Grupo de bloques (sin gravedad, inmóviles). Dos interacciones:
+   *   · OVERLAP → cabezazo desde ABAJO (recompensa); no separa, no frena el auto-run.
+   *   · COLLIDER de UNA cara → puedes aterrizar ENCIMA de la caja (plataforma) y volver
+   *     a saltar. El processCallback (landingOnBlock) deja pasar la colisión SOLO cuando
+   *     el jugador cae sobre el techo del bloque; de lado o desde abajo la ignora, así el
+   *     bloque sigue sin frenar el auto-run ni bloquear el cabezazo. */
   private createBlocks(): void {
     this.blocks = this.physics.add.group({ allowGravity: false, immovable: true });
     this.physics.add.overlap(this.player, this.blocks,
       (_p, b) => this.hitBlock(b as Phaser.Physics.Arcade.Sprite));
+    this.physics.add.collider(this.player, this.blocks, undefined,
+      (p, b) => this.landingOnBlock(
+        p as Phaser.Physics.Arcade.Sprite, b as Phaser.Physics.Arcade.Sprite));
+  }
+
+  /** processCallback de la plataforma de una cara: `true` solo cuando el jugador ATERRIZA
+   *  sobre el techo del bloque — su base estaba por encima del techo el frame anterior y
+   *  va cayendo (velocity.y ≥ 0). Desde abajo (cabezazo) o de lado devuelve `false`, así
+   *  no hay colisión sólida y el bloque no frena el auto-run. Al posarse encima,
+   *  `body.blocked.down` pasa a true y update() recarga el salto (puedes volver a saltar). */
+  private landingOnBlock(player: Phaser.Physics.Arcade.Sprite, block: Phaser.Physics.Arcade.Sprite): boolean {
+    const pb = player.body as Phaser.Physics.Arcade.Body;
+    const bb = block.body as Phaser.Physics.Arcade.Body;
+    const prevBottom = pb.prev.y + pb.height;   // base del jugador el frame anterior
+    return pb.velocity.y >= 0 && prevBottom <= bb.top + 6;
   }
 
   /**

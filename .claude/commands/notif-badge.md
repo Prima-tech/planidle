@@ -91,5 +91,7 @@ toggleStatsFlyout(): void {
 | Clave | Enciende | Punto rojo en | Se apaga al |
 |-------|----------|---------------|-------------|
 | `equip.stats` | Subir de nivel (LayoutComponent) | Botón equipo del footer (`has('equip')`) + pastilla de stats (`has('equip.stats')`) | Abrir el flyout de stats |
+| `equip.quests` | Completar/cruzar el goal de una misión (QuestService) | Botón equipo (`has('equip')`) + pestaña Misiones (`has('equip.quests')`) | Abrir la pestaña Misiones (tab 6) |
+| `equip.achievements` | Desbloquear un logro real (AchievementService.unlock) | Botón equipo (`has('equip')`) + pestaña Logros (`has('equip.achievements')`) | Abrir la pestaña Logros (tab 5) |
 
 Al añadir un badge nuevo, **actualizar esta tabla**.

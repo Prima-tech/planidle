@@ -87,5 +87,21 @@ stub (mismo patrón que `SaveService.saveRemote`). Al activar el backend:
 | deaths_10 | char | deaths | 10 |
 | gkills_1000 | global | kills | 1000 |
 | gkills_10000 | global | kills | 10000 |
+| gstars_1e3 | global | starsCollected | 1e3 (1k) |
+| gstars_1e4 | global | starsCollected | 1e4 (10k) |
+| gstars_1e7 | global | starsCollected | 1e7 (10M) |
+| gstars_1e10 | global | starsCollected | 1e10 (10B) |
+| gstars_1e13 | global | starsCollected | 1e13 (10T) |
+| gstars_1e16 | global | starsCollected | 1e16 (10q) |
+| gstars_1e19 | global | starsCollected | 1e19 (10Q) |
+| gstars_1e22 | global | starsCollected | 1e22 (10s) |
+| gstars_1e25 | global | starsCollected | 1e25 (10S) |
+| gstars_1e28 | global | starsCollected | 1e28 (10o) |
+| gstars_1e31 | global | starsCollected | 1e31 (10n) |
+| gstars_1e34 | global | starsCollected | 1e34 (10d = 10D) |
+
+> `starsCollected` (global): total de estrellas del runner recogidas de por vida
+> por la cuenta (`RunProgressService.getStarsCollected()`, compartido entre
+> personajes). El toast se dispara con `starPicked$` (recogida física real).
 
 Al añadir un logro, **actualizar esta tabla**.

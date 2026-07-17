@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output, inject } from '@angular/core';
 import { map } from 'rxjs';
 import { RunProgressService } from 'src/app/services/run-progress.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -21,7 +21,7 @@ import { CompactNumberPipe } from 'src/app/pipes/compact-number.pipe';
   styleUrls: ['./run-stats.component.scss'],
   standalone: false,
 })
-export class RunStatsComponent {
+export class RunStatsComponent implements OnDestroy {
   private runProgress  = inject(RunProgressService);
   private playerBridge = inject(PlayerBridgeService);
   private unlocks      = inject(UnlockService);
@@ -86,6 +86,47 @@ export class RunStatsComponent {
   weaponCost(w: RunWeaponDef): number { return this.runProgress.weaponCost(w); }
   canBuyWeapon(w: RunWeaponDef): boolean { return this.runProgress.canBuyWeapon(w); }
   buyWeapon(w: RunWeaponDef): void { this.runProgress.buyWeapon(w); }
+
+  // ── Mantener pulsado para comprar en cadena (acelerativo) ────────────────────
+  // Estilo idle-game: al mantener el botón de compra de un arma, compra una vez y luego
+  // sigue comprando cada vez más rápido hasta que sueltas o te quedas sin estrellas.
+  // El coste sube en cada compra, así que la cadena termina sola cuando ya no alcanza.
+  // Se usan eventos de puntero (móvil + escritorio); por eso el botón NO lleva (click).
+  private holdTimer?: ReturnType<typeof setTimeout>;
+  private holdActive = false;
+
+  /** Empieza la cadena de compra: 1ª compra inmediata (= un tap) y, si mantienes,
+   *  recompra recursiva acelerando el ritmo en cada paso. */
+  startWeaponHold(w: RunWeaponDef, ev?: Event): void {
+    ev?.preventDefault();            // evita el menú de selección en móvil al mantener
+    this.stopWeaponHold();           // por si quedaba una cadena viva
+    if (!this.canBuyWeapon(w)) return;
+
+    this.holdActive = true;
+    let delay = 360;                 // ms hasta la 2ª compra (pausa tipo auto-repeat)
+    const MIN_DELAY = 40;            // ritmo máximo (mantiene la aceleración acotada)
+    const ACCEL = 0.80;             // cada compra recorta el intervalo
+
+    const tick = () => {
+      if (!this.holdActive) return;
+      if (!this.canBuyWeapon(w)) { this.stopWeaponHold(); return; }
+      this.buyWeapon(w);
+      delay = Math.max(MIN_DELAY, delay * ACCEL);
+      this.holdTimer = setTimeout(tick, delay);
+    };
+
+    this.buyWeapon(w);               // primera compra al pulsar (equivale al tap)
+    this.holdTimer = setTimeout(tick, delay);
+  }
+
+  /** Corta la cadena (soltar, salir del botón, cancelar o destruir el componente). */
+  stopWeaponHold(): void {
+    this.holdActive = false;
+    if (this.holdTimer) { clearTimeout(this.holdTimer); this.holdTimer = undefined; }
+  }
+
+  ngOnDestroy(): void { this.stopWeaponHold(); }
+
   /** Estrellas/seg que produce un arma a su nivel actual. */
   weaponRate(w: RunWeaponDef): number { return weaponStarsPerSec(w, this.weaponLevel(w.id)); }
   /** Estrellas/seg TOTAL de producción pasiva (armas + generadores de hitos). */

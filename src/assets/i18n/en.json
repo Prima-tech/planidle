@@ -321,6 +321,54 @@
     "GKILLS_10000": {
       "NAME": "Apocalypse",
       "DESC": "Kill 10,000 enemies across all your characters."
+    },
+    "GSTARS_1E3": {
+      "NAME": "Stellar Spark",
+      "DESC": "Collect 1k stars across all players."
+    },
+    "GSTARS_1E4": {
+      "NAME": "Star Hunter",
+      "DESC": "Collect 10k stars across all players."
+    },
+    "GSTARS_1E7": {
+      "NAME": "Star Shower",
+      "DESC": "Collect 10M stars across all players."
+    },
+    "GSTARS_1E10": {
+      "NAME": "Constellation",
+      "DESC": "Collect 10B stars across all players."
+    },
+    "GSTARS_1E13": {
+      "NAME": "Star Cluster",
+      "DESC": "Collect 10T stars across all players."
+    },
+    "GSTARS_1E16": {
+      "NAME": "Nebula",
+      "DESC": "Collect 10q stars across all players."
+    },
+    "GSTARS_1E19": {
+      "NAME": "Galaxy",
+      "DESC": "Collect 10Q stars across all players."
+    },
+    "GSTARS_1E22": {
+      "NAME": "Galactic Cluster",
+      "DESC": "Collect 10s stars across all players."
+    },
+    "GSTARS_1E25": {
+      "NAME": "Supercluster",
+      "DESC": "Collect 10S stars across all players."
+    },
+    "GSTARS_1E28": {
+      "NAME": "Universe",
+      "DESC": "Collect 10o stars across all players."
+    },
+    "GSTARS_1E31": {
+      "NAME": "Multiverse",
+      "DESC": "Collect 10n stars across all players."
+    },
+    "GSTARS_1E34": {
+      "NAME": "Stellar Infinity",
+      "DESC": "Collect 10d stars across all players."
     }
   },
   "GATHER_SKILLS": {

@@ -321,6 +321,54 @@
     "GKILLS_10000": {
       "NAME": "Apocalipsis",
       "DESC": "Mata 10.000 enemigos entre todos tus personajes."
+    },
+    "GSTARS_1E3": {
+      "NAME": "Chispa Estelar",
+      "DESC": "Recolecta 1k estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E4": {
+      "NAME": "Cazaestrellas",
+      "DESC": "Recolecta 10k estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E7": {
+      "NAME": "Lluvia de Estrellas",
+      "DESC": "Recolecta 10M estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E10": {
+      "NAME": "Constelación",
+      "DESC": "Recolecta 10B estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E13": {
+      "NAME": "Cúmulo Estelar",
+      "DESC": "Recolecta 10T estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E16": {
+      "NAME": "Nebulosa",
+      "DESC": "Recolecta 10q estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E19": {
+      "NAME": "Galaxia",
+      "DESC": "Recolecta 10Q estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E22": {
+      "NAME": "Cúmulo Galáctico",
+      "DESC": "Recolecta 10s estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E25": {
+      "NAME": "Supercúmulo",
+      "DESC": "Recolecta 10S estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E28": {
+      "NAME": "Universo",
+      "DESC": "Recolecta 10o estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E31": {
+      "NAME": "Multiverso",
+      "DESC": "Recolecta 10n estrellas entre todos los jugadores."
+    },
+    "GSTARS_1E34": {
+      "NAME": "Infinito Estelar",
+      "DESC": "Recolecta 10d estrellas entre todos los jugadores."
     }
   },
   "GATHER_SKILLS": {
