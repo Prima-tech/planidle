@@ -3,6 +3,7 @@ import { BehaviorSubject, combineLatest, Subscription, map, startWith } from 'rx
 import { AsgardService } from 'src/app/services/asgard';
 import { StorageService } from 'src/app/services/storage.service';
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
+import { AchievementService } from 'src/app/services/achievement.service';
 import { EquipmentSnapshot } from 'src/app/services/equipment.service';
 import { ActiveBuff, BuffService } from 'src/app/services/buff.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -74,10 +75,17 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private mapUpgrades  = inject(MapUpgradesService);
   private mapDominion  = inject(MapDominionService);
   private badges       = inject(NotificationBadgeService);
+  private achievements = inject(AchievementService);
 
   /** Indicador de novedad en la pastilla del nombre (abre la ventana de equipo):
    *  encendido cuando hay algo nuevo dentro (misión reclamable, punto de stats…). */
   questBadge = false;
+
+  /** Punto de la pastilla del nombre: novedad transitoria de equipo (`questBadge`) O
+   *  una recompensa de logro por recoger (persiste hasta cobrarla, no al abrir). */
+  get equipBadge(): boolean {
+    return this.questBadge || this.achievements.hasClaimable();
+  }
 
   valueHP$: any = null;
   valueMP$: any = null;

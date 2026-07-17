@@ -30,7 +30,12 @@ export interface AchievementDef {
   metric: AchievementMetric;
   goal: number;
   icon: string;               // ion-icon
+  /** Marcas del condenado que otorga al RECOGER la recompensa. Por defecto 5. */
+  rewardMarks?: number;
 }
+
+/** Recompensa por defecto de un logro al recogerla: Marcas del condenado. */
+export const ACHIEVEMENT_REWARD_MARKS = 5;
 
 // name/desc son CLAVES i18n: se traducen al mostrarlos (panel de logros con
 // `| translate`, toast con translate.instant). Ver ACHIEVEMENTS.* en los json.
@@ -86,6 +91,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 
 const GLOBAL_KEY = 'achievements_global';
 const charKey = (id: string) => `achievements_char_${id}`;
+// Recompensas ya recogidas (independiente de "desbloqueado"): un logro se
+// desbloquea al llegar al objetivo, pero la recompensa se recoge aparte.
+const CLAIMED_GLOBAL_KEY = 'achievements_claimed_global';
+const claimedCharKey = (id: string) => `achievements_claimed_char_${id}`;
 
 @Injectable({ providedIn: 'root' })
 export class AchievementService implements OnDestroy {
@@ -96,6 +105,8 @@ export class AchievementService implements OnDestroy {
   private charId: string | null = null;
   private unlockedChar   = new Set<string>();
   private unlockedGlobal = new Set<string>();
+  private claimedChar    = new Set<string>();   // recompensa ya recogida (personaje)
+  private claimedGlobal  = new Set<string>();   // recompensa ya recogida (cuenta)
   private killSub: Subscription;
   private starSub: Subscription;
 
@@ -132,12 +143,15 @@ export class AchievementService implements OnDestroy {
    *  `overrideChar` = logros de personaje restaurados del snapshot (nube).
    *  Los globales se leen siempre de la clave local (fetchAndSaveLocalData ya
    *  fusionó allí los de la cuenta al iniciar sesión). */
-  async loadForChar(charId: string, overrideChar?: string[]): Promise<void> {
+  async loadForChar(charId: string, overrideChar?: string[], overrideClaimedChar?: string[]): Promise<void> {
     this.charId = charId;
     this.unlockedChar   = new Set(overrideChar ?? ((await this.storage.get(charKey(charId))) ?? []));
     this.unlockedGlobal = new Set((await this.storage.get(GLOBAL_KEY)) ?? []);
+    this.claimedChar    = new Set(overrideClaimedChar ?? ((await this.storage.get(claimedCharKey(charId))) ?? []));
+    this.claimedGlobal  = new Set((await this.storage.get(CLAIMED_GLOBAL_KEY)) ?? []);
     // Si los de personaje vinieron del snapshot, sincroniza la clave local.
     if (overrideChar) this.storage.set(charKey(charId), [...this.unlockedChar]);
+    if (overrideClaimedChar) this.storage.set(claimedCharKey(charId), [...this.claimedChar]);
   }
 
   /** Logros de PERSONAJE desbloqueados → van en el GameSnapshot del personaje. */
@@ -148,6 +162,16 @@ export class AchievementService implements OnDestroy {
   /** Logros de CUENTA (globales) desbloqueados → van en global_data.account. */
   getGlobalSnapshot(): string[] {
     return [...this.unlockedGlobal];
+  }
+
+  /** Recompensas de PERSONAJE ya recogidas → GameSnapshot del personaje. */
+  getClaimedCharSnapshot(): string[] {
+    return [...this.claimedChar];
+  }
+
+  /** Recompensas de CUENTA (globales) ya recogidas → global_data.account. */
+  getClaimedGlobalSnapshot(): string[] {
+    return [...this.claimedGlobal];
   }
 
   defs(scope: AchievementScope): AchievementDef[] {
@@ -166,9 +190,56 @@ export class AchievementService implements OnDestroy {
     }
   }
 
+  /** Progreso para MOSTRAR en la barra: recortado al objetivo. Contadores como las
+   *  estrellas siguen escalando tras completar el logro; el número inicial de la
+   *  barra no debe pasar del objetivo (se queda en goal/goal). */
+  shownProgress(def: AchievementDef): number {
+    return Math.min(def.goal, this.progress(def));
+  }
+
   /** 0..1 para barras de progreso */
   ratio(def: AchievementDef): number {
     return Math.min(1, this.progress(def) / def.goal);
+  }
+
+  // ── Recompensa (Marcas del condenado) ────────────────────────────────────────
+
+  /** Marcas del condenado que da este logro al recogerlo (por defecto 5). */
+  rewardMarks(def: AchievementDef): number {
+    return def.rewardMarks ?? ACHIEVEMENT_REWARD_MARKS;
+  }
+
+  /** ¿Recompensa ya recogida? */
+  isClaimed(def: AchievementDef): boolean {
+    const set = def.scope === 'global' ? this.claimedGlobal : this.claimedChar;
+    return set.has(def.id);
+  }
+
+  /** Objetivo alcanzado pero recompensa sin recoger → botón "Recoger recompensa". */
+  isClaimable(def: AchievementDef): boolean {
+    return this.isUnlocked(def) && !this.isClaimed(def);
+  }
+
+  /** ¿Hay alguna recompensa lista para recoger? (para avisos). */
+  hasClaimable(): boolean {
+    return ACHIEVEMENTS.some(d => this.isClaimable(d));
+  }
+
+  /** ¿Hay recompensa por recoger en un ámbito concreto? (dot de las sub-pestañas
+   *  Personaje / Globales). */
+  hasClaimableInScope(scope: AchievementScope): boolean {
+    return ACHIEVEMENTS.some(d => d.scope === scope && this.isClaimable(d));
+  }
+
+  /** Recoge la recompensa de un logro reclamable: otorga las Marcas del condenado
+   *  y marca el logro como cobrado (persistido). false si no era reclamable. */
+  claim(def: AchievementDef): boolean {
+    if (!this.isClaimable(def)) return false;
+    const set = def.scope === 'global' ? this.claimedGlobal : this.claimedChar;
+    set.add(def.id);
+    this.persistClaimed(def.scope);
+    this.playerState.collectSpecialCoins(this.rewardMarks(def));
+    return true;
   }
 
   /** Comprueba (y registra si procede) el desbloqueo */
@@ -211,12 +282,20 @@ export class AchievementService implements OnDestroy {
     }
   }
 
-  /** Borra logros del personaje activo y los globales de cuenta. */
+  /** Borra logros y recompensas del personaje activo y los globales de cuenta. */
   async clearAll(): Promise<void> {
     this.unlockedChar.clear();
     this.unlockedGlobal.clear();
-    const ops: Promise<any>[] = [this.storage.set(GLOBAL_KEY, [])];
-    if (this.charId) ops.push(this.storage.set(charKey(this.charId), []));
+    this.claimedChar.clear();
+    this.claimedGlobal.clear();
+    const ops: Promise<any>[] = [
+      this.storage.set(GLOBAL_KEY, []),
+      this.storage.set(CLAIMED_GLOBAL_KEY, []),
+    ];
+    if (this.charId) {
+      ops.push(this.storage.set(charKey(this.charId), []));
+      ops.push(this.storage.set(claimedCharKey(this.charId), []));
+    }
     await Promise.all(ops);
   }
 
@@ -225,6 +304,14 @@ export class AchievementService implements OnDestroy {
       this.storage.set(GLOBAL_KEY, [...this.unlockedGlobal]);
     } else if (this.charId) {
       this.storage.set(charKey(this.charId), [...this.unlockedChar]);
+    }
+  }
+
+  private persistClaimed(scope: AchievementScope): void {
+    if (scope === 'global') {
+      this.storage.set(CLAIMED_GLOBAL_KEY, [...this.claimedGlobal]);
+    } else if (this.charId) {
+      this.storage.set(claimedCharKey(this.charId), [...this.claimedChar]);
     }
   }
 

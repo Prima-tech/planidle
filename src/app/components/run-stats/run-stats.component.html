@@ -71,7 +71,7 @@
       <div class="rs-ms rs-weapon" *ngFor="let w of unlockedWeapons()">
         <div class="rs-ms-frame"><img class="rs-weapon-img" [src]="w.img" alt="" draggable="false" /></div>
         <div class="rs-ms-body">
-          <span class="rs-ms-name">{{ w.labelKey | translate }} <span class="rs-weapon-lvl">Nv {{ weaponLevel(w.id) }}</span></span>
+          <span class="rs-ms-name">{{ w.labelKey | translate }} <span class="rs-weapon-lvl">Nv {{ weaponLevel(w.id) }}</span><span class="rs-weapon-mult" *ngIf="weaponMult(w.id) > 1">×{{ weaponMult(w.id) }}</span></span>
           <span class="rs-ms-desc">{{ weaponRate(w) | compactNumber }} {{ 'RUN.STARS_PER_SEC_SHORT' | translate }}</span>
         </div>
         <!-- Mantener pulsado = compra en cadena acelerada (hasta quedarte sin estrellas).

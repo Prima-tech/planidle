@@ -73,6 +73,8 @@ export interface GameSnapshot {
   afkPassives?: string[];
   /** IDs de logros de PERSONAJE desbloqueados (los globales van en global_data) */
   achievementsChar?: string[];
+  /** IDs de logros de PERSONAJE con la recompensa ya recogida */
+  achievementsClaimedChar?: string[];
   lastSeen: string;
   lastModified: string;
 }
@@ -240,7 +242,7 @@ export class SaveService {
     // snapshot?.X = datos de la nube; si el save es antiguo y no los trae,
     // loadForChar cae a la clave local (sin regresión).
     await this.afkBonus.loadForChar(charId, snapshot?.afkPassives);
-    await this.achievements.loadForChar(charId, snapshot?.achievementsChar);
+    await this.achievements.loadForChar(charId, snapshot?.achievementsChar, snapshot?.achievementsClaimedChar);
     await this.quests.loadForChar(charId, snapshot?.quests);
     // Los mapas del run son desbloqueos de CUENTA: reasegura el flag GLOBAL de cada
     // mapa ya comprado (en RunProgress) ANTES de refrescar los desbloqueos, para que la
@@ -394,6 +396,7 @@ export class SaveService {
       quests:           this.quests.getSnapshot(),
       afkPassives:      this.afkBonus.getSnapshot(),
       achievementsChar: this.achievements.getCharSnapshot(),
+      achievementsClaimedChar: this.achievements.getClaimedCharSnapshot(),
       lastSeen:     now,
       lastModified: now,
     };
@@ -497,6 +500,7 @@ export class SaveService {
       try {
         await this.supabase.saveAccountData({
           achievementsGlobal: this.achievements.getGlobalSnapshot(),
+          achievementsClaimedGlobal: this.achievements.getClaimedGlobalSnapshot(),
           globalTalents: this.globalTalents.getSnapshot(),   // talentos globales de cuenta
           mapUpgrades: this.mapUpgrades.getSnapshot(),       // mejoras de mapa (cofre central)
           accountShop: this.accountShop.getSnapshot(),       // compras de la tienda premium

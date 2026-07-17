@@ -43,6 +43,16 @@ export interface RunProgressSnapshot {
 const STORAGE_KEY = 'run_progress';
 const EMPTY_CHAR: RunCharStats = { kills: 0, deaths: 0, bestDistanceM: 0 };
 
+/** Tope suave de los bonos de REALIMENTACIÓN (oleada estelar, inflación, naranja). Esos
+ *  hitos rinden un % de tu producción de ★/s ACTUAL por cada recogida; sin tope compondrían
+ *  geométricamente (producción → bono → compras → más producción → bono mayor…) y el número
+ *  se dispara. Con este tope, la producción "efectiva" que alimenta el bono se satura:
+ *      efectiva = sps · CAP / (sps + CAP)
+ *  → para sps « CAP se comporta casi como el % lineal (mismo tacto al principio); para
+ *  sps » CAP se aplana hacia CAP, así el bono NUNCA supera fraction·CAP y el bucle deja de
+ *  explotar. ES EL ÚNICO MANDO: súbelo para permitir bonos mayores, bájalo para cortar antes. */
+const FEEDBACK_SOFT_CAP = 2000;
+
 @Injectable({ providedIn: 'root' })
 export class RunProgressService {
   private storage = inject(StorageService);
@@ -173,6 +183,18 @@ export class RunProgressService {
    *  HUD, la oleada estelar, la caja "1 min", los hitos 'naranja'/'inflacion' y el AFK. */
   starsPerSecTotal(): number {
     return this.weaponStarsPerSecTotal() + this.starProdPerMinTotal() / 60;
+  }
+
+  /** Bono de REALIMENTACIÓN = `fraction` de tu producción ACTUAL por recogida, pero con
+   *  TOPE SUAVE (ver FEEDBACK_SOFT_CAP): la producción que alimenta el bono se satura, así
+   *  el bucle producción→bono→producción no compone sin límite. Fuente ÚNICA para los tres
+   *  hitos '% de tu ★/s' (oleada estelar, inflación, naranja): así todos topan igual y nadie
+   *  puede olvidarse del cap. Devuelve entero (las estrellas/oro no llevan decimales). */
+  feedbackBonus(fraction: number): number {
+    const sps = this.starsPerSecTotal();
+    if (sps <= 0 || fraction <= 0) return 0;
+    const effective = (sps * FEEDBACK_SOFT_CAP) / (sps + FEEDBACK_SOFT_CAP);
+    return Math.floor(effective * fraction);
   }
 
   /** Tick del generador de estrellas de las armas: llámalo desde el bucle de exploración

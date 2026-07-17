@@ -4,7 +4,7 @@ import { RunProgressService } from 'src/app/services/run-progress.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones';
-import { RUN_WEAPONS, RunWeaponDef, weaponStarsPerSec } from 'src/app/scenes/worldrun/run-weapons';
+import { RUN_WEAPONS, RunWeaponDef, weaponStarsPerSec, weaponLevelMult } from 'src/app/scenes/worldrun/run-weapons';
 import { CompactNumberPipe } from 'src/app/pipes/compact-number.pipe';
 
 /**
@@ -131,6 +131,11 @@ export class RunStatsComponent implements OnDestroy {
   weaponRate(w: RunWeaponDef): number { return weaponStarsPerSec(w, this.weaponLevel(w.id)); }
   /** Estrellas/seg TOTAL de producción pasiva (armas + generadores de hitos). */
   starsPerSec(): number { return this.runProgress.starsPerSecTotal(); }
+
+  /** Multiplicador de producción por HITOS de nivel alcanzados (1 si aún ninguno). Estilo
+   *  Idle Slayer: al llegar a 100, 1000… el arma multiplica su producción. Se muestra como
+   *  badge "×N" en la fila del arma. */
+  weaponMult(id: string): number { return weaponLevelMult(this.weaponLevel(id)); }
 
   /** Hitos ordenados por PRECIO ascendente (los más baratos arriba). Copia para no
    *  mutar RUN_MILESTONES. Empate de precio → mantiene el orden del array. */

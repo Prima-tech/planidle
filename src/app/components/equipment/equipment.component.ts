@@ -237,6 +237,11 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this.expandedAchId = this.expandedAchId === a.id ? null : a.id;
   }
 
+  /** Recoge la recompensa (Marcas del condenado) de un logro conseguido. */
+  claimReward(a: AchievementDef): void {
+    this.achievements.claim(a);
+  }
+
   // ── Desbloqueos de onboarding de la ventana de equipo ────────────────────────
   // Al empezar una partida SOLO se ve la pestaña de Equipo. El resto se desbloquea:
   //  · Misiones (tab 6): cuando Mordekai da la 1ª misión ('primeras_estrellas' activa/completada).

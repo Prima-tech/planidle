@@ -290,6 +290,8 @@
     "GLOBAL": "Global",
     "UNLOCKED": "Unlocked!",
     "PENDING": "Pending",
+    "CLAIM_REWARD": "Claim reward",
+    "REWARD_CLAIMED": "Reward claimed",
     "KILLS_10": {
       "NAME": "First Blood",
       "DESC": "Kill your first enemy."

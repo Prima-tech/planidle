@@ -15,9 +15,23 @@ src/app/components/equipment/             ← UI: tab 4 (grid + panel de info)
 
 - **Progreso**: no se almacena. Cada logro declara una `metric` y el servicio la
   lee en vivo de los contadores existentes (`KillService`, `PlayerStateService`).
+  Para la barra usar `shownProgress()` (recortado al `goal`): contadores como las
+  estrellas siguen escalando tras completarlo y el número no debe pasar del objetivo.
 - **Desbloqueo**: al llegar al `goal` se registra en StorageService
   (`achievements_char_<id>` o `achievements_global`) y queda fijado aunque el
   contador cambie. Es lo que se sincronizará con Supabase.
+
+### Recompensa (Marcas del condenado)
+
+- Desbloquear ≠ cobrar. Al llegar al `goal` el logro se **desbloquea** (dorado + toast
+  + exclamación roja `notif-dot`). La **recompensa** se recoge aparte con el botón
+  "Recoger recompensa" del flyout → otorga `rewardMarks` (por defecto
+  `ACHIEVEMENT_REWARD_MARKS = 5`) Marcas del condenado (`specialCoins`).
+- Estado "cobrado" persiste en claves propias (`achievements_claimed_char_<id>` /
+  `achievements_claimed_global`) y en el snapshot (`achievementsClaimedChar` /
+  `achievementsClaimedGlobal`). `isClaimable()` = desbloqueado y sin cobrar;
+  `isClaimed()` = ya cobrado. La celda muestra `notif-dot` mientras sea reclamable.
+- Para una recompensa distinta a 5, poner `rewardMarks: N` en la entrada del registro.
 
 ### Métricas disponibles (`AchievementMetric`)
 

@@ -1062,13 +1062,14 @@ export class GridDrops {
       //  · monedako  → +500 de oro plano
       //  · naranja   → +10% de tus estrellas/seg actuales, en ORO
       //  · inflacion → +20% de tus estrellas/seg actuales, en ESTRELLAS
+      // naranja/inflacion pasan por feedbackBonus (TOPE SUAVE, ver FEEDBACK_SOFT_CAP): son
+      // bonos '% de tu producción', así que sin tope compondrían geométricamente.
       const rp = this.mainScene.game.registry.get(REGISTRY_KEYS.RUN_PROGRESS);
-      const sps = rp?.starsPerSecTotal?.() ?? 0;
       const monedako = rp?.has('monedako') ? 500 : 0;
-      const naranja  = rp?.has('naranja')  ? Math.floor(sps * 0.10) : 0;
+      const naranja  = rp?.has('naranja')  ? (rp.feedbackBonus?.(0.10) ?? 0) : 0;
       this.playerState.collectCoins(qty + monedako + naranja);
       if (rp?.has('inflacion')) {
-        const stars = Math.floor(sps * 0.20);
+        const stars = rp.feedbackBonus?.(0.20) ?? 0;
         if (stars > 0) rp.collectStars(stars);
       }
       this.mainScene.game.registry.get(REGISTRY_KEYS.AUDIO)?.play('coin');

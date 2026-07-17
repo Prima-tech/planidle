@@ -22,7 +22,8 @@
     </button>
     <button class="eq-vtab" *ngIf="tabVisible(5)" [class.active]="activeTab === 5" (click)="activeTab = 5">
       <ion-icon name="trophy-outline"></ion-icon>
-      <span class="notif-dot" *ngIf="badges.has('equip.achievements')"></span>
+      <!-- Recompensa por recoger: persiste hasta cobrarla (no se apaga al abrir). -->
+      <span class="notif-dot" *ngIf="achievements.hasClaimable()"></span>
     </button>
     <button class="eq-vtab" *ngIf="tabVisible(6)" [class.active]="activeTab === 6" (click)="activeTab = 6">
       <ion-icon name="reader-outline"></ion-icon>
@@ -637,10 +638,12 @@
       <button class="talent-tree-tab" [class.active]="achScope === 'char'" (click)="setAchScope('char')">
         <ion-icon name="person-outline"></ion-icon>
         <span>{{ 'ACHIEVEMENTS.CHARACTER' | translate }}</span>
+        <span class="notif-dot" *ngIf="achievements.hasClaimableInScope('char')"></span>
       </button>
       <button class="talent-tree-tab" [class.active]="achScope === 'global'" (click)="setAchScope('global')">
         <ion-icon name="earth-outline"></ion-icon>
         <span>{{ 'ACHIEVEMENTS.GLOBAL' | translate }}</span>
+        <span class="notif-dot" *ngIf="achievements.hasClaimableInScope('global')"></span>
       </button>
     </div>
 
@@ -651,6 +654,8 @@
               [title]="a.name | translate"
               (click)="selectAch(a)">
         <ion-icon [name]="a.icon"></ion-icon>
+        <!-- Recompensa lista para recoger: exclamación roja (igual que misiones) -->
+        <span class="notif-dot" *ngIf="achievements.isClaimable(a)"></span>
       </button>
     </div>
 
@@ -809,13 +814,29 @@
         <div class="ach-bar-fill" [style.width.%]="achievements.ratio(selectedAch) * 100"></div>
       </div>
       <span class="ach-info-count">
-        {{ achievements.progress(selectedAch) | number }} / {{ selectedAch.goal | number }}
+        {{ achievements.shownProgress(selectedAch) | compactNumber }} / {{ selectedAch.goal | compactNumber }}
       </span>
     </div>
     <div class="ach-info-state"
          [class.unlocked]="achievements.isUnlocked(selectedAch)">
       {{ (achievements.isUnlocked(selectedAch) ? 'ACHIEVEMENTS.UNLOCKED' : 'ACHIEVEMENTS.PENDING') | translate }}
     </div>
+
+    <!-- Recompensa: Marcas del condenado. Botón para recogerla una vez conseguido. -->
+    <ng-container *ngIf="achievements.isUnlocked(selectedAch)">
+      <button class="ach-claim-btn" *ngIf="!achievements.isClaimed(selectedAch)"
+              (click)="claimReward(selectedAch)">
+        <span>{{ 'ACHIEVEMENTS.CLAIM_REWARD' | translate }}</span>
+        <span class="ach-claim-amount">
+          +{{ achievements.rewardMarks(selectedAch) }}
+          <img src="assets/icon/brand_of_sacrifice.png" class="special-coin-icon" alt="" draggable="false" />
+        </span>
+      </button>
+      <div class="ach-reward-done" *ngIf="achievements.isClaimed(selectedAch)">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        <span>{{ 'ACHIEVEMENTS.REWARD_CLAIMED' | translate }}</span>
+      </div>
+    </ng-container>
   </div>
 
   <!-- Flyout de stats: aparece a la derecha al pinchar la pastilla del tab 0 -->

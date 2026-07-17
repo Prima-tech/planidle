@@ -360,6 +360,7 @@ $metal-dark: #6b6357;
 }
 
 .ach-cell {
+  position: relative;   // ancla del .notif-dot (recompensa por recoger)
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -510,6 +511,65 @@ $metal-dark: #6b6357;
   color: rgba(236, 217, 180, 0.6);
 
   &.unlocked { color: #f0c040; }
+}
+
+// Botón "Recoger recompensa": pastilla dorada resaltada (madera+bisel metálico).
+.ach-claim-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.72em;
+  font-weight: 800;
+  color: #2a1c07;
+  cursor: pointer;
+  border-radius: 5px;
+  border: 2px solid;
+  border-color: #ffe6a0 #a8781f #a8781f #d8a53a;
+  background: linear-gradient(#f7cf5f, #e0a52e);
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 0 8px rgba(240, 192, 64, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: filter 0.12s, transform 0.05s;
+
+  &:hover { filter: brightness(1.08); }
+  &:active { transform: translateY(1px); }
+}
+
+.ach-claim-amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  .special-coin-icon {
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+    vertical-align: middle;
+  }
+}
+
+// Estado "recompensa recogida": pastilla apagada con tilde.
+.ach-reward-done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 0;
+  font-size: 0.7em;
+  font-weight: 800;
+  color: rgba(236, 217, 180, 0.55);
+  border-radius: 5px;
+  background: $cell-bg-light;
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  ion-icon { font-size: 14px; color: #7fbf6a; }
 }
 
 // Picker de nodo de talento: tarjeta oscura flotante sobre el árbol, arriba a
@@ -1108,6 +1168,7 @@ $metal-dark: #6b6357;
 // línea con la rejilla y la ficha (receta 1b). Scoped a .ach-panel para NO tocar
 // estas mismas sub-pestañas en el árbol de talentos.
 .ach-panel .talent-tree-tab {
+  position: relative;   // ancla del .notif-dot (recompensa por recoger en ese ámbito)
   border-color: $metal-light $metal-dark $metal-dark $metal;
   box-shadow:
     0 0 0 1px $outline,

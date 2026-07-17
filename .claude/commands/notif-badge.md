@@ -92,6 +92,12 @@ toggleStatsFlyout(): void {
 |-------|----------|---------------|-------------|
 | `equip.stats` | Subir de nivel (LayoutComponent) | Botón equipo del footer (`has('equip')`) + pastilla de stats (`has('equip.stats')`) | Abrir el flyout de stats |
 | `equip.quests` | Completar/cruzar el goal de una misión (QuestService) | Botón equipo (`has('equip')`) + pestaña Misiones (`has('equip.quests')`) | Abrir la pestaña Misiones (tab 6) |
-| `equip.achievements` | Desbloquear un logro real (AchievementService.unlock) | Botón equipo (`has('equip')`) + pestaña Logros (`has('equip.achievements')`) | Abrir la pestaña Logros (tab 5) |
+| `equip.achievements` | Desbloquear un logro real (AchievementService.unlock) | Botón equipo (`has('equip')`) — nudge transitorio | Abrir la pestaña Logros (tab 5) |
+
+> **Recompensa de logro (persistente):** además del badge transitorio de arriba, el
+> círculo rojo de "recompensa por recoger" NO usa el badge: se deriva en vivo de
+> `AchievementService.hasClaimable()` / `isClaimable(def)` y persiste hasta cobrarla.
+> Se pinta en la celda del logro, en la pestaña Logros (tab 5) y en la pastilla del
+> nombre del personaje (top-bar, `equipBadge = questBadge || hasClaimable()`).
 
 Al añadir un badge nuevo, **actualizar esta tabla**.

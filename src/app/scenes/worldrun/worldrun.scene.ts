@@ -1111,11 +1111,11 @@ export class WorldRunScene extends Phaser.Scene {
   }
 
   /** Hito "oleada estelar": cada estrella recogida rinde ADEMÁS un 25% de tu producción
-   *  de estrellas/seg actual (armas + generadores de hitos). 0 si no está comprado. */
+   *  de estrellas/seg actual (armas + generadores de hitos), con TOPE SUAVE (feedbackBonus,
+   *  ver FEEDBACK_SOFT_CAP) para que no componga sin límite. 0 si no está comprado. */
   private starSurgeBonus(): number {
     if (!this.ms('star_surge')) return 0;
-    const perSec = this.reg.runProgress.starsPerSecTotal();
-    return Math.floor(perSec * 0.25);
+    return this.reg.runProgress.feedbackBonus(0.25);
   }
 
   /** Recoge una estrella: suma al contador (persistido, × estrellas valiosas + oleada). */

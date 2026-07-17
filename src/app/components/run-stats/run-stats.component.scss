@@ -285,6 +285,20 @@ $metal-dark: #6b6357;
   color: #7a4a1d;
 }
 
+/* Badge "×N": multiplicador de producción por HITOS de nivel (estilo Idle Slayer). Solo
+   aparece cuando el arma ha cruzado algún hito (Nv 100, 1000…). Dorado para que cante como
+   una recompensa. */
+.rs-weapon-mult {
+  margin-left: 5px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 800;
+  color: #3a2c08;
+  background: linear-gradient(180deg, #ffe08a 0%, #e0a020 100%);
+  box-shadow: 0 0 0 1px #7a5410, inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
 /* Precio del arma: se paga con ESTRELLAS → misma pastilla que los contadores de arriba
    (número + estrella al lado, madera con bisel de piedra), pero clicable. */
 .rs-weapon-buy {

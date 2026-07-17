@@ -202,6 +202,12 @@ export class SupabaseService {
       const mergedGlobalAch = [...new Set([...cloudGlobalAch, ...localGlobalAch])];
       await this.storageService.set('achievements_global', mergedGlobalAch);
 
+      // Recompensas de logros globales ya recogidas: mismo Set monotónico.
+      const cloudClaimedAch: string[] = (data as any).account?.achievementsClaimedGlobal ?? [];
+      const localClaimedAch: string[] = (await this.storageService.get('achievements_claimed_global')) ?? [];
+      const mergedClaimedAch = [...new Set([...cloudClaimedAch, ...localClaimedAch])];
+      await this.storageService.set('achievements_claimed_global', mergedClaimedAch);
+
       // Talentos globales de cuenta (global_data.account.globalTalents): la cuenta manda.
       await this.globalTalents.restore((data as any).account?.globalTalents ?? null);
 

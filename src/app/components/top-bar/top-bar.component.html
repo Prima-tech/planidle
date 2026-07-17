@@ -11,7 +11,7 @@
              Punto de novedad cuando hay algo que reclamar dentro (misión, stats…). -->
         <div class="char-name-pill" (click)="openEquipment.emit()">
           <span class="char-name-text">{{ asgardService?.selectedPlayer?.name }}</span>
-          <span class="notif-dot" *ngIf="questBadge"></span>
+          <span class="notif-dot" *ngIf="equipBadge"></span>
         </div>
 
         <!-- Selector de personaje: despliega el roster hacia la derecha.

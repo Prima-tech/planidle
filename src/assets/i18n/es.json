@@ -290,6 +290,8 @@
     "GLOBAL": "Globales",
     "UNLOCKED": "¡Conseguido!",
     "PENDING": "Pendiente",
+    "CLAIM_REWARD": "Recoger recompensa",
+    "REWARD_CLAIMED": "Recompensa recogida",
     "KILLS_10": {
       "NAME": "Primer sangre",
       "DESC": "Mata tu primer enemigo."
