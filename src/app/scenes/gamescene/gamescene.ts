@@ -135,6 +135,10 @@ interface HarvestNode {
 export class GameScene extends Phaser.Scene {
 
     static readonly TILE_SIZE = 48;
+    /** Rojo casi puro para teñir el DISCO de un portal bloqueado/sellado. Verde/azul ≈ 0
+     *  a propósito: los aros se dibujan con blend ADD y sus canales se suman al solaparse,
+     *  así que un rojo con G/B altos (p.ej. 0xff4d4d) apilado viraría a amarillo. */
+    private static readonly PORTAL_BLOCKED_TINT = 0xff1414;
     /** Zoom de DISEÑO de la cámara (se multiplica por DPR en initCamera). Con el canvas
      *  a resolución nativa y CSS a 1/DPR, la escala mundo→pantalla queda en este factor:
      *  1 unidad de mundo = CAMERA_DESIGN_ZOOM px CSS → worldPerCss = 1/CAMERA_DESIGN_ZOOM. */
@@ -158,9 +162,11 @@ export class GameScene extends Phaser.Scene {
       cx: number; cy: number; angle: number;
       outer: Phaser.GameObjects.Image;
       inner: Phaser.GameObjects.Image;
+      core: Phaser.GameObjects.Image;
       halo: Phaser.GameObjects.Ellipse;
       featureId: string;   // feature de desbloqueo del mapa destino
       locked: boolean;     // estado actual (rojo bloqueado / verde desbloqueado)
+      sealed: boolean;     // portal SELLADO por flag: no transitable hasta pagar su coste
     }[] = [];
     private currentMapConfig: MapConfig;
     private reg: GameRegistry;
@@ -252,6 +258,7 @@ export class GameScene extends Phaser.Scene {
     private cachedNearWindow: typeof this.placedBuildings[0] | null = null;
     private cachedNearNode:   HarvestNode | null = null;
     private cachedNearNpc:    typeof this.cityNpcs[0] | null = null;
+    private cachedNearSealedPortal: typeof this.activePortals[0] | null = null;
     // true una vez el jugador ha estado cerca de un edificio con ventana abierta:
     // a partir de ahí, alejarse la cierra (ver bloque de cierre por proximidad).
     private windowProximityArmed = false;
@@ -699,12 +706,14 @@ export class GameScene extends Phaser.Scene {
         this.cachedNearWindow   = (this.cachedNearChest || this.cachedNearMapChest) ? null : this.nearestWindowBuilding();
         this.cachedNearNode     = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow) ? this.nearestHarvestable() : null;
         this.cachedNearNpc      = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow && !this.cachedNearNode) ? this.nearestNpc() : null;
+        this.cachedNearSealedPortal = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow && !this.cachedNearNode && !this.cachedNearNpc) ? this.nearestSealedPortal() : null;
       }
       const nearChest = this.cachedNearChest;
       const nearMapChest = this.cachedNearMapChest;
       const nearWindow = this.cachedNearWindow;
       const nearNode = this.cachedNearNode;
       const nearNpc = this.cachedNearNpc;
+      const nearSealedPortal = this.cachedNearSealedPortal;
       // La herramienta es "pegajosa": al encarar un recurso se muestra y se MANTIENE
       // aunque te alejes. Solo se quita al atacar a un enemigo / otra acción (strike).
       if (nearNode) this.setActiveHarvest(nearNode.kind);
@@ -713,11 +722,15 @@ export class GameScene extends Phaser.Scene {
         : nearMapChest ? 'chest'
         : nearWindow ? (nearWindow.building.type === 'shop' ? 'shop' : 'forge')
         : nearNode ? HARVEST_KINDS[nearNode.kind].context
-        : nearNpc ? 'talk' : 'attack');
+        : nearNpc ? 'talk'
+        : nearSealedPortal ? 'portal' : 'attack');
 
       // Diálogo abierto + ya no hay NPC cerca → cerrarlo (te alejaste). Los diálogos
       // manuales (recompensa de misión) NO se cierran así: solo con toque/cerrar.
       if (!nearNpc && this.reg.dialogue?.isOpen && !this.reg.dialogue.isManual) this.reg.dialogue.dismiss();
+
+      // Ventana de portal sellado abierta + jugador ya lejos del portal → cerrarla.
+      if (!nearSealedPortal && this.reg.portalUnlock?.request$.value) this.reg.portalUnlock.close();
 
       // Si la ventana de cofre de ciudad está abierta y el jugador se alejó del
       // cofre CONCRETO que abrió (cada cofre es su propio almacén) → cerrar.
@@ -777,6 +790,11 @@ export class GameScene extends Phaser.Scene {
           if (!this.interactLatched) {
             this.interactLatched = true;
             this.talkToNpc(nearNpc);
+          }
+        } else if (nearSealedPortal) {
+          if (!this.interactLatched) {
+            this.interactLatched = true;
+            this.openSealedPortal(nearSealedPortal);
           }
         } else if (!this.player.isAttacking && !this.interactLatched) {
           this.strike();
@@ -1890,11 +1908,22 @@ export class GameScene extends Phaser.Scene {
         // Ids sin def (hogar, world-run) cuentan como desbloqueados → verde.
         const featureId = mapFeatureId(portal.targetMapId);
         const back = portal.direction === 'back';
+        // SELLADO: tiene flag de desbloqueo y aún no está marcado → rojo, no transitable
+        // (al acercarse el botón de acción pide su coste en materiales para abrirlo).
+        const sealed = !!portal.unlockFlag && !(this.reg.unlocks?.hasFlag(portal.unlockFlag));
         const unlocked = back ? true : (this.reg.unlocks?.isUnlocked(featureId) ?? true);
-        const color = back ? 0x60c0ff : (unlocked ? 0x50e070 : 0xff4d4d);
+        const open = !sealed && unlocked;
+        const color = back ? 0x60c0ff : (open ? 0x50e070 : 0xff4d4d);
+        // Bloqueado/sellado (rojo): tiñe TODO el disco (interno + núcleo también), no solo
+        // el aro externo → lee claramente en rojo en vez de un aro rojo con centro blanco.
+        const blocked = !back && !open;
+        // Tinte del DISCO cuando está bloqueado: las capas ADD (aro externo + interno) SUMAN
+        // sus canales; 0xff4d4d (con G/B a 77) apilado se va a AMARILLO. Un rojo casi puro
+        // (G/B ≈ 0) mantiene el rojo al sumarse. El halo (una sola capa tenue) sí usa `color`.
+        const discTint = blocked ? GameScene.PORTAL_BLOCKED_TINT : color;
 
         // Resplandor en el suelo (no rota → óvalo aplastado directo, sin deformación).
-        const halo = this.add.ellipse(cx, cy, D * 1.4, D * 1.4 * SQUASH, color, 0.14)
+        const halo = this.add.ellipse(cx, cy, D * 1.4, D * 1.4 * SQUASH, color, blocked ? 0.22 : 0.14)
           .setDepth(0).setBlendMode(Phaser.BlendModes.ADD);
 
         // Contenedor aplastado: los aros giran DENTRO como círculos (la textura es
@@ -1902,13 +1931,15 @@ export class GameScene extends Phaser.Scene {
         // achata al suelo → disco plano con el brillo orbitando, sin "wobble".
         const cont = this.add.container(cx, cy).setDepth(1).setScale(1, SQUASH);
         const outer = this.add.image(0, 0, 'portal_disc')
-          .setBlendMode(Phaser.BlendModes.ADD).setTint(color).setDisplaySize(D, D);
+          .setBlendMode(Phaser.BlendModes.ADD).setTint(discTint).setDisplaySize(D, D);
         const inner = this.add.image(0, 0, 'portal_disc')
-          .setBlendMode(Phaser.BlendModes.ADD).setDisplaySize(D * 0.6, D * 0.6);   // interno blanco
+          .setBlendMode(Phaser.BlendModes.ADD).setDisplaySize(D * 0.6, D * 0.6);   // interno (blanco, o rojo si bloqueado)
+        if (blocked) inner.setTint(discTint);
         const core = this.add.image(0, 0, 'portal_core').setDisplaySize(D * 0.52, D * 0.52);
+        if (blocked) core.setTint(discTint);
         cont.add([outer, inner, core]);
 
-        this.activePortals.push({ config: portal, cx, cy, angle: 0, outer, inner, halo, featureId, locked: back ? false : !unlocked });
+        this.activePortals.push({ config: portal, cx, cy, angle: 0, outer, inner, core, halo, featureId, locked: back ? false : !open, sealed });
       });
     }
 
@@ -1952,15 +1983,23 @@ export class GameScene extends Phaser.Scene {
       const IDLE = 0.35, MAXA = 9;                 // rad/s (inactivo → cerca)
       const nearR = TS * 10, enterR = TS * 1.1;    // enterR = radio de activación
       for (const p of this.activePortals) {
-        // Estado bloqueado/desbloqueado (por si se desbloquea el destino en vivo):
-        // recolorear a verde/rojo solo cuando cambia. Los 'back' (azules) no se tocan.
+        // Estado bloqueado/desbloqueado (por si se desbloquea el destino o se paga el
+        // sello EN VIVO): recolorear solo cuando cambia. Un portal está ABIERTO (verde)
+        // solo si su feature está desbloqueada Y su sello (si tiene) está marcado; si no,
+        // bloqueado (rojo, disco entero teñido). Los 'back' (azules) no se tocan.
         if (p.config.direction !== 'back') {
-          const nowUnlocked = this.reg.unlocks?.isUnlocked(p.featureId) ?? true;
-          if (nowUnlocked === p.locked) {   // ha cambiado
-            p.locked = !nowUnlocked;
-            const col = nowUnlocked ? 0x50e070 : 0xff4d4d;
-            p.outer.setTint(col);
+          const flag = p.config.unlockFlag;
+          const sealed = !!flag && !(this.reg.unlocks?.hasFlag(flag));
+          const unlocked = this.reg.unlocks?.isUnlocked(p.featureId) ?? true;
+          const open = !sealed && unlocked;
+          if (open === p.locked) {   // p.locked = !open anterior → el estado ha cambiado
+            p.locked = !open;
+            const col = open ? 0x50e070 : 0xff4d4d;                          // color del halo
+            const disc = open ? 0x50e070 : GameScene.PORTAL_BLOCKED_TINT;    // tinte del disco (rojo casi puro si bloqueado)
+            p.outer.setTint(disc);
             p.halo.setFillStyle(col);
+            if (open) { p.inner.clearTint(); p.core.clearTint(); }
+            else      { p.inner.setTint(disc); p.core.setTint(disc); }
           }
         }
 
@@ -1988,6 +2027,10 @@ export class GameScene extends Phaser.Scene {
       const r2 = range * range;
 
       for (const p of this.activePortals) {
+        // Portal sellado (flag sin marcar): no transita — se abre pagando su coste en el
+        // botón de acción (ver bloque de interacción). Comprobación en vivo por si el
+        // flag cambió tras crear la escena.
+        if (p.config.unlockFlag && !this.reg.unlocks?.hasFlag(p.config.unlockFlag)) continue;
         const cx = p.config.tilePos.x * TS + TS / 2;
         const cy = p.config.tilePos.y * TS + TS / 2;
         const dx = px - cx;
@@ -2346,6 +2389,8 @@ export class GameScene extends Phaser.Scene {
         if (win) { this.pendingLitBuilding = win; this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
         const npc = this.nearestNpc();
         if (npc) { this.talkToNpc(npc); return; }
+        const sealed = this.nearestSealedPortal();
+        if (sealed) { this.openSealedPortal(sealed); return; }
         if (this.player.isAttacking) return;
         this.strike();
       });
@@ -3390,6 +3435,41 @@ export class GameScene extends Phaser.Scene {
         if (dist < nearestDist) { nearestDist = dist; nearest = npc; }
       }
       return nearest;
+    }
+
+    /** Portal SELLADO (con flag de desbloqueo aún sin marcar) al alcance del jugador, o
+     *  null. No transita: se interactúa para abrir su ventana de coste en materiales. */
+    private nearestSealedPortal(): typeof this.activePortals[0] | null {
+      if (this.activePortals.length === 0) return null;
+      const TS = GameScene.TILE_SIZE;
+      const pos = this.player.getPosition();
+      const RANGE = TS * 1.8;
+      const r2 = RANGE * RANGE;
+      let nearest: typeof this.activePortals[0] | null = null;
+      let nearestD = Infinity;
+      for (const p of this.activePortals) {
+        const flag = p.config.unlockFlag;
+        if (!flag || this.reg.unlocks?.hasFlag(flag)) continue;   // solo sellados sin abrir
+        const cx = p.config.tilePos.x * TS + TS / 2;
+        const cy = p.config.tilePos.y * TS + TS / 2;
+        const dx = pos.x - cx;
+        const dy = (pos.y - TS / 2) - cy;   // mismo offset en Y que checkPortals()
+        const d = dx * dx + dy * dy;
+        if (d <= r2 && d < nearestD) { nearestD = d; nearest = p; }
+      }
+      return nearest;
+    }
+
+    /** Abre la ventana de desbloqueo del portal sellado (bridge → PortalUnlockComponent).
+     *  Arma la petición con el flag/scope/coste de la config del portal. */
+    private openSealedPortal(p: typeof this.activePortals[0]): void {
+      const cfg = p.config;
+      if (!cfg.unlockFlag) return;
+      this.reg.portalUnlock?.open({
+        flag: cfg.unlockFlag,
+        scope: cfg.unlockScope ?? 'char',
+        cost: (cfg.unlockCost ?? []).map(c => ({ name: c.name, qty: c.qty })),
+      });
     }
 
     /** Habla con un NPC: si es reclutable y aún no está reclutado, suelta su frase de

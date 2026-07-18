@@ -33,6 +33,7 @@ import { SprintButtonComponent } from './sprint-button/sprint-button.component';
 import { FlyButtonComponent } from './fly-button/fly-button.component';
 import { RunStatsComponent } from './run-stats/run-stats.component';
 import { NpcDialogueComponent } from './npc-dialogue/npc-dialogue.component';
+import { PortalUnlockComponent } from './portal-unlock/portal-unlock.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
 import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 import { CompactNumberPipe } from '../pipes/compact-number.pipe';
@@ -96,6 +97,7 @@ import { MapChestWindowComponent } from './map-chest-window/map-chest-window.com
     BoxEventBannerComponent,
     GlobalTalentsComponent,
     MapChestWindowComponent,
+    PortalUnlockComponent,
   ],
   imports: [
     CommonModule,

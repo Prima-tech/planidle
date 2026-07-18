@@ -44,6 +44,7 @@
      WorldRunScene.bindInput con pointerdown). El botón de ataque solo en modo normal. -->
 <app-attack-button *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)"></app-attack-button>
 <app-npc-dialogue *ngIf="dataLoaded && sceneVisible"></app-npc-dialogue>
+<app-portal-unlock *ngIf="dataLoaded && sceneVisible"></app-portal-unlock>
 <app-game-log></app-game-log>
 <app-chat-log *ngIf="dataLoaded && sceneVisible"></app-chat-log>
 <app-footer-bar #footerBar></app-footer-bar>

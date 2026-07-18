@@ -156,6 +156,18 @@ export class InventoryService {
     return total;
   }
 
+  /** Icono del primer item con ese nombre (para pintar un coste en material). '' si no
+   *  hay ninguno en el inventario. */
+  iconByName(name: string): string {
+    for (let t = 0; t < TABS; t++)
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++) {
+          const it = this.grid[t][r][c];
+          if (it && it.name === name) return it.icon ?? '';
+        }
+    return '';
+  }
+
   /** Gasta `qty` unidades de un material por nombre. Devuelve false (sin tocar nada) si no hay suficientes. */
   consumeByName(name: string, qty: number): boolean {
     if (qty <= 0) return true;

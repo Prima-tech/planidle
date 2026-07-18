@@ -34,6 +34,11 @@ export class PortalUnlockService {
   /** Cantidad que tiene el jugador de un material (por nombre). */
   have(name: string): number { return this.inventory.countByName(name); }
 
+  /** Icono de un material (por nombre), buscando el primer item del inventario con ese
+   *  nombre. Si el jugador no tiene ninguno todavía, devuelve '' (la ventana muestra un
+   *  marcador genérico). Vale para pintar el coste sin un catálogo global de iconos. */
+  iconFor(name: string): string { return this.inventory.iconByName?.(name) ?? ''; }
+
   /** ¿Tiene el jugador todos los materiales del coste? */
   canAfford(req: PortalUnlockReq | null = this.request$.value): boolean {
     return !!req && req.cost.every(c => this.inventory.countByName(c.name) >= c.qty);

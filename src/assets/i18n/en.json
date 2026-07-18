@@ -695,7 +695,14 @@
   },
   "COMMON": {
     "LOADING": "...",
-    "LOADING_TEXT": "Loading..."
+    "LOADING_TEXT": "Loading...",
+    "CANCEL": "Cancel"
+  },
+  "PORTAL": {
+    "SEALED_TITLE": "Sealed portal",
+    "SEALED_DESC": "This portal is sealed. Hand over the materials to open it.",
+    "SEALED_OPEN": "Open portal",
+    "SEALED_MISSING": "Missing materials"
   },
   "TOAST": {
     "ACHIEVEMENT_UNLOCKED": "Achievement unlocked",
