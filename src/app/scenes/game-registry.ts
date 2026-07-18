@@ -23,6 +23,7 @@ import { GatheringSkillsService } from '../services/gathering-skills.service';
 import { UnlockService } from '../services/unlock.service';
 import { ActivityService } from '../services/activity.service';
 import { DialogueService } from '../services/dialogue.service';
+import { AmbientChatService } from '../services/ambient-chat.service';
 import { ForgeService } from '../services/forge.service';
 import { MapUpgradesService } from '../services/map-upgrades.service';
 import { MapDominionService } from '../services/map-dominion.service';
@@ -31,6 +32,7 @@ import { GlobalTalentsService } from '../services/global-talents.service';
 import { AudioService } from '../services/audio.service';
 import { QuestService } from '../services/quest.service';
 import { RunProgressService } from '../services/run-progress.service';
+import { PortalUnlockService } from '../services/portal-unlock.service';
 import { TranslateService } from '@ngx-translate/core';
 
 /** Claves del registro Phaser. Úsalas en registry.set() para evitar typos. */
@@ -60,6 +62,7 @@ export const REGISTRY_KEYS = {
   UNLOCK:           'unlockService',
   ACTIVITY:         'activityService',
   DIALOGUE:         'dialogueService',
+  AMBIENT_CHAT:     'ambientChatService',
   FORGE:            'forgeService',
   MAP_UPGRADES:     'mapUpgradesService',
   MAP_DOMINION:     'mapDominionService',
@@ -68,6 +71,7 @@ export const REGISTRY_KEYS = {
   AUDIO:            'audioService',
   QUESTS:           'questService',
   RUN_PROGRESS:     'runProgressService',
+  PORTAL_UNLOCK:    'portalUnlockService',
   TRANSLATE:        'translateService',
 } as const;
 
@@ -100,6 +104,7 @@ export class GameRegistry {
   get unlocks():         UnlockService             { return this.game.registry.get(REGISTRY_KEYS.UNLOCK); }
   get activity():        ActivityService           { return this.game.registry.get(REGISTRY_KEYS.ACTIVITY); }
   get dialogue():        DialogueService           { return this.game.registry.get(REGISTRY_KEYS.DIALOGUE); }
+  get ambientChat():     AmbientChatService        { return this.game.registry.get(REGISTRY_KEYS.AMBIENT_CHAT); }
   get forge():           ForgeService              { return this.game.registry.get(REGISTRY_KEYS.FORGE); }
   get mapUpgrades():     MapUpgradesService        { return this.game.registry.get(REGISTRY_KEYS.MAP_UPGRADES); }
   get mapDominion():     MapDominionService        { return this.game.registry.get(REGISTRY_KEYS.MAP_DOMINION); }
@@ -108,5 +113,6 @@ export class GameRegistry {
   get audio():           AudioService              { return this.game.registry.get(REGISTRY_KEYS.AUDIO); }
   get quests():          QuestService              { return this.game.registry.get(REGISTRY_KEYS.QUESTS); }
   get runProgress():     RunProgressService        { return this.game.registry.get(REGISTRY_KEYS.RUN_PROGRESS); }
+  get portalUnlock():    PortalUnlockService       { return this.game.registry.get(REGISTRY_KEYS.PORTAL_UNLOCK); }
   get translate():       TranslateService          { return this.game.registry.get(REGISTRY_KEYS.TRANSLATE); }
 }

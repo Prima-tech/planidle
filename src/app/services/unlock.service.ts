@@ -117,6 +117,12 @@ export class UnlockService {
     else this.refresh(false);
   }
 
+  /** ¿Está marcado este flag (char o global)? Para estados ad-hoc (p.ej. portal
+   *  sellado que se abre pagando materiales) sin necesidad de una feature registrada. */
+  hasFlag(id: string): boolean {
+    return this.flagsChar.has(id) || this.flagsGlobal.has(id);
+  }
+
   /** Desbloqueo manual directo de una feature (sin pasar por sus condiciones). */
   grantById(id: string): void {
     const def = this.def(id);

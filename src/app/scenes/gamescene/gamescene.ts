@@ -20,6 +20,7 @@ import { NATIVE_DPR, playerTags } from "./constants";
 import { spawnFloatingText } from "./floating-text";
 import { BuildableDef, PlacedBuilding, stationFrameRect } from "src/app/services/city-build.service";
 import { HOME_CHEST_ID } from "src/app/services/town-chest.service";
+import { mapFeatureId } from "src/app/services/unlock-config";
 import { PARALLAX_THEMES, ParallaxThemeId, ParallaxLayer, ParallaxTheme } from "./parallax-themes";
 import { Subscription } from "rxjs";
 import { Pet } from "src/app/pnj/pet/pet";
@@ -158,6 +159,8 @@ export class GameScene extends Phaser.Scene {
       outer: Phaser.GameObjects.Image;
       inner: Phaser.GameObjects.Image;
       halo: Phaser.GameObjects.Ellipse;
+      featureId: string;   // feature de desbloqueo del mapa destino
+      locked: boolean;     // estado actual (rojo bloqueado / verde desbloqueado)
     }[] = [];
     private currentMapConfig: MapConfig;
     private reg: GameRegistry;
@@ -1882,8 +1885,13 @@ export class GameScene extends Phaser.Scene {
       this.currentMapConfig.portals.forEach(portal => {
         const cx = portal.tilePos.x * TS + TS / 2;
         const cy = portal.tilePos.y * TS + TS / 2;
-        // Color por sentido: cálido (ámbar) avanza ('next'), frío (azul) retrocede ('back').
-        const color = portal.direction === 'next' ? 0xffb060 : 0x60c0ff;
+        // Portal de retroceso ('back' → mapa anterior): siempre AZUL.
+        // Portal de avance ('next'): VERDE desbloqueado / ROJO bloqueado.
+        // Ids sin def (hogar, world-run) cuentan como desbloqueados → verde.
+        const featureId = mapFeatureId(portal.targetMapId);
+        const back = portal.direction === 'back';
+        const unlocked = back ? true : (this.reg.unlocks?.isUnlocked(featureId) ?? true);
+        const color = back ? 0x60c0ff : (unlocked ? 0x50e070 : 0xff4d4d);
 
         // Resplandor en el suelo (no rota → óvalo aplastado directo, sin deformación).
         const halo = this.add.ellipse(cx, cy, D * 1.4, D * 1.4 * SQUASH, color, 0.14)
@@ -1900,7 +1908,7 @@ export class GameScene extends Phaser.Scene {
         const core = this.add.image(0, 0, 'portal_core').setDisplaySize(D * 0.52, D * 0.52);
         cont.add([outer, inner, core]);
 
-        this.activePortals.push({ config: portal, cx, cy, angle: 0, outer, inner, halo });
+        this.activePortals.push({ config: portal, cx, cy, angle: 0, outer, inner, halo, featureId, locked: back ? false : !unlocked });
       });
     }
 
@@ -1944,6 +1952,18 @@ export class GameScene extends Phaser.Scene {
       const IDLE = 0.35, MAXA = 9;                 // rad/s (inactivo → cerca)
       const nearR = TS * 10, enterR = TS * 1.1;    // enterR = radio de activación
       for (const p of this.activePortals) {
+        // Estado bloqueado/desbloqueado (por si se desbloquea el destino en vivo):
+        // recolorear a verde/rojo solo cuando cambia. Los 'back' (azules) no se tocan.
+        if (p.config.direction !== 'back') {
+          const nowUnlocked = this.reg.unlocks?.isUnlocked(p.featureId) ?? true;
+          if (nowUnlocked === p.locked) {   // ha cambiado
+            p.locked = !nowUnlocked;
+            const col = nowUnlocked ? 0x50e070 : 0xff4d4d;
+            p.outer.setTint(col);
+            p.halo.setFillStyle(col);
+          }
+        }
+
         const dx = px - p.cx, dy = py - p.cy;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const f = Phaser.Math.Clamp((nearR - dist) / (nearR - enterR), 0, 1);

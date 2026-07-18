@@ -14,6 +14,9 @@ export interface ChatEntry {
   id: number;
   speaker: string;
   text: string;
+  /** true = mensaje NO solicitado (charla ambiental) → cuenta como novedad.
+   *  false = línea de un diálogo activo (bocadillo, ya la estás viendo) → no marca novedad. */
+  ambient: boolean;
 }
 
 /**
@@ -85,9 +88,9 @@ export class DialogueService {
   requestNext(): void { if (this.line$.value) this.next$.next(); }
 
   /** Publica una línea SOLO en el registro de chat, sin abrir el bocadillo del NPC.
-   *  Para la charla ambiental de otros personajes (AmbientChatService). */
+   *  Para la charla ambiental de otros personajes (AmbientChatService) → marca novedad. */
   postChat(speaker: string, text: string): void {
-    this.pushHistory(speaker, text);
+    this.pushHistory(speaker, text, true);
   }
 
   private emit(): void {
@@ -98,12 +101,13 @@ export class DialogueService {
       text,
       hasNext: this.index < this.lines.length - 1,
     });
-    this.pushHistory(speaker, text);
+    // Diálogo ACTIVO (lo ves en el bocadillo) → al chat pero SIN marcar novedad.
+    this.pushHistory(speaker, text, false);
   }
 
-  /** Añade la línea al registro de chat (cap a HISTORY_MAX). */
-  private pushHistory(speaker: string, text: string): void {
-    this._history.push({ id: this.historyId++, speaker, text });
+  /** Añade la línea al registro de chat (cap a HISTORY_MAX). `ambient` = no solicitada. */
+  private pushHistory(speaker: string, text: string, ambient: boolean): void {
+    this._history.push({ id: this.historyId++, speaker, text, ambient });
     if (this._history.length > DialogueService.HISTORY_MAX) this._history.shift();
     this.history$.next([...this._history]);
   }

@@ -172,7 +172,9 @@
     "PARALLAX_FOG": "Niebla",
     "PARALLAX_MAGIC": "Mágico",
     "CAMERA_BOUNDS": "Cámara limitada al mapa",
-    "CAMERA_BOUNDS_DESC": "La cámara se detiene en el borde del mapa y no muestra el vacío. Desactívalo para seguimiento libre."
+    "CAMERA_BOUNDS_DESC": "La cámara se detiene en el borde del mapa y no muestra el vacío. Desactívalo para seguimiento libre.",
+    "CHAT": "Chat",
+    "CHAT_DESC": "Botón de chat y mensajes de otros personajes. Desactívalo para ocultarlo de todos los sitios."
   },
   "GT": {
     "TREE": {
@@ -675,7 +677,20 @@
     "MORDEKAI": {
       "CHEESE": "¿Qué preferís, el edam o el havarti?",
       "L1": "Una buena espada es como un buen queso: requiere tiempo.",
-      "L2": "No se lo digáis a nadie, pero escondí una rueda de gouda en el sótano."
+      "L2": "No se lo digáis a nadie, pero escondí una rueda de gouda en el sótano.",
+      "L3": "Regla número uno del instructor: si algo te muerde, muérdelo tú más fuerte.",
+      "L4": "Sí, soy una rata gigante. No, no tengo la peste. Probablemente.",
+      "L5": "Llevo once vidas en estas mazmorras. La primera no cuenta, fue vergonzosa.",
+      "L6": "¿Ves esa trampa tan obvia? El 90% muere ahí. Tú tranquilo, seguro que eres del otro 10%.",
+      "L7": "Consejo gratis: nunca abras un cofre con la cara. Larga historia.",
+      "L8": "Podría enseñarte a luchar, o podríamos comer queso. Pensémoslo bien.",
+      "L9": "En mis tiempos las mazmorras eran cuesta arriba en las dos direcciones. Y con menos queso.",
+      "L10": "El patrocinador de hoy es... nadie. Nadie quiere patrocinar a una rata. Increíble.",
+      "L11": "Si te pierdes, sigue el olor a queso. Casualmente, ese olor soy yo.",
+      "L12": "Te veo potencial, chaval. Muy poco, pero algo hay.",
+      "L13": "Un buen aventurero saquea primero y pregunta después. O nunca.",
+      "L14": "Roe, saquea y sobrevive. En ese orden, más o menos.",
+      "FIRST_BRICK": "Desde el momento en el que vi tu cabeza, sabía que podrías romper bloques de ladrillos con ella."
     }
   },
   "COMMON": {

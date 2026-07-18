@@ -3,6 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DialogueService } from './dialogue.service';
 import { UnlockService } from './unlock.service';
 import { AsgardService } from './asgard';
+import { GameSettingsService } from './game-settings.service';
 import {
   AMBIENT_LINE_KEYS, AMBIENT_MAX_MS, AMBIENT_MIN_MS, CONVERSATION_CHANCE,
   NAMED_CHATTERS, OPENING_LINES,
@@ -25,12 +26,15 @@ export class AmbientChatService {
   private translate = inject(TranslateService);
   private unlocks   = inject(UnlockService);
   private asgard    = inject(AsgardService);
+  private gs        = inject(GameSettingsService);
 
   private timers: ReturnType<typeof setTimeout>[] = [];
   private randomTimer?: ReturnType<typeof setTimeout>;
   private started = false;
   /** Nombres del roster (para la charla de héroes no controlados). Se lee en `start()`. */
   private rosterNames: string[] = [];
+  /** Prefijo de los flags de frases de una sola vez (`sayOnce`) en localStorage. */
+  private static readonly ONCE_PREFIX = 'ambient_once_';
 
   async start(): Promise<void> {
     if (this.started) return;
@@ -57,6 +61,20 @@ export class AmbientChatService {
 
   /** Dispara una frase suelta de un personaje concreto (uso externo puntual). */
   say(speaker: string, key: string): void { this.post(speaker, key); }
+
+  /** Publica una línea de UNA SOLA VEZ, identificada por `id` (persistido en
+   *  localStorage). Ideal para frases contextuales/tutoriales ("la primera vez
+   *  que…"). Si el chat está desactivado NO consume el flag: saldrá cuando se
+   *  reactive y vuelva a darse el evento. */
+  sayOnce(id: string, speaker: string, key: string): void {
+    if (!this.gs.chatEnabled) return;
+    const flag = AmbientChatService.ONCE_PREFIX + id;
+    try {
+      if (localStorage.getItem(flag)) return;
+      localStorage.setItem(flag, '1');
+    } catch { /* sin storage: se dispara igual (no persiste entre sesiones) */ }
+    this.post(speaker, key);
+  }
 
   // ── Interno ────────────────────────────────────────────────────────────────
 
@@ -118,6 +136,7 @@ export class AmbientChatService {
   private pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
   private post(speaker: string, key: string): void {
+    if (!this.gs.chatEnabled) return;   // chat desactivado en Ajustes → nadie escribe
     this.dialogue.postChat(speaker, this.translate.instant(key));
   }
 }

@@ -172,7 +172,9 @@
     "LANGUAGE": "Language",
     "LANGUAGE_DESC": "Interface language. Applies instantly.",
     "CAMERA_BOUNDS": "Camera bound to map",
-    "CAMERA_BOUNDS_DESC": "The camera stops at the map edge and hides the void. Turn off for free follow."
+    "CAMERA_BOUNDS_DESC": "The camera stops at the map edge and hides the void. Turn off for free follow.",
+    "CHAT": "Chat",
+    "CHAT_DESC": "Chat button and messages from other characters. Turn off to hide it everywhere."
   },
   "GT": {
     "TREE": {
@@ -675,7 +677,20 @@
     "MORDEKAI": {
       "CHEESE": "So... which do you prefer, edam or havarti?",
       "L1": "A good blade is like a good cheese: it takes time.",
-      "L2": "Don't tell anyone, but I hid a wheel of gouda in the cellar."
+      "L2": "Don't tell anyone, but I hid a wheel of gouda in the cellar.",
+      "L3": "Instructor's rule number one: if something bites you, bite it back harder.",
+      "L4": "Yes, I'm a giant rat. No, I don't have the plague. Probably.",
+      "L5": "Eleven lives in these dungeons. The first one doesn't count, it was embarrassing.",
+      "L6": "See that painfully obvious trap? Ninety percent die there. But you're surely in the other ten.",
+      "L7": "Free tip: never open a chest with your face. Long story.",
+      "L8": "I could teach you to fight, or we could eat cheese. Let's think hard about this.",
+      "L9": "Back in my day, dungeons went uphill both ways. And with far less cheese.",
+      "L10": "Today's sponsor is... nobody. Nobody wants to sponsor a rat. Unbelievable.",
+      "L11": "If you get lost, follow the smell of cheese. That smell, by the way, is me.",
+      "L12": "I see potential in you, kid. Very little, but it's there.",
+      "L13": "A good adventurer loots first and asks questions later. Or never.",
+      "L14": "Gnaw, loot, survive. In that order, more or less.",
+      "FIRST_BRICK": "From the moment I saw your head, I knew you could break brick blocks with it."
     }
   },
   "COMMON": {

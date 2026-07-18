@@ -1275,6 +1275,8 @@ export class WorldRunScene extends Phaser.Scene {
     // El jugador rebota hacia abajo tras el cabezazo.
     this.player.setVelocityY(160);
     this.grantRandomBoxReward(block.x, baseY - BLOCK_DISPLAY * 0.5);
+    // La primera caja "?" que rompes de un cabezazo → Mordekai suelta su pulla (1 vez).
+    this.reg.ambientChat?.sayOnce('first_brick_box', 'Mordekai', 'CHAT_AMBIENT.MORDEKAI.FIRST_BRICK');
   }
 
   /**

@@ -14,6 +14,7 @@ export interface GameSettings {
   showGrid: boolean;          // overlay de rejilla de tiles (debug de posiciones)
   screenShake: boolean;       // efectos de pantalla (temblor de cámara + destellos)
   cameraBounds: boolean;      // la cámara se detiene en el borde del mapa (no muestra el vacío)
+  chatEnabled: boolean;       // muestra el chat y deja que otros personajes escriban
   parallaxTheme: ParallaxThemeId;
   worldParallax: WorldParallaxId;
   language: AppLanguage;      // idioma de la interfaz (ngx-translate)
@@ -27,6 +28,7 @@ const DEFAULTS: GameSettings = {
   showGrid: false,
   screenShake: true,
   cameraBounds: true,
+  chatEnabled: true,
   parallaxTheme: 'sea',
   worldParallax: 'paralax01',
   language: 'es',
@@ -79,6 +81,10 @@ export class GameSettingsService {
   get cameraBounds():  boolean { return this._settings.cameraBounds; }
   get cameraBounds$()          { return this._subject.pipe(map(s => s.cameraBounds), distinctUntilChanged()); }
   setCameraBounds(v: boolean)  { this.set('cameraBounds', v); }
+
+  get chatEnabled():  boolean { return this._settings.chatEnabled; }
+  get chatEnabled$()          { return this._subject.pipe(map(s => s.chatEnabled), distinctUntilChanged()); }
+  setChatEnabled(v: boolean)  { this.set('chatEnabled', v); }
 
   get parallaxTheme(): ParallaxThemeId { return this._settings.parallaxTheme; }
   get parallaxTheme$()                 { return this._subject.pipe(map(s => s.parallaxTheme), distinctUntilChanged()); }

@@ -1,13 +1,13 @@
 <!-- Botón bocadillo (abajo-izquierda, sobre el tirador del hub). Queda POR ENCIMA de
      la ventana: al abrir, la ventana lo tapa por detrás y este sigue pulsable = cerrar. -->
-<button class="chat-fab" [class.chat-fab--open]="open" (click)="toggle()"
+<button class="chat-fab" *ngIf="enabled" [class.chat-fab--open]="open" (click)="toggle()"
         [attr.aria-label]="'CHAT.TITLE' | translate">
   <ion-icon [name]="open ? 'close' : 'chatbubble-ellipses-outline'"></ion-icon>
   <span class="chat-unread" *ngIf="unread > 0 && !open">{{ unread > 9 ? '9+' : unread }}</span>
 </button>
 
 <!-- Ventana de chat (sin cabecera; se cierra con el propio botón, que queda encima) -->
-<div class="chat-window" *ngIf="open">
+<div class="chat-window" *ngIf="open && enabled">
   <div class="chat-body" #body>
     <p class="chat-empty" *ngIf="entries.length === 0">{{ 'CHAT.EMPTY' | translate }}</p>
     <div class="chat-msg" *ngFor="let e of entries">

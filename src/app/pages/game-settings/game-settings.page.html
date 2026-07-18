@@ -131,6 +131,16 @@
           </div>
         </div>
 
+        <div class="gs-row">
+          <div class="gs-row-info">
+            <span class="gs-row-title">{{ 'GAME_SETTINGS.CHAT' | translate }}</span>
+            <span class="gs-row-desc">{{ 'GAME_SETTINGS.CHAT_DESC' | translate }}</span>
+          </div>
+          <div class="gs-toggle" [class.on]="gs.chatEnabled" (click)="gs.setChatEnabled(!gs.chatEnabled)">
+            <div class="gs-toggle-thumb"></div>
+          </div>
+        </div>
+
       </div>
 
       <div class="gs-section">

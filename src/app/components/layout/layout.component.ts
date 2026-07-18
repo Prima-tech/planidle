@@ -52,6 +52,7 @@ import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { AudioService } from 'src/app/services/audio.service';
 import { QuestService } from 'src/app/services/quest.service';
 import { RunProgressService } from 'src/app/services/run-progress.service';
+import { PortalUnlockService } from 'src/app/services/portal-unlock.service';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -123,6 +124,7 @@ export class LayoutComponent implements OnDestroy {
     private audioService: AudioService,
     private questService: QuestService,
     public runProgressService: RunProgressService,
+    private portalUnlockService: PortalUnlockService,
     private translateService: TranslateService,
     private ambientChatService: AmbientChatService,
   ) {
@@ -291,6 +293,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.UNLOCK,           this.unlockService);
     this.phaserGame.registry.set(REGISTRY_KEYS.ACTIVITY,         this.activityService);
     this.phaserGame.registry.set(REGISTRY_KEYS.DIALOGUE,         this.dialogueService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.AMBIENT_CHAT,     this.ambientChatService);
     this.phaserGame.registry.set(REGISTRY_KEYS.FORGE,            this.forgeService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_UPGRADES,     this.mapUpgradesService);
     this.phaserGame.registry.set(REGISTRY_KEYS.MAP_DOMINION,     this.mapDominionService);
@@ -299,6 +302,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.AUDIO,            this.audioService);
     this.phaserGame.registry.set(REGISTRY_KEYS.QUESTS,           this.questService);
     this.phaserGame.registry.set(REGISTRY_KEYS.RUN_PROGRESS,     this.runProgressService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.PORTAL_UNLOCK,    this.portalUnlockService);
     this.phaserGame.registry.set(REGISTRY_KEYS.TRANSLATE,        this.translateService);
     this.sceneManager.setGame(this.phaserGame);
 

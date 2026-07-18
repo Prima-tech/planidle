@@ -37,11 +37,25 @@ export const AMBIENT_LINE_KEYS: string[] = [
 /** Personajes con frases propias. Mordekai habla siempre (sin requiresUnlock). */
 export const NAMED_CHATTERS: NamedChatter[] = [
   {
+    // Rata gigante, instructor inicial, sarcástico y obseso del queso (estilo
+    // Mordekai de "Carl el Mazmorrero").
     name: 'Mordekai',
     lineKeys: [
       'CHAT_AMBIENT.MORDEKAI.CHEESE',
       'CHAT_AMBIENT.MORDEKAI.L1',
       'CHAT_AMBIENT.MORDEKAI.L2',
+      'CHAT_AMBIENT.MORDEKAI.L3',
+      'CHAT_AMBIENT.MORDEKAI.L4',
+      'CHAT_AMBIENT.MORDEKAI.L5',
+      'CHAT_AMBIENT.MORDEKAI.L6',
+      'CHAT_AMBIENT.MORDEKAI.L7',
+      'CHAT_AMBIENT.MORDEKAI.L8',
+      'CHAT_AMBIENT.MORDEKAI.L9',
+      'CHAT_AMBIENT.MORDEKAI.L10',
+      'CHAT_AMBIENT.MORDEKAI.L11',
+      'CHAT_AMBIENT.MORDEKAI.L12',
+      'CHAT_AMBIENT.MORDEKAI.L13',
+      'CHAT_AMBIENT.MORDEKAI.L14',
     ],
   },
 ];
@@ -51,8 +65,8 @@ export const OPENING_LINES: ChatScriptLine[] = [
   { speaker: 'Mordekai', key: 'CHAT_AMBIENT.MORDEKAI.CHEESE', delayMs: 10000 },
 ];
 
-/** Ventana (ms) entre frases ambientales al azar. */
-export const AMBIENT_MIN_MS = 22000;
-export const AMBIENT_MAX_MS = 55000;
+/** Ventana (ms) entre frases ambientales al azar. Fijo en 5 minutos. */
+export const AMBIENT_MIN_MS = 300000;
+export const AMBIENT_MAX_MS = 300000;
 /** Probabilidad de que un tick lance una conversación (2 PJs) en vez de una frase suelta. */
 export const CONVERSATION_CHANCE = 0.3;

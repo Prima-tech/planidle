@@ -26,8 +26,14 @@ export interface SpawnTracker {
 export interface PortalConfig {
   tilePos: { x: number; y: number };
   targetMapId: string;
-  /** 'next' = avanza al mapa futuro (portal naranja); 'back' = retrocede (portal azul). */
+  /** 'next' = avanza (verde/rojo según desbloqueo); 'back' = retrocede (azul). */
   direction: 'next' | 'back';
+  /** Portal SELLADO: hasta marcar este flag de UnlockService está bloqueado (rojo, no
+   *  transitable); al acercarse el botón pasa a "interactuar" y pide su coste para abrirlo. */
+  unlockFlag?: string;
+  unlockScope?: 'char' | 'global';
+  /** Materiales para abrirlo (nombre de item en el inventario + cantidad). */
+  unlockCost?: { name: string; qty: number }[];
 }
 
 export interface TilesetConfig {
@@ -184,6 +190,11 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     portals: [
       { tilePos: { x: 17, y: 17 }, targetMapId: '1-1',       direction: 'next' },
       { tilePos: { x: 30, y: 17 }, targetMapId: 'world-run', direction: 'next' }, // entrada al Modo Mundo (runner)
+      // Portal SELLADO a la derecha del todo: bloqueado (rojo) hasta pagar 5 Madera +
+      // 5 Mineral de Cobre. targetMapId es provisional (cámbialo al destino real).
+      { tilePos: { x: 76, y: 25 }, targetMapId: 'world-run', direction: 'next',
+        unlockFlag: 'portal.asgard.sealed', unlockScope: 'char',
+        unlockCost: [{ name: 'Madera', qty: 5 }, { name: 'Mineral de Cobre', qty: 5 }] },
     ],
     spawnPos: { x: 30, y: 30 },
   },
