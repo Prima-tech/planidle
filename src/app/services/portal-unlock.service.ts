@@ -28,6 +28,12 @@ export class PortalUnlockService {
   /** Petición actual (null = ventana cerrada). */
   readonly request$ = new BehaviorSubject<PortalUnlockReq | null>(null);
 
+  /** Posición CSS (px, relativa al viewport) del borde superior del portal al que apunta
+   *  la petición. La escena la actualiza cada frame; la ventana se ancla ahí siguiendo al
+   *  portal. Objeto mutable (no observable) → el componente lo lee en un rAF, sin CD. */
+  readonly anchor = { x: 0, y: 0 };
+  setAnchor(x: number, y: number): void { this.anchor.x = x; this.anchor.y = y; }
+
   open(req: PortalUnlockReq): void { this.request$.next(req); }
   close(): void { if (this.request$.value) this.request$.next(null); }
 

@@ -722,15 +722,15 @@ export class GameScene extends Phaser.Scene {
         : nearMapChest ? 'chest'
         : nearWindow ? (nearWindow.building.type === 'shop' ? 'shop' : 'forge')
         : nearNode ? HARVEST_KINDS[nearNode.kind].context
-        : nearNpc ? 'talk'
-        : nearSealedPortal ? 'portal' : 'attack');
+        : nearNpc ? 'talk' : 'attack');
 
       // Diálogo abierto + ya no hay NPC cerca → cerrarlo (te alejaste). Los diálogos
       // manuales (recompensa de misión) NO se cierran así: solo con toque/cerrar.
       if (!nearNpc && this.reg.dialogue?.isOpen && !this.reg.dialogue.isManual) this.reg.dialogue.dismiss();
 
-      // Ventana de portal sellado abierta + jugador ya lejos del portal → cerrarla.
-      if (!nearSealedPortal && this.reg.portalUnlock?.request$.value) this.reg.portalUnlock.close();
+      // Ventana de portal sellado: aparece FLOTANDO sobre el portal al acercarte (sin
+      // pulsar) y se ancla a su posición en pantalla cada frame; se cierra al alejarte.
+      this.updateSealedPortalWindow(nearSealedPortal);
 
       // Si la ventana de cofre de ciudad está abierta y el jugador se alejó del
       // cofre CONCRETO que abrió (cada cofre es su propio almacén) → cerrar.
@@ -790,11 +790,6 @@ export class GameScene extends Phaser.Scene {
           if (!this.interactLatched) {
             this.interactLatched = true;
             this.talkToNpc(nearNpc);
-          }
-        } else if (nearSealedPortal) {
-          if (!this.interactLatched) {
-            this.interactLatched = true;
-            this.openSealedPortal(nearSealedPortal);
           }
         } else if (!this.player.isAttacking && !this.interactLatched) {
           this.strike();
@@ -2389,8 +2384,6 @@ export class GameScene extends Phaser.Scene {
         if (win) { this.pendingLitBuilding = win; this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
         const npc = this.nearestNpc();
         if (npc) { this.talkToNpc(npc); return; }
-        const sealed = this.nearestSealedPortal();
-        if (sealed) { this.openSealedPortal(sealed); return; }
         if (this.player.isAttacking) return;
         this.strike();
       });
@@ -3443,7 +3436,7 @@ export class GameScene extends Phaser.Scene {
       if (this.activePortals.length === 0) return null;
       const TS = GameScene.TILE_SIZE;
       const pos = this.player.getPosition();
-      const RANGE = TS * 1.8;
+      const RANGE = TS * 2.6;   // aparece al pisar el disco del portal (D ≈ 3.4 tiles)
       const r2 = RANGE * RANGE;
       let nearest: typeof this.activePortals[0] | null = null;
       let nearestD = Infinity;
@@ -3470,6 +3463,31 @@ export class GameScene extends Phaser.Scene {
         scope: cfg.unlockScope ?? 'char',
         cost: (cfg.unlockCost ?? []).map(c => ({ name: c.name, qty: c.qty })),
       });
+    }
+
+    /** Muestra/oculta y ANCLA la ventana flotante del portal sellado. Se llama cada frame
+     *  con el portal sellado cercano (o null). Proyecta el centro superior del disco de
+     *  mundo→CSS (1 unidad de mundo = CAMERA_DESIGN_ZOOM px CSS) para que el componente DOM
+     *  se pinte justo encima del portal y lo siga al moverse la cámara. */
+    private updateSealedPortalWindow(p: typeof this.activePortals[0] | null): void {
+      const pu = this.reg.portalUnlock;
+      if (!pu) return;
+      // Sin portal cercano, o ya desbloqueado en vivo (recién pagado) → cerrar y no reabrir.
+      const flag = p?.config.unlockFlag;
+      if (!p || !flag || this.reg.unlocks?.hasFlag(flag)) {
+        if (pu.request$.value) pu.close();
+        return;
+      }
+      if (!pu.request$.value) this.openSealedPortal(p);   // abrir una sola vez
+
+      const TS = GameScene.TILE_SIZE;
+      const D = TS * 3.4, SQUASH = 0.5;                   // igual que initPortals()
+      const cx = p.config.tilePos.x * TS + TS / 2;
+      const cy = p.config.tilePos.y * TS + TS / 2;
+      const topY = cy - D * 0.5 * SQUASH;                 // borde superior del disco (mundo)
+      const wv = this.cameras.main.worldView;
+      const Z = GameScene.CAMERA_DESIGN_ZOOM;             // px CSS por unidad de mundo
+      pu.setAnchor((cx - wv.x) * Z, (topY - wv.y) * Z);
     }
 
     /** Habla con un NPC: si es reclutable y aún no está reclutado, suelta su frase de

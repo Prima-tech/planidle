@@ -1,7 +1,7 @@
-/* ===== Ventana de portal sellado =====
-   Look WOOD (base): marco de piedra biselado + madera cálida, a juego con el resto
-   de menús. El overlay atenúa el juego y captura el toque (a diferencia del diálogo
-   de NPC, esto SÍ es modal). Tocar fuera del cuadro = cancelar. */
+/* ===== Ventana flotante de portal sellado =====
+   Look WOOD (base): marco de piedra biselado + madera cálida, a juego con el resto de
+   menús. NO es un modal: flota anclada sobre el portal (la escena escribe su `transform`
+   cada frame) y deja el resto del juego jugable. Solo la propia ventana captura el toque. */
 $outline: #3a2c20;
 $stone: #8f8678;
 $stone-light: #a59c8d;
@@ -16,72 +16,58 @@ $metal: #9b9285;
 $metal-dark: #6b6357;
 $gold: #ffe08a;
 
-.pu-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.55);
-  pointer-events: auto;
-  animation: pu-fade 140ms ease-out;
-}
-
 .pu-box {
-  position: relative;
-  width: 100%;
-  max-width: 320px;
-  padding: 18px 16px 16px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 450;
+  width: 186px;
+  padding: 9px 10px 10px;
   color: $text-cream;
   text-align: center;
+  /* La escena fija la posición vía transform (translate(-50%,-100%) + ancla). */
+  transform: translate(-9999px, -9999px);
+  will-change: transform;
+  pointer-events: auto;
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 15px),
     $wood-bg;
   border: 3px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 10px;
+  border-radius: 9px;
   box-shadow:
     0 0 0 1px $outline,
     inset 0 0 0 1px $outline,
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 12px 28px rgba(0, 0, 0, 0.55);
+    0 10px 22px rgba(0, 0, 0, 0.55);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-  animation: pu-pop 180ms cubic-bezier(0.18, 0.9, 0.3, 1.25);
+  animation: pu-pop 170ms cubic-bezier(0.18, 0.9, 0.3, 1.25);
 }
 
 .pu-title {
   font-family: Georgia, 'Times New Roman', serif;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 13.5px;
   letter-spacing: 0.02em;
   color: $gold;
-}
-
-.pu-desc {
-  margin-top: 5px;
-  font-size: 12.5px;
-  line-height: 1.35;
-  opacity: 0.92;
 }
 
 .pu-costs {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  margin: 14px 0;
+  gap: 5px;
+  margin: 8px 0 9px;
 }
 
 .pu-cost {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 6px 10px;
+  gap: 7px;
+  padding: 4px 7px;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.22));
   border: 2px solid;
   border-color: $stone $stone-dark $stone-dark $stone;
-  border-radius: 7px;
+  border-radius: 6px;
   box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
   &.short { border-color: #c85b5b #7a2a2a #7a2a2a #c85b5b; }
@@ -89,10 +75,10 @@ $gold: #ffe08a;
 
 .pu-cost__icon {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   image-rendering: pixelated;
-  border-radius: 5px;
+  border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.3);
   border: 1px solid $outline;
 
@@ -101,6 +87,7 @@ $gold: #ffe08a;
     align-items: center;
     justify-content: center;
     font-weight: 700;
+    font-size: 12px;
     color: $metal-light;
   }
 }
@@ -109,7 +96,7 @@ $gold: #ffe08a;
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -119,61 +106,52 @@ $gold: #ffe08a;
   flex: 0 0 auto;
   font-family: Georgia, serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12.5px;
   color: $gold;
 
   .short & { color: #ff9a9a; }
 }
 
-.pu-actions {
-  display: flex;
-  gap: 10px;
-}
-
 .pu-btn {
-  flex: 1 1 0;
-  padding: 9px 8px;
+  width: 100%;
+  padding: 8px;
   font-family: Georgia, 'Times New Roman', serif;
   font-weight: 700;
-  font-size: 13px;
-  color: $text-cream;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  font-size: 12.5px;
+  color: #2a1a0c;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, $wood-btn-light, $wood-btn 55%, $wood-btn-dark);
   border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 7px;
   box-shadow: 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.2);
   cursor: pointer;
 
   &:active { transform: translateY(1px); }
-}
-
-.pu-btn--cancel {
-  background: linear-gradient(180deg, $stone-light, $stone 55%, $stone-dark);
-  border-color: $metal-light $metal-dark $metal-dark $metal;
-}
-
-.pu-btn--confirm {
-  background: linear-gradient(180deg, $wood-btn-light, $wood-btn 55%, $wood-btn-dark);
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  color: #2a1a0c;
 
   &:disabled {
     filter: grayscale(0.6) brightness(0.75);
-    opacity: 0.7;
+    opacity: 0.72;
     cursor: default;
     transform: none;
   }
 }
 
-@keyframes pu-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+/* Pico apuntando al portal (triángulo de madera con borde de piedra). */
+.pu-beak {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 14px;
+  height: 8px;
+  transform: translateX(-50%);
+  background: $wood-bg;
+  border: 2px solid $stone-dark;
+  border-top: none;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 
 @keyframes pu-pop {
-  from { transform: translateY(10px) scale(0.96); opacity: 0; }
-  to   { transform: translateY(0)    scale(1);    opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pu-overlay, .pu-box { animation-duration: 0.01ms; }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

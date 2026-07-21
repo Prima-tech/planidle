@@ -701,7 +701,7 @@
   "PORTAL": {
     "SEALED_TITLE": "Portal sellado",
     "SEALED_DESC": "Este portal está sellado. Entrega los materiales para abrirlo.",
-    "SEALED_OPEN": "Abrir portal",
+    "SEALED_OPEN": "Crear",
     "SEALED_MISSING": "Te faltan materiales"
   },
   "TOAST": {

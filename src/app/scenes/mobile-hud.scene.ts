@@ -56,7 +56,7 @@ const THUMB_R  = 26 * DPR;
 
 // ── Minimap ──────────────────────────────────────────────────────────────────
 const MM_RADIUS     = 49 * DPR;   // radio del minimapa circular (px CSS × DPR)
-const MM_MARGIN     = 15 * DPR;   // separación del borde derecho (aro HTML a 10px + 5px de bisel)
+const MM_MARGIN     = 27 * DPR;   // separación del borde derecho (aro HTML a 22px + 5px de bisel)
 const MM_TOP        = 15 * DPR;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
 const MM_DOT_PORTAL    = 3   * DPR;
 const MM_COLOR_PORTAL  = 0x48c4f8;

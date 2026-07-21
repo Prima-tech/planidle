@@ -1,24 +1,18 @@
-<div class="pu-overlay" *ngIf="req" (pointerdown)="cancel()">
-  <div class="pu-box" (pointerdown)="$event.stopPropagation()">
-    <div class="pu-title">{{ 'PORTAL.SEALED_TITLE' | translate }}</div>
-    <div class="pu-desc">{{ 'PORTAL.SEALED_DESC' | translate }}</div>
+<div class="pu-box" #box *ngIf="req">
+  <div class="pu-title">{{ 'PORTAL.SEALED_TITLE' | translate }}</div>
 
-    <div class="pu-costs">
-      <div class="pu-cost" *ngFor="let r of rows" [class.short]="!r.enough">
-        <img *ngIf="r.icon" class="pu-cost__icon" [src]="r.icon" alt="" draggable="false" />
-        <span *ngIf="!r.icon" class="pu-cost__icon pu-cost__icon--ph">?</span>
-        <span class="pu-cost__name">{{ r.name }}</span>
-        <span class="pu-cost__amt">{{ r.have }}/{{ r.qty }}</span>
-      </div>
-    </div>
-
-    <div class="pu-actions">
-      <button class="pu-btn pu-btn--cancel" (click)="cancel()">
-        {{ 'COMMON.CANCEL' | translate }}
-      </button>
-      <button class="pu-btn pu-btn--confirm" [disabled]="!affordable" (click)="confirm()">
-        {{ (affordable ? 'PORTAL.SEALED_OPEN' : 'PORTAL.SEALED_MISSING') | translate }}
-      </button>
+  <div class="pu-costs">
+    <div class="pu-cost" *ngFor="let r of rows" [class.short]="!r.enough">
+      <img *ngIf="r.icon" class="pu-cost__icon" [src]="r.icon" alt="" draggable="false" />
+      <span *ngIf="!r.icon" class="pu-cost__icon pu-cost__icon--ph">?</span>
+      <span class="pu-cost__name">{{ r.name }}</span>
+      <span class="pu-cost__amt">{{ r.have }}/{{ r.qty }}</span>
     </div>
   </div>
+
+  <button class="pu-btn" [disabled]="!affordable" (click)="confirm()">
+    {{ 'PORTAL.SEALED_OPEN' | translate }}
+  </button>
+
+  <span class="pu-beak"></span>
 </div>
