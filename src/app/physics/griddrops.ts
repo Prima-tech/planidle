@@ -411,6 +411,16 @@ const BAGS_CATALOG: LootEntry[] = [
 
 const RESOURCES_CATALOG: LootEntry[] = [
   {
+    name: 'Piedra',
+    category: 'Recurso',
+    type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: true,
+    texture: 'piedra',
+    icon: 'assets/tilemaps/biomas/grasslands/Objects_separated/Stone5_grass_shadow.png',
+    scale: 2, order: 6,
+    description: 'Piedra recogida del suelo. Material de construcción.',
+  },
+  {
     name: 'Madera',
     category: 'Recurso',
     type: 'item',

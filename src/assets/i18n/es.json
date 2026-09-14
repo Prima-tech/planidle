@@ -405,6 +405,16 @@
     "FULL": "Máx. 5 activas",
     "NONE_AVAILABLE": "No hay misiones disponibles.",
     "NONE_COMPLETED": "Aún no has completado ninguna misión.",
+    "RECOGE_MATERIALES": {
+      "NAME": "Recoge materiales",
+      "DESC": "Mordekai te pide reunir 5 Piedra y 5 Madera del suelo de Asgard. Acércate a las piedras y troncos y pulsa el botón de acción para recogerlos. Recompensa: 1 de oro.",
+      "TRACK": "Reúne materiales"
+    },
+    "ABRE_PORTAL": {
+      "NAME": "El portal sellado",
+      "DESC": "Ya tienes los materiales: acércate al portal sellado de la derecha y ábrelo entregando 5 Piedra y 5 Madera. Recompensa: 1 de oro.",
+      "TRACK": "Abre el portal de la derecha"
+    },
     "PRIMERAS_ESTRELLAS": {
       "NAME": "La llamada de Mordekai",
       "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y reúne 100 estrellas: toca la pantalla para saltar y recógelas al vuelo. Recompensa: 10 de oro.",
@@ -716,7 +726,13 @@
     "MORDEKAI_CLAIM1": "¡Bien hecho, bro! Ahora mata 1 rata hachiática. Las verás en la exploración, correteando a ras de suelo.",
     "MORDEKAI_CLAIM2": "¡Buena, bro!",
     "MORDEKAI_PROGRESS": "Llevas {{prog}}/{{goal}} estrellas. Sigue saltando a por ellas en la exploración (portal del este).",
-    "MORDEKAI_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Antes de luchar, aprende a explorar: cruza el portal del este y trae 1 estrella. Toca la pantalla para saltar y recógela al vuelo.",
+    "MORDEKAI_INTRO": "Ahora aprende a explorar, {{player}}: cruza el portal del este y reúne estrellas. Toca la pantalla para saltar y recógelas al vuelo.",
+    "MORDEKAI_COLLECT_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Empieza recogiendo del suelo 5 de Piedra y 5 de Madera: acércate a las piedras y troncos y pulsa el botón de acción.",
+    "MORDEKAI_COLLECT_PROGRESS": "Sigue recogiendo, {{player}}: necesitas 5 de Piedra y 5 de Madera del suelo.",
+    "MORDEKAI_COLLECT_CLAIM": "¡Bien hecho, {{player}}! Toma 1 de oro. Con esos materiales puedes abrir el portal sellado de la derecha cuando quieras. Ahora aprende a explorar: cruza el portal del este y reúne estrellas (toca para saltar y recógelas al vuelo).",
+    "MORDEKAI_PORTAL_INTRO": "Ve al portal sellado de la derecha, {{player}}, y ábrelo entregando tus 5 de Piedra y 5 de Madera.",
+    "MORDEKAI_PORTAL_PROGRESS": "Acércate al portal sellado de la derecha y ábrelo, {{player}}.",
+    "MORDEKAI_PORTAL_CLAIM": "¡Portal abierto, {{player}}! Toma 1 de oro. Ahora aprende a explorar: cruza el portal del este y reúne estrellas (toca para saltar y recógelas al vuelo).",
     "KUGO_LINE": "{{player}}, ¡cuánto tiempo!",
     "ITALIEN_LINE": "Eh, {{player}}, ¿listo para la aventura?",
     "RAKE_LINE": "{{player}}, cuando quieras partimos."

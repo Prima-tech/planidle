@@ -2,7 +2,7 @@ import { Enemy } from "src/app/enemy/enemy";
 import { ActionConfig, ENEMY_REGISTRY, EnemyTypeConfig, ANIMAL_TYPES, rollDamageVariance } from "src/app/enemy/enemy-config";
 import { AnimationService } from "./animation.service";
 import { GridControls } from "src/app/physics/gridcontrols";
-import { GridDrops, ITEM_CATALOG } from "src/app/physics/griddrops";
+import { GridDrops, ITEM_CATALOG, hydrateItem } from "src/app/physics/griddrops";
 import { GridPhysics } from "src/app/physics/gridphisics";
 import { MobileInput, MOBILE_INPUT_KEY, MinimapData, MinimapTerrain, MINIMAP_DATA_KEY } from "src/app/scenes/mobile-hud.scene";
 import { Direction } from "src/app/pnj/interfaces/Direction";
@@ -98,12 +98,12 @@ interface ActiveChest {
  *  `texKey` = clave de textura propia. Añadir uno = una línea más aquí. */
 const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number; questId?: string;
                    sheet?: string; idle?: { start: number; end: number } }[] = [
-  // Mordekai: NPC de Asgard, da la primera misión (explorar → 5 estrellas). Junto al
-  // punto de aparición (spawnPos 30,30) para que sea lo primero que ves.
+  // Mordekai: NPC de Asgard, da la primera misión (recoge 5 Piedra + 5 Madera; luego,
+  // aparte, abrir el portal). Junto al punto de aparición (spawnPos 30,30) para que sea lo primero que ves.
   // `questId` → marcador flotante !/? sobre su cabeza (updateNpcQuestMarkers).
   // Hoja propia (LPC 24 col, distinta a los cuerpos de 13 col): idle = frame 240
   // (fila "andar hacia abajo", pose quieta mirando a cámara).
-  { name: 'Mordekai', texKey: 'npc_mordekai', tileX: 28, tileY: 30, questId: 'primeras_estrellas',
+  { name: 'Mordekai', texKey: 'npc_mordekai', tileX: 28, tileY: 30, questId: 'recoge_materiales',
     sheet: 'assets/sprites/players/mordekai.png', idle: { start: 240, end: 240 } },
 ];
 
@@ -238,6 +238,10 @@ export class GameScene extends Phaser.Scene {
     // pican con el pico equipado (3 golpes → se destruyen).
     // Recursos recolectables del mapa (rocas, árboles…). Bloquean el paso.
     private nodes: HarvestNode[] = [];
+    // Objetos recogibles del suelo (piedras y maderas, fijos y solo en Asgard). Al
+    // acercarte y pulsar atacar/espacio se recogen (→ item al inventario) y desaparecen
+    // PARA SIEMPRE (flag por objeto en UnlockService → no reaparecen). Bloquean su tile.
+    private groundPickups: { sprite: Phaser.GameObjects.Image; cx: number; cy: number; tileKeys: string[]; flag: string; itemName: string }[] = [];
     // Herramienta de recolección actualmente "en mano" (o null = arma). Se activa al
     // encarar un recurso con su herramienta y es PEGAJOSA: se mantiene aunque te alejes;
     // solo se quita al hacer un ataque normal (enemigo/al aire) u otra acción.
@@ -259,6 +263,7 @@ export class GameScene extends Phaser.Scene {
     private cachedNearNode:   HarvestNode | null = null;
     private cachedNearNpc:    typeof this.cityNpcs[0] | null = null;
     private cachedNearSealedPortal: typeof this.activePortals[0] | null = null;
+    private cachedNearPickup: typeof this.groundPickups[0] | null = null;
     // true una vez el jugador ha estado cerca de un edificio con ventana abierta:
     // a partir de ahí, alejarse la cierra (ver bloque de cierre por proximidad).
     private windowProximityArmed = false;
@@ -380,6 +385,10 @@ export class GameScene extends Phaser.Scene {
 
       // Recursos (drop al suelo desde el panel de invocación)
       this.load.image('madera', 'assets/icon/resources/madera_t1.png');   // drop de Madera (icono #19)
+      // Objetos recogibles del suelo (fijos en Asgard): piedra (→ Piedra) y árbol roto
+      // (→ Madera). La textura del drop en inventario ('madera') se carga aparte arriba.
+      this.load.image('piedra', 'assets/tilemaps/biomas/grasslands/Objects_separated/Stone5_grass_shadow.png');
+      this.load.image('broken_tree5', 'assets/tilemaps/biomas/grasslands/Objects_separated/Broken_tree5.png');
       this.load.image('crushed_stone', 'assets/icon/resources/mining/polvo.png');   // (carbón reutiliza este sprite)
 
       // Hoja de iconos (Icons.png) como spritesheet 32px: sprite del drop de mineral
@@ -602,6 +611,8 @@ export class GameScene extends Phaser.Scene {
         this.moveSelecting = false;
         this.deleteSelecting = false;
         this.placedBuildings = [];
+        this.groundPickups = [];
+        this.cachedNearPickup = null;
         this.activeChests = [];
         this.mapChest = null;
         this.cachedNearMapChest = false;
@@ -644,6 +655,7 @@ export class GameScene extends Phaser.Scene {
         this.initBuildClearedListener();
         if (this.currentMapConfig.id === 'hogar') this.initPlacedBuildings();
         if (this.currentMapConfig.id === 'hogar') this.initCityNpcs();
+        if (this.currentMapConfig.id === 'hogar') this.initGroundPickups();
         this.initRecruitNpcs();
         this.initHarvestNodes();
         this.initStatsListener();
@@ -707,6 +719,7 @@ export class GameScene extends Phaser.Scene {
         this.cachedNearNode     = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow) ? this.nearestHarvestable() : null;
         this.cachedNearNpc      = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow && !this.cachedNearNode) ? this.nearestNpc() : null;
         this.cachedNearSealedPortal = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow && !this.cachedNearNode && !this.cachedNearNpc) ? this.nearestSealedPortal() : null;
+        this.cachedNearPickup   = (!this.cachedNearChest && !this.cachedNearMapChest && !this.cachedNearWindow && !this.cachedNearNode && !this.cachedNearNpc) ? this.nearestPickup() : null;
       }
       const nearChest = this.cachedNearChest;
       const nearMapChest = this.cachedNearMapChest;
@@ -714,6 +727,7 @@ export class GameScene extends Phaser.Scene {
       const nearNode = this.cachedNearNode;
       const nearNpc = this.cachedNearNpc;
       const nearSealedPortal = this.cachedNearSealedPortal;
+      const nearPickup = this.cachedNearPickup;
       // La herramienta es "pegajosa": al encarar un recurso se muestra y se MANTIENE
       // aunque te alejes. Solo se quita al atacar a un enemigo / otra acción (strike).
       if (nearNode) this.setActiveHarvest(nearNode.kind);
@@ -722,7 +736,8 @@ export class GameScene extends Phaser.Scene {
         : nearMapChest ? 'chest'
         : nearWindow ? (nearWindow.building.type === 'shop' ? 'shop' : 'forge')
         : nearNode ? HARVEST_KINDS[nearNode.kind].context
-        : nearNpc ? 'talk' : 'attack');
+        : nearNpc ? 'talk'
+        : nearPickup ? 'pickup' : 'attack');
 
       // Diálogo abierto + ya no hay NPC cerca → cerrarlo (te alejaste). Los diálogos
       // manuales (recompensa de misión) NO se cierran así: solo con toque/cerrar.
@@ -790,6 +805,11 @@ export class GameScene extends Phaser.Scene {
           if (!this.interactLatched) {
             this.interactLatched = true;
             this.talkToNpc(nearNpc);
+          }
+        } else if (nearPickup) {
+          if (!this.interactLatched) {
+            this.interactLatched = true;
+            this.collectPickup(nearPickup);
           }
         } else if (!this.player.isAttacking && !this.interactLatched) {
           this.strike();
@@ -2384,6 +2404,8 @@ export class GameScene extends Phaser.Scene {
         if (win) { this.pendingLitBuilding = win; this.reg.cityBuild.requestOpenWindow(win.building.type); return; }
         const npc = this.nearestNpc();
         if (npc) { this.talkToNpc(npc); return; }
+        const pickup = this.nearestPickup();
+        if (pickup) { this.collectPickup(pickup); return; }
         if (this.player.isAttacking) return;
         this.strike();
       });
@@ -3376,12 +3398,13 @@ export class GameScene extends Phaser.Scene {
       // grandes y se veían más pixelados que el PJ pese a usar la misma hoja LPC.
       const SCALE       = 2.5;   // tamaño del sprite (igual que el jugador)
       const FOOT_OFFSET = 29;    // px que sube el sprite para que los pies caigan en el tile (∝ escala)
-      // Caja de colisión en TILES, relativa al tile de los pies (tileX,tileY). Generosa
-      // a propósito: el jugador colisiona por su CENTRO, y con sprites LPC altos hay que
-      // bloquear de más para chocar ANTES de solaparse con el dibujo. Ancho impar = centrado.
+      // Caja de colisión en TILES, relativa al tile de los pies (tileX,tileY). El jugador
+      // colisiona por los PIES, así que la caja se ancla a la BASE del NPC: ancha (3) y con
+      // la fila de los pies + la de abajo, PERO sin fila por encima (COL_UP=0) → nada de
+      // collider "por atrás" (que sobraba), y ancho/abajo generosos. Ancho impar = centrado.
       const COL_W   = 3;         // ancho (tiles)
-      const COL_UP  = 1;         // filas por encima de los pies (cuerpo/cabeza)
-      const COL_DOWN = 1;        // filas por debajo de los pies (evita meterse por abajo)
+      const COL_UP  = 0;         // filas por encima de los pies (detrás del NPC) → ninguna
+      const COL_DOWN = 1;        // filas por debajo de los pies (delante/base)
 
       const footX = tileX * TS + TS / 2;
       const footY = tileY * TS + TS / 2;
@@ -3490,6 +3513,96 @@ export class GameScene extends Phaser.Scene {
       pu.setAnchor((cx - wv.x) * Z, (topY - wv.y) * Z);
     }
 
+    /** Objetos recogibles FIJOS de Asgard (mapa 80×50): piedras (→ Piedra) y árboles rotos
+     *  (→ Madera, la misma que se tala en 1-1). 10 de cada, en posiciones fijas (ajústalas
+     *  a ojo). `flagPrefix` + índice = flag único por objeto para la persistencia. */
+    // `foot` = tiles de colisión relativos a la posición (dx, dy). La PIEDRA (baja) bloquea
+    // su base + el suelo de debajo. El TRONCO (alto, se dibuja hacia arriba) bloquea su base
+    // + el tile de arriba (sobre el propio tronco), NO el de debajo → el collider casa con
+    // el tronco en vez de quedar colgando por debajo.
+    private static readonly ASGARD_PICKUPS: {
+      texture: string; item: string; flagPrefix: string; scale: number;
+      foot: [number, number][]; tiles: { x: number; y: number }[];
+    }[] = [
+      {
+        texture: 'piedra', item: 'Piedra', flagPrefix: 'asgard.pickup.stone', scale: 3,
+        foot: [[-1, 0], [0, 0], [1, 0], [-1, 1], [0, 1], [1, 1]],   // 3 de ancho × 2 de alto (roca gorda)
+        tiles: [
+          { x: 10, y: 11 }, { x: 21, y: 15 }, { x: 39, y: 12 }, { x: 55, y: 10 }, { x: 67, y: 16 },
+          { x: 14, y: 30 }, { x: 37, y: 27 }, { x: 60, y: 31 }, { x: 22, y: 41 }, { x: 50, y: 43 },
+        ],
+      },
+      {
+        texture: 'broken_tree5', item: 'Madera', flagPrefix: 'asgard.pickup.wood', scale: 3.5,
+        foot: [[-1, 0], [0, 0], [1, 0], [-1, -1], [0, -1], [1, -1]],   // 3 de ancho × 2 de alto (tronco gordo)
+        tiles: [
+          { x: 16, y: 11 }, { x: 28, y: 13 }, { x: 45, y: 12 }, { x: 61, y: 10 }, { x: 70, y: 20 },
+          { x: 12, y: 25 }, { x: 33, y: 33 }, { x: 52, y: 28 }, { x: 27, y: 38 }, { x: 44, y: 45 },
+        ],
+      },
+    ];
+
+    /** Coloca los objetos recogibles fijos de Asgard (10 piedras + 10 maderas). BLOQUEAN su
+     *  tile (como las rocas de minería). Los ya recogidos (flag marcado) NO se colocan → no
+     *  reaparecen. Te acercas y al pulsar atacar/espacio se recogen (libera el paso). */
+    private initGroundPickups(): void {
+      const TS = GameScene.TILE_SIZE;
+      const unlocks = this.reg.unlocks;
+      for (const cfg of GameScene.ASGARD_PICKUPS) {
+        cfg.tiles.forEach((t, i) => {
+          const flag = `${cfg.flagPrefix}.${i}`;
+          if (unlocks?.hasFlag(flag)) return;            // ya recogido → no reaparece
+          const cx = t.x * TS + TS / 2;
+          const baseY = (t.y + 1) * TS;                  // apoyado en el borde inferior del tile
+          const sprite = this.add.image(cx, baseY, cfg.texture).setOrigin(0.5, 1).setScale(cfg.scale);
+          sprite.setDepth(baseY);                        // orden por Y como el resto de objetos
+          // Sólido: bloquea el footprint del objeto (offsets `foot` relativos a su tile). No
+          // uso los bounds del sprite porque el PNG lleva mucho padding transparente
+          // (bloquearía un muro enorme). El footprint se alinea con la base visible.
+          const tileKeys = cfg.foot.map(([dx, dy]) => `${t.x + dx},${t.y + dy}`);
+          for (const k of tileKeys) this.collisionTiles.add(k);
+          this.groundPickups.push({ sprite, cx, cy: baseY, tileKeys, flag, itemName: cfg.item });
+        });
+      }
+    }
+
+    /** Objeto recogible más cercano al jugador dentro de rango (o null). */
+    private nearestPickup(): typeof this.groundPickups[0] | null {
+      if (this.groundPickups.length === 0) return null;
+      const pos = this.player.getPosition();
+      const RANGE = GameScene.TILE_SIZE * 2.6;   // holgado: la colisión te deja a ~1 tile
+      const r2 = RANGE * RANGE;
+      let nearest: typeof this.groundPickups[0] | null = null;
+      let nearestD = Infinity;
+      for (const p of this.groundPickups) {
+        const dx = pos.x - p.cx, dy = pos.y - p.cy;
+        const d = dx * dx + dy * dy;
+        if (d <= r2 && d < nearestD) { nearestD = d; nearest = p; }
+      }
+      return nearest;
+    }
+
+    /** Recoge un objeto del suelo: marca su flag (persistente → no reaparece), +1 de su item
+     *  al inventario (rehidratado del catálogo), libera su tile, pop del sprite y lo destruye. */
+    private collectPickup(p: typeof this.groundPickups[0]): void {
+      const idx = this.groundPickups.indexOf(p);
+      if (idx === -1) return;
+      this.groundPickups.splice(idx, 1);
+      for (const k of p.tileKeys) this.collisionTiles.delete(k);   // libera el paso
+      if (this.cachedNearPickup === p) this.cachedNearPickup = null;
+      this.reg.unlocks?.setFlag(p.flag, 'global');   // recogida permanente por CUENTA (todos los personajes)
+
+      const item = hydrateItem({ id: `pick-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: p.itemName, sum: 1 });
+      this.reg.inventory?.addOrDropToWorld(item);
+      this.reg.audio?.play('mine');
+
+      const sp = p.sprite;   // pop: sube y se desvanece antes de destruirse
+      this.tweens.add({
+        targets: sp, y: sp.y - 12, alpha: 0, scale: sp.scaleX * 1.15, duration: 180, ease: 'Quad.easeOut',
+        onComplete: () => sp.destroy(),
+      });
+    }
+
     /** Habla con un NPC: si es reclutable y aún no está reclutado, suelta su frase de
      *  reclutamiento y lo desbloquea como personaje (flag global → aparece en el
      *  roster); si no, dice su línea normal. */
@@ -3514,36 +3627,41 @@ export class GameScene extends Phaser.Scene {
       this.reg.dialogue?.show(npc.name, this.npcLine(npc.name));
     }
 
-    /** Mordekai (Asgard): guía de onboarding. Da y fija la primera misión (explorar →
-     *  5 estrellas), informa del progreso, la cobra al completarla y luego apunta a 1-1.
+    /** Mordekai (Asgard): guía de onboarding. Recorre SU cadena de misiones en orden
+     *  (1º abrir el portal recogiendo 5 Piedra + 5 Madera, 2º explorar → estrellas): da y
+     *  fija la que toca, informa del progreso, la cobra al completarla y, cuando ya no le
+     *  queda ninguna, apunta al combate (1-1, portal oeste).
      *  Portales del hogar: exploración = este (x30), 1-1 = oeste (x17). */
     private talkToMordekai(): void {
       const quests = this.reg.quests;
       const player = this.playerName();
-      const def = quests?.byId('primeras_estrellas');
-      if (!quests || !def) { this.reg.dialogue?.show('Mordekai', '...'); return; }
+      if (!quests) { this.reg.dialogue?.show('Mordekai', '...'); return; }
 
-      // Ya completada → apunta al combate (portal oeste, 1-1).
-      if (quests.isCompleted(def)) {
-        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_DONE', { player }));
+      // Líneas por misión: intro (al darla), progress (en marcha) y claim (al cobrarla).
+      const LINES: Record<string, { intro: string; progress: string; claim: string }> = {
+        recoge_materiales:  { intro: 'NPC.MORDEKAI_COLLECT_INTRO', progress: 'NPC.MORDEKAI_COLLECT_PROGRESS', claim: 'NPC.MORDEKAI_COLLECT_CLAIM' },
+        primeras_estrellas: { intro: 'NPC.MORDEKAI_INTRO',         progress: 'NPC.MORDEKAI_PROGRESS',         claim: 'NPC.MORDEKAI_CLAIM1' },
+      };
+
+      for (const id of ['recoge_materiales', 'primeras_estrellas']) {
+        const def = quests.byId(id);
+        if (!def || quests.isCompleted(def)) continue;   // ya cobrada → siguiente de la cadena
+        const line = LINES[id];
+        const params = { player, prog: quests.progressOf(def), goal: quests.goalOf(def) };
+        // Objetivo alcanzado → cobra aquí mismo (misma línea que "Completar" en la ventana).
+        if (quests.isClaimable(def)) {
+          quests.claim(def);
+          this.reg.dialogue?.show('Mordekai', this.t(line.claim, params));
+        } else if (params.prog > 0 || quests.isActive(def)) {
+          this.reg.dialogue?.show('Mordekai', this.t(line.progress, params));   // en marcha
+        } else {
+          quests.activate(def);                                                 // primera vez → dar y fijar
+          this.reg.dialogue?.show('Mordekai', this.t(line.intro, params));
+        }
         return;
       }
-      // Objetivo alcanzado → cobra aquí mismo y desbloquea el siguiente paso (la rata).
-      // Mismo texto que el botón "Completar" de la ventana de equipo (NPC.MORDEKAI_CLAIM1).
-      if (quests.isClaimable(def)) {
-        quests.claim(def);
-        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_CLAIM1', { player }));
-        return;
-      }
-      // En marcha → informa del progreso.
-      const prog = quests.progressOf(def);
-      if (prog > 0 || quests.isActive(def)) {
-        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_PROGRESS', { prog, goal: quests.goalOf(def) }));
-        return;
-      }
-      // Primera vez → da y fija la misión.
-      quests.activate(def);
-      this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_INTRO', { player }));
+      // Sin misiones pendientes de Mordekai → apunta al combate (portal oeste, 1-1).
+      this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_DONE', { player }));
     }
 
     /** Línea que dice un NPC al hablarle. Kugo saluda al jugador por su nombre. */

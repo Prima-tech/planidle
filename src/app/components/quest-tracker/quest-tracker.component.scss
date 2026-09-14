@@ -71,10 +71,10 @@ $green-d: #1f7a2f;
 // Fila = pastilla translúcida con barra de estado a la izquierda.
 .qt-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   // alineado arriba: el icono queda junto a la 1ª línea de la tarea
   gap: 7px;
   padding: 5px 9px 5px 8px;
-  line-height: 1.1;
+  line-height: 1.25;
   background: rgba(18, 14, 10, 0.66);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -111,6 +111,53 @@ $green-d: #1f7a2f;
   color: #d9b45a;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
+
+// Lista de requisitos (misión de recogida + portal): una fila por material con el
+// nombre a la izquierda y el contador llevo/necesito alineado a la DERECHA.
+.qt-reqs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qt-req {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;   // nombre ← → contador
+  gap: 8px;
+  font-size: 0.62em;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.qt-req-name {
+  color: #efe6d2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qt-req-count {
+  flex-shrink: 0;
+  font-weight: 800;
+  color: #d9b45a;                   // ámbar: aún faltan
+}
+.qt-req-count--ok { color: #7ee08a; }   // verde: ya tienes suficiente
+
+// La acción final ("Abre el portal") resaltada y con ✓ al completarse.
+.qt-req--action {
+  margin-top: 1px;
+  .qt-req-name { color: #d9b45a; }
+}
+.qt-req-check {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #5fe07a;
+}
+.qt-row--ready .qt-req--action .qt-req-name { color: #bff0c6; }
 
 .qt-ready {
   flex-shrink: 0;

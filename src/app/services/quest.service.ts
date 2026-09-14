@@ -5,6 +5,8 @@ import { KillService } from './kill.service';
 import { PlayerStateService } from './player-state.service';
 import { RunProgressService } from './run-progress.service';
 import { NotificationBadgeService } from './notification-badge.service';
+import { UnlockService } from './unlock.service';
+import { InventoryService } from './inventory.service';
 
 // Sistema de misiones.
 //
@@ -31,7 +33,9 @@ import { NotificationBadgeService } from './notification-badge.service';
 /** Objetivo de una misión. Discriminado por `type` para crecer con más clases. */
 export type QuestObjective =
   | KillObjective
-  | StarsObjective;
+  | StarsObjective
+  | OpenPortalObjective
+  | CollectObjective;
 // Futuro: | { type: 'reachLevel'; goal: number }
 //         | { type: 'collectItem'; itemId: string; goal: number }
 //         | { type: 'spendCoins'; goal: number } ...
@@ -50,6 +54,25 @@ export interface KillObjective {
 export interface StarsObjective {
   type: 'stars';
   goal: number;
+}
+
+/** Abrir un portal sellado (marca su flag en UnlockService al pagar su coste en
+ *  materiales). El progreso es binario: 0 hasta abrirlo, `goal` (1) al abrirlo. Se
+ *  cumple RETROACTIVAMENTE: da igual cuándo recojas los materiales o si abres el
+ *  portal antes de aceptar la misión, cuenta igual (sigue el estado del flag). */
+export interface OpenPortalObjective {
+  type: 'openPortal';
+  goal: number;   // siempre 1
+  flag: string;   // flag de UnlockService que se marca al abrir el portal
+}
+
+/** Recoger materiales (tener N de cada item en el inventario). El progreso = cuántos de
+ *  los `items` están ya al completo; goal = items.length (todos). RETROACTIVO: sigue el
+ *  inventario actual, así que lo recogido antes de aceptar la misión cuenta igual. */
+export interface CollectObjective {
+  type: 'collect';
+  goal: number;   // = items.length
+  items: { name: string; qty: number }[];
 }
 
 export interface QuestReward {
@@ -99,6 +122,19 @@ export const MAX_ACTIVE_QUESTS = 5;
 // pipe `| translate` (equipment quest panel, HUD tracker). Ver QUESTS.* en los json.
 export const QUESTS: QuestDef[] = [
   {
+    // PRIMERA misión de todas (Mordekai): recoge 5 Piedra + 5 Madera del suelo de Asgard.
+    // Se cumple al TENER ambos en el inventario (retroactivo: cuenta lo ya recogido).
+    id: 'recoge_materiales',
+    name: 'QUESTS.RECOGE_MATERIALES.NAME',
+    desc: 'QUESTS.RECOGE_MATERIALES.DESC',
+    icon: 'cube-outline',
+    track: 'QUESTS.RECOGE_MATERIALES.TRACK',
+    objective: { type: 'collect', goal: 2, items: [{ name: 'Piedra', qty: 5 }, { name: 'Madera', qty: 5 }] },
+    reward: { coins: 1 },
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_COLLECT_CLAIM' },
+  },
+  {
     id: 'primeras_estrellas',
     name: 'QUESTS.PRIMERAS_ESTRELLAS.NAME',
     desc: 'QUESTS.PRIMERAS_ESTRELLAS.DESC',
@@ -108,6 +144,7 @@ export const QUESTS: QuestDef[] = [
     // Recompensa: 10 de oro. El Impulso ya NO se otorga aquí: se compra con estrellas
     // en el panel de mejoras del run (hito 'sprint', 10★).
     reward: { coins: 10 },
+    requires: 'recoge_materiales',   // sigue a la misión de recoger materiales
     giver: 'Mordekai',
     // Al cobrarla en la ventana de equipo: se cierra y Mordekai suelta el hint de la rata.
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_CLAIM1' },
@@ -150,6 +187,8 @@ export class QuestService implements OnDestroy {
   private activeSet = new Set<string>();
   private killSub: Subscription;
   private starSub: Subscription;
+  private portalSub: Subscription;
+  private invSub: Subscription;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -158,6 +197,8 @@ export class QuestService implements OnDestroy {
     private playerState: PlayerStateService,
     private runProgress: RunProgressService,
     private badges: NotificationBadgeService,
+    private unlocks: UnlockService,
+    private inventory: InventoryService,
   ) {
     // killDetail$ solo emite en bajas reales (no en restoreCharKills), así una
     // misión recién cargada no se autocompleta ni dispara toasts al recargar.
@@ -167,11 +208,18 @@ export class QuestService implements OnDestroy {
     // Estrellas: el progreso sigue el balance actual (max, nunca baja). Las emisiones
     // previas a loadForChar no importan: loadForChar reemplaza `progress` desde el save.
     this.starSub = this.runProgress.stars$.subscribe(balance => this.onStarsBalance(balance));
+    // Portales sellados: al marcarse su flag (abrirlos pagando materiales) UnlockService
+    // emite changes$ → sincroniza el progreso de las misiones 'openPortal'.
+    this.portalSub = this.unlocks.changes$.subscribe(() => this.onPortalFlags());
+    // Inventario: al cambiar (recoger/gastar) sincroniza el progreso de las 'collect'.
+    this.invSub = this.inventory.changes$.subscribe(() => this.onCollect());
   }
 
   ngOnDestroy(): void {
     this.killSub?.unsubscribe();
     this.starSub?.unsubscribe();
+    this.portalSub?.unsubscribe();
+    this.invSub?.unsubscribe();
     if (this.persistTimer) clearTimeout(this.persistTimer);
   }
 
@@ -193,6 +241,10 @@ export class QuestService implements OnDestroy {
     for (const id of [...this.activeSet]) if (this.completedSet.has(id)) this.activeSet.delete(id);
     // Sincroniza el progreso de estrellas con el balance actual (global de cuenta).
     this.onStarsBalance(this.runProgress.getStars());
+    // Sincroniza el progreso de portales con los flags ya marcados (retroactivo al cargar).
+    this.onPortalFlags();
+    // Sincroniza el progreso de recogida con el inventario actual (retroactivo al cargar).
+    this.onCollect();
     // Si vino del snapshot, sincroniza la clave local para que coincida.
     if (override) this.persistNow();
     // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar
@@ -228,12 +280,11 @@ export class QuestService implements OnDestroy {
 
   /** ¿Está desbloqueada la UI de misiones? Espejo de `missionsUnlocked` en la ventana
    *  de equipo: la pestaña de Misiones solo existe cuando Mordekai ya dio la primera
-   *  ('primeras_estrellas' activa o completada). Antes de eso NO debe encenderse el
-   *  aviso (notif-dot), aunque el balance de estrellas ya haga "reclamable" la 1ª
-   *  misión (p.ej. coger una estrella en exploración antes de hablar con Mordekai):
-   *  el punto rojo apuntaría a una pestaña oculta sin nada que cobrar. */
+   *  ('recoge_materiales' activa o completada). Antes de eso NO debe encenderse el aviso
+   *  (notif-dot), aunque el objetivo ya esté "reclamable" (p.ej. recoger materiales antes
+   *  de hablar con Mordekai): el punto rojo apuntaría a una pestaña oculta sin nada que cobrar. */
   private questsUiUnlocked(): boolean {
-    return this.activeSet.has('primeras_estrellas') || this.completedSet.has('primeras_estrellas');
+    return this.activeSet.has('recoge_materiales') || this.completedSet.has('recoge_materiales');
   }
 
   /** Enciende el aviso de misiones, pero solo si la UI ya está desbloqueada. */
@@ -355,6 +406,52 @@ export class QuestService implements OnDestroy {
       const cur = this.progress[def.id] ?? 0;
       if (cur >= def.objective.goal) continue;
       const next = Math.min(def.objective.goal, Math.max(cur, balance));
+      if (next !== cur) {
+        this.progress[def.id] = next;
+        changed = true;
+        if (next >= def.objective.goal) this.flagQuestsBadge();
+      }
+    }
+    if (changed) {
+      this.notify();
+      this.schedulePersist();
+    }
+  }
+
+  /** Progreso de las misiones 'openPortal' = 1 si su portal ya está abierto (flag marcado
+   *  en UnlockService), 0 si no. RETROACTIVO: da igual cuándo recojas los materiales o si
+   *  abres el portal antes de aceptar la misión — sigue el estado del flag. No autocompleta:
+   *  al llegar al objetivo espera a "Completar" (o a hablar con Mordekai). */
+  private onPortalFlags(): void {
+    let changed = false;
+    for (const def of QUESTS) {
+      if (def.objective.type !== 'openPortal') continue;
+      if (this.completedSet.has(def.id)) continue;
+      const cur = this.progress[def.id] ?? 0;
+      if (cur >= def.objective.goal) continue;
+      if (!this.unlocks.hasFlag(def.objective.flag)) continue;   // portal aún sellado
+      this.progress[def.id] = def.objective.goal;
+      changed = true;
+      this.flagQuestsBadge();
+    }
+    if (changed) {
+      this.notify();
+      this.schedulePersist();
+    }
+  }
+
+  /** Progreso de las misiones 'collect' = nº de materiales que ya tienes al completo en el
+   *  inventario (goal = todos). RETROACTIVO: sigue el inventario actual, así que lo recogido
+   *  antes de aceptar la misión cuenta igual. PEGAJOSO (max, nunca baja): una vez has tenido
+   *  todo a la vez, gastarlo (p.ej. abrir el portal) no descompleta la misión. */
+  private onCollect(): void {
+    let changed = false;
+    for (const def of QUESTS) {
+      if (def.objective.type !== 'collect') continue;
+      if (this.completedSet.has(def.id)) continue;
+      const done = def.objective.items.filter(it => this.inventory.countByName(it.name) >= it.qty).length;
+      const cur = this.progress[def.id] ?? 0;
+      const next = Math.max(cur, done);
       if (next !== cur) {
         this.progress[def.id] = next;
         changed = true;

@@ -191,10 +191,10 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
       { tilePos: { x: 17, y: 17 }, targetMapId: '1-1',       direction: 'next' },
       { tilePos: { x: 30, y: 17 }, targetMapId: 'world-run', direction: 'next' }, // entrada al Modo Mundo (runner)
       // Portal SELLADO a la derecha del todo: bloqueado (rojo) hasta pagar 5 Madera +
-      // 5 Mineral de Cobre. targetMapId es provisional (cámbialo al destino real).
+      // 5 Piedra (recogidas del suelo en Asgard). targetMapId es provisional (cámbialo al destino real).
       { tilePos: { x: 76, y: 25 }, targetMapId: 'world-run', direction: 'next',
         unlockFlag: 'portal.asgard.sealed', unlockScope: 'char',
-        unlockCost: [{ name: 'Madera', qty: 5 }, { name: 'Mineral de Cobre', qty: 5 }] },
+        unlockCost: [{ name: 'Madera', qty: 5 }, { name: 'Piedra', qty: 5 }] },
     ],
     spawnPos: { x: 30, y: 30 },
   },

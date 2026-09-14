@@ -405,6 +405,16 @@
     "FULL": "Max 5 active",
     "NONE_AVAILABLE": "No quests available.",
     "NONE_COMPLETED": "You haven't completed any quests yet.",
+    "RECOGE_MATERIALES": {
+      "NAME": "Gather Materials",
+      "DESC": "Mordekai asks you to gather 5 Stone and 5 Wood from the ground in Asgard. Walk up to the stones and logs and press the action button to pick them up. Reward: 1 gold.",
+      "TRACK": "Gather materials"
+    },
+    "ABRE_PORTAL": {
+      "NAME": "The Sealed Portal",
+      "DESC": "You have the materials now: walk up to the sealed portal on the right and open it by handing over 5 Stone and 5 Wood. Reward: 1 gold.",
+      "TRACK": "Open the portal on the right"
+    },
     "PRIMERAS_ESTRELLAS": {
       "NAME": "Mordekai's Call",
       "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and gather 100 stars: tap the screen to jump and grab them on the fly. Reward: 10 gold.",
@@ -716,7 +726,13 @@
     "MORDEKAI_CLAIM1": "Well done, bro! Now kill 1 hatchet rat. You'll spot them out in exploration, scurrying along the ground.",
     "MORDEKAI_CLAIM2": "Nice one, bro!",
     "MORDEKAI_PROGRESS": "You have {{prog}}/{{goal}} stars. Keep jumping for them in exploration (east portal).",
-    "MORDEKAI_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Before fighting, learn to explore: cross the east portal and bring back 1 star. Tap the screen to jump and grab it on the fly.",
+    "MORDEKAI_INTRO": "Now learn to explore, {{player}}: cross the east portal and gather stars. Tap the screen to jump and grab them on the fly.",
+    "MORDEKAI_COLLECT_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Start by gathering 5 Stone and 5 Wood from the ground: walk up to the stones and logs and press the action button.",
+    "MORDEKAI_COLLECT_PROGRESS": "Keep gathering, {{player}}: you need 5 Stone and 5 Wood from the ground.",
+    "MORDEKAI_COLLECT_CLAIM": "Well done, {{player}}! Here's 1 gold. You can open the sealed portal on the right with those materials whenever you like. Now learn to explore: cross the east portal and gather stars (tap to jump and grab them on the fly).",
+    "MORDEKAI_PORTAL_INTRO": "Head to the sealed portal on the right, {{player}}, and open it by handing over your 5 Stone and 5 Wood.",
+    "MORDEKAI_PORTAL_PROGRESS": "Walk up to the sealed portal on the right and open it, {{player}}.",
+    "MORDEKAI_PORTAL_CLAIM": "Portal opened, {{player}}! Here's 1 gold. Now learn to explore: cross the east portal and gather stars (tap to jump and grab them on the fly).",
     "KUGO_LINE": "{{player}}, long time no see!",
     "ITALIEN_LINE": "Hey {{player}}, ready for adventure?",
     "RAKE_LINE": "{{player}}, we set off whenever you want."

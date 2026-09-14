@@ -11,9 +11,24 @@
     <div class="quest-tracker-inner" *ngIf="!collapsed">
       <div class="qt-row" *ngFor="let q of list" [class.qt-row--ready]="quests.isClaimable(q)">
         <ion-icon class="qt-icon" [name]="q.icon"></ion-icon>
-        <span class="qt-task">{{ (q.track || q.name) | translate }}</span>
-        <ion-icon class="qt-ready" *ngIf="quests.isClaimable(q)" name="checkmark-circle"></ion-icon>
-        <span class="qt-count" *ngIf="!quests.isClaimable(q)">{{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}</span>
+
+        <!-- Misión de recogida: cada material con su contador (llevo/necesito) a la derecha. -->
+        <ng-container *ngIf="q.objective.type === 'collect'; else genericTask">
+          <div class="qt-reqs">
+            <div class="qt-req" *ngFor="let c of collectItems(q)">
+              <span class="qt-req-name">{{ c.name }}</span>
+              <span class="qt-req-count" [class.qt-req-count--ok]="have(c.name) >= c.qty">{{ have(c.name) }}/{{ c.qty }}</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Resto de misiones (incl. abrir el portal): tarea + contador de progreso. El
+             contador 0/1 se oculta en 'openPortal' (es de acción, no de conteo). -->
+        <ng-template #genericTask>
+          <span class="qt-task">{{ (q.track || q.name) | translate }}</span>
+          <ion-icon class="qt-ready" *ngIf="quests.isClaimable(q)" name="checkmark-circle"></ion-icon>
+          <span class="qt-count" *ngIf="!quests.isClaimable(q) && q.objective.type !== 'openPortal'">{{ quests.progressOf(q) }}/{{ quests.goalOf(q) }}</span>
+        </ng-template>
       </div>
     </div>
 

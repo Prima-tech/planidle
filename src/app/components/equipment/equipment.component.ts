@@ -244,7 +244,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
 
   // ── Desbloqueos de onboarding de la ventana de equipo ────────────────────────
   // Al empezar una partida SOLO se ve la pestaña de Equipo. El resto se desbloquea:
-  //  · Misiones (tab 6): cuando Mordekai da la 1ª misión ('primeras_estrellas' activa/completada).
+  //  · Misiones (tab 6): cuando Mordekai da la 1ª misión ('recoge_materiales' activa/completada).
   //  · Modificación de stats (flyout de tab 0): al tener el 1er punto libre (nivel ≥ 2).
   //  · Logros (tab 5): al completar el 1er logro (hasAnyUnlocked).
   //  · Stats/Talentos/Recolección (tabs 2/4/7): PENDIENTE de condición → de
@@ -254,7 +254,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   /** Mordekai ya dio la primera misión → se muestra la pestaña de Misiones. */
   get missionsUnlocked(): boolean {
     if (this.admin.isAdmin) return true;
-    const def = this.quests.byId('primeras_estrellas');
+    const def = this.quests.byId('recoge_materiales');
     return !!def && (this.quests.isActive(def) || this.quests.isCompleted(def));
   }
 
