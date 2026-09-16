@@ -101,10 +101,11 @@ const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number; q
   // Mordekai: NPC de Asgard, da la primera misión (recoge 5 Piedra + 5 Madera; luego,
   // aparte, abrir el portal). Junto al punto de aparición (spawnPos 30,30) para que sea lo primero que ves.
   // `questId` → marcador flotante !/? sobre su cabeza (updateNpcQuestMarkers).
-  // Hoja propia (LPC 24 col, distinta a los cuerpos de 13 col): idle = frame 240
-  // (fila "andar hacia abajo", pose quieta mirando a cámara).
+  // Hoja propia (LPC 24 col, distinta a los cuerpos de 13 col): idle = frames 576-577
+  // (fila 24, mismo offset relativo que el idle-down de 2 frames de las hojas de cuerpo
+  // normales —312-313 en 13 col—, respiración en bucle mirando a cámara).
   { name: 'Mordekai', texKey: 'npc_mordekai', tileX: 28, tileY: 30, questId: 'recoge_materiales',
-    sheet: 'assets/sprites/players/mordekai.png', idle: { start: 240, end: 240 } },
+    sheet: 'assets/sprites/players/mordekai.png', idle: { start: 576, end: 577 } },
 ];
 
 /** NPCs reclutables: aparecen en un mapa concreto (no el hogar) hasta que se les
