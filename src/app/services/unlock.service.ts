@@ -19,6 +19,9 @@ import {
 //     debounce del snapshot) y queda listo para sincronizar con Supabase.
 //   - Los desbloqueos de personaje son por personaje (cada uno su propio Set).
 
+/** Estado de desbloqueos de un PERSONAJE (va en el GameSnapshot → Supabase). */
+export interface UnlockCharSnapshot { unlocked: string[]; flags: string[]; }
+
 const GLOBAL_KEY        = 'unlocks_global';
 const GLOBAL_FLAGS_KEY  = 'flags_global';
 const charKey      = (id: string) => `unlocks_char_${id}`;
@@ -62,14 +65,26 @@ export class UnlockService {
     this.refreshGlobal(true);
   }
 
-  /** Llamado por SaveService.loadCharacter. Carga char + global y consolida. */
-  async loadForChar(charId: string): Promise<void> {
+  /** Llamado por SaveService.loadCharacter. Carga char + global y consolida.
+   *  `override` = estado de personaje restaurado del snapshot (nube); si no viene, se
+   *  leen las claves locales (offline-first, igual que misiones y logros). */
+  async loadForChar(charId: string, override?: UnlockCharSnapshot | null): Promise<void> {
     this.charId = charId;
-    this.unlockedChar   = new Set((await this.storage.get(charKey(charId)))      ?? []);
-    this.unlockedGlobal = new Set((await this.storage.get(GLOBAL_KEY))           ?? []);
-    this.flagsChar      = new Set((await this.storage.get(charFlagsKey(charId))) ?? []);
-    this.flagsGlobal    = new Set((await this.storage.get(GLOBAL_FLAGS_KEY))     ?? []);
+    this.unlockedChar   = new Set(override?.unlocked ?? (await this.storage.get(charKey(charId)))      ?? []);
+    this.flagsChar      = new Set(override?.flags    ?? (await this.storage.get(charFlagsKey(charId))) ?? []);
+    this.unlockedGlobal = new Set((await this.storage.get(GLOBAL_KEY))       ?? []);
+    this.flagsGlobal    = new Set((await this.storage.get(GLOBAL_FLAGS_KEY)) ?? []);
+    // Si vino de la nube, deja la clave local al día para que coincida.
+    if (override) await Promise.all([
+      this.storage.set(charKey(charId),      [...this.unlockedChar]),
+      this.storage.set(charFlagsKey(charId), [...this.flagsChar]),
+    ]);
     this.refresh(true);
+  }
+
+  /** Instantánea del estado de PERSONAJE para el GameSnapshot. */
+  getCharSnapshot(): UnlockCharSnapshot {
+    return { unlocked: [...this.unlockedChar], flags: [...this.flagsChar] };
   }
 
   // ── Consulta (para plantillas) ──────────────────────────────────────────────
@@ -155,6 +170,30 @@ export class UnlockService {
       if (def.scope !== 'global') continue;
       if (!this.unlockedGlobal.has(def.id) && this.isSatisfied(def)) this.grant(def, silent);
     }
+  }
+
+  // ── Estado GLOBAL de cuenta (sincronizado con Supabase) ─────────────────────
+  // Los desbloqueos y flags de ámbito 'global' son de CUENTA, no del dispositivo:
+  // qué piedras/troncos de Asgard se recogieron, qué personajes se reclutaron, etc.
+  // Viajan en global_data.account.unlocksGlobal (ver SaveService + fetchAndSaveLocalData).
+
+  /** Instantánea del estado global para subirla a la cuenta. */
+  getGlobalSnapshot(): { unlocked: string[]; flags: string[] } {
+    return { unlocked: [...this.unlockedGlobal], flags: [...this.flagsGlobal] };
+  }
+
+  /** Restaura el estado global DESDE LA CUENTA. Manda la nube: reemplaza, no fusiona.
+   *  Es lo que impide que los flags de la cuenta anterior se queden pegados al
+   *  dispositivo (entrar con una cuenta nueva debe mostrar Asgard intacto).
+   *  `null` = la cuenta no tiene nada guardado → se vacía. */
+  async restoreGlobal(data: { unlocked?: string[]; flags?: string[] } | null): Promise<void> {
+    this.unlockedGlobal = new Set(data?.unlocked ?? []);
+    this.flagsGlobal    = new Set(data?.flags    ?? []);
+    await Promise.all([
+      this.storage.set(GLOBAL_KEY,       [...this.unlockedGlobal]),
+      this.storage.set(GLOBAL_FLAGS_KEY, [...this.flagsGlobal]),
+    ]);
+    this.charId ? this.refresh(true) : this.refreshGlobal(true);
   }
 
   /** Borra todos los desbloqueos y flags, de personaje y globales. */

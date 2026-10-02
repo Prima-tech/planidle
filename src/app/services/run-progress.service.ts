@@ -165,12 +165,11 @@ export class RunProgressService {
     this.persist();
   }
 
-  /** Compra un hito gastando `cost` estrellas. false si ya está o no alcanza. */
-  buy(id: string, cost: number): boolean {
-    if (this.milestones.includes(id) || this.stars < cost) return false;
-    this.stars -= cost;
+  /** Toma un hito. Las estrellas YA NO son moneda: no cuesta nada; lo que ordena la
+   *  progresión es `requires` (cada hito necesita el anterior). false si ya lo tiene. */
+  buy(id: string): boolean {
+    if (this.milestones.includes(id)) return false;
     this.milestones = [...this.milestones, id];
-    this.stars$.next(this.stars);
     this.milestones$.next(this.milestones);
     this.changes$.next();
     this.persist();
@@ -184,21 +183,19 @@ export class RunProgressService {
   /** Nivel actual de un arma (0 = sin comprar). */
   weaponLevel(id: string): number { return this.weaponLevels[id] ?? 0; }
 
-  /** Coste (en ESTRELLAS) de subir el arma un nivel más desde su nivel actual. */
+  /** Coste teórico del siguiente nivel del arma. Ya NO se cobra (las estrellas no son
+   *  moneda); se conserva porque el panel lo pinta como referencia de progresión. */
   weaponCost(def: RunWeaponDef): number { return weaponUpgradeCost(def, this.weaponLevel(def.id)); }
 
-  /** ¿Alcanzan las estrellas para subir el arma un nivel? */
+  /** ¿Se puede subir el arma? Sin moneda, basta con que esté desbloqueada. */
   canBuyWeapon(def: RunWeaponDef): boolean {
-    return this.stars >= this.weaponCost(def);
+    return this.unlockedWeapons().some(w => w.id === def.id);
   }
 
-  /** Sube un nivel el arma gastando ESTRELLAS. false si no alcanza. */
+  /** Sube un nivel el arma. Sin coste: las estrellas dejaron de ser moneda. */
   buyWeapon(def: RunWeaponDef): boolean {
-    const cost = this.weaponCost(def);
-    if (this.stars < cost) return false;
-    this.stars -= cost;   // gasta estrellas
+    if (!this.canBuyWeapon(def)) return false;
     this.weaponLevels = { ...this.weaponLevels, [def.id]: this.weaponLevel(def.id) + 1 };
-    this.stars$.next(this.stars);
     this.weapons$.next(this.weaponLevels);
     this.changes$.next();
     this.persist();

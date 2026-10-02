@@ -25,7 +25,6 @@ import { GlobalTalentsService } from './global-talents.service';
 import { MapUpgradesService } from './map-upgrades.service';
 import { AccountShopService } from './account-shop.service';
 import { RunProgressService } from './run-progress.service';
-import { RUN_MILESTONES } from './run-milestones';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -75,6 +74,9 @@ export interface GameSnapshot {
   achievementsChar?: string[];
   /** IDs de logros de PERSONAJE con la recompensa ya recogida */
   achievementsClaimedChar?: string[];
+  /** Desbloqueos y flags de ámbito PERSONAJE (recogidas de Asgard, portales sellados…).
+   *  Los de ámbito cuenta van en global_data.account.unlocksGlobal. */
+  unlocks?: import('./unlock.service').UnlockCharSnapshot;
   lastSeen: string;
   lastModified: string;
 }
@@ -244,15 +246,12 @@ export class SaveService {
     await this.afkBonus.loadForChar(charId, snapshot?.afkPassives);
     await this.achievements.loadForChar(charId, snapshot?.achievementsChar, snapshot?.achievementsClaimedChar);
     await this.quests.loadForChar(charId, snapshot?.quests);
-    // Los mapas del run son desbloqueos de CUENTA: reasegura el flag GLOBAL de cada
-    // mapa ya comprado (en RunProgress) ANTES de refrescar los desbloqueos, para que la
-    // feature 'map.X' se otorgue en TODOS los personajes (incl. backfill de compras
-    // antiguas que marcaron el flag solo per-personaje). Idempotente.
+    // Los mapas del run son desbloqueos de PERSONAJE: cada uno compra los suyos y su
+    // flag viaja en GameSnapshot.unlocks. Aquí NO se reasegura nada — hacerlo (como
+    // antes, con scope 'global' desde la lista compartida de hitos) se los regalaba a
+    // todos los personajes de la cuenta.
     await this.runProgress.ready();
-    for (const m of RUN_MILESTONES) {
-      if (m.unlockFlag && this.runProgress.has(m.id)) this.unlocks.setFlag(m.unlockFlag, 'global');
-    }
-    await this.unlocks.loadForChar(charId);
+    await this.unlocks.loadForChar(charId, snapshot?.unlocks);
 
     // Tiempo offline: en modo Supabase lo reclama el SERVIDOR (claim_offline → segundos
     // capados con su reloj), así el del móvil no puede fabricar progreso. En modo local
@@ -397,6 +396,7 @@ export class SaveService {
       afkPassives:      this.afkBonus.getSnapshot(),
       achievementsChar: this.achievements.getCharSnapshot(),
       achievementsClaimedChar: this.achievements.getClaimedCharSnapshot(),
+      unlocks:          this.unlocks.getCharSnapshot(),
       lastSeen:     now,
       lastModified: now,
     };
@@ -505,6 +505,7 @@ export class SaveService {
           mapUpgrades: this.mapUpgrades.getSnapshot(),       // mejoras de mapa (cofre central)
           accountShop: this.accountShop.getSnapshot(),       // compras de la tienda premium
           runProgress: this.runProgress.getSnapshot(),       // estrellas + hitos del run (compartidos)
+          unlocksGlobal: this.unlocks.getGlobalSnapshot(),   // flags de cuenta (recogidas de Asgard, reclutas…)
         });
       } catch (e) {
         console.warn('[Save] global_data no se pudo actualizar (logros/mejoras de cuenta)', e);

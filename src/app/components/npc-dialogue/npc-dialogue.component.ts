@@ -5,7 +5,7 @@ import { NPC_PORTRAITS } from 'src/app/services/quest.service';
 
 /**
  * Cuadro de diálogo de NPC. Escucha DialogueService.line$ (lo dispara la escena
- * Phaser al hablar con un NPC) y muestra un bocadillo abajo-izquierda; se cierra al
+ * Phaser al hablar con un NPC) y muestra un bocadillo abajo, centrado; se cierra al
  * tocar el mapa o al alejarse. Al cerrarse reproduce una animación de salida antes
  * de quitarse del DOM (por eso gestionamos `line`/`leaving` a mano en vez de un
  * *ngIf directo).

@@ -143,6 +143,13 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
   }
 
   private async fillLocalRosterIfIncomplete() {
+    // SOLO en modo local. Los IDs que reparte (-1, -2, -3…) son fijos y se reciclan en
+    // cada instalación, así que en modo Supabase pisarían el roster real de la cuenta
+    // (IDs UUID) y una cuenta nueva heredaría las claves por personaje de la anterior
+    // (snapshot, misiones, logros…). En la nube el roster lo crea el trigger
+    // handle_new_user y lo baja fetchAndSaveLocalData.
+    if (this.connection.useSupabase) return;
+
     const chars = this.asgardService._characters;
     const roster = SupabaseService.ROSTER_TEMPLATE;
     if (Array.isArray(chars) && chars.length >= roster.length) return;
@@ -173,7 +180,7 @@ export class GlobalpositionPage implements OnInit, OnDestroy {
     this.router.navigate(['/main']);
   }
 
-  /** Desconecta la cuenta de Supabase, vuelve a modo local y regresa al login. */
+  /** Cierra la sesión de Supabase y regresa al login (el modo no cambia). */
   async logout() {
     await this.connection.logout();
     this.router.navigate(['/login']);

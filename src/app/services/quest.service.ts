@@ -84,9 +84,11 @@ export interface CollectObjective {
 }
 
 /** Levantar un edificio en Asgard (sistema de construcción). El progreso es binario:
- *  0 hasta construirlo, `goal` (1) al colocarlo. RETROACTIVO y PEGAJOSO: sigue
- *  `CityBuildService.isBuilt()` al cargar y `placed$` en vivo; una vez construido,
- *  borrarlo después no descompleta la misión. */
+ *  0 hasta construirlo, `goal` (1) al colocarlo. NO es retroactivo: cuenta solo lo que
+ *  coloca ESTE personaje mientras la misión le toca (evento de colocación + prerequisito
+ *  cumplido). La ciudad es compartida entre personajes, así que mirar `isBuilt()` al
+ *  cargar le regalaría la misión a todo personaje nuevo. Pegajoso: borrar el edificio
+ *  después no descompleta la misión (el progreso ya quedó guardado). */
 export interface BuildObjective {
   type: 'build';
   goal: number;        // siempre 1
@@ -360,10 +362,9 @@ export class QuestService implements OnDestroy {
     this.onCollect();
     // La cadena puede haber cambiado desde el último guardado (toggle "sin exploración").
     this.syncChain();
-    // Sincroniza el progreso de construcción con lo ya levantado (retroactivo al cargar).
-    // `load()` es idempotente y cachea: asegura que `isBuilt` no responda sobre un cache vacío.
+    // Calienta el cache de construcciones/recetas (idempotente) para que el panel
+    // Construir y la ficha del item sepan desde el primer frame qué hay aprendido.
     await this.cityBuild.load();
-    this.onBuild();
     // Si vino del snapshot, sincroniza la clave local para que coincida.
     if (override) this.persistNow();
     // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar
@@ -407,7 +408,10 @@ export class QuestService implements OnDestroy {
     let changed = false;
 
     for (const id of [...this.activeSet]) {
-      if (!chain.some(q => q.id === id)) { this.activeSet.delete(id); changed = true; }
+      const def = chain.find(q => q.id === id);
+      // Fuera lo que no es de esta cadena y lo que aún no toca (su previa sin cobrar):
+      // un personaje nuevo no puede arrancar con una misión encadenada ya fijada.
+      if (!def || !this.prereqMet(def)) { this.activeSet.delete(id); changed = true; }
     }
     for (const q of chain) {
       if (!q.requires || !this.completedSet.has(q.requires)) continue;   // la 1ª la da el NPC
@@ -593,14 +597,16 @@ export class QuestService implements OnDestroy {
     }
   }
 
-  /** Progreso de las misiones 'build' = 1 si su edificio ya está levantado en Asgard.
-   *  RETROACTIVO (al cargar mira `isBuilt`) y PEGAJOSO: borrar el edificio después no
-   *  descompleta la misión. No autocompleta: espera a "Completar" (o a Mordekai). */
+  /** Marca el progreso de las misiones 'build' al COLOCAR un edificio (placed$). Solo
+   *  cuentan las misiones que ya le tocan a este personaje (prerequisito cobrado): la
+   *  ciudad es global, y sin ese filtro el edificio de un personaje completaría la
+   *  misión de otro. No autocompleta: espera a "Completar" (o a Mordekai). */
   private onBuild(): void {
     let changed = false;
     for (const def of this.list()) {
       if (def.objective.type !== 'build') continue;
       if (this.completedSet.has(def.id)) continue;
+      if (!this.prereqMet(def)) continue;
       const cur = this.progress[def.id] ?? 0;
       if (cur >= def.objective.goal) continue;
       if (!this.cityBuild.isBuilt(def.objective.buildType)) continue;   // aún sin construir

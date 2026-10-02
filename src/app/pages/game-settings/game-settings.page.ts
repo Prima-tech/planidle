@@ -226,12 +226,12 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
   /** Cierra sesión y vuelve al login.
    *  - Cuenta con email: signOut real (se puede recuperar con email+contraseña).
    *  - Invitado (anónimo): NO se hace signOut — sin credenciales, destruir la sesión
-   *    perdería la cuenta para siempre. Solo salimos de modo Supabase (para que no
-   *    auto-entre) dejando la sesión viva; en el login saldrá "Continuar como invitado
-   *    (ID)" para reanudarla. */
+   *    perdería la cuenta para siempre. Solo marcamos que el login no auto-entre,
+   *    dejando la sesión viva; ahí saldrá "Continuar como invitado (ID)" para
+   *    reanudarla. El modo de conexión NO se toca: se sigue en Supabase. */
   async logout(): Promise<void> {
     if (await this.supabase.getLocalGuestId()) {
-      await this.connection.setUseSupabase(false);   // sin signOut: la sesión invitada sigue viva
+      await this.connection.suppressAutoLogin();     // sin signOut: la sesión invitada sigue viva
     } else {
       await this.connection.logout();                // email: signOut normal
     }

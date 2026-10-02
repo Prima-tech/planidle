@@ -97,6 +97,27 @@ $metal-dark: #6b6357;
     inset 0 0 0 1px $outline;
 }
 
+/* Moneda de oro girando: misma hoja y animación que el contador del inventario
+   (coin.png = 5 frames de 16px en tira horizontal). Es la moneda con la que se
+   pagan las armas y los hitos del panel. */
+.rs-coin {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: -2px;
+  background-image: url('../../../assets/sprites/resources/coin.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  animation: rs-spin-coin 0.6s steps(5) infinite;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+}
+
+@keyframes rs-spin-coin {
+  from { background-position: 0; }
+  to   { background-position: -70px; }   /* 5 frames × 14px */
+}
+
 .rs-img {
   width: 14px;
   height: 14px;
@@ -377,7 +398,6 @@ $metal-dark: #6b6357;
 
   &:focus { outline: none; }
 
-  .rs-ms-star { width: 13px; height: 13px; image-rendering: pixelated; }
 }
 
 /* Pestañas laterales (objetivos / completos): FUERA del panel, pegadas a su borde

@@ -6,6 +6,7 @@ import { GlobalTalentsService } from './global-talents.service';
 import { MapUpgradesService } from './map-upgrades.service';
 import { AccountShopService } from './account-shop.service';
 import { RunProgressService } from './run-progress.service';
+import { UnlockService } from './unlock.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -16,7 +17,8 @@ export class SupabaseService {
               private globalTalents: GlobalTalentsService,
               private mapUpgrades: MapUpgradesService,
               private accountShop: AccountShopService,
-              private runProgress: RunProgressService) {
+              private runProgress: RunProgressService,
+              private unlocks: UnlockService) {
     const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
       fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
 
@@ -213,6 +215,12 @@ export class SupabaseService {
 
       // Mejoras de mapa (global_data.account.mapUpgrades): globales entre personajes.
       await this.mapUpgrades.restore((data as any).account?.mapUpgrades ?? null);
+
+      // Desbloqueos/flags de ámbito GLOBAL (account.unlocksGlobal): qué piedras y troncos
+      // de Asgard están recogidos, qué personajes se reclutaron… Manda la cuenta y
+      // REEMPLAZA lo local: si no, al entrar con otra cuenta en el mismo dispositivo se
+      // heredarían sus flags y Asgard aparecería ya saqueado.
+      await this.unlocks.restoreGlobal((data as any).account?.unlocksGlobal ?? null);
 
       // Compras de la tienda premium (account.accountShop): fusiona nube + local.
       await this.accountShop.restore((data as any).account?.accountShop ?? null);

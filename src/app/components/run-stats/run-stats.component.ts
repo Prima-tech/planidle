@@ -3,6 +3,7 @@ import { map } from 'rxjs';
 import { RunProgressService } from 'src/app/services/run-progress.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { UnlockService } from 'src/app/services/unlock.service';
+import { PlayerStateService } from 'src/app/services/player-state.service';
 import { RUN_MILESTONES, RunMilestoneDef } from 'src/app/services/run-milestones';
 import { RUN_WEAPONS, RunWeaponDef, weaponStarsPerSec, weaponLevelMult } from 'src/app/scenes/worldrun/run-weapons';
 import { CompactNumberPipe } from 'src/app/pipes/compact-number.pipe';
@@ -25,6 +26,7 @@ export class RunStatsComponent implements OnDestroy {
   private runProgress  = inject(RunProgressService);
   private playerBridge = inject(PlayerBridgeService);
   private unlocks      = inject(UnlockService);
+  private playerState  = inject(PlayerStateService);
   private compact      = new CompactNumberPipe();   // formato k/M… para estrellas
 
   readonly milestones$ = this.runProgress.milestones$;
@@ -65,7 +67,7 @@ export class RunStatsComponent implements OnDestroy {
   /** Click en el botón de mapa: con 1-1 comprado abre el mapa; si no, sale directo
    *  a la capital (Asgard) sin modal de confirmación. */
   onMapBtn(): void {
-    if (this.runProgress.has('map_1_1')) this.openMap.emit();
+    if (this.owned('map_1_1')) this.openMap.emit();
     else this.playerBridge.requestExitRun();
   }
 
@@ -103,10 +105,17 @@ export class RunStatsComponent implements OnDestroy {
   unlockedWeapons(): RunWeaponDef[] { return this.runProgress.unlockedWeapons(); }
   weaponLevel(id: string): number { return this.runProgress.weaponLevel(id); }
   weaponCost(w: RunWeaponDef): number { return this.runProgress.weaponCost(w); }
-  canBuyWeapon(w: RunWeaponDef): boolean { return this.runProgress.canBuyWeapon(w); }
+  canBuyWeapon(w: RunWeaponDef): boolean {
+    return this.runProgress.canBuyWeapon(w) && this.gold() >= this.weaponCost(w);
+  }
+  /** Sube un nivel el arma pagando su coste en ORO del personaje. */
   buyWeapon(w: RunWeaponDef): boolean {
+    if (!this.canBuyWeapon(w)) return false;
+    const cost = this.weaponCost(w);          // léelo ANTES: subir de nivel lo encarece
+    if (!this.payGold(cost)) return false;
     const ok = this.runProgress.buyWeapon(w);
-    if (ok) this.flashBought(w.id);   // pulso dorado en el botón (feedback de compra)
+    if (ok) this.flashBought(w.id);           // pulso dorado en el botón (feedback de compra)
+    else    this.playerState.addCoins(cost);  // no se aplicó: devuelve el oro
     return ok;
   }
 
@@ -180,17 +189,37 @@ export class RunStatsComponent implements OnDestroy {
 
   /** Hitos a mostrar según la pestaña: objetivos = no comprados; completos = comprados.
    *  Ordenados por precio (más baratos primero). */
-  forTab(owned: string[]): RunMilestoneDef[] {
-    return this.byCost().filter(m =>
-      this.tab === 'objetivos' ? !owned.includes(m.id) : owned.includes(m.id));
+  /** Oro del personaje (es con lo que se paga en el panel del run). */
+  gold(): number { return this.playerState.snapshot().coins ?? 0; }
+
+  /** Cobra `cost` de oro. false (sin tocar nada) si no alcanza. */
+  private payGold(cost: number): boolean {
+    if (this.gold() < cost) return false;
+    this.playerState.addCoins(-cost);   // addCoins no toca lifetimeCoins (eso es ingreso)
+    return true;
   }
 
-  owned(id: string): boolean { return this.runProgress.has(id); }
+  /** Hitos de la pestaña activa. El argumento solo sirve para que la plantilla se
+   *  re-evalúe al cambiar `milestones$`; el "¿comprado?" real lo decide `owned()`,
+   *  que para los mapas mira el flag del PERSONAJE y no la lista de cuenta. */
+  forTab(_owned: string[]): RunMilestoneDef[] {
+    return this.byCost().filter(m =>
+      this.tab === 'objetivos' ? !this.owned(m.id) : this.owned(m.id));
+  }
+
+  /** ¿Comprado? Los hitos de MAPA son de PERSONAJE: su registro es el flag del
+   *  personaje (UnlockService), no la lista de hitos compartida de la cuenta. El
+   *  resto (armas, producción de estrellas) sigue siendo de cuenta. */
+  owned(id: string): boolean {
+    const def = RUN_MILESTONES.find(m => m.id === id);
+    if (def?.unlockFlag) return this.unlocks.hasFlag(def.unlockFlag);
+    return this.runProgress.has(id);
+  }
 
   /** ¿Se puede comprar ahora? (no comprado + estrellas suficientes + prerrequisito
    *  comprado — los mapas van encadenados: 1-2 pide 1-1, etc.). */
   canBuy(m: RunMilestoneDef): boolean {
-    if (this.owned(m.id) || this.runProgress.getStars() < m.cost) return false;
+    if (this.owned(m.id) || this.gold() < m.cost) return false;
     return !m.requires || this.owned(m.requires);
   }
 
@@ -210,12 +239,15 @@ export class RunStatsComponent implements OnDestroy {
   }
 
   buy(m: RunMilestoneDef): void {
-    if (!this.runProgress.buy(m.id, m.cost)) return;
+    if (!this.canBuy(m)) return;
+    if (!this.payGold(m.cost)) return;
+    if (m.unlockFlag) {
+      // Hito de MAPA: el desbloqueo es de PERSONAJE, así que se apunta en su flag y no
+      // en la lista de hitos (que es de cuenta) — cada personaje toma los suyos.
+      this.unlocks.setFlag(m.unlockFlag, 'char');
+    } else if (!this.runProgress.buy(m.id)) {
+      return;
+    }
     this.flashBought(m.id);   // pulso dorado en el botón (mismo efecto que las armas)
-    // Hitos de mapa: marcar su flag desbloquea la feature 'map.X' (viajar al mapa).
-    // Scope 'global': el flag es de CUENTA, así el mapa comprado en un personaje se
-    // desbloquea para TODOS (la feature 'map.X', aunque sea 'char', se satisface con
-    // el flag global — ver UnlockService.isSourceMet, que mira flagsChar || flagsGlobal).
-    if (m.unlockFlag) this.unlocks.setFlag(m.unlockFlag, 'global');
   }
 }

@@ -22,7 +22,8 @@ export class LoginPage implements OnInit {
     loading = false;
     error = '';
     /** Toggle: true = conectar a Supabase · false = jugar en local. */
-    useSupabase = false;
+    // Por defecto, Supabase (ngOnInit lo pisa con lo guardado, si hay algo).
+    useSupabase = true;
     /** Vista del toggle "Local": ON = jugar en local (inverso de useSupabase). */
     get localMode(): boolean { return !this.useSupabase; }
     set localMode(v: boolean) { this.useSupabase = !v; }
@@ -54,7 +55,8 @@ export class LoginPage implements OnInit {
         // el login. La autenticación requiere red: sin conexión, o si la cuenta ya no
         // existe (p. ej. wipe del admin), hasValidServerSession() da false → se queda en
         // el login en vez de entrar como un "invitado fantasma" con datos locales.
-        if (this.useSupabase && await this.supabaseService.hasValidServerSession()) {
+        const skipAuto = await this.connection.consumeAutoLoginSuppression();
+        if (!skipAuto && this.useSupabase && await this.supabaseService.hasValidServerSession()) {
             if (await this.blockIfRestricted()) return;
             this.router.navigate(['/globalposition']);
             return;

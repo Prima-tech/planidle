@@ -132,9 +132,6 @@ export class LayoutComponent implements OnDestroy {
   }
 
   ngOnInit(): void {
-    // Restaura el modo de conexión (local/Supabase) elegido en el login, por si
-    // la app recarga directamente en el juego sin volver a pasar por el login.
-    this.connectionService.load();
     this.regenService.start();
     this.ambientChatService.start();   // charla ambiental de otros personajes en el chat
     this.gainsSub = this.saveService.pendingGains$
@@ -178,6 +175,10 @@ export class LayoutComponent implements OnDestroy {
       this.playerBridgeService.createPlayer();
 
       if (!this.phaserGame) {
+        // Modo de conexión (local/Supabase) ANTES de cargar el personaje: SaveService lo
+        // consulta para decidir si sincroniza con la nube. No vale hacerlo en ngOnInit,
+        // porque loadGame() arranca desde el constructor y no esperaría a su lectura.
+        await this.connectionService.load();
         const player = await this.asgardService.getSelectedPlayer();
         if (player?.id) {
           await this.saveService.loadCharacter(String(player.id));

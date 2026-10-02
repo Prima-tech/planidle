@@ -3549,7 +3549,8 @@ export class GameScene extends Phaser.Scene {
 
     /** Coloca los objetos recogibles fijos de Asgard (10 piedras + 10 maderas). BLOQUEAN su
      *  tile (como las rocas de minería). Los ya recogidos (flag marcado) NO se colocan → no
-     *  reaparecen. Te acercas y al pulsar atacar/espacio se recogen (libera el paso). */
+     *  reaparecen. Te acercas y al pulsar atacar/espacio se recogen (libera el paso).
+     *  El flag es de PERSONAJE: lo que recoja uno no se lo quita a los demás. */
     private initGroundPickups(): void {
       const TS = GameScene.TILE_SIZE;
       const unlocks = this.reg.unlocks;
@@ -3595,7 +3596,9 @@ export class GameScene extends Phaser.Scene {
       this.groundPickups.splice(idx, 1);
       for (const k of p.tileKeys) this.collisionTiles.delete(k);   // libera el paso
       if (this.cachedNearPickup === p) this.cachedNearPickup = null;
-      this.reg.unlocks?.setFlag(p.flag, 'global');   // recogida permanente por CUENTA (todos los personajes)
+      // Ámbito PERSONAJE (el default del juego): cada personaje encuentra su Asgard
+      // intacto. Permanente para él: una vez recogida, esa piedra/tronco no reaparece.
+      this.reg.unlocks?.setFlag(p.flag, 'char');
 
       const item = hydrateItem({ id: `pick-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: p.itemName, sum: 1 });
       this.reg.inventory?.addOrDropToWorld(item);

@@ -80,14 +80,14 @@
           <span class="rs-ms-name">{{ w.labelKey | translate }} <span class="rs-weapon-lvl">Nv {{ weaponLevel(w.id) }}</span><span class="rs-weapon-mult" *ngIf="weaponMult(w.id) > 1">×{{ weaponMult(w.id) }}</span></span>
           <span class="rs-ms-desc">{{ weaponRate(w) | compactNumber }} {{ 'RUN.STARS_PER_SEC_SHORT' | translate }}</span>
         </div>
-        <!-- Mantener pulsado = compra en cadena acelerada (hasta quedarte sin estrellas).
-             Un tap normal compra una sola vez. Eventos de puntero (móvil + escritorio). -->
+        <!-- Mantener pulsado = sube niveles en cadena. Un tap normal sube uno solo.
+             Se paga con ORO del personaje (el botón muestra el precio del siguiente nivel). -->
         <button class="rs-weapon-buy" [class.rs-weapon-buy--off]="!canBuyWeapon(w)"
                 [class.efecto-boton-active]="boughtPulseId === w.id" [disabled]="!canBuyWeapon(w)"
                 (pointerdown)="startWeaponHold(w, $event)" (pointerup)="stopWeaponHold()"
                 (pointerleave)="stopWeaponHold()" (pointercancel)="stopWeaponHold()">
           <span class="rs-val">{{ weaponCost(w) | compactNumber }}</span>
-          <img class="rs-img" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+          <span class="rs-coin"></span>
           <!-- Onboarding paso 2: badge de novedad en la compra de la espada nv1. -->
           <span class="notif-dot" *ngIf="onboardBadgeSword(w.id)"></span>
         </button>
@@ -106,8 +106,8 @@
             </div>
             <button class="rpg-btn rpg-btn--sm rs-ms-buy" *ngIf="tab === 'objetivos'"
                     [class.efecto-boton-active]="boughtPulseId === m.id" [disabled]="!canBuy(m)" (click)="buy(m)">
-              <span>{{ m.cost }}</span>
-              <img class="rs-ms-star" src="assets/sprites/resources/world_mode/star/star.png" alt="" draggable="false" />
+              <span>{{ m.cost | compactNumber }}</span>
+              <span class="rs-coin"></span>
               <!-- Onboarding paso 3: badge de novedad en la compra del Impulso (sprint). -->
               <span class="notif-dot" *ngIf="onboardBadgeSprint(m.id)"></span>
             </button>

@@ -138,9 +138,21 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
 }
 
 .gs-conn-text {
+  min-width: 0;
   font-size: 11px;
   font-weight: 700;
   color: $text-cream;
+  // Email / UID largos: que no rompan la caja.
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Invitado: muestra el UID → monoespaciado y algo más apagado (id técnico).
+.gs-conn--guest .gs-conn-text {
+  font-family: monospace;
+  font-weight: 600;
+  color: rgba($text-cream, 0.85);
 }
 
 /* Botón de guardar partida: mismo marco que las filas de ajuste y el indicador de
@@ -189,30 +201,6 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   margin-left: auto;     // a la derecha
 }
 
-/* Identidad de la sesión: invitado (UID) o cuenta (email). Mismo marco metálico. */
-.gs-identity {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 12px;
-  padding: 8px 10px;
-  background: $wood-btn-dark;
-  border: 3px solid;
-  border-color: $metal-light $metal-dark $metal-dark $metal;
-  border-radius: 7px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 2px 6px rgba(0, 0, 0, 0.35);
-}
-
-.gs-identity-icon {
-  flex-shrink: 0;
-  font-size: 15px;
-  line-height: 1;
-}
-
 /* Selector de estilo visual (tema) de la app: botones wood; el activo, dorado. */
 .gs-style {
   display: flex;
@@ -249,39 +237,6 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
       0 0 8px rgba(240, 192, 64, 0.55);
     filter: brightness(1.06);
   }
-}
-
-.gs-identity-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-  flex: 1;
-}
-
-.gs-identity-label {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: rgba($text-cream, 0.6);
-}
-
-.gs-identity-value {
-  font-size: 11px;
-  font-weight: 700;
-  color: $text-cream;
-  // El UID de invitado es largo: que no rompa la caja.
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gs-identity--guest .gs-identity-value {
-  // UID = monoespaciado y algo más apagado (es un id técnico, no "tu" dato).
-  font-family: monospace;
-  font-weight: 600;
-  color: rgba($text-cream, 0.85);
 }
 
 /* Modal de vincular correo (solo invitados): overlay a pantalla completa + tarjeta
@@ -651,9 +606,8 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
     }
   }
 
-  // Superficies internas (conexión, identidad, filas de ajuste)
+  // Superficies internas (conexión, filas de ajuste)
   .gs-conn,
-  .gs-identity,
   .gs-row {
     background: $cell;
     border: 2px solid $cell-bd;
@@ -661,13 +615,11 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   }
 
   .gs-conn-text,
-  .gs-row-title,
-  .gs-identity-value { color: $text; }
+  .gs-row-title { color: $text; }
 
   .gs-row-desc,
-  .gs-identity-label,
   .gs-style-label { color: $muted; }
-  .gs-identity--guest .gs-identity-value { color: $muted; }
+  .gs-conn--guest .gs-conn-text { color: $muted; }
 
   .gs-section-label { color: $title; }
   .gs-version { color: $muted; }

@@ -9,21 +9,14 @@
 
     <ng-container *ngIf="tab === 0">
 
-      <!-- Estado de conexión a Supabase -->
-      <div class="gs-conn" [class.gs-conn--on]="supabaseConnected">
+      <!-- Estado de conexión a Supabase + identidad: punto verde/rojo y el email de la
+           cuenta (o el UID si es invitado). Sin sesión → texto "sin conexión". -->
+      <div class="gs-conn" [class.gs-conn--on]="supabaseConnected" [class.gs-conn--guest]="identity?.isAnonymous">
         <span class="gs-conn-dot"></span>
-        <span class="gs-conn-text">{{ (supabaseConnected ? 'SETTINGS.CONNECTED' : 'SETTINGS.OFFLINE') | translate }}</span>
-      </div>
-
-      <!-- Identidad: invitado (UID) o cuenta con email -->
-      <div class="gs-identity" *ngIf="identity" [class.gs-identity--guest]="identity.isAnonymous">
-        <span class="gs-identity-icon">{{ identity.isAnonymous ? '👤' : '📧' }}</span>
-        <div class="gs-identity-body">
-          <span class="gs-identity-label">
-            {{ (identity.isAnonymous ? 'SETTINGS.IDENTITY.GUEST' : 'SETTINGS.IDENTITY.ACCOUNT') | translate }}
-          </span>
-          <span class="gs-identity-value">{{ identity.isAnonymous ? identity.id : identity.email }}</span>
-        </div>
+        <span class="gs-conn-text" *ngIf="identity; else connStatus">{{ identity.isAnonymous ? identity.id : identity.email }}</span>
+        <ng-template #connStatus>
+          <span class="gs-conn-text">{{ (supabaseConnected ? 'SETTINGS.CONNECTED' : 'SETTINGS.OFFLINE') | translate }}</span>
+        </ng-template>
       </div>
 
       <!-- Selector de estilo visual de la app: un botón por estilo, uno activo. -->
