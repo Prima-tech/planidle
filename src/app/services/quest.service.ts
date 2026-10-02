@@ -77,6 +77,10 @@ export interface CollectObjective {
   type: 'collect';
   goal: number;   // = items.length
   items: { name: string; qty: number }[];
+  /** true → al COBRARLA se entregan (y se gastan) los materiales. Si para entonces ya
+   *  no los tienes (el progreso es pegajoso), se cobra lo que haya y la misión se
+   *  completa igual: ya estaba ganada. */
+  consume?: boolean;
 }
 
 /** Levantar un edificio en Asgard (sistema de construcción). El progreso es binario:
@@ -137,6 +141,10 @@ export const MAX_ACTIVE_QUESTS = 5;
 
 // Los textos (name/desc/track) son CLAVES i18n: se traducen al mostrarlos con el
 // pipe `| translate` (equipment quest panel, HUD tracker). Ver QUESTS.* en los json.
+/** Materiales de la primera misión. Compartidos por las dos cadenas; lo que cambia
+ *  es si se ENTREGAN al cobrarla (ver `consume` más abajo). */
+const MATERIALES_INICIALES = [{ name: 'Piedra', qty: 5 }, { name: 'Madera', qty: 5 }];
+
 export const QUESTS: QuestDef[] = [
   {
     // PRIMERA misión de todas (Mordekai): recoge 5 Piedra + 5 Madera del suelo de Asgard.
@@ -146,9 +154,9 @@ export const QUESTS: QuestDef[] = [
     desc: 'QUESTS.RECOGE_MATERIALES.DESC',
     icon: 'cube-outline',
     track: 'QUESTS.RECOGE_MATERIALES.TRACK',
-    objective: { type: 'collect', goal: 2, items: [{ name: 'Piedra', qty: 5 }, { name: 'Madera', qty: 5 }] },
-    // Cobrarla NO gasta la piedra ni la madera (el objetivo 'collect' solo las cuenta):
-    // el jugador se queda con los materiales y además se lleva el kit del banco de trabajo.
+    // Cadena CON exploración: NO se entregan. El jugador los necesita después para
+    // abrir el portal sellado de Asgard (ver `unlockCost` en map-config).
+    objective: { type: 'collect', goal: 2, items: MATERIALES_INICIALES },
     reward: { coins: 1, items: [{ name: 'Mesa de trabajo', qty: 1 }] },
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_COLLECT_CLAIM' },
@@ -185,10 +193,17 @@ export const QUESTS: QuestDef[] = [
 /** Cadena SIN Modo Exploración (ajuste skipExploration). Solo conserva la primera misión
  *  (mismo id → comparte progreso); su diálogo de cobro manda a 1-1 en vez de a explorar. */
 export const QUESTS_NO_EXPLORATION: QuestDef[] = [
-  { ...QUESTS[0], claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM0' } },
   {
-    // Con el kit en la mochila (lo da la misión anterior), levantar el banco de trabajo
-    // con el botón Construir de Asgard. Al colocarlo se gasta el item.
+    // Misma misión (mismo id → mismo progreso) con dos cambios: aquí SÍ se entregan los
+    // materiales a Mordekai al cobrarla (sin exploración el portal sellado ni siquiera
+    // aparece, así que no hay otro uso para ellos), y su diálogo manda al banco.
+    ...QUESTS[0],
+    objective: { type: 'collect', goal: 2, consume: true, items: MATERIALES_INICIALES },
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM0' },
+  },
+  {
+    // Aprender los planos que da la misión anterior (botón "Aprender" en la ficha del
+    // item) y levantar el banco con el botón Construir de Asgard.
     id: 'noexp_mesa_trabajo',
     name: 'QUESTS.NOEXP_MESA_TRABAJO.NAME',
     desc: 'QUESTS.NOEXP_MESA_TRABAJO.DESC',
@@ -291,7 +306,9 @@ export class QuestService implements OnDestroy {
     private gs: GameSettingsService,
     private cityBuild: CityBuildService,
   ) {
-    this.skipSub = this.gs.skipExploration$.subscribe(() => this.notify());
+    // Al cambiar "sin exploración" cambia la cadena entera: saneamos lo fijado y
+    // re-enganchamos la que toca (ver syncChain).
+    this.skipSub = this.gs.skipExploration$.subscribe(() => { this.syncChain(); this.notify(); });
     // killDetail$ solo emite en bajas reales (no en restoreCharKills), así una
     // misión recién cargada no se autocompleta ni dispara toasts al recargar.
     this.killSub = this.kills.killDetail$.subscribe(({ enemyType }) => {
@@ -341,6 +358,8 @@ export class QuestService implements OnDestroy {
     this.onPortalFlags();
     // Sincroniza el progreso de recogida con el inventario actual (retroactivo al cargar).
     this.onCollect();
+    // La cadena puede haber cambiado desde el último guardado (toggle "sin exploración").
+    this.syncChain();
     // Sincroniza el progreso de construcción con lo ya levantado (retroactivo al cargar).
     // `load()` es idempotente y cachea: asegura que `isBuilt` no responda sobre un cache vacío.
     await this.cityBuild.load();
@@ -376,6 +395,29 @@ export class QuestService implements OnDestroy {
   /** ¿Cumple el prerequisito? (sin `requires`, o su misión previa ya completada). */
   private prereqMet(q: QuestDef): boolean {
     return !q.requires || this.completedSet.has(q.requires);
+  }
+
+  /** Saneado de la cadena vigente. El ajuste "sin exploración" puede cambiarse a mitad
+   *  de partida, y entonces lo fijado en el HUD es de la OTRA cadena (p.ej. la misión de
+   *  estrellas) y la sucesora de la nueva nunca se fijó, porque eso ocurre en `claim()`
+   *  y el cobro ya pasó. Aquí: fuera lo que no pertenece a esta cadena, y dentro la
+   *  siguiente cuyo prerequisito ya esté cobrado. */
+  private syncChain(): void {
+    const chain = this.list();
+    let changed = false;
+
+    for (const id of [...this.activeSet]) {
+      if (!chain.some(q => q.id === id)) { this.activeSet.delete(id); changed = true; }
+    }
+    for (const q of chain) {
+      if (!q.requires || !this.completedSet.has(q.requires)) continue;   // la 1ª la da el NPC
+      if (this.completedSet.has(q.id) || this.activeSet.has(q.id)) continue;
+      if (!this.canActivate()) break;
+      this.activeSet.add(q.id);
+      changed = true;
+    }
+
+    if (changed) { this.notify(); this.persistNow(); }
   }
 
   /** Cadena vigente según el ajuste "sin exploración". */
@@ -460,6 +502,7 @@ export class QuestService implements OnDestroy {
 
   /** Fija la misión en el HUD. No hace nada si está completada o no hay hueco. */
   activate(def: QuestDef): void {
+    if (this.isSkipped(def)) return;            // no pertenece a la cadena vigente
     if (this.completedSet.has(def.id)) return;
     if (this.activeSet.has(def.id)) return;
     if (!this.canActivate()) return;
@@ -600,12 +643,21 @@ export class QuestService implements OnDestroy {
     if (!this.isClaimable(def)) return;
     this.completedSet.add(def.id);
     this.activeSet.delete(def.id);   // al completarse deja de estar fijada en el HUD
+    this.payObjectiveCost(def);
     this.grantReward(def.reward);
     // Desbloquea y fija en el HUD las misiones encadenadas a esta (requires === def.id).
     for (const q of this.list()) if (q.requires === def.id) this.activate(q);
     this.completed$.next(def);
     this.notify();
     this.persistNow();  // los completados se guardan al momento (recompensa ya dada)
+  }
+
+  /** Entrega (gasta) los materiales de un objetivo 'collect' marcado con `consume`.
+   *  Best-effort: si falta algo no bloquea el cobro — la misión ya estaba ganada. */
+  private payObjectiveCost(def: QuestDef): void {
+    const obj = def.objective;
+    if (obj.type !== 'collect' || !obj.consume) return;
+    for (const it of obj.items) this.inventory.consumeByName(it.name, it.qty);
   }
 
   private grantReward(reward?: QuestReward): void {

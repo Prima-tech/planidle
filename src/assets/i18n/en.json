@@ -227,6 +227,8 @@
     "EQUIPPED": "Equipped",
     "EQUIP": "Equip",
     "USE": "Use",
+    "LEARN": "Learn",
+    "LEARNED": "Already learned",
     "BAG_SLOTS": "Inventory slots",
     "CONFIRM_DELETE": "Delete this item? This cannot be undone.",
     "DELETE_TITLE": "Delete item?",
@@ -409,7 +411,7 @@
     "NONE_COMPLETED": "You haven't completed any quests yet.",
     "RECOGE_MATERIALES": {
       "NAME": "Gather Materials",
-      "DESC": "Mordekai asks you to gather 5 Stone and 5 Wood from the ground in Asgard. Walk up to the stones and logs and press the action button to pick them up. Reward: 1 gold.",
+      "DESC": "Mordekai asks you to gather 5 Stone and 5 Wood from the ground in Asgard. Walk up to the stones and logs and press the action button to pick them up. Reward: 1 gold (and, without Exploration Mode, he trades them for the workbench plans).",
       "TRACK": "Gather materials"
     },
     "ABRE_PORTAL": {
@@ -424,7 +426,7 @@
     },
     "NOEXP_MESA_TRABAJO": {
       "NAME": "Build the workbench",
-      "DESC": "Mordekai gave you a workbench kit. Tap the hammer in the bottom menu (Asgard only), pick it, place it wherever you like and confirm with ✓. Reward: 10 gold.",
+      "DESC": "Mordekai gave you workbench plans. Open them from your inventory with the Learn button, then tap the hammer in the bottom menu (Asgard only) to build it. Reward: 10 gold.",
       "TRACK": "Build the workbench"
     },
     "NOEXP_SLIMES": {
@@ -564,6 +566,8 @@
     "DELETE_WARN": "This is permanent. Everything stored inside will be lost too.",
     "DELETE_YES": "Delete",
     "DELETE_NO": "Cancel",
+    "TAB_UNLOCKED": "Unlocked",
+    "TAB_ADMIN": "Admin",
     "TOWN_CHEST": "Town chest",
     "SHOP": "Shop",
     "SHOP_TITLE": "Shop",
@@ -752,9 +756,9 @@
     "MORDEKAI_CLAIM": "You got your star, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
     "MORDEKAI_CLAIM1": "Well done, bro! Now kill 1 hatchet rat. You'll spot them out in exploration, scurrying along the ground.",
     "MORDEKAI_CLAIM2": "Nice one, bro!",
-    "MORDEKAI_NOEXP_CLAIM0": "Well done! Take 1 gold and this workbench. Keep the stone and the wood, you will need them. Now put the bench up: tap the hammer in the bottom menu and place it here, in Asgard.",
-    "MORDEKAI_BENCH_INTRO": "That workbench is no use in your bag, {{player}}. Tap the hammer in the bottom menu, pick it and place it here, in Asgard.",
-    "MORDEKAI_BENCH_PROGRESS": "I still do not see your workbench, {{player}}. Tap the hammer in the bottom menu, drag it to a free spot and confirm with ✓.",
+    "MORDEKAI_NOEXP_CLAIM0": "Well done! Hand me that stone and wood… and take 1 gold and these plans in exchange. Open them in your inventory and hit Learn; then put the bench up with the hammer in the bottom menu.",
+    "MORDEKAI_BENCH_INTRO": "Those plans are no use in your bag, {{player}}. Tap the item in your inventory, hit Learn, then put the bench up with the hammer in the bottom menu.",
+    "MORDEKAI_BENCH_PROGRESS": "I still do not see your workbench, {{player}}. If you already learned the plans, tap the hammer in the bottom menu, drag it to a free spot and confirm with ✓.",
     "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold. Now it is time to fight: cross the west portal to 1-1 and take down 10 slimes.",
     "MORDEKAI_NOEXP_CLAIM1": "Good work! Keep killing in 1-1 and an elite slime will appear. Defeat it.",
     "MORDEKAI_NOEXP_CLAIM2": "Impressive! Go through the 1-1 portal to 1-2 and take down 15 rats.",

@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { BuildableDef, CityBuildService } from 'src/app/services/city-build.service';
-import { InventoryService } from 'src/app/services/inventory.service';
+import { AdminService } from 'src/app/services/admin.service';
 
 @Component({
   selector: 'app-build-panel',
@@ -11,17 +11,32 @@ import { InventoryService } from 'src/app/services/inventory.service';
 export class BuildPanelComponent {
 
   private cityBuild = inject(CityBuildService);
-  private inventory = inject(InventoryService);
+  private admin     = inject(AdminService);
+
+  /** Pestaña activa: 'unlocked' (lo que puedo construir) o 'admin' (el catálogo entero). */
+  tab: 'unlocked' | 'admin' = 'unlocked';
+
+  /** La pestaña Admin solo existe en modo admin (como el resto de lo oculto en
+   *  modo normal; ver AdminService). */
+  get showAdminTab(): boolean {
+    return this.admin.isAdmin;
+  }
+
+  setTab(t: 'unlocked' | 'admin'): void {
+    this.tab = t;
+  }
 
   readonly CHEST_FRAME_SIZE = 32;
   readonly CHEST_COLS       = 10;
 
-  /** Construibles disponibles: oculta los uniques ya construidos y los que piden un
-   *  item que no tienes en la mochila (p.ej. el banco de trabajo pide 'Mesa de trabajo'). */
+  /** Lo que se pinta en la rejilla según la pestaña:
+   *  - 'unlocked': lo construible de verdad — sin los uniques ya puestos y sin los que
+   *    piden una receta que aún no has aprendido (p.ej. el banco de trabajo).
+   *  - 'admin': el catálogo COMPLETO, sin filtrar (para probar). */
   get buildables(): BuildableDef[] {
+    if (this.tab === 'admin' && this.showAdminTab) return this.cityBuild.buildables;
     return this.cityBuild.buildables.filter(d =>
-      !(d.unique && this.cityBuild.isBuilt(d.type)) &&
-      (!d.requiresItem || this.inventory.countByName(d.requiresItem) > 0));
+      !(d.unique && this.cityBuild.isBuilt(d.type)) && this.cityBuild.isAvailable(d));
   }
 
   /** ¿Hay edificios colocados que se puedan mover? */

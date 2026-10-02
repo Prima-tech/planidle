@@ -174,7 +174,7 @@ misión no pertenece a ella. Las dos comparten la primera (mismo id → mismo pr
 
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
-| recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 1 oro + 1 Mesa de trabajo |
+| recoge_materiales | collect (5 Piedra + 5 Madera, **se entregan**) | 2 | Reúne materiales | 1 oro + 1 Mesa de trabajo |
 | noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro |
 | noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro |
 | noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro |
@@ -589,8 +589,19 @@ rehidrata del catálogo y los mete con `addOrDropToWorld` (al suelo si no caben)
 los apilables van en una pila, el resto una unidad por celda. La tarjeta de la
 misión los pinta con su icono (`rewardItemIcon()` en `equipment.component.ts`).
 
-**Gating de construibles**: `BuildableDef.requiresItem` (city-build.service) oculta
-el construible del panel si no tienes ese item y lo **gasta** al colocarlo
-(`CityBuildService.add()`). Al **borrar** el edificio se devuelve el item
-(`confirmDelete()`), para no dejar al jugador sin edificio y sin kit. Así `noexp_mesa_trabajo` = la misión 1 te da el kit
+**Recetas de construcción**: `BuildableDef.requiresRecipe` (city-build.service) deja
+el construible fuera de la pestaña "Desbloqueadas" del panel Construir hasta que se
+aprende su receta. Se aprende desde el **inventario**: un item del catálogo con
+`teachesBuild: '<type>'` muestra el botón **Aprender** en su ficha
+(`item-detail` → `inventory.learnSelected()`), que gasta el item y llama a
+`CityBuildService.learn(type)`. La receta es **permanente y global** (clave
+`build_recipes`): se puede construir las veces que se quiera y borrar el edificio no
+la pierde. La pestaña **Admin** del panel (solo en modo admin) lista el catálogo entero
+sin filtrar.
+
+**Coste de un objetivo `collect`**: con `consume: true` los materiales se **entregan**
+al cobrar la misión (`payObjectiveCost()`, best-effort: si faltan, la misión se
+completa igual porque ya estaba ganada). Hoy solo lo usa la copia de
+`recoge_materiales` de `QUESTS_NO_EXPLORATION`; en la cadena con exploración NO se
+gastan, porque hacen falta para el portal sellado de Asgard. Así `noexp_mesa_trabajo` = la misión 1 te da el kit
 'Mesa de trabajo' → aparece el banco en el panel Construir → al levantarlo se gasta.

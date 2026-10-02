@@ -32,6 +32,7 @@ export interface LootEntry {
   inventorySlots?: number;   // bolsas: celdas de inventario que desbloquea al equiparse
   petId?: string;            // mascotas: id en PET_REGISTRY
   weaponKind?: 'melee' | 'ranged';  // armas: 'ranged' (bastones) → ataque básico a distancia con proyectil
+  teachesBuild?: string;     // recetas: `type` del construible que desbloquea al "Aprender"
 }
 
 // EXP por kill DERIVADA del tier del enemigo (misma curva incremental que su
@@ -681,8 +682,8 @@ const RESOURCES_CATALOG: LootEntry[] = [
     description: 'Carbón. Combustible para la fundición (y producto de fundir madera).',
   },
   // Plano/kit del Banco de trabajo: recompensa de la primera misión de Mordekai.
-  // NO es apilable (uno por construcción) y se CONSUME al levantar el edificio
-  // (`requiresItem` en BUILDABLES → CityBuildService.add()).
+  // Al pulsarlo en el inventario sale el botón "Aprender": gasta el item y desbloquea
+  // para siempre la receta del construible 'workbench' (CityBuildService.learn).
   // PLACEHOLDER de icono: cámbialo cuando tengas el arte definitivo.
   {
     name: 'Mesa de trabajo',
@@ -692,7 +693,8 @@ const RESOURCES_CATALOG: LootEntry[] = [
     texture: 'madera',
     icon: 'assets/icon/resources/wood.png',
     scale: 2, order: 6,
-    description: 'Kit para levantar un banco de trabajo. Úsalo con el botón Construir en Asgard.',
+    teachesBuild: 'workbench',
+    description: 'Planos de un banco de trabajo. Apréndelos para poder construirlo en Asgard.',
   },
 ];
 
@@ -809,6 +811,7 @@ export function hydrateItem(item: InventoryItem): InventoryItem {
     inventorySlots:  cat.inventorySlots,
     petId:           cat.petId,
     weaponKind:      cat.weaponKind,
+    teachesBuild:    cat.teachesBuild,
   };
 }
 

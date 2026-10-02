@@ -19,9 +19,15 @@ export interface GameSettings {
   worldParallax: WorldParallaxId;
   language: AppLanguage;      // idioma de la interfaz (ngx-translate)
   skipExploration: boolean;   // prueba sin Modo Exploración: sus gates no bloquean y se ocultan sus entradas
+  version?: number;           // esquema de los ajustes guardados (para migraciones)
 }
 
 const STORAGE_KEY = 'idle_game_settings';
+
+// Esquema de los ajustes guardados. Súbelo al cambiar un DEFAULT que deba imponerse
+// sobre lo ya guardado, y añade su caso en `load()`.
+//   2 → "Jugar sin exploración" pasa a estar ACTIVO por defecto.
+const SETTINGS_VERSION = 2;
 
 const DEFAULTS: GameSettings = {
   showJoystick: true,
@@ -33,7 +39,11 @@ const DEFAULTS: GameSettings = {
   parallaxTheme: 'sea',
   worldParallax: 'paralax01',
   language: 'es',
-  skipExploration: false,
+  // Por defecto el juego arranca SIN Modo Exploración: cuenta nueva = cadena de
+  // misiones de combate (QUESTS_NO_EXPLORATION), mapas abiertos y sin portales al
+  // runner. Se activa a mano desde Ajustes → Admin → "Jugar sin exploración".
+  skipExploration: true,
+  version: SETTINGS_VERSION,
 };
 
 // ── Servicio ───────────────────────────────────────────────────────────────────
@@ -43,9 +53,14 @@ export class GameSettingsService {
 
   private _settings: GameSettings;
   private _subject: BehaviorSubject<GameSettings>;
+  /** true si `load()` tuvo que migrar los ajustes guardados (ver SETTINGS_VERSION). */
+  private _migrated = false;
 
   constructor() {
     this._settings = this.load();
+    // Sella la versión del esquema en disco: si no, una migración se reaplicaría en
+    // cada arranque y pisaría la elección del jugador hasta que tocara algún ajuste.
+    if (this._migrated) this.save();
     this._subject  = new BehaviorSubject<GameSettings>({ ...this._settings });
   }
 
@@ -110,8 +125,18 @@ export class GameSettingsService {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return { ...DEFAULTS };
+      const saved: Partial<GameSettings> = JSON.parse(raw);
       // Merge con defaults para que ajustes nuevos tengan valor por defecto
-      return { ...DEFAULTS, ...JSON.parse(raw) };
+      const merged: GameSettings = { ...DEFAULTS, ...saved };
+      // Migración: lo guardado antes de la v2 lleva skipExploration=false aunque el
+      // jugador no lo tocara nunca (era el default viejo). Se adopta el nuevo default
+      // una sola vez; a partir de ahí manda lo que elija en Ajustes.
+      if ((saved.version ?? 1) < SETTINGS_VERSION) {
+        merged.skipExploration = DEFAULTS.skipExploration;
+        this._migrated = true;
+      }
+      merged.version = SETTINGS_VERSION;
+      return merged;
     } catch {
       return { ...DEFAULTS };
     }

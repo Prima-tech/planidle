@@ -1,5 +1,14 @@
 <div class="build-title">{{ 'BUILD.TITLE' | translate }}</div>
 
+<div class="build-tabs" *ngIf="showAdminTab">
+  <div class="build-tab" [class.active]="tab === 'unlocked'" (click)="setTab('unlocked')">
+    {{ 'BUILD.TAB_UNLOCKED' | translate }}
+  </div>
+  <div class="build-tab" [class.active]="tab === 'admin'" (click)="setTab('admin')">
+    {{ 'BUILD.TAB_ADMIN' | translate }}
+  </div>
+</div>
+
 <div class="build-grid">
   <button *ngFor="let def of buildables" class="build-card" (click)="select(def)">
     <div class="build-frame">

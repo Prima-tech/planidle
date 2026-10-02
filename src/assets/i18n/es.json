@@ -227,6 +227,8 @@
     "EQUIPPED": "Equipado",
     "EQUIP": "Equipar",
     "USE": "Usar",
+    "LEARN": "Aprender",
+    "LEARNED": "Ya aprendida",
     "BAG_SLOTS": "Huecos de inventario",
     "CONFIRM_DELETE": "¿Quieres borrar el objeto? No se puede revertir.",
     "DELETE_TITLE": "¿Borrar objeto?",
@@ -409,7 +411,7 @@
     "NONE_COMPLETED": "Aún no has completado ninguna misión.",
     "RECOGE_MATERIALES": {
       "NAME": "Recoge materiales",
-      "DESC": "Mordekai te pide reunir 5 Piedra y 5 Madera del suelo de Asgard. Acércate a las piedras y troncos y pulsa el botón de acción para recogerlos. Recompensa: 1 de oro.",
+      "DESC": "Mordekai te pide reunir 5 Piedra y 5 Madera del suelo de Asgard. Acércate a las piedras y troncos y pulsa el botón de acción para recogerlos. Recompensa: 1 de oro (y, sin Modo Exploración, te los cambia por los planos del banco de trabajo).",
       "TRACK": "Reúne materiales"
     },
     "ABRE_PORTAL": {
@@ -424,7 +426,7 @@
     },
     "NOEXP_MESA_TRABAJO": {
       "NAME": "Construye el banco de trabajo",
-      "DESC": "Mordekai te ha dado una mesa de trabajo. Pulsa el martillo del menú de abajo (solo en Asgard), elígela, colócala donde quieras y confirma con ✓. Recompensa: 10 de oro.",
+      "DESC": "Mordekai te ha dado los planos de una mesa de trabajo. Ábrelos desde el inventario con el botón Aprender y luego pulsa el martillo del menú de abajo (solo en Asgard) para construirla. Recompensa: 10 de oro.",
       "TRACK": "Construye el banco de trabajo"
     },
     "NOEXP_SLIMES": {
@@ -564,6 +566,8 @@
     "DELETE_WARN": "Es permanente. Todo lo que haya en su interior también desaparecerá.",
     "DELETE_YES": "Borrar",
     "DELETE_NO": "Cancelar",
+    "TAB_UNLOCKED": "Desbloqueadas",
+    "TAB_ADMIN": "Admin",
     "TOWN_CHEST": "Cofre de ciudad",
     "SHOP": "Tienda",
     "SHOP_TITLE": "Tienda",
@@ -752,9 +756,9 @@
     "MORDEKAI_CLAIM": "¡Ya tienes tu estrella, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
     "MORDEKAI_CLAIM1": "¡Bien hecho, bro! Ahora mata 1 rata hachiática. Las verás en la exploración, correteando a ras de suelo.",
     "MORDEKAI_CLAIM2": "¡Buena, bro!",
-    "MORDEKAI_NOEXP_CLAIM0": "¡Bien hecho! Toma 1 de oro y esta mesa de trabajo. Quédate la piedra y la madera, las vas a necesitar. Ahora levanta el banco: pulsa el martillo del menú de abajo y colócalo aquí, en Asgard.",
-    "MORDEKAI_BENCH_INTRO": "Esa mesa de trabajo no sirve de nada en la mochila, {{player}}. Pulsa el martillo del menú de abajo, elígela y colócala aquí, en Asgard.",
-    "MORDEKAI_BENCH_PROGRESS": "Aún no veo tu banco de trabajo, {{player}}. Pulsa el martillo del menú de abajo, arrástralo a un hueco libre y confirma con ✓.",
+    "MORDEKAI_NOEXP_CLAIM0": "¡Bien hecho! Dame esa piedra y esa madera… y toma 1 de oro y estos planos a cambio. Ábrelos en el inventario y pulsa Aprender; luego levanta el banco con el martillo del menú de abajo.",
+    "MORDEKAI_BENCH_INTRO": "Esos planos no sirven de nada en la mochila, {{player}}. Pulsa el item en el inventario, dale a Aprender y después levanta el banco con el martillo del menú de abajo.",
+    "MORDEKAI_BENCH_PROGRESS": "Aún no veo tu banco de trabajo, {{player}}. Si ya aprendiste los planos, pulsa el martillo del menú de abajo, arrástralo a un hueco libre y confirma con ✓.",
     "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de oro. Ahora toca pelear: cruza el portal del oeste hacia 1-1 y acaba con 10 slimes.",
     "MORDEKAI_NOEXP_CLAIM1": "¡Buen trabajo! Si sigues matando en 1-1 aparecerá un slime élite. Derrótalo.",
     "MORDEKAI_NOEXP_CLAIM2": "¡Impresionante! Sigue por el portal de 1-1 hasta 1-2 y acaba con 15 ratas.",

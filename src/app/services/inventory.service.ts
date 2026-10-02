@@ -21,6 +21,7 @@ export interface InventoryItem {
   stats?: Record<string, number>;
   inventorySlots?: number;   // bolsas: nº de celdas de inventario que desbloquea al equiparse
   weaponKind?: 'melee' | 'ranged';  // armas: 'ranged' (bastones) → ataque básico a distancia
+  teachesBuild?: string;     // recetas: `type` del construible que desbloquea al "Aprender"
   petId?: string;            // mascotas: id en PET_REGISTRY para renderizar/seguir al jugador
   petLevel?: number;         // mascotas: nivel propio (1..PET_MAX_LEVEL)
   petExp?: number;           // mascotas: exp acumulada hacia el siguiente nivel

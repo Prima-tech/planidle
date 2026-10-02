@@ -83,6 +83,14 @@
     {{ 'INVENTORY.EQUIP' | translate }}
   </button>
 
+  <!-- Botón aprender: recetas de construcción desde el inventario. Gasta el item y
+       desbloquea su construible en el panel Construir (permanente y global). -->
+  <button *ngIf="canUse && isRecipe" class="rpg-btn rpg-btn--block detail-use-btn"
+          [disabled]="recipeLearned"
+          (click)="learn.emit(); $event.stopPropagation()">
+    {{ (recipeLearned ? 'INVENTORY.LEARNED' : 'INVENTORY.LEARN') | translate }}
+  </button>
+
   <!-- Botón usar: consumibles (pociones) desde el inventario -->
   <button *ngIf="canUse && consumable" class="rpg-btn rpg-btn--block detail-use-btn"
           (click)="use.emit(); $event.stopPropagation()">

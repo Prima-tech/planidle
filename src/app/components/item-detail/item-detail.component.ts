@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { CityBuildService } from 'src/app/services/city-build.service';
 import { InventoryItem } from 'src/app/services/inventory.service';
 import { itemDescription } from 'src/app/physics/griddrops';
 import { BAG_SLOTS_BY_NAME } from 'src/app/services/inventory-unlock.service';
@@ -42,6 +43,10 @@ export class ItemDetailComponent {
   @Output() equip = new EventEmitter<void>();
   /** Emite al pulsar "Usar" (consumibles). */
   @Output() use = new EventEmitter<void>();
+  /** Emite al pulsar "Aprender" (recetas de construcción). */
+  @Output() learn = new EventEmitter<void>();
+
+  private cityBuild = inject(CityBuildService);
 
   /** Descripción del item: dato ESTÁTICO del catálogo de la app (no se guarda en el
    *  save ni se sincroniza). Se resuelve por nombre; fallback al valor guardado para
@@ -54,6 +59,17 @@ export class ItemDetailComponent {
   /** Consumible: cualquier item con curación (poción de vida). */
   get consumable(): boolean {
     return !!this.item?.stats?.['healing'];
+  }
+
+  /** Receta de construcción: al aprenderla desbloquea un construible del panel
+   *  Construir de Asgard. El item se gasta al aprenderla. */
+  get isRecipe(): boolean {
+    return !!this.item?.teachesBuild;
+  }
+
+  /** ¿Esta receta ya está aprendida? (entonces el botón se desactiva). */
+  get recipeLearned(): boolean {
+    return this.isRecipe && this.cityBuild.isLearned(this.item!.teachesBuild!);
   }
 
   /** Mascota: tiene petId. Muestra el bloque de nivel propio. */

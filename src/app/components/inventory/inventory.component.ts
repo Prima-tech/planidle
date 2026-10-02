@@ -7,6 +7,7 @@ import { GatheringEquipmentService } from 'src/app/services/gathering-equipment.
 import { TownChestService } from 'src/app/services/town-chest.service';
 import { BuildShopService } from 'src/app/services/build-shop.service';
 import { ForgeService } from 'src/app/services/forge.service';
+import { CityBuildService } from 'src/app/services/city-build.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
@@ -63,6 +64,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
     private townChest: TownChestService,
     private buildShop: BuildShopService,
     private forge: ForgeService,
+    private cityBuild: CityBuildService,
     private el: ElementRef,
   ) {}
 
@@ -117,6 +119,26 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   /** Usa el consumible seleccionado (poción): cura al jugador y gasta una unidad. */
+  /** "Aprender" una receta de construcción: desbloquea su construible para siempre
+   *  (global a la cuenta) y gasta el item. Si ya estaba aprendida no gasta nada. */
+  async learnSelected(): Promise<void> {
+    if (!this.selectedItem) return;
+    const { tabIndex, row, col } = this.selectedItem;
+    const item = this.inventories[tabIndex][row][col];
+    if (!item?.teachesBuild) return;
+    if (!await this.cityBuild.learn(item.teachesBuild)) return;   // ya la sabía
+
+    if (item.mergeable && (item.sum ?? 1) > 1) {
+      item.sum! -= 1;                       // gasta una del stack
+    } else {
+      this.inventories[tabIndex][row][col] = null;   // última: vacía la celda
+      this.selectedItem = null;
+    }
+    this.splitMenuOpen = false;
+    this.deleteModalOpen = false;
+    this.triggerSave();
+  }
+
   useSelected(): void {
     if (!this.selectedItem) return;
     const { tabIndex, row, col } = this.selectedItem;
