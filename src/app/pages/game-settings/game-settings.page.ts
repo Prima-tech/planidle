@@ -26,7 +26,7 @@ import { APP_VERSION } from 'src/app/version';
 })
 export class GameSettingsPageComponent implements OnInit, OnDestroy {
   /** Pestañas principales: 0 = Juego · 1 = Admin. */
-  tab: 0 | 1 = 0;
+  tab: 0 | 1 | 2 = 0;
   /** Sub-pestañas de Admin: 0 = Admin (monedas, rejilla…) · 1 = Fondos (parallax)
    *  · 2 = Progreso (desbloqueo de features; antes era ventana propia del footer). */
   adminTab: 0 | 1 | 2 = 0;

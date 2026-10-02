@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { BuildableDef, CityBuildService } from 'src/app/services/city-build.service';
-import { AdminService } from 'src/app/services/admin.service';
 
 @Component({
   selector: 'app-build-panel',
@@ -11,16 +10,9 @@ import { AdminService } from 'src/app/services/admin.service';
 export class BuildPanelComponent {
 
   private cityBuild = inject(CityBuildService);
-  private admin     = inject(AdminService);
 
   /** Pestaña activa: 'unlocked' (lo que puedo construir) o 'admin' (el catálogo entero). */
   tab: 'unlocked' | 'admin' = 'unlocked';
-
-  /** La pestaña Admin solo existe en modo admin (como el resto de lo oculto en
-   *  modo normal; ver AdminService). */
-  get showAdminTab(): boolean {
-    return this.admin.isAdmin;
-  }
 
   setTab(t: 'unlocked' | 'admin'): void {
     this.tab = t;
@@ -34,7 +26,7 @@ export class BuildPanelComponent {
    *    piden una receta que aún no has aprendido (p.ej. el banco de trabajo).
    *  - 'admin': el catálogo COMPLETO, sin filtrar (para probar). */
   get buildables(): BuildableDef[] {
-    if (this.tab === 'admin' && this.showAdminTab) return this.cityBuild.buildables;
+    if (this.tab === 'admin') return this.cityBuild.buildables;
     return this.cityBuild.buildables.filter(d =>
       !(d.unique && this.cityBuild.isBuilt(d.type)) && this.cityBuild.isAvailable(d));
   }

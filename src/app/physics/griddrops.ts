@@ -681,21 +681,40 @@ const RESOURCES_CATALOG: LootEntry[] = [
     scale: 2, order: 6,
     description: 'Carbón. Combustible para la fundición (y producto de fundir madera).',
   },
-  // Plano/kit del Banco de trabajo: recompensa de la primera misión de Mordekai.
-  // Al pulsarlo en el inventario sale el botón "Aprender": gasta el item y desbloquea
-  // para siempre la receta del construible 'workbench' (CityBuildService.learn).
-  // PLACEHOLDER de icono: cámbialo cuando tengas el arte definitivo.
-  {
-    name: 'Mesa de trabajo',
-    category: 'Recurso',
-    type: 'item',
-    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
-    texture: 'madera',
-    icon: 'assets/icon/resources/wood.png',
-    scale: 2, order: 6,
-    teachesBuild: 'workbench',
-    description: 'Planos de un banco de trabajo. Apréndelos para poder construirlo en Asgard.',
-  },
+];
+
+// ── Recetas de construcción ──────────────────────────────────────────────────
+// Un item por construible de `BUILDABLES` (city-build.service). NINGÚN edificio se
+// puede levantar de serie: hay que conseguir su item y pulsar "Aprender" en su ficha
+// del inventario (gasta el item y desbloquea su receta para siempre, a nivel cuenta).
+//
+// PLACEHOLDER de iconos: todos recortan Icons.png (hoja 15×10 de frames de 32px) con
+// un frame distinto solo para distinguirlos. Cambia `iconFrame` (o pon `icon` con un
+// PNG suelto) cuando tengas el arte definitivo.
+const _recipe = (name: string, buildType: string, iconFrame: number, desc: string): LootEntry => ({
+  name,
+  category: 'Receta',
+  type: 'item',
+  chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+  texture: 'icons_sheet', frame: iconFrame,
+  iconSheet: 'assets/icon/icons/Icons.png', iconFrame, iconFrameSize: 32, iconFrameCols: 15,
+  scale: 2, order: 5,
+  teachesBuild: buildType,
+  description: desc,
+});
+
+const RECIPES_CATALOG: LootEntry[] = [
+  _recipe('Cofre de ciudad',       'town_chest',       0,  'Planos de un cofre de ciudad: almacén compartido entre personajes.'),
+  _recipe('Tienda',                'shop',             3,  'Planos de una tienda: compra y vende objetos con su propio oro.'),
+  _recipe('Fragua',                'forge',            6,  'Planos de una fragua: produce con el tiempo, incluso sin jugar.'),
+  _recipe('Forja',                 'smelter',          9,  'Planos de una forja: funde minerales y madera.'),
+  _recipe('Mesa de alquimia',      'alchemy_table',    12, 'Planos de una mesa de alquimia.'),
+  _recipe('Alambique',             'alembic',          20, 'Planos de un alambique.'),
+  _recipe('Mesa de trabajo',       'workbench',        23, 'Planos de un banco de trabajo.'),
+  _recipe('Telar',                 'loom',             26, 'Planos de un telar.'),
+  _recipe('Mesa de encantamientos','enchanting_table', 30, 'Planos de una mesa de encantamientos.'),
+  _recipe('Secadero',              'drying_rack',      33, 'Planos de un secadero.'),
+  _recipe('Mesa de carnicero',     'butcher_table',    36, 'Planos de una mesa de carnicero.'),
 ];
 
 // ── Pociones (consumibles) ───────────────────────────────────────────────────
@@ -759,6 +778,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...TOOLS_CATALOG,
   ...BAGS_CATALOG,
   ...RESOURCES_CATALOG,
+  ...RECIPES_CATALOG,
   ...POTIONS_CATALOG,
   ...PETS_CATALOG,
 ];

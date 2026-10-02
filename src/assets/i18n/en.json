@@ -144,6 +144,7 @@
   },
   "GAME_SETTINGS": {
     "GAME": "Game",
+    "STYLES": "Styles",
     "INTERFACE": "Interface",
     "SHOW_JOYSTICK": "Show joystick",
     "SHOW_JOYSTICK_DESC": "Visual only: touch movement works the same",

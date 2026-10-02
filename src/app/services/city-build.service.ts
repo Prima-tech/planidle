@@ -88,6 +88,7 @@ function station(type: string, name: string, row: number, side: 0 | 1, scale = 2
     frameSize: 64, scale,
     tilesW: 3, tilesH: 3,
     unique: false,
+    requiresRecipe: true,
     animKey: `station_${type}`,
     previewUrl: STATION_SHEET.url,
     previewSrc: rect,
@@ -97,6 +98,8 @@ function station(type: string, name: string, row: number, side: 0 | 1, scale = 2
   };
 }
 
+// NINGÚN construible está disponible de serie: todos llevan `requiresRecipe` y se
+// desbloquean aprendiendo su item del inventario (RECIPES_CATALOG en griddrops).
 export const BUILDABLES: BuildableDef[] = [
   {
     type: 'town_chest',
@@ -108,6 +111,7 @@ export const BUILDABLES: BuildableDef[] = [
     tilesW: 3,
     tilesH: 3,
     unique: false,   // varios cofres, cada uno con su almacén independiente
+    requiresRecipe: true,
     isTownChest: true,
   },
   {
@@ -120,6 +124,7 @@ export const BUILDABLES: BuildableDef[] = [
     tilesW: 3,
     tilesH: 3,
     unique: true,
+    requiresRecipe: true,
     opensWindow: true,
   },
 
@@ -132,6 +137,7 @@ export const BUILDABLES: BuildableDef[] = [
     spriteKey: 'furnace_central_off', frame: 0,
     frameSize: 128, scale: 0.8,
     tilesW: 3, tilesH: 3, unique: false,
+    requiresRecipe: true,
     opensWindow: true,
     litAnimKey: 'furnace_central', litTexture: 'furnace_central',
     litFrames: [0,1,2,3,4,5,6,7,8,9,10,11], litFrameRate: 10,
@@ -156,9 +162,8 @@ export const BUILDABLES: BuildableDef[] = [
   },
   station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
   station('alembic',          'BUILD.ALEMBIC',          1, 1),
-  // Banco de trabajo: NO es construible de serie. Hay que aprender su receta usando
-  // el item 'Mesa de trabajo' (recompensa de la primera misión de Mordekai).
-  { ...station('workbench', 'BUILD.WORKBENCH', 2, 0), requiresRecipe: true },
+  // Su receta ('Mesa de trabajo') la da la primera misión de Mordekai.
+  station('workbench',        'BUILD.WORKBENCH',        2, 0),
   station('loom',             'BUILD.LOOM',             2, 1),
   station('enchanting_table', 'BUILD.ENCHANTING_TABLE', 3, 0),
   station('drying_rack',      'BUILD.DRYING_RACK',      3, 1),

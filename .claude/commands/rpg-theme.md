@@ -278,6 +278,26 @@ activa = madera clara con texto marrón:
 }
 ```
 
+#### La ventana NO puede cambiar de tamaño al cambiar de pestaña
+
+Los modales se dimensionan con `width: fit-content` (modal-container), así que el
+ancho lo decide el contenido: una pestaña vacía encoge la ventana y otra llena la
+ensancha. **El componente tiene que fijar su ancho en `:host`**, no dejarlo al
+contenido:
+
+```scss
+:host {
+  box-sizing: border-box;
+  width: 292px;       /* FIJO — el estándar de la casa (equipo, tienda, fragua, construir) */
+  /* NO: min-width, que deja crecer al contenido */
+}
+```
+
+Con ancho fijo, cuidado con `white-space: nowrap` en etiquetas: un nombre largo
+desborda la ficha. Usa `overflow-wrap: anywhere` para que parta en dos líneas.
+
+El alto ya es constante: los modales van anclados con `top`/`bottom`.
+
 ### 6. Placa oscura (SOLO contadores pequeños inline: monedas, cantidades)
 
 > **No usar para fichas ni tarjetas de info** (popovers, detalle de skill, caja del
@@ -378,7 +398,8 @@ Y el `:host` del componente lleva `margin: 2px` para que el anillo exterior del
 4. **Compacidad**: los paneles deben caber entre `top: 10px` y `bottom: 65px` — botones 32px, paddings ajustados, tabs con padding vertical 2px.
 5. **No tocar la lógica**: este tema es solo SCSS. Mantener clases, estructura HTML y bindings existentes (CDK drag&drop depende de ellas).
 6. **Popovers/flyouts/fichas/tarjetas de info = receta 1b** (marco metálico + madera `$wood-btn-dark`). Incluye cualquier caja que muestre datos al seleccionar algo (p. ej. la caja de enemigos/aliados del panel de mapa). NUNCA fondo oscuro `$cell-bg` con borde fino `$outline` — ese es el estilo viejo y queda mal. La placa oscura (receta 6) es solo para contadores pequeños inline, no para tarjetas. Sin botón ✕ de cerrar.
-7. **Toda agrupación = marco metálico + `$wood-btn-dark` (#8a5530)** (receta 2). Rejillas, listas y sub-paneles van con bisel metálico y madera oscura, igual que las ventanas flotantes. NUNCA marco de piedra + `$grid-bg` para agrupaciones (estilo viejo). Las celdas dentro llevan su propio bisel metálico sobre `$cell-bg-light` (receta 3). **Todos los paneles iguales, sin excepciones.**
+7. **Cambiar de pestaña NUNCA redimensiona la ventana**: ancho fijo en `:host` (292px), no `min-width`. Ver receta 5.
+8. **Toda agrupación = marco metálico + `$wood-btn-dark` (#8a5530)** (receta 2). Rejillas, listas y sub-paneles van con bisel metálico y madera oscura, igual que las ventanas flotantes. NUNCA marco de piedra + `$grid-bg` para agrupaciones (estilo viejo). Las celdas dentro llevan su propio bisel metálico sobre `$cell-bg-light` (receta 3). **Todos los paneles iguales, sin excepciones.**
 
 ## Checklist
 

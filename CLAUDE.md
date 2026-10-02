@@ -119,6 +119,7 @@ interface GameSnapshot {
 - Abrir un panel cierra el del **mismo lado**. Método: `closeOtherOnSide(side, except)` en FooterBarComponent
 - Panel nuevo → registrarlo en `groups` de `closeOtherOnSide()`
 - `bottom: 53-54px` en paneles laterales (altura del footer: botones 40px + padding + viga de piedra 5px ≈ 51px)
+- **Cambiar de pestaña NUNCA cambia el tamaño de la ventana.** Los modales son `width: fit-content`, así que el componente fija su ancho en `:host` (292px es el estándar: equipo, tienda, fragua, construir, talentos globales). Nunca `min-width`, que deja crecer al contenido
 
 ## Convenciones
 
@@ -133,6 +134,7 @@ interface GameSnapshot {
 
 - **Supabase es el modo por defecto** (`OFFLINE_MODE = false`; `ConnectionService` solo cae a local si está guardado `'local'` explícitamente, vía el toggle del login)
 - **Ámbito por defecto: PERSONAJE.** `setFlag(id, 'char')` salvo que algo sea de cuenta por diseño. Hoy el único `'global'` es reclutar un NPC (el roster es de cuenta). Los flags de personaje viajan en `GameSnapshot.unlocks`; los de cuenta, en `global_data.account.unlocksGlobal`
+- **Construir: todo tras receta.** Ningún `BUILDABLE` está disponible de serie (`requiresRecipe: true` en todos). Cada uno tiene su item en `RECIPES_CATALOG` (griddrops) con `teachesBuild`; se aprende con el botón **Aprender** de su ficha del inventario → `CityBuildService.learn()` (clave global `build_recipes`). El panel Construir tiene 2 pestañas: Desbloqueadas (lo aprendido) y Admin (el catálogo entero)
 - **Mapas del run por PERSONAJE**: cada uno toma los suyos. Su registro de "obtenido" es el flag `map_X` del personaje (`run-stats.owned()`), NO la lista de hitos de `RunProgress` (que es de cuenta)
 - **El panel del run se paga con ORO**, no con estrellas. `m.cost` (run-milestones) y `weaponCost()` (run-weapons) son precios en oro; el cobro va por `run-stats.payGold()` → `playerState.addCoins(-cost)` (no toca `lifetimeCoins`). Las estrellas siguen generándose y siguen desbloqueando la VISIBILIDAD de las armas (`unlockAtStars`), pero no se gastan en nada
 - Estado de CUENTA en `global_data.account`: logros globales, talentos globales, mejoras de mapa, tienda premium, runProgress y `unlocksGlobal`. Al bajar, la nube **reemplaza** lo local — si no, otra cuenta heredaría los flags del dispositivo

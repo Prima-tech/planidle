@@ -170,23 +170,6 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
 
 .gs-save-icon { display: inline-flex; }
 
-/* Dos botones en la misma línea (cambiar personaje + cerrar sesión). */
-.gs-btn-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-
-  .gs-save-btn {
-    flex: 1 1 0;
-    min-width: 0;
-    width: auto;
-    margin-bottom: 0;
-    padding: 10px 8px;
-    font-size: 11px;
-    text-align: center;
-  }
-}
-
 /* Cerrar sesión: mismo botón, algo más apagado para distinguirlo del de guardar. */
 .gs-logout-btn {
   filter: saturate(0.85) brightness(0.95);

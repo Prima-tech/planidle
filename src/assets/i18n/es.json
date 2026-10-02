@@ -146,6 +146,7 @@
     "LANGUAGE": "Idioma",
     "LANGUAGE_DESC": "Idioma de la interfaz. Se aplica al instante.",
     "GAME": "Juego",
+    "STYLES": "Estilos",
     "INTERFACE": "Interfaz",
     "SHOW_JOYSTICK": "Mostrar joystick",
     "SHOW_JOYSTICK_DESC": "Solo visual: el movimiento táctil funciona igual",

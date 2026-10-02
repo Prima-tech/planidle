@@ -61,6 +61,28 @@ Asgard. No hay que tocar la escena salvo casos especiales (Pasos 4-5).
 
 ---
 
+## Paso 2.5 — Su RECETA (obligatorio)
+
+**Ningún construible es construible de serie.** Todas las entradas de `BUILDABLES`
+llevan `requiresRecipe: true` (la pone el helper `station()`; en las entradas sueltas
+hay que escribirla), y solo aparecen en la pestaña **Desbloqueadas** del panel cuando
+el jugador ha aprendido su receta.
+
+Hay que darle su item en `RECIPES_CATALOG` (`griddrops.ts`), con `teachesBuild`
+apuntando al `type` del construible:
+
+```typescript
+_recipe('Fragua', 'forge', 6, 'Planos de una fragua: produce con el tiempo.'),
+//        nombre   type    frame de Icons.png (placeholder)
+```
+
+El jugador pulsa el item en el inventario → botón **Aprender** → gasta el item y
+`CityBuildService.learn(type)` guarda la receta (clave global `build_recipes`,
+permanente y compartida entre personajes; borrar el edificio no la pierde).
+
+**Y decide de dónde sale ese item**: recompensa de misión, tabla de botín, tienda…
+Sin fuente, solo se consigue con el panel de invocación del admin (pestaña Misc).
+
 ## Paso 3 — Textos i18n
 
 Archivos: `src/assets/i18n/es.json` y `en.json`, bajo la clave `"BUILD"`.

@@ -18,7 +18,7 @@ $text-cream: #ecd9b4;
   min-height: calc(100% - 4px);
   margin: 2px;
   padding: 10px 8px 8px;
-  min-width: 240px;
+  width: 292px;   /* FIJO: cambiar de pestaña no puede redimensionar la ventana */
   color: $text-cream;
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
@@ -113,7 +113,7 @@ $text-cream: #ecd9b4;
   color: $text-cream;
   text-align: center;
   line-height: 1.2;
-  white-space: nowrap;
+  overflow-wrap: anywhere;   /* nombres largos parten en 2 líneas; no ensanchan la ficha */
 }
 
 .build-empty {
