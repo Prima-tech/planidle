@@ -1,5 +1,6 @@
 {
   "LOGIN": {
+    "ACCOUNT_CREATED": "Account created",
     "TITLE": "Welcome",
     "SUBTITLE": "Sign in to your account",
     "TAGLINE": "Your adventure awaits",
@@ -112,7 +113,13 @@
       "GUEST": "Guest · UID",
       "ACCOUNT": "Account · Email"
     },
+    "CLEAR_LOCAL": {
+      "TITLE": "Clear local storage",
+      "DESC": "Wipes localStorage and the saves stored on this device, and logs you out. Nothing in the cloud is touched.",
+      "BTN": "Clear and log out"
+    },
     "CONFIRM": {
+      "CLEAR_LOCAL": "Clear ALL local storage on this device? You will be logged out. If you play as a guest without a linked email, you will lose access to that account.",
       "OVERWRITE_CLOUD": "The cloud has a MORE RECENT save (saved on {{when}}, probably from another device).\n\nIf you continue, you'll overwrite it with this save and lose that progress. Overwrite?",
       "DELETE_ACCOUNT": "Delete your Supabase account? You will no longer be able to sign in with it. This action cannot be undone.",
       "DELETE_ACCOUNT_ERROR": "Could not delete the account. Check your connection and try again.",
@@ -429,6 +436,16 @@
       "NAME": "Build the workbench",
       "DESC": "Mordekai gave you workbench plans. Open them from your inventory with the Learn button, then tap the hammer in the bottom menu (Asgard only) to build it. Reward: 10 gold.",
       "TRACK": "Build the workbench"
+    },
+    "NOEXP_HACHA": {
+      "NAME": "Craft an axe",
+      "DESC": "Mordekai wants to see you with proper tools. Open the workbench, craft the Iron Axe (2 stone and 2 wood) and equip it in its slot in the equipment window. Then talk to Mordekai. Reward: 10 gold.",
+      "TRACK": "Craft and equip the axe"
+    },
+    "NOEXP_PICO": {
+      "NAME": "Craft a pickaxe",
+      "DESC": "Mordekai taught you how to make a pickaxe: it is now on the workbench. Craft the Iron Pickaxe (2 stone and 2 wood) and equip it in its slot in the equipment window. Then talk to Mordekai. Reward: 10 gold.",
+      "TRACK": "Craft and equip the pickaxe"
     },
     "NOEXP_SLIMES": {
       "NAME": "Slime Cleanup",
@@ -764,7 +781,9 @@
     "MORDEKAI_NOEXP_CLAIM0": "Well done! Hand me that stone and wood… and take 1 gold and these plans in exchange. Open them in your inventory and hit Learn; then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_INTRO": "Those plans are no use in your bag, {{player}}. Tap the item in your inventory, hit Learn, then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_PROGRESS": "I still do not see your workbench, {{player}}. If you already learned the plans, tap the hammer in the bottom menu, drag it to a free spot and confirm with ✓.",
-    "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold. Now it is time to fight: cross the west portal to 1-1 and take down 10 slimes.",
+    "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold. Now put it to use: open the workbench, craft an axe and equip it. Then come talk to me again.",
+    "MORDEKAI_AXE_CLAIM": "Now that is a proper axe, {{player}}! Take 10 gold. Let me teach you how to make a pickaxe: it is on the workbench now. Craft it, equip it and come back.",
+    "MORDEKAI_PICK_CLAIM": "Perfect, {{player}}! Axe and pickaxe, all set. Take 10 gold. Now it is time to fight: cross the west portal to 1-1 and take down 10 slimes.",
     "MORDEKAI_NOEXP_CLAIM1": "Good work! Keep killing in 1-1 and an elite slime will appear. Defeat it.",
     "MORDEKAI_NOEXP_CLAIM2": "Impressive! Go through the 1-1 portal to 1-2 and take down 15 rats.",
     "MORDEKAI_NOEXP_CLAIM3": "Rats gone! The next challenge is in 1-3: defeat 20 orcs.",

@@ -1,5 +1,6 @@
 {
   "LOGIN": {
+    "ACCOUNT_CREATED": "Cuenta creada",
     "TITLE": "Bienvenido",
     "SUBTITLE": "Ingresa a tu cuenta",
     "TAGLINE": "Tu aventura te espera",
@@ -112,7 +113,13 @@
       "GUEST": "Invitado · UID",
       "ACCOUNT": "Cuenta · Email"
     },
+    "CLEAR_LOCAL": {
+      "TITLE": "Borrar almacenamiento local",
+      "DESC": "Vacía el localStorage y las partidas guardadas en este dispositivo, y cierra la sesión. Lo que esté en la nube no se toca.",
+      "BTN": "Borrar y cerrar sesión"
+    },
     "CONFIRM": {
+      "CLEAR_LOCAL": "¿Borrar TODO el almacenamiento local de este dispositivo? Se cerrará la sesión. Si juegas como invitado sin correo vinculado, perderás el acceso a esa cuenta.",
       "OVERWRITE_CLOUD": "La nube tiene una partida MÁS RECIENTE (guardada el {{when}}, probablemente desde otro dispositivo).\n\nSi continúas, la sobrescribirás con esta partida y perderás ese progreso. ¿Sobrescribir?",
       "DELETE_ACCOUNT": "¿Eliminar tu cuenta de Supabase? No podrás volver a acceder con ella. Esta acción no se puede deshacer.",
       "DELETE_ACCOUNT_ERROR": "No se pudo borrar la cuenta. Revisa la conexión e inténtalo de nuevo.",
@@ -429,6 +436,16 @@
       "NAME": "Construye el banco de trabajo",
       "DESC": "Mordekai te ha dado los planos de una mesa de trabajo. Ábrelos desde el inventario con el botón Aprender y luego pulsa el martillo del menú de abajo (solo en Asgard) para construirla. Recompensa: 10 de oro.",
       "TRACK": "Construye el banco de trabajo"
+    },
+    "NOEXP_HACHA": {
+      "NAME": "Fabrica un hacha",
+      "DESC": "Mordekai quiere verte con herramientas de verdad. Abre la mesa de trabajo, fabrica el Hacha de Hierro (2 de piedra y 2 de madera) y equípala en su hueco de la ventana de equipo. Después habla con Mordekai. Recompensa: 10 de oro.",
+      "TRACK": "Fabrica y equipa el hacha"
+    },
+    "NOEXP_PICO": {
+      "NAME": "Fabrica un pico",
+      "DESC": "Mordekai te ha enseñado a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrica el Pico de Hierro (2 de piedra y 2 de madera) y equípalo en su hueco de la ventana de equipo. Después habla con Mordekai. Recompensa: 10 de oro.",
+      "TRACK": "Fabrica y equipa el pico"
     },
     "NOEXP_SLIMES": {
       "NAME": "Limpieza de slimes",
@@ -764,7 +781,9 @@
     "MORDEKAI_NOEXP_CLAIM0": "¡Bien hecho! Dame esa piedra y esa madera… y toma 1 de oro y estos planos a cambio. Ábrelos en el inventario y pulsa Aprender; luego levanta el banco con el martillo del menú de abajo.",
     "MORDEKAI_BENCH_INTRO": "Esos planos no sirven de nada en la mochila, {{player}}. Pulsa el item en el inventario, dale a Aprender y después levanta el banco con el martillo del menú de abajo.",
     "MORDEKAI_BENCH_PROGRESS": "Aún no veo tu banco de trabajo, {{player}}. Si ya aprendiste los planos, pulsa el martillo del menú de abajo, arrástralo a un hueco libre y confirma con ✓.",
-    "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de oro. Ahora toca pelear: cruza el portal del oeste hacia 1-1 y acaba con 10 slimes.",
+    "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de oro. Ahora úsalo: abre la mesa de trabajo, fabrica un hacha y equípatela. Luego vuelve a hablar conmigo.",
+    "MORDEKAI_AXE_CLAIM": "¡Eso es un hacha como Dios manda, {{player}}! Toma 10 de oro. Ahora te enseño a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrícalo, equípatelo y vuelve.",
+    "MORDEKAI_PICK_CLAIM": "¡Perfecto, {{player}}! Ya tienes hacha y pico. Toma 10 de oro. Ahora toca pelear: cruza el portal del oeste hacia 1-1 y acaba con 10 slimes.",
     "MORDEKAI_NOEXP_CLAIM1": "¡Buen trabajo! Si sigues matando en 1-1 aparecerá un slime élite. Derrótalo.",
     "MORDEKAI_NOEXP_CLAIM2": "¡Impresionante! Sigue por el portal de 1-1 hasta 1-2 y acaba con 15 ratas.",
     "MORDEKAI_NOEXP_CLAIM3": "¡Ratas fuera! El siguiente reto está en 1-3: derrota a 20 orcos.",

@@ -18,6 +18,8 @@ import { UnlockService } from 'src/app/services/unlock.service';
 import { SummonService } from 'src/app/services/summon.service';
 import { WorldService } from 'src/app/services/world.service';
 import { CityBuildService } from 'src/app/services/city-build.service';
+import { DialogueService } from 'src/app/services/dialogue.service';
+import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { AdminService } from 'src/app/services/admin.service';
 import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
@@ -92,6 +94,19 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   admin                          = inject(AdminService);
   private globalTalents          = inject(GlobalTalentsService);
   private hudSlots               = inject(HudSkillSlotsService);
+  private dialogue               = inject(DialogueService);
+  private gameSettings           = inject(GameSettingsService);
+
+  // ── Chat ──────────────────────────────────────────────────────────────────
+  // El botón vive aquí, pero la ventana la pinta app-chat-log: el estado compartido
+  // está en DialogueService.
+  readonly chatOpen$   = this.dialogue.chatOpen$;
+  readonly chatUnread$ = this.dialogue.chatUnread$;
+
+  /** ¿Chat activado en Ajustes? Oculta el botón si no. */
+  get chatEnabled(): boolean { return this.gameSettings.chatEnabled; }
+
+  toggleChat(): void { this.dialogue.toggleChat(); }
 
   /** Auto-ataque desbloqueado (mejora de cuenta attack_1): gatea el FAB ∞ del HUD. */
   readonly autoAttackUnlocked$ = this.globalTalents.autoAttackUnlocked$;

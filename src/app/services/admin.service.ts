@@ -10,7 +10,8 @@ const STORAGE_KEY = 'idle.admin';
  * - **No admin** (espectador): solo ve/usa lo que está desbloruedado de verdad;
  *   lo bloqueado queda oculto.
  *
- * Por ahora arranca en `true` para no cambiar la experiencia de desarrollo.
+ * Arranca APAGADO: el juego por defecto se ve como lo ve un jugador normal. El modo
+ * admin hay que pedirlo a mano con el toggle del login.
  * Puntos de enganche (pendientes para cuando exista el login):
  *  - `TalentService`: usar {@link isAdmin} para tratar todos los nodos como
  *    desbloqueados (bonos + visibilidad) cuando es admin.
@@ -31,6 +32,7 @@ export class AdminService {
   }
 
   private load(): boolean {
-    try { return localStorage.getItem(STORAGE_KEY) !== '0'; } catch { return true; }
+    // Solo un '1' explícito (guardado por el toggle del login) enciende el modo admin.
+    try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
   }
 }

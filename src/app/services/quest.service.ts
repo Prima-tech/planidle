@@ -9,6 +9,8 @@ import { UnlockService } from './unlock.service';
 import { InventoryItem, InventoryService } from './inventory.service';
 import { GameSettingsService } from './game-settings.service';
 import { CityBuildService } from './city-build.service';
+import { GatheringEquipmentService } from './gathering-equipment.service';
+import { RECIPE_IRON_PICKAXE_FLAG } from './workbench.service';
 import { ITEM_CATALOG, hydrateItem } from '../physics/griddrops';
 
 // Sistema de misiones.
@@ -39,7 +41,8 @@ export type QuestObjective =
   | StarsObjective
   | OpenPortalObjective
   | CollectObjective
-  | BuildObjective;
+  | BuildObjective
+  | EquipObjective;
 // Futuro: | { type: 'reachLevel'; goal: number }
 //         | { type: 'collectItem'; itemId: string; goal: number }
 //         | { type: 'spendCoins'; goal: number } ...
@@ -95,6 +98,16 @@ export interface BuildObjective {
   buildType: string;   // `type` en BUILDABLES (city-build.service), p.ej. 'workbench'
 }
 
+/** Tener EQUIPADO un item concreto (p.ej. una herramienta fabricada en la mesa de
+ *  trabajo). Progreso binario: 0 hasta equiparlo, `goal` (1) al equiparlo. Solo cuenta
+ *  con el prerequisito cobrado (si ya lo llevabas puesto al llegar, cuenta al instante).
+ *  Pegajoso: desequiparlo después no descompleta la misión. */
+export interface EquipObjective {
+  type: 'equip';
+  goal: number;       // siempre 1
+  itemName: string;   // nombre en ITEM_CATALOG, p.ej. 'Hacha de Hierro'
+}
+
 export interface QuestReward {
   coins?: number;
   exp?: number;
@@ -123,6 +136,10 @@ export interface QuestDef {
   /** NPC que ENCARGA la misión: su retrato (recortado de la hoja LPC) sale como avatar
    *  de la tarjeta en la ventana de misiones. Debe existir en NPC_PORTRAITS. */
   giver?: string;
+  /** Flags (ámbito personaje) que se marcan cuando la misión pasa a estar DISPONIBLE
+   *  (Mordekai la ofrece al cobrar la previa). P.ej. desbloquear una receta de la mesa
+   *  de trabajo que hace falta para cumplirla. */
+  startFlags?: string[];
 }
 
 /** Retrato de un NPC para la ventana de misiones: se recorta el frame idle de su hoja
@@ -218,6 +235,35 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_BENCH_CLAIM' },
   },
   {
+    // Fabricar el Hacha de Hierro en la mesa de trabajo (receta disponible de serie) y
+    // equiparla. Se entrega hablando con Mordekai.
+    id: 'noexp_hacha',
+    name: 'QUESTS.NOEXP_HACHA.NAME',
+    desc: 'QUESTS.NOEXP_HACHA.DESC',
+    icon: 'construct-outline',
+    track: 'QUESTS.NOEXP_HACHA.TRACK',
+    objective: { type: 'equip', goal: 1, itemName: 'Hacha de Hierro' },
+    reward: { coins: 10 },
+    requires: 'noexp_mesa_trabajo',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_AXE_CLAIM' },
+  },
+  {
+    // Al ofrecerla (cobrar la del hacha) se desbloquea la receta del Pico de Hierro en
+    // la mesa de trabajo. Fabricarlo y equiparlo; se entrega hablando con Mordekai.
+    id: 'noexp_pico',
+    name: 'QUESTS.NOEXP_PICO.NAME',
+    desc: 'QUESTS.NOEXP_PICO.DESC',
+    icon: 'hammer-outline',
+    track: 'QUESTS.NOEXP_PICO.TRACK',
+    objective: { type: 'equip', goal: 1, itemName: 'Pico de Hierro' },
+    reward: { coins: 10 },
+    requires: 'noexp_hacha',
+    startFlags: [RECIPE_IRON_PICKAXE_FLAG],
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_PICK_CLAIM' },
+  },
+  {
     id: 'noexp_slimes',
     name: 'QUESTS.NOEXP_SLIMES.NAME',
     desc: 'QUESTS.NOEXP_SLIMES.DESC',
@@ -225,7 +271,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     track: 'QUESTS.NOEXP_SLIMES.TRACK',
     objective: { type: 'kill', family: 'slime', goal: 10 },
     reward: { coins: 50 },
-    requires: 'noexp_mesa_trabajo',
+    requires: 'noexp_pico',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM1' },
   },
@@ -294,6 +340,7 @@ export class QuestService implements OnDestroy {
   private portalSub: Subscription;
   private invSub: Subscription;
   private buildSub: Subscription;
+  private equipSub: Subscription;
   private skipSub: Subscription;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -307,6 +354,7 @@ export class QuestService implements OnDestroy {
     private inventory: InventoryService,
     private gs: GameSettingsService,
     private cityBuild: CityBuildService,
+    private gathering: GatheringEquipmentService,
   ) {
     // Al cambiar "sin exploración" cambia la cadena entera: saneamos lo fijado y
     // re-enganchamos la que toca (ver syncChain).
@@ -326,6 +374,8 @@ export class QuestService implements OnDestroy {
     this.invSub = this.inventory.changes$.subscribe(() => this.onCollect());
     // Construcción: al colocar un edificio en Asgard sincroniza las misiones 'build'.
     this.buildSub = this.cityBuild.placed$.subscribe(() => this.onBuild());
+    // Equipo de recolección: al equipar/cambiar sincroniza las misiones 'equip'.
+    this.equipSub = this.gathering.changes$.subscribe(() => this.onEquip());
   }
 
   ngOnDestroy(): void {
@@ -334,6 +384,7 @@ export class QuestService implements OnDestroy {
     this.portalSub?.unsubscribe();
     this.invSub?.unsubscribe();
     this.buildSub?.unsubscribe();
+    this.equipSub?.unsubscribe();
     this.skipSub?.unsubscribe();
     if (this.persistTimer) clearTimeout(this.persistTimer);
   }
@@ -362,6 +413,10 @@ export class QuestService implements OnDestroy {
     this.onCollect();
     // La cadena puede haber cambiado desde el último guardado (toggle "sin exploración").
     this.syncChain();
+    // Equipo actual: si ya llevas puesta la herramienta que pide una misión 'equip'.
+    // (Los startFlags NO se marcan aquí: UnlockService carga sus flags DESPUÉS que las
+    // misiones en SaveService.loadCharacter y los pisaría. Se marcan al cobrar la previa.)
+    this.onEquip();
     // Calienta el cache de construcciones/recetas (idempotente) para que el panel
     // Construir y la ficha del item sepan desde el primer frame qué hay aprendido.
     await this.cityBuild.load();
@@ -629,6 +684,37 @@ export class QuestService implements OnDestroy {
     }
   }
 
+  /** Marca el progreso de las misiones 'equip' si el item pedido está equipado en algún
+   *  slot de recolección. Solo con el prerequisito cobrado; pegajoso (no baja). */
+  private onEquip(): void {
+    let changed = false;
+    for (const def of this.list()) {
+      if (def.objective.type !== 'equip') continue;
+      if (this.completedSet.has(def.id)) continue;
+      if (!this.prereqMet(def)) continue;
+      const cur = this.progress[def.id] ?? 0;
+      if (cur >= def.objective.goal) continue;
+      const name = def.objective.itemName;
+      if (!this.gathering.slots.some(sl => sl.item?.name === name)) continue;   // no equipado
+      this.progress[def.id] = def.objective.goal;
+      changed = true;
+      this.flagQuestsBadge();
+    }
+    if (changed) {
+      this.notify();
+      this.schedulePersist();
+    }
+  }
+
+  /** Marca los `startFlags` de las misiones que ya están ofrecidas (prerequisito
+   *  cobrado), p.ej. la receta del pico al ofrecer su misión. Idempotente. */
+  private grantStartFlags(): void {
+    for (const q of this.list()) {
+      if (!q.startFlags?.length || !this.prereqMet(q)) continue;
+      for (const f of q.startFlags) if (!this.unlocks.hasFlag(f)) this.unlocks.setFlag(f, 'char');
+    }
+  }
+
   /** Progreso de las misiones 'collect' = nº de materiales que ya tienes al completo en el
    *  inventario (goal = todos). RETROACTIVO: sigue el inventario actual, así que lo recogido
    *  antes de aceptar la misión cuenta igual. PEGAJOSO (max, nunca baja): una vez has tenido
@@ -662,6 +748,8 @@ export class QuestService implements OnDestroy {
     this.grantReward(def.reward);
     // Desbloquea y fija en el HUD las misiones encadenadas a esta (requires === def.id).
     for (const q of this.list()) if (q.requires === def.id) this.activate(q);
+    this.grantStartFlags();   // las recién ofrecidas desbloquean lo suyo (p.ej. receta)
+    this.onEquip();           // si ya llevas puesto lo que pide la siguiente, cuenta ya
     this.completed$.next(def);
     this.notify();
     this.persistNow();  // los completados se guardan al momento (recompensa ya dada)

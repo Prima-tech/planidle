@@ -13,18 +13,18 @@ export interface WorkbenchRecipe {
   unlockFlag?: string;
 }
 
-/** Flag que desbloquea la receta del pico de piedra (la dará una misión). */
-export const RECIPE_STONE_PICKAXE_FLAG = 'recipe.stone_pickaxe';
+/** Flag que desbloquea la receta del pico de hierro (la dará una misión). */
+export const RECIPE_IRON_PICKAXE_FLAG = 'recipe.iron_pickaxe';
 
 export const WORKBENCH_RECIPES: WorkbenchRecipe[] = [
   {
-    id: 'stone_axe', result: 'Hacha de Piedra',
+    id: 'iron_axe', result: 'Hacha de Hierro',
     cost: [{ name: 'Piedra', qty: 2 }, { name: 'Madera', qty: 2 }],
   },
   {
-    id: 'stone_pickaxe', result: 'Pico de Piedra',
+    id: 'iron_pickaxe', result: 'Pico de Hierro',
     cost: [{ name: 'Piedra', qty: 2 }, { name: 'Madera', qty: 2 }],
-    unlockFlag: RECIPE_STONE_PICKAXE_FLAG,
+    unlockFlag: RECIPE_IRON_PICKAXE_FLAG,
   },
 ];
 

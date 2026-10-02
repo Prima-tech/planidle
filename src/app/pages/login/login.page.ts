@@ -1,6 +1,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { GameApiService } from 'src/app/services/game-api.service';
 import { StorageService } from 'src/app/services/storage.service';
@@ -28,7 +29,7 @@ export class LoginPage implements OnInit {
     get localMode(): boolean { return !this.useSupabase; }
     set localMode(v: boolean) { this.useSupabase = !v; }
     /** Toggle: true = modo admin (todo desbloqueado) · false = juego normal (oculta lo no desbloqueado). */
-    admin = true;
+    admin = false;
     readonly appVersion = APP_VERSION;
     /** ID de la sesión de invitado local pendiente de reanudar (tras cerrar sesión). Si
      *  no es null, el botón de invitado pasa a "Continuar como invitado (ID)". */
@@ -36,6 +37,7 @@ export class LoginPage implements OnInit {
 
     constructor(
         private router: Router,
+        private toastCtrl: ToastController,
         private api: GameApiService,
         private storageService: StorageService,
         private supabaseService: SupabaseService,
@@ -163,6 +165,7 @@ export class LoginPage implements OnInit {
         try {
             // 1. Intenta iniciar sesión (esto dispara fetchAndSaveLocalData)
             let { error } = await this.supabaseService.signIn(email, password);
+            let accountCreated = false;
 
             // 2. Si las credenciales no existen, crea la cuenta y reintenta.
             //    (requiere que "Confirm email" esté DESACTIVADO en Supabase Auth)
@@ -174,6 +177,7 @@ export class LoginPage implements OnInit {
                     this.error = this.translate.instant('LOGIN.ERR.CONFIRM_EMAIL');
                     return;
                 }
+                accountCreated = true;
                 ({ error } = await this.supabaseService.signIn(email, password));
             }
 
@@ -183,6 +187,9 @@ export class LoginPage implements OnInit {
             //      y bloquear el acceso.
             if (await this.blockIfRestricted()) return;
 
+            // Alta nueva → toast verde "Cuenta creada" (overlay de Ionic: sobrevive a la navegación).
+            if (accountCreated) this.showAccountCreatedToast();
+
             // 3. Sesión activa + datos en local → al juego
             this.router.navigate(['/globalposition']);
         } catch (e: any) {
@@ -190,6 +197,18 @@ export class LoginPage implements OnInit {
         } finally {
             this.loading = false;
         }
+    }
+
+    /** Toast de confirmación tras crear la cuenta (pequeño, arriba-izquierda). */
+    private async showAccountCreatedToast(): Promise<void> {
+        const toast = await this.toastCtrl.create({
+            message: this.translate.instant('LOGIN.ACCOUNT_CREATED'),
+            icon: 'checkmark-circle',
+            cssClass: 'toast-account-created',   // estilo en global.scss
+            position: 'top',
+            duration: 2500,
+        });
+        await toast.present();
     }
 
 }

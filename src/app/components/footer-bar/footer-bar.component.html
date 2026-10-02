@@ -64,6 +64,15 @@
          [class.active]="buildModal.isOpenModal()" (click)="openBuild()">
       <ion-icon name="hammer" class="footer-ion-icon"></ion-icon>
     </div>
+
+    <!-- Chat: abre el registro de conversaciones (app-chat-log). `data-chat-toggle`
+         lo excluye del "tocar fuera cierra" de la ventana; sin eso, el pointerdown la
+         cerraría y el click la reabriría. -->
+    <div class="icon-menu-wrapper" *ngIf="chatEnabled" data-chat-toggle
+         [class.active]="(chatOpen$ | async)" (click)="toggleChat()">
+      <ion-icon name="chatbubble-ellipses" class="footer-ion-icon"></ion-icon>
+      <span class="footer-unread" *ngIf="(chatUnread$ | async) as n">{{ n > 9 ? '9+' : n }}</span>
+    </div>
   </div>
 
 </div>

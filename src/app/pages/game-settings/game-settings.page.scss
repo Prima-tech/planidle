@@ -176,6 +176,12 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   opacity: 0.92;
 }
 
+/* Borrar almacenamiento local (admin): texto rojizo como el de borrar cuenta, ancho completo. */
+.gs-clear-local-btn {
+  color: #e3a48f;
+  margin-bottom: 0;
+}
+
 /* Borrar todo: acción peligrosa — marco de madera de la app pero texto rojizo y
    tinte rojo al pulsar. Media línea, alineado a la derecha y más bajo. */
 .gs-danger-btn {

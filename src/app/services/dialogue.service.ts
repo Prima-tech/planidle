@@ -39,6 +39,32 @@ export class DialogueService {
   private _history: ChatEntry[] = [];
   private historyId = 0;
 
+  // ── Ventana de chat ────────────────────────────────────────────────────────
+  // El estado vive aquí (y no en el componente) porque quien abre y cierra la
+  // ventana es el BOTÓN DEL FOOTER, que es otro componente.
+
+  /** ¿Está abierta la ventana de chat? */
+  readonly chatOpen$ = new BehaviorSubject<boolean>(false);
+  /** Mensajes ambientales sin leer desde la última apertura (badge del botón). */
+  readonly chatUnread$ = new BehaviorSubject<number>(0);
+  private lastSeenId = -1;
+
+  toggleChat(): void {
+    const open = !this.chatOpen$.value;
+    this.chatOpen$.next(open);
+    if (open) this.markChatSeen();
+  }
+
+  closeChat(): void {
+    if (this.chatOpen$.value) this.chatOpen$.next(false);
+  }
+
+  /** Da por leído todo el historial y apaga el badge. */
+  markChatSeen(): void {
+    this.lastSeenId = this._history.length ? this._history[this._history.length - 1].id : this.lastSeenId;
+    if (this.chatUnread$.value !== 0) this.chatUnread$.next(0);
+  }
+
   private speaker = '';
   private lines: string[] = [];
   private index = 0;
@@ -110,5 +136,9 @@ export class DialogueService {
     this._history.push({ id: this.historyId++, speaker, text, ambient });
     if (this._history.length > DialogueService.HISTORY_MAX) this._history.shift();
     this.history$.next([...this._history]);
+    // Con el chat abierto lo estás leyendo; cerrado, solo la charla AMBIENTAL cuenta
+    // como novedad (la línea de un diálogo activo ya la ves en el bocadillo).
+    if (this.chatOpen$.value) this.markChatSeen();
+    else this.chatUnread$.next(this._history.filter(e => e.id > this.lastSeenId && e.ambient).length);
   }
 }

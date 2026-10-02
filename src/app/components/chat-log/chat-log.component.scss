@@ -12,64 +12,24 @@ $text-cream: #ecd9b4;
 $gold: #ffe08a;
 $gold-2: #f0c040;
 
-// ── Botón bocadillo (abajo-izquierda, sobre el tirador del hub) ───────────────
-.chat-fab {
-  position: fixed;
-  left: calc(7px + var(--safe-left, 0px));
-  bottom: calc(53px + var(--safe-bottom, 0px));
-  z-index: 161;   // POR ENCIMA de la ventana (160) → sigue pulsable para cerrar
-  width: 25px;
-  height: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 50%;
-  background: linear-gradient(180deg, $wood-btn, $wood-btn-dark);
-  color: $gold-2;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, 0 2px 8px rgba(0, 0, 0, 0.5);
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-
-  ion-icon { font-size: 17px; }
-
-  &:focus, &:focus-visible { outline: none; }
-  &:active { transform: scale(0.92); }
-  &--open { background: $cell-bg; color: $gold; }
-}
-
-// Punto de no leídos.
-.chat-unread {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 800;
-  line-height: 1;
-  color: #fff;
-  background: #c0392b;
-  border: 1.5px solid $outline;
-  border-radius: 8px;
-}
+// El botón de chat (y su contador de no leídos) vive en la BARRA INFERIOR
+// (footer-bar), con el estilo del resto de botones del hub. Aquí solo la ventana.
 
 // ── Ventana de chat ───────────────────────────────────────────────────────────
 .chat-window {
+  // Centrada en horizontal y abajo del todo, a ras del borde (la misma altura que el
+  // hub de botones, que va a la izquierda y no se cruza con ella).
+  // El centrado usa left + translateX, así que la animación de entrada tiene que
+  // arrastrar ese translate o la ventana se descoloca (ver @keyframes chat-in).
   position: fixed;
-  left: calc(8px + var(--safe-left, 0px));
-  // Se abre MÁS ABAJO: su borde inferior queda justo sobre el hub, tapando el botón
-  // (que asoma por encima en la esquina inferior-izq como cierre).
-  bottom: calc(60px + var(--safe-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(8px + var(--safe-bottom, 0px));
   z-index: 160;
+  // TAMAÑO FIJO: no crece ni encoge con los mensajes. El historial scrollea dentro
+  // (.chat-body), así que la ventana siempre ocupa lo mismo.
   width: min(300px, calc(100vw - 16px));
-  max-height: 32vh;   // un pelín más que 1/4
+  height: 25vh;
   display: flex;
   flex-direction: column;
   background: rgba(28, 19, 12, 0.95);
@@ -82,8 +42,8 @@ $gold-2: #f0c040;
 }
 
 @keyframes chat-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0)   scale(1); }
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 .chat-body {
@@ -91,9 +51,7 @@ $gold-2: #f0c040;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  // padding-bottom extra: deja hueco para que el botón (que asoma por encima en la
-  // esquina inferior-izq) no tape el último mensaje.
-  padding: 7px 9px 40px;
+  padding: 7px 9px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -121,13 +79,9 @@ $gold-2: #f0c040;
 .chat-colon { margin-right: 3px; }
 
 /* ═══════════════ Temas (data-appstyle) ═══════════════ */
+// Los 3 primeros parámetros eran del botón flotante (ya en el footer); se mantienen en
+// la firma para no reescribir las 8 llamadas de los temas.
 @mixin chat-theme($fab-bg, $fab-edge, $fab-icon, $win-bg, $win-edge, $radius, $speaker, $text, $muted) {
-  .chat-fab {
-    background: $fab-bg;
-    border: 1px solid $fab-edge;
-    color: $fab-icon;
-    &--open { background: $win-bg; color: $fab-icon; }
-  }
   .chat-window {
     background: $win-bg;
     border: 1px solid $win-edge;

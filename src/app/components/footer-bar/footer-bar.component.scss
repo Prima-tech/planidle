@@ -141,6 +141,29 @@ $gold-light: #ffe9a8;
 /* Botones del hub: ORBES de acero pulido (redondos, con reflejo arriba), iconos
    "grabados" en el metal como las placas del footer. Pisa la placa rectangular
    que heredan de .icon-menu-wrapper. */
+/* Contador de mensajes sin leer del botón de chat. Va DENTRO del círculo: el botón
+   del hub tiene overflow:hidden (recorta al círculo), así que un badge asomando por
+   la esquina quedaría cortado. */
+.footer-unread {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: #c0392b;
+  border: 1.5px solid $outline;
+  border-radius: 7px;
+  pointer-events: none;
+}
+
 :host .hub-buttons .icon-menu-wrapper {
   float: none;
   margin: 0;

@@ -6,6 +6,7 @@ import { AudioService } from 'src/app/services/audio.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { SaveService } from 'src/app/services/save.service';
+import { StorageService } from 'src/app/services/storage.service';
 import { AppStyleService } from 'src/app/services/app-style.service';
 import { AsgardService } from 'src/app/services/asgard';
 import { PlayerStateService } from 'src/app/services/player-state.service';
@@ -35,6 +36,7 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
   private connection = inject(ConnectionService);
   private supabase = inject(SupabaseService);
   private saveService = inject(SaveService);
+  private storage = inject(StorageService);
   appStyle = inject(AppStyleService);
   private asgard = inject(AsgardService);
   private playerState = inject(PlayerStateService);
@@ -240,6 +242,24 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
+
+  /** ADMIN: borra TODO el almacenamiento local (localStorage + Ionic Storage con las
+   *  partidas locales) y cierra sesión. Recarga la app en el login para que ningún
+   *  servicio siga con el estado viejo en memoria (ni el auto-save lo re-escriba). */
+  async clearLocalStorage(): Promise<void> {
+    if (!confirm(this.translate.instant('SETTINGS.CONFIRM.CLEAR_LOCAL'))) return;
+    try {
+      await this.connection.logout();   // signOut antes de borrar (necesita la sesión)
+    } catch (e) {
+      console.warn('[Settings] signOut falló al borrar el almacenamiento local', e);
+    }
+    try { localStorage.clear(); } catch { /* sin acceso a localStorage */ }
+    try { await this.storage.clear(); } catch (e) { console.warn('[Settings] No se pudo vaciar Storage', e); }
+    this.supabaseConnected = false;
+    this.asgard.triggerCloseMenu();
+    await this.router.navigate(['/login']);
+    location.reload();
+  }
 
   /** Borra los datos de la cuenta de Supabase conectada (nube + local) y vuelve al login. */
   async clearRemoteAccount(): Promise<void> {
