@@ -1,0 +1,152 @@
+/* ===== Tema madera + piedra (pixel-art RPG) — mismo marco que el cofre central ===== */
+$outline: #3a2c20;
+$stone: #8f8678;
+$stone-light: #a59c8d;
+$stone-dark: #6b6357;
+$wood-bg: #a86f3e;
+$wood-btn-dark: #8a5530;
+$text-cream: #ecd9b4;
+$metal-light: #cfc7b8;
+$metal: #9b9285;
+$metal-dark: #6b6357;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 292px;
+  /* Alto fijo = llena el modal: el marco no se mueve y el cuerpo es el que scrollea. */
+  height: calc(100% - 4px);
+  margin: 2px;
+  padding: 12px 10px;
+  color: $text-cream;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 5px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.wbw-root {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.wbw-title {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.9em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffd79a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  margin-bottom: 10px;
+}
+
+/* Lista de recetas: única zona con scroll (el marco tiene alto fijo). */
+.wbw-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Ficha de receta: metálico + madera oscura (receta 2 de rpg-theme). */
+.wbw-recipe {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px;
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  &.is-locked { filter: grayscale(0.7) brightness(0.85); }
+}
+
+.wbw-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wbw-result-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 5px;
+
+  img { width: 30px; height: 30px; object-fit: contain; image-rendering: pixelated; }
+}
+
+.wbw-result-name {
+  font-size: 0.85em;
+  font-weight: 800;
+  color: #ffd79a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.wbw-cost {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.wbw-mat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px 2px 3px;
+  font-size: 0.75em;
+  font-weight: 700;
+  color: $text-cream;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 9px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+
+  img { width: 18px; height: 18px; object-fit: contain; image-rendering: pixelated; }
+
+  &.is-short span { color: #ff8f7a; }
+}
+
+.wbw-craft {
+  width: 100%;
+  padding: 7px 8px;
+  font-size: 0.8em;
+
+  &:disabled { opacity: 0.55; filter: grayscale(0.4); }
+}
+
+.wbw-locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px;
+  font-size: 0.75em;
+  font-weight: 700;
+  color: rgba($text-cream, 0.75);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}

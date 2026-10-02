@@ -50,6 +50,7 @@ import { MapTeleportHintComponent } from './map-teleport-hint/map-teleport-hint.
 import { BoxEventBannerComponent } from './box-event-banner/box-event-banner.component';
 import { GlobalTalentsComponent } from './global-talents/global-talents.component';
 import { MapChestWindowComponent } from './map-chest-window/map-chest-window.component';
+import { WorkbenchWindowComponent } from './workbench-window/workbench-window.component';
 
 @NgModule({
   declarations: [
@@ -97,6 +98,7 @@ import { MapChestWindowComponent } from './map-chest-window/map-chest-window.com
     BoxEventBannerComponent,
     GlobalTalentsComponent,
     MapChestWindowComponent,
+    WorkbenchWindowComponent,
     PortalUnlockComponent,
   ],
   imports: [

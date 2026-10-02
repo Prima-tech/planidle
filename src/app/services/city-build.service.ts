@@ -163,7 +163,7 @@ export const BUILDABLES: BuildableDef[] = [
   station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
   station('alembic',          'BUILD.ALEMBIC',          1, 1),
   // Su receta ('Mesa de trabajo') la da la primera misión de Mordekai.
-  station('workbench',        'BUILD.WORKBENCH',        2, 0),
+  { ...station('workbench', 'BUILD.WORKBENCH', 2, 0), opensWindow: true },   // abre su ventana (izquierda)
   station('loom',             'BUILD.LOOM',             2, 1),
   station('enchanting_table', 'BUILD.ENCHANTING_TABLE', 3, 0),
   station('drying_rack',      'BUILD.DRYING_RACK',      3, 1),
@@ -210,6 +210,9 @@ export class CityBuildService {
   readonly windowOpen$ = new BehaviorSubject<boolean>(false);
   /** La escena pide cerrar la ventana abierta (el jugador se alejó del edificio). */
   readonly closeWindow$ = new Subject<void>();
+  /** Emite el `type` del construible cuya receta se acaba de aprender (para el aviso
+   *  del registro del HUD, abajo a la izquierda). */
+  readonly learned$ = new Subject<string>();
 
   private storage = inject(StorageService);
   private townChest = inject(TownChestService);
@@ -283,6 +286,7 @@ export class CityBuildService {
     if (this.recipes!.includes(type)) return false;
     this.recipes!.push(type);
     await this.storage.set(RECIPES_KEY, this.recipes);
+    this.learned$.next(type);
     return true;
   }
 

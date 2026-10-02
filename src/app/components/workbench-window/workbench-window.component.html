@@ -1,0 +1,34 @@
+<div class="wbw-root">
+  <div class="wbw-title">{{ 'WORKBENCH.TITLE' | translate }}</div>
+
+  <div class="wbw-list">
+    <div class="wbw-recipe" *ngFor="let r of recipes" [class.is-locked]="!wb.isUnlocked(r)">
+      <!-- Resultado -->
+      <div class="wbw-result">
+        <div class="wbw-result-icon">
+          <img [src]="wb.iconFor(r.result)" [alt]="r.result" />
+        </div>
+        <span class="wbw-result-name">{{ r.result }}</span>
+      </div>
+
+      <!-- Coste: icono + tengo/necesito (rojo si falta) -->
+      <div class="wbw-cost">
+        <div class="wbw-mat" *ngFor="let c of r.cost" [class.is-short]="wb.have(c.name) < c.qty">
+          <img [src]="wb.iconFor(c.name)" [alt]="c.name" [title]="c.name" />
+          <span>{{ wb.have(c.name) }}/{{ c.qty }}</span>
+        </div>
+      </div>
+
+      <button *ngIf="wb.isUnlocked(r); else locked" type="button" class="rpg-btn wbw-craft"
+              [disabled]="!wb.canCraft(r)" (click)="craft(r)">
+        {{ 'WORKBENCH.CRAFT' | translate }}
+      </button>
+      <ng-template #locked>
+        <div class="wbw-locked">
+          <ion-icon name="lock-closed"></ion-icon>
+          <span>{{ 'WORKBENCH.LOCKED' | translate }}</span>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

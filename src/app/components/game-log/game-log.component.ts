@@ -5,12 +5,13 @@ import { InventoryService } from 'src/app/services/inventory.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { RegenService } from 'src/app/services/regen.service';
 import { RunProgressService } from 'src/app/services/run-progress.service';
+import { BUILDABLES, CityBuildService } from 'src/app/services/city-build.service';
 
 interface LogEntry {
   id: number;
   name: string;          // clave de agrupación
   label: string;         // texto visible
-  type: 'drop' | 'coin' | 'regen-hp' | 'regen-mp' | 'star';
+  type: 'drop' | 'coin' | 'regen-hp' | 'regen-mp' | 'star' | 'recipe';
   sum: number;           // cantidad acumulada
   mergeable: boolean;
   fading: boolean;
@@ -39,6 +40,7 @@ export class GameLogComponent implements OnInit, OnDestroy {
     private translate: TranslateService,
     private regen: RegenService,
     private runProgress: RunProgressService,
+    private cityBuild: CityBuildService,
   ) {}
 
   ngOnInit() {
@@ -79,6 +81,19 @@ export class GameLogComponent implements OnInit, OnDestroy {
           mergeable: true,
         });
       }),
+      // Receta de construcción aprendida: línea verde con lo que ya puedes levantar.
+      this.cityBuild.learned$.subscribe(type => {
+        const def = BUILDABLES.find(b => b.type === type);
+        const name = def ? this.translate.instant(def.name) : type;
+        this.push({
+          name:      `__recipe_${type}__`,
+          label:     `${this.translate.instant('GAME_LOG.RECIPE_LEARNED')}: ${name}`,
+          type:      'recipe',
+          sum:       1,
+          mergeable: false,
+          raw:       true,
+        });
+      }),
     );
   }
 
@@ -88,7 +103,8 @@ export class GameLogComponent implements OnInit, OnDestroy {
 
   trackById(_: number, e: LogEntry) { return e.id; }
 
-  private push(data: { name: string; label: string; type: LogEntry['type']; sum: number; mergeable: boolean }) {
+  /** `raw` → el `label` se pinta tal cual (sin el prefijo "+ x1" de los drops). */
+  private push(data: { name: string; label: string; type: LogEntry['type']; sum: number; mergeable: boolean; raw?: boolean }) {
     // Buscar entrada existente agrupable (mismo nombre, stackeable, no desapareciendo)
     const existing = data.mergeable
       ? this.entries.find(e => e.name === data.name && !e.fading)
@@ -103,7 +119,7 @@ export class GameLogComponent implements OnInit, OnDestroy {
       const entry: LogEntry = {
         id:        nextId++,
         name:      data.name,
-        label:     this.buildLabel(data.label.split(' ').slice(1).join(' '), data.sum, data.type),
+        label:     data.raw ? data.label : this.buildLabel(data.label.split(' ').slice(1).join(' '), data.sum, data.type),
         type:      data.type,
         sum:       data.sum,
         mergeable: data.mergeable,

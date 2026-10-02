@@ -701,7 +701,8 @@
   },
   "GAME_LOG": {
     "COINS": "Coins",
-    "STARS": "Stars"
+    "STARS": "Stars",
+    "RECIPE_LEARNED": "Recipe learned"
   },
   "CHAT": {
     "TITLE": "Chat",
@@ -753,6 +754,9 @@
   "NPC": {
     "DEFAULT_PLAYER_NAME": "traveler",
     "RECRUIT_GREETING": "Hey {{player}}, how's it going? From now on you can pick me to play with.",
+    "MORDEKAI_GENERIC_INTRO": "Next job, {{player}}: {{task}}.",
+    "MORDEKAI_GENERIC_PROGRESS": "{{task}} — you are at {{prog}}/{{goal}}. Keep going.",
+    "MORDEKAI_GENERIC_CLAIM": "Done, {{player}}! Here is your reward.",
     "MORDEKAI_DONE": "When you feel like real fighting, {{player}}, cross the west portal to 1-1. The first monsters await you there.",
     "MORDEKAI_CLAIM": "You got your star, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
     "MORDEKAI_CLAIM1": "Well done, bro! Now kill 1 hatchet rat. You'll spot them out in exploration, scurrying along the ground.",
@@ -776,6 +780,11 @@
     "KUGO_LINE": "{{player}}, long time no see!",
     "ITALIEN_LINE": "Hey {{player}}, ready for adventure?",
     "RAKE_LINE": "{{player}}, we set off whenever you want."
+  },
+  "WORKBENCH": {
+    "TITLE": "Workbench",
+    "CRAFT": "Craft",
+    "LOCKED": "Locked"
   },
   "MAP_UPGRADES": {
     "TITLE": "Map upgrades",

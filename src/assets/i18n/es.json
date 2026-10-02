@@ -701,7 +701,8 @@
   },
   "GAME_LOG": {
     "COINS": "Monedas",
-    "STARS": "Estrellas"
+    "STARS": "Estrellas",
+    "RECIPE_LEARNED": "Receta aprendida"
   },
   "CHAT": {
     "TITLE": "Chat",
@@ -753,6 +754,9 @@
   "NPC": {
     "DEFAULT_PLAYER_NAME": "viajero",
     "RECRUIT_GREETING": "Hombre {{player}}, ¿qué tal? A partir de ahora puedes elegirme para jugar contigo.",
+    "MORDEKAI_GENERIC_INTRO": "Siguiente encargo, {{player}}: {{task}}.",
+    "MORDEKAI_GENERIC_PROGRESS": "{{task}} — llevas {{prog}}/{{goal}}. Sigue.",
+    "MORDEKAI_GENERIC_CLAIM": "¡Hecho, {{player}}! Toma tu recompensa.",
     "MORDEKAI_DONE": "Cuando quieras luchar de verdad, {{player}}, cruza el portal del oeste hacia 1-1. Ahí te esperan los primeros monstruos.",
     "MORDEKAI_CLAIM": "¡Ya tienes tu estrella, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
     "MORDEKAI_CLAIM1": "¡Bien hecho, bro! Ahora mata 1 rata hachiática. Las verás en la exploración, correteando a ras de suelo.",
@@ -776,6 +780,11 @@
     "KUGO_LINE": "{{player}}, ¡cuánto tiempo!",
     "ITALIEN_LINE": "Eh, {{player}}, ¿listo para la aventura?",
     "RAKE_LINE": "{{player}}, cuando quieras partimos."
+  },
+  "WORKBENCH": {
+    "TITLE": "Mesa de trabajo",
+    "CRAFT": "Fabricar",
+    "LOCKED": "Bloqueada"
   },
   "MAP_UPGRADES": {
     "TITLE": "Mejoras de mapa",

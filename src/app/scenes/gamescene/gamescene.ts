@@ -100,7 +100,9 @@ const CITY_NPCS: { name: string; texKey: string; tileX: number; tileY: number; q
                    sheet?: string; idle?: { start: number; end: number } }[] = [
   // Mordekai: NPC de Asgard, da la primera misión (recoge 5 Piedra + 5 Madera; luego,
   // aparte, abrir el portal). Junto al punto de aparición (spawnPos 30,30) para que sea lo primero que ves.
-  // `questId` → marcador flotante !/? sobre su cabeza (updateNpcQuestMarkers).
+  // `questId` → este NPC reparte misiones: lleva el marcador flotante !/? sobre su
+  // cabeza (updateNpcQuestMarkers). CUÁL muestra se resuelve en vivo por su nombre
+  // (`quests.questForGiver`), no por este id — aquí solo marca dónde empieza su cadena.
   // Hoja propia (LPC 24 col, distinta a los cuerpos de 13 col): idle = frames 576-577
   // (fila 24, mismo offset relativo que el idle-down de 2 frames de las hojas de cuerpo
   // normales —312-313 en 13 col—, respiración en bucle mirando a cámara).
@@ -968,8 +970,10 @@ export class GameScene extends Phaser.Scene {
         //  · completada / sin misión → sin marcador
         let texKey = '', alpha = 1;
         if (quests && npc.questId && npc.sprite.active) {
-          const def = quests.byId(npc.questId);
-          if (def && !quests.isCompleted(def)) {
+          // La misión vigente del NPC, no una fija: la cadena avanza y el marcador con
+          // ella (al cobrar una aparece la siguiente, y el "?" vuelve al completarla).
+          const def = quests.questForGiver(npc.name);
+          if (def) {
             if (quests.isClaimable(def)) { texKey = 'quest_ques'; alpha = 1; }
             else if (quests.isActive(def)) { texKey = 'quest_excl'; alpha = 0.4; }
             else { texKey = 'quest_excl'; alpha = 1; }
@@ -3645,36 +3649,45 @@ export class GameScene extends Phaser.Scene {
       const player = this.playerName();
       if (!quests) { this.reg.dialogue?.show('Mordekai', '...'); return; }
 
-      // Líneas por misión: intro (al darla), progress (en marcha) y claim (al cobrarla).
-      const LINES: Record<string, { intro: string; progress: string; claim: string }> = {
-        recoge_materiales:  { intro: 'NPC.MORDEKAI_COLLECT_INTRO', progress: 'NPC.MORDEKAI_COLLECT_PROGRESS', claim: 'NPC.MORDEKAI_COLLECT_CLAIM' },
-        noexp_mesa_trabajo: { intro: 'NPC.MORDEKAI_BENCH_INTRO',   progress: 'NPC.MORDEKAI_BENCH_PROGRESS',   claim: 'NPC.MORDEKAI_BENCH_CLAIM' },
-        primeras_estrellas: { intro: 'NPC.MORDEKAI_INTRO',         progress: 'NPC.MORDEKAI_PROGRESS',         claim: 'NPC.MORDEKAI_CLAIM1' },
+      // Líneas PROPIAS de las misiones del onboarding: intro (al darla) y progress (en
+      // marcha). Las que no estén aquí caen a una línea genérica construida con su
+      // `track`, así cualquier misión nueva suya funciona sin tocar esto. El cobro usa
+      // el `claimDialogue` de la propia misión.
+      const LINES: Record<string, { intro: string; progress: string }> = {
+        recoge_materiales:  { intro: 'NPC.MORDEKAI_COLLECT_INTRO', progress: 'NPC.MORDEKAI_COLLECT_PROGRESS' },
+        noexp_mesa_trabajo: { intro: 'NPC.MORDEKAI_BENCH_INTRO',   progress: 'NPC.MORDEKAI_BENCH_PROGRESS' },
+        primeras_estrellas: { intro: 'NPC.MORDEKAI_INTRO',         progress: 'NPC.MORDEKAI_PROGRESS' },
       };
 
-      // 'noexp_mesa_trabajo' solo existe en la cadena sin exploración; en la otra
-      // byId() no lo encuentra y se salta sin ruido.
-      for (const id of ['recoge_materiales', 'noexp_mesa_trabajo', 'primeras_estrellas']) {
-        const def = quests.byId(id);
-        if (!def || quests.isCompleted(def) || quests.isSkipped(def)) continue;   // ya cobrada (u omitida sin exploración) → siguiente
-        const line = LINES[id];
-        const params = { player, prog: quests.progressOf(def), goal: quests.goalOf(def) };
-        // Objetivo alcanzado → cobra aquí mismo (misma línea que "Completar" en la ventana).
-        if (quests.isClaimable(def)) {
-          quests.claim(def);
-          this.reg.dialogue?.show('Mordekai', this.t(def.claimDialogue?.text ?? line.claim, params));
-        } else if (params.prog > 0 || quests.isActive(def)) {
-          this.reg.dialogue?.show('Mordekai', this.t(line.progress, params));   // en marcha
-        } else {
-          quests.activate(def);                                                 // primera vez → dar y fijar
-          this.reg.dialogue?.show('Mordekai', this.t(line.intro, params));
-        }
+      // Su misión vigente — la MISMA que decide el marcador !/? de su cabeza: la primera
+      // entregable y, si no hay, la primera disponible de la cadena activa. Antes esto
+      // era una lista de ids a mano, así que las misiones posteriores de la cadena no se
+      // podían ni dar ni cobrar hablándole.
+      const def = quests.questForGiver('Mordekai');
+      if (!def) {
+        // Sin misiones pendientes → apunta al combate (portal oeste, 1-1).
+        this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_DONE', { player }));
         return;
       }
-      // Encadenadas que quedaron sin fijar (p.ej. mata_rata al activar "sin exploración" tras cobrar la 1ª).
-      for (const q of quests.available()) if (q.giver === 'Mordekai' && !quests.isActive(q)) quests.activate(q);
-      // Sin misiones pendientes de Mordekai → apunta al combate (portal oeste, 1-1).
-      this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_DONE', { player }));
+
+      const line = LINES[def.id];
+      const params = {
+        player,
+        prog: quests.progressOf(def),
+        goal: quests.goalOf(def),
+        task: this.t(def.track ?? def.name),
+      };
+
+      // Objetivo alcanzado → cobra aquí mismo (misma vía que "Completar" en la ventana).
+      if (quests.isClaimable(def)) {
+        quests.claim(def);
+        this.reg.dialogue?.show('Mordekai', this.t(def.claimDialogue?.text ?? 'NPC.MORDEKAI_GENERIC_CLAIM', params));
+      } else if (params.prog > 0 || quests.isActive(def)) {
+        this.reg.dialogue?.show('Mordekai', this.t(line?.progress ?? 'NPC.MORDEKAI_GENERIC_PROGRESS', params));
+      } else {
+        quests.activate(def);                                                   // primera vez → dar y fijar
+        this.reg.dialogue?.show('Mordekai', this.t(line?.intro ?? 'NPC.MORDEKAI_GENERIC_INTRO', params));
+      }
     }
 
     /** Línea que dice un NPC al hablarle. Kugo saluda al jugador por su nombre. */

@@ -26,6 +26,7 @@ import { BuildShopComponent } from '../build-shop/build-shop.component';
 import { ForgeComponent } from '../forge/forge.component';
 import { GlobalTalentsComponent } from '../global-talents/global-talents.component';
 import { MapChestWindowComponent } from '../map-chest-window/map-chest-window.component';
+import { WorkbenchWindowComponent } from '../workbench-window/workbench-window.component';
 
 @Component({
   selector: 'app-footer-bar',
@@ -47,6 +48,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('forgeModal')       forgeModal!:       ModalContainerComponent;
   @ViewChild('globalTalentsModal') globalTalentsModal!: ModalContainerComponent;
   @ViewChild('mapChestModal')    mapChestModal!:    ModalContainerComponent;
+  @ViewChild('workbenchModal')   workbenchModal!:   ModalContainerComponent;
 
   private detailSub:        Subscription;
   private closeSub:         Subscription;
@@ -62,6 +64,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private inventoryOpenedByChest = false;
   private inventoryOpenedByShop = false;
   private inventoryOpenedByForge = false;
+  private inventoryOpenedByWorkbench = false;
 
   /** Candado: false = modo edición de habilidades del HUD (skillEquip.hudEditMode). */
   locked = true;
@@ -187,6 +190,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.openWindowSub = this.cityBuild.openWindow$.subscribe(type => {
       if (type === 'shop')           this.openBuildShop();
       else if (type === 'mapChest')  this.openMapChestWindow();
+      else if (type === 'workbench') this.openWorkbenchWindow();
       else                           this.openForge();
     });
 
@@ -195,6 +199,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       if (this.buildShopModal?.isOpenModal()) this.buildShopModal.close();
       if (this.forgeModal?.isOpenModal())     this.forgeModal.close();
       if (this.mapChestModal?.isOpenModal())  this.mapChestModal.close();
+      if (this.workbenchModal?.isOpenModal()) this.workbenchModal.close();
     });
 
     // Si el auto-ataque NO está desbloqueado (mejora de cuenta), apágalo: el FAB
@@ -231,7 +236,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
 
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
-      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal],
+      left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal, this.workbenchModal],
       right: [this.gameSettingsModal, this.inventoryModal, this.worldMapModal, this.shopModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
@@ -241,7 +246,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeAllPanels() {
     [this.gameSettingsModal, this.inventoryModal, this.equipmentModal,
      this.summonModal, this.chestModal, this.skillDetailModal,
-     this.worldMapModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal]
+     this.worldMapModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal, this.workbenchModal]
       .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
 
@@ -374,6 +379,31 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       this.closeOtherOnSide('left', this.mapChestModal);
       this.mapChestModal.open(MapChestWindowComponent, 'mapChest');
       this.cityBuild.windowOpen$.next(true);
+    }
+  }
+
+  onWorkbenchModalClosed() {
+    this.cityBuild.windowOpen$.next(false);
+    // Cierra el inventario si se abrió junto a la mesa.
+    if (this.inventoryOpenedByWorkbench && this.inventoryModal?.isOpenModal()) {
+      this.inventoryModal.close();
+    }
+    this.inventoryOpenedByWorkbench = false;
+  }
+
+  /** Ventana de la mesa de trabajo (izquierda). Misma lógica que la forja: marca
+   *  windowOpen$ para que la escena la cierre al alejarte y abre el inventario (derecha). */
+  openWorkbenchWindow() {
+    if (this.workbenchModal.isOpenModal()) {
+      this.workbenchModal.close();
+    } else {
+      this.closeOtherOnSide('left', this.workbenchModal);
+      this.workbenchModal.open(WorkbenchWindowComponent, 'workbench');
+      this.cityBuild.windowOpen$.next(true);
+      if (!this.inventoryModal?.isOpenModal()) {
+        this.openInventory();
+        this.inventoryOpenedByWorkbench = true;
+      }
     }
   }
 

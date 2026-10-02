@@ -366,6 +366,24 @@ const STAFF_CATALOG: LootEntry[] = [
 const PICK_ICONS = 'assets/sprites/player/equip/tools/picks/icons';
 const AXE_ICONS  = 'assets/sprites/player/equip/tools/axes/icons';
 const TOOLS_CATALOG: LootEntry[] = [
+  // Herramientas de piedra: se fabrican en la mesa de trabajo (WORKBENCH_RECIPES).
+  // Reutilizan sprite e icono de las de hierro (aún no hay arte propio).
+  {
+    name: 'Pico de Piedra', category: 'Pico', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'pick01_main', frame: 117, scale: 2.5, order: 4,
+    icon: `${PICK_ICONS}/pick_01_icon.png`,
+    stats: { miningEfficiency: 2, miningPower: 2 },
+    description: 'Un pico tosco de piedra atada a un mango. +2 eficiencia, +2 fuerza de minado.',
+  },
+  {
+    name: 'Hacha de Piedra', category: 'Hacha', type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'axe01_main', frame: 117, scale: 2.5, order: 4,
+    icon: `${AXE_ICONS}/axe_01_icon.png`,
+    stats: { woodcuttingEfficiency: 4, woodcuttingPower: 2 },
+    description: 'Un hacha tosca de piedra atada a un mango. +4 eficiencia, +2 fuerza de tala.',
+  },
   {
     name: 'Pico de Hierro', category: 'Pico', type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: false,

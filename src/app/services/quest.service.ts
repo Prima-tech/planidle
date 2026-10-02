@@ -452,6 +452,15 @@ export class QuestService implements OnDestroy {
     return this.list().filter(q => !this.completedSet.has(q.id) && this.prereqMet(q));
   }
 
+  /** Misión vigente de un NPC que reparte misiones (`giver`): la primera que se le
+   *  pueda ENTREGAR y, si no hay ninguna, la primera que tenga disponible. null cuando
+   *  no le queda nada. Lo usa el marcador flotante !/? de la escena, que si no se
+   *  quedaría clavado en la primera misión de la cadena. */
+  questForGiver(giver: string): QuestDef | null {
+    const mine = this.available().filter(q => q.giver === giver);
+    return mine.find(q => this.isClaimable(q)) ?? mine[0] ?? null;
+  }
+
   completed(): QuestDef[] {
     return this.list().filter(q => this.completedSet.has(q.id));
   }

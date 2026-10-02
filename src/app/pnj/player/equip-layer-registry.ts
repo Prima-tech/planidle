@@ -376,6 +376,9 @@ export const EQUIP_LAYER_REGISTRY: Record<string, EquipLayerConfig> = {
   // ── Herramientas de recolección (assets/sprites/player/equip/tools) ─────────
   'Pico de Hierro':  toolLayer('pick01', 'picks', 'pick_01.png'),
   'Hacha de Hierro': toolLayer('axe01',  'axes',  'axe_01.png'),
+  // De piedra: mismo sprite que las de hierro hasta tener arte propio.
+  'Pico de Piedra':  toolLayer('pick01', 'picks', 'pick_01.png'),
+  'Hacha de Piedra': toolLayer('axe01',  'axes',  'axe_01.png'),
   // ── Bastones de mago (assets/sprites/player/equip/weapons/staff/staff) ───────
   'Bastón Nudoso':   staffLayer('staff01', 'staff_01.png'),
   'Báculo de Roble': staffLayer('staff02', 'staff_02.png'),
