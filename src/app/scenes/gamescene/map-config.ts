@@ -208,7 +208,16 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
   '1-5': genLevel({ id: '1-5', w: 76, h: 62, back: '1-4',   next: '1-6', enemyType: 'gnoll1',   maxCount: 4, behavior: 'aggressive', visionRadius: 5, mineTier: 5, gemTier: 5 }),
   '1-6': genLevel({ id: '1-6', w: 80, h: 66, back: '1-5',   next: '1-7', enemyType: 'lizard1',  maxCount: 5, behavior: 'aggressive', visionRadius: 6, mineTier: 6, gemTier: 6 }),
   '1-7': genLevel({ id: '1-7', w: 84, h: 68, back: '1-6',   next: '1-8', enemyType: 'goobling2', maxCount: 5, behavior: 'aggressive', visionRadius: 6, mineTier: 7, gemTier: 7 }),
-  '1-8': genLevel({ id: '1-8', w: 88, h: 72, back: '1-7',                enemyType: 'golem1',   maxCount: 6, behavior: 'aggressive', visionRadius: 7, mineTier: 8, gemTier: 8 }),
+  // Mapa hecho a mano en Tiled con el plugin "Pixel Editor" (src/assets/tilemaps/test/pixel.tmx,
+  // convertido a JSON), con su propio tileset ground_grasss (no coincide en tamaño con el
+  // usado por gen(); ver map-generator). 100×100, solo un tileset → sin water/trees/details.
+  '1-8': {
+    ...genLevel({ id: '1-8', w: 100, h: 100, back: '1-7', enemyType: 'golem1', maxCount: 6, behavior: 'aggressive', visionRadius: 7, mineTier: 8, gemTier: 8 }),
+    tilesetKey:   'gen-1-8-ground-grasss',
+    tilesetImage: 'assets/tilemaps/generated/1-8-ground_grasss.png',
+    tilesetName:  'ground_grasss',
+    extraTilesets: [],
+  },
 };
 
 // Planeta al que pertenece cada mapa (para mostrar "qué planeta exploras" en el
