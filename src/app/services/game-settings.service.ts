@@ -18,6 +18,7 @@ export interface GameSettings {
   parallaxTheme: ParallaxThemeId;
   worldParallax: WorldParallaxId;
   language: AppLanguage;      // idioma de la interfaz (ngx-translate)
+  skipExploration: boolean;   // prueba sin Modo Exploración: sus gates no bloquean y se ocultan sus entradas
 }
 
 const STORAGE_KEY = 'idle_game_settings';
@@ -32,6 +33,7 @@ const DEFAULTS: GameSettings = {
   parallaxTheme: 'sea',
   worldParallax: 'paralax01',
   language: 'es',
+  skipExploration: false,
 };
 
 // ── Servicio ───────────────────────────────────────────────────────────────────
@@ -97,6 +99,10 @@ export class GameSettingsService {
   get language(): AppLanguage { return this._settings.language; }
   get language$()             { return this._subject.pipe(map(s => s.language), distinctUntilChanged()); }
   setLanguage(v: AppLanguage) { this.set('language', v); }
+
+  get skipExploration():  boolean { return this._settings.skipExploration; }
+  get skipExploration$()          { return this._subject.pipe(map(s => s.skipExploration), distinctUntilChanged()); }
+  setSkipExploration(v: boolean)  { this.set('skipExploration', v); }
 
   // ── Persistencia ────────────────────────────────────────────────────────────
 

@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { BuildableDef, CityBuildService } from 'src/app/services/city-build.service';
+import { InventoryService } from 'src/app/services/inventory.service';
 
 @Component({
   selector: 'app-build-panel',
@@ -10,13 +11,17 @@ import { BuildableDef, CityBuildService } from 'src/app/services/city-build.serv
 export class BuildPanelComponent {
 
   private cityBuild = inject(CityBuildService);
+  private inventory = inject(InventoryService);
 
   readonly CHEST_FRAME_SIZE = 32;
   readonly CHEST_COLS       = 10;
 
-  /** Construibles disponibles: oculta los uniques ya construidos. */
+  /** Construibles disponibles: oculta los uniques ya construidos y los que piden un
+   *  item que no tienes en la mochila (p.ej. el banco de trabajo pide 'Mesa de trabajo'). */
   get buildables(): BuildableDef[] {
-    return this.cityBuild.buildables.filter(d => !(d.unique && this.cityBuild.isBuilt(d.type)));
+    return this.cityBuild.buildables.filter(d =>
+      !(d.unique && this.cityBuild.isBuilt(d.type)) &&
+      (!d.requiresItem || this.inventory.countByName(d.requiresItem) > 0));
   }
 
   /** ¿Hay edificios colocados que se puedan mover? */

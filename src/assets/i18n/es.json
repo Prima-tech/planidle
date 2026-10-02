@@ -174,7 +174,9 @@
     "CAMERA_BOUNDS": "Cámara limitada al mapa",
     "CAMERA_BOUNDS_DESC": "La cámara se detiene en el borde del mapa y no muestra el vacío. Desactívalo para seguimiento libre.",
     "CHAT": "Chat",
-    "CHAT_DESC": "Botón de chat y mensajes de otros personajes. Desactívalo para ocultarlo de todos los sitios."
+    "CHAT_DESC": "Botón de chat y mensajes de otros personajes. Desactívalo para ocultarlo de todos los sitios.",
+    "SKIP_EXPLORATION": "Jugar sin exploración",
+    "SKIP_EXPLORATION_DESC": "Mapas abiertos, sin misión de estrellas y sin portales al Modo Exploración. No borra el progreso de exploración."
   },
   "GT": {
     "TREE": {
@@ -419,6 +421,31 @@
       "NAME": "La llamada de Mordekai",
       "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y reúne 100 estrellas: toca la pantalla para saltar y recógelas al vuelo. Recompensa: 10 de oro.",
       "TRACK": "Consigue 100 estrellas"
+    },
+    "NOEXP_MESA_TRABAJO": {
+      "NAME": "Construye el banco de trabajo",
+      "DESC": "Mordekai te ha dado una mesa de trabajo. Pulsa el martillo del menú de abajo (solo en Asgard), elígela, colócala donde quieras y confirma con ✓. Recompensa: 10 de oro.",
+      "TRACK": "Construye el banco de trabajo"
+    },
+    "NOEXP_SLIMES": {
+      "NAME": "Limpieza de slimes",
+      "DESC": "Mordekai quiere ver cómo peleas. Cruza el portal del oeste hasta 1-1 y acaba con 10 slimes.",
+      "TRACK": "Mata 10 slimes"
+    },
+    "NOEXP_SLIME_ELITE": {
+      "NAME": "El slime élite",
+      "DESC": "Tras tantas bajas en 1-1 aparece un slime élite, más duro que el resto. Derrótalo.",
+      "TRACK": "Mata al slime élite"
+    },
+    "NOEXP_RATAS": {
+      "NAME": "Plaga de ratas",
+      "DESC": "Las ratas de 1-2 se han multiplicado. Avanza por el portal de 1-1 y acaba con 15.",
+      "TRACK": "Mata 15 ratas"
+    },
+    "NOEXP_ORCOS": {
+      "NAME": "Territorio orco",
+      "DESC": "Los orcos de 1-3 cortan el paso. Demuestra tu fuerza derrotando a 20.",
+      "TRACK": "Mata 20 orcos"
     },
     "MATA_RATA": {
       "NAME": "Rata hachiática",
@@ -725,6 +752,14 @@
     "MORDEKAI_CLAIM": "¡Ya tienes tu estrella, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
     "MORDEKAI_CLAIM1": "¡Bien hecho, bro! Ahora mata 1 rata hachiática. Las verás en la exploración, correteando a ras de suelo.",
     "MORDEKAI_CLAIM2": "¡Buena, bro!",
+    "MORDEKAI_NOEXP_CLAIM0": "¡Bien hecho! Toma 1 de oro y esta mesa de trabajo. Quédate la piedra y la madera, las vas a necesitar. Ahora levanta el banco: pulsa el martillo del menú de abajo y colócalo aquí, en Asgard.",
+    "MORDEKAI_BENCH_INTRO": "Esa mesa de trabajo no sirve de nada en la mochila, {{player}}. Pulsa el martillo del menú de abajo, elígela y colócala aquí, en Asgard.",
+    "MORDEKAI_BENCH_PROGRESS": "Aún no veo tu banco de trabajo, {{player}}. Pulsa el martillo del menú de abajo, arrástralo a un hueco libre y confirma con ✓.",
+    "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de oro. Ahora toca pelear: cruza el portal del oeste hacia 1-1 y acaba con 10 slimes.",
+    "MORDEKAI_NOEXP_CLAIM1": "¡Buen trabajo! Si sigues matando en 1-1 aparecerá un slime élite. Derrótalo.",
+    "MORDEKAI_NOEXP_CLAIM2": "¡Impresionante! Sigue por el portal de 1-1 hasta 1-2 y acaba con 15 ratas.",
+    "MORDEKAI_NOEXP_CLAIM3": "¡Ratas fuera! El siguiente reto está en 1-3: derrota a 20 orcos.",
+    "MORDEKAI_NOEXP_CLAIM4": "¡Eres una leyenda, bro! Por ahora no tengo más encargos para ti.",
     "MORDEKAI_PROGRESS": "Llevas {{prog}}/{{goal}} estrellas. Sigue saltando a por ellas en la exploración (portal del este).",
     "MORDEKAI_INTRO": "Ahora aprende a explorar, {{player}}: cruza el portal del este y reúne estrellas. Toca la pantalla para saltar y recógelas al vuelo.",
     "MORDEKAI_COLLECT_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Empieza recogiendo del suelo 5 de Piedra y 5 de Madera: acércate a las piedras y troncos y pulsa el botón de acción.",

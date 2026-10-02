@@ -991,6 +991,10 @@
           <ion-icon class="qr-xp" name="star"></ion-icon>
           <span class="qr-amount">{{ q.reward.exp | compactNumber }} EXP</span>
         </span>
+        <span class="quest-reward-item" *ngFor="let it of q.reward.items">
+          <img class="qr-item" [src]="rewardItemIcon(it.name)" alt="">
+          <span class="qr-amount">{{ it.qty > 1 ? it.qty + '× ' : '' }}{{ it.name }}</span>
+        </span>
         <span class="quest-reward-item" *ngIf="q.reward.runMilestone === 'sprint'">
           <ion-icon class="qr-xp" name="flash"></ion-icon>
           <span class="qr-amount">{{ 'RUN.MS_SPRINT' | translate }}</span>

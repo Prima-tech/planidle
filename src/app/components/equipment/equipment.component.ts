@@ -14,6 +14,7 @@ import { EquipmentPanelService } from 'src/app/services/equipment-panel.service'
 import { NotificationBadgeService } from 'src/app/services/notification-badge.service';
 import { AchievementService, AchievementDef, AchievementScope } from 'src/app/services/achievement.service';
 import { QuestService, QuestDef, NPC_PORTRAITS } from 'src/app/services/quest.service';
+import { ITEM_CATALOG } from 'src/app/physics/griddrops';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
 import { DialogueService } from 'src/app/services/dialogue.service';
@@ -123,6 +124,11 @@ export class EquipmentComponent implements OnInit, OnDestroy {
    *  y suelta a Mordekai. El diálogo va en modo `manual` para que la escena no lo
    *  descarte al no estar el jugador junto al NPC (ver GameScene, línea del isManual).
    *  claim() además encadena y fija la siguiente misión (requires === esta). */
+  /** Icono (del catálogo) de un item dado como recompensa de misión. */
+  rewardItemIcon(name: string): string {
+    return ITEM_CATALOG.find(e => e.name === name)?.icon ?? '';
+  }
+
   claimQuest(q: QuestDef): void {
     if (!this.quests.isClaimable(q)) return;
     const dlg = q.claimDialogue;

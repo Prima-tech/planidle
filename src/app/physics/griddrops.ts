@@ -680,6 +680,20 @@ const RESOURCES_CATALOG: LootEntry[] = [
     scale: 2, order: 6,
     description: 'Carbón. Combustible para la fundición (y producto de fundir madera).',
   },
+  // Plano/kit del Banco de trabajo: recompensa de la primera misión de Mordekai.
+  // NO es apilable (uno por construcción) y se CONSUME al levantar el edificio
+  // (`requiresItem` en BUILDABLES → CityBuildService.add()).
+  // PLACEHOLDER de icono: cámbialo cuando tengas el arte definitivo.
+  {
+    name: 'Mesa de trabajo',
+    category: 'Recurso',
+    type: 'item',
+    chance: 1, minQty: 1, maxQty: 1, mergeable: false,
+    texture: 'madera',
+    icon: 'assets/icon/resources/wood.png',
+    scale: 2, order: 6,
+    description: 'Kit para levantar un banco de trabajo. Úsalo con el botón Construir en Asgard.',
+  },
 ];
 
 // ── Pociones (consumibles) ───────────────────────────────────────────────────

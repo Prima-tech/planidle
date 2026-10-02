@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { StorageService } from './storage.service';
 import { TownChestService } from './town-chest.service';
+import { InventoryService } from './inventory.service';
+import { ITEM_CATALOG, hydrateItem } from '../physics/griddrops';
 
 /**
  * Sistema de construcción de la ciudad (mapa `hogar`/Asgard).
@@ -34,6 +36,10 @@ export interface BuildableDef {
   opensWindow?: boolean;
   /** true → pinta una elipse de sombra bajo el sprite en el mapa. */
   shadow?: boolean;
+  /** Nombre (en ITEM_CATALOG) del item que hace falta tener en el inventario para
+   *  poder construirlo. Sin él, el construible NO sale en el panel Construir; al
+   *  colocarlo se gasta una unidad (`add()`). Sin este campo → siempre disponible. */
+  requiresItem?: string;
   /** Animación a reproducir en bucle (ghost + sprite colocado). Sus frames son
    *  [frame, frame+1, frame+2]. La crea/registra `gamescene` en `create()`. */
   animKey?: string;
@@ -151,7 +157,9 @@ export const BUILDABLES: BuildableDef[] = [
   },
   station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
   station('alembic',          'BUILD.ALEMBIC',          1, 1),
-  station('workbench',        'BUILD.WORKBENCH',        2, 0),
+  // Banco de trabajo: NO es construible de serie. Hace falta el item 'Mesa de trabajo'
+  // (recompensa de la primera misión de Mordekai), que se gasta al levantarlo.
+  { ...station('workbench', 'BUILD.WORKBENCH', 2, 0), requiresItem: 'Mesa de trabajo' },
   station('loom',             'BUILD.LOOM',             2, 1),
   station('enchanting_table', 'BUILD.ENCHANTING_TABLE', 3, 0),
   station('drying_rack',      'BUILD.DRYING_RACK',      3, 1),
@@ -198,6 +206,7 @@ export class CityBuildService {
 
   private storage = inject(StorageService);
   private townChest = inject(TownChestService);
+  private inventory = inject(InventoryService);
   private cache: PlacedBuilding[] | null = null;
 
   /** ID estable único para una construcción. */
@@ -226,6 +235,10 @@ export class CityBuildService {
   async add(b: PlacedBuilding): Promise<void> {
     if (!b.id) b.id = this.generateBuildingId();
     if (!this.cache) await this.load();
+    // Construible que gasta un item (p.ej. el banco de trabajo gasta su 'Mesa de
+    // trabajo'). El panel ya lo oculta si no lo tienes; esto es el cobro real.
+    const req = BUILDABLES.find(d => d.type === b.type)?.requiresItem;
+    if (req) this.inventory.consumeByName(req, 1);
     this.cache!.push({ ...b });
     await this.storage.set(STORAGE_KEY, this.cache);
     this.placed$.next(b);
@@ -322,6 +335,15 @@ export class CityBuildService {
     // Vaciar el interior si el edificio almacena items (su propio cofre por ID)
     const def = this.def(b.type);
     if (def?.isTownChest && b.id) await this.townChest.clear(b.id);
+
+    // Devolver el item que costó levantarlo (p.ej. la 'Mesa de trabajo' del banco):
+    // sin esto, borrarlo dejaría al jugador sin edificio Y sin kit, con el construible
+    // desaparecido del panel para siempre. Si no cabe en la mochila, cae al suelo.
+    if (def?.requiresItem && ITEM_CATALOG.some(e => e.name === def.requiresItem)) {
+      this.inventory.addOrDropToWorld(
+        hydrateItem({ id: this.inventory.generateId(), name: def.requiresItem }),
+      );
+    }
 
     this.pendingDelete$.next(null);
     this.removed$.next(b);

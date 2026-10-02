@@ -2161,6 +2161,15 @@ $metal-dark: #6b6357;
     animation: spin-coin 0.6s steps(5) infinite;
   }
 
+  // Icono del item de recompensa (PNG del catálogo), al tamaño de la moneda.
+  .qr-item {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+
   .qr-xp {
     font-size: 15px;
     color: #6fb6ec;

@@ -5,6 +5,7 @@ import { KillService } from './kill.service';
 import { PlayerStateService } from './player-state.service';
 import { AchievementService, ACHIEVEMENTS } from './achievement.service';
 import { AdminService } from './admin.service';
+import { GameSettingsService } from './game-settings.service';
 import {
   FEATURES, FeatureDef, UnlockScope, UnlockSource, characterFeatureId,
 } from './unlock-config';
@@ -46,7 +47,10 @@ export class UnlockService {
     private playerState: PlayerStateService,
     private achievements: AchievementService,
     private admin: AdminService,
-  ) {}
+    private gs: GameSettingsService,
+  ) {
+    this.gs.skipExploration$.subscribe(() => this.changes$.next());
+  }
 
   // ── Carga ─────────────────────────────────────────────────────────────────
 
@@ -74,6 +78,9 @@ export class UnlockService {
   isUnlocked(id: string): boolean {
     const def = this.def(id);
     if (!def) return true;
+    // Sin exploración: los mapas (flags 'map_x' que se compran con estrellas) cuentan como
+    // abiertos, pero SIN grant → el save no se contamina y al apagarlo vuelven sus gates.
+    if (this.gs.skipExploration && def.requires.some(s => s.type === 'flag' && s.id.startsWith('map_'))) return true;
     const set = def.scope === 'global' ? this.unlockedGlobal : this.unlockedChar;
     if (set.has(id)) return true;
     // Commit perezoso y silencioso: mantiene las plantillas correctas sin

@@ -231,6 +231,17 @@
             </div>
           </div>
 
+          <!-- Probar sin Modo Exploración: mapas abiertos, misión de estrellas omitida, portales al runner ocultos. -->
+          <div class="gs-row">
+            <div class="gs-row-info">
+              <span class="gs-row-title">{{ 'GAME_SETTINGS.SKIP_EXPLORATION' | translate }}</span>
+              <span class="gs-row-desc">{{ 'GAME_SETTINGS.SKIP_EXPLORATION_DESC' | translate }}</span>
+            </div>
+            <div class="gs-toggle" [class.on]="gs.skipExploration" (click)="gs.setSkipExploration(!gs.skipExploration)">
+              <div class="gs-toggle-thumb"></div>
+            </div>
+          </div>
+
           <!-- RESET TOTAL de exploración: 0 estrellas, hitos/armas y mapas descomprados. -->
           <div class="gs-row gs-row-stack">
             <div class="gs-row-info">

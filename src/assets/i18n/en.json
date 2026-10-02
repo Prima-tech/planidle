@@ -174,7 +174,9 @@
     "CAMERA_BOUNDS": "Camera bound to map",
     "CAMERA_BOUNDS_DESC": "The camera stops at the map edge and hides the void. Turn off for free follow.",
     "CHAT": "Chat",
-    "CHAT_DESC": "Chat button and messages from other characters. Turn off to hide it everywhere."
+    "CHAT_DESC": "Chat button and messages from other characters. Turn off to hide it everywhere.",
+    "SKIP_EXPLORATION": "Play without exploration",
+    "SKIP_EXPLORATION_DESC": "Maps open, no stars quest and no portals to Exploration Mode. Exploration progress is kept."
   },
   "GT": {
     "TREE": {
@@ -419,6 +421,31 @@
       "NAME": "Mordekai's Call",
       "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and gather 100 stars: tap the screen to jump and grab them on the fly. Reward: 10 gold.",
       "TRACK": "Collect 100 stars"
+    },
+    "NOEXP_MESA_TRABAJO": {
+      "NAME": "Build the workbench",
+      "DESC": "Mordekai gave you a workbench kit. Tap the hammer in the bottom menu (Asgard only), pick it, place it wherever you like and confirm with ✓. Reward: 10 gold.",
+      "TRACK": "Build the workbench"
+    },
+    "NOEXP_SLIMES": {
+      "NAME": "Slime Cleanup",
+      "DESC": "Mordekai wants to see you fight. Cross the west portal to 1-1 and take down 10 slimes.",
+      "TRACK": "Kill 10 slimes"
+    },
+    "NOEXP_SLIME_ELITE": {
+      "NAME": "The Elite Slime",
+      "DESC": "After enough kills in 1-1 an elite slime appears, tougher than the rest. Defeat it.",
+      "TRACK": "Kill the elite slime"
+    },
+    "NOEXP_RATAS": {
+      "NAME": "Rat Plague",
+      "DESC": "The rats of 1-2 have multiplied. Go through the 1-1 portal and take down 15.",
+      "TRACK": "Kill 15 rats"
+    },
+    "NOEXP_ORCOS": {
+      "NAME": "Orc Territory",
+      "DESC": "The orcs of 1-3 block the way. Prove your strength by defeating 20.",
+      "TRACK": "Kill 20 orcs"
     },
     "MATA_RATA": {
       "NAME": "Hatchet Rat",
@@ -725,6 +752,14 @@
     "MORDEKAI_CLAIM": "You got your star, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
     "MORDEKAI_CLAIM1": "Well done, bro! Now kill 1 hatchet rat. You'll spot them out in exploration, scurrying along the ground.",
     "MORDEKAI_CLAIM2": "Nice one, bro!",
+    "MORDEKAI_NOEXP_CLAIM0": "Well done! Take 1 gold and this workbench. Keep the stone and the wood, you will need them. Now put the bench up: tap the hammer in the bottom menu and place it here, in Asgard.",
+    "MORDEKAI_BENCH_INTRO": "That workbench is no use in your bag, {{player}}. Tap the hammer in the bottom menu, pick it and place it here, in Asgard.",
+    "MORDEKAI_BENCH_PROGRESS": "I still do not see your workbench, {{player}}. Tap the hammer in the bottom menu, drag it to a free spot and confirm with ✓.",
+    "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold. Now it is time to fight: cross the west portal to 1-1 and take down 10 slimes.",
+    "MORDEKAI_NOEXP_CLAIM1": "Good work! Keep killing in 1-1 and an elite slime will appear. Defeat it.",
+    "MORDEKAI_NOEXP_CLAIM2": "Impressive! Go through the 1-1 portal to 1-2 and take down 15 rats.",
+    "MORDEKAI_NOEXP_CLAIM3": "Rats gone! The next challenge is in 1-3: defeat 20 orcs.",
+    "MORDEKAI_NOEXP_CLAIM4": "You're a legend, bro! I have no more tasks for you for now.",
     "MORDEKAI_PROGRESS": "You have {{prog}}/{{goal}} stars. Keep jumping for them in exploration (east portal).",
     "MORDEKAI_INTRO": "Now learn to explore, {{player}}: cross the east portal and gather stars. Tap the screen to jump and grab them on the fly.",
     "MORDEKAI_COLLECT_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Start by gathering 5 Stone and 5 Wood from the ground: walk up to the stones and logs and press the action button.",

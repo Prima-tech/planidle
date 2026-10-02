@@ -6,7 +6,10 @@ import { PlayerStateService } from './player-state.service';
 import { RunProgressService } from './run-progress.service';
 import { NotificationBadgeService } from './notification-badge.service';
 import { UnlockService } from './unlock.service';
-import { InventoryService } from './inventory.service';
+import { InventoryItem, InventoryService } from './inventory.service';
+import { GameSettingsService } from './game-settings.service';
+import { CityBuildService } from './city-build.service';
+import { ITEM_CATALOG, hydrateItem } from '../physics/griddrops';
 
 // Sistema de misiones.
 //
@@ -35,7 +38,8 @@ export type QuestObjective =
   | KillObjective
   | StarsObjective
   | OpenPortalObjective
-  | CollectObjective;
+  | CollectObjective
+  | BuildObjective;
 // Futuro: | { type: 'reachLevel'; goal: number }
 //         | { type: 'collectItem'; itemId: string; goal: number }
 //         | { type: 'spendCoins'; goal: number } ...
@@ -75,11 +79,24 @@ export interface CollectObjective {
   items: { name: string; qty: number }[];
 }
 
+/** Levantar un edificio en Asgard (sistema de construcción). El progreso es binario:
+ *  0 hasta construirlo, `goal` (1) al colocarlo. RETROACTIVO y PEGAJOSO: sigue
+ *  `CityBuildService.isBuilt()` al cargar y `placed$` en vivo; una vez construido,
+ *  borrarlo después no descompleta la misión. */
+export interface BuildObjective {
+  type: 'build';
+  goal: number;        // siempre 1
+  buildType: string;   // `type` en BUILDABLES (city-build.service), p.ej. 'workbench'
+}
+
 export interface QuestReward {
   coins?: number;
   exp?: number;
   /** Hito del Modo Mundo que se otorga al cobrar (p.ej. 'sprint' = Impulso). */
   runMilestone?: string;
+  /** Items que se meten en la mochila al cobrar (nombre en ITEM_CATALOG). Si no
+   *  caben, caen al suelo del mapa (`addOrDropToWorld`). */
+  items?: { name: string; qty: number }[];
 }
 
 export interface QuestDef {
@@ -130,7 +147,9 @@ export const QUESTS: QuestDef[] = [
     icon: 'cube-outline',
     track: 'QUESTS.RECOGE_MATERIALES.TRACK',
     objective: { type: 'collect', goal: 2, items: [{ name: 'Piedra', qty: 5 }, { name: 'Madera', qty: 5 }] },
-    reward: { coins: 1 },
+    // Cobrarla NO gasta la piedra ni la madera (el objetivo 'collect' solo las cuenta):
+    // el jugador se queda con los materiales y además se lleva el kit del banco de trabajo.
+    reward: { coins: 1, items: [{ name: 'Mesa de trabajo', qty: 1 }] },
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_COLLECT_CLAIM' },
   },
@@ -163,6 +182,74 @@ export const QUESTS: QuestDef[] = [
   },
 ];
 
+/** Cadena SIN Modo Exploración (ajuste skipExploration). Solo conserva la primera misión
+ *  (mismo id → comparte progreso); su diálogo de cobro manda a 1-1 en vez de a explorar. */
+export const QUESTS_NO_EXPLORATION: QuestDef[] = [
+  { ...QUESTS[0], claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM0' } },
+  {
+    // Con el kit en la mochila (lo da la misión anterior), levantar el banco de trabajo
+    // con el botón Construir de Asgard. Al colocarlo se gasta el item.
+    id: 'noexp_mesa_trabajo',
+    name: 'QUESTS.NOEXP_MESA_TRABAJO.NAME',
+    desc: 'QUESTS.NOEXP_MESA_TRABAJO.DESC',
+    icon: 'hammer-outline',
+    track: 'QUESTS.NOEXP_MESA_TRABAJO.TRACK',
+    objective: { type: 'build', goal: 1, buildType: 'workbench' },
+    reward: { coins: 10 },
+    requires: 'recoge_materiales',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_BENCH_CLAIM' },
+  },
+  {
+    id: 'noexp_slimes',
+    name: 'QUESTS.NOEXP_SLIMES.NAME',
+    desc: 'QUESTS.NOEXP_SLIMES.DESC',
+    icon: 'skull-outline',
+    track: 'QUESTS.NOEXP_SLIMES.TRACK',
+    objective: { type: 'kill', family: 'slime', goal: 10 },
+    reward: { coins: 50 },
+    requires: 'noexp_mesa_trabajo',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM1' },
+  },
+  {
+    id: 'noexp_slime_elite',
+    name: 'QUESTS.NOEXP_SLIME_ELITE.NAME',
+    desc: 'QUESTS.NOEXP_SLIME_ELITE.DESC',
+    icon: 'flame-outline',
+    track: 'QUESTS.NOEXP_SLIME_ELITE.TRACK',
+    objective: { type: 'kill', enemyTypes: ['slime4_elite'], goal: 1 },
+    reward: { coins: 150 },
+    requires: 'noexp_slimes',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM2' },
+  },
+  {
+    id: 'noexp_ratas',
+    name: 'QUESTS.NOEXP_RATAS.NAME',
+    desc: 'QUESTS.NOEXP_RATAS.DESC',
+    icon: 'skull-outline',
+    track: 'QUESTS.NOEXP_RATAS.TRACK',
+    objective: { type: 'kill', family: 'rats', goal: 15 },
+    reward: { coins: 300 },
+    requires: 'noexp_slime_elite',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM3' },
+  },
+  {
+    id: 'noexp_orcos',
+    name: 'QUESTS.NOEXP_ORCOS.NAME',
+    desc: 'QUESTS.NOEXP_ORCOS.DESC',
+    icon: 'skull-outline',
+    track: 'QUESTS.NOEXP_ORCOS.TRACK',
+    objective: { type: 'kill', family: 'orc', goal: 20 },
+    reward: { coins: 600 },
+    requires: 'noexp_ratas',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM4' },
+  },
+];
+
 export interface QuestSave {
   progress: Record<string, number>;
   completed: string[];
@@ -189,6 +276,8 @@ export class QuestService implements OnDestroy {
   private starSub: Subscription;
   private portalSub: Subscription;
   private invSub: Subscription;
+  private buildSub: Subscription;
+  private skipSub: Subscription;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -199,7 +288,10 @@ export class QuestService implements OnDestroy {
     private badges: NotificationBadgeService,
     private unlocks: UnlockService,
     private inventory: InventoryService,
+    private gs: GameSettingsService,
+    private cityBuild: CityBuildService,
   ) {
+    this.skipSub = this.gs.skipExploration$.subscribe(() => this.notify());
     // killDetail$ solo emite en bajas reales (no en restoreCharKills), así una
     // misión recién cargada no se autocompleta ni dispara toasts al recargar.
     this.killSub = this.kills.killDetail$.subscribe(({ enemyType }) => {
@@ -213,6 +305,8 @@ export class QuestService implements OnDestroy {
     this.portalSub = this.unlocks.changes$.subscribe(() => this.onPortalFlags());
     // Inventario: al cambiar (recoger/gastar) sincroniza el progreso de las 'collect'.
     this.invSub = this.inventory.changes$.subscribe(() => this.onCollect());
+    // Construcción: al colocar un edificio en Asgard sincroniza las misiones 'build'.
+    this.buildSub = this.cityBuild.placed$.subscribe(() => this.onBuild());
   }
 
   ngOnDestroy(): void {
@@ -220,12 +314,14 @@ export class QuestService implements OnDestroy {
     this.starSub?.unsubscribe();
     this.portalSub?.unsubscribe();
     this.invSub?.unsubscribe();
+    this.buildSub?.unsubscribe();
+    this.skipSub?.unsubscribe();
     if (this.persistTimer) clearTimeout(this.persistTimer);
   }
 
   /** Definición de una misión por id (para consultarla desde la escena/NPCs). */
   byId(id: string): QuestDef | undefined {
-    return QUESTS.find(q => q.id === id);
+    return this.list().find(q => q.id === id) ?? QUESTS.find(q => q.id === id);
   }
 
   // ── Ciclo de vida (SaveService) ─────────────────────────────────────────────
@@ -245,6 +341,10 @@ export class QuestService implements OnDestroy {
     this.onPortalFlags();
     // Sincroniza el progreso de recogida con el inventario actual (retroactivo al cargar).
     this.onCollect();
+    // Sincroniza el progreso de construcción con lo ya levantado (retroactivo al cargar).
+    // `load()` es idempotente y cachea: asegura que `isBuilt` no responda sobre un cache vacío.
+    await this.cityBuild.load();
+    this.onBuild();
     // Si vino del snapshot, sincroniza la clave local para que coincida.
     if (override) this.persistNow();
     // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar
@@ -278,6 +378,16 @@ export class QuestService implements OnDestroy {
     return !q.requires || this.completedSet.has(q.requires);
   }
 
+  /** Cadena vigente según el ajuste "sin exploración". */
+  private list(): QuestDef[] {
+    return this.gs.skipExploration ? QUESTS_NO_EXPLORATION : QUESTS;
+  }
+
+  /** ¿La misión no pertenece a la cadena vigente? */
+  isSkipped(def: QuestDef): boolean {
+    return !this.list().some(q => q.id === def.id);
+  }
+
   /** ¿Está desbloqueada la UI de misiones? Espejo de `missionsUnlocked` en la ventana
    *  de equipo: la pestaña de Misiones solo existe cuando Mordekai ya dio la primera
    *  ('recoge_materiales' activa o completada). Antes de eso NO debe encenderse el aviso
@@ -293,16 +403,16 @@ export class QuestService implements OnDestroy {
   }
 
   available(): QuestDef[] {
-    return QUESTS.filter(q => !this.completedSet.has(q.id) && this.prereqMet(q));
+    return this.list().filter(q => !this.completedSet.has(q.id) && this.prereqMet(q));
   }
 
   completed(): QuestDef[] {
-    return QUESTS.filter(q => this.completedSet.has(q.id));
+    return this.list().filter(q => this.completedSet.has(q.id));
   }
 
   /** Misiones fijadas en el HUD (siempre no completadas). */
   active(): QuestDef[] {
-    return QUESTS.filter(q => this.activeSet.has(q.id) && !this.completedSet.has(q.id));
+    return this.list().filter(q => this.activeSet.has(q.id) && !this.completedSet.has(q.id));
   }
 
   isCompleted(def: QuestDef): boolean {
@@ -316,7 +426,7 @@ export class QuestService implements OnDestroy {
 
   /** ¿Hay alguna misión lista para cobrar? (para avisos). */
   hasClaimable(): boolean {
-    return QUESTS.some(q => this.isClaimable(q));
+    return this.list().some(q => this.isClaimable(q));
   }
 
   isActive(def: QuestDef): boolean {
@@ -375,7 +485,7 @@ export class QuestService implements OnDestroy {
 
   private onKill(enemyType: string): void {
     let changed = false;
-    for (const def of QUESTS) {
+    for (const def of this.list()) {
       if (this.completedSet.has(def.id)) continue;
       if (def.objective.type !== 'kill') continue;
       if (!this.prereqMet(def)) continue;   // misión bloqueada aún: no acumula progreso
@@ -400,7 +510,7 @@ export class QuestService implements OnDestroy {
    *  "Completar" (o a hablar con Mordekai) como el resto. */
   private onStarsBalance(balance: number): void {
     let changed = false;
-    for (const def of QUESTS) {
+    for (const def of this.list()) {
       if (def.objective.type !== 'stars') continue;
       if (this.completedSet.has(def.id)) continue;
       const cur = this.progress[def.id] ?? 0;
@@ -424,12 +534,33 @@ export class QuestService implements OnDestroy {
    *  al llegar al objetivo espera a "Completar" (o a hablar con Mordekai). */
   private onPortalFlags(): void {
     let changed = false;
-    for (const def of QUESTS) {
+    for (const def of this.list()) {
       if (def.objective.type !== 'openPortal') continue;
       if (this.completedSet.has(def.id)) continue;
       const cur = this.progress[def.id] ?? 0;
       if (cur >= def.objective.goal) continue;
       if (!this.unlocks.hasFlag(def.objective.flag)) continue;   // portal aún sellado
+      this.progress[def.id] = def.objective.goal;
+      changed = true;
+      this.flagQuestsBadge();
+    }
+    if (changed) {
+      this.notify();
+      this.schedulePersist();
+    }
+  }
+
+  /** Progreso de las misiones 'build' = 1 si su edificio ya está levantado en Asgard.
+   *  RETROACTIVO (al cargar mira `isBuilt`) y PEGAJOSO: borrar el edificio después no
+   *  descompleta la misión. No autocompleta: espera a "Completar" (o a Mordekai). */
+  private onBuild(): void {
+    let changed = false;
+    for (const def of this.list()) {
+      if (def.objective.type !== 'build') continue;
+      if (this.completedSet.has(def.id)) continue;
+      const cur = this.progress[def.id] ?? 0;
+      if (cur >= def.objective.goal) continue;
+      if (!this.cityBuild.isBuilt(def.objective.buildType)) continue;   // aún sin construir
       this.progress[def.id] = def.objective.goal;
       changed = true;
       this.flagQuestsBadge();
@@ -446,7 +577,7 @@ export class QuestService implements OnDestroy {
    *  todo a la vez, gastarlo (p.ej. abrir el portal) no descompleta la misión. */
   private onCollect(): void {
     let changed = false;
-    for (const def of QUESTS) {
+    for (const def of this.list()) {
       if (def.objective.type !== 'collect') continue;
       if (this.completedSet.has(def.id)) continue;
       const done = def.objective.items.filter(it => this.inventory.countByName(it.name) >= it.qty).length;
@@ -471,7 +602,7 @@ export class QuestService implements OnDestroy {
     this.activeSet.delete(def.id);   // al completarse deja de estar fijada en el HUD
     this.grantReward(def.reward);
     // Desbloquea y fija en el HUD las misiones encadenadas a esta (requires === def.id).
-    for (const q of QUESTS) if (q.requires === def.id) this.activate(q);
+    for (const q of this.list()) if (q.requires === def.id) this.activate(q);
     this.completed$.next(def);
     this.notify();
     this.persistNow();  // los completados se guardan al momento (recompensa ya dada)
@@ -482,6 +613,19 @@ export class QuestService implements OnDestroy {
     if (reward.coins) this.playerState.collectCoins(reward.coins);
     if (reward.exp)   this.playerState.addExp(reward.exp);
     if (reward.runMilestone) this.runProgress.grant(reward.runMilestone);
+    for (const want of reward.items ?? []) this.grantItem(want.name, want.qty);
+  }
+
+  /** Mete `qty` unidades de un item del catálogo en la mochila (al suelo si no cabe).
+   *  Los apilables van en una sola pila; el resto, una unidad por celda. */
+  private grantItem(name: string, qty: number): void {
+    const entry = ITEM_CATALOG.find(e => e.name === name);
+    if (!entry) { console.warn(`[Quests] recompensa desconocida: ${name}`); return; }
+    const make = (sum?: number): InventoryItem => hydrateItem({
+      id: this.inventory.generateId(), name: entry.name, ...(sum !== undefined ? { sum } : {}),
+    });
+    if (entry.mergeable) this.inventory.addOrDropToWorld(make(qty));
+    else for (let i = 0; i < qty; i++) this.inventory.addOrDropToWorld(make());
   }
 
   /** Notifica a la UI: refresca rastreador del HUD y suscriptores de changes$. */

@@ -13,6 +13,7 @@ import { enemySpriteStyle, enemySpriteClass } from 'src/app/utils/enemy-sprite.u
 import { UnlockService } from 'src/app/services/unlock.service';
 import { mapFeatureId } from 'src/app/services/unlock-config';
 import { AdminService } from 'src/app/services/admin.service';
+import { GameSettingsService } from 'src/app/services/game-settings.service';
 
 // Tamaño al que se renderiza cada frame del sprite del enemigo en la tarjeta de
 // info. El recuadro (.enemy-frame) recorta; con 96 el bicho se ve al doble.
@@ -43,6 +44,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private storage       = inject(StorageService);
   private unlocks       = inject(UnlockService);
   private admin         = inject(AdminService);
+  private gs            = inject(GameSettingsService);
   private ngZone        = inject(NgZone);
   private mapSub: Subscription;
 
@@ -154,7 +156,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     // Justo debajo de Asgard (hogar): entrada al Modo Exploración (runner). No es un
     // mapa de grid; su click arranca WorldRunScene (ver enterExploration()).
     const hogarIdx = list.findIndex(m => m.id === 'hogar');
-    if (hogarIdx >= 0) {
+    if (hogarIdx >= 0 && !this.gs.skipExploration) {
       list.splice(hogarIdx + 1, 0, {
         id: 'world-run', name: 'Exploración',
         current: this.playerBridge.runMode$.value, run: true,

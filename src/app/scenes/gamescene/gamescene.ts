@@ -1916,7 +1916,11 @@ export class GameScene extends Phaser.Scene {
       const TS = GameScene.TILE_SIZE;
       const SQUASH = 0.5;             // aplastado (perspectiva de suelo)
       const D = TS * 3.4;             // diámetro del disco externo
-      this.currentMapConfig.portals.forEach(portal => {
+      const noRun = this.reg.gameSettings?.skipExploration ?? false;
+      this.currentMapConfig.portals.forEach(cfg => {
+        // Sin exploración: entradas al Modo Mundo ocultas; la salida de cada mapa lleva a Asgard.
+        if (noRun && cfg.targetMapId === 'world-run' && cfg.direction !== 'back') return;
+        const portal = noRun && cfg.targetMapId === 'world-run' ? { ...cfg, targetMapId: 'hogar' } : cfg;
         const cx = portal.tilePos.x * TS + TS / 2;
         const cy = portal.tilePos.y * TS + TS / 2;
         // Portal de retroceso ('back' → mapa anterior): siempre AZUL.
@@ -3641,18 +3645,21 @@ export class GameScene extends Phaser.Scene {
       // Líneas por misión: intro (al darla), progress (en marcha) y claim (al cobrarla).
       const LINES: Record<string, { intro: string; progress: string; claim: string }> = {
         recoge_materiales:  { intro: 'NPC.MORDEKAI_COLLECT_INTRO', progress: 'NPC.MORDEKAI_COLLECT_PROGRESS', claim: 'NPC.MORDEKAI_COLLECT_CLAIM' },
+        noexp_mesa_trabajo: { intro: 'NPC.MORDEKAI_BENCH_INTRO',   progress: 'NPC.MORDEKAI_BENCH_PROGRESS',   claim: 'NPC.MORDEKAI_BENCH_CLAIM' },
         primeras_estrellas: { intro: 'NPC.MORDEKAI_INTRO',         progress: 'NPC.MORDEKAI_PROGRESS',         claim: 'NPC.MORDEKAI_CLAIM1' },
       };
 
-      for (const id of ['recoge_materiales', 'primeras_estrellas']) {
+      // 'noexp_mesa_trabajo' solo existe en la cadena sin exploración; en la otra
+      // byId() no lo encuentra y se salta sin ruido.
+      for (const id of ['recoge_materiales', 'noexp_mesa_trabajo', 'primeras_estrellas']) {
         const def = quests.byId(id);
-        if (!def || quests.isCompleted(def)) continue;   // ya cobrada → siguiente de la cadena
+        if (!def || quests.isCompleted(def) || quests.isSkipped(def)) continue;   // ya cobrada (u omitida sin exploración) → siguiente
         const line = LINES[id];
         const params = { player, prog: quests.progressOf(def), goal: quests.goalOf(def) };
         // Objetivo alcanzado → cobra aquí mismo (misma línea que "Completar" en la ventana).
         if (quests.isClaimable(def)) {
           quests.claim(def);
-          this.reg.dialogue?.show('Mordekai', this.t(line.claim, params));
+          this.reg.dialogue?.show('Mordekai', this.t(def.claimDialogue?.text ?? line.claim, params));
         } else if (params.prog > 0 || quests.isActive(def)) {
           this.reg.dialogue?.show('Mordekai', this.t(line.progress, params));   // en marcha
         } else {
@@ -3661,6 +3668,8 @@ export class GameScene extends Phaser.Scene {
         }
         return;
       }
+      // Encadenadas que quedaron sin fijar (p.ej. mata_rata al activar "sin exploración" tras cobrar la 1ª).
+      for (const q of quests.available()) if (q.giver === 'Mordekai' && !quests.isActive(q)) quests.activate(q);
       // Sin misiones pendientes de Mordekai → apunta al combate (portal oeste, 1-1).
       this.reg.dialogue?.show('Mordekai', this.t('NPC.MORDEKAI_DONE', { player }));
     }
