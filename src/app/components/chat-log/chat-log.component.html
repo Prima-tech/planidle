@@ -1,6 +1,12 @@
-<!-- Ventana de chat. Se abre y se cierra desde el botón de chat de la barra inferior
-     (footer-bar); aquí solo se pinta el historial. -->
+<!-- Ventana de chat. La abre el botón de chat de la barra inferior (footer-bar) y se
+     cierra con su ✕ o tocando fuera; aquí solo se pinta el historial. -->
 <div class="chat-window" *ngIf="open && enabled">
+
+  <!-- ✕ colgado de la ESQUINA, fuera del flujo: no empuja el texto ni le roba alto. -->
+  <button class="chat-close" (click)="close()" [attr.aria-label]="'CHAT.CLOSE' | translate">
+    <ion-icon name="close"></ion-icon>
+  </button>
+
   <div class="chat-body" #body>
     <p class="chat-empty" *ngIf="entries.length === 0">{{ 'CHAT.EMPTY' | translate }}</p>
     <div class="chat-msg" *ngFor="let e of entries">

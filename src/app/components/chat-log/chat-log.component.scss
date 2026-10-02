@@ -37,13 +37,50 @@ $gold-2: #f0c040;
   border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 9px;
   box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, 0 6px 18px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
+  // Sin overflow: el ✕ asoma por la esquina superior derecha. El recorte del scroll
+  // lo hace .chat-body, que es quien tiene el overflow-y.
   animation: chat-in 0.18s ease-out both;
 }
 
 @keyframes chat-in {
   from { opacity: 0; transform: translateX(-50%) translateY(8px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ✕ redondo de madera con bisel de piedra: mismo lenguaje que los botones del hub, en
+   pequeño. Colgado de la esquina y FUERA del flujo (position: absolute, sin cabecera
+   que reserve sitio): así no empuja los mensajes ni le roba alto al historial. */
+.chat-close {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  z-index: 1;
+  width: 21px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 50%;
+  background: linear-gradient(180deg, $wood-btn, $wood-btn-dark);
+  color: $gold-2;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 2px 2px rgba(255, 255, 255, 0.28),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.5);
+
+  ion-icon { font-size: 13px; }
+
+  &:focus, &:focus-visible { outline: none; }
+  &:hover  { color: $gold; }
+  &:active { transform: scale(0.9); box-shadow: 0 0 0 1px $outline, inset 0 2px 5px rgba(0, 0, 0, 0.45); }
 }
 
 .chat-body {
@@ -79,9 +116,15 @@ $gold-2: #f0c040;
 .chat-colon { margin-right: 3px; }
 
 /* ═══════════════ Temas (data-appstyle) ═══════════════ */
-// Los 3 primeros parámetros eran del botón flotante (ya en el footer); se mantienen en
-// la firma para no reescribir las 8 llamadas de los temas.
+// Los 3 primeros parámetros eran del botón flotante (que ahora vive en el footer);
+// se reaprovechan para el ✕ de la cabecera, que es el mismo tipo de botón redondo.
 @mixin chat-theme($fab-bg, $fab-edge, $fab-icon, $win-bg, $win-edge, $radius, $speaker, $text, $muted) {
+  .chat-close {
+    background: $fab-bg;
+    border: 1px solid $fab-edge;
+    color: $fab-icon;
+    box-shadow: none;
+  }
   .chat-window {
     background: $win-bg;
     border: 1px solid $win-edge;

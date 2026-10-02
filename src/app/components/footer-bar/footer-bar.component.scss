@@ -111,15 +111,17 @@ $gold-light: #ffe9a8;
   > * { pointer-events: auto; }
 }
 
-/* Tirador: lengüeta de acero vertical redondeada, a juego con los orbes del hub. */
+/* Tirador: lengüeta de acero vertical, a juego con los botones del hub. */
 .hub-toggle {
   flex-shrink: 0;
   width: 20px;
   height: 42px;
   padding: 0;
-  /* Anillo UNIFORME: el bisel de 4 colores hace diagonales feas en bordes curvos */
-  border: 2px solid $stone;
-  border-radius: 10px;
+  /* Mismo acabado que los botones del hub: esquinas apenas matadas y bisel de piedra
+     de 4 colores (ya no son bordes curvos, así que no hace diagonales feas). */
+  border-radius: 6px;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
   background: $metal-face;
   color: $icon-metal;
   display: flex;
@@ -169,13 +171,13 @@ $gold-light: #ffe9a8;
   margin: 0;
   width: 42px;
   height: 42px;
-  border-radius: 50%;
-  /* Anillo de piedra UNIFORME: el bisel de 4 colores (luz/sombra por lado) solo
-     funciona en marcos rectangulares; en un círculo se ven las diagonales donde
-     se juntan los colores y parece "un cuadrado redondeado". La luz del anillo
-     la pone un box-shadow inset arriba, que sí sigue la curva. */
-  border: 3px solid $stone;
-  background: radial-gradient(circle at 35% 28%, #e9e2d4 0%, $metal 48%, #847b6e 76%, $metal-dark 100%);
+  /* Cuadrados con las esquinas apenas matadas. Al no ser redondos, vuelve el bisel de
+     piedra de 4 colores de la casa (luz arriba/izquierda, sombra abajo/derecha), que
+     en un círculo no se podía usar porque se veían las diagonales de los empalmes. */
+  border-radius: 6px;
+  border: 3px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  background: linear-gradient(160deg, #e9e2d4 0%, $metal 42%, #847b6e 78%, $metal-dark 100%);
   box-shadow:
     0 0 0 1px $outline,
     inset 0 0 0 1px $outline,
@@ -189,12 +191,12 @@ $gold-light: #ffe9a8;
   &::before {
     content: '';
     position: absolute;
-    top: 6%;
-    left: 16%;
-    width: 68%;
-    height: 34%;
-    border-radius: 50%;
-    background: linear-gradient(rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+    top: 5%;
+    left: 8%;
+    width: 84%;
+    height: 38%;
+    border-radius: 4px;
+    background: linear-gradient(rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
     pointer-events: none;
   }
 
@@ -205,7 +207,7 @@ $gold-light: #ffe9a8;
 
   &:active {
     transform: scale(0.9);
-    background: radial-gradient(circle at 35% 72%, #b5ac9d 0%, #847b6e 55%, $metal-dark 100%);
+    background: linear-gradient(160deg, #b5ac9d 0%, #847b6e 55%, $metal-dark 100%);
     box-shadow:
       0 0 0 1px $outline,
       inset 0 0 0 1px $outline,
@@ -215,7 +217,7 @@ $gold-light: #ffe9a8;
 
   /* Panel abierto: acero hundido + icono dorado y halo ámbar (como el footer) */
   &.active {
-    background: radial-gradient(circle at 35% 72%, #b5ac9d 0%, #847b6e 55%, $metal-dark 100%);
+    background: linear-gradient(160deg, #b5ac9d 0%, #847b6e 55%, $metal-dark 100%);
     box-shadow:
       0 0 0 1px $outline,
       inset 0 0 0 1px $outline,
@@ -229,8 +231,8 @@ $gold-light: #ffe9a8;
     }
   }
 
-  /* Sin el subrayado dorado de las placas del footer: en un orbe redondo sobra
-     (el estado abierto ya lo marca el halo ámbar). */
+  /* Sin el subrayado dorado de las placas del footer: el estado abierto ya lo marca
+     el halo ámbar. */
   &.active::after { display: none; }
 }
 

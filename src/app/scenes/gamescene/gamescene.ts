@@ -2646,8 +2646,17 @@ export class GameScene extends Phaser.Scene {
       return this.harvestTierOf(id)?.scale ?? HARVEST_KINDS[id].scale;
     }
 
+    /** Asgard: rocas y árboles en posiciones FIJAS (esquina sup. izq. de la huella 2×2,
+     *  en tiles) para practicar con el pico y el hacha de la mesa de trabajo. Cantera al
+     *  noreste y arboleda al suroeste; elegidas libres de agua/colisión y lejos de
+     *  portales, spawn, Mordekai, el cofre y los recogibles del suelo. Al picar/talar uno
+     *  reaparece en SU sitio (respawn normal). Sin mejoras de mapa (es la ciudad). */
+    private static readonly HOGAR_NODE_SPOTS: Partial<Record<HarvestKindId, { x: number; y: number }[]>> = {
+      rock: [{ x: 68, y: 8 }, { x: 68, y: 13 }, { x: 63, y: 7 }, { x: 71, y: 3 }, { x: 74, y: 9 }],
+      tree: [{ x: 9, y: 40 }, { x: 9, y: 35 }, { x: 4, y: 38 }, { x: 7, y: 45 }, { x: 15, y: 43 }],
+    };
+
     private initHarvestNodes(): void {
-      if (this.currentMapConfig.id === 'hogar') return;
       const mapId = this.currentMapConfig.id;
       for (const id of Object.keys(HARVEST_KINDS) as HarvestKindId[]) {
         const kind = HARVEST_KINDS[id];
@@ -2668,6 +2677,7 @@ export class GameScene extends Phaser.Scene {
 
     /** Máx. de menas (rocas) a la vez = 1 base + mejora de mapa "Menas máx.". */
     private maxOre(): number {
+      if (this.currentMapConfig.id === 'hogar') return GameScene.HOGAR_NODE_SPOTS.rock.length;
       return 1 + (this.reg.mapUpgrades?.extraOre(this.currentMapConfig.id) ?? 0);
     }
 
@@ -2706,7 +2716,6 @@ export class GameScene extends Phaser.Scene {
     /** Programa el respawn de menas: cada effectiveOreRespawnMs aparece una nueva si hay
      *  hueco bajo el máximo. Se reprograma sola para reflejar cambios de la mejora. */
     private scheduleOreRespawn(): void {
-      if (this.currentMapConfig.id === 'hogar') return;
       this.time.delayedCall(this.effectiveOreRespawnMs(), () => {
         if (this.countOreNodes() < this.maxOre()) this.trySpawnNode('rock', HARVEST_KINDS['rock']);
         this.scheduleOreRespawn();
@@ -2715,6 +2724,7 @@ export class GameScene extends Phaser.Scene {
 
     /** Máx. de árboles a la vez = 1 base + mejora de mapa "Árboles máx.". */
     private maxTree(): number {
+      if (this.currentMapConfig.id === 'hogar') return GameScene.HOGAR_NODE_SPOTS.tree.length;
       return 1 + (this.reg.mapUpgrades?.extraTrees(this.currentMapConfig.id) ?? 0);
     }
 
@@ -2731,7 +2741,6 @@ export class GameScene extends Phaser.Scene {
     /** Programa el respawn de árboles: cada effectiveTreeRespawnMs aparece uno nuevo si
      *  hay hueco bajo el máximo. Réplica del respawn de menas. */
     private scheduleTreeRespawn(): void {
-      if (this.currentMapConfig.id === 'hogar') return;
       this.time.delayedCall(this.effectiveTreeRespawnMs(), () => {
         if (this.countTreeNodes() < this.maxTree()) this.trySpawnNode('tree', HARVEST_KINDS['tree']);
         this.scheduleTreeRespawn();
@@ -2739,6 +2748,20 @@ export class GameScene extends Phaser.Scene {
     }
 
     private trySpawnNode(id: HarvestKindId, kind: HarvestKind): boolean {
+      // Asgard: posiciones fijas → el primer hueco libre de su lista (si un edificio
+      // ocupa alguno, se salta). Sin hueco → no spawnea.
+      const spots = this.currentMapConfig.id === 'hogar' ? GameScene.HOGAR_NODE_SPOTS[id] : null;
+      if (spots) {
+        for (const sp of spots) {
+          const keys: string[] = [];
+          for (let dx = 0; dx < kind.footprintW; dx++)
+            for (let dy = 0; dy < kind.footprintH; dy++) keys.push(`${sp.x + dx},${sp.y + dy}`);
+          if (keys.some(k => this.collisionTiles.has(k))) continue;   // ocupado (nodo vivo/edificio)
+          this.spawnNode(id, kind, sp.x, sp.y, keys);
+          return true;
+        }
+        return false;
+      }
       const w = this.currentMap.width;
       const h = this.currentMap.height;
       const TS = GameScene.TILE_SIZE;
@@ -2755,6 +2778,9 @@ export class GameScene extends Phaser.Scene {
       if (cells.some(([cx, cy]) => this.gridPhysics.isTileBlocked(cx * TS + TS / 2, cy * TS + TS / 2))) return false;
       // No demasiado cerca del punto de aparición del jugador
       if (Math.abs(tx - spawn.x) < 3 && Math.abs(ty - spawn.y) < 3) return false;
+      // Ni pegado a un portal (taparía el paso o su ventana de sello).
+      if ((this.currentMapConfig.portals ?? []).some(p =>
+        Math.abs(tx - p.tilePos.x) < 4 && Math.abs(ty - p.tilePos.y) < 4)) return false;
       this.spawnNode(id, kind, tx, ty, keys);
       return true;
     }

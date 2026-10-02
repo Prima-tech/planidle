@@ -79,7 +79,8 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   }
   /** Hub de botones (abajo-izquierda): arranca COLAPSADO al entrar en la app /
    *  loguearse; el tirador lo despliega. */
-  hubOpen = false;
+  /** El hub arranca ABIERTO: los botones se ven de entrada, sin tener que desplegarlos. */
+  hubOpen = true;
   /** Id del mapa actual: el botón de construir solo aparece en 'hogar'. */
   currentMapId = 'hogar';
 

@@ -56,6 +56,11 @@ export class ChatLogComponent implements OnInit, OnDestroy {
     this.sub?.unsubscribe();
   }
 
+  /** Botón ✕ de la cabecera. */
+  close(): void {
+    this.dialogue.closeChat();
+  }
+
   /** Tocar FUERA del chat lo cierra. El botón del footer queda excluido: si no, su
    *  pointerdown cerraría la ventana y su click la volvería a abrir al instante. */
   @HostListener('document:pointerdown', ['$event'])
