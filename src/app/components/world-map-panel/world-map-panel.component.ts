@@ -1,6 +1,6 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_FLAT_KEY, PLANET_FLAT_LOCK_KEY, PLANET_MODE_KEY, PLANET_EMPTY_TAP_KEY, ViewMode, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
+import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_SELECTED_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_FLAT_KEY, PLANET_FLAT_LOCK_KEY, PLANET_MODE_KEY, PLANET_EMPTY_TAP_KEY, ViewMode, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
 import { GlobeLayer } from 'src/app/scenes/earth-globe';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -25,6 +25,14 @@ const DISPLAY_PX = 96;
 const PLANET_MAPS: Record<string, string[]> = {
   mundo: ['hogar', '1-1', '1-2', '1-3', '1-4', '1-5', '1-6', '1-7', '1-8'],
 };
+
+/** Entrada de la lista de mapas del planeta (columna izquierda del globo). */
+interface PlanetMapEntry {
+  id: string;
+  name: string;
+  current: boolean;
+  tier: number | null;   // nº de mapa ('1-3' → 3); null en el hogar
+}
 
 export interface CharOnMap {
   name: string;
@@ -154,6 +162,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       // Al abrir el globo, la escena se orienta al mapa donde está el jugador (o a la
       // capital del planeta si no es válido); le damos ese mapId vía este callback.
       registry.set(PLANET_CURRENT_MAP_KEY, () => this.currentMapId);
+      registry.set(PLANET_SELECTED_MAP_KEY, () => this.selectedMap?.id ?? null);
       // La escena nos dice qué planeta se está viendo → lista de mapas + título del nombre.
       registry.set(PLANET_DETAIL_KEY, (planetId: string, name: string) => {
         this.ngZone.run(() => { this.detailPlanetId = planetId; this.detailPlanetName = name; });
@@ -227,41 +236,33 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.mapListOpen = WorldMapPanelComponent.lastMapListOpen = !this.mapListOpen;
   }
 
-  /** Mapa donde está el jugador, arriba de la columna izquierda. En exploración es la
-   *  entrada «Exploración» (currentMapId sigue siendo el de origen). null si el jugador
+  /** Pips de dificultad de cada fila (tier 1..8 → tantos encendidos). */
+  readonly tierPips = [0, 1, 2, 3, 4, 5, 6, 7];
+
+  /** Mapa donde está el jugador, cabecera de la columna izquierda. null si el jugador
    *  no está en este planeta. */
-  get currentEntry(): { id: string; name: string; current: boolean; run?: boolean } | null {
-    const list = this.planetMapList;
-    return list.find(m => m.run && m.current) ?? list.find(m => !m.run && m.current) ?? null;
+  get currentEntry(): PlanetMapEntry | null {
+    return this.planetMapList.find(m => m.current) ?? null;
   }
 
   /** Resto de mapas disponibles (sin el actual), para el desplegable. */
-  get otherMaps(): { id: string; name: string; current: boolean; run?: boolean }[] {
-    const cur = this.currentEntry;
-    return this.planetMapList.filter(m => m.id !== cur?.id);
+  get otherMaps(): PlanetMapEntry[] {
+    return this.planetMapList.filter(m => !m.current);
   }
 
   /** Mapas DESBLOQUEADOS del planeta que se está viendo, para la lista de la izquierda
-   *  del globo. Pinchar uno gira el globo hacia su pin (focusPlanetMap). */
-  get planetMapList(): { id: string; name: string; current: boolean; run?: boolean }[] {
+   *  del globo. Pinchar uno gira el globo hacia su pin (focusPlanetMap). El tier sale
+   *  del nº de mapa ('1-3' → 3); el hogar no tiene. */
+  get planetMapList(): PlanetMapEntry[] {
     const ids = PLANET_MAPS[this.detailPlanetId] ?? [];
-    const list: { id: string; name: string; current: boolean; run?: boolean }[] = ids
+    return ids
       .filter(id => !this.isMapLocked(id))
       .map(id => ({
         id,
         name: MAP_REGISTRY[id]?.name ?? id,
         current: id === this.currentMapId,
+        tier: +(/^\d+-(\d+)$/.exec(id)?.[1] ?? 0) || null,
       }));
-    // Justo debajo de Asgard (hogar): entrada al Modo Exploración (runner). No es un
-    // mapa de grid; su click arranca WorldRunScene (ver enterExploration()).
-    const hogarIdx = list.findIndex(m => m.id === 'hogar');
-    if (hogarIdx >= 0 && !this.gs.skipExploration) {
-      list.splice(hogarIdx + 1, 0, {
-        id: 'world-run', name: 'Exploración',
-        current: this.playerBridge.runMode$.value, run: true,
-      });
-    }
-    return list;
   }
 
   /** Pinchar un mapa de la lista: gira el globo para centrar su pin y deja ese mapa
@@ -275,19 +276,12 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Entrada "Exploración" de la lista: arranca el Modo Exploración (runner) desde el
-   *  mapa actual y cierra el panel. La GameScene reacciona al enterRunRequest$. */
-  enterExploration() {
-    this.playerBridge.requestEnterRun();
-    this.playerBridge.requestCloseMenus();
-  }
-
   /** Al cerrar: el globo NO se destruye, se aparca dormido para la próxima apertura.
    *  Los callbacks del registry apuntan a este componente: se neutralizan para que
    *  ningún evento rezagado actúe sobre un panel ya destruido. */
   private destroyPlanetGame() {
     const reg = this.planetHost.registry;
-    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY, PLANET_ZOOM_CHANGED_KEY, PLANET_MODE_KEY, PLANET_EMPTY_TAP_KEY]) reg.set(k, undefined);
+    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY, PLANET_ZOOM_CHANGED_KEY, PLANET_MODE_KEY, PLANET_EMPTY_TAP_KEY, PLANET_SELECTED_MAP_KEY]) reg.set(k, undefined);
     this.planetHost.detach();
     this.selectedPlanet = null;
     this.charsOnPlanet  = [];

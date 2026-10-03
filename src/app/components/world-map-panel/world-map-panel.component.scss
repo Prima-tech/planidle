@@ -236,47 +236,91 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   &:hover  { background: $wood-btn-light; }
   &:active { background: $wood-btn-dark; color: $text-cream; }
 
-  &.selected {                      // mapa elegido: resaltado estático con acento dorado
-    border-color: $gold;
-    color: $gold;
-    background: $wood-btn-dark;
-  }
-
-  &.pml-run {                       // Exploración: no es un mapa, es un modo → acento propio
-    color: $text-cream;
-    font-style: italic;
-    background: linear-gradient(180deg, $wood-btn-light, $wood-btn-dark);
-    &.selected { color: $gold; border-color: $gold; }
-  }
-}
-
-
-// Cabecera del desplegable = mapa actual: acento dorado fijo + chevron a la derecha
-.pml-toggle {
-  justify-content: space-between;
-  padding-left: 6px;
-  padding-right: 6px;
-
-  ion-icon { flex-shrink: 0; font-size: 13px; pointer-events: none; }
-  .pml-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; }
-
-  &.pml-current {
+  &.selected {                      // pestaña activa: resaltado estático con acento dorado
     border-color: $gold;
     color: $gold;
     background: $wood-btn-dark;
   }
 }
 
-// Resto de mapas: columna bajo la cabecera, con sangría para que se lea como "dentro"
-.pml-dropdown {
+// «Libro de rutas»: UNA placa (marco metálico + madera oscura, receta 1b) con la
+// cabecera = mapa actual y, desplegadas debajo, las filas del resto de mapas.
+.pml-box {
+  width: 152px;
+  max-width: 100%;                  // nunca más ancha que la columna (40% del globo)
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-left: 6px;
-  border-left: 2px solid rgba($gold, 0.45);
-  margin-left: 4px;
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    0 4px 10px rgba(0, 0, 0, 0.5);
+}
 
-  .pml-item { width: 92px; }
+.pml-head,
+.pml-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: bold;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+
+  .pml-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+
+.pml-head {
+  padding-block: 6px;
+  color: $gold;
+  font-size: 14px;
+  ion-icon { flex-shrink: 0; font-size: 14px; pointer-events: none; }
+}
+.pml-box.open .pml-head { border-bottom: 2px solid $outline; }
+
+.pml-row {
+  color: $text-cream;
+  font-size: 13px;
+  font-weight: normal;
+  & + & { border-top: 1px solid rgba(0, 0, 0, 0.25); }
+
+  &:hover  { background: #9a6338; }
+  &:active { background: $wood-btn; color: $text-brown; }
+
+  &.selected {                      // mapa elegido (globo girado hacia él)
+    background: $wood-btn;
+    color: $text-brown;
+    font-weight: bold;
+    .pml-pips i     { background: rgba(0, 0, 0, 0.2); }
+    .pml-pips i.on  { background: #a3261c; }
+  }
+}
+
+// Etiqueta de tier (T1..T8) y pips de dificultad (8 barritas, encendidas = tier)
+.pml-tier {
+  flex-shrink: 0;
+  padding: 1px 4px;
+  font-size: 10px;
+  font-weight: bold;
+  color: $text-brown;
+  background: $wood-btn;
+  border: 1px solid $outline;
+  border-radius: 2px;
+}
+.pml-pips {
+  display: flex;
+  gap: 1px;
+  flex-shrink: 0;
+  i { width: 3px; height: 7px; background: rgba(0, 0, 0, 0.35); }
+  i.on { background: #e07a4a; }
 }
 
 // ── Info card (placa oscura) ───────────────────────────────────────────────
@@ -570,15 +614,22 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     &:hover  { filter: brightness(1.14); background: $item-bg; }
     &:active { filter: brightness(0.88); background: $item-bg; color: $item-col; }
     &.selected { border-color: $accent; color: $accent; background: $item-active-bg; }
-    &.pml-run {
-      color: $text;
-      background: $item-bg;
-      &.selected { color: $accent; border-color: $accent; }
-    }
-    &.pml-current { border-color: $accent; color: $accent; background: $item-active-bg; }
   }
 
-  .pml-dropdown { border-left-color: $accent; }
+  .pml-box {
+    background: $card-bg;
+    border-color: $card-bd;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+  .pml-head { color: $accent; }
+  .pml-box.open .pml-head { border-bottom-color: $card-bd; }
+  .pml-row {
+    color: $text;
+    &:hover  { background: $item-bg; }
+    &:active,
+    &.selected { background: $item-active-bg; color: $accent; }
+  }
+  .pml-tier { background: $item-bg; border-color: $item-bd; color: $item-col; }
 
   .map-info-card {
     background: $card-bg;

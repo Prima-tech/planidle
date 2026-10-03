@@ -117,32 +117,33 @@
     <!-- Planeta interactivo (mini-instancia Phaser propia) -->
     <div class="planet-area" id="planet-view"></div>
 
-    <!-- Columna izquierda: arriba el mapa donde estás; debajo, un desplegable
-         (contraíble) con el resto de mapas disponibles. Pinchar un mapa gira el
-         globo / lo selecciona; «Exploración» entra en el modo runner. -->
+    <!-- Columna izquierda («libro de rutas»): una placa metálica; arriba el mapa donde
+         estás y debajo, contraíble, el resto de mapas disponibles con su tier y pips de
+         dificultad. Pinchar un mapa gira el globo y lo selecciona. -->
     <div class="planet-map-list" *ngIf="planetMapList.length > 0">
-      <!-- Cabecera del desplegable = mapa actual (o «Mapas» si no estás en este planeta) -->
-      <button
-        class="pml-item pml-toggle pml-current"
-        [class.pml-run]="currentEntry?.run"
-        [attr.aria-expanded]="mapListOpen"
-        (click)="toggleMapList()"
-      >
-        <ion-icon *ngIf="currentEntry" name="location"></ion-icon>
-        <span class="pml-name">{{ currentEntry ? currentEntry.name : ('MAP.AVAILABLE_MAPS' | translate) }}</span>
-        <ion-icon *ngIf="otherMaps.length > 0" [name]="mapListOpen ? 'chevron-up' : 'chevron-down'"></ion-icon>
-      </button>
-
-      <div class="pml-dropdown" *ngIf="mapListOpen && otherMaps.length > 0">
-        <button
-          *ngFor="let m of otherMaps"
-          class="pml-item"
-          [class.selected]="!m.run && selectedMap?.id === m.id"
-          [class.pml-run]="m.run"
-          (click)="m.run ? enterExploration() : focusPlanetMap(m.id)"
-        >
-          <span class="pml-name">{{ m.name }}</span>
+      <div class="pml-box" [class.open]="mapListOpen && otherMaps.length > 0">
+        <!-- Cabecera = mapa actual (o «Mapas» si no estás en este planeta) -->
+        <button class="pml-head" [attr.aria-expanded]="mapListOpen" (click)="toggleMapList()">
+          <ion-icon *ngIf="currentEntry" name="location"></ion-icon>
+          <span class="pml-name">{{ currentEntry ? currentEntry.name : ('MAP.AVAILABLE_MAPS' | translate) }}</span>
+          <span class="pml-tier" *ngIf="currentEntry?.tier">T{{ currentEntry.tier }}</span>
+          <ion-icon *ngIf="otherMaps.length > 0" [name]="mapListOpen ? 'chevron-up' : 'chevron-down'"></ion-icon>
         </button>
+
+        <ng-container *ngIf="mapListOpen">
+          <button
+            *ngFor="let m of otherMaps"
+            class="pml-row"
+            [class.selected]="selectedMap?.id === m.id"
+            (click)="focusPlanetMap(m.id)"
+          >
+            <span class="pml-name">{{ m.name }}</span>
+            <ng-container *ngIf="m.tier">
+              <span class="pml-tier">T{{ m.tier }}</span>
+              <span class="pml-pips"><i *ngFor="let p of tierPips" [class.on]="p < m.tier"></i></span>
+            </ng-container>
+          </button>
+        </ng-container>
       </div>
     </div>
 

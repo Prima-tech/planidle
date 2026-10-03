@@ -100,6 +100,9 @@ export const PLANET_MAP_LOCKED_KEY    = 'isMapLocked';
 // Callback () => string con el mapId donde está el jugador: al abrir el globo se
 // orienta a ese mapa (o a la capital 'hogar' si no es un mapa válido del planeta).
 export const PLANET_CURRENT_MAP_KEY   = 'planetCurrentMap';
+// Callback () => string | null con el mapId SELECCIONADO en el panel (tarjeta de info):
+// el globo le pinta un anillo blanco en el suelo a su pueblo.
+export const PLANET_SELECTED_MAP_KEY  = 'planetSelectedMap';
 // Callback (planetId) que la escena llama al construir una vista detalle: Angular lo
 // usa para saber qué planeta se está viendo y mostrar su lista de mapas a la izquierda.
 export const PLANET_DETAIL_KEY        = 'onPlanetDetail';
@@ -761,6 +764,10 @@ export class PlanetViewScene extends Phaser.Scene {
     const tex = this.earthTex;
     if (!this.earth || !tex || !this.earthImg) return;
     this.earthLastDraw = time;
+    // Mapa actual (villa dorada) y seleccionado (anillo blanco) → marcadores del globo
+    const getCur = this.game.registry.get(PLANET_CURRENT_MAP_KEY) as (() => string) | undefined;
+    const getSel = this.game.registry.get(PLANET_SELECTED_MAP_KEY) as (() => string | null) | undefined;
+    this.earth.setMarks(getCur?.() ?? '', getSel?.() ?? null);
     // Plano con candado cerrado: encuadre fijo sobre los mapas. Globo, o plano con el
     // candado abierto: giro/desplazamiento y zoom del jugador
     const fixed = this.flatStatic;
@@ -1454,16 +1461,28 @@ export class PlanetViewScene extends Phaser.Scene {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(TEX_SIZE, y); ctx.stroke();
     }
 
-    // Etiqueta "tx,ty" en cada intersección de 64
-    ctx.font = 'bold 14px monospace';
+    // Etiqueta en cada intersección de 64: tx arriba y ty debajo (en una sola línea
+    // "448,448" no cabe grande en la celda de 64). Fondo oscuro + contorno negro
+    // para que se lea sobre cualquier color del globo aunque la esfera la deforme.
+    const fontPx = 20;
+    const lineH = fontPx + 1;
+    ctx.font = `bold ${fontPx}px monospace`;
     ctx.textBaseline = 'top';
+    ctx.lineJoin = 'round';
     for (let x = 0; x < TEX_SIZE; x += major) {
       for (let y = 0; y < TEX_SIZE; y += major) {
-        const label = `${x},${y}`;
-        ctx.fillStyle = '#000000';
-        ctx.fillText(label, x + 4, y + 3);
-        ctx.fillStyle = '#ffe000';
-        ctx.fillText(label, x + 3, y + 2);
+        const lines = [`${x},`, `${y}`];
+        const w = Math.max(...lines.map(l => ctx.measureText(l).width));
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(x + 2, y + 2, w + 6, lineH * 2 + 4);
+        lines.forEach((l, i) => {
+          const ly = y + 4 + i * lineH;
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 4;
+          ctx.strokeText(l, x + 5, ly);
+          ctx.fillStyle = '#ffe000';
+          ctx.fillText(l, x + 5, ly);
+        });
       }
     }
 

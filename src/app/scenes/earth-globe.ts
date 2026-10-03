@@ -229,7 +229,7 @@ function ensureHolo(): void {
   for (let lo = 0; lo < 360; lo += 20) { const pts: V3[] = []; for (let k = 0; k <= 48; k++) pts.push(v3(-PI / 2 + k / 48 * PI, lo * PI / 180)); GRAT.push(pts); }
 }
 
-type PropKind = 'tree' | 'pine' | 'rock' | 'cactus' | 'castle' | 'flag';
+type PropKind = 'tree' | 'pine' | 'rock' | 'cactus' | 'castle' | 'village';
 interface Prop { w: V3; k: PropKind; pin?: PinW; ll?: [number, number]; }
 let SCENERY: Prop[] | null = null;
 function ensureScenery(pins: PinW[]): Prop[] {
@@ -252,6 +252,7 @@ const PAL_TOON = [[72, 142, 214], [112, 192, 232], [250, 226, 160], [128, 204, 9
 const HEX_COL = [[43, 93, 138], [63, 134, 184], [232, 212, 154], [121, 184, 90], [63, 138, 74], [224, 184, 112], [154, 143, 128], [244, 246, 248], [216, 232, 244]];
 const HEX_ELEV = [1, 1.004, 1.014, 1.026, 1.036, 1.022, 1.056, 1.066, 1.006];
 const OUT = '#2b2546';
+const GOLD = '#f0c040';   // mapa actual (villa, flecha del castillo, anillo)
 const CY = '95,245,214';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -262,6 +263,11 @@ export class EarthGlobe {
   private readonly lockedRoute: V3[][] = [];  // tramos que tocan un mapa bloqueado
   private buf: Buf | null = null;
   private props: Prop[] = [];
+  // Mapa donde está el jugador y mapa seleccionado (los pone la escena antes de cada
+  // draw): cambian el marcador del pueblo. `t` = tiempo del frame, para animarlo.
+  private currentId = '';
+  private selectedId: string | null = null;
+  private t = 0;
 
   constructor(pins: GlobePin[]) {
     this.pins = pins.map(p => {
@@ -274,11 +280,17 @@ export class EarthGlobe {
       for (let s = 0; s <= 18; s++) seg.push(slerp(a.w, b.w, s / 18));
       (a.locked || b.locked ? this.lockedRoute : this.openRoute).push(seg);
     }
-    // Banderas/castillo dependen del estado de bloqueo actual → se rehacen por instancia
+    // Pueblos/castillo dependen del estado de bloqueo actual → se rehacen por instancia
     this.props = [
       ...ensureScenery(this.pins),
-      ...this.pins.map(p => ({ w: p.w, k: (p.home ? 'castle' : 'flag') as PropKind, pin: p })),
+      ...this.pins.map(p => ({ w: p.w, k: (p.home ? 'castle' : 'village') as PropKind, pin: p })),
     ];
+  }
+
+  /** Marca el mapa actual (villa dorada con aro de luz) y el seleccionado (anillo blanco). */
+  setMarks(currentId: string, selectedId: string | null): void {
+    this.currentId = currentId ?? '';
+    this.selectedId = selectedId ?? null;
   }
 
   /** Dibuja la capa en un canvas w×h con el globo de radio R centrado (o, con `flat`,
@@ -287,6 +299,7 @@ export class EarthGlobe {
   draw(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, rot: GlobeRot, t: number,
        layer: GlobeLayer, dpr: number, debugGrid: boolean, flat = false): GlobeHit[] {
     ctx.clearRect(0, 0, w, h);
+    this.t = t;
     const r = rotPre(rot);
     if (flat) {
       const fh = this.drawFlat(ctx, w, h, R, r, t, layer, dpr);
@@ -348,7 +361,7 @@ export class EarthGlobe {
     for (const p of this.pins) {
       const v = proj(p.w, r); if (v[2] < .05) continue;
       const x = cx + v[0] * R, y = cy - v[1] * R;
-      if (v[2] > .15) outlinedText(ctx, p.name, x, y - s * (p.home ? 3.1 : 2.3), p.locked ? '#b8b4c8' : '#fff', OUT, 4 * dpr);
+      if (v[2] > .15) outlinedText(ctx, p.name, x, y - s * (p.home ? 3.1 : 1.9), this.labelColor(p), OUT, 4 * dpr);
       if (!p.locked) hits.push({ mapId: p.mapId, x, y: y - s });
     }
     return hits;
@@ -369,6 +382,9 @@ export class EarthGlobe {
       shape('#5aa65a', () => ctx.rect(-s * .12, -s * 1.1, s * .24, s * 1.1));
       shape('#5aa65a', () => ctx.rect(s * .12, -s * .75, s * .25, s * .14));
     } else if (k === 'castle') {
+      const cur = pin?.mapId === this.currentId, sel = !cur && pin?.mapId === this.selectedId;
+      if (cur || sel) this.groundRing(ctx, s, cur ? GOLD : '#fff', cur);
+      ctx.lineWidth = s * .14; ctx.strokeStyle = OUT;
       const c = s * 1.7;
       shape('#d9d2e6', () => ctx.rect(-c * .5, -c * .7, c, c * .7));
       shape('#c4bcd6', () => ctx.rect(-c * .7, -c * 1.05, c * .32, c * 1.05));
@@ -377,10 +393,76 @@ export class EarthGlobe {
       shape('#e05a4f', () => { ctx.moveTo(c * .33, -c * 1.05); ctx.lineTo(c * .54, -c * 1.4); ctx.lineTo(c * .75, -c * 1.05); ctx.closePath(); });
       shape('#6b4a3a', () => { ctx.moveTo(-c * .14, 0); ctx.lineTo(-c * .14, -c * .3); ctx.arc(0, -c * .3, c * .14, PI, 0); ctx.lineTo(c * .14, 0); ctx.closePath(); });
       shape('#f0c040', () => { ctx.moveTo(0, -c * .7); ctx.lineTo(0, -c * 1.25); ctx.lineTo(c * .3, -c * 1.12); ctx.lineTo(0, -c * 1.02); });
-    } else if (k === 'flag') {
-      shape('#e8e2d0', () => ctx.rect(-s * .06, -s * 1.6, s * .12, s * 1.6));
-      shape(pin?.locked ? '#9a98aa' : '#4fb3f0', () => { ctx.moveTo(s * .06, -s * 1.6); ctx.lineTo(s * .75, -s * 1.38); ctx.lineTo(s * .06, -s * 1.12); ctx.closePath(); });
+      if (cur) {
+        // Flecha dorada que bota sobre el castillo cuando el jugador está en el hogar
+        const y = -c * 1.45 - s * .7 - Math.abs(Math.sin(this.t * 3.2)) * s * .55;
+        ctx.lineWidth = s * .12;
+        shape(GOLD, () => { ctx.moveTo(-s * .45, y - s * .55); ctx.lineTo(s * .45, y - s * .55); ctx.lineTo(0, y); ctx.closePath(); });
+      }
+    } else if (k === 'village' && pin) {
+      this.drawVillage(ctx, s, pin, shape);
     }
+  }
+
+  /** Pueblo de un mapa: villa redonda amurallada con tres tejados dentro.
+   *  - Actual: muralla y tejado central dorados + aro de luz discontinuo que gira.
+   *  - Seleccionado: anillo blanco en el suelo.
+   *  - Bloqueado: todo en gris con candado. */
+  private drawVillage(ctx: CanvasRenderingContext2D, s: number, pin: PinW,
+                      shape: (fill: string, path: () => void) => void): void {
+    const cur = pin.mapId === this.currentId, sel = !cur && pin.mapId === this.selectedId, lk = pin.locked;
+    if (sel) this.groundRing(ctx, s, '#fff', false);
+    ctx.fillStyle = 'rgba(20,20,50,.28)';
+    ctx.beginPath(); ctx.ellipse(0, 0, s * 1.25, s * .45, 0, 0, TAU); ctx.fill();
+
+    ctx.lineWidth = s * .14; ctx.strokeStyle = OUT;
+    const wall  = lk ? '#aeabbb' : cur ? '#f2cf63' : '#d6cdbd';
+    const wallD = lk ? '#8e8b9c' : cur ? '#c99a2c' : '#b0a594';
+    shape(wallD, () => ctx.ellipse(0, -s * .12, s * 1.1, s * .5, 0, 0, TAU));
+    shape(wall,  () => ctx.ellipse(0, -s * .32, s * 1.1, s * .5, 0, 0, TAU));
+    ctx.fillStyle = lk ? '#7f8c62' : '#7cc05c';
+    ctx.beginPath(); ctx.ellipse(0, -s * .34, s * .82, s * .32, 0, 0, TAU); ctx.fill();
+
+    const house = (x: number, w: number, h: number, wallCol: string, roof: string) => {
+      shape(wallCol, () => ctx.rect(x - w / 2, -h, w, h));
+      shape(roof, () => { ctx.moveTo(x - w * .62, -h); ctx.lineTo(x, -h - w * .62); ctx.lineTo(x + w * .62, -h); ctx.closePath(); });
+    };
+    const hw = lk ? '#c4c1d0' : '#f1e3c4', red = lk ? '#7a788c' : '#d9574a';
+    house(-s * .38, s * .42, s * .3, hw, red);
+    house(s * .35, s * .38, s * .28, hw, lk ? '#7a788c' : '#4f8ad6');
+    house(0, s * .5, s * .48, hw, cur ? GOLD : red);
+
+    if (cur) {
+      ctx.save();
+      ctx.lineWidth = s * .16; ctx.strokeStyle = '#ffe7a0';
+      ctx.setLineDash([s * .5, s * .35]); ctx.lineDashOffset = -this.t * s * 3;
+      ctx.beginPath(); ctx.ellipse(0, -s * .3, s * 1.55, s * .7, 0, 0, TAU); ctx.stroke();
+      ctx.restore();
+    }
+    if (lk) this.padlock(ctx, s, 0, -s * .25);
+  }
+
+  /** Anillo en el suelo bajo un marcador: late si `pulse` (mapa actual), fijo si no. */
+  private groundRing(ctx: CanvasRenderingContext2D, s: number, col: string, pulse: boolean): void {
+    const k = pulse ? 1 + .18 * Math.sin(this.t * 4) : 1;
+    ctx.beginPath(); ctx.ellipse(0, 0, s * 1.25 * k, s * .45 * k, 0, 0, TAU);
+    ctx.lineWidth = s * .2; ctx.strokeStyle = OUT; ctx.stroke();
+    ctx.lineWidth = s * .11; ctx.strokeStyle = col; ctx.stroke();
+  }
+
+  private padlock(ctx: CanvasRenderingContext2D, s: number, x: number, y: number): void {
+    const p = s * .38;
+    ctx.beginPath(); ctx.arc(x, y - p * .55, p * .48, PI, 0);
+    ctx.lineWidth = s * .12; ctx.strokeStyle = OUT; ctx.stroke();
+    ctx.lineWidth = s * .06; ctx.strokeStyle = '#d8d4e4'; ctx.stroke();
+    ctx.beginPath(); ctx.rect(x - p * .7, y - p * .6, p * 1.4, p * 1.1);
+    ctx.fillStyle = '#d8b84a'; ctx.fill(); ctx.lineWidth = s * .1; ctx.strokeStyle = OUT; ctx.stroke();
+    ctx.fillStyle = OUT; ctx.fillRect(x - p * .1, y - p * .25, p * .2, p * .4);
+  }
+
+  /** Color de la etiqueta de un pin: gris si bloqueado, oro si es el mapa actual. */
+  private labelColor(p: PinW): string {
+    return p.locked ? '#b8b4c8' : p.mapId === this.currentId ? '#ffd84a' : '#fff';
   }
 
   // ── Capa economía: tablero hexagonal ──────────────────────────────────────
@@ -584,7 +666,7 @@ export class EarthGlobe {
     for (const p of this.pins) {
       const [x, y] = fpos(v, p.lat, p.lon);
       if (!onScreen(v, x, y, 20 * dpr)) continue;
-      outlinedText(ctx, p.name, x, y - s * (p.home ? 3.1 : 2.3), p.locked ? '#b8b4c8' : '#fff', OUT, 4 * dpr);
+      outlinedText(ctx, p.name, x, y - s * (p.home ? 3.1 : 1.9), this.labelColor(p), OUT, 4 * dpr);
       if (!p.locked) hits.push({ mapId: p.mapId, x, y: y - s });
     }
     return hits;
