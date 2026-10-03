@@ -4,13 +4,13 @@ import { ForgeService, ForgeGrid, ForgeBar } from 'src/app/services/forge.servic
 import { InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { GlobalTalentsService } from 'src/app/services/global-talents.service';
+import { ITEM_CATALOG } from 'src/app/physics/griddrops';
 
 /**
- * Menú de la fundición. De arriba a abajo:
- *  1. Slider de 8 celdas — materiales a fundir (arrastrados desde el inventario).
- *  2. Slider de 8 celdas — combustible (madera, carbón…).
- *  3. Cuadro de producción — qué se está fundiendo ahora + barra de progreso.
- *  4. Slider de 8 celdas — salida; se arrastra de vuelta al inventario.
+ * Menú de la fragua (diseño "crisol"): celda de mineral (arriba-izq) y de combustible
+ * (abajo-izq) que vierten en un crisol central; el crisol se llena de metal fundido con
+ * el progreso de la barra actual y la barra sale a la celda de salida (dcha). Arriba a
+ * la dcha, el lote (barras que quedan + tiempo total); abajo, el botón fundir/pausar.
  * Toda la lógica (recetas, combustible, progreso, persistencia) vive en ForgeService.
  */
 @Component({
@@ -56,10 +56,10 @@ export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** IDs de celda del inventario a las que se puede arrastrar de vuelta. */
   inventoryCellIds: string[] = [];
 
-  // Relleno del aro (unidad) y de la barra total: se pintan cada frame con el
+  // Metal fundido del crisol (unidad) y barra total: se pintan cada frame con el
   // progreso interpolado del servicio (fuera de la zona de Angular, sin CD), así
   // van continuos y llegan al 100% aunque la lógica avance a 1 Hz.
-  @ViewChild('ringFill')  ringFill?:  ElementRef<SVGRectElement>;
+  @ViewChild('moltenFill') moltenFill?: ElementRef<HTMLElement>;
   @ViewChild('totalFill') totalFill?: ElementRef<HTMLElement>;
   private rafId = 0;
 
@@ -71,8 +71,8 @@ export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.zone.runOutsideAngular(() => {
       const loop = () => {
-        const ring = this.ringFill?.nativeElement;
-        if (ring) ring.style.strokeDashoffset = String(100 - this.forge.liveUnitFraction() * 100);
+        const molten = this.moltenFill?.nativeElement;
+        if (molten) molten.style.height = (this.forge.liveUnitFraction() * 100) + '%';
         const total = this.totalFill?.nativeElement;
         if (total) total.style.width = (this.forge.liveTotalFraction() * 100) + '%';
         this.rafId = requestAnimationFrame(loop);
@@ -125,17 +125,10 @@ export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lastCellClick = { grid, index, time: now };
   }
 
-  /** Estilo de fondo que recorta la caja de una barra en Icons.png (480×320). */
-  barStyle(box: { x: number; y: number; w: number; h: number }): Record<string, string> {
-    return {
-      'background-image':    'url(assets/icon/icons/Icons.png)',
-      'background-repeat':   'no-repeat',
-      'background-size':     '480px 320px',
-      'background-position': `-${box.x}px -${box.y}px`,
-      'image-rendering':     'pixelated',
-      'width':               `${box.w}px`,
-      'height':              `${box.h}px`,
-    };
+  /** Icono de la barra = el MISMO del objeto en el catálogo (inventario/salida), así
+   *  cambiar el PNG de una barra se ve también en el crisol. */
+  barIcon(bar: ForgeBar): string | undefined {
+    return ITEM_CATALOG.find(e => e.name === bar.name)?.icon;
   }
 
   /** Drop en una celda de la fundición: desde el inventario (entra) o interno. */

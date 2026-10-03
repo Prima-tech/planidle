@@ -296,7 +296,7 @@ ion-content::part(scroll)::-webkit-scrollbar {
    con él al arrastrar (el placeholder de CDK pasa a la casilla nueva y la copia que se
    arrastra también lo lleva). El marco se pinta en un ::before DETRÁS del icono
    (isolation + z-index -1), así no pisa el background ni el box-shadow de la celda.
-   Marco "neón" (O): fondo oscuro con filo fino del color y resplandor interior; y el propio
+   Marco "neón" (O): fondo de metal cálido (el de la fragua) con filo fino del color y resplandor interior; y el propio
    sprite se perfila con 1px del color + brillo (J). Común: sin perfil, solo sombra.
    Épico y superiores: el filo late. De 'legendary' para ARRIBA: además destello que cruza
    la casilla; si se crea una rareza mayor, añádela a esos selectores. */
@@ -317,7 +317,10 @@ ion-content::part(scroll)::-webkit-scrollbar {
   z-index: -1;
   border-radius: inherit;
   pointer-events: none;
-  background: #1b140f;
+  // Fondo = el de las casillas de la fragua (metal forjado cálido con brillo de brasa).
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 180, 90, 0.12), transparent 70%),
+    linear-gradient(180deg, #7c6650, #594434);
   box-shadow:
     inset 0 0 0 1px var(--r-l),
     inset 0 0 10px color-mix(in srgb, var(--r-c) 70%, transparent);

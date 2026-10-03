@@ -25,7 +25,8 @@ import { ITEM_CATALOG, LootEntry } from '../physics/griddrops';
 
 export type ForgeGrid = 'mat' | 'fuel' | 'out';
 
-/** Barra de metal. El icono es un recorte de Icons.png (caja {x,y,w,h}).
+/** Barra de metal. `box` = recorte antiguo en Icons.png (ya no lo usa la ventana de la
+ *  fragua, que pinta el icono del catálogo).
  *  `mineral` = item que necesita para fundirse (lo que decide qué barra sale). */
 export interface ForgeBar { tier: number; name: string; mineral: string; box: { x: number; y: number; w: number; h: number }; }
 

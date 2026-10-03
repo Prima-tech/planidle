@@ -120,9 +120,15 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.triggerSave();
   }
 
-  /** Guía: plano aún sin aprender → su celda brilla hasta que se aprende. */
+  /** Plano aún sin aprender (se aprende manteniéndolo pulsado). */
   isPendingBlueprint(item: InventoryItem | null): boolean {
     return !!item?.teachesBuild && !this.cityBuild.isLearned(item.teachesBuild);
+  }
+
+  /** Guía: plano sin aprender que pide construir la misión en curso. Solo ESE brilla;
+   *  el resto de planos sin aprender (p.ej. la fragua) no. */
+  isGuideBlueprint(item: InventoryItem | null): boolean {
+    return this.isPendingBlueprint(item) && item.teachesBuild === this.quests.pendingBuildType();
   }
 
   /** Guía: herramienta que pide equipar la misión en curso (p.ej. el hacha). */
@@ -130,9 +136,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
     return !!item && item.name === this.quests.pendingEquipItem();
   }
 
-  /** Celda resaltada por la guía: plano sin aprender o herramienta por equipar. */
+  /** Celda resaltada por la guía: plano que pide la misión o herramienta por equipar. */
   isGuideCell(item: InventoryItem | null): boolean {
-    return this.isPendingBlueprint(item) || this.isGuideEquip(item);
+    return this.isGuideBlueprint(item) || this.isGuideEquip(item);
   }
 
   /** ¿Hay algo resaltado en esa pestaña? (brilla la pestaña si no es la activa). */

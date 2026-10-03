@@ -607,6 +607,13 @@ export class QuestService implements OnDestroy {
     return mine.find(q => this.isClaimable(q)) ?? mine[0] ?? null;
   }
 
+  /** Guía: construible que pide una misión 'build' en curso (p.ej. 'workbench'), o null.
+   *  La UI resalta su plano en el inventario mientras no se aprenda. */
+  pendingBuildType(): string | null {
+    const q = this.available().find(d => d.objective.type === 'build' && !this.isClaimable(d));
+    return q?.objective.type === 'build' ? q.objective.buildType : null;
+  }
+
   /** Guía: item que pide equipar una misión 'equip' en curso (p.ej. 'Hacha de Hierro'),
    *  o null. La UI resalta el camino: Fabricar → mochila → item → Equipar. */
   pendingEquipItem(): string | null {
