@@ -138,6 +138,9 @@ export interface QuestReward {
 
 export interface QuestDef {
   id: string;             // único, sin espacios
+  /** Arco argumental. El arco 1 (onboarding de Mordekai) es SOLO del primer personaje de
+   *  la cuenta (ver ARC1_OWNER_FLAG): el resto de personajes no lo ve ni lo hace. */
+  arc?: number;
   name: string;
   desc: string;
   icon: string;           // ion-icon
@@ -170,6 +173,11 @@ export const NPC_PORTRAITS: Record<string, NpcPortrait> = {
   Mordekai: { sheet: 'assets/sprites/players/mordekai.png', frame: 240, cols: 24 },
 };
 
+/** Prefijo del flag de CUENTA que marca qué personaje hace el arco 1: `arc1.owner.<charId>`.
+ *  Lo reclama el primer personaje que se carga sin que haya dueño (en una cuenta nueva,
+ *  el primero que se crea). Viaja con los flags globales (global_data.account). */
+export const ARC1_OWNER_FLAG = 'arc1.owner.';
+
 /** Máximo de misiones activas (fijadas en el HUD) a la vez. */
 export const MAX_ACTIVE_QUESTS = 5;
 
@@ -187,6 +195,7 @@ export const QUESTS: QuestDef[] = [
     // PRIMERA misión de todas (Mordekai): recoge 5 Piedra + 5 Madera del suelo de Asgard.
     // Se cumple al TENER ambos en el inventario (retroactivo: cuenta lo ya recogido).
     id: 'recoge_materiales',
+    arc: 1,
     name: 'QUESTS.RECOGE_MATERIALES.NAME',
     desc: 'QUESTS.RECOGE_MATERIALES.DESC',
     icon: 'cube-outline',
@@ -200,14 +209,15 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'primeras_estrellas',
+    arc: 1,
     name: 'QUESTS.PRIMERAS_ESTRELLAS.NAME',
     desc: 'QUESTS.PRIMERAS_ESTRELLAS.DESC',
     icon: 'star-outline',
     track: 'QUESTS.PRIMERAS_ESTRELLAS.TRACK',
     objective: { type: 'stars', goal: 100 },
-    // Recompensa: 10 de oro. El Impulso ya NO se otorga aquí: se compra con estrellas
+    // El Impulso ya NO se otorga aquí: se compra con estrellas
     // en el panel de mejoras del run (hito 'sprint', 10★).
-    reward: { coins: 10, exp: 10 },
+    reward: { exp: 10 },
     requires: 'recoge_materiales',   // sigue a la misión de recoger materiales
     giver: 'Mordekai',
     // Al cobrarla en la ventana de equipo: se cierra y Mordekai suelta el hint de la rata.
@@ -215,12 +225,13 @@ export const QUESTS: QuestDef[] = [
   },
   {
     id: 'mata_rata',
+    arc: 1,
     name: 'QUESTS.MATA_RATA.NAME',
     desc: 'QUESTS.MATA_RATA.DESC',
     icon: 'skull-outline',
     track: 'QUESTS.MATA_RATA.TRACK',
     objective: { type: 'kill', family: 'rats', goal: 1 },
-    reward: { coins: 100, exp: 10 },
+    reward: { exp: 10 },
     giver: 'Mordekai',
     requires: 'primeras_estrellas',   // aparece solo tras cobrar la de la estrella
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_CLAIM2' },
@@ -242,12 +253,13 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     // Aprender los planos que da la misión anterior (botón "Aprender" en la ficha del
     // item) y levantar el banco con el botón Construir de Asgard.
     id: 'noexp_mesa_trabajo',
+    arc: 1,
     name: 'QUESTS.NOEXP_MESA_TRABAJO.NAME',
     desc: 'QUESTS.NOEXP_MESA_TRABAJO.DESC',
     icon: 'hammer-outline',
     track: 'QUESTS.NOEXP_MESA_TRABAJO.TRACK',
     objective: { type: 'build', goal: 1, buildType: 'workbench' },
-    reward: { coins: 10, exp: 10 },
+    reward: { exp: 10 },
     requires: 'recoge_materiales',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_BENCH_CLAIM' },
@@ -256,12 +268,13 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     // Fabricar el Hacha de Hierro en la mesa de trabajo (receta disponible de serie) y
     // equiparla. Se entrega hablando con Mordekai.
     id: 'noexp_hacha',
+    arc: 1,
     name: 'QUESTS.NOEXP_HACHA.NAME',
     desc: 'QUESTS.NOEXP_HACHA.DESC',
     icon: 'construct-outline',
     track: 'QUESTS.NOEXP_HACHA.TRACK',
     objective: { type: 'equip', goal: 1, itemName: 'Hacha de Hierro' },
-    reward: { coins: 10, exp: 10 },
+    reward: { exp: 10 },
     requires: 'noexp_mesa_trabajo',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_AXE_CLAIM' },
@@ -270,12 +283,13 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     // Al ofrecerla (cobrar la del hacha) se desbloquea la receta del Pico de Hierro en
     // la mesa de trabajo. Fabricarlo y equiparlo; se entrega hablando con Mordekai.
     id: 'noexp_pico',
+    arc: 1,
     name: 'QUESTS.NOEXP_PICO.NAME',
     desc: 'QUESTS.NOEXP_PICO.DESC',
     icon: 'hammer-outline',
     track: 'QUESTS.NOEXP_PICO.TRACK',
     objective: { type: 'equip', goal: 1, itemName: 'Pico de Hierro' },
-    reward: { coins: 10, exp: 10 },
+    reward: { exp: 10 },
     requires: 'noexp_hacha',
     startFlags: [RECIPE_IRON_PICKAXE_FLAG],
     giver: 'Mordekai',
@@ -286,12 +300,13 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     // (lo que sueltan árboles y rocas de Asgard; la Piedra solo sale del suelo), que se
     // entregan a Mordekai al cobrarla.
     id: 'noexp_farmeo',
+    arc: 1,
     name: 'QUESTS.NOEXP_FARMEO.NAME',
     desc: 'QUESTS.NOEXP_FARMEO.DESC',
     icon: 'leaf-outline',
     track: 'QUESTS.NOEXP_FARMEO.TRACK',
     objective: { type: 'collect', goal: 2, consume: true, items: [{ name: 'Madera', qty: 5 }, { name: 'Mineral de Cobre', qty: 5 }] },
-    reward: { coins: 10, exp: 10 },
+    reward: { exp: 10 },
     requires: 'noexp_pico',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_FARM_CLAIM' },
@@ -301,12 +316,13 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     // recetas del arma y la pechera más básicas. Fabricar ambas y equipárselas; se
     // entrega hablando con Mordekai.
     id: 'noexp_armas',
+    arc: 1,
     name: 'QUESTS.NOEXP_ARMAS.NAME',
     desc: 'QUESTS.NOEXP_ARMAS.DESC',
     icon: 'shield-half-outline',
     track: 'QUESTS.NOEXP_ARMAS.TRACK',
     objective: { type: 'equip', goal: 2, itemNames: ['Daga Oxidada', 'Coraza de Marfil'] },
-    reward: { coins: 10, exp: 10 },
+    reward: { exp: 10 },
     requires: 'noexp_farmeo',
     startFlags: [RECIPE_STARTER_GEAR_FLAG],
     giver: 'Mordekai',
@@ -318,12 +334,13 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     // aunque ya lo hayas reclutado). Al OFRECERSE (cobrar la de armas) los árboles y rocas
     // de Asgard dejan de reaparecer (ver HOGAR_NODES_STOP_QUEST en gamescene).
     id: 'noexp_kugo',
+    arc: 1,
     name: 'QUESTS.NOEXP_KUGO.NAME',
     desc: 'QUESTS.NOEXP_KUGO.DESC',
     icon: 'chatbubbles-outline',
     track: 'QUESTS.NOEXP_KUGO.TRACK',
     objective: { type: 'talk', goal: 1, npc: 'Kugo' },
-    reward: { coins: 10, exp: 10 },
+    reward: { exp: 10 },
     requires: 'noexp_armas',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Kugo', text: 'NPC.KUGO_QUEST_CLAIM' },
@@ -349,6 +366,9 @@ export class QuestService implements OnDestroy {
   readonly active$ = new BehaviorSubject<QuestDef[]>([]);
 
   private charId: string | null = null;
+  /** ¿Este personaje hace el arco 1? Hasta resolverlo (resolveArc1Owner, tras cargar los
+   *  flags) se da por hecho que sí. */
+  private arc1Owner = true;
   private progress: Record<string, number> = {};
   private completedSet = new Set<string>();
   private activeSet = new Set<string>();
@@ -420,6 +440,7 @@ export class QuestService implements OnDestroy {
 
   async loadForChar(charId: string, override?: QuestSave): Promise<void> {
     this.charId = charId;
+    this.arc1Owner = true;   // se resuelve en resolveArc1Owner (SaveService, tras los flags)
     // override = datos restaurados del snapshot (nube). Si no, lee la clave local.
     const saved: QuestSave | null = override ?? await this.storage.get(charKey(charId));
     this.progress     = saved?.progress ? { ...saved.progress } : {};
@@ -447,6 +468,28 @@ export class QuestService implements OnDestroy {
     // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar
     // (solo si la UI de misiones ya está desbloqueada; ver flagQuestsBadge).
     if (this.hasClaimable()) this.flagQuestsBadge();
+    this.notify();
+  }
+
+  /** Decide si este personaje hace el arco 1. Lo llama SaveService DESPUÉS de cargar los
+   *  flags (UnlockService), porque el dueño es un flag de cuenta. Sin dueño aún → lo
+   *  reclama este personaje. Si no es el dueño: el arco 1 desaparece para él, y se le dan
+   *  de serie las recetas que esas misiones desbloquean (`startFlags`), para no dejarle
+   *  la mesa de trabajo coja. */
+  resolveArc1Owner(): void {
+    if (!this.charId) return;
+    const mine = ARC1_OWNER_FLAG + this.charId;
+    const owners = this.unlocks.globalFlagsWithPrefix(ARC1_OWNER_FLAG);
+    if (!owners.length) this.unlocks.setFlag(mine, 'global');
+    this.arc1Owner = !owners.length || owners.includes(mine);
+    if (!this.arc1Owner) {
+      for (const q of [...QUESTS, ...QUESTS_NO_EXPLORATION]) {
+        if (q.arc !== 1) continue;
+        this.activeSet.delete(q.id);
+        for (const f of q.startFlags ?? []) if (!this.unlocks.hasFlag(f)) this.unlocks.setFlag(f, 'char');
+      }
+      this.persistNow();
+    }
     this.notify();
   }
 
@@ -501,9 +544,11 @@ export class QuestService implements OnDestroy {
     if (changed) { this.notify(); this.persistNow(); }
   }
 
-  /** Cadena vigente según el ajuste "sin exploración". */
+  /** Cadena vigente según el ajuste "sin exploración" (sin el arco 1 si este personaje
+   *  no es su dueño). */
   private list(): QuestDef[] {
-    return this.gs.skipExploration ? QUESTS_NO_EXPLORATION : QUESTS;
+    const chain = this.gs.skipExploration ? QUESTS_NO_EXPLORATION : QUESTS;
+    return this.arc1Owner ? chain : chain.filter(q => q.arc !== 1);
   }
 
   /** ¿La misión no pertenece a la cadena vigente? */

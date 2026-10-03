@@ -145,6 +145,11 @@ export class UnlockService {
     return this.flagsChar.has(id) || this.flagsGlobal.has(id);
   }
 
+  /** Flags de CUENTA que empiezan por `prefix` (p.ej. el dueño del arco 1). */
+  globalFlagsWithPrefix(prefix: string): string[] {
+    return [...this.flagsGlobal].filter(f => f.startsWith(prefix));
+  }
+
   /** Desbloqueo manual directo de una feature (sin pasar por sus condiciones). */
   grantById(id: string): void {
     const def = this.def(id);

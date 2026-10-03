@@ -221,8 +221,8 @@
   "ADMIN_PANEL": {
     "TITLE": "Admin",
     "ADVANCE": "Progress",
-    "ACT": "Act {{n}}",
-    "COMPLETE_ALL": "Complete the whole act",
+    "ACT": "Arc {{n}}",
+    "COMPLETE_ALL": "Complete the whole arc",
     "GOLD": "gold"
   },
   "SHOP": {
@@ -440,67 +440,47 @@
     "NONE_COMPLETED": "You haven't completed any quests yet.",
     "RECOGE_MATERIALES": {
       "NAME": "Gather Materials",
-      "DESC": "Mordekai asks you to gather 5 Stone and 5 Wood from the ground in Asgard. Walk up to the stones and logs and press the action button to pick them up. Reward: 10 XP (and, without Exploration Mode, he trades them for the workbench plans).",
+      "DESC": "Mordekai asks you to gather 5 Stone and 5 Wood from the ground in Asgard. Walk up to the stones and logs and press the action button to pick them up. Reward: 10 XP and the workbench plans.",
       "TRACK": "Gather materials"
-    },
-    "ABRE_PORTAL": {
-      "NAME": "The Sealed Portal",
-      "DESC": "You have the materials now: walk up to the sealed portal on the right and open it by handing over 5 Stone and 5 Wood. Reward: 1 gold.",
-      "TRACK": "Open the portal on the right"
     },
     "PRIMERAS_ESTRELLAS": {
       "NAME": "Mordekai's Call",
-      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and gather 100 stars: tap the screen to jump and grab them on the fly. Reward: 10 gold and 10 XP.",
+      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and gather 100 stars: tap the screen to jump and grab them on the fly. Reward: 10 XP.",
       "TRACK": "Collect 100 stars"
     },
     "NOEXP_MESA_TRABAJO": {
       "NAME": "Build the workbench",
-      "DESC": "Mordekai gave you workbench plans. Open them from your inventory with the Learn button, then tap the hammer in the bottom menu (Asgard only) to build it. Reward: 10 gold and 10 XP.",
+      "DESC": "Mordekai gave you workbench plans. Open them from your inventory with the Learn button, then tap the hammer in the bottom menu (Asgard only) to build it. Reward: 10 XP.",
       "TRACK": "Build the workbench"
     },
     "NOEXP_HACHA": {
       "NAME": "Craft an axe",
-      "DESC": "Mordekai wants to see you with proper tools. Open the workbench, craft the Iron Axe (2 stone and 2 wood), then open it in your bag and tap Equip. Then talk to Mordekai. Reward: 10 gold and 10 XP.",
+      "DESC": "Mordekai wants to see you with proper tools. Open the workbench, craft the Iron Axe (2 stone and 2 wood), then open it in your bag and tap Equip. Then talk to Mordekai. Reward: 10 XP.",
       "TRACK": "Craft and equip the axe"
     },
     "NOEXP_PICO": {
       "NAME": "Craft a pickaxe",
-      "DESC": "Mordekai taught you how to make a pickaxe: it is now on the workbench. Craft the Iron Pickaxe (2 stone and 2 wood), then open it in your bag and tap Equip. Then talk to Mordekai. Reward: 10 gold and 10 XP.",
+      "DESC": "Mordekai taught you how to make a pickaxe: it is now on the workbench. Craft the Iron Pickaxe (2 stone and 2 wood), then open it in your bag and tap Equip. Then talk to Mordekai. Reward: 10 XP.",
       "TRACK": "Craft and equip the pickaxe"
     },
     "NOEXP_FARMEO": {
       "NAME": "Break in your tools",
-      "DESC": "With an axe and a pickaxe you can do real work now. Chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and hand them to Mordekai. Reward: 10 gold and 10 XP.",
+      "DESC": "With an axe and a pickaxe you can do real work now. Chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and hand them to Mordekai. Reward: 10 XP.",
       "TRACK": "Gather 5 wood and 5 copper"
     },
     "MATA_RATA": {
       "NAME": "Hatchet Rat",
-      "DESC": "Mordekai wants you to try steel. Head back to exploration and take down 1 hatchet rat, the ground enemy scurrying along the floor.",
+      "DESC": "Mordekai wants you to try steel. Head back to exploration and take down 1 hatchet rat, the ground enemy scurrying along the floor. Reward: 10 XP.",
       "TRACK": "Kill 1 rat"
-    },
-    "PLAGA_BABOSAS": {
-      "NAME": "Slime Plague",
-      "DESC": "Something stirs in the grass. Take down your first enemy.",
-      "TRACK": "Kill 1 enemy"
-    },
-    "KILL_50": {
-      "NAME": "Rookie Hunter",
-      "DESC": "Prove your worth by defeating 50 enemies of any kind.",
-      "TRACK": "Kill enemies"
-    },
-    "ORCS_5": {
-      "NAME": "Orc Cleanup",
-      "DESC": "Orcs prowl the area. Cut down 5 of them.",
-      "TRACK": "Kill orcs"
     },
     "NOEXP_ARMAS": {
       "NAME": "Weapon and armor",
-      "DESC": "Mordekai has taught you to craft your first combat gear: it is ready at the workbench. Craft the Rusty Dagger and the Ivory Cuirass (2 stone and 2 wood each), open them in your backpack and press Equip on both. Then talk to Mordekai. Reward: 10 gold and 10 experience.",
+      "DESC": "Mordekai has taught you to craft your first combat gear: it is ready at the workbench. Craft the Rusty Dagger and the Ivory Cuirass (2 stone and 2 wood each), open them in your backpack and press Equip on both. Then talk to Mordekai. Reward: 10 XP.",
       "TRACK": "Craft and equip weapon and cuirass"
     },
     "NOEXP_KUGO": {
       "NAME": "Visit Kugo",
-      "DESC": "Mordekai wants you to meet Kugo, who is waiting for you on map 1-1. Cross the west portal of Asgard and talk to him. Reward: 10 gold and 10 experience.",
+      "DESC": "Mordekai wants you to meet Kugo, who is waiting for you on map 1-1. Cross the west portal of Asgard and talk to him. Reward: 10 XP.",
       "TRACK": "Talk to Kugo in 1-1"
     }
   },
@@ -823,10 +803,10 @@
     "MORDEKAI_NOEXP_CLAIM0": "Well done! Hand me that stone and wood… and take these plans in exchange; you also earn 10 XP. Open them in your inventory and hit Learn; then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_INTRO": "Those plans are no use in your bag, {{player}}. Tap the item in your inventory, hit Learn, then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_PROGRESS": "I still do not see your workbench, {{player}}. If you already learned the plans, tap the hammer in the bottom menu, drag it to a free spot and confirm with ✓.",
-    "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold and 10 XP. Now put it to use: open the workbench and craft an axe; then find it in your bag and tap Equip. Then come talk to me again.",
-    "MORDEKAI_AXE_CLAIM": "Now that is a proper axe, {{player}}! Take 10 gold and 10 XP. Let me teach you how to make a pickaxe: it is on the workbench now. Craft it, equip it and come back.",
-    "MORDEKAI_PICK_CLAIM": "Perfect, {{player}}! Axe and pickaxe, all set. Take 10 gold and 10 XP. Now put them to use: chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and bring them to me.",
-    "MORDEKAI_FARM_CLAIM": "Now that is work, {{player}}! I will keep the materials; take 10 gold and 10 experience. Before you fight you need gear: I have taught you to make a dagger and a cuirass at the workbench. Craft them and put them on.",
+    "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 XP. Now put it to use: open the workbench and craft an axe; then find it in your bag and tap Equip. Then come talk to me again.",
+    "MORDEKAI_AXE_CLAIM": "Now that is a proper axe, {{player}}! Take 10 XP. Let me teach you how to make a pickaxe: it is on the workbench now. Craft it, equip it and come back.",
+    "MORDEKAI_PICK_CLAIM": "Perfect, {{player}}! Axe and pickaxe, all set. Take 10 XP. Now put them to use: chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and bring them to me.",
+    "MORDEKAI_FARM_CLAIM": "Now that is work, {{player}}! I will keep the materials; take 10 XP. Before you fight you need gear: I have taught you to make a dagger and a cuirass at the workbench. Craft them and put them on.",
     "MORDEKAI_PROGRESS": "You have {{prog}}/{{goal}} stars. Keep jumping for them in exploration (east portal).",
     "MORDEKAI_INTRO": "Now learn to explore, {{player}}: cross the east portal and gather stars. Tap the screen to jump and grab them on the fly.",
     "MORDEKAI_COLLECT_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Start by gathering 5 Stone and 5 Wood from the ground: walk up to the stones and logs and press the action button.",
@@ -834,14 +814,13 @@
     "MORDEKAI_COLLECT_CLAIM": "Well done, {{player}}! You earned 10 XP. You can open the sealed portal on the right with those materials whenever you like. Now learn to explore: cross the east portal and gather stars (tap to jump and grab them on the fly).",
     "MORDEKAI_PORTAL_INTRO": "Head to the sealed portal on the right, {{player}}, and open it by handing over your 5 Stone and 5 Wood.",
     "MORDEKAI_PORTAL_PROGRESS": "Walk up to the sealed portal on the right and open it, {{player}}.",
-    "MORDEKAI_PORTAL_CLAIM": "Portal opened, {{player}}! Here's 1 gold. Now learn to explore: cross the east portal and gather stars (tap to jump and grab them on the fly).",
     "KUGO_LINE": "{{player}}, long time no see!",
     "ITALIEN_LINE": "Hey {{player}}, ready for adventure?",
     "RAKE_LINE": "{{player}}, we set off whenever you want.",
-    "MORDEKAI_GEAR_CLAIM": "Now you look like a warrior, {{player}}! Take 10 gold and 10 experience. Now go to 1-1 through the west portal and talk to Kugo: he is waiting for you.",
+    "MORDEKAI_GEAR_CLAIM": "Now you look like a warrior, {{player}}! Take 10 XP. Now go to 1-1 through the west portal and talk to Kugo: he is waiting for you.",
     "MORDEKAI_KUGO_INTRO": "You have more than enough gear now, {{player}}. Go to 1-1 through the west portal and find Kugo: he is waiting for you.",
     "MORDEKAI_KUGO_PROGRESS": "Have you not talked to Kugo yet, {{player}}? He is in 1-1, past the west portal.",
-    "KUGO_QUEST_CLAIM": "So you are {{player}}! Mordekai told me about you. Take 10 gold and 10 experience for the walk."
+    "KUGO_QUEST_CLAIM": "So you are {{player}}! Mordekai told me about you. Take 10 XP for the walk."
   },
   "WORKBENCH": {
     "TITLE": "Workbench",

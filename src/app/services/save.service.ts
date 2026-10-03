@@ -254,6 +254,8 @@ export class SaveService {
     // todos los personajes de la cuenta.
     await this.runProgress.ready();
     await this.unlocks.loadForChar(charId, snapshot?.unlocks);
+    // El arco 1 de misiones es solo del primer personaje de la cuenta (flag global).
+    this.quests.resolveArc1Owner();
 
     // Tiempo offline: en modo Supabase lo reclama el SERVIDOR (claim_offline → segundos
     // capados con su reloj), así el del móvil no puede fabricar progreso. En modo local
