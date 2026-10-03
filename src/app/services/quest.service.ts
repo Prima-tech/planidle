@@ -751,12 +751,13 @@ export class QuestService implements OnDestroy {
     }
   }
 
-  /** Cobra una misión reclamable: entrega recompensa y la pasa a Completadas. */
-  claim(def: QuestDef): void {
+  /** Cobra una misión reclamable: entrega recompensa y la pasa a Completadas.
+   *  `skipCost`: no gasta los materiales del objetivo (completado desde Admin). */
+  claim(def: QuestDef, skipCost = false): void {
     if (!this.isClaimable(def)) return;
     this.completedSet.add(def.id);
     this.activeSet.delete(def.id);   // al completarse deja de estar fijada en el HUD
-    this.payObjectiveCost(def);
+    if (!skipCost) this.payObjectiveCost(def);
     this.grantReward(def.reward);
     // Desbloquea y fija en el HUD las misiones encadenadas a esta (requires === def.id).
     for (const q of this.list()) if (q.requires === def.id) this.activate(q);
@@ -766,6 +767,26 @@ export class QuestService implements OnDestroy {
     this.completed$.next(def);
     this.notify();
     this.persistNow();  // los completados se guardan al momento (recompensa ya dada)
+  }
+
+  // ── Admin (ventana de Admin → Avance) ───────────────────────────────────────
+
+  /** Misiones de la cadena vigente, en orden (Acto 1 del panel de Avance). */
+  chain(): QuestDef[] {
+    return this.list();
+  }
+
+  /** Admin: da por hecha una misión — progreso al objetivo y cobro con su recompensa,
+   *  sin gastar los materiales que pida. Encadena igual que un cobro normal. */
+  adminComplete(def: QuestDef): void {
+    if (this.completedSet.has(def.id)) return;
+    this.progress[def.id] = def.objective.goal;
+    this.claim(def, true);
+  }
+
+  /** Admin: completa en orden todas las misiones de la cadena vigente. */
+  adminCompleteAll(): void {
+    for (const q of this.list()) this.adminComplete(q);
   }
 
   /** Entrega (gasta) los materiales de un objetivo 'collect' marcado con `consume`.

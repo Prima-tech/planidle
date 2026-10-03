@@ -211,7 +211,11 @@
     }
   },
   "ADMIN_PANEL": {
-    "TITLE": "Admin"
+    "TITLE": "Admin",
+    "ADVANCE": "Progress",
+    "ACT": "Act {{n}}",
+    "COMPLETE_ALL": "Complete the whole act",
+    "GOLD": "gold"
   },
   "SHOP": {
     "TITLE": "Premium shop",

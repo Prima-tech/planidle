@@ -211,7 +211,11 @@
     }
   },
   "ADMIN_PANEL": {
-    "TITLE": "Admin"
+    "TITLE": "Admin",
+    "ADVANCE": "Avance",
+    "ACT": "Acto {{n}}",
+    "COMPLETE_ALL": "Completar todo el acto",
+    "GOLD": "oro"
   },
   "SHOP": {
     "TITLE": "Tienda premium",

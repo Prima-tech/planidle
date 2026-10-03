@@ -130,6 +130,7 @@ interface HarvestNode {
   mineHpMax?: number;    // vida inicial (para barra/feedback)
   tileKeys: string[];
   kind: HarvestKindId;
+  tier?: number;         // tier propio del nodo (sitios fijos de Asgard); sin él, el del mapa
   // Barra de vida: se crea/muestra en cuanto el recurso baja del 100% de vida.
   hpBarTrack?: Phaser.GameObjects.Rectangle;
   hpBarFill?:  Phaser.GameObjects.Rectangle;
@@ -1689,7 +1690,7 @@ export class GameScene extends Phaser.Scene {
           x: n.sprite.x,
           y: n.sprite.y - kind.offsetY - (kind.footprintH / 2) * TS,
           kind: n.kind,
-          frame: this.harvestTierOf(n.kind)?.mmFrame,   // icono por tier (roca/gema); árbol → undefined
+          frame: this.harvestTierOf(n.kind, n.tier)?.mmFrame,   // icono por tier (roca/gema); árbol → undefined
         };
       });
     }
@@ -2637,31 +2638,39 @@ export class GameScene extends Phaser.Scene {
     // (hacha). Bloquean el paso y solo se dañan con su herramienta equipada en el slot
     // de recolección. 3 golpes → destrucción. Config en HARVEST_KINDS.
 
-    /** Tier efectivo de un nodo en el mapa actual: rocas→mineTier (siempre hay),
-     *  gemas→gemTier (null si el mapa no tiene gemas), árboles→null (sin tier). */
-    private harvestTierOf(id: HarvestKindId): MiningTier | null {
-      if (id === 'rock') return miningTier(this.currentMapConfig.mineTier);
-      if (id === 'gem')  return gemTier(this.currentMapConfig.gemTier);
-      if (id === 'tree') return treeTier(this.currentMapConfig.treeTier);
+    /** Tier efectivo de un nodo: el suyo propio si lo trae (`tier`, sitios fijos de
+     *  Asgard) o, si no, el del mapa actual: rocas→mineTier (siempre hay), gemas→gemTier
+     *  (null si el mapa no tiene gemas), árboles→treeTier. */
+    private harvestTierOf(id: HarvestKindId, tier?: number): MiningTier | null {
+      if (id === 'rock') return miningTier(tier ?? this.currentMapConfig.mineTier);
+      if (id === 'gem')  return gemTier(tier ?? this.currentMapConfig.gemTier);
+      if (id === 'tree') return treeTier(tier ?? this.currentMapConfig.treeTier);
       return null;
     }
     /** Textura del sprite de un nodo (la del tier si lo tiene; si no, la fija del kind). */
-    private harvestTexture(id: HarvestKindId): string {
-      return this.harvestTierOf(id)?.rockTexture ?? HARVEST_KINDS[id].texture;
+    private harvestTexture(id: HarvestKindId, tier?: number): string {
+      return this.harvestTierOf(id, tier)?.rockTexture ?? HARVEST_KINDS[id].texture;
     }
     /** Escala visual de un nodo (la del tier si la define; si no, la del kind). */
-    private harvestScale(id: HarvestKindId): number {
-      return this.harvestTierOf(id)?.scale ?? HARVEST_KINDS[id].scale;
+    private harvestScale(id: HarvestKindId, tier?: number): number {
+      return this.harvestTierOf(id, tier)?.scale ?? HARVEST_KINDS[id].scale;
     }
 
     /** Asgard: rocas y árboles en posiciones FIJAS (esquina sup. izq. de la huella 2×2,
      *  en tiles) para practicar con el pico y el hacha de la mesa de trabajo. Cantera al
      *  noreste y arboleda al suroeste; elegidas libres de agua/colisión y lejos de
      *  portales, spawn, Mordekai, el cofre y los recogibles del suelo. Al picar/talar uno
-     *  reaparece en SU sitio (respawn normal). Sin mejoras de mapa (es la ciudad). */
-    private static readonly HOGAR_NODE_SPOTS: Partial<Record<HarvestKindId, { x: number; y: number }[]>> = {
-      rock: [{ x: 68, y: 8 }, { x: 68, y: 13 }, { x: 63, y: 7 }, { x: 71, y: 3 }, { x: 74, y: 9 }],
-      tree: [{ x: 9, y: 40 }, { x: 9, y: 35 }, { x: 4, y: 38 }, { x: 7, y: 45 }, { x: 15, y: 43 }],
+     *  reaparece en SU sitio (respawn normal). Sin mejoras de mapa (es la ciudad).
+     *  `tier` opcional = tier propio del sitio (sin él, el del mapa = tier 1). */
+    private static readonly HOGAR_NODE_SPOTS: Partial<Record<HarvestKindId, { x: number; y: number; tier?: number }[]>> = {
+      rock: [
+        { x: 68, y: 8 }, { x: 68, y: 13 }, { x: 63, y: 7 }, { x: 71, y: 3 }, { x: 74, y: 9 },
+        { x: 67, y: 4 }, { x: 72, y: 15 }, { x: 63, y: 14 }, { x: 61, y: 3 }, { x: 64, y: 18 },
+      ],
+      tree: [
+        { x: 9, y: 40 }, { x: 9, y: 35 }, { x: 4, y: 38 }, { x: 7, y: 45 }, { x: 15, y: 43 },
+        { x: 14, y: 35 }, { x: 9, y: 30 }, { x: 20, y: 37 }, { x: 18, y: 32 }, { x: 23, y: 44 },
+      ],
     };
 
     private initHarvestNodes(): void {
@@ -2765,7 +2774,7 @@ export class GameScene extends Phaser.Scene {
           for (let dx = 0; dx < kind.footprintW; dx++)
             for (let dy = 0; dy < kind.footprintH; dy++) keys.push(`${sp.x + dx},${sp.y + dy}`);
           if (keys.some(k => this.collisionTiles.has(k))) continue;   // ocupado (nodo vivo/edificio)
-          this.spawnNode(id, kind, sp.x, sp.y, keys);
+          this.spawnNode(id, kind, sp.x, sp.y, keys, sp.tier);
           return true;
         }
         return false;
@@ -2793,7 +2802,7 @@ export class GameScene extends Phaser.Scene {
       return true;
     }
 
-    private spawnNode(id: HarvestKindId, kind: HarvestKind, tileX: number, tileY: number, tileKeys: string[]): void {
+    private spawnNode(id: HarvestKindId, kind: HarvestKind, tileX: number, tileY: number, tileKeys: string[], tier?: number): void {
       const TS = GameScene.TILE_SIZE;
       // Centrado horizontal sobre la huella; anclado por su base (origin abajo) a la
       // fila inferior, + offsetY para asentar el tronco/base sobre el suelo.
@@ -2801,9 +2810,9 @@ export class GameScene extends Phaser.Scene {
       const cx = (tileX + kind.footprintW / 2) * TS;
       const cy = baseY + kind.offsetY;
       // Roca/gema → sprite del tier del mapa; árbol → su textura fija.
-      const sprite = this.add.image(cx, cy, this.harvestTexture(id));
+      const sprite = this.add.image(cx, cy, this.harvestTexture(id, tier));
       sprite.setOrigin(0.5, 1);
-      sprite.setScale(this.harvestScale(id));
+      sprite.setScale(this.harvestScale(id, tier));
       // Depth por Y (como el jugador, que usa depth = su Y de pies): si el jugador está
       // por encima (más al norte) que la base del recurso, el recurso lo tapa (copa del
       // árbol); si está por debajo, el jugador pasa por delante.
@@ -2811,8 +2820,8 @@ export class GameScene extends Phaser.Scene {
       for (const k of tileKeys) this.collisionTiles.add(k);   // bloquea su huella
       // El recurso nace con la vida de su tier (menas, gemas y árboles); cada golpe le
       // resta la fuerza del jugador (minado/tala).
-      const mineHp = this.harvestTierOf(id)?.mineHp ?? 20;
-      this.nodes.push({ sprite, hits: 0, mineHp, mineHpMax: mineHp, tileKeys, kind: id });
+      const mineHp = this.harvestTierOf(id, tier)?.mineHp ?? 20;
+      this.nodes.push({ sprite, hits: 0, mineHp, mineHpMax: mineHp, tileKeys, kind: id, tier });
     }
 
     /** Herramienta de la categoría dada equipada en su slot de recolección, o null. */
@@ -2953,7 +2962,7 @@ export class GameScene extends Phaser.Scene {
       // eficiencia requerida del recurso. Un fallo muestra "MISS" y NO cuenta para
       // destruirlo. reqEff 0 → siempre acierta.
       {
-        const reqEff = this.harvestTierOf(node.kind)?.efficiency ?? 0;
+        const reqEff = this.harvestTierOf(node.kind, node.tier)?.efficiency ?? 0;
         if (reqEff > 0 && Math.random() > Math.min(1, this.playerHarvestEfficiency(node.kind) / reqEff)) {
           this.showMissText(node);
           // El pico rebota sin hacer mella (los árboles fallan en silencio)
@@ -2963,7 +2972,7 @@ export class GameScene extends Phaser.Scene {
       }
 
       const s = node.sprite;
-      const baseScale = this.harvestScale(node.kind);   // escala real del tier, no la global
+      const baseScale = this.harvestScale(node.kind, node.tier);   // escala real del tier, no la global
 
       // Golpe acertado: resta la fuerza (minado/tala) a la vida del recurso y muestra el
       // número de daño. Mismo modelo para menas, gemas y árboles.
@@ -3019,7 +3028,7 @@ export class GameScene extends Phaser.Scene {
       const s = node.sprite;
       // Suelta el recurso del nodo (árbol → madera; roca/gema → item del tier del mapa).
       if (kind.drop) {
-        const dropName = this.harvestTierOf(node.kind)?.dropName ?? kind.drop.name;
+        const dropName = this.harvestTierOf(node.kind, node.tier)?.dropName ?? kind.drop.name;
         const base = ITEM_CATALOG.find(e => e.name === dropName);
         if (base) {
           // Talentos de minería multiplican el botín de las rocas: mult = 1 + suma de
@@ -3030,7 +3039,7 @@ export class GameScene extends Phaser.Scene {
           // Multi-drop por eficiencia: ratio = eficiencia del jugador (minería o tala) /
           // eficiencia del recurso. Suelta floor(ratio) garantizados + 1 más con prob. =
           // la parte decimal (mín. 1). Ej.: ratio 2.5 → 2 + 50% de soltar una 3ª.
-          const reqEff = this.harvestTierOf(node.kind)?.efficiency ?? 0;
+          const reqEff = this.harvestTierOf(node.kind, node.tier)?.efficiency ?? 0;
           const effQty = this.efficiencyDropCount(this.playerHarvestEfficiency(node.kind), reqEff);
           const qty = Phaser.Math.Between(kind.drop.min, kind.drop.max) * effQty * dropMult;
           const baseY = s.y - GameScene.TILE_SIZE;
@@ -3049,7 +3058,7 @@ export class GameScene extends Phaser.Scene {
       this.spawnDebris(s.x, s.y - GameScene.TILE_SIZE * 0.8, 16, kind.debris);   // estallido mayor
       this.fxShake(120, 0.005);
       this.tweens.killTweensOf(s);
-      const baseScale = this.harvestScale(node.kind);
+      const baseScale = this.harvestScale(node.kind, node.tier);
       this.tweens.add({
         targets: s, scaleX: baseScale * 1.2, scaleY: baseScale * 1.2, alpha: 0, duration: 220, ease: 'Quad.easeOut',
         onComplete: () => s.destroy(),

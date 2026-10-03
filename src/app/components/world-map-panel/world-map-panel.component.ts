@@ -15,6 +15,8 @@ import { mapFeatureId } from 'src/app/services/unlock-config';
 import { AdminService } from 'src/app/services/admin.service';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { PlanetViewHostService } from 'src/app/services/planet-view-host.service';
+import { EquipmentService } from 'src/app/services/equipment.service';
+import { prewarmCharacterSprite } from 'src/app/components/character-sprite/character-sprite.component';
 import { MapDominionService } from 'src/app/services/map-dominion.service';
 import { ENEMY_REGISTRY } from 'src/app/enemy/enemy-config';
 import { LOOT_TABLES } from 'src/app/physics/griddrops';
@@ -35,6 +37,14 @@ interface PlanetMapEntry {
   name: string;
   current: boolean;
   tier: number | null;   // nº de mapa ('1-3' → 3); null en el hogar
+}
+
+/** Personaje del roster con su mapa (null en el activo: se usa currentMapId). */
+interface RosterEntry {
+  name: string;
+  isCurrent: boolean;
+  mapId: string | null;
+  equipment: EquipmentSnapshot | null;   // null = personaje activo (reactivo)
 }
 
 export interface CharOnMap {
@@ -60,6 +70,13 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private ngZone        = inject(NgZone);
   private planetHost    = inject(PlanetViewHostService);
   private dominion      = inject(MapDominionService);
+  private equipment     = inject(EquipmentService);
+
+  /** Roster con el mapa de cada personaje, leído UNA vez al abrir el panel (en
+   *  paralelo). Pinchar mapas filtra esta lista al instante, sin volver a leer los
+   *  snapshots del almacenamiento. El activo sigue a `currentMapId` en vivo. */
+  private roster: RosterEntry[] | null = null;
+  private rosterLoad: Promise<RosterEntry[]> | null = null;
   private mapSub: Subscription;
 
   currentMapId = '';
@@ -116,6 +133,8 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     // Única vista del panel = el globo del planeta. Se crea tras el primer ciclo,
     // cuando #planet-view ya está en el DOM.
     setTimeout(() => this.createPlanetGame());
+    // Roster + sprites listos antes del primer toque en un mapa
+    this.ensureRoster();
   }
 
   ngOnDestroy() {
@@ -138,7 +157,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       registry.set(PLANET_FLAT_KEY, this.flat);
       registry.set(PLANET_FLAT_LOCK_KEY, this.flatLocked);
       registry.set(PLANET_EMPTY_TAP_KEY, () => {
-        this.ngZone.run(() => this.deselectMap());
+        this.ngZone.run(() => { this.closeMapList(); this.deselectMap(); });
       });
       registry.set(PLANET_MODE_KEY, (m: ViewMode) => {
         this.ngZone.run(() => { this.sceneMode = m; });
@@ -148,7 +167,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
         this.ngZone.run(() => { this.zoom = z; });
       });
       registry.set(PLANET_PIN_SELECT_KEY, (mapId: string) => {
-        this.ngZone.run(() => this.selectPin(mapId));
+        this.ngZone.run(() => { this.closeMapList(); this.selectPin(mapId); });
       });
       registry.set(PLANET_PIN_TELEPORT_KEY, (mapId: string) => {
         this.ngZone.run(() => this.teleport(mapId));
@@ -238,6 +257,11 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
 
   toggleMapList() {
     this.mapListOpen = WorldMapPanelComponent.lastMapListOpen = !this.mapListOpen;
+  }
+
+  /** Pliega el desplegable de mapas: al tocar el mapa (pin o zona vacía). */
+  private closeMapList() {
+    this.mapListOpen = WorldMapPanelComponent.lastMapListOpen = false;
   }
 
   /** Pips de dificultad de cada fila (tier 1..8 → tantos encendidos). */
@@ -345,32 +369,45 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   }
 
   private async loadCharsOnMap(mapId: string) {
-    this.charsOnMap = await this.loadCharsWhere(m => m === mapId);
+    // Con el roster ya en memoria la ficha sale con su gente en el mismo frame
+    if (this.roster) { this.charsOnMap = this.charsFrom(this.roster, m => m === mapId); return; }
+    const list = await this.loadCharsWhere(m => m === mapId);
+    if (this.selectedMap?.id === mapId) this.charsOnMap = list;   // ignora respuestas de un mapa anterior
+  }
+
+  /** Lee el roster y los snapshots de los demás personajes en paralelo (una vez por
+   *  apertura del panel) y deja decodificados sus sprites de preview. */
+  private ensureRoster(): Promise<RosterEntry[]> {
+    if (this.rosterLoad) return this.rosterLoad;
+    this.rosterLoad = (async () => {
+      const chars   = ((await this.asgard.getCharacters()) ?? []).filter((c: any) => c?.id && c?.name);
+      const current = String(this.asgard.selectedPlayer?.id ?? '');
+      const roster = await Promise.all(chars.map(async (char: any): Promise<RosterEntry> => {
+        const id = String(char.id);
+        if (id === current) return { name: char.name, isCurrent: true, mapId: null, equipment: null };
+        const snap = await this.storage.get(`snapshot_char_${id}`);
+        return { name: char.name, isCurrent: false, mapId: snap?.mapId ?? null, equipment: snap?.equipment ?? {} };
+      }));
+      this.roster = roster;
+      for (const r of roster) {
+        prewarmCharacterSprite(r.name, r.equipment ? Object.values(r.equipment) : this.equipment.slots.map(s => s.item));
+      }
+      return roster;
+    })();
+    return this.rosterLoad;
+  }
+
+  private charsFrom(roster: RosterEntry[], matches: (mapId: string) => boolean): CharOnMap[] {
+    return roster
+      .filter(r => { const m = r.isCurrent ? this.currentMapId : r.mapId; return !!m && matches(m); })
+      .map(r => ({ name: r.name, isCurrent: r.isCurrent, equipment: r.equipment }));
   }
 
   /** Recorre el roster y devuelve los personajes cuyo mapa cumple `matches`.
    *  El personaje activo usa `currentMapId` (reactivo, equipment null); el resto
    *  lee su snapshot persistido. Lo comparten la tarjeta de mapa y la de planeta. */
   private async loadCharsWhere(matches: (mapId: string) => boolean): Promise<CharOnMap[]> {
-    const chars   = (await this.asgard.getCharacters()) ?? [];
-    const current = String(this.asgard.selectedPlayer?.id ?? '');
-    const result: CharOnMap[] = [];
-
-    for (const char of chars) {
-      if (!char?.id || !char?.name) continue;
-      const id = String(char.id);
-
-      if (id === current) {
-        if (matches(this.currentMapId))
-          result.push({ name: char.name, isCurrent: true, equipment: null });
-      } else {
-        const snap = await this.storage.get(`snapshot_char_${id}`);
-        if (snap?.mapId && matches(snap.mapId))
-          result.push({ name: char.name, isCurrent: false, equipment: snap.equipment ?? {} });
-      }
-    }
-
-    return result;
+    return this.charsFrom(this.roster ?? await this.ensureRoster(), matches);
   }
 
   /** ¿El mapa está bloqueado? 'hogar' (sin feature) siempre cuenta como libre;
@@ -427,10 +464,10 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     return res;
   }
 
-  // ── Ficha de info del mapa (pestañas Enemigos / Recursos / Gente) ───────────
+  // ── Ficha de info del mapa (pestañas Gente / Enemigos / Recursos) ───────────
 
   /** Pestaña abierta de la ficha; estática → se recuerda entre mapas y aperturas. */
-  private static lastInfoTab: 'enemies' | 'resources' | 'people' = 'enemies';
+  private static lastInfoTab: 'enemies' | 'resources' | 'people' = 'people';
   infoTab = WorldMapPanelComponent.lastInfoTab;
   setInfoTab(tab: 'enemies' | 'resources' | 'people') {
     this.infoTab = WorldMapPanelComponent.lastInfoTab = tab;

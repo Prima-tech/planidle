@@ -26,13 +26,21 @@ type Decoded = ImageBitmap | HTMLImageElement;
 // una sola vez en toda la sesión (la promesa se cachea, no solo el resultado, para
 // que cargas concurrentes no decodifiquen dos veces).
 const decodeCache = new Map<string, Promise<Decoded | null>>();
+// Resultado ya resuelto de cada decode: permite pintar en el MISMO frame (sin esperar
+// a la promesa) cuando las hojas ya están listas, p.ej. precalentadas.
+const decodedReady = new Map<string, Decoded | null>();
 
 export function loadDecoded(src: string): Promise<Decoded | null> {
   const cached = decodeCache.get(src);
   if (cached) return cached;
-  const p = decode(src);
+  const p = decode(src).then(d => { decodedReady.set(src, d); return d; });
   decodeCache.set(src, p);
   return p;
+}
+
+/** Hoja ya decodificada (o null si falló); undefined si aún no está lista. */
+export function getDecodedSync(src: string): Decoded | null | undefined {
+  return decodedReady.get(src);
 }
 
 async function decode(src: string): Promise<Decoded | null> {
@@ -66,6 +74,28 @@ function pixelWidth(d: Decoded): number {
  * offscreen de `size*frames` × `size`. Se llama una vez por recarga; el tick solo
  * copia la columna del frame actual.
  */
+// Strips ya horneados, por combinación de capas + tamaño: el mismo personaje con el
+// mismo equipo no se vuelve a componer al reabrir una ficha. Tope pequeño (FIFO).
+const stripCache = new Map<string, HTMLCanvasElement>();
+const STRIP_CACHE_MAX = 48;
+
+export function bakeStripCached(
+  sources: LayerSource[],
+  imgs: (Decoded | null)[],
+  size: number,
+  frames: number,
+  bodyFrameSize: number,
+): HTMLCanvasElement {
+  const key = size + '|' + frames + '|' + sources.map(s => `${s.src}@${s.startFrame}+${s.frameCount}/${s.frameSize}`).join(',');
+  let strip = stripCache.get(key);
+  if (!strip) {
+    strip = bakeStrip(sources, imgs, size, frames, bodyFrameSize);
+    if (stripCache.size >= STRIP_CACHE_MAX) stripCache.delete(stripCache.keys().next().value);
+    stripCache.set(key, strip);
+  }
+  return strip;
+}
+
 export function bakeStrip(
   sources: LayerSource[],
   imgs: (Decoded | null)[],

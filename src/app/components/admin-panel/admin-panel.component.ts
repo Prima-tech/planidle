@@ -6,6 +6,7 @@ import { ConnectionService } from 'src/app/services/connection.service';
 import { SaveService } from 'src/app/services/save.service';
 import { StorageService } from 'src/app/services/storage.service';
 import { AppStyleService } from 'src/app/services/app-style.service';
+import { QuestDef, QuestService } from 'src/app/services/quest.service';
 import { AsgardService } from 'src/app/services/asgard';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { RunProgressService } from 'src/app/services/run-progress.service';
@@ -27,14 +28,17 @@ import { WORLD_PARALLAX_SETS } from 'src/app/scenes/worldrun/parallax-sets';
   standalone: false
 })
 export class AdminPanelComponent {
-  /** Pestañas principales: 0 = Admin · 1 = Estilos. */
-  tab: 0 | 1 = 0;
+  /** Pestañas principales: 0 = Admin · 1 = Estilos · 2 = Avance (misiones). */
+  tab: 0 | 1 | 2 = 0;
+  /** Desplegable del Acto 1 en la pestaña Avance. */
+  act1Open = true;
   /** Sub-pestañas de Admin: 0 = Admin (monedas, rejilla…) · 1 = Fondos (parallax)
    *  · 2 = Progreso (desbloqueo manual de features). */
   adminTab: 0 | 1 | 2 = 0;
 
   gs = inject(GameSettingsService);
   appStyle = inject(AppStyleService);
+  quests = inject(QuestService);
   private connection = inject(ConnectionService);
   private saveService = inject(SaveService);
   private storage = inject(StorageService);
@@ -50,6 +54,27 @@ export class AdminPanelComponent {
   readonly ADMIN_COINS_MAX = 1_000_000;
   readonly parallaxThemes = PARALLAX_THEME_LIST;
   readonly worldParallaxSets = WORLD_PARALLAX_SETS;
+
+  /** Nº de misiones del acto ya completadas. */
+  doneCount(): number {
+    return this.quests.chain().filter(q => this.quests.isCompleted(q)).length;
+  }
+
+  allDone(): boolean {
+    const chain = this.quests.chain();
+    return chain.length > 0 && chain.every(q => this.quests.isCompleted(q));
+  }
+
+  /** "+10 oro · +10 EXP · Mesa de trabajo ×1" para la fila de la misión. */
+  rewardLabel(q: QuestDef): string {
+    const r = q.reward;
+    const t = (k: string) => this.translate.instant(k);
+    const parts: string[] = [];
+    if (r.coins) parts.push(`+${r.coins} ${t('ADMIN_PANEL.GOLD')}`);
+    if (r.exp) parts.push(`+${r.exp} ${t('STAT.EXP_SHORT')}`);
+    for (const it of r.items ?? []) parts.push(`${it.name} ×${it.qty}`);
+    return parts.join(' · ');
+  }
 
   /** Suma al personaje activo la cantidad de monedas de la barra. */
   grantCoins(): void {

@@ -560,6 +560,73 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   .coin-spinner { width: 18px; height: 18px; }
 }
 
+/* ── Admin → Avance: actos desplegables con las misiones y su check ──────────────────
+   Cabecera del acto = fila metálica (como .gs-row) pulsable; cuerpo = filas de misión
+   con una casilla píxel (vacía → oro con ✓ al completarse). */
+.gs-act-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  background: $wood-btn-dark;
+  border: 3px solid;
+  border-color: $metal-light $metal-dark $metal-dark $metal;
+  border-radius: 7px;
+  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: $text-cream;
+  font: inherit;
+  cursor: pointer;
+  ion-icon { font-size: 13px; }
+}
+.gs-act-title { flex: 1; text-align: left; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+.gs-act-count { font-size: 10px; font-weight: 700; color: rgba($text-cream, 0.6); font-variant-numeric: tabular-nums; }
+
+.gs-act-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 0 0 8px;
+}
+
+.gs-quest {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 5px;
+  cursor: pointer;
+  &.done { cursor: default; opacity: 0.7; }
+}
+.gs-quest--all {
+  background: rgba(0, 0, 0, 0.2);
+  margin-bottom: 2px;
+  .gs-quest-name { font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; font-size: 10px; }
+}
+// Input real oculto (accesible); la casilla visible es .gs-check
+.gs-check-input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.gs-check {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  background: $text-cream;
+  border: 2px solid $outline;
+  border-radius: 3px;
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.18);
+  ion-icon { font-size: 12px; color: $text-brown; }
+  &.on {
+    background: linear-gradient(180deg, #ffe9a8, #f0c040 60%, #b8922a);
+    box-shadow: none;
+  }
+}
+.gs-quest-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.gs-quest-name { font-size: 11px; font-weight: 700; color: $text-cream; }
+.gs-quest-reward { font-size: 9.5px; color: rgba($text-cream, 0.55); }
+
 /* ═══════════════ Panel de Ajustes · overrides por estilo (data-appstyle) ═══════════════
    Base wood (arriba). El mixin repinta el panel, pestañas, secciones/filas (conexión,
    identidad, ajustes), toggles, chips del selector de estilo, opciones y el modal de
@@ -608,6 +675,19 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   .gs-conn--guest .gs-conn-text { color: $muted; }
 
   .gs-section-label { color: $title; }
+
+  // Admin → Avance
+  .gs-act-head { background: $cell; border: 2px solid $cell-bd; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25); color: $text; }
+  .gs-act-count,
+  .gs-quest-reward { color: $muted; }
+  .gs-quest-name { color: $text; }
+  .gs-quest { background: rgba(0, 0, 0, 0.18); }
+  .gs-check {
+    background: $cell;
+    border-color: $accent-soft;
+    ion-icon { color: $on-accent; }
+    &.on { background: $accent; border-color: $accent; }
+  }
   .gs-version { color: $muted; }
 
   // Opciones (botones de valor): pastilla del tema; seleccionada → acento

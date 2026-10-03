@@ -3,7 +3,7 @@
   <div class="map-area">
 
     <!-- Ficha de info del mapa (al pulsar un pin del globo): cabecera con nombre y
-         tier, tres pestañas (Enemigos / Recursos / Gente) y pie con el dominio del
+         tier, tres pestañas (Gente / Enemigos / Recursos) y pie con el dominio del
          mapa y el botón de viajar (o la nota de bloqueado). -->
     <div class="map-info-card mi-card" *ngIf="selectedMap" [class.mi-raised]="detailPlanetId === 'mundo' && canZoom">
       <div class="mi-head">
@@ -12,9 +12,9 @@
       </div>
 
       <div class="mi-tabs" role="tablist">
+        <button role="tab" [attr.aria-selected]="infoTab === 'people'" (click)="setInfoTab('people')">{{ 'MAP.TAB_PEOPLE' | translate }}</button>
         <button role="tab" [attr.aria-selected]="infoTab === 'enemies'" (click)="setInfoTab('enemies')">{{ 'MAP.TAB_ENEMIES' | translate }}</button>
         <button role="tab" [attr.aria-selected]="infoTab === 'resources'" (click)="setInfoTab('resources')">{{ 'MAP.TAB_RESOURCES' | translate }}</button>
-        <button role="tab" [attr.aria-selected]="infoTab === 'people'" (click)="setInfoTab('people')">{{ 'MAP.TAB_PEOPLE' | translate }}</button>
       </div>
 
       <div class="mi-pane" role="tabpanel" [ngSwitch]="infoTab">

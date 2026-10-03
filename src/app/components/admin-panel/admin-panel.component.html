@@ -2,6 +2,7 @@
 
   <div class="gs-tabs">
     <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">Admin</button>
+    <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">{{ 'ADMIN_PANEL.ADVANCE' | translate }}</button>
     <button class="gs-tab" [class.active]="tab === 1" (click)="tab = 1">{{ 'GAME_SETTINGS.STYLES' | translate }}</button>
   </div>
 
@@ -128,6 +129,41 @@
         <app-progress-panel class="embedded"></app-progress-panel>
       </ng-container>
 
+    </ng-container>
+
+    <!-- Avance: marcar misiones como hechas (con su recompensa), agrupadas por acto. -->
+    <ng-container *ngIf="tab === 2">
+      <div class="gs-section">
+        <div class="gs-act">
+          <button type="button" class="gs-act-head" (click)="act1Open = !act1Open">
+            <ion-icon [name]="act1Open ? 'chevron-down-outline' : 'chevron-forward-outline'"></ion-icon>
+            <span class="gs-act-title">{{ 'ADMIN_PANEL.ACT' | translate: { n: 1 } }}</span>
+            <span class="gs-act-count">{{ doneCount() }}/{{ quests.chain().length }}</span>
+          </button>
+
+          <div class="gs-act-body" *ngIf="act1Open">
+            <!-- Arriba del todo: completar el acto entero -->
+            <label class="gs-quest gs-quest--all" [class.done]="allDone()">
+              <span class="gs-check" [class.on]="allDone()">
+                <ion-icon *ngIf="allDone()" name="checkmark"></ion-icon>
+              </span>
+              <input type="checkbox" class="gs-check-input" [checked]="allDone()" [disabled]="allDone()" (change)="quests.adminCompleteAll()">
+              <span class="gs-quest-name">{{ 'ADMIN_PANEL.COMPLETE_ALL' | translate }}</span>
+            </label>
+
+            <label class="gs-quest" *ngFor="let q of quests.chain()" [class.done]="quests.isCompleted(q)">
+              <span class="gs-check" [class.on]="quests.isCompleted(q)">
+                <ion-icon *ngIf="quests.isCompleted(q)" name="checkmark"></ion-icon>
+              </span>
+              <input type="checkbox" class="gs-check-input" [checked]="quests.isCompleted(q)" [disabled]="quests.isCompleted(q)" (change)="quests.adminComplete(q)">
+              <span class="gs-quest-info">
+                <span class="gs-quest-name">{{ q.name | translate }}</span>
+                <span class="gs-quest-reward" *ngIf="q.reward">{{ rewardLabel(q) }}</span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
     </ng-container>
 
     <ng-container *ngIf="tab === 1">
