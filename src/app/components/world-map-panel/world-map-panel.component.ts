@@ -220,7 +220,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
 
   /** Desplegable de mapas disponibles (columna izquierda): abierto o contraído.
    *  Estático → se recuerda entre aperturas del panel durante la sesión. */
-  private static lastMapListOpen = true;
+  private static lastMapListOpen = false;
   mapListOpen = WorldMapPanelComponent.lastMapListOpen;
 
   toggleMapList() {

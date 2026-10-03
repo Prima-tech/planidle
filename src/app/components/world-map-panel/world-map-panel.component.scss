@@ -250,18 +250,6 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   }
 }
 
-// Rótulo «Estás en» sobre el mapa actual (texto suelto sobre el globo)
-.pml-label {
-  width: 104px;
-  text-align: center;
-  color: $text-cream;
-  font-size: 10px;
-  font-weight: bold;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  pointer-events: none;
-}
 
 // Cabecera del desplegable = mapa actual: acento dorado fijo + chevron a la derecha
 .pml-toggle {
@@ -590,7 +578,6 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     &.pml-current { border-color: $accent; color: $accent; background: $item-active-bg; }
   }
 
-  .pml-label { color: $muted; }
   .pml-dropdown { border-left-color: $accent; }
 
   .map-info-card {

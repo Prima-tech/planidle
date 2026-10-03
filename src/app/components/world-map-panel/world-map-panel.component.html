@@ -121,7 +121,6 @@
          (contraíble) con el resto de mapas disponibles. Pinchar un mapa gira el
          globo / lo selecciona; «Exploración» entra en el modo runner. -->
     <div class="planet-map-list" *ngIf="planetMapList.length > 0">
-      <div class="pml-label" *ngIf="currentEntry">{{ 'MAP.YOU_ARE_IN' | translate }}</div>
       <!-- Cabecera del desplegable = mapa actual (o «Mapas» si no estás en este planeta) -->
       <button
         class="pml-item pml-toggle pml-current"
