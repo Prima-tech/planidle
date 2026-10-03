@@ -1,5 +1,6 @@
 <!-- Ventana de chat. La abre el botón de chat de la barra inferior (footer-bar) y se
-     cierra con su ✕ o tocando fuera; aquí solo se pinta el historial. -->
+     cierra con su ✕ o tocando fuera. 3 pestañas: Chat (lo que dicen los personajes),
+     Progreso (botín, recetas, niveles, misiones) y Combate (log de golpes). -->
 <div class="chat-window" *ngIf="open && enabled">
 
   <!-- ✕ colgado de la ESQUINA, fuera del flujo: no empuja el texto ni le roba alto. -->
@@ -7,11 +8,37 @@
     <ion-icon name="close"></ion-icon>
   </button>
 
+  <!-- Pestañas: botones flotantes de solo icono, colgados FUERA de la ventana por su
+       izquierda (en columna). El nombre va en title/aria-label. -->
+  <div class="chat-tabs">
+    <button class="chat-tab" [class.active]="tab === 'chat'" (click)="setTab('chat')"
+            [attr.title]="'CHAT.TAB_CHAT' | translate" [attr.aria-label]="'CHAT.TAB_CHAT' | translate">
+      <ion-icon name="chatbubble-ellipses"></ion-icon>
+    </button>
+    <button class="chat-tab" [class.active]="tab === 'loot'" (click)="setTab('loot')"
+            [attr.title]="'CHAT.TAB_LOOT' | translate" [attr.aria-label]="'CHAT.TAB_LOOT' | translate">
+      <ion-icon name="cube"></ion-icon>
+    </button>
+    <button class="chat-tab" [class.active]="tab === 'combat'" (click)="setTab('combat')"
+            [attr.title]="'CHAT.TAB_COMBAT' | translate" [attr.aria-label]="'CHAT.TAB_COMBAT' | translate">
+      <ion-icon name="flash"></ion-icon>
+    </button>
+  </div>
+
   <div class="chat-body" #body>
-    <p class="chat-empty" *ngIf="entries.length === 0">{{ 'CHAT.EMPTY' | translate }}</p>
-    <div class="chat-msg" *ngFor="let e of entries">
-      <span class="chat-speaker">{{ e.speaker }}</span><span class="chat-colon">:</span>
-      <span class="chat-text">{{ e.text }}</span>
-    </div>
+    <ng-container *ngIf="tab === 'chat'">
+      <p class="chat-empty" *ngIf="entries.length === 0">{{ 'CHAT.EMPTY' | translate }}</p>
+      <div class="chat-msg" *ngFor="let e of entries">
+        <span class="chat-speaker">{{ e.speaker }}</span><span class="chat-colon">:</span>
+        <span class="chat-text">{{ e.text }}</span>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="tab !== 'chat'">
+      <p class="chat-empty" *ngIf="logEntries.length === 0">
+        {{ (tab === 'loot' ? 'CHAT.EMPTY_LOOT' : 'CHAT.EMPTY_COMBAT') | translate }}
+      </p>
+      <div class="chat-log-line" *ngFor="let e of logEntries; trackBy: trackLog" [attr.data-tone]="e.tone">{{ e.text }}</div>
+    </ng-container>
   </div>
 </div>

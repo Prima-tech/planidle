@@ -2,10 +2,16 @@ import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChi
 import { Subscription } from 'rxjs';
 import { ChatEntry, DialogueService } from 'src/app/services/dialogue.service';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
+import { GameLogService, LogEntry } from 'src/app/services/game-log.service';
+
+/** Pestañas de la ventana: diálogos, progreso (botín/recetas/niveles) y combate. */
+type ChatTab = 'chat' | 'loot' | 'combat';
 
 /**
- * Registro de chat de NPCs: ventana con el historial de lo hablado con los personajes
- * ("Mordekai: …"), lo más reciente abajo.
+ * Ventana de chat con 3 pestañas, lo más reciente abajo:
+ *   - Chat: lo hablado con los personajes ("Mordekai: …") — DialogueService.history$.
+ *   - Progreso: objetos y oro recogidos, recetas, niveles, misiones — GameLogService.loot$.
+ *   - Combate: golpes dados y recibidos, esquivas, bajas — GameLogService.combat$.
  *
  * La ventana la abre y la cierra el BOTÓN DEL CHAT DE LA BARRA INFERIOR (footer-bar),
  * no este componente: por eso el estado (abierto / sin leer) vive en DialogueService,
@@ -25,11 +31,19 @@ export class ChatLogComponent implements OnInit, OnDestroy {
   private dialogue = inject(DialogueService);
   private zone = inject(NgZone);
   private gs = inject(GameSettingsService);
+  private log = inject(GameLogService);
   private host = inject(ElementRef) as ElementRef<HTMLElement>;
 
   @ViewChild('body') private bodyRef?: ElementRef<HTMLElement>;
 
   entries: ChatEntry[] = [];
+  /** Líneas de la pestaña de registro activa (Progreso o Combate). */
+  logEntries: LogEntry[] = [];
+  /** Pestaña activa. Estática: sobrevive a que el componente se recree (cambio de mapa). */
+  private static lastTab: ChatTab = 'chat';
+  tab: ChatTab = ChatLogComponent.lastTab;
+  private loot: LogEntry[] = [];
+  private combat: LogEntry[] = [];
   open = false;
   /** ¿Chat activado en Ajustes? Si no, se oculta la ventana. */
   enabled = this.gs.chatEnabled;
@@ -38,9 +52,13 @@ export class ChatLogComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.sub = this.dialogue.history$.subscribe(list => this.zone.run(() => {
+      const stick = this.atBottom();
       this.entries = list;
-      if (this.open) this.scrollToBottomSoon();
+      if (this.open && this.tab === 'chat' && stick) this.scrollToBottomSoon();
     }));
+    // Registros: llegan desde la escena Phaser (fuera de la zona) → reentra en NgZone.
+    this.sub.add(this.log.loot$.subscribe(list => this.zone.run(() => { this.loot = list; this.onLog('loot'); })));
+    this.sub.add(this.log.combat$.subscribe(list => this.zone.run(() => { this.combat = list; this.onLog('combat'); })));
     this.sub.add(this.dialogue.chatOpen$.subscribe(open => this.zone.run(() => {
       this.open = open;
       if (open) this.scrollToBottomSoon();
@@ -54,6 +72,29 @@ export class ChatLogComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+  }
+
+  setTab(tab: ChatTab): void {
+    this.tab = ChatLogComponent.lastTab = tab;
+    this.logEntries = tab === 'loot' ? this.loot : tab === 'combat' ? this.combat : [];
+    this.scrollToBottomSoon();
+  }
+
+  trackLog(_: number, e: LogEntry): string { return e.id + ':' + e.text; }
+
+  /** Llegó una línea a un registro: si es la pestaña visible, la pinta y baja el scroll
+   *  — salvo que estés leyendo más arriba (no te arranca de donde estás). */
+  private onLog(ch: 'loot' | 'combat'): void {
+    if (this.tab !== ch) return;
+    const stick = this.atBottom();
+    this.logEntries = ch === 'loot' ? this.loot : this.combat;
+    if (this.open && stick) this.scrollToBottomSoon();
+  }
+
+  /** ¿El historial está pegado abajo (o aún no hay ventana)? */
+  private atBottom(): boolean {
+    const el = this.bodyRef?.nativeElement;
+    return !el || el.scrollHeight - el.scrollTop - el.clientHeight < 24;
   }
 
   /** Botón ✕ de la cabecera. */

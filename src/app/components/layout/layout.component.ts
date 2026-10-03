@@ -52,6 +52,7 @@ import { AdminService } from 'src/app/services/admin.service';
 import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { AudioService } from 'src/app/services/audio.service';
 import { QuestService } from 'src/app/services/quest.service';
+import { GameLogService } from 'src/app/services/game-log.service';
 import { RunProgressService } from 'src/app/services/run-progress.service';
 import { PortalUnlockService } from 'src/app/services/portal-unlock.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -128,6 +129,7 @@ export class LayoutComponent implements OnDestroy {
     private portalUnlockService: PortalUnlockService,
     private translateService: TranslateService,
     private ambientChatService: AmbientChatService,
+    private gameLogService: GameLogService,
     private planetViewHost: PlanetViewHostService,
   ) {
     this.loadGame();
@@ -326,6 +328,7 @@ export class LayoutComponent implements OnDestroy {
     this.phaserGame.registry.set(REGISTRY_KEYS.RUN_PROGRESS,     this.runProgressService);
     this.phaserGame.registry.set(REGISTRY_KEYS.PORTAL_UNLOCK,    this.portalUnlockService);
     this.phaserGame.registry.set(REGISTRY_KEYS.TRANSLATE,        this.translateService);
+    this.phaserGame.registry.set(REGISTRY_KEYS.GAME_LOG,         this.gameLogService);
     this.sceneManager.setGame(this.phaserGame);
 
     // Audio: precarga los efectos y desbloquea el contexto tras el primer gesto

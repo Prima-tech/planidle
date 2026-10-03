@@ -28,7 +28,9 @@ $gold-2: #f0c040;
   z-index: 160;
   // TAMAÑO FIJO: no crece ni encoge con los mensajes. El historial scrollea dentro
   // (.chat-body), así que la ventana siempre ocupa lo mismo.
-  width: min(300px, calc(100vw - 16px));
+  // Hueco a la izquierda para las pestañas flotantes (32px + 6px de separación): al
+  // ir centrada, cada lado debe dejar al menos ~40px libres.
+  width: min(300px, calc(100vw - 88px));
   height: 25vh;
   display: flex;
   flex-direction: column;
@@ -83,6 +85,59 @@ $gold-2: #f0c040;
   &:active { transform: scale(0.9); box-shadow: 0 0 0 1px $outline, inset 0 2px 5px rgba(0, 0, 0, 0.45); }
 }
 
+/* Pestañas (Chat · Progreso · Combate): botones FLOTANTES de solo icono, en columna,
+   colgados por fuera del borde izquierdo de la ventana (la ventana no tiene overflow,
+   así que asoman). Madera con bisel de piedra como los del hub; la activa, en oro. */
+.chat-tabs {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 6px);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.chat-tab {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: $text-cream;
+  background: linear-gradient(180deg, $wood-btn, $wood-btn-dark);
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 7px;
+  box-shadow:
+    0 0 0 1px $outline,
+    inset 0 0 0 1px $outline,
+    inset 0 2px 2px rgba(255, 255, 255, 0.25),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, filter 0.15s;
+
+  ion-icon { font-size: 16px; }
+
+  &:not(.active) { filter: brightness(0.82) saturate(0.85); }
+  &:hover { color: $gold; }
+  &:active { transform: scale(0.92); }
+
+  &.active {
+    color: $gold-2;
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      inset 0 2px 2px rgba(255, 255, 255, 0.28),
+      inset 0 -3px 4px rgba(0, 0, 0, 0.3),
+      0 0 8px rgba(240, 192, 64, 0.55),
+      0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+}
+
 .chat-body {
   flex: 1;
   min-height: 0;
@@ -115,6 +170,20 @@ $gold-2: #f0c040;
 }
 .chat-colon { margin-right: 3px; }
 
+/* Líneas de los registros (Progreso / Combate): color según el tipo. */
+.chat-log-line {
+  font-size: 11.5px;
+  line-height: 1.3;
+  color: #e6d3b0;
+  word-break: break-word;
+
+  &[data-tone="gold"]  { color: $gold-2; font-weight: 700; }
+  &[data-tone="good"]  { color: #9fd87f; }
+  &[data-tone="bad"]   { color: #f08a72; }
+  &[data-tone="crit"]  { color: #ffb347; font-weight: 700; }
+  &[data-tone="muted"] { color: rgba(236, 217, 180, 0.5); font-style: italic; }
+}
+
 /* ═══════════════ Temas (data-appstyle) ═══════════════ */
 // Los 3 primeros parámetros eran del botón flotante (que ahora vive en el footer);
 // se reaprovechan para el ✕ de la cabecera, que es el mismo tipo de botón redondo.
@@ -131,7 +200,16 @@ $gold-2: #f0c040;
     border-radius: $radius;
   }
   .chat-speaker, .chat-colon { color: $speaker; }
-  .chat-msg { color: $text; }
+  .chat-msg, .chat-log-line { color: $text; }
+  .chat-log-line[data-tone="gold"] { color: $speaker; }
+  .chat-tab {
+    background: $fab-bg;
+    border: 1px solid $fab-edge;
+    color: $muted;
+    box-shadow: none;
+    filter: none;
+    &.active { color: $fab-icon; border-color: $fab-icon; box-shadow: 0 0 8px $fab-edge; }
+  }
   .chat-empty { color: $muted; }
 }
 

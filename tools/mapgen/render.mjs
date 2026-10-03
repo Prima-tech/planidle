@@ -6,7 +6,7 @@ import { PNG } from 'pngjs';
 
 const TILE = 16;
 const id = process.argv[2] ?? '1-1';
-const mapPath = path.join(import.meta.dirname, '..', '..', 'src', 'assets', 'tilemaps', 'generated', `${id}.tmj`);
+const mapPath = process.argv[4] ?? path.join(import.meta.dirname, '..', '..', 'src', 'assets', 'tilemaps', 'generated', `${id}.tmj`);
 const m = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
 const W = m.width, H = m.height;
 

@@ -38,6 +38,7 @@ npm test        # Karma unit tests
 | `WorldService` | `currentMap$` — mapa actual |
 | `RegenService` | Timer 10s. `start()`/`stop()` en LayoutComponent ngOnInit/ngOnDestroy |
 | `KillService` | `charKills` + `globalKills` por mapa/tipo |
+| `GameLogService` | Pestañas Progreso/Combate del chat. Escucha botín/oro/nivel/recetas/misiones/bajas; Phaser empuja golpes con `reg.gameLog.playerHit/playerHurt/playerAvoid` |
 | `MapStatsService` | `activeGroups$`, `sessionKills$` (se resetea en cada `create()`) |
 
 ## Bridge Angular ↔ Phaser

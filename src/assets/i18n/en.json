@@ -746,7 +746,29 @@
   "CHAT": {
     "TITLE": "Chat",
     "EMPTY": "You haven't talked to anyone yet.",
-    "CLOSE": "Close"
+    "CLOSE": "Close",
+    "TAB_CHAT": "Chat",
+    "TAB_LOOT": "Progress",
+    "TAB_COMBAT": "Combat",
+    "EMPTY_LOOT": "What you collect and learn shows up here.",
+    "EMPTY_COMBAT": "Your fights show up here."
+  },
+  "LOG": {
+    "ITEM": "You get {{name}} ×{{qty}}",
+    "GOLD": "You get {{qty}} gold",
+    "LEVEL_UP": "You reached level {{lvl}}!",
+    "RECIPE": "You learned the recipe: {{name}}",
+    "QUEST": "Quest completed: {{name}}",
+    "HIT": "You hit {{enemy}}: {{dmg}}",
+    "HIT_CRIT": "Critical! You hit {{enemy}}: {{dmg}}",
+    "SKILL_HIT": "Your skill hits {{enemy}}: {{dmg}}",
+    "SKILL_CRIT": "Critical! Your skill hits {{enemy}}: {{dmg}}",
+    "KILL": "You defeated {{enemy}}",
+    "HURT": "{{enemy}} hits you: {{dmg}}",
+    "HURT_CRIT": "Critical! {{enemy}} hits you: {{dmg}}",
+    "EVADE": "You dodge {{enemy}}'s attack",
+    "BLOCK": "Your defense stops {{enemy}}'s blow",
+    "ENEMY_MISS": "{{enemy}} misses"
   },
   "CHAT_AMBIENT": {
     "GENERIC": {

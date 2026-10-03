@@ -4,6 +4,7 @@ import { EnemyAttackKind, EnemyTypeConfig, rollDamageVariance } from "./enemy-co
 import { EnemyBehavior } from "../scenes/gamescene/map-config";
 import { GameScene } from "../scenes/gamescene/gamescene";
 import { REGISTRY_KEYS } from "../scenes/game-registry";
+import type { GameLogService } from "../services/game-log.service";
 import { Direction } from "../pnj/interfaces/Direction";
 import { spawnFloatingText } from "../scenes/gamescene/floating-text";
 import Phaser from 'phaser';
@@ -313,8 +314,11 @@ export class Enemy {
     }
   }
 
-  takeDamage(amount: number, isCrit = false) {
+  /** `skill` = el golpe viene de una habilidad (no del ataque básico); solo cambia la
+   *  línea del registro de combate. */
+  takeDamage(amount: number, isCrit = false, skill = false) {
     if (this.isDead) return;
+    this.gameLog()?.playerHit(this.displayName, amount, isCrit, skill);
     this.HP -= amount;
     this.showDamageNumber(amount, isCrit);
     this.ensureHPBar();
@@ -329,6 +333,14 @@ export class Enemy {
     if (this.noFlinch) return;
     this.applyKnockback(isCrit);
     this.playHurt();
+  }
+
+  /** Nombre visible (registro de combate). */
+  get displayName(): string { return this.config.displayName ?? this.type; }
+
+  /** Registro de combate de la ventana de chat (GameLogService), vía registry. */
+  private gameLog(): GameLogService | undefined {
+    return this.mainScene.game.registry.get(REGISTRY_KEYS.GAME_LOG);
   }
 
   /** Furia por vida baja: telegrafiía y ataca ×0.8 más rápido; aviso con anillo rojo
@@ -699,7 +711,7 @@ export class Enemy {
           if (hdx * hdx + hdy * hdy <= hitR * hitR) {
             hit = true;   // un solo atropello por embestida
             this.mainScene.events.emit('enemyAttackPlayer', {
-              damage, isCrit, sourceX: this.sprite.x, sourceY: this.sprite.y, knockback: true,
+              damage, isCrit, sourceX: this.sprite.x, sourceY: this.sprite.y, knockback: true, attacker: this.displayName,
             });
           }
         },
@@ -726,11 +738,12 @@ export class Enemy {
       if (pdx * pdx + pdy * pdy > missR * missR) {
         spawnFloatingText(this.mainScene, this.sprite.x, this.sprite.y - this.sprite.displayHeight * 0.5,
           'MISS', { fontSize: 22, color: '#d8d8d8', strokeThickness: 5 });
+        this.gameLog()?.playerAvoid(this.displayName, 'miss');
         return;
       }
     }
     this.mainScene.events.emit('enemyAttackPlayer', {
-      damage, isCrit, sourceX: this.sprite.x, sourceY: this.sprite.y,
+      damage, isCrit, sourceX: this.sprite.x, sourceY: this.sprite.y, attacker: this.displayName,
     });
   }
 
@@ -803,7 +816,9 @@ export class Enemy {
         const hit = !!q && (q.x - tx) ** 2 + (q.y - ty) ** 2 <= hitR * hitR;
         this.projectileBurst(tx, ty, color, hit);
         if (hit) {
-          this.mainScene.events.emit('enemyAttackPlayer', { damage, isCrit, sourceX: tx, sourceY: ty });
+          this.mainScene.events.emit('enemyAttackPlayer', { damage, isCrit, sourceX: tx, sourceY: ty, attacker: this.displayName });
+        } else {
+          this.gameLog()?.playerAvoid(this.displayName, 'miss');
         }
       },
     });
@@ -948,7 +963,9 @@ export class Enemy {
 
     const p = this.lastPlayerPos;
     if (p && (p.x - x) ** 2 + (p.y - y) ** 2 <= radius * radius) {
-      this.mainScene.events.emit('enemyAttackPlayer', { damage, isCrit, sourceX: x, sourceY: y });
+      this.mainScene.events.emit('enemyAttackPlayer', { damage, isCrit, sourceX: x, sourceY: y, attacker: this.displayName });
+    } else {
+      this.gameLog()?.playerAvoid(this.displayName, 'miss');
     }
   }
 

@@ -746,7 +746,29 @@
   "CHAT": {
     "TITLE": "Chat",
     "EMPTY": "Aún no has hablado con nadie.",
-    "CLOSE": "Cerrar"
+    "CLOSE": "Cerrar",
+    "TAB_CHAT": "Chat",
+    "TAB_LOOT": "Progreso",
+    "TAB_COMBAT": "Combate",
+    "EMPTY_LOOT": "Aquí verás lo que recoges y aprendes.",
+    "EMPTY_COMBAT": "Aquí verás tus combates."
+  },
+  "LOG": {
+    "ITEM": "Obtienes {{name}} ×{{qty}}",
+    "GOLD": "Obtienes {{qty}} de oro",
+    "LEVEL_UP": "¡Subes al nivel {{lvl}}!",
+    "RECIPE": "Aprendes la receta: {{name}}",
+    "QUEST": "Misión completada: {{name}}",
+    "HIT": "Golpeas a {{enemy}}: {{dmg}}",
+    "HIT_CRIT": "¡Crítico! Golpeas a {{enemy}}: {{dmg}}",
+    "SKILL_HIT": "Tu habilidad alcanza a {{enemy}}: {{dmg}}",
+    "SKILL_CRIT": "¡Crítico! Tu habilidad alcanza a {{enemy}}: {{dmg}}",
+    "KILL": "Derrotas a {{enemy}}",
+    "HURT": "{{enemy}} te golpea: {{dmg}}",
+    "HURT_CRIT": "¡Crítico! {{enemy}} te golpea: {{dmg}}",
+    "EVADE": "Esquivas el ataque de {{enemy}}",
+    "BLOCK": "Tu defensa para el golpe de {{enemy}}",
+    "ENEMY_MISS": "{{enemy}} falla el ataque"
   },
   "CHAT_AMBIENT": {
     "GENERIC": {

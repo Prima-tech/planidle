@@ -31,6 +31,7 @@ import { AdminService } from '../services/admin.service';
 import { GlobalTalentsService } from '../services/global-talents.service';
 import { AudioService } from '../services/audio.service';
 import { QuestService } from '../services/quest.service';
+import { GameLogService } from '../services/game-log.service';
 import { RunProgressService } from '../services/run-progress.service';
 import { PortalUnlockService } from '../services/portal-unlock.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -73,6 +74,7 @@ export const REGISTRY_KEYS = {
   RUN_PROGRESS:     'runProgressService',
   PORTAL_UNLOCK:    'portalUnlockService',
   TRANSLATE:        'translateService',
+  GAME_LOG:         'gameLogService',
 } as const;
 
 /** Wrapper tipado sobre game.registry. Úsalo en preload() de cada escena. */
@@ -115,4 +117,5 @@ export class GameRegistry {
   get runProgress():     RunProgressService        { return this.game.registry.get(REGISTRY_KEYS.RUN_PROGRESS); }
   get portalUnlock():    PortalUnlockService       { return this.game.registry.get(REGISTRY_KEYS.PORTAL_UNLOCK); }
   get translate():       TranslateService          { return this.game.registry.get(REGISTRY_KEYS.TRANSLATE); }
+  get gameLog():         GameLogService            { return this.game.registry.get(REGISTRY_KEYS.GAME_LOG); }
 }

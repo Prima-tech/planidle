@@ -2482,7 +2482,7 @@ export class GameScene extends Phaser.Scene {
 
 
     initEnemyAttackListener() {
-      this.events.on('enemyAttackPlayer', ({ damage, isCrit, sourceX, sourceY, knockback }: { damage: number; isCrit?: boolean; sourceX?: number; sourceY?: number; knockback?: boolean }) => {
+      this.events.on('enemyAttackPlayer', ({ damage, isCrit, sourceX, sourceY, knockback, attacker }: { damage: number; isCrit?: boolean; sourceX?: number; sourceY?: number; knockback?: boolean; attacker?: string }) => {
         const now = this.time.now;
         // Anti-stack: ventana mínima para que dos golpes que impactan el MISMO instante
         // no se sientan uno doble injusto. El ritmo real de daño lo marca el cooldown
@@ -2498,6 +2498,7 @@ export class GameScene extends Phaser.Scene {
         const evasion = this.reg.charStats?.currentEvasion ?? 0;
         if (evasion > 0 && Math.random() * 100 < evasion) {
           this.showPlayerMiss();
+          this.reg.gameLog?.playerAvoid(attacker, 'evade');
           return;
         }
 
@@ -2505,9 +2506,11 @@ export class GameScene extends Phaser.Scene {
         const effectiveDamage = Math.max(0, damage - defense);
         if (effectiveDamage === 0) {
           this.showPlayerImmune();
+          this.reg.gameLog?.playerAvoid(attacker, 'block');
           return;
         }
         this.reg.playerBridge.damagePlayer(effectiveDamage);
+        this.reg.gameLog?.playerHurt(attacker, effectiveDamage, !!isCrit);
         this.flashPlayer();
         // Contundencia al recibir: temblor siempre; el destello ROJO de pantalla solo
         // en golpes que duelen de verdad (≥ 1/4 de la vida máxima) — con golpes
@@ -3189,7 +3192,7 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(delay, () => {
         if (this.reg.playerBridge?.isDead || target.isDead) return;
         const { dmg, isCrit } = this.rollAttack(this.playerMagicDamage);
-        this.launchProjectile(cfg, dmg, target);
+        this.launchProjectile(cfg, dmg, target, { basic: true, crit: isCrit });
         if (isCrit) this.critFeedback();
       });
     }
@@ -4499,16 +4502,18 @@ export class GameScene extends Phaser.Scene {
       sprite.setScale(cfg.scale);
       if (this.anims.exists(cfg.spriteKey)) sprite.play(cfg.spriteKey);
       if (cfg.aoeRadius) {
-        this.getEnemiesInRadius(pos.x, pos.y, cfg.aoeRadius).forEach(e => e.takeDamage(damage));
+        this.getEnemiesInRadius(pos.x, pos.y, cfg.aoeRadius).forEach(e => e.takeDamage(damage, false, true));
       } else {
-        target.takeDamage(damage);
+        target.takeDamage(damage, false, true);
       }
       const duration = (cfg.frameCount / cfg.frameRate) * 1000;
       this.time.delayedCall(duration, () => sprite.destroy());
     }
 
     // El sprite viaja desde el jugador hasta el enemigo y aplica daño al llegar
-    private launchProjectile(cfg: SkillConfig, damage: number, target: Enemy): void {
+    /** `hit`: sin él es una habilidad; `{ basic: true, crit }` = ataque básico del bastón. */
+    private launchProjectile(cfg: SkillConfig, damage: number, target: Enemy, hit?: { basic: boolean; crit: boolean }): void {
+      const crit = !!hit?.crit, skill = !hit?.basic;
       const playerPos = this.player.getPosition();
       const targetPos = target.getPixelPos();
       const proj = this.addSkillSprite(cfg, playerPos.x, playerPos.y);
@@ -4528,9 +4533,9 @@ export class GameScene extends Phaser.Scene {
         onComplete: () => {
           proj.destroy();
           if (cfg.aoeRadius) {
-            this.getEnemiesInRadius(targetPos.x, targetPos.y, cfg.aoeRadius).forEach(e => e.takeDamage(damage));
+            this.getEnemiesInRadius(targetPos.x, targetPos.y, cfg.aoeRadius).forEach(e => e.takeDamage(damage, crit, skill));
           } else if (!target.isDead) {
-            target.takeDamage(damage);
+            target.takeDamage(damage, crit, skill);
           }
         },
       });
