@@ -16,6 +16,12 @@ export const SFX = {
   // (pickup_1 burbuja, 3 soplido, 4 cuerda, 5 campanita, 6 mochila; ver
   // tools/sfxgen/gen.mjs --pickups) quedan en assets/audio/sfx/ para el futuro.
   pickup:      'assets/audio/sfx/pickup_2.wav',
+  // Recolección (tools/sfxgen/gen.mjs --harvest). Variantes en assets/audio/sfx/:
+  // chop_1 toc · 2 hachazo · 3 astilla · 4 tronco | pick_1 clinc · 2 esquirla · 3 crunch · 4 ping
+  chop:        'assets/audio/sfx/chop_1.wav',   // hacha contra árbol
+  pick:        'assets/audio/sfx/pick_2.wav',   // pico que acierta en roca/mena (esquirla + gravilla)
+  pick_miss:   'assets/audio/sfx/pick_1.wav',   // pico que falla (MISS): rebota con un clinc
+  pick_gem:    'assets/audio/sfx/pick_4.wav',   // pico que acierta en gema/cristal (ping)
 } as const;
 
 export type SfxId = keyof typeof SFX;
@@ -105,8 +111,9 @@ export class AudioService {
   }
 
   // ── Reproducción ────────────────────────────────────────────────────────────
-  /** Dispara un efecto puntual. `volume` (0..1) escala sobre el volumen de SFX. */
-  play(id: SfxId, volume = 1): void {
+  /** Dispara un efecto puntual. `volume` (0..1) escala sobre el volumen de SFX.
+   *  `rate` (1 = original) cambia velocidad y tono: útil para variar golpes repetidos. */
+  play(id: SfxId, volume = 1, rate = 1): void {
     if (this._settings.muted) return;
     if (!this.ctx || !this.sfxGain) return;
     const buf = this.buffers.get(id);
@@ -120,6 +127,7 @@ export class AudioService {
 
     const src = this.ctx.createBufferSource();
     src.buffer = buf;
+    if (rate !== 1) src.playbackRate.value = rate;
     if (volume !== 1) {
       const g = this.ctx.createGain();
       g.gain.value = volume;

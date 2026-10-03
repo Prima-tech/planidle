@@ -59,14 +59,19 @@
         [title]="l.key | translate"
         (click)="setLayer(l.id)"
       >{{ (l.key | translate).charAt(0) }}</button>
+      <!-- Globo ⇄ mapa plano: el icono muestra a qué vista se pasa -->
+      <button class="grid-toggle-btn" (click)="toggleFlat()" [title]="(flat ? 'MAP.VIEW_GLOBE' : 'MAP.VIEW_FLAT') | translate">
+        <ion-icon [name]="flat ? 'globe-outline' : 'map-outline'"></ion-icon>
+      </button>
       <!-- DEBUG: cuadrícula tx/ty para colocar pines (apagada por defecto) -->
       <button class="grid-toggle-btn" [class.active]="gridOn" (click)="toggleGrid()" [title]="'MAP.GRID' | translate">
         <ion-icon name="grid-outline"></ion-icon>
       </button>
     </div>
 
-    <!-- Barra de zoom del globo (también rueda del ratón y pellizco con dos dedos) -->
-    <div class="zoom-bar" *ngIf="detailPlanetId === 'mundo'">
+    <!-- Barra de zoom del globo (también rueda del ratón y pellizco con dos dedos).
+         El mapa plano es estático: sin zoom. -->
+    <div class="zoom-bar" *ngIf="detailPlanetId === 'mundo' && !flat">
       <button class="zoom-btn" (click)="stepZoom(-1)" [title]="'MAP.ZOOM_OUT' | translate">
         <ion-icon name="remove-outline"></ion-icon>
       </button>

@@ -27,7 +27,7 @@ export interface GlobeHit { mapId: string; x: number; y: number; }
 
 type V3 = [number, number, number];
 interface Rot { cy: number; sy: number; cp: number; sp: number; yaw: number; pitch: number; }
-interface PinW extends GlobePin { w: V3; }
+interface PinW extends GlobePin { w: V3; lat: number; lon: number; }
 
 const TAU = Math.PI * 2, PI = Math.PI;
 const TEX = 512;
@@ -82,13 +82,25 @@ export function rotFacing(tx: number, ty: number): GlobeRot {
 // ── Terreno compartido por las 3 capas ──────────────────────────────────────
 // 0 fondo · 1 costa · 2 arena · 3 pradera · 4 bosque · 5 desierto · 6 roca · 7 nieve · 8 banquisa
 const W = 512, H = 256;
-let HT: Float32Array, TY: Uint8Array, COAST: Uint8Array;
+let HT: Float32Array, TY: Uint8Array, COAST: Uint8Array, MO: Float32Array;
+
+/** Tipo de terreno a partir de altura, humedad y latitud (globo y mapa plano). */
+function classify(h: number, m: number, lat: number): number {
+  const al = Math.abs(lat);
+  if (h < 0) return al > 1.25 ? 8 : h < -.16 ? 0 : 1;
+  if (h > .5 || al > 1.12) return 7;
+  if (h > .34) return 6;
+  if (h < .035) return 2;
+  if (m < .45 && al < .7) return 5;
+  if (m > .52) return 4;
+  return 3;
+}
 
 /** Se genera UNA vez (la posición de los pines levanta tierra bajo ellos y a lo
  *  largo de la ruta, para que el camino vaya siempre por un continente). */
 function ensureTerrain(pins: PinW[]): void {
   if (HT) return;
-  HT = new Float32Array(W * H); TY = new Uint8Array(W * H); COAST = new Uint8Array(W * H);
+  HT = new Float32Array(W * H); MO = new Float32Array(W * H); TY = new Uint8Array(W * H); COAST = new Uint8Array(W * H);
   const bumps: V3[] = [];
   for (let i = 0; i < pins.length - 1; i++) for (let s = 0; s <= 6; s++) bumps.push(slerp(pins[i].w, pins[i + 1].w, s / 6));
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
@@ -96,17 +108,10 @@ function ensureTerrain(pins: PinW[]): void {
     let h = (fbm(w[0] * 1.7 + 3.1, w[1] * 1.7 + 7.7, w[2] * 1.7 + 1.3, 5) - .5) * 2.6 - .07;
     for (const p of pins) { const d2 = (w[0] - p.w[0]) ** 2 + (w[1] - p.w[1]) ** 2 + (w[2] - p.w[2]) ** 2; h += .2 * Math.exp(-d2 / .03); }
     for (const b of bumps) { const d2 = (w[0] - b[0]) ** 2 + (w[1] - b[1]) ** 2 + (w[2] - b[2]) ** 2; if (d2 < .05) h += .1 * Math.exp(-d2 / .012); }
-    const m = fbm(w[0] * 2.3 + 20, w[1] * 2.3 + 20, w[2] * 2.3 + 20, 4), al = Math.abs(lat), k = j * W + i;
+    const m = fbm(w[0] * 2.3 + 20, w[1] * 2.3 + 20, w[2] * 2.3 + 20, 4), k = j * W + i;
     HT[k] = h;
-    let t: number;
-    if (h < 0) t = al > 1.25 ? 8 : h < -.16 ? 0 : 1;
-    else if (h > .5 || al > 1.12) t = 7;
-    else if (h > .34) t = 6;
-    else if (h < .035) t = 2;
-    else if (m < .45 && al < .7) t = 5;
-    else if (m > .52) t = 4;
-    else t = 3;
-    TY[k] = t;
+    MO[k] = m;
+    TY[k] = classify(h, m, lat);
   }
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const k = j * W + i, s = HT[k] >= 0, r = j * W + (i + 1) % W, d = j < H - 1 ? k + W : k;
@@ -224,7 +229,7 @@ function ensureHolo(): void {
 }
 
 type PropKind = 'tree' | 'pine' | 'rock' | 'cactus' | 'castle' | 'flag';
-interface Prop { w: V3; k: PropKind; pin?: PinW; }
+interface Prop { w: V3; k: PropKind; pin?: PinW; ll?: [number, number]; }
 let SCENERY: Prop[] | null = null;
 function ensureScenery(pins: PinW[]): Prop[] {
   if (SCENERY) return SCENERY;
@@ -260,7 +265,7 @@ export class EarthGlobe {
   constructor(pins: GlobePin[]) {
     this.pins = pins.map(p => {
       const { lat, lon } = texToLatLon(p.tx, p.ty);
-      return { ...p, w: v3(lat, lon) };
+      return { ...p, w: v3(lat, lon), lat, lon };
     });
     ensureTerrain(this.pins);
     for (let i = 0; i < this.pins.length - 1; i++) {
@@ -275,12 +280,18 @@ export class EarthGlobe {
     ];
   }
 
-  /** Dibuja la capa en un canvas w×h con el globo de radio R centrado. Devuelve los
-   *  pines visibles (para colocar las zonas de toque). */
+  /** Dibuja la capa en un canvas w×h con el globo de radio R centrado (o, con `flat`,
+   *  el mapa plano equirectangular centrado en el mismo punto, a R px por radián).
+   *  Devuelve los pines visibles (para colocar las zonas de toque). */
   draw(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, rot: GlobeRot, t: number,
-       layer: GlobeLayer, dpr: number, debugGrid: boolean): GlobeHit[] {
+       layer: GlobeLayer, dpr: number, debugGrid: boolean, flat = false): GlobeHit[] {
     ctx.clearRect(0, 0, w, h);
     const r = rotPre(rot);
+    if (flat) {
+      const fh = this.drawFlat(ctx, w, h, R, r, t, layer, dpr);
+      if (debugGrid) this.drawFlatDebugGrid(ctx, w, h, R, r, dpr);
+      return fh;
+    }
     let hits: GlobeHit[];
     if (layer === 'economy') hits = this.drawHex(ctx, w, h, R, r, t, dpr);
     else if (layer === 'war') hits = this.drawHolo(ctx, w, h, R, r, t, dpr);
@@ -514,6 +525,165 @@ export class EarthGlobe {
     return hits;
   }
 
+  // ════════════════════════════════════════════════════════════════════════
+  // MAPA PLANO (equirectangular). Mismo centro y escala que el globo: a R px por
+  // radián alrededor del punto que mira el globo → al alternar no se pierde el sitio.
+  // El fondo de cada capa es una textura precalculada (una vez); por frame solo se
+  // pintan ruta, pines y adornos encima.
+  // ════════════════════════════════════════════════════════════════════════
+
+  private flatPinHex: Map<string, FlatHexCell> | null = null;
+
+  private drawFlat(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, r: Rot, t: number,
+                   layer: GlobeLayer, dpr: number): GlobeHit[] {
+    const v = flatView(w, h, R, r);
+    const tex = layer === 'economy' ? flatHexTex() : layer === 'war' ? flatWarTex() : flatBaseTex();
+    ctx.imageSmoothingEnabled = true;
+    // Si el mundo entero cabe (vista estática encajada) se pinta una sola copia; si
+    // no, se repite en horizontal tantas veces como quepan en pantalla
+    if (v.mapW <= w + 1) ctx.drawImage(tex, v.cx - v.mapW / 2 - wrapPI(v.lonC) * v.k, v.y0, v.mapW, v.mapH);
+    else for (let x = v.tileStart; x < w; x += v.mapW) ctx.drawImage(tex, x, v.y0, v.mapW + 1, v.mapH);
+    if (layer === 'economy') return this.flatHexOverlay(ctx, v, dpr);
+    if (layer === 'war') return this.flatWarOverlay(ctx, v, t, dpr);
+    return this.flatBaseOverlay(ctx, v, dpr);
+  }
+
+  /** Traza los tramos de ruta en plano (corta donde cruzan el borde del mundo). */
+  private traceFlat(ctx: CanvasRenderingContext2D, v: FlatView, segs: V3[][], dy = 0): void {
+    ctx.beginPath();
+    for (const seg of segs) {
+      let px = NaN;
+      for (const p of seg) {
+        const [x, y] = fpos(v, Math.asin(Math.max(-1, Math.min(1, p[1]))), Math.atan2(p[0], p[2]));
+        if (isNaN(px) || Math.abs(x - px) > v.mapW / 2) ctx.moveTo(x, y + dy); else ctx.lineTo(x, y + dy);
+        px = x;
+      }
+    }
+  }
+
+  private flatBaseOverlay(ctx: CanvasRenderingContext2D, v: FlatView, dpr: number): GlobeHit[] {
+    const s = v.k * .05;
+    ctx.lineCap = 'round'; ctx.setLineDash([.1, 7 * dpr]);
+    ctx.strokeStyle = OUT; ctx.lineWidth = 6 * dpr; this.traceFlat(ctx, v, this.openRoute); ctx.stroke();
+    ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 3.5 * dpr; this.traceFlat(ctx, v, this.openRoute); ctx.stroke();
+    ctx.strokeStyle = 'rgba(43,37,70,.45)'; ctx.lineWidth = 3 * dpr; this.traceFlat(ctx, v, this.lockedRoute); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Árboles, castillo y banderas de pie; los de más abajo tapan a los de arriba
+    const vis: { pr: Prop; x: number; y: number }[] = [];
+    for (const pr of this.props) {
+      const ll = pr.ll ?? (pr.ll = [Math.asin(Math.max(-1, Math.min(1, pr.w[1]))), Math.atan2(pr.w[0], pr.w[2])]);
+      const [x, y] = fpos(v, ll[0], ll[1]);
+      if (onScreen(v, x, y, s * 4)) vis.push({ pr, x, y });
+    }
+    vis.sort((a, b) => a.y - b.y);
+    for (const o of vis) { ctx.save(); ctx.translate(o.x, o.y); this.propShape(ctx, o.pr.k, s, o.pr.pin); ctx.restore(); }
+
+    const hits: GlobeHit[] = [];
+    ctx.font = `bold ${Math.round(13 * dpr)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    for (const p of this.pins) {
+      const [x, y] = fpos(v, p.lat, p.lon);
+      if (!onScreen(v, x, y, 20 * dpr)) continue;
+      outlinedText(ctx, p.name, x, y - s * (p.home ? 3.1 : 2.3), p.locked ? '#b8b4c8' : '#fff', OUT, 4 * dpr);
+      if (!p.locked) hits.push({ mapId: p.mapId, x, y: y - s });
+    }
+    return hits;
+  }
+
+  private flatHexOverlay(ctx: CanvasRenderingContext2D, v: FlatView, dpr: number): GlobeHit[] {
+    const g = flatHexGrid(), sc = v.mapW / FW, rr = g.r * sc;
+    if (!this.flatPinHex) {
+      // Casilla de cada mapa: la más cercana a su pin (con la costura horizontal)
+      this.flatPinHex = new Map();
+      for (const p of this.pins) {
+        const tx = (p.lon + PI) / TAU * FW, ty = (PI / 2 - p.lat) / PI * FH;
+        let best = g.cells[0], bd = Infinity;
+        for (const c of g.cells) {
+          let dx = Math.abs(c.x - tx); dx = Math.min(dx, FW - dx);
+          const d = dx * dx + (c.y - ty) ** 2;
+          if (d < bd) { bd = d; best = c; }
+        }
+        this.flatPinHex.set(p.mapId, best);
+      }
+    }
+    const lift = .07 * g.r * ELEV_K * sc;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 5 * dpr; this.traceFlat(ctx, v, this.openRoute, -lift); ctx.stroke();
+    ctx.strokeStyle = '#ffd35a'; ctx.lineWidth = 3 * dpr; this.traceFlat(ctx, v, this.openRoute, -lift); ctx.stroke();
+    ctx.setLineDash([3 * dpr, 5 * dpr]); ctx.strokeStyle = 'rgba(200,205,220,.5)'; ctx.lineWidth = 2 * dpr;
+    this.traceFlat(ctx, v, this.lockedRoute, -lift); ctx.stroke(); ctx.setLineDash([]);
+
+    const hits: GlobeHit[] = [];
+    ctx.font = `bold ${Math.round(12 * dpr)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    for (const p of this.pins) {
+      const c = this.flatPinHex.get(p.mapId);
+      const [x, y] = fpos(v, PI / 2 - c.y / FH * PI, c.x / FW * TAU - PI);
+      if (!onScreen(v, x, y, rr * 2)) continue;
+      const e = (p.locked ? .045 : .075) * g.r * ELEV_K * sc;
+      const col = p.home ? [240, 192, 64] : p.locked ? [120, 124, 140] : [91, 192, 248];
+      prism(ctx, x, y, rr, e, col, dpr);
+      outlinedText(ctx, p.name, x, y - e - rr * .9, p.home ? '#ffe7a0' : p.locked ? '#a8acb8' : '#fff', 'rgba(10,16,26,.85)', 3.5 * dpr);
+      if (!p.locked) hits.push({ mapId: p.mapId, x, y: y - e });
+    }
+    return hits;
+  }
+
+  private flatWarOverlay(ctx: CanvasRenderingContext2D, v: FlatView, t: number, dpr: number): GlobeHit[] {
+    // Barrido de radar: banda que recorre las longitudes (como el del globo)
+    const [sx] = fpos(v, 0, (t * .7) % TAU - PI), bw = .5 * v.k;
+    ctx.globalCompositeOperation = 'lighter';
+    for (const off of [0, -v.mapW, v.mapW]) {
+      const x = sx + off;
+      if (x < 0 || x - bw > v.w) continue;
+      const g = ctx.createLinearGradient(x - bw, 0, x, 0);
+      g.addColorStop(0, `rgba(${CY},0)`); g.addColorStop(1, `rgba(${CY},.28)`);
+      ctx.fillStyle = g; ctx.fillRect(x - bw, v.y0, bw, v.mapH);
+    }
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = `rgba(${CY},.25)`; ctx.lineWidth = 7 * dpr; this.traceFlat(ctx, v, this.openRoute); ctx.stroke();
+    ctx.strokeStyle = `rgba(${CY},1)`; ctx.lineWidth = 1.8 * dpr; this.traceFlat(ctx, v, this.openRoute); ctx.stroke();
+    ctx.setLineDash([2 * dpr, 4 * dpr]); ctx.strokeStyle = `rgba(${CY},.35)`; ctx.lineWidth = 1.2 * dpr;
+    this.traceFlat(ctx, v, this.lockedRoute); ctx.stroke(); ctx.setLineDash([]);
+    ctx.globalCompositeOperation = 'source-over';
+
+    const hits: GlobeHit[] = [];
+    ctx.font = `${Math.round(11 * dpr)}px monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    this.pins.forEach((p, i) => {
+      const [x, y] = fpos(v, p.lat, p.lon);
+      if (!onScreen(v, x, y, 30 * dpr)) return;
+      const col = p.home ? '255,200,90' : p.locked ? '90,130,122' : CY, s = (p.home ? 5 : 4) * dpr;
+      if (!p.locked) {
+        const ph = (t * .8 + i * .17) % 1;
+        ctx.strokeStyle = `rgba(${col},${1 - ph})`; ctx.lineWidth = dpr; ctx.beginPath(); ctx.arc(x, y, s + ph * 14 * dpr, 0, TAU); ctx.stroke();
+      }
+      ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x + s, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s, y); ctx.closePath();
+      if (p.locked) { ctx.strokeStyle = `rgba(${col},1)`; ctx.lineWidth = 1.2 * dpr; ctx.stroke(); } else { ctx.fillStyle = `rgba(${col},1)`; ctx.fill(); }
+      ctx.fillStyle = `rgba(${col},.95)`; ctx.fillText(p.name.toUpperCase(), x + 8 * dpr, y - 6 * dpr);
+      if (!p.locked) hits.push({ mapId: p.mapId, x, y });
+    });
+    return hits;
+  }
+
+  private drawFlatDebugGrid(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, r: Rot, dpr: number): void {
+    const v = flatView(w, h, R, r), STEP = 32;
+    ctx.strokeStyle = 'rgba(255,60,60,.45)'; ctx.lineWidth = dpr; ctx.beginPath();
+    for (let tx = 0; tx < TEX; tx += STEP) {
+      const { lon } = texToLatLon(tx, 0), [x] = fpos(v, 0, lon);
+      ctx.moveTo(x, v.y0); ctx.lineTo(x, v.y0 + v.mapH);
+    }
+    for (let ty = STEP; ty < TEX; ty += STEP) {
+      const { lat } = texToLatLon(0, ty), [, y] = fpos(v, lat, 0);
+      ctx.moveTo(0, y); ctx.lineTo(w, y);
+    }
+    ctx.stroke();
+    ctx.font = `${Math.round(9 * dpr)}px monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let tx = 0; tx < TEX; tx += STEP * 2) for (let ty = STEP * 2; ty < TEX; ty += STEP * 2) {
+      const { lat, lon } = texToLatLon(tx, ty), [x, y] = fpos(v, lat, lon);
+      if (onScreen(v, x, y, 0)) outlinedText(ctx, `${tx},${ty}`, x, y, '#ffd0d0', 'rgba(0,0,0,.8)', 3 * dpr);
+    }
+    ctx.textBaseline = 'alphabetic';
+  }
+
   // ── DEBUG: cuadrícula tx/ty para colocar pines (TIERRA_PINS) ─────────────
   private drawDebugGrid(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, r: Rot, dpr: number): void {
     const cx = w / 2, cy = h / 2, STEP = 32;
@@ -536,4 +706,158 @@ export class EarthGlobe {
     }
     ctx.textBaseline = 'alphabetic';
   }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Mapa plano: vista, muestreo suave del terreno y texturas de fondo por capa
+// ════════════════════════════════════════════════════════════════════════════
+
+const FW = 1536, FH = 768;      // texturas planas (2:1, equirectangulares)
+const HEX_COLS = 72;            // columnas de casillas del tablero plano (par: cierra la costura)
+const ELEV_K = 9;               // altura del relieve hexagonal en px por unidad de HEX_ELEV
+
+interface FlatView {
+  w: number; h: number; cx: number; cy: number;
+  k: number;                    // px por radián
+  lonC: number; latC: number;   // punto central (el que miraba el globo)
+  mapW: number; mapH: number; y0: number; tileStart: number;
+}
+interface FlatHexCell { x: number; y: number; t: number; }
+
+const wrapPI = (a: number) => a - TAU * Math.floor((a + PI) / TAU);
+
+function flatView(w: number, h: number, R: number, r: Rot): FlatView {
+  const k = R, cx = w / 2, cy = h / 2, lonC = wrapPI(-r.yaw), latC = r.pitch;
+  const mapW = TAU * k, mapH = PI * k;
+  let tileStart = cx + (-PI - lonC) * k;
+  while (tileStart > 0) tileStart -= mapW;
+  return { w, h, cx, cy, k, lonC, latC, mapW, mapH, y0: cy - (PI / 2 - latC) * k, tileStart };
+}
+function fpos(v: FlatView, lat: number, lon: number): [number, number] {
+  return [v.cx + wrapPI(lon - v.lonC) * v.k, v.cy - (lat - v.latC) * v.k];
+}
+const onScreen = (v: FlatView, x: number, y: number, m: number) => x > -m && x < v.w + m && y > -m && y < v.h + m;
+
+/** Altura y humedad interpoladas (bilineal): costas suaves aunque la rejilla sea 512×256. */
+function sampleHM(lat: number, lon: number, out: number[]): void {
+  const gx = (lon + PI) / TAU * W - .5, gy = (PI / 2 - lat) / PI * H - .5;
+  const x0 = Math.floor(gx), y0 = Math.floor(gy), fx = gx - x0, fy = gy - y0;
+  const xa = ((x0 % W) + W) % W, xb = (xa + 1) % W;
+  const ya = Math.max(0, Math.min(H - 1, y0)), yb = Math.max(0, Math.min(H - 1, y0 + 1));
+  const a = ya * W + xa, b = ya * W + xb, c = yb * W + xa, d = yb * W + xb;
+  out[0] = (HT[a] * (1 - fx) + HT[b] * fx) * (1 - fy) + (HT[c] * (1 - fx) + HT[d] * fx) * fy;
+  out[1] = (MO[a] * (1 - fx) + MO[b] * fx) * (1 - fy) + (MO[c] * (1 - fx) + MO[d] * fx) * fy;
+}
+
+function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  return [c, c.getContext('2d')!];
+}
+
+let FLAT_BASE: HTMLCanvasElement | null = null;
+/** Capa normal en plano: colores toon + sombreado de relieve (luz del noroeste). */
+function flatBaseTex(): HTMLCanvasElement {
+  if (FLAT_BASE) return FLAT_BASE;
+  const [c, x] = makeCanvas(FW, FH), img = x.createImageData(FW, FH), d = img.data;
+  const hh = new Float32Array(FW * FH), types = new Uint8Array(FW * FH), tmp = [0, 0];
+  for (let j = 0; j < FH; j++) {
+    const lat = PI / 2 - (j + .5) / FH * PI;
+    for (let i = 0; i < FW; i++) {
+      sampleHM(lat, (i + .5) / FW * TAU - PI, tmp);
+      hh[j * FW + i] = tmp[0];
+      types[j * FW + i] = classify(tmp[0], tmp[1], lat);
+    }
+  }
+  const O = 3;   // distancia (px) para la pendiente del sombreado
+  for (let j = 0; j < FH; j++) for (let i = 0; i < FW; i++) {
+    const k = j * FW + i, hv = hh[k];
+    let col = PAL_TOON[types[k]], b = 1, sh = 0;
+    if (hv < 0 && hv > -.014) col = [244, 252, 255];        // espuma de costa
+    else if (hv >= 0 && hv < .01) col = [96, 150, 80];      // borde de tierra
+    else if (hv >= 0) {
+      const l = hh[j * FW + (i - O + FW) % FW], r = hh[j * FW + (i + O) % FW];
+      const u = hh[Math.max(0, j - O) * FW + i], dn = hh[Math.min(FH - 1, j + O) * FW + i];
+      const lit = (l - r) + (u - dn);
+      if (lit < -.04) { b = .7; sh = .28; } else if (lit < -.01) { b = .86; sh = .12; } else if (lit > .03) b = 1.07;
+    }
+    const o = k << 2;
+    d[o] = Math.min(255, mix(col[0] * b, 90, sh)); d[o + 1] = Math.min(255, mix(col[1] * b, 76, sh));
+    d[o + 2] = Math.min(255, mix(col[2] * b, 170, sh)); d[o + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  return FLAT_BASE = c;
+}
+
+let FLAT_GRID: { r: number; cells: FlatHexCell[] } | null = null;
+/** Rejilla de hexágonos (punta plana) sobre el mapa plano; cada casilla toma el
+ *  terreno de su centro. Ordenada por y para pintar de atrás adelante. */
+function flatHexGrid(): { r: number; cells: FlatHexCell[] } {
+  if (FLAT_GRID) return FLAT_GRID;
+  const r = FW / (HEX_COLS * 1.5), rowH = Math.sqrt(3) * r, rows = Math.ceil(FH / rowH) + 1;
+  const cells: FlatHexCell[] = [], tmp = [0, 0];
+  for (let col = 0; col < HEX_COLS; col++) for (let row = 0; row < rows; row++) {
+    const x = col * 1.5 * r, y = row * rowH + (col & 1 ? rowH / 2 : 0);
+    const lat = PI / 2 - Math.max(0, Math.min(FH, y)) / FH * PI;
+    sampleHM(lat, x / FW * TAU - PI, tmp);
+    cells.push({ x, y, t: classify(tmp[0], tmp[1], lat) });
+  }
+  cells.sort((a, b) => a.y - b.y);
+  return FLAT_GRID = { r, cells };
+}
+function hexPath(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+  ctx.beginPath();
+  for (let a = 0; a < 6; a++) { const ang = a * PI / 3; ctx.lineTo(x + Math.cos(ang) * r, y + Math.sin(ang) * r); }
+  ctx.closePath();
+}
+/** Casilla con relieve: base oscura + lateral + tapa elevada `e` px. */
+function prism(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, e: number, col: number[], lw: number): void {
+  if (e > .5) {
+    ctx.fillStyle = `rgb(${col[0] * .5 | 0},${col[1] * .5 | 0},${col[2] * .5 | 0})`;
+    hexPath(ctx, x, y, r); ctx.fill();
+    ctx.fillRect(x - r, y - e, 2 * r, e);
+  }
+  hexPath(ctx, x, y - e, r);
+  ctx.fillStyle = `rgb(${col[0] | 0},${col[1] | 0},${col[2] | 0})`; ctx.fill();
+  ctx.strokeStyle = 'rgba(10,20,30,.28)'; ctx.lineWidth = lw; ctx.stroke();
+}
+let FLAT_HEX: HTMLCanvasElement | null = null;
+/** Capa economía en plano: tablero hexagonal con relieve (mismos colores/alturas que el globo). */
+function flatHexTex(): HTMLCanvasElement {
+  if (FLAT_HEX) return FLAT_HEX;
+  const g = flatHexGrid(), [c, x] = makeCanvas(FW, FH);
+  x.fillStyle = 'rgb(24,52,78)'; x.fillRect(0, 0, FW, FH);
+  for (const cell of g.cells) {
+    const e = (HEX_ELEV[cell.t] - 1) * g.r * ELEV_K, col = HEX_COL[cell.t];
+    for (const off of [0, -FW, FW]) {
+      const cx = cell.x + off;
+      if (cx < -g.r * 2 || cx > FW + g.r * 2) continue;
+      prism(x, cx, cell.y, g.r, e, col, 1);
+    }
+  }
+  return FLAT_HEX = c;
+}
+
+let FLAT_WAR: HTMLCanvasElement | null = null;
+/** Capa guerra en plano: fondo oscuro, meridianos/paralelos y tierra en puntos. */
+function flatWarTex(): HTMLCanvasElement {
+  if (FLAT_WAR) return FLAT_WAR;
+  const [c, x] = makeCanvas(FW, FH);
+  x.fillStyle = '#041210'; x.fillRect(0, 0, FW, FH);
+  x.strokeStyle = `rgba(${CY},.16)`; x.lineWidth = 1; x.beginPath();
+  for (let lo = 0; lo <= 360; lo += 20) { const px = lo / 360 * FW; x.moveTo(px, 0); x.lineTo(px, FH); }
+  for (let la = -80; la <= 80; la += 20) { const py = (90 - la) / 180 * FH; x.moveTo(0, py); x.lineTo(FW, py); }
+  x.stroke();
+  const land = new Path2D(), coast = new Path2D(), tmp = [0, 0], STEP = 6;
+  for (let py = STEP / 2; py < FH; py += STEP) {
+    const lat = PI / 2 - py / FH * PI;
+    for (let px = STEP / 2; px < FW; px += STEP) {
+      sampleHM(lat, px / FW * TAU - PI, tmp);
+      if (tmp[0] < 0) continue;
+      (tmp[0] < .03 ? coast : land).rect(px - 1.2, py - 1.2, 2.4, 2.4);
+    }
+  }
+  x.fillStyle = `rgba(${CY},.5)`; x.fill(land);
+  x.fillStyle = `rgba(${CY},.95)`; x.fill(coast);
+  x.strokeStyle = `rgba(${CY},.6)`; x.lineWidth = 2; x.strokeRect(1, 1, FW - 2, FH - 2);
+  return FLAT_WAR = c;
 }

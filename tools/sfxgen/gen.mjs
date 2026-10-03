@@ -216,6 +216,128 @@ function pickupBag() {
 
 const PICKUPS = [pickupPop, pickupBlip, pickupSwoosh, pickupPluck, pickupChime, pickupBag];
 
+
+// ── Recolección: hacha contra madera (chop_1..4) y pico contra piedra/mena (pick_1..4) ──
+// Filtro paso-banda resonante (biquad RBJ): da "cuerpo" de madera hueca o de roca al ruido.
+function bandpass(buf, freq, q) {
+  const w = TAU * freq / SR, alpha = Math.sin(w) / (2 * q), cw = Math.cos(w);
+  const a0 = 1 + alpha;
+  const b0 = alpha / a0, b2 = -alpha / a0, a1 = -2 * cw / a0, a2 = (1 - alpha) / a0;
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const x = buf[i];
+    const y = b0 * x + b2 * x2 - a1 * y1 - a2 * y2;
+    x2 = x1; x1 = x; y2 = y1; y1 = y; buf[i] = y;
+  }
+  return buf;
+}
+// Ruido blanco con envolvente exponencial (golpe/arenilla).
+function noiseBurst(dur, tau, gain = 1) {
+  const env = expEnv(seconds(dur), tau);
+  return make(dur, (i) => noise() * env[i] * gain);
+}
+// Suma de capas (de distinta longitud) en un único buffer.
+function mix(...layers) {
+  const n = Math.max(...layers.map(l => l.length));
+  const out = new Float32Array(n);
+  for (const l of layers) for (let i = 0; i < l.length; i++) out[i] += l[i];
+  return out;
+}
+// Parciales senoidales con decaimiento propio: [freq, amp, tau][]
+function partials(dur, list) {
+  const n = seconds(dur);
+  return make(dur, (i) => {
+    const t = i / SR;
+    let s = 0;
+    for (const [f, a, tau] of list) s += Math.sin(TAU * f * t) * a * Math.exp(-t / tau);
+    return s;
+  });
+}
+
+// chop 1 · "toc": madera hueca, nudillo seco con resonancia corta.
+function chopTok() {
+  return lowpass(mix(
+    bandpass(noiseBurst(0.16, 0.025, 1.6), 900, 4),
+    partials(0.18, [[310, 0.55, 0.045], [720, 0.25, 0.025]]),
+    noiseBurst(0.02, 0.003, 0.5),
+  ), 4500);
+}
+// chop 2 · "hachazo": tajo grave y carnoso, más ruido y menos tono.
+function chopThwack() {
+  return lowpass(mix(
+    bandpass(noiseBurst(0.2, 0.04, 2.2), 550, 1.8),
+    partials(0.2, [[150, 0.6, 0.05], [95, 0.35, 0.07]]),
+    noiseBurst(0.015, 0.002, 0.6),
+  ), 3000);
+}
+// chop 3 · "astilla": golpe + chasquidos de fibras que se rompen.
+function chopSplinter() {
+  const hit = mix(
+    bandpass(noiseBurst(0.12, 0.02, 1.6), 1100, 3),
+    partials(0.14, [[380, 0.4, 0.035]]),
+  );
+  const dur = 0.24, n = seconds(dur);
+  const crackle = new Float32Array(n);
+  for (let k = 0; k < 9; k++) {                 // impulsos dispersos tras el golpe
+    const at = seconds(0.03 + Math.abs(noise()) * 0.17);
+    const amp = 0.5 * (1 - at / n);
+    for (let j = 0; j < 90 && at + j < n; j++) crackle[at + j] += noise() * amp * Math.exp(-j / 18);
+  }
+  return lowpass(mix(hit, bandpass(crackle, 2400, 1.5)), 6000);
+}
+// chop 4 · "tronco": árbol grande, golpe sordo y redondo.
+function chopLog() {
+  return lowpass(mix(
+    partials(0.24, [[200, 0.7, 0.06], [130, 0.4, 0.08], [460, 0.15, 0.03]]),
+    bandpass(noiseBurst(0.15, 0.03, 1.4), 400, 2),
+  ), 1800);
+}
+
+// pick 1 · "clinc": metal contra roca, brillante con un poco de cola.
+function pickClink() {
+  return mix(
+    partials(0.3, [[2350, 0.32, 0.06], [3610, 0.18, 0.04], [5230, 0.1, 0.025]]),
+    bandpass(noiseBurst(0.08, 0.012, 1.4), 3000, 1.2),
+    lowpass(partials(0.12, [[140, 0.5, 0.03]]), 800),
+  );
+}
+// pick 2 · "esquirla": tic corto + gravilla que cae.
+function pickChip() {
+  const tick = mix(
+    partials(0.1, [[2900, 0.3, 0.018], [4400, 0.15, 0.012]]),
+    bandpass(noiseBurst(0.05, 0.008, 1.5), 3500, 1.5),
+  );
+  const dur = 0.3, n = seconds(dur);
+  const gravel = new Float32Array(n);
+  for (let k = 0; k < 14; k++) {                // piedrecitas rebotando
+    const at = seconds(0.04 + Math.abs(noise()) * 0.22);
+    const amp = 0.35 * (1 - at / n);
+    for (let j = 0; j < 60 && at + j < n; j++) gravel[at + j] += noise() * amp * Math.exp(-j / 10);
+  }
+  return mix(tick, lowpass(bandpass(gravel, 1800, 1.2), 5000));
+}
+// pick 3 · "crunch": roca que cede, grave y terroso, apenas metal.
+function pickCrunch() {
+  return lowpass(mix(
+    partials(0.18, [[120, 0.6, 0.04], [1900, 0.12, 0.02]]),
+    bandpass(noiseBurst(0.18, 0.035, 2), 1200, 1.1),
+    noiseBurst(0.015, 0.002, 0.5),
+  ), 3500);
+}
+// pick 4 · "ping": mena/cristal que suena casi a campana (más tonal).
+function pickPing() {
+  return mix(
+    partials(0.45, [[1760, 0.3, 0.12], [2650, 0.16, 0.08], [4120, 0.08, 0.05]]),
+    bandpass(noiseBurst(0.04, 0.006, 1.2), 2800, 1.5),
+    lowpass(partials(0.1, [[160, 0.4, 0.025]]), 800),
+  );
+}
+
+const HARVEST = {
+  chop: [chopTok, chopThwack, chopSplinter, chopLog],
+  pick: [pickClink, pickChip, pickCrunch, pickPing],
+};
+
 const EFFECTS = { coin, hit, enemy_death: enemyDeath, levelup, mine, ui_click: uiClick, unlock };
 
 // ── Escritura WAV ────────────────────────────────────────────────────────────
@@ -252,6 +374,23 @@ if (process.argv.includes('--pickups')) {
     writeWav(join(outDir, file), fn());
     console.log('✓', file);
   });
+  process.exit(0);
+}
+
+//   node gen.mjs <outDir> --harvest -> recolección: chop_1..4 (madera) y pick_1..4 (piedra/mena)
+if (process.argv.includes('--harvest')) {
+  for (const [prefix, list] of Object.entries(HARVEST)) {
+    list.forEach((fn, i) => {
+      _seed = 1337 + i * 101;
+      const file = `${prefix}_${i + 1}.wav`;
+      const buf = fn();
+      let peak = 0;                              // mismo pico en todas: comparables a oído
+      for (const v of buf) peak = Math.max(peak, Math.abs(v));
+      if (peak > 0) for (let k = 0; k < buf.length; k++) buf[k] *= 0.85 / peak;
+      writeWav(join(outDir, file), buf);
+      console.log('✓', file);
+    });
+  }
   process.exit(0);
 }
 

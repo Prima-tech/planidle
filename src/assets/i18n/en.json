@@ -537,6 +537,7 @@
     "VIEW_PLANET": "View planet",
     "VIEW_GLOBE": "Globe",
     "VIEW_HEX": "Hexes",
+    "VIEW_FLAT": "Flat map",
     "LAYER_NORMAL": "Normal",
     "LAYER_ECONOMY": "Economy",
     "LAYER_WAR": "War",

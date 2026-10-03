@@ -2956,6 +2956,8 @@ export class GameScene extends Phaser.Scene {
         const reqEff = this.harvestTierOf(node.kind)?.efficiency ?? 0;
         if (reqEff > 0 && Math.random() > Math.min(1, this.playerHarvestEfficiency(node.kind) / reqEff)) {
           this.showMissText(node);
+          // El pico rebota sin hacer mella (los árboles fallan en silencio)
+          if (kind.skill === 'mining') this.reg.audio?.play('pick_miss', 1, 0.94 + Math.random() * 0.12);
           return;
         }
       }
@@ -2994,7 +2996,9 @@ export class GameScene extends Phaser.Scene {
       this.spawnImpactSpark(s.x, impactY);
       this.spawnDebris(s.x, impactY, 8, kind.debris);
       this.fxShake(70, 0.0035);
-      this.reg.audio?.play('mine');
+      // Golpe acertado: madera → hacha; roca/mena → esquirla; gema → ping cristalino. Tono ±6%.
+      const sfx = node.kind === 'tree' ? 'chop' : node.kind === 'gem' ? 'pick_gem' : 'pick';
+      this.reg.audio?.play(sfx, 1, 0.94 + Math.random() * 0.12);
 
       if (destroyed) this.destroyNode(node);
     }

@@ -106,6 +106,9 @@ export const PLANET_DETAIL_KEY        = 'onPlanetDetail';
 // Capa del globo de la Tierra (GlobeLayer: 'base' | 'economy' | 'war'). Angular la
 // escribe desde los botones Economía/Guerra; la escena la lee cada frame.
 export const PLANET_LAYER_KEY         = 'planetLayer';
+// Proyección del globo de la Tierra: true = mapa plano, false/ausente = globo.
+// Angular la escribe desde su botón; la escena la lee cada frame.
+export const PLANET_FLAT_KEY          = 'planetFlat';
 
 // Globo 3D de la Tierra (ver earth-globe.ts): textura-canvas redibujada en vivo
 const EARTH_TEX_KEY   = 'earth_globe';
@@ -116,6 +119,21 @@ const EARTH_FRAME_MS  = 33;      // sin arrastre/giro, redibujar a ~30 fps (nube
 export const EARTH_ZOOM_MIN = 0.6;
 export const EARTH_ZOOM_MAX = 2.5;
 const WHEEL_ZOOM_K = 0.0015;     // sensibilidad de la rueda (por unidad de deltaY)
+
+// Mapa plano: ESTÁTICO (sin arrastre ni zoom). Encuadre fijo sobre la zona de los
+// mapas de TIERRA_PINS: centrado en su caja y con zoom para que ocupen ~FLAT_FRAME
+// de la vista (nunca menos zoom que el mundo entero encajado).
+const FLAT_FRAME = 0.6;
+const FLAT_BOX = (() => {
+  const xs = TIERRA_PINS.map(p => p.tx), ys = TIERRA_PINS.map(p => p.ty);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  return {
+    rot: rotFacing((minX + maxX) / 2, (minY + maxY) / 2),
+    lonSpan: Math.max(0.2, (maxX - minX) / 512 * Math.PI * 2),   // rad
+    latSpan: Math.max(0.2, (maxY - minY) / 512 * Math.PI),       // rad
+  };
+})();
+const FLAT_ROT: GlobeRot = FLAT_BOX.rot;
 // Callback (zoom: number) que registra Angular para mover su barra cuando el zoom
 // cambia desde la escena (rueda / pellizco).
 export const PLANET_ZOOM_CHANGED_KEY  = 'onGlobeZoom';
@@ -287,6 +305,7 @@ export class PlanetViewScene extends Phaser.Scene {
   private earthRot: GlobeRot = { yaw: 0, pitch: 0 };
   private earthZones: { zone: Phaser.GameObjects.Zone; mapId: string }[] = [];
   private earthLayer: GlobeLayer = 'base';
+  private earthFlat = false;
   private earthLastDraw = 0;
   private earthZoom = 1;
   private earthDirty = false;      // forzar redibujado (zoom) aunque esté quieto
@@ -667,6 +686,7 @@ export class PlanetViewScene extends Phaser.Scene {
     this.detailCY = cy;
     this.detailR  = radius;
     this.earthLayer = (this.game.registry.get(PLANET_LAYER_KEY) as GlobeLayer) || 'base';
+    this.earthFlat = !!this.game.registry.get(PLANET_FLAT_KEY);
 
     // Orientar al mapa del jugador (o a la capital) y pintar el primer frame ya
     const getMap = this.game.registry.get(PLANET_CURRENT_MAP_KEY) as (() => string) | undefined;
@@ -687,8 +707,10 @@ export class PlanetViewScene extends Phaser.Scene {
 
     let force = false;
     const layer = (this.game.registry.get(PLANET_LAYER_KEY) as GlobeLayer) || 'base';
-    if (layer !== this.earthLayer) {
+    const flat = !!this.game.registry.get(PLANET_FLAT_KEY);
+    if (layer !== this.earthLayer || flat !== this.earthFlat) {
       this.earthLayer = layer;
+      this.earthFlat = flat;
       force = true;
       if (this.earthImg) {
         this.tweens.killTweensOf(this.earthImg);
@@ -707,8 +729,15 @@ export class PlanetViewScene extends Phaser.Scene {
     const tex = this.earthTex;
     if (!this.earth || !tex || !this.earthImg) return;
     this.earthLastDraw = time;
-    const hits = this.earth.draw(tex.context, tex.width, tex.height, this.earthR, this.earthRot,
-      time / 1000, this.earthLayer, DPR, this.debugGrid);
+    // Plano: fijo y encajado (centro lon 0 / lat 0); globo: giro y zoom del jugador
+    const fitWorld = Math.min(tex.width / (2 * Math.PI), tex.height / Math.PI);
+    const flatK = Math.max(fitWorld, Math.min(
+      tex.width * FLAT_FRAME / FLAT_BOX.lonSpan,
+      tex.height * FLAT_FRAME / FLAT_BOX.latSpan,
+    ));
+    const hits = this.earth.draw(tex.context, tex.width, tex.height,
+      this.earthFlat ? flatK : this.earthR, this.earthFlat ? FLAT_ROT : this.earthRot,
+      time / 1000, this.earthLayer, DPR, this.debugGrid, this.earthFlat);
     tex.refresh();
 
     const ox = this.detailCX - tex.width / 2, oy = this.detailCY - tex.height / 2;
@@ -888,12 +917,13 @@ export class PlanetViewScene extends Phaser.Scene {
 
     // Rueda del ratón → zoom del globo de la Tierra
     this.input.on('wheel', (_p: Phaser.Input.Pointer, _objs: unknown, _dx: number, dy: number) => {
-      if (this.mode !== 'detail' || !this.earth || this.transitioning) return;
+      if (this.mode !== 'detail' || !this.earth || this.earthFlat || this.transitioning) return;
       this.setEarthZoom(this.earthZoom * Math.exp(-dy * WHEEL_ZOOM_K));
     });
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       if (this.mode !== 'detail' || this.transitioning) return;
+      if (this.earth && this.earthFlat) return;   // mapa plano estático: ni arrastre ni pellizco
       // Segundo dedo: empieza el pellizco y se suelta el giro (no pelean)
       const span = this.earth ? this.pinchSpan() : 0;
       if (span > 0) {

@@ -27,10 +27,11 @@ const STORAGE_KEY = 'idle_game_settings';
 // Esquema de los ajustes guardados. Súbelo al cambiar un DEFAULT que deba imponerse
 // sobre lo ya guardado, y añade su caso en `load()`.
 //   2 → "Jugar sin exploración" pasa a estar ACTIVO por defecto.
-const SETTINGS_VERSION = 2;
+//   3 → "Mostrar joystick" pasa a estar DESACTIVADO por defecto.
+const SETTINGS_VERSION = 3;
 
 const DEFAULTS: GameSettings = {
-  showJoystick: true,
+  showJoystick: false,
   showFps: false,
   showGrid: false,
   screenShake: true,
@@ -131,8 +132,14 @@ export class GameSettingsService {
       // Migración: lo guardado antes de la v2 lleva skipExploration=false aunque el
       // jugador no lo tocara nunca (era el default viejo). Se adopta el nuevo default
       // una sola vez; a partir de ahí manda lo que elija en Ajustes.
-      if ((saved.version ?? 1) < SETTINGS_VERSION) {
+      const savedVersion = saved.version ?? 1;
+      if (savedVersion < 2) {
         merged.skipExploration = DEFAULTS.skipExploration;
+        this._migrated = true;
+      }
+      // v3: el joystick pasa a estar oculto por defecto (mismo criterio: una sola vez).
+      if (savedVersion < 3) {
+        merged.showJoystick = DEFAULTS.showJoystick;
         this._migrated = true;
       }
       merged.version = SETTINGS_VERSION;

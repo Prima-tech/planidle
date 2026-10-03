@@ -1,6 +1,6 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
+import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_FLAT_KEY, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
 import { GlobeLayer } from 'src/app/scenes/earth-globe';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -61,6 +61,9 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
    *  recuerda entre aperturas del panel durante la sesión. */
   private static lastLayer: GlobeLayer = 'base';
   layer: GlobeLayer = WorldMapPanelComponent.lastLayer;
+  /** Globo o mapa plano (las tres capas existen en ambas proyecciones). */
+  private static lastFlat = true;   // el mapa se abre de inicio en plano
+  flat = WorldMapPanelComponent.lastFlat;
 
   /** Zoom del globo (barra inferior). La escena arranca siempre en 1 al abrir. */
   readonly zoomMin = EARTH_ZOOM_MIN;
@@ -113,6 +116,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       // El globo pinta en gris los mapas bloqueados y no extiende la ruta hasta ellos.
       registry.set(PLANET_MAP_LOCKED_KEY, (mapId: string) => this.isMapLocked(mapId));
       registry.set(PLANET_LAYER_KEY, this.layer);
+      registry.set(PLANET_FLAT_KEY, this.flat);
       // Rueda / pellizco en la escena → mover la barra de zoom
       registry.set(PLANET_ZOOM_CHANGED_KEY, (z: number) => {
         this.ngZone.run(() => { this.zoom = z; });
@@ -167,6 +171,12 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private applyZoom(z: number) {
     this.zoom = Math.min(this.zoomMax, Math.max(this.zoomMin, z));
     this.planetHost.scene?.setEarthZoom(this.zoom, false);
+  }
+
+  /** Botón globo ⇄ plano: mantiene la capa, el zoom y la zona centrada. */
+  toggleFlat() {
+    this.flat = WorldMapPanelComponent.lastFlat = !this.flat;
+    this.planetHost.registry?.set(PLANET_FLAT_KEY, this.flat);
   }
 
   setLayer(layer: GlobeLayer) {
