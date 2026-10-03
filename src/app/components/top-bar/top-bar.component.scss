@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+// Fuentes de los estilos de barra de vida (data-hpbar): blasón, hierro, cristal y JRPG.
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@700;800&family=Barlow+Condensed:wght@600;700&family=Cinzel:wght@700&family=MedievalSharp&family=Pixelify+Sans:wght@500;600;700&family=Saira+Semi+Condensed:wght@500;600;700&display=swap');
 
 /* ===== Tema madera + piedra (pixel-art RPG) ===== */
 $outline: #3a2c20;
@@ -1648,4 +1650,556 @@ $phos: #21ff9a;
     $num-col: #f0e6c8, $inset: rgba(63, 208, 192, 0.08), $pill-bg: #241f12,
     $good: #6be0b0, $bad: #e8705a
   );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   ESTILOS DE BARRA DE VIDA (data-hpbar) — Admin → Estilos → Barra de vida.
+   Independientes del tema: van al FINAL del archivo para pisar el override del
+   tema (misma especificidad, gana el último). "Actual" no pinta atributo.
+   Cada estilo = mixin appstyle-bar (paleta) + extras de forma.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+// Piezas que solo usan algunos estilos de barra: ocultas en la barra por defecto.
+.char-name-lvl { display: none; }
+.bar-row--xp   { display: none; }
+
+// Limpia los adornos de los temas (corchete cyberpunk, filete holo) bajo cualquier
+// estilo de barra; cada estilo pone los suyos.
+:host-context([data-hpbar]) {
+  .char-widget::before,
+  .char-widget::after { content: none; }
+}
+
+/* ───────────────── BLASÓN · escudo con EXP en oro, azul y oro ───────────────── */
+$crest-shape: polygon(0 0, 100% 0, 100% 56%, 50% 100%, 0 56%);
+:host-context([data-hpbar="blason"]) {
+  @include appstyle-bar(
+    $panel: linear-gradient(180deg, #263049, #161c2a), $bcol: #c9a24a, $bw: 2px, $radius: 3px,
+    $accent: #d5b25e, $accent-soft: rgba(201, 162, 74, 0.4), $on-accent: #f6e5b4,
+    $text: #efe6cf, $muted: #a9a08a, $title: #d5b25e,
+    $name-bg: transparent, $name-col: #e8cf8a, $name-bd: none,
+    $name-font: ('Cinzel', Georgia, serif), $name-tr: uppercase,
+    $av-bg: radial-gradient(circle at 50% 35%, #2c3a5a, #0f141f 75%), $av-bd: none, $av-radius: 0,
+    $lvl-bg: linear-gradient(#b0303b, #761823), $lvl-col: #f6e5b4,
+    $track: #0b0f17, $track-bd: rgba(201, 162, 74, 0.75),
+    $hp: linear-gradient(180deg, #e2545b, #a42230 60%, #6f1520),
+    $mp: linear-gradient(180deg, #6593ec, #2c4ea6 60%, #1b316e),
+    $hp-glow: none, $mp-glow: none,
+    $num-col: #ffffff, $num-font: ('Alegreya Sans', sans-serif),
+    $inset: rgba(201, 162, 74, 0.07), $pill-bg: #101521,
+    $good: #86d881, $bad: #ff7466
+  );
+
+  .char-widget {
+    box-shadow: 0 0 0 1px #07090d, inset 0 0 0 2px #161c2a, inset 0 0 0 3px rgba(201, 162, 74, 0.35), 0 4px 12px rgba(0, 0, 0, 0.5);
+    // Rombos de oro en las esquinas superiores
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: -6px;
+      bottom: auto;
+      width: 9px;
+      height: 9px;
+      background: #c9a24a;
+      border: 1px solid #07090d;
+      box-shadow: none;
+      transform: rotate(45deg);
+      pointer-events: none;
+      z-index: 4;
+    }
+    &::before { left: -6px; right: auto; }
+    &::after  { right: -6px; left: auto; }
+  }
+  .char-panel { padding: 22px 12px 10px 8px; }
+
+  // Nombre grabado dentro de la tarjeta, sobre las barras
+  .char-name-pill {
+    top: 7px;
+    left: 64px;
+    transform: none;
+    padding: 0;
+    box-shadow: none;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-shadow: 0 1px 0 #000;
+    .notif-dot { right: -10px; }
+  }
+
+  // Avatar en escudo: el escudo se llena de oro de abajo arriba con la EXP
+  .avatar-ring {
+    width: 40px;
+    height: 48px;
+    margin-top: -14px;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      clip-path: $crest-shape;
+      background: linear-gradient(to top, #e2bd62 var(--xp), #3a3326 var(--xp));
+    }
+    .avatar-icon {
+      position: relative;
+      width: 32px;
+      height: 40px;
+      margin-top: -4px;
+      border-radius: 0;
+      clip-path: $crest-shape;
+      box-shadow: none;
+      z-index: 1;
+    }
+  }
+  .avatar-lvl {
+    bottom: -9px;
+    z-index: 2;
+    height: auto;
+    padding: 2px 10px 1px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 10px;
+    clip-path: polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%);
+    text-shadow: 0 1px 0 #3a070c;
+    em { display: none; }
+  }
+
+  // Barras con marcas cada 10%
+  .bar-row { height: 13px; }
+  .bar-track {
+    border-radius: 1px;
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0, 0, 0, 0.5) calc(10% - 1px) 10%);
+      pointer-events: none;
+    }
+  }
+  .bar-fill { border-radius: 0; }
+  .bar-num { z-index: 1; font-weight: 800; font-size: 10px; }
+
+  .char-switch-btn { border-width: 1px; border-color: #c9a24a; }
+
+  .map-info-panel {
+    box-shadow: 0 0 0 1px #07090d, inset 0 0 0 2px #161c2a, inset 0 0 0 3px rgba(201, 162, 74, 0.35), 0 6px 14px rgba(0, 0, 0, 0.5);
+    &::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #c9a24a, transparent);
+    }
+  }
+
+  // Pestañas en forma de escudo; la activa, en gules
+  .mip-tabs { left: calc(100% + 5px); gap: 4px; }
+  .mip-tab {
+    position: relative;
+    isolation: isolate;
+    width: 28px;
+    height: 33px;
+    padding: 0 0 7px;
+    border: none;
+    border-radius: 0;
+    background: linear-gradient(#c9a24a, #8d6f2b);
+    clip-path: $crest-shape;
+    color: #c9a24a;
+    box-shadow: none;
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      clip-path: $crest-shape;
+      background: linear-gradient(#2a3450, #161c2a);
+      z-index: -1;
+    }
+    &.active {
+      background: linear-gradient(#c9a24a, #8d6f2b);
+      color: #f6e5b4;
+      box-shadow: none;
+      &::before { background: linear-gradient(#b0303b, #6a141f); }
+    }
+  }
+
+  .mip-divider { background: linear-gradient(90deg, transparent, rgba(201, 162, 74, 0.6), transparent); }
+  .mip-rates-title { font-family: 'Cinzel', Georgia, serif; letter-spacing: 0.14em; }
+}
+
+/* ───────────────── HIERRO Y GEMAS · placa remachada + tubos de líquido ───────────────── */
+$iron-rivet: (#9aa0a8 0 1.6px, #17181a 2.1px, transparent 2.6px);
+$iron-plate: (
+  radial-gradient(circle at 7px 7px, $iron-rivet),
+  radial-gradient(circle at calc(100% - 7px) 7px, $iron-rivet),
+  radial-gradient(circle at 7px calc(100% - 7px), $iron-rivet),
+  radial-gradient(circle at calc(100% - 7px) calc(100% - 7px), $iron-rivet),
+  linear-gradient(180deg, #3d4046, #26282c)
+);
+:host-context([data-hpbar="hierro"]) {
+  @include appstyle-bar(
+    $panel: $iron-plate, $bcol: #111214, $bw: 2px, $radius: 4px,
+    $accent: #ffb347, $accent-soft: rgba(255, 179, 71, 0.4), $on-accent: #2a1606,
+    $text: #e7e0cf, $muted: #a19c90, $title: #ffb347,
+    $name-bg: linear-gradient(#222428, #141518), $name-col: #eadfc4, $name-bd: 1px solid #4a4e55,
+    $name-font: ('MedievalSharp', Georgia, serif),
+    $av-bg: #101113, $av-bd: none, $av-radius: 50%,
+    $lvl-bg: linear-gradient(#ffd98a, #e08a1e), $lvl-col: #2a1606,
+    $track: #0b0c0e, $track-bd: #5a5f67,
+    $hp: (radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.35) 0 1px, transparent 1.5px) 0 0 / 14px 15px, linear-gradient(#ff7262, #b3201c 60%, #7a1210)),
+    $mp: (radial-gradient(circle at 60% 65%, rgba(255, 255, 255, 0.35) 0 1px, transparent 1.5px) 0 0 / 12px 15px, linear-gradient(#6ab8ff, #2163c4 60%, #123e80)),
+    $hp-glow: none, $mp-glow: none,
+    $num-col: #ffffff, $num-font: ('Barlow Condensed', sans-serif),
+    $inset: rgba(0, 0, 0, 0.28), $pill-bg: #17181b,
+    $good: #7fe07f, $bad: #ff6a5a
+  );
+
+  .char-widget,
+  .map-info-panel {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.55);
+  }
+  .char-panel { padding: 9px 12px 9px 9px; }
+  .char-name-pill { font-size: 12px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.5); }
+
+  // Engarce de gema: bisel metálico + resplandor ámbar de la EXP
+  .avatar-ring { box-shadow: 0 0 0 3px #5a5f67, 0 0 0 4px #0c0d0f, 0 0 12px rgba(255, 179, 71, 0.35); }
+  .avatar-lvl {
+    bottom: -9px;
+    height: auto;
+    padding: 2px 9px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    clip-path: polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%);
+    em { display: none; }
+  }
+
+  // Tubos de cristal con líquido y reflejo
+  .bar-track { border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8); }
+  .bar-fill {
+    border-radius: 8px;
+    &::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      top: 2px;
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.38);
+    }
+  }
+  .bar-num { font-size: 11px; font-weight: 700; padding-right: 8px; }
+
+  // Pestañas: engarces de hierro con una gema que se enciende al elegirla
+  .mip-tabs { left: calc(100% + 2px); gap: 4px; }
+  .mip-tab {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(#3d4046, #26282c);
+    border: 2px solid #111214;
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    ion-icon {
+      box-sizing: border-box;
+      width: 21px;
+      height: 21px;
+      padding: 4px;
+      font-size: 13px;
+      border-radius: 50%;
+      color: #1a0f08;
+      background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.55) 0 2px, var(--gl) 3px, var(--gd) 80%);
+      box-shadow: 0 0 0 2px #15161a, inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+      filter: saturate(0.25) brightness(0.55);
+    }
+    &.active {
+      background: linear-gradient(#3d4046, #26282c);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      ion-icon { filter: none; box-shadow: 0 0 0 2px #15161a, 0 0 12px var(--gl); }
+    }
+    &:nth-child(1) { --gl: #ff6b5b; --gd: #8a1410; }
+    &:nth-child(2) { --gl: #6fe3ff; --gd: #11627e; }
+    &:nth-child(3) { --gl: #8fe86a; --gd: #2b6d16; }
+    &:nth-child(4) { --gl: #ffcf5a; --gd: #94600a; }
+  }
+}
+
+/* ───────────────── CRISTAL · vidrio translúcido compacto ───────────────── */
+:host-context([data-hpbar="cristal"]) {
+  @include appstyle-bar(
+    $panel: rgba(14, 18, 25, 0.74), $bcol: rgba(255, 255, 255, 0.13), $bw: 1px, $radius: 12px,
+    $accent: #ffd166, $accent-soft: rgba(255, 209, 102, 0.35), $on-accent: #1b1400,
+    $text: #eef1f5, $muted: #9aa3ae, $title: #ffd166,
+    $name-bg: transparent, $name-col: #ffffff, $name-bd: none,
+    $name-font: ('Saira Semi Condensed', sans-serif),
+    $av-bg: transparent, $av-bd: none, $av-radius: 0,
+    $lvl-bg: #ffd166, $lvl-col: #1b1400,
+    $track: rgba(255, 255, 255, 0.12), $track-bd: transparent,
+    $hp: linear-gradient(90deg, #ff5f6d, #ff8e72), $mp: linear-gradient(90deg, #3b9cff, #74c0fc),
+    $hp-glow: 0 0 8px rgba(255, 95, 109, 0.5), $mp-glow: 0 0 8px rgba(59, 156, 255, 0.45),
+    $num-col: #d6dbe1, $num-font: ('Saira Semi Condensed', sans-serif),
+    $inset: rgba(255, 255, 255, 0.05), $pill-bg: rgba(255, 255, 255, 0.07),
+    $good: #5be08a, $bad: #ff6b6b
+  );
+
+  .char-widget,
+  .map-info-panel,
+  .mip-tabs,
+  .char-roster {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .char-widget { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+  .map-info-panel { border-top: 1px solid rgba(255, 255, 255, 0.06); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
+  .char-panel { padding: 26px 10px 12px 8px; }
+
+  // Nombre + nivel en una línea dentro de la tarjeta
+  .char-name-pill {
+    top: 7px;
+    left: 10px;
+    right: 12px;
+    transform: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .char-name-lvl {
+    display: inline-block;
+    margin-left: auto;
+    padding: 0 5px;
+    border-radius: 6px;
+    background: #ffd166;
+    color: #1b1400;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  // Sin anillo: retrato cuadrado de vidrio; el nivel va junto al nombre
+  .avatar-ring {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    .avatar-icon { border-radius: 0; box-shadow: none; }
+  }
+  .avatar-lvl { display: none; }
+
+  // Barras finas con el número al lado
+  .char-info { gap: 9px; }
+  .bar-row { height: 7px; }
+  .bar-track {
+    margin-right: 54px;
+    overflow: visible;
+    border: none;
+    border-radius: 4px;
+    box-shadow: none;
+  }
+  .bar-fill { border-radius: 4px; }
+  .bar-num {
+    inset: -4px -54px auto auto;
+    width: 50px;
+    height: 15px;
+    padding: 0;
+    justify-content: flex-start;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-shadow: none;
+  }
+
+  // EXP: línea fina pegada al borde inferior de la tarjeta
+  .bar-row--xp {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    .bar-track { margin: 0; height: 3px; border-radius: 0; background: rgba(255, 255, 255, 0.08); }
+    .bar-fill--xp { border-radius: 0; background: #ffd166; box-shadow: none; }
+  }
+
+  // Tirador: asa de vidrio
+  .map-open-btn {
+    left: 50%;
+    bottom: -9px;
+    width: 30px;
+    height: 4px;
+    transform: translateX(-50%);
+    border: none;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: none;
+    ion-icon { display: none; }
+  }
+
+  // Pestañas en un carril vertical
+  .mip-tabs {
+    left: calc(100% + 6px);
+    top: 6px;
+    gap: 2px;
+    padding: 3px;
+    background: rgba(14, 18, 25, 0.74);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 12px;
+  }
+  .mip-tab {
+    width: 27px;
+    height: 27px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    &.active { box-shadow: none; }
+  }
+}
+
+/* ───────────────── JRPG · ventanas azules de marco blanco ───────────────── */
+$jrpg-hand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 7' shape-rendering='crispEdges'%3E%3Cpath fill='%2310132e' d='M5 0h5v1h-5zM0 1h5v1h-5zM10 1h1v1h-1zM0 2h1v1h-1zM10 2h1v1h-1zM1 3h3v1h-3zM10 3h1v1h-1zM3 4h1v1h-1zM10 4h1v1h-1zM3 5h1v1h-1zM9 5h1v1h-1zM4 6h5v1h-5z'/%3E%3Cpath fill='%23fff' d='M5 1h5v1h-5zM1 2h9v1h-9zM4 3h6v1h-6zM4 4h6v1h-6zM4 5h5v1h-5z'/%3E%3C/svg%3E");
+:host-context([data-hpbar="jrpg"]) {
+  @include appstyle-bar(
+    $panel: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252), $bcol: #f4f4f4, $bw: 2px, $radius: 6px,
+    $accent: #ffe14d, $accent-soft: rgba(255, 255, 255, 0.5), $on-accent: #10132e,
+    $text: #ffffff, $muted: #bcc6ff, $title: #ffe14d,
+    $name-bg: transparent, $name-col: #ffffff, $name-bd: none,
+    $name-font: ('Pixelify Sans', monospace), $name-tr: uppercase,
+    $av-bg: radial-gradient(circle at 50% 40%, #2b3aa8, #0a1250), $av-bd: none, $av-radius: 3px,
+    $lvl-bg: #ffe14d, $lvl-col: #10132e,
+    $track: #05082a, $track-bd: #f4f4f4,
+    $hp: linear-gradient(180deg, #ffb070, #e0452b), $mp: linear-gradient(180deg, #a0ecff, #2f8ff0),
+    $hp-glow: none, $mp-glow: none,
+    $num-col: #ffffff, $num-font: ('Pixelify Sans', monospace),
+    $inset: rgba(0, 0, 30, 0.25), $pill-bg: rgba(0, 0, 30, 0.4),
+    $good: #7dff8a, $bad: #ff8a7a
+  );
+
+  .char-block { text-shadow: 1px 1px 0 #10132e; }
+
+  // Dos ventanas separadas: la tarjeta conserva sus esquinas al abrir el panel
+  .char-widget,
+  .char-block--open .char-widget {
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #10132e, inset 0 0 0 1px #10132e, 0 4px 0 rgba(0, 0, 0, 0.3);
+  }
+  .map-info-panel {
+    top: calc(100% + 5px);
+    border-top: 2px solid #f4f4f4;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #10132e, inset 0 0 0 1px #10132e, 0 4px 0 rgba(0, 0, 0, 0.3);
+  }
+  .char-panel { padding: 24px 12px 9px 8px; align-items: flex-start; }
+
+  // Nombre en mayúsculas + nivel amarillo a la derecha
+  .char-name-pill {
+    top: 6px;
+    left: 10px;
+    right: 12px;
+    transform: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: none;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .char-name-lvl { display: inline; margin-left: auto; color: #ffe14d; text-transform: none; }
+
+  // Retrato cuadrado con marco blanco
+  .avatar-ring {
+    width: 40px;
+    height: 44px;
+    border-radius: 3px;
+    background: radial-gradient(circle at 50% 40%, #2b3aa8, #0a1250);
+    border: 2px solid #f4f4f4;
+    box-shadow: 0 0 0 1px #10132e;
+    .avatar-icon { border-radius: 0; background: transparent; box-shadow: none; }
+  }
+  .avatar-lvl { display: none; }
+
+  // Barras segmentadas con etiqueta (PV / PM / EXP) a la izquierda
+  .char-info { gap: 6px; padding-left: 22px; }
+  .bar-row { height: 12px; }
+  .bar-track {
+    overflow: visible;
+    border-radius: 0;
+    box-shadow: 0 0 0 1px #10132e;
+    &::before {
+      content: attr(data-label);
+      position: absolute;
+      right: calc(100% + 5px);
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Pixelify Sans', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      color: #ffe14d;
+      white-space: nowrap;
+    }
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent 0 5px, rgba(5, 8, 42, 0.85) 5px 6px);
+      pointer-events: none;
+    }
+  }
+  .bar-fill { border-radius: 0; }
+  .bar-num { z-index: 1; font-size: 9.5px; font-weight: 600; text-shadow: 1px 1px 0 #10132e; }
+  .bar-row--xp {
+    display: flex;
+    height: 5px;
+    .bar-track::before { font-size: 7px; }
+    .bar-track::after { content: none; }
+    .bar-fill--xp { background: #ffe14d; box-shadow: none; }
+  }
+
+  // Pestañas: ventanitas; la activa, señalada por la manita
+  .mip-tabs { left: calc(100% + 5px); top: 6px; gap: 4px; }
+  .mip-tab {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(#3549c4, #141d6e);
+    border: 2px solid #f4f4f4;
+    border-radius: 4px;
+    color: #bcc6ff;
+    box-shadow: 0 0 0 1px #10132e;
+    &.active {
+      background: linear-gradient(#4f67ea, #1f2c96);
+      color: #ffe14d;
+      box-shadow: 0 0 0 1px #10132e;
+      &::after {
+        content: '';
+        position: absolute;
+        left: calc(100% + 4px);
+        top: 50%;
+        width: 15px;
+        height: 11px;
+        margin-top: -5px;
+        background: $jrpg-hand center / contain no-repeat;
+        image-rendering: pixelated;
+        animation: jrpg-point 0.7s steps(2) infinite;
+      }
+    }
+  }
+}
+
+@keyframes jrpg-point { 50% { transform: translateX(3px); } }
+@media (prefers-reduced-motion: reduce) {
+  :host-context([data-hpbar="jrpg"]) .mip-tab.active::after { animation: none; }
 }

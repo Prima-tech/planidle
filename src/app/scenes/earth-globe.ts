@@ -175,6 +175,14 @@ function outlinedText(ctx: CanvasRenderingContext2D, txt: string, x: number, y: 
   ctx.lineJoin = 'round'; ctx.lineWidth = lw; ctx.strokeStyle = stroke; ctx.strokeText(txt, x, y);
   ctx.fillStyle = fill; ctx.fillText(txt, x, y);
 }
+/** Etiqueta de la cuadrícula de debug: pastilla oscura + texto amarillo con contorno
+ *  (centrada en x,y; requiere textAlign 'center' y textBaseline 'middle'). */
+function gridLabel(ctx: CanvasRenderingContext2D, txt: string, x: number, y: number, dpr: number): void {
+  const tw = ctx.measureText(txt).width, ph = 15 * dpr, pw = tw + 6 * dpr;
+  ctx.fillStyle = 'rgba(0,0,0,.65)';
+  ctx.fillRect(Math.round(x - pw / 2), Math.round(y - ph / 2), Math.round(pw), Math.round(ph));
+  outlinedText(ctx, txt, x, y, '#ffe24a', '#000', 2.5 * dpr);
+}
 
 // ── Datos estáticos por capa (perezosos, una vez) ───────────────────────────
 
@@ -758,10 +766,10 @@ export class EarthGlobe {
       ctx.moveTo(0, y); ctx.lineTo(w, y);
     }
     ctx.stroke();
-    ctx.font = `${Math.round(9 * dpr)}px monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (let tx = 0; tx < TEX; tx += STEP * 2) for (let ty = STEP * 2; ty < TEX; ty += STEP * 2) {
+    ctx.font = `bold ${Math.round(12 * dpr)}px monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let tx = 0; tx < TEX; tx += STEP) for (let ty = STEP; ty < TEX; ty += STEP) {
       const { lat, lon } = texToLatLon(tx, ty), [x, y] = fpos(v, lat, lon);
-      if (onScreen(v, x, y, 0)) outlinedText(ctx, `${tx},${ty}`, x, y, '#ffd0d0', 'rgba(0,0,0,.8)', 3 * dpr);
+      if (onScreen(v, x, y, 0)) gridLabel(ctx, `${tx},${ty}`, x, y, dpr);
     }
     ctx.textBaseline = 'alphabetic';
   }
@@ -780,11 +788,11 @@ export class EarthGlobe {
       for (let tx = 0; tx <= TEX; tx += 8) { const { lat, lon } = texToLatLon(tx, ty); pts.push(v3(lat, lon)); }
       tracePath(ctx, pts, r, cx, cy, R); ctx.stroke();
     }
-    ctx.font = `${Math.round(9 * dpr)}px monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (let tx = 0; tx < TEX; tx += STEP * 2) for (let ty = STEP * 2; ty < TEX; ty += STEP * 2) {
+    ctx.font = `bold ${Math.round(12 * dpr)}px monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let tx = 0; tx < TEX; tx += STEP) for (let ty = STEP; ty < TEX; ty += STEP) {
       const { lat, lon } = texToLatLon(tx, ty), p = proj(v3(lat, lon), r);
       if (p[2] < .2) continue;
-      outlinedText(ctx, `${tx},${ty}`, cx + p[0] * R, cy - p[1] * R, '#ffd0d0', 'rgba(0,0,0,.8)', 3 * dpr);
+      gridLabel(ctx, `${tx},${ty}`, cx + p[0] * R, cy - p[1] * R, dpr);
     }
     ctx.textBaseline = 'alphabetic';
   }

@@ -32,6 +32,24 @@ export const APP_STYLES: AppStyleDef[] = [
   { id: 'desert', nameKey: 'SETTINGS.STYLE.DESERT' },
 ];
 
+/**
+ * Estilo de la BARRA DE VIDA (top-bar + info de mapa), independiente del tema.
+ * `default` = la del tema activo (no pinta nada). El resto pinta `data-hpbar` en
+ * <html> y top-bar.component.scss lo sobrescribe encima del tema.
+ */
+export type HpBarStyleId = 'default' | 'blason' | 'hierro' | 'cristal' | 'jrpg';
+
+export const HP_BAR_STYLES: { id: HpBarStyleId; nameKey: string }[] = [
+  { id: 'default', nameKey: 'SETTINGS.HP_BAR.DEFAULT' },
+  { id: 'blason', nameKey: 'SETTINGS.HP_BAR.CREST' },
+  { id: 'hierro', nameKey: 'SETTINGS.HP_BAR.IRON' },
+  { id: 'cristal', nameKey: 'SETTINGS.HP_BAR.GLASS' },
+  { id: 'jrpg', nameKey: 'SETTINGS.HP_BAR.JRPG' },
+];
+
+const HP_BAR_KEY = 'hpbar_style';
+const HP_BAR_ATTR = 'data-hpbar';
+
 const STORAGE_KEY = 'app_style';
 const ATTR = 'data-appstyle';
 const DEFAULT: AppStyleId = 'wood';
@@ -40,12 +58,40 @@ const DEFAULT: AppStyleId = 'wood';
 export class AppStyleService {
 
   readonly styles = APP_STYLES;
+  readonly hpBarStyles = HP_BAR_STYLES;
   private readonly _current$: BehaviorSubject<AppStyleId>;
+  private _hpBar: HpBarStyleId = 'default';
 
   constructor() {
     const saved = this.read();
     this._current$ = new BehaviorSubject<AppStyleId>(saved);
     this.apply(saved);   // pinta el atributo al arrancar (sin parpadeo)
+    this._hpBar = this.readHpBar();
+    this.applyHpBar(this._hpBar);
+  }
+
+  get hpBar(): HpBarStyleId { return this._hpBar; }
+  isHpBar(id: HpBarStyleId): boolean { return this._hpBar === id; }
+
+  /** Cambia el estilo de la barra de vida: persiste y lo aplica en caliente. */
+  setHpBar(id: HpBarStyleId): void {
+    if (id === this._hpBar) return;
+    this._hpBar = id;
+    try { localStorage.setItem(HP_BAR_KEY, id); } catch { /* sin storage */ }
+    this.applyHpBar(id);
+  }
+
+  private applyHpBar(id: HpBarStyleId): void {
+    if (id === 'default') document.documentElement.removeAttribute(HP_BAR_ATTR);
+    else document.documentElement.setAttribute(HP_BAR_ATTR, id);
+  }
+
+  private readHpBar(): HpBarStyleId {
+    try {
+      const v = localStorage.getItem(HP_BAR_KEY);
+      if (HP_BAR_STYLES.some(s => s.id === v)) return v as HpBarStyleId;
+    } catch { /* sin storage */ }
+    return 'default';
   }
 
   get current(): AppStyleId { return this._current$.value; }

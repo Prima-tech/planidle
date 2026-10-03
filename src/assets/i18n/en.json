@@ -141,7 +141,15 @@
     "VOLUME_SFX": "Effects (SFX)",
     "VOLUME_MUSIC": "Music",
     "RUNNER_BG": "Runner background",
-    "RUNNER_BG_DESC": "Choose the World Mode parallax."
+    "RUNNER_BG_DESC": "Choose the World Mode parallax.",
+    "HP_BAR": {
+      "TITLE": "Health bar",
+      "DEFAULT": "Current",
+      "CREST": "Crest",
+      "IRON": "Iron & gems",
+      "GLASS": "Glass",
+      "JRPG": "JRPG"
+    }
   },
   "GAME_SETTINGS": {
     "GAME": "Game",
@@ -294,7 +302,10 @@
     "NO_BONUSES": "No bonuses",
     "ALLOCATED": "Allocated",
     "EFFECTIVE_MULT": "Effective multiplier",
-    "BASE_POWER": "Base power"
+    "BASE_POWER": "Base power",
+    "HP_SHORT": "HP",
+    "MP_SHORT": "MP",
+    "EXP_SHORT": "EXP"
   },
   "ITEM_STAT": {
     "DAMAGE": "Damage",

@@ -11,6 +11,9 @@
              Punto de novedad cuando hay algo que reclamar dentro (misión, stats…). -->
         <div class="char-name-pill" (click)="openEquipment.emit()">
           <span class="char-name-text">{{ asgardService?.selectedPlayer?.name }}</span>
+          <!-- Nivel junto al nombre: oculto en la barra por defecto; lo muestran
+               algunos estilos de barra (data-hpbar) que no llevan placa en el avatar. -->
+          <span class="char-name-lvl">{{ 'STAT.LEVEL_SHORT' | translate }} {{ lvl$ | async }}</span>
           <span class="notif-dot" *ngIf="equipBadge"></span>
         </div>
 
@@ -49,7 +52,7 @@
 
             <ng-container *ngIf="valueHP$ | async as hp">
               <div class="bar-row">
-                <div class="bar-track">
+                <div class="bar-track" [attr.data-label]="'STAT.HP_SHORT' | translate">
                   <div class="bar-fill bar-fill--hp" [style.width.%]="hp.ratio * 100"></div>
                   <span class="bar-num">{{ hp.current }}/{{ hp.max }}</span>
                 </div>
@@ -58,12 +61,20 @@
 
             <ng-container *ngIf="valueMP$ | async as mp">
               <div class="bar-row">
-                <div class="bar-track">
+                <div class="bar-track" [attr.data-label]="'STAT.MP_SHORT' | translate">
                   <div class="bar-fill bar-fill--mp" [style.width.%]="mp.ratio * 100"></div>
                   <span class="bar-num">{{ mp.current }}/{{ mp.max }}</span>
                 </div>
               </div>
             </ng-container>
+
+            <!-- Barra fina de EXP: oculta por defecto (la EXP va en el anillo del
+                 avatar); la usan los estilos de barra que no tienen anillo. -->
+            <div class="bar-row bar-row--xp">
+              <div class="bar-track" [attr.data-label]="'STAT.EXP_SHORT' | translate">
+                <div class="bar-fill bar-fill--xp" [style.width.%]="((valueXP$ | async)?.ratio ?? 0) * 100"></div>
+              </div>
+            </div>
 
           </div>
         </div>

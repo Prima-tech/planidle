@@ -141,7 +141,15 @@
     "VOLUME_SFX": "Efectos (SFX)",
     "VOLUME_MUSIC": "Música",
     "RUNNER_BG": "Fondo del runner",
-    "RUNNER_BG_DESC": "Elige el parallax del Modo Mundo."
+    "RUNNER_BG_DESC": "Elige el parallax del Modo Mundo.",
+    "HP_BAR": {
+      "TITLE": "Barra de vida",
+      "DEFAULT": "Actual",
+      "CREST": "Blasón",
+      "IRON": "Hierro y gemas",
+      "GLASS": "Cristal",
+      "JRPG": "JRPG"
+    }
   },
   "GAME_SETTINGS": {
     "LANGUAGE": "Idioma",
@@ -294,7 +302,10 @@
     "NO_BONUSES": "Sin bonificaciones",
     "ALLOCATED": "Asignado",
     "EFFECTIVE_MULT": "Multiplicador efectivo",
-    "BASE_POWER": "Poder base"
+    "BASE_POWER": "Poder base",
+    "HP_SHORT": "PV",
+    "MP_SHORT": "PM",
+    "EXP_SHORT": "EXP"
   },
   "ITEM_STAT": {
     "DAMAGE": "Daño",

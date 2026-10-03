@@ -76,7 +76,7 @@ interface SurfacePin {
 
 const TIERRA_PINS: SurfacePin[] = [
   { name: 'Asgard', mapId: 'hogar', color: 0xf0c040, tx: 300, ty: 192 },
-  { name: '1-1',   mapId: '1-1',   color: 0x5bc0f8, tx: 250, ty: 300 },
+  { name: '1-1',   mapId: '1-1',   color: 0x5bc0f8, tx: 270, ty: 260 },
   { name: '1-2',   mapId: '1-2',   color: 0x5bc0f8, tx: 300, ty: 300 },
   { name: '1-3',   mapId: '1-3',   color: 0x5bc0f8, tx: 270, ty: 235 },
   { name: '1-4',   mapId: '1-4',   color: 0x5bc0f8, tx: 295, ty: 278 },
@@ -1461,28 +1461,16 @@ export class PlanetViewScene extends Phaser.Scene {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(TEX_SIZE, y); ctx.stroke();
     }
 
-    // Etiqueta en cada intersección de 64: tx arriba y ty debajo (en una sola línea
-    // "448,448" no cabe grande en la celda de 64). Fondo oscuro + contorno negro
-    // para que se lea sobre cualquier color del globo aunque la esfera la deforme.
-    const fontPx = 20;
-    const lineH = fontPx + 1;
-    ctx.font = `bold ${fontPx}px monospace`;
+    // Etiqueta "tx,ty" en cada intersección de 64
+    ctx.font = 'bold 14px monospace';
     ctx.textBaseline = 'top';
-    ctx.lineJoin = 'round';
     for (let x = 0; x < TEX_SIZE; x += major) {
       for (let y = 0; y < TEX_SIZE; y += major) {
-        const lines = [`${x},`, `${y}`];
-        const w = Math.max(...lines.map(l => ctx.measureText(l).width));
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(x + 2, y + 2, w + 6, lineH * 2 + 4);
-        lines.forEach((l, i) => {
-          const ly = y + 4 + i * lineH;
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 4;
-          ctx.strokeText(l, x + 5, ly);
-          ctx.fillStyle = '#ffe000';
-          ctx.fillText(l, x + 5, ly);
-        });
+        const label = `${x},${y}`;
+        ctx.fillStyle = '#000000';
+        ctx.fillText(label, x + 4, y + 3);
+        ctx.fillStyle = '#ffe000';
+        ctx.fillText(label, x + 3, y + 2);
       }
     }
 
