@@ -18,7 +18,7 @@ import { APP_VERSION } from 'src/app/version';
 })
 export class GameSettingsPageComponent implements OnInit, OnDestroy {
   /** Pestaña única: 0 = Juego. Admin y Estilos viven en la ventana de admin (minimapa). */
-  tab: 0 = 0;
+  tab: 0 | 1 | 2 = 0;
   gs = inject(GameSettingsService);
   audio = inject(AudioService);
   private connection = inject(ConnectionService);

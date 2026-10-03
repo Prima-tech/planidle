@@ -68,7 +68,7 @@
       "WORLD_MAP": "Mapa mundial",
       "GAME_SCENE": "Escena de juego",
       "CHANGE_PLAYER": "Cambiar personaje",
-      "SAVE_IDLE": "Guardar partida",
+      "SAVE_IDLE": "Guardar",
       "LOCAL_DATA": "Datos locales",
       "VIEW_CHANGES": "Ver cambios",
       "SUPABASE_PAYLOAD": "Payload Supabase",
@@ -121,7 +121,7 @@
       "OVERWRITE_CLOUD": "La nube tiene una partida MÁS RECIENTE (guardada el {{when}}, probablemente desde otro dispositivo).\n\nSi continúas, la sobrescribirás con esta partida y perderás ese progreso. ¿Sobrescribir?",
       "RESET_EXPLORATION": "¿Reiniciar TODO el Modo Exploración? Perderás las estrellas, las mejoras y armas compradas y los mapas se re-bloquearán. Empezarás de cero. Esta acción no se puede deshacer."
     },
-    "LOGOUT": "Cerrar sesión",
+    "LOGOUT": "Cerrar",
     "DELETE": "Borrar",
     "LINK": {
       "TITLE": "Vincula tu correo",
@@ -163,7 +163,7 @@
   "GAME_SETTINGS": {
     "LANGUAGE": "Idioma",
     "LANGUAGE_DESC": "Idioma de la interfaz. Se aplica al instante.",
-    "GAME": "Juego",
+    "GENERAL": "General",
     "STYLES": "Estilos",
     "INTERFACE": "Interfaz",
     "SHOW_JOYSTICK": "Mostrar joystick",

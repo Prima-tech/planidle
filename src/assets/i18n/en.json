@@ -68,7 +68,7 @@
       "WORLD_MAP": "World map",
       "GAME_SCENE": "Game scene",
       "CHANGE_PLAYER": "Change character",
-      "SAVE_IDLE": "Save game",
+      "SAVE_IDLE": "Save",
       "LOCAL_DATA": "Local data",
       "VIEW_CHANGES": "View changes",
       "SUPABASE_PAYLOAD": "Supabase payload",
@@ -161,7 +161,7 @@
     }
   },
   "GAME_SETTINGS": {
-    "GAME": "Game",
+    "GENERAL": "General",
     "STYLES": "Styles",
     "INTERFACE": "Interface",
     "SHOW_JOYSTICK": "Show joystick",

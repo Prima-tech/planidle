@@ -246,7 +246,7 @@ export class GameScene extends Phaser.Scene {
     // Objetos recogibles del suelo (piedras y maderas, fijos y solo en Asgard). Al
     // acercarte y pulsar atacar/espacio se recogen (→ item al inventario) y desaparecen
     // PARA SIEMPRE (flag por objeto en UnlockService → no reaparecen). Bloquean su tile.
-    private groundPickups: { sprite: Phaser.GameObjects.Image; cx: number; cy: number; tileKeys: string[]; flag: string; itemName: string }[] = [];
+    private groundPickups: { sprite: Phaser.GameObjects.Image; cx: number; cy: number; tileKeys: string[]; flag: string; itemName: string; c: number; i: number }[] = [];
     // Herramienta de recolección actualmente "en mano" (o null = arma). Se activa al
     // encarar un recurso con su herramienta y es PEGAJOSA: se mantiene aunque te alejes;
     // solo se quita al hacer un ataque normal (enemigo/al aire) u otra acción.
@@ -2675,7 +2675,8 @@ export class GameScene extends Phaser.Scene {
     };
     /** Asgard: lo que tarda un árbol/roca en reaparecer en su sitio tras talarlo/picarlo. */
     private static readonly HOGAR_NODE_RESPAWN_MS = 30_000;
-    /** Misión que, al ofrecerse, corta la reaparición de los árboles/rocas de Asgard. */
+    /** Misión que, al ofrecerse, corta la reaparición de los árboles/rocas de Asgard y de
+     *  los recogibles del suelo (ramitas y piedras). */
     private static readonly HOGAR_NODES_STOP_QUEST = 'noexp_kugo';
 
     /** ¿Ya no reaparecen los árboles/rocas de Asgard? (Mordekai ya ofreció la misión 7). */
@@ -3660,28 +3661,47 @@ export class GameScene extends Phaser.Scene {
     ];
 
     /** Coloca los objetos recogibles fijos de Asgard (10 piedras + 10 maderas). BLOQUEAN su
-     *  tile (como las rocas de minería). Los ya recogidos (flag marcado) NO se colocan → no
-     *  reaparecen. Te acercas y al pulsar atacar/espacio se recogen (libera el paso).
-     *  El flag es de PERSONAJE: lo que recoja uno no se lo quita a los demás. */
+     *  tile (como las rocas de minería). Te acercas y al pulsar atacar/espacio se recogen
+     *  (libera el paso). Igual que los árboles/rocas de Asgard: reaparecen en su sitio a los
+     *  HOGAR_NODE_RESPAWN_MS hasta que Mordekai ofrece HOGAR_NODES_STOP_QUEST; desde entonces
+     *  lo recogido queda marcado (flag de PERSONAJE) y no vuelve. */
     private initGroundPickups(): void {
+      const stopped = this.hogarNodesStopped();
+      GameScene.ASGARD_PICKUPS.forEach((cfg, c) => cfg.tiles.forEach((_t, i) => {
+        if (stopped && this.reg.unlocks?.hasFlag(`${cfg.flagPrefix}.${i}`)) return;   // gastado para siempre
+        this.spawnGroundPickup(c, i);
+      }));
+    }
+
+    /** Planta el recogible `i` del grupo `c` de ASGARD_PICKUPS en su sitio. */
+    private spawnGroundPickup(c: number, i: number): void {
       const TS = GameScene.TILE_SIZE;
-      const unlocks = this.reg.unlocks;
-      for (const cfg of GameScene.ASGARD_PICKUPS) {
-        cfg.tiles.forEach((t, i) => {
-          const flag = `${cfg.flagPrefix}.${i}`;
-          if (unlocks?.hasFlag(flag)) return;            // ya recogido → no reaparece
-          const cx = t.x * TS + TS / 2;
-          const baseY = (t.y + 1) * TS;                  // apoyado en el borde inferior del tile
-          const sprite = this.add.image(cx, baseY, cfg.texture).setOrigin(0.5, 1).setScale(cfg.scale);
-          sprite.setDepth(baseY);                        // orden por Y como el resto de objetos
-          // Sólido: bloquea el footprint del objeto (offsets `foot` relativos a su tile). No
-          // uso los bounds del sprite porque el PNG lleva mucho padding transparente
-          // (bloquearía un muro enorme). El footprint se alinea con la base visible.
-          const tileKeys = cfg.foot.map(([dx, dy]) => `${t.x + dx},${t.y + dy}`);
-          for (const k of tileKeys) this.collisionTiles.add(k);
-          this.groundPickups.push({ sprite, cx, cy: baseY, tileKeys, flag, itemName: cfg.item });
-        });
-      }
+      const cfg = GameScene.ASGARD_PICKUPS[c], t = cfg.tiles[i];
+      const cx = t.x * TS + TS / 2;
+      const baseY = (t.y + 1) * TS;                  // apoyado en el borde inferior del tile
+      const sprite = this.add.image(cx, baseY, cfg.texture).setOrigin(0.5, 1).setScale(cfg.scale);
+      sprite.setDepth(baseY);                        // orden por Y como el resto de objetos
+      // Sólido: bloquea el footprint del objeto (offsets `foot` relativos a su tile). No
+      // uso los bounds del sprite porque el PNG lleva mucho padding transparente
+      // (bloquearía un muro enorme). El footprint se alinea con la base visible.
+      const tileKeys = cfg.foot.map(([dx, dy]) => `${t.x + dx},${t.y + dy}`);
+      for (const k of tileKeys) this.collisionTiles.add(k);
+      this.groundPickups.push({ sprite, cx, cy: baseY, tileKeys, flag: `${cfg.flagPrefix}.${i}`, itemName: cfg.item, c, i });
+    }
+
+    /** Tras recogerlo: vuelve a su sitio a los HOGAR_NODE_RESPAWN_MS… o nunca, si ya tocaba
+     *  la misión de Kugo (entonces queda gastado para este personaje). Si el jugador está
+     *  encima de su huella, reintenta en 2 s para no encerrarlo. */
+    private onGroundPickupCollected(p: typeof this.groundPickups[0]): void {
+      if (this.hogarNodesStopped()) { this.reg.unlocks?.setFlag(p.flag, 'char'); return; }
+      const retry = (delay: number) => this.time.delayedCall(delay, () => {
+        if (this.hogarNodesStopped()) { this.reg.unlocks?.setFlag(p.flag, 'char'); return; }
+        const TS = GameScene.TILE_SIZE, pos = this.player?.getPosition();
+        if (pos && p.tileKeys.includes(`${Math.floor(pos.x / TS)},${Math.floor(pos.y / TS)}`)) { retry(2_000); return; }
+        if (p.tileKeys.some(k => this.collisionTiles.has(k))) { retry(2_000); return; }   // ocupado (edificio…)
+        this.spawnGroundPickup(p.c, p.i);
+      });
+      retry(GameScene.HOGAR_NODE_RESPAWN_MS);
     }
 
     /** Objeto recogible más cercano al jugador dentro de rango (o null). */
@@ -3700,7 +3720,7 @@ export class GameScene extends Phaser.Scene {
       return nearest;
     }
 
-    /** Recoge un objeto del suelo: marca su flag (persistente → no reaparece), +1 de su item
+    /** Recoge un objeto del suelo: programa su reaparición (o lo marca gastado), +1 de su item
      *  al inventario (rehidratado del catálogo), libera su tile, pop del sprite y lo destruye. */
     private collectPickup(p: typeof this.groundPickups[0]): void {
       const idx = this.groundPickups.indexOf(p);
@@ -3708,9 +3728,8 @@ export class GameScene extends Phaser.Scene {
       this.groundPickups.splice(idx, 1);
       for (const k of p.tileKeys) this.collisionTiles.delete(k);   // libera el paso
       if (this.cachedNearPickup === p) this.cachedNearPickup = null;
-      // Ámbito PERSONAJE (el default del juego): cada personaje encuentra su Asgard
-      // intacto. Permanente para él: una vez recogida, esa piedra/tronco no reaparece.
-      this.reg.unlocks?.setFlag(p.flag, 'char');
+      // Reaparece o queda gastado (flag de PERSONAJE) según la misión de Kugo.
+      this.onGroundPickupCollected(p);
 
       const item = hydrateItem({ id: `pick-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: p.itemName, sum: 1 });
       this.reg.inventory?.addOrDropToWorld(item);

@@ -1,7 +1,16 @@
 <div class="gs-panel">
 
+  <!-- 3 pestañas con icono: General (cuenta + idioma) · Interfaz · Sonido. -->
   <div class="gs-tabs">
-    <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">{{ 'GAME_SETTINGS.GAME' | translate }}</button>
+    <button class="gs-tab" [class.active]="tab === 0" (click)="tab = 0">
+      <ion-icon name="settings-outline"></ion-icon>{{ 'GAME_SETTINGS.GENERAL' | translate }}
+    </button>
+    <button class="gs-tab" [class.active]="tab === 1" (click)="tab = 1">
+      <ion-icon name="desktop-outline"></ion-icon>{{ 'GAME_SETTINGS.INTERFACE' | translate }}
+    </button>
+    <button class="gs-tab" [class.active]="tab === 2" (click)="tab = 2">
+      <ion-icon name="volume-high-outline"></ion-icon>{{ 'SETTINGS.SOUND' | translate }}
+    </button>
   </div>
 
   <div class="gs-content">
@@ -21,14 +30,16 @@
       <!-- Guardar partida + Cerrar sesión: misma línea (dos botones) -->
       <!-- Guardar en la nube: acción manual. Sin lógica de estado (el auto-save
            sigue guardando local por su cuenta; este botón fuerza la subida). -->
-      <button class="rpg-btn gs-save-btn" (click)="save()">
-        <span class="gs-save-icon">☁</span>
-        <span>{{ 'SETTINGS.BTN.SAVE_IDLE' | translate }}</span>
-      </button>
-      <button class="rpg-btn gs-save-btn gs-logout-btn" (click)="logout()">
-        <span class="gs-save-icon">🚪</span>
-        <span>{{ 'SETTINGS.LOGOUT' | translate }}</span>
-      </button>
+      <div class="gs-acct-btns">
+        <button class="rpg-btn rpg-btn--sm gs-save-btn" (click)="save()">
+          <span class="gs-save-icon">☁</span>
+          <span>{{ 'SETTINGS.BTN.SAVE_IDLE' | translate }}</span>
+        </button>
+        <button class="rpg-btn rpg-btn--sm gs-save-btn gs-logout-btn" (click)="logout()">
+          <span class="gs-save-icon">🚪</span>
+          <span>{{ 'SETTINGS.LOGOUT' | translate }}</span>
+        </button>
+      </div>
 
       <!-- Confirmación puntual del clic en Guardar (nube / local / error). -->
       <p class="gs-link-ok" *ngIf="saveMsg">{{ saveMsg | translate }}</p>
@@ -56,6 +67,9 @@
           </div>
         </div>
       </div>
+    </ng-container>
+
+    <ng-container *ngIf="tab === 1">
 
       <div class="gs-section">
         <p class="gs-section-label">{{ 'GAME_SETTINGS.INTERFACE' | translate }}</p>
@@ -111,7 +125,9 @@
         </div>
 
       </div>
+    </ng-container>
 
+    <ng-container *ngIf="tab === 2">
       <div class="gs-section">
         <p class="gs-section-label">{{ 'SETTINGS.SOUND' | translate }}</p>
 
@@ -126,27 +142,27 @@
         </div>
 
         <div class="gs-row gs-row-stack">
-          <div class="gs-row-info">
+          <div class="gs-row-info gs-row-info--inline">
             <span class="gs-row-title">{{ 'SETTINGS.VOLUME_MASTER' | translate }}</span>
-            <span class="gs-row-desc">{{ masterPct }}%</span>
+            <span class="gs-vol-pct">{{ masterPct }}%</span>
           </div>
           <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
                  [(ngModel)]="masterPct" [disabled]="audio.muted">
         </div>
 
         <div class="gs-row gs-row-stack">
-          <div class="gs-row-info">
+          <div class="gs-row-info gs-row-info--inline">
             <span class="gs-row-title">{{ 'SETTINGS.VOLUME_SFX' | translate }}</span>
-            <span class="gs-row-desc">{{ sfxPct }}%</span>
+            <span class="gs-vol-pct">{{ sfxPct }}%</span>
           </div>
           <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
                  [(ngModel)]="sfxPct" (change)="previewSfx()" [disabled]="audio.muted">
         </div>
 
         <div class="gs-row gs-row-stack">
-          <div class="gs-row-info">
+          <div class="gs-row-info gs-row-info--inline">
             <span class="gs-row-title">{{ 'SETTINGS.VOLUME_MUSIC' | translate }}</span>
-            <span class="gs-row-desc">{{ musicPct }}%</span>
+            <span class="gs-vol-pct">{{ musicPct }}%</span>
           </div>
           <input type="range" class="gs-coins-slider" min="0" max="100" step="1"
                  [(ngModel)]="musicPct" [disabled]="audio.muted">
