@@ -125,13 +125,11 @@ export class SupabaseService {
   }
 
   /** ¿La cuenta logueada tiene el acceso BLOQUEADO? Lee `global_data.account` del
-   *  propio usuario (la RLS le deja leer su fila) y devuelve el motivo:
-   *  - 'banned'  → la marcó el PANEL DE ADMIN vía la RPC `admin_set_ban`.
-   *  - 'deleted' → la marcó el propio usuario con "Borrar cuenta (nube)" en ajustes
-   *    (soft-delete: la fila sigue existiendo, pero no se puede volver a entrar).
-   *  El login lo comprueba en todas sus vías y bloquea el acceso. Ante cualquier error
-   *  de red devuelve null (no bloqueamos por un fallo puntual). */
-  async accessBlock(): Promise<'banned' | 'deleted' | null> {
+   *  propio usuario (la RLS le deja leer su fila): `banned` la marca el PANEL DE ADMIN
+   *  con la RPC `admin_set_ban`. El login lo comprueba en todas sus vías y bloquea el
+   *  acceso. Ante cualquier error de red devuelve null (no bloqueamos por un fallo
+   *  puntual). */
+  async accessBlock(): Promise<'banned' | null> {
     try {
       const { data: { user } } = await this.supabase.auth.getUser();
       if (!user) return null;
@@ -139,8 +137,7 @@ export class SupabaseService {
         .from('global_data').select('account').eq('id', user.id).single();
       if (error) return null;
       const account = (data as any)?.account;
-      if (account?.banned)  return 'banned';
-      if (account?.deleted) return 'deleted';
+      if (account?.banned) return 'banned';
       return null;
     } catch {
       return null;
@@ -386,15 +383,6 @@ export class SupabaseService {
       .eq('id', user.id);
 
     if (error) throw error;
-  }
-
-  /** SOFT-DELETE de la cuenta: NO borra nada de la nube, solo marca
-   *  `global_data.account.deleted = true` (merge, sin pisar el resto del account).
-   *  Con la marca puesta, `accessBlock()` devuelve 'deleted' y el login no deja
-   *  volver a entrar con esta cuenta por ninguna vía. Los datos quedan en la BD
-   *  (el panel de admin puede inspeccionarlos o restaurarlos quitando el flag). */
-  async markAccountDeleted(): Promise<void> {
-    await this.saveAccountData({ deleted: true, deletedAt: new Date().toISOString() });
   }
 
 }

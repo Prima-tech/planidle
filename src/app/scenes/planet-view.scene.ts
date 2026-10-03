@@ -276,7 +276,29 @@ export class PlanetViewScene extends Phaser.Scene {
 
   constructor() { super({ key: 'PlanetViewScene' }); }
 
+  /** Estado del grid de debug (para que el panel Angular pinte bien su botón al
+   *  reabrirse: la instancia del juego se reutiliza entre aperturas). */
+  get debugGridOn(): boolean { return this.debugGrid; }
+
   create(): void {
+    // La instancia del juego se REUTILIZA entre aperturas del panel (PlanetViewHostService):
+    // cada apertura hace scene.restart(), así que el estado de vista se resetea aquí. Las
+    // texturas procedurales sobreviven (createPlanetTexture salta las ya creadas).
+    this.mode = 'detail';
+    this.transitioning = false;
+    this.detailC = null;
+    this.planet = null;
+    this.planetMask = null;
+    this.pinObjs = [];
+    this.routeGfx = null;
+    this.orbiting = [];
+    this.systemC = null;
+    this.constellationC = null;
+    this.galaxyC = null;
+    this.dragging = false;
+    this.velX = 0;
+    this.velY = 0;
+
     this.cameras.main.setBackgroundColor('#05060f');
     this.createStars(this.scale.width, this.scale.height);
     this.createShadeTexture();

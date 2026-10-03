@@ -261,19 +261,4 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
     location.reload();
   }
 
-  /** Borra los datos de la cuenta de Supabase conectada (nube + local) y vuelve al login. */
-  async clearRemoteAccount(): Promise<void> {
-    if (!confirm(this.translate.instant('SETTINGS.CONFIRM.DELETE_ACCOUNT'))) return;
-    try {
-      await this.saveService.wipeRemoteAccountData();
-    } catch (e) {
-      console.error('[Settings] No se pudo borrar la cuenta de Supabase', e);
-      alert(this.translate.instant('SETTINGS.CONFIRM.DELETE_ACCOUNT_ERROR'));
-      return;
-    }
-    this.supabaseConnected = false;
-    this.asgard.triggerCloseMenu();
-    await this.router.navigateByUrl('/login');
-    window.location.reload();
-  }
 }

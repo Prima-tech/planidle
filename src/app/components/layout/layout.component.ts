@@ -33,6 +33,7 @@ import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { RegenService } from 'src/app/services/regen.service';
 import { AmbientChatService } from 'src/app/services/ambient-chat.service';
+import { PlanetViewHostService } from 'src/app/services/planet-view-host.service';
 import { APP_VERSION } from 'src/app/version';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
@@ -127,6 +128,7 @@ export class LayoutComponent implements OnDestroy {
     private portalUnlockService: PortalUnlockService,
     private translateService: TranslateService,
     private ambientChatService: AmbientChatService,
+    private planetViewHost: PlanetViewHostService,
   ) {
     this.loadGame();
   }
@@ -154,6 +156,13 @@ export class LayoutComponent implements OnDestroy {
 
     this.sceneReadySub = this.playerBridgeService.sceneReady$.subscribe(() => {
       this.ngZone.run(() => { this.sceneVisible = true; });
+      // Precalienta el globo del mapa del mundo (instancia Phaser aparcada y dormida) en
+      // un hueco libre tras el primer mapa: así abrir el mapa desde el minimapa es
+      // instantáneo. Idempotente (prewarm no hace nada si ya existe).
+      this.ngZone.runOutsideAngular(() => setTimeout(() => {
+        const idle = (window as any).requestIdleCallback as ((cb: () => void) => void) | undefined;
+        idle ? idle(() => this.planetViewHost.prewarm()) : this.planetViewHost.prewarm();
+      }, 1500));
     });
 
     // Subir de nivel → badge "hay algo nuevo" en equipo (punto de stat por gastar).

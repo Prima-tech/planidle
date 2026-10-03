@@ -1,7 +1,6 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import Phaser from 'phaser';
-import { PlanetViewScene, PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY } from 'src/app/scenes/planet-view.scene';
+import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY } from 'src/app/scenes/planet-view.scene';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
@@ -14,6 +13,7 @@ import { UnlockService } from 'src/app/services/unlock.service';
 import { mapFeatureId } from 'src/app/services/unlock-config';
 import { AdminService } from 'src/app/services/admin.service';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
+import { PlanetViewHostService } from 'src/app/services/planet-view-host.service';
 
 // Tamaño al que se renderiza cada frame del sprite del enemigo en la tarjeta de
 // info. El recuadro (.enemy-frame) recorta; con 96 el bicho se ve al doble.
@@ -46,6 +46,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private admin         = inject(AdminService);
   private gs            = inject(GameSettingsService);
   private ngZone        = inject(NgZone);
+  private planetHost    = inject(PlanetViewHostService);
   private mapSub: Subscription;
 
   currentMapId = '';
@@ -64,8 +65,6 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   // Nombre del planeta en vista detalle: lo pinta Angular como título sobre el globo
   // (antes lo dibujaba la propia escena Phaser).
   detailPlanetName = '';
-
-  private planetGame: Phaser.Game | null = null;
 
   ngOnInit() {
     let first = true;
@@ -91,55 +90,44 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.destroyPlanetGame();
   }
 
+  /** Cuelga el globo (instancia Phaser compartida y ya precalentada, ver
+   *  PlanetViewHostService) del panel y registra los callbacks de este componente. */
   private createPlanetGame() {
     const parent = document.getElementById('planet-view');
-    if (!parent || this.planetGame) return;
-    // Canvas a resolución nativa del dispositivo (devicePixelRatio) y reducido
-    // con zoom CSS — sin esto el texto se ve borroso en pantallas de alta densidad
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    // Fuera de la zona de Angular: si no, zone.js dispara change detection en cada
-    // frame del globo mientras el panel está abierto. Las actualizaciones de UI de
-    // este panel son discretas y ya van envueltas en ngZone.run (ver más abajo).
-    this.ngZone.runOutsideAngular(() => {
-      this.planetGame = new Phaser.Game({
-        type: Phaser.AUTO,
-        parent,
-        width:  parent.clientWidth * dpr,
-        height: parent.clientHeight * dpr,
-        scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
-        render: { antialias: true },
-        backgroundColor: '#05060f',
-        scene: [PlanetViewScene],
+    if (!parent) return;
+    this.planetHost.attach(parent, registry => {
+      // Pin pulsado en el globo → misma tarjeta de info (y teleport) que la tab 0.
+      // El click llega desde Phaser (fuera de Angular): hace falta ngZone.run
+      // para que la change detection pinte la tarjeta.
+      // El globo pinta en gris los mapas bloqueados y no extiende la ruta hasta ellos.
+      registry.set(PLANET_MAP_LOCKED_KEY, (mapId: string) => this.isMapLocked(mapId));
+      registry.set(PLANET_PIN_SELECT_KEY, (mapId: string) => {
+        this.ngZone.run(() => this.selectPin(mapId));
+      });
+      registry.set(PLANET_PIN_TELEPORT_KEY, (mapId: string) => {
+        this.ngZone.run(() => this.teleport(mapId));
+      });
+      registry.set(PLANET_SELECT_KEY, (id: string, name: string) => {
+        this.ngZone.run(() => this.selectPlanet(id, name));
+      });
+      // Doble click en un planeta: la escena hace el zoom; aquí solo se cierra la tarjeta
+      registry.set(PLANET_ZOOM_KEY, () => {
+        this.ngZone.run(() => {
+          this.selectedPlanet = null;
+          this.charsOnPlanet  = [];
+        });
+      });
+      // Al abrir el globo, la escena se orienta al mapa donde está el jugador (o a la
+      // capital del planeta si no es válido); le damos ese mapId vía este callback.
+      registry.set(PLANET_CURRENT_MAP_KEY, () => this.currentMapId);
+      // La escena nos dice qué planeta se está viendo → lista de mapas + título del nombre.
+      registry.set(PLANET_DETAIL_KEY, (planetId: string, name: string) => {
+        this.ngZone.run(() => { this.detailPlanetId = planetId; this.detailPlanetName = name; });
       });
     });
-    // Pin pulsado en el globo → misma tarjeta de info (y teleport) que la tab 0.
-    // El click llega desde Phaser (fuera de Angular): hace falta ngZone.run
-    // para que la change detection pinte la tarjeta.
-    // El globo pinta en gris los mapas bloqueados y no extiende la ruta hasta ellos.
-    this.planetGame.registry.set(PLANET_MAP_LOCKED_KEY, (mapId: string) => this.isMapLocked(mapId));
-    this.planetGame.registry.set(PLANET_PIN_SELECT_KEY, (mapId: string) => {
-      this.ngZone.run(() => this.selectPin(mapId));
-    });
-    this.planetGame.registry.set(PLANET_PIN_TELEPORT_KEY, (mapId: string) => {
-      this.ngZone.run(() => this.teleport(mapId));
-    });
-    this.planetGame.registry.set(PLANET_SELECT_KEY, (id: string, name: string) => {
-      this.ngZone.run(() => this.selectPlanet(id, name));
-    });
-    // Doble click en un planeta: la escena hace el zoom; aquí solo se cierra la tarjeta
-    this.planetGame.registry.set(PLANET_ZOOM_KEY, () => {
-      this.ngZone.run(() => {
-        this.selectedPlanet = null;
-        this.charsOnPlanet  = [];
-      });
-    });
-    // Al abrir el globo, la escena se orienta al mapa donde está el jugador (o a la
-    // capital del planeta si no es válido); le damos ese mapId vía este callback.
-    this.planetGame.registry.set(PLANET_CURRENT_MAP_KEY, () => this.currentMapId);
-    // La escena nos dice qué planeta se está viendo → lista de mapas + título del nombre.
-    this.planetGame.registry.set(PLANET_DETAIL_KEY, (planetId: string, name: string) => {
-      this.ngZone.run(() => { this.detailPlanetId = planetId; this.detailPlanetName = name; });
-    });
+    // La instancia se reutiliza: el botón de debug refleja el estado real del grid.
+    const scene = this.planetHost.scene;
+    if (scene) this.gridOn = scene.debugGridOn;
   }
 
   /** Mapas DESBLOQUEADOS del planeta que se está viendo, para la lista de la izquierda
@@ -168,7 +156,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   /** Pinchar un mapa de la lista: gira el globo para centrar su pin y deja ese mapa
    *  SELECCIONADO de forma fija (resaltado estático en la lista), sin alternar. */
   focusPlanetMap(mapId: string) {
-    const scene = this.planetGame?.scene.getScene('PlanetViewScene') as PlanetViewScene | undefined;
+    const scene = this.planetHost.scene;
     scene?.focusMap(mapId, true);
     if (this.selectedMap?.id !== mapId) {
       this.selectedMap = MAP_REGISTRY[mapId];
@@ -183,9 +171,13 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.playerBridge.requestCloseMenus();
   }
 
+  /** Al cerrar: el globo NO se destruye, se aparca dormido para la próxima apertura.
+   *  Los callbacks del registry apuntan a este componente: se neutralizan para que
+   *  ningún evento rezagado actúe sobre un panel ya destruido. */
   private destroyPlanetGame() {
-    this.planetGame?.destroy(true);
-    this.planetGame = null;
+    const reg = this.planetHost.registry;
+    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY]) reg.set(k, undefined);
+    this.planetHost.detach();
     this.selectedPlanet = null;
     this.charsOnPlanet  = [];
     this.detailPlanetId = '';
@@ -212,14 +204,14 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   /** DEBUG: alterna la cuadrícula de coordenadas del globo (llama a la escena). */
   toggleGrid() {
     this.gridOn = !this.gridOn;
-    const scene = this.planetGame?.scene.getScene('PlanetViewScene') as PlanetViewScene | undefined;
+    const scene = this.planetHost.scene;
     scene?.setDebugGrid(this.gridOn);
   }
 
   /** Botón de la tarjeta: hace el zoom-in a la vista detalle del planeta */
   visitPlanet() {
-    if (!this.selectedPlanet || !this.planetGame) return;
-    const scene = this.planetGame.scene.getScene('PlanetViewScene') as PlanetViewScene;
+    if (!this.selectedPlanet) return;
+    const scene = this.planetHost.scene;
     scene?.zoomToPlanet(this.selectedPlanet.id);
     this.selectedPlanet = null;
     this.charsOnPlanet  = [];

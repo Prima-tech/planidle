@@ -78,7 +78,7 @@ export class LoginPage implements OnInit {
         if (!block) return false;
         await this.supabaseService.signOut();
         this.guestId = null;
-        this.error = this.translate.instant(block === 'deleted' ? 'LOGIN.ERR.DELETED' : 'LOGIN.ERR.BANNED');
+        this.error = this.translate.instant('LOGIN.ERR.BANNED');
         return true;
     }
 

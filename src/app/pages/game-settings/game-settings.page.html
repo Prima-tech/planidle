@@ -44,12 +44,6 @@
 
       <p class="gs-link-ok" *ngIf="linkOk">{{ 'SETTINGS.LINK.OK' | translate }}</p>
 
-      <!-- Borrar la cuenta de Supabase conectada (nube): solo si hay conexión. -->
-      <button *ngIf="supabaseConnected" class="rpg-btn gs-save-btn gs-danger-btn" (click)="clearRemoteAccount()">
-        <span class="gs-save-icon">☁🗑</span>
-        <span>{{ 'SETTINGS.DELETE_ACCOUNT' | translate }}</span>
-      </button>
-
       <div class="gs-section">
         <p class="gs-section-label">{{ 'GAME_SETTINGS.LANGUAGE' | translate }}</p>
 

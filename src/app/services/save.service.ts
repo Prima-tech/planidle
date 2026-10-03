@@ -323,20 +323,6 @@ export class SaveService {
     // tardía re-escriba estado obsoleto antes de la recarga del llamador.
   }
 
-  /**
-   * Botón "Borrar cuenta (nube)": SOFT-DELETE de la cuenta de Supabase conectada.
-   * 1. Marca `account.deleted` en la nube (no se borra ninguna fila: el login la
-   *    rechaza vía accessBlock() y el admin puede restaurarla quitando el flag).
-   * 2. Destruye la sesión guardada (signOut): sin auto-entrada al reabrir la app y
-   *    sin "Continuar como invitado" en el login.
-   * 3. Vacía el storage local para que el dispositivo no conserve datos obsoletos.
-   * El llamador debe recargar después.
-   */
-  async wipeRemoteAccountData(): Promise<void> {
-    await this.supabase.markAccountDeleted();   // nube primero (si falla, no tocamos nada local)
-    await this.supabase.signOut();              // fuera la sesión persistida del login
-    await this.wipeAllData();                   // luego el local de este dispositivo
-  }
 
   /**
    * Botón "Guardar": escribe local y luego intenta remoto.
