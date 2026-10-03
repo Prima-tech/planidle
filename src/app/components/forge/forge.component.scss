@@ -69,8 +69,8 @@ $metal-dark: #6b6357;
   gap: 5px;
   margin-bottom: 10px;
 
-  /* Bloqueadas: invisibles pero conservan su hueco (no descolocan la producción). */
-  &.is-hidden { visibility: hidden; }
+  /* Bloqueadas: fuera del todo (sin reservar hueco), así la producción sube pegada al título. */
+  &.is-hidden { display: none; }
 }
 
 .forge-tab {
@@ -172,53 +172,42 @@ $metal-dark: #6b6357;
   cursor: grab;
 }
 
-/* ── Diseño "crisol" ──────────────────────────────────────────────────────────────
-   Lienzo de posición absoluta (240px útiles = 292 − paddings/bordes):
-     mineral arriba-izq · fuel abajo-izq · crisol 96px en el centro · salida a la dcha
-     · lote (×N + tiempo + barra) abajo-dcha · botón fundir/pausar abajo, centrado.
-   Las tuberías unen cada celda con el crisol (decorativas). */
-.forge-crucible-wrap {
-  position: relative;
-  height: 190px;
+/* ── Producción: crisol + bandeja ────────────────────────────────────────────────
+   Fila de arriba (240px útiles = 292 − paddings/bordes): entradas en columna a ras de
+   la izquierda · crisol (84px) centrado · lote a la derecha. Debajo: barra de
+   probabilidades por rareza, bandeja de salida de 10 huecos y los botones. */
+.forge-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.forge-slot--mat  { position: absolute; left: 0; top: 0; }
-.forge-slot--fuel { position: absolute; left: 0; top: 118px; }
-.forge-slot--out  { position: absolute; right: 0; top: 30px; }
+/* Entradas: etiqueta encima y celda debajo, ambas alineadas a la izquierda. */
+.forge-inputs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 
-.forge-tag--below { margin: 4px 0 0; }
-
-.forge-pipe {
-  position: absolute;
-  height: 6px;
-  background: linear-gradient(180deg, #8f8678, #5a5248);
-  border: 1px solid $outline;
-  border-radius: 2px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  transform-origin: left center;
-  pointer-events: none;
+  .forge-slot { align-items: flex-start; }
 }
-.forge-pipe--mat  { left: 44px;  top: 44px;  width: 44px; transform: rotate(28deg); }
-.forge-pipe--fuel { left: 44px;  top: 140px; width: 50px; transform: rotate(-36deg); }
-.forge-pipe--out  { left: 164px; top: 71px;  width: 32px; }
 
-/* Etiqueta del crisol (metal que se funde / "Producir"), centrada encima. */
-.forge-crucible-label {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
+.forge-core {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  .forge-tag { margin-bottom: 0; }
+  .forge-timer { margin-top: 0; }
 }
 
 /* Crisol: cuenco de hierro con el metal fundido que SUBE con la unidad actual
    (altura de .forge-molten pintada en rAF desde el componente). */
 .forge-crucible {
-  position: absolute;
-  left: 50%;
-  top: 24px;
-  width: 96px;
-  height: 96px;
-  margin-left: -48px;
+  position: relative;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
   overflow: hidden;
   background: radial-gradient(circle at 50% 35%, #3a2618, #1c1009 75%);
@@ -269,24 +258,14 @@ $metal-dark: #6b6357;
   50% { transform: translateX(8px) scaleY(0.6); }
 }
 
-.forge-timer--unit {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 126px;
-  margin: 0;
-  text-align: center;
-}
-
-/* Lote: barras que quedan + tiempo total + barra del lote, abajo a la dcha. */
+/* Lote: barras que quedan + tiempo total + barra del lote. */
 .forge-batch {
-  position: absolute;
-  right: 0;
-  top: 118px;
   width: 56px;
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  .forge-progress { width: 56px; margin-top: 3px; }
 }
 
 .forge-batch-count {
@@ -297,19 +276,76 @@ $metal-dark: #6b6357;
   font-variant-numeric: tabular-nums;
 }
 
-.forge-batch .forge-progress { width: 56px; margin-top: 3px; }
+/* Barra de probabilidades: un tramo por rareza, del color de su rareza (vars
+   --r-c/--r-l de [data-rarity] en global.scss; aquí sin el ::before del halo). */
+.forge-odds {
+  display: flex;
+  height: 10px;
+  margin-top: 10px;
+  border: 2px solid $cell-border;
+  border-radius: 4px;
+  overflow: hidden;
+  background: $cell-border;
 
-/* Botón fundir/pausar (.rpg-btn global): abajo, centrado. En marcha = ámbar. */
-.forge-go {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: fit-content;
-  min-width: 84px;
-  margin: 0 auto;
+  span {
+    display: block;
+    height: 100%;
+    background: var(--r-c);
+    box-shadow: inset 0 1px 0 var(--r-l);
+    &::before, &::after { display: none; }
+  }
+}
 
-  &.is-active { --rpg-face: #e0a24e; --rpg-hi: #f6c97e; }
+.forge-odds-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+
+  span { display: inline-flex; align-items: center; gap: 3px; }
+  margin-top: 2px;
+  font-size: 0.55em;
+  font-weight: 700;
+  color: #ffe3b0;
+  text-shadow: 0 1px 0 #3a1f0e;
+}
+
+/* Bolita del color de la rareza en la leyenda (en vez de su nombre). */
+.forge-odds-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--r-c);
+  box-shadow: 0 0 0 1px $cell-border, inset 0 1px 0 var(--r-l);
+  &::before, &::after { display: none; }
+}
+
+/* Bandeja de salida: 10 huecos de 40px; caben 5 a la vista. Solo hace scroll
+   horizontal si hay algo más allá de los visibles (.is-scrollable). */
+.forge-tray {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 5px;
+  border: 2px solid $cell-border;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  overflow-x: hidden;
+  scrollbar-width: thin;
+
+  &.is-scrollable { overflow-x: auto; }
+  &::-webkit-scrollbar { height: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255, 210, 150, 0.35); border-radius: 2px; }
+
+  .forge-out-cell { width: 40px; height: 40px; flex: 0 0 40px; }
+  .forge-item[data-rarity] { border-radius: 4px; }
+}
+
+.forge-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+
+  .rpg-btn.is-active { --rpg-face: #e0a24e; --rpg-hi: #f6c97e; }
 }
 
 /* Cuadrados de material, combustible y salida: hueco de metal forjado, cálido,
@@ -610,12 +646,9 @@ $metal-dark: #6b6357;
     &.cdk-drop-list-dragging { outline-color: $accent; }
   }
 
-  // Tuberías mineral/fuel → crisol → salida
-  .forge-pipe {
-    background: $slot-bg;
-    border-color: $slot-bd;
-    box-shadow: 0 0 4px rgba($accent, 0.25);
-  }
+  // Bandeja de salida y barra de probabilidades
+  .forge-tray, .forge-odds { border-color: $cell-bd; }
+  .forge-odds-legend { color: $muted; }
 
   // Slots de forja (material / combustible / salida)
   .forge-mat-cell,

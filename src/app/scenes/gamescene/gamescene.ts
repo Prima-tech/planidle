@@ -383,7 +383,8 @@ export class GameScene extends Phaser.Scene {
       this.load.image('madera', 'assets/icon/resources/madera.png');   // drop de Madera (mismo icono que en el inventario)
       // Objetos recogibles del suelo (fijos en Asgard): piedra (→ Piedra) y árbol roto
       // (→ Madera). La textura del drop en inventario ('madera') se carga aparte arriba.
-      this.load.image('piedra', 'assets/tilemaps/biomas/grasslands/Objects_separated/Stone5_grass_shadow.png');
+      this.load.image('piedra', 'assets/tilemaps/biomas/grasslands/Objects_separated/Stone5_grass_shadow.png');   // piedra suelta del suelo (recogible)
+      this.load.image('piedra_icon', 'assets/icon/resources/piedra.png');   // drop de 'Piedra' (= icono del inventario)
       this.load.image('broken_tree5', 'assets/tilemaps/biomas/grasslands/Objects_separated/Broken_tree5.png');
       this.load.image('crushed_stone', 'assets/icon/resources/mining/polvo.png');   // (carbón reutiliza este sprite)
 
@@ -394,6 +395,7 @@ export class GameScene extends Phaser.Scene {
       // Recursos recolectables (se colocan en mapas que no son el hogar)
       // Menas por tier (el mapa decide cuál spawnea via MapConfig.mineTier).
       this.load.image('rock_tier1', 'assets/sprites/map/skills/rocks/tier1_rock.png');
+      this.load.image('rock_stone', 'assets/sprites/map/skills/rocks/stone_rock.png');   // roca de piedra (tier 0)
       this.load.image('rock_tier2', 'assets/sprites/map/skills/rocks/tier2_rock.png');
       this.load.image('rock_tier3', 'assets/sprites/map/skills/rocks/tier3_rock.png');
       this.load.image('rock_tier4', 'assets/sprites/map/skills/rocks/tier4_rock.png');
@@ -2627,10 +2629,15 @@ export class GameScene extends Phaser.Scene {
      *  picar/talar uno reaparece en SU sitio a los HOGAR_NODE_RESPAWN_MS, hasta que Mordekai
      *  ofrece la misión HOGAR_NODES_STOP_QUEST: desde entonces lo picado/talado ya no
      *  vuelve (flag de personaje `asgard.node.<tipo>.<sitio>`). Sin mejoras de mapa.
-     *  `tier` opcional = tier propio del sitio (sin él, el del mapa = tier 1). */
+     *  `tier` opcional = tier propio del sitio (sin él, el del mapa = tier 1). Las rocas de
+     *  tier 0 son de PIEDRA (sueltan "Piedra") y reaparecen SIEMPRE, también tras la misión
+     *  de corte: son la fuente fija de piedra de la ciudad. */
     private static readonly HOGAR_NODE_SPOTS: Partial<Record<HarvestKindId, { x: number; y: number; tier?: number }[]>> = {
       rock: [
         { x: 68, y: 8 }, { x: 68, y: 13 }, { x: 63, y: 7 }, { x: 71, y: 3 }, { x: 74, y: 9 },
+        // Rocas de piedra (tier 0), alrededor de las de mineral.
+        { x: 58, y: 4, tier: 0 }, { x: 56, y: 8, tier: 0 }, { x: 62, y: 10, tier: 0 },
+        { x: 60, y: 13, tier: 0 }, { x: 66, y: 16, tier: 0 },
       ],
       tree: [
         { x: 9, y: 40 }, { x: 9, y: 35 }, { x: 4, y: 38 }, { x: 7, y: 45 }, { x: 15, y: 43 },
@@ -2647,6 +2654,11 @@ export class GameScene extends Phaser.Scene {
       return !!this.reg.quests?.isOffered(GameScene.HOGAR_NODES_STOP_QUEST);
     }
 
+    /** Sitio de Asgard que reaparece siempre (no le afecta la misión de corte): rocas de piedra. */
+    private hogarSpotPermanent(id: HarvestKindId, spot: number): boolean {
+      return id === 'rock' && GameScene.HOGAR_NODE_SPOTS.rock?.[spot]?.tier === 0;
+    }
+
     private hogarNodeFlag(id: HarvestKindId, spot: number): string {
       return `asgard.node.${id}.${spot}`;
     }
@@ -2658,7 +2670,7 @@ export class GameScene extends Phaser.Scene {
       for (const id of Object.keys(GameScene.HOGAR_NODE_SPOTS) as HarvestKindId[]) {
         if (!this.textures.exists(this.harvestTexture(id))) continue;
         GameScene.HOGAR_NODE_SPOTS[id].forEach((_sp, i) => {
-          if (stopped && this.reg.unlocks?.hasFlag(this.hogarNodeFlag(id, i))) return;
+          if (stopped && !this.hogarSpotPermanent(id, i) && this.reg.unlocks?.hasFlag(this.hogarNodeFlag(id, i))) return;
           this.spawnHogarNode(id, i);
         });
       }
@@ -2680,9 +2692,10 @@ export class GameScene extends Phaser.Scene {
      *  tocaba la misión 7 (entonces queda gastado para siempre para este personaje).
      *  Si el jugador está encima del hueco, reintenta en 2 s para no encerrarlo. */
     private onHogarNodeDestroyed(id: HarvestKindId, spot: number): void {
-      if (this.hogarNodesStopped()) { this.reg.unlocks?.setFlag(this.hogarNodeFlag(id, spot), 'char'); return; }
+      const stops = () => this.hogarNodesStopped() && !this.hogarSpotPermanent(id, spot);
+      if (stops()) { this.reg.unlocks?.setFlag(this.hogarNodeFlag(id, spot), 'char'); return; }
       const retry = (delay: number) => this.time.delayedCall(delay, () => {
-        if (this.hogarNodesStopped()) { this.reg.unlocks?.setFlag(this.hogarNodeFlag(id, spot), 'char'); return; }
+        if (stops()) { this.reg.unlocks?.setFlag(this.hogarNodeFlag(id, spot), 'char'); return; }
         const kind = HARVEST_KINDS[id], sp = GameScene.HOGAR_NODE_SPOTS[id][spot];
         const TS = GameScene.TILE_SIZE, pos = this.player?.getPosition();
         if (pos) {

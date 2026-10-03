@@ -2,103 +2,117 @@
 
   <div class="forge-title">{{ 'BUILD.FORGE_TITLE' | translate }}</div>
 
-  <!-- Pestañas: visibles solo si la mejora de cuenta "Mejoras de forjas" está activa,
-       pero RESERVAN su hueco siempre (visibility) para no descolocar la producción. -->
+  <!-- Pestañas: solo si la mejora de cuenta "Mejoras de forjas" está activa (si no,
+       no ocupan sitio y la producción va pegada al título). -->
   <div class="forge-tabs" [class.is-hidden]="!(forgeUpgradesUnlocked$ | async)">
     <button class="forge-tab" [class.is-active]="tab === 'forja'" (click)="setTab('forja')">{{ 'BUILD.FORGE_TAB' | translate }}</button>
     <button class="forge-tab" [class.is-active]="tab === 'mejoras'" (click)="setTab('mejoras')">{{ 'BUILD.FORGE_UPGRADES' | translate }}</button>
   </div>
 
-  <!-- Producir (diseño "crisol"): mineral arriba-izq y fuel abajo-izq vierten por sus
-       tuberías en el crisol central, que se LLENA de metal fundido con el progreso de la
-       barra actual; de él sale la barra hacia la salida (dcha). Visible si no hay
-       pestañas (bloqueado) o estás en la pestaña Forja. -->
+  <!-- Producir (crisol + bandeja). Arriba: entradas en columna a ras de la izquierda
+       (mineral, fuel; sin etiquetas, el icono atenuado ya dice qué va) · crisol que se LLENA de metal con la barra actual · lote a la dcha.
+       Debajo: probabilidad de cada rareza y la bandeja de salida (10 huecos; scroll solo
+       si se ocupan más de los que caben). Visible si no hay pestañas (bloqueado) o estás
+       en la pestaña Forja. -->
   <div class="forge-section forge-prod-section" *ngIf="!(forgeUpgradesUnlocked$ | async) || tab === 'forja'">
-    <div class="forge-crucible-wrap">
-      <div class="forge-pipe forge-pipe--mat"></div>
-      <div class="forge-pipe forge-pipe--fuel"></div>
-      <div class="forge-pipe forge-pipe--out"></div>
+    <div class="forge-top">
 
-      <!-- Mineral: arrastra aquí el mineral. La barra a producir se deduce de él. -->
-      <div class="forge-slot forge-slot--mat">
-        <div class="forge-tag">{{ 'BUILD.FORGE_MINERAL' | translate }}</div>
-        <div class="forge-mat-cell" cdkDropList cdkDropListSortingDisabled
-             [id]="'forge-mat-0'"
-             [cdkDropListConnectedTo]="inventoryCellIds"
-             [cdkDropListEnterPredicate]="matEnter"
-             (cdkDropListDropped)="onCellDrop($event, 'mat', 0)"
-             (click)="onCellClick('mat', 0)">
-          <div *ngIf="mat[0]; else matPh" class="forge-item" cdkDrag
-               [cdkDragData]="{ sourceContext: 'forge', grid: 'mat', index: 0, item: mat[0] }"
-               [title]="mat[0].name">
-            <ng-container *ngTemplateOutlet="icon; context: { $implicit: mat[0] }"></ng-container>
+      <!-- Entradas -->
+      <div class="forge-inputs">
+        <div class="forge-slot">
+          <!-- Mineral: arrastra aquí el mineral. La barra a producir se deduce de él. -->
+          <div class="forge-mat-cell" cdkDropList cdkDropListSortingDisabled
+               [id]="'forge-mat-0'"
+               [cdkDropListConnectedTo]="inventoryCellIds"
+               [cdkDropListEnterPredicate]="matEnter"
+               (cdkDropListDropped)="onCellDrop($event, 'mat', 0)"
+               (click)="onCellClick('mat', 0)">
+            <div *ngIf="mat[0]; else matPh" class="forge-item" cdkDrag
+                 [cdkDragData]="{ sourceContext: 'forge', grid: 'mat', index: 0, item: mat[0] }"
+                 [title]="mat[0].name">
+              <ng-container *ngTemplateOutlet="icon; context: { $implicit: mat[0] }"></ng-container>
+            </div>
+            <ng-template #matPh>
+              <img class="forge-cell-ph" src="assets/icon/resources/mining/tier3_drop.png" alt="">
+            </ng-template>
           </div>
-          <ng-template #matPh>
-            <img class="forge-cell-ph" src="assets/icon/resources/mining/tier3_drop.png" alt="">
-          </ng-template>
         </div>
-      </div>
 
-      <!-- Combustible (etiqueta DEBAJO de la celda: queda abajo-izq). -->
-      <div class="forge-slot forge-slot--fuel">
-        <div class="forge-fuel-cell" cdkDropList cdkDropListSortingDisabled
-             [id]="'forge-fuel-0'"
-             [cdkDropListConnectedTo]="inventoryCellIds"
-             [cdkDropListEnterPredicate]="fuelEnter"
-             (cdkDropListDropped)="onCellDrop($event, 'fuel', 0)"
-             (click)="onCellClick('fuel', 0)">
-          <div *ngIf="fuel[0]; else fuelPh" class="forge-item" cdkDrag
-               [cdkDragData]="{ sourceContext: 'forge', grid: 'fuel', index: 0, item: fuel[0] }"
-               [title]="fuel[0].name">
-            <ng-container *ngTemplateOutlet="icon; context: { $implicit: fuel[0] }"></ng-container>
-          </div>
-          <ng-template #fuelPh>
-            <img class="forge-cell-ph" src="assets/icon/resources/madera.png" alt="">
-          </ng-template>
-        </div>
-        <div class="forge-tag forge-tag--below">{{ 'BUILD.FORGE_FUEL' | translate }}</div>
-      </div>
-
-      <!-- Salida: aquí sale la barra producida; se arrastra/doble clic al inventario. -->
-      <div class="forge-slot forge-slot--out">
-        <div class="forge-tag">{{ 'BUILD.FORGE_OUTPUT' | translate }}</div>
-        <div class="forge-out-cell" cdkDropList cdkDropListSortingDisabled
-             [id]="'forge-out-0'"
-             [cdkDropListConnectedTo]="inventoryCellIds"
-             [cdkDropListEnterPredicate]="outEnter"
-             (cdkDropListDropped)="onCellDrop($event, 'out', 0)"
-             (click)="onCellClick('out', 0)">
-          <div *ngIf="out[0]" class="forge-item" cdkDrag
-               [cdkDragData]="{ sourceContext: 'forge', grid: 'out', index: 0, item: out[0] }"
-               [title]="out[0].name">
-            <ng-container *ngTemplateOutlet="icon; context: { $implicit: out[0] }"></ng-container>
+        <div class="forge-slot">
+          <div class="forge-fuel-cell" cdkDropList cdkDropListSortingDisabled
+               [id]="'forge-fuel-0'"
+               [cdkDropListConnectedTo]="inventoryCellIds"
+               [cdkDropListEnterPredicate]="fuelEnter"
+               (cdkDropListDropped)="onCellDrop($event, 'fuel', 0)"
+               (click)="onCellClick('fuel', 0)">
+            <div *ngIf="fuel[0]; else fuelPh" class="forge-item" cdkDrag
+                 [cdkDragData]="{ sourceContext: 'forge', grid: 'fuel', index: 0, item: fuel[0] }"
+                 [title]="fuel[0].name">
+              <ng-container *ngTemplateOutlet="icon; context: { $implicit: fuel[0] }"></ng-container>
+            </div>
+            <ng-template #fuelPh>
+              <img class="forge-cell-ph" src="assets/icon/resources/madera.png" alt="">
+            </ng-template>
           </div>
         </div>
       </div>
 
-      <!-- Lote: barras que quedan con el stock + tiempo y progreso total, arriba a la dcha. -->
+      <!-- Crisol: el metal fundido sube con la unidad actual (#moltenFill, en rAF). -->
+      <div class="forge-core">
+        <div class="forge-crucible" [class.is-producing]="(running$ | async) && (producing$ | async)">
+          <div #moltenFill class="forge-molten"></div>
+          <img class="forge-bar-icon" *ngIf="currentBar$ | async as bar" [src]="barIcon(bar)" alt="">
+        </div>
+        <div class="forge-timer">{{ fmtTime(remaining$ | async) }}</div>
+      </div>
+
+      <!-- Lote: barras que quedan con el stock + tiempo y progreso total. -->
       <div class="forge-batch">
         <div class="forge-batch-count">&times;{{ (producible$ | async) || 0 }}</div>
         <div class="forge-timer">{{ fmtTime(totalRemaining$ | async) }}</div>
         <div class="forge-progress forge-progress--total"><span #totalFill></span></div>
       </div>
+    </div>
 
-      <!-- Crisol: el metal fundido sube con la unidad actual (#moltenFill, en rAF). -->
-      <div class="forge-tag forge-crucible-label">
-        {{ (currentBar$ | async) ? prodLabel(currentBar$ | async) : ('BUILD.FORGE_PRODUCE' | translate) }}
-      </div>
-      <div class="forge-crucible" [class.is-producing]="(running$ | async) && (producing$ | async)">
-        <div #moltenFill class="forge-molten"></div>
-        <img class="forge-bar-icon" *ngIf="currentBar$ | async as bar" [src]="barIcon(bar)" alt="">
-      </div>
-      <div class="forge-timer forge-timer--unit">{{ fmtTime(remaining$ | async) }}</div>
+    <!-- Probabilidad de cada rareza al fundir la barra actual (forgeRarityOdds). -->
+    <div class="forge-odds">
+      <span *ngFor="let o of odds(currentBar$ | async)" [attr.data-rarity]="o.rarity" [style.width.%]="o.pct"></span>
+    </div>
+    <div class="forge-odds-legend">
+      <span *ngFor="let o of odds(currentBar$ | async)" [title]="rarityKey(o.rarity) | translate">
+        <i class="forge-odds-dot" [attr.data-rarity]="o.rarity"></i>{{ o.pct }}%
+      </span>
+    </div>
 
-      <!-- Botón único fundir/pausar. -->
-      <button class="rpg-btn rpg-btn--sm forge-go"
+    <!-- Bandeja de salida: 10 huecos genéricos (cada objeto/rareza distinto en el suyo).
+         Se arrastra o doble clic al inventario. Scroll horizontal solo si hay algo más
+         allá de los huecos visibles. -->
+    <div class="forge-tray" [class.is-scrollable]="outOverflows()">
+      <div class="forge-out-cell" *ngFor="let c of out; let i = index; trackBy: trackByIndex"
+           cdkDropList cdkDropListSortingDisabled
+           [id]="'forge-out-' + i"
+           [cdkDropListConnectedTo]="inventoryCellIds"
+           [cdkDropListEnterPredicate]="outEnter"
+           (cdkDropListDropped)="onCellDrop($event, 'out', i)"
+           (click)="onCellClick('out', i)">
+        <div *ngIf="c" class="forge-item" cdkDrag
+             [attr.data-rarity]="c.rarity || 'common'"
+             [cdkDragData]="{ sourceContext: 'forge', grid: 'out', index: i, item: c }"
+             [title]="c.name">
+          <ng-container *ngTemplateOutlet="icon; context: { $implicit: c }"></ng-container>
+        </div>
+      </div>
+    </div>
+
+    <div class="forge-actions">
+      <button class="rpg-btn rpg-btn--sm"
               [class.is-active]="running$ | async"
               [disabled]="!(running$ | async) && !(ready$ | async)"
               (click)="toggle()">
         {{ ((running$ | async) ? 'BUILD.FORGE_PAUSE' : 'BUILD.FORGE_SMELT') | translate }}
+      </button>
+      <button class="rpg-btn rpg-btn--sm" [disabled]="!hasOutput()" (click)="collectAll()">
+        {{ 'BUILD.FORGE_COLLECT' | translate }}
       </button>
     </div>
   </div>

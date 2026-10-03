@@ -1,16 +1,18 @@
 import { Component, inject, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, NgZone } from '@angular/core';
 import { CdkDragDrop, CdkDrag } from '@angular/cdk/drag-drop';
-import { ForgeService, ForgeGrid, ForgeBar } from 'src/app/services/forge.service';
+import { ForgeService, ForgeGrid, ForgeBar, forgeRarityOdds } from 'src/app/services/forge.service';
+import { ItemRarity } from 'src/app/services/inventory.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { EquipmentService } from 'src/app/services/equipment.service';
 import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { ITEM_CATALOG } from 'src/app/physics/griddrops';
 
 /**
- * Menú de la fragua (diseño "crisol"): celda de mineral (arriba-izq) y de combustible
- * (abajo-izq) que vierten en un crisol central; el crisol se llena de metal fundido con
- * el progreso de la barra actual y la barra sale a la celda de salida (dcha). Arriba a
- * la dcha, el lote (barras que quedan + tiempo total); abajo, el botón fundir/pausar.
+ * Menú de la fragua (crisol + bandeja). Arriba: mineral y combustible en columna a la
+ * izquierda, crisol central que se llena de metal con el progreso de la barra actual y
+ * el lote a la derecha (barras que quedan + tiempo total). Debajo: probabilidad de cada
+ * rareza, bandeja de salida de 10 huecos (scroll si se desborda) y botones Fundir/Pausar
+ * y Recoger todo.
  * Toda la lógica (recetas, combustible, progreso, persistencia) vive en ForgeService.
  */
 @Component({
@@ -95,12 +97,6 @@ export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Botón único play/pausa. */
   toggle(): void { this.forge.toggle(); }
 
-  /** Etiqueta de la zona central: "Producir" si no hay mineral asignado, o el nombre
-   *  del metal (Hierro, Cobre, Tier 4…) deducido de la barra que se va a producir. */
-  prodLabel(bar: ForgeBar | null): string {
-    return bar ? bar.name.replace(/^Barra (de )?/, '') : 'Producir';
-  }
-
   /** Formatea segundos como HH:MM:SS. */
   fmtTime(s: number | null): string {
     const v = Math.max(0, Math.floor(s ?? 0));
@@ -124,6 +120,34 @@ export class ForgeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.lastCellClick = { grid, index, time: now };
   }
+
+  /** Huecos de salida que caben a la vista en la bandeja (el resto, con scroll). */
+  private static readonly TRAY_VISIBLE = 5;
+
+  /** ¿Hay algo en la bandeja más allá de los huecos visibles? → se activa el scroll. */
+  outOverflows(): boolean {
+    return this.out.some((c, i) => !!c && i >= ForgeComponent.TRAY_VISIBLE);
+  }
+
+  hasOutput(): boolean { return this.out.some(c => !!c); }
+
+  /** Recoger todo: pide retirar cada casilla de salida al inventario (cada una entra
+   *  solo si cabe; lo que no quepa se queda en la bandeja). */
+  collectAll(): void {
+    this.out.forEach((c, i) => { if (c) this.forge.requestWithdraw('out', i); });
+  }
+
+  /** Probabilidad de cada rareza para la barra actual (barra de probabilidades).
+   *  Cacheada por barra: la plantilla la pide en cada detección de cambios. */
+  private oddsCache: { tier: number | null; list: { rarity: ItemRarity; pct: number }[] } | null = null;
+  odds(bar: ForgeBar | null): { rarity: ItemRarity; pct: number }[] {
+    const tier = bar?.tier ?? null;
+    if (!this.oddsCache || this.oddsCache.tier !== tier) this.oddsCache = { tier, list: forgeRarityOdds(bar) };
+    return this.oddsCache.list;
+  }
+
+  /** Clave i18n del nombre de una rareza. */
+  rarityKey(r: ItemRarity): string { return 'BUILD.RARITY_' + r.toUpperCase(); }
 
   /** Icono de la barra = el MISMO del objeto en el catálogo (inventario/salida), así
    *  cambiar el PNG de una barra se ve también en el crisol. */

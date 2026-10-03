@@ -1,8 +1,8 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import { BehaviorSubject, Subject, interval } from 'rxjs';
 import { StorageService } from './storage.service';
-import { InventoryItem } from './inventory.service';
-import { ITEM_CATALOG, LootEntry } from '../physics/griddrops';
+import { InventoryItem, ItemRarity } from './inventory.service';
+import { ITEM_CATALOG, LootEntry, BAR_RARITY_SUFFIX, hydrateItem } from '../physics/griddrops';
 
 /**
  * Forjas (estación de oficio `forge`/`smelter`). MULTI-INSTANCIA: puede haber
@@ -59,7 +59,30 @@ function isMineralItem(item: InventoryItem | null): boolean {
   return !!item && FORGE_BARS.some(b => b.mineral === item.name);
 }
 
-export const FORGE_SLOTS = 8;
+/** Casillas por rejilla. La ventana enseña 1 de mineral, 1 de fuel y las 10 de salida
+ *  (bandeja con scroll): cada rareza/objeto distinto que salga ocupa su propia casilla. */
+export const FORGE_SLOTS = 10;
+
+/** Probabilidad (%) de cada rareza al fundir una barra (suman 100). Por defecto: mitad
+ *  común, mitad poco común (verde, `Barra X superior`). Aquí se aplicarían suerte o
+ *  mejoras. La ventana de la fragua pinta esta tabla en su barra de probabilidades. */
+export function forgeRarityOdds(_bar: ForgeBar | null): { rarity: ItemRarity; pct: number }[] {
+  return [{ rarity: 'common', pct: 50 }, { rarity: 'uncommon', pct: 50 }];
+}
+
+/** Nombre del item que sale de `bar` con esa rareza (la común = la barra base). */
+export function barVariantName(bar: ForgeBar, rarity: ItemRarity): string {
+  const suffix = BAR_RARITY_SUFFIX[rarity];
+  return suffix ? `${bar.name} ${suffix}` : bar.name;
+}
+
+/** Tira la rareza de una barra según forgeRarityOdds. */
+function rollBarRarity(bar: ForgeBar): ItemRarity {
+  const odds = forgeRarityOdds(bar);
+  let x = Math.random() * 100;
+  for (const o of odds) { if ((x -= o.pct) < 0) return o.rarity; }
+  return odds[0].rarity;
+}
 const STORAGE_KEY = 'forge_state_v2';   // v2 = multi-instancia (el v1 era una sola forja)
 const MAX_CATCHUP_S = 8 * 3600;         // tope de avance offline al cargar (8 h)
 
@@ -364,7 +387,7 @@ export class ForgeService {
     while (work > 1e-6 && guard++ < 10000) {
       if (!f.job) {
         const bar = this.currentBarOf(f);
-        if (!bar || !this.hasAnyFuelOf(f) || !this.outputHasSpaceOf(f, bar.name)) break;
+        if (!bar || !this.hasAnyFuelOf(f) || !this.outputHasSpaceForBar(f, bar)) break;
         f.job = { elapsedS: 0, barTier: bar.tier };
       }
       const slice = Math.min(work, SECONDS_PER_BAR - f.job.elapsedS);
@@ -387,16 +410,16 @@ export class ForgeService {
 
   private canProduceForge(f: ForgeInstance): boolean {
     const bar = this.currentBarOf(f);
-    return !!bar && this.hasAnyFuelOf(f) && this.outputHasSpaceOf(f, bar.name);
+    return !!bar && this.hasAnyFuelOf(f) && this.outputHasSpaceForBar(f, bar);
   }
 
   private completeBarForge(f: ForgeInstance): boolean {
     const bar = this.barByTier(f.job!.barTier);
     if (!bar) return false;
-    if (!this.hasItem(f.mat, bar.mineral) || !this.hasAnyFuelOf(f) || !this.outputHasSpaceOf(f, bar.name)) return false;
+    if (!this.hasItem(f.mat, bar.mineral) || !this.hasAnyFuelOf(f) || !this.outputHasSpaceForBar(f, bar)) return false;
     this.consumeOne(f.mat, bar.mineral);
     this.consumeAnyFuelOf(f);
-    this.addOutputTo(f, bar.name);
+    this.addOutputTo(f, barVariantName(bar, rollBarRarity(bar)));
     f.producedCount++;
     return true;
   }
@@ -449,8 +472,12 @@ export class ForgeService {
     if (i !== -1) this.decOne(f.fuel, i);
   }
 
-  private outputHasSpaceOf(f: ForgeInstance, name: string): boolean {
-    return f.out.some(c => c === null || (c.mergeable && c.name === name));
+  /** Hay sitio para CUALQUIER rareza que pueda salir de `bar` (cada una se apila en su
+   *  casilla): si no, no se arranca la barra, así nunca se pierde una tirada. */
+  private outputHasSpaceForBar(f: ForgeInstance, bar: ForgeBar): boolean {
+    const names = forgeRarityOdds(bar).filter(o => o.pct > 0).map(o => barVariantName(bar, o.rarity));
+    const newCells = names.filter(n => !f.out.some(c => c?.mergeable && c.name === n)).length;
+    return f.out.filter(c => c === null).length >= newCells;
   }
 
   private addOutputTo(f: ForgeInstance, name: string): void {
@@ -554,7 +581,9 @@ export class ForgeService {
 
   private normGrid(src?: (InventoryItem | null)[]): (InventoryItem | null)[] {
     const out: (InventoryItem | null)[] = Array(FORGE_SLOTS).fill(null);
-    if (src) for (let i = 0; i < FORGE_SLOTS; i++) out[i] = src[i] ?? null;
+    // Rehidrata los campos estáticos del catálogo (rareza, icono…): lo guardado puede
+    // venir de antes de que el item los tuviera.
+    if (src) for (let i = 0; i < FORGE_SLOTS; i++) out[i] = src[i] ? hydrateItem(src[i]!) : null;
     return out;
   }
 
@@ -636,6 +665,7 @@ export class ForgeService {
       order: e.order,
       description: e.description,
       stats: e.stats,
+      rarity: e.rarity,   // borde de rareza en la bandeja / inventario (barras "superior" = verde)
     };
   }
 }

@@ -45,6 +45,9 @@ export interface MiningTier {
   mineHp?: number;
 }
 export const MINING_TIERS: Record<number, MiningTier> = {
+  // Tier 0 = roca de PIEDRA (no es mena): suelta "Piedra". Solo la usan sitios fijos de
+  // Asgard (HOGAR_NODE_SPOTS con tier 0); ningún mapa tiene mineTier 0.
+  0: { rockTexture: 'rock_stone', dropName: 'Piedra', mmFrame: 150, efficiency: 5, mineHp: 15 },   // eff 5 = el Pico de Hierro no falla nunca; 3 golpes
   1: { rockTexture: 'rock_tier3', dropName: 'Mineral de Cobre',  mmFrame: 150, efficiency: 10,   mineHp: 20 }, // cobre (mena/icono del antiguo tier 3)
   2: { rockTexture: 'rock_tier2', dropName: 'Mineral de Bronce', mmFrame: 30,  efficiency: 50,   mineHp: 60 },  // bronce
   3: { rockTexture: 'rock_tier1', dropName: 'Mineral de Hierro', mmFrame: 33,  efficiency: 150,  mineHp: 150 },  // hierro (mena/icono del antiguo tier 1)

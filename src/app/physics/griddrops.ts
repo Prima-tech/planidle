@@ -417,7 +417,7 @@ const RESOURCES_CATALOG: LootEntry[] = [
     category: 'Recurso',
     type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: true,
-    texture: 'piedra',
+    texture: 'piedra_icon',   // drop en el suelo = el mismo icono del inventario
     icon: 'assets/icon/resources/piedra.png',
     scale: 2, order: 6,
     description: 'Piedra recogida del suelo. Material de construcción.',
@@ -767,6 +767,21 @@ const _pet = (cfg: PetConfig): LootEntry => ({
 
 const PETS_CATALOG: LootEntry[] = Object.values(PET_REGISTRY).map(_pet);
 
+/** Sufijo del nombre de la variante de calidad de una barra de la fragua (la común no
+ *  lleva). Cada variante es un item propio (se apila aparte y se guarda por nombre). */
+export const BAR_RARITY_SUFFIX: Partial<Record<ItemRarity, string>> = { uncommon: 'superior' };
+
+/** Variantes de calidad de las barras (`Barra de Cobre superior`, verde…): mismas que
+ *  la barra base, con su rareza. Las produce la fragua según forgeRarityOdds. */
+const BAR_VARIANTS_CATALOG: LootEntry[] = RESOURCES_CATALOG
+  .filter(e => e.name.startsWith('Barra '))
+  .flatMap(e => (Object.entries(BAR_RARITY_SUFFIX) as [ItemRarity, string][]).map(([rarity, suffix]) => ({
+    ...e,
+    name: `${e.name} ${suffix}`,
+    rarity,
+    description: `${e.description} De calidad ${suffix}.`,
+  })));
+
 const _catalogSeen = new Set<string>();
 export const ITEM_CATALOG: LootEntry[] = [
   ...Object.values(LOOT_TABLES)
@@ -785,6 +800,7 @@ export const ITEM_CATALOG: LootEntry[] = [
   ...TOOLS_CATALOG,
   ...BAGS_CATALOG,
   ...RESOURCES_CATALOG,
+  ...BAR_VARIANTS_CATALOG,
   ...RECIPES_CATALOG,
   ...POTIONS_CATALOG,
   ...PETS_CATALOG,

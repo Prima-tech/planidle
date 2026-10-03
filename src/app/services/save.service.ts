@@ -275,16 +275,24 @@ export class SaveService {
     this.oneShotGift();
   }
 
-  /** REGALO PUNTUAL (2026-10-03): una receta de "Fragua" al inventario, UNA sola vez por
-   *  dispositivo (guard en localStorage). Petición del usuario para probar la forja nueva;
-   *  no es una mecánica. Borrar este método (y su llamada) cuando ya no haga falta. */
+  /** REGALOS PUNTUALES (2026-10-03) al inventario, cada uno UNA sola vez por dispositivo
+   *  (guard en localStorage por clave). Peticiones del usuario para probar cosas; no es
+   *  una mecánica. Borrar este método (y su llamada) cuando ya no haga falta. */
   private oneShotGift(): void {
-    const KEY = 'oneshot_gift_forge_recipe_20261003';
-    try {
-      if (localStorage.getItem(KEY)) return;
-      localStorage.setItem(KEY, '1');
-    } catch { return; }
-    this.inventory.addOrDropToWorld(hydrateItem({ id: this.inventory.generateId(), name: 'Fragua' } as InventoryItem));
+    const gifts: { key: string; name: string; sum?: number }[] = [
+      { key: 'oneshot_gift_forge_recipe_20261003', name: 'Fragua' },
+      { key: 'oneshot_gift_copper_ore_100_20261003', name: 'Mineral de Cobre', sum: 100 },
+      { key: 'oneshot_gift_wood_100_20261003', name: 'Madera', sum: 100 },
+    ];
+    for (const g of gifts) {
+      try {
+        if (localStorage.getItem(g.key)) continue;
+        localStorage.setItem(g.key, '1');
+      } catch { return; }
+      this.inventory.addOrDropToWorld(hydrateItem({
+        id: this.inventory.generateId(), name: g.name, ...(g.sum !== undefined ? { sum: g.sum } : {}),
+      } as InventoryItem));
+    }
   }
 
   /**
