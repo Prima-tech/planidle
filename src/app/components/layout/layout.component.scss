@@ -171,6 +171,18 @@
     height: 32px;
   }
 
+  /* Admin: arriba a la izquierda, simétrico a ajustes */
+  &--admin {
+    left: -10px;
+    top: -10px;
+    width: 32px;
+    height: 32px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
   /* Tienda: justo debajo de ajustes, sobre el borde derecho del aro */
   &--shop {
     right: -25px;
@@ -269,7 +281,8 @@
   }
 
   // Tienda: ion-icon al color de icono, más grande.
-  .minimap-btn--shop ion-icon { font-size: 23px; }
+  .minimap-btn--shop ion-icon,
+  .minimap-btn--admin ion-icon { font-size: 23px; }
 }
 
 /* CYBERPUNK · negro + verde fósforo */

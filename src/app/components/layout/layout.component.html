@@ -25,6 +25,12 @@
       <button class="minimap-btn minimap-btn--shop" (click)="footerBar.openShop(); $event.stopPropagation()">
         <ion-icon name="storefront-outline"></ion-icon>
       </button>
+      <!-- Admin: arriba a la izquierda del aro (simétrico a ajustes) -->
+      <button class="minimap-btn minimap-btn--admin"
+              [title]="'ADMIN_PANEL.TITLE' | translate"
+              (click)="footerBar.openAdmin(); $event.stopPropagation()">
+        <ion-icon name="shield-half-outline"></ion-icon>
+      </button>
     </div>
   </div>
 

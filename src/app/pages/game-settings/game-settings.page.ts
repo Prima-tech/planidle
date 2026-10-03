@@ -6,17 +6,8 @@ import { AudioService } from 'src/app/services/audio.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { SaveService } from 'src/app/services/save.service';
-import { StorageService } from 'src/app/services/storage.service';
-import { AppStyleService } from 'src/app/services/app-style.service';
 import { AsgardService } from 'src/app/services/asgard';
-import { PlayerStateService } from 'src/app/services/player-state.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
-import { RunProgressService } from 'src/app/services/run-progress.service';
-import { UnlockService } from 'src/app/services/unlock.service';
-import { mapFeatureId } from 'src/app/services/unlock-config';
-import { RUN_MILESTONES } from 'src/app/services/run-milestones';
-import { PARALLAX_THEME_LIST } from 'src/app/scenes/gamescene/parallax-themes';
-import { WORLD_PARALLAX_SETS } from 'src/app/scenes/worldrun/parallax-sets';
 import { APP_VERSION } from 'src/app/version';
 
 @Component({
@@ -26,32 +17,19 @@ import { APP_VERSION } from 'src/app/version';
   standalone: false
 })
 export class GameSettingsPageComponent implements OnInit, OnDestroy {
-  /** Pestañas principales: 0 = Juego · 1 = Admin. */
-  tab: 0 | 1 | 2 = 0;
-  /** Sub-pestañas de Admin: 0 = Admin (monedas, rejilla…) · 1 = Fondos (parallax)
-   *  · 2 = Progreso (desbloqueo de features; antes era ventana propia del footer). */
-  adminTab: 0 | 1 | 2 = 0;
+  /** Pestaña única: 0 = Juego. Admin y Estilos viven en la ventana de admin (minimapa). */
+  tab: 0 = 0;
   gs = inject(GameSettingsService);
   audio = inject(AudioService);
   private connection = inject(ConnectionService);
   private supabase = inject(SupabaseService);
   private saveService = inject(SaveService);
-  private storage = inject(StorageService);
-  appStyle = inject(AppStyleService);
   private asgard = inject(AsgardService);
-  private playerState = inject(PlayerStateService);
   private playerBridge = inject(PlayerBridgeService);
-  private runProgress = inject(RunProgressService);
-  private unlocks = inject(UnlockService);
   private translate = inject(TranslateService);
   private router = inject(Router);
 
-  /** Admin: cantidad de monedas a regalar (1..1.000.000) seleccionada en la barra. */
-  adminCoins = 1000;
-  readonly ADMIN_COINS_MAX = 1_000_000;
   readonly appVersion = APP_VERSION;
-  readonly parallaxThemes = PARALLAX_THEME_LIST;
-  readonly worldParallaxSets = WORLD_PARALLAX_SETS;
 
   /** ¿Conectado a Supabase? (modo Supabase + sesión activa). Se calcula al abrir. */
   supabaseConnected = false;
@@ -201,30 +179,6 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
     this.saveMsgTimer = setTimeout(() => this.saveMsg = '', 3000);
   }
 
-  /** Admin: suma al personaje activo la cantidad de monedas de la barra. */
-  grantCoins(): void {
-    const amount = Math.max(1, Math.min(this.ADMIN_COINS_MAX, Math.floor(this.adminCoins) || 0));
-    this.playerState.collectCoins(amount);
-  }
-
-  /**
-   * Admin: RESET TOTAL del Modo Exploración. Deja la progresión del runner como recién
-   * empezada — 0 estrellas, sin hitos ni armas (0 ★/min), y "descompra" los mapas
-   * (re-bloquea 1-1..1-8). Sobrescribe la nube para que no se re-infle al re-loguear.
-   */
-  async resetExploration(): Promise<void> {
-    if (!confirm(this.translate.instant('SETTINGS.CONFIRM.RESET_EXPLORATION'))) return;
-    this.runProgress.resetExploration();
-    // Quita los flags de mapa comprados y re-bloquea sus features (mapas 1-1..1-8).
-    const mapFlags = RUN_MILESTONES
-      .map(m => m.unlockFlag)
-      .filter((f): f is string => !!f);
-    const mapFeatures = mapFlags.map(f => mapFeatureId(f.slice('map_'.length).replace('_', '-')));
-    this.unlocks.resetUnlocks(mapFlags, mapFeatures);
-    // restore() es aditivo: sin pisar la nube, al re-loguear volvería a inflarse.
-    await this.saveService.forceSave(true);
-  }
-
   /** Cierra sesión y vuelve al login.
    *  - Cuenta con email: signOut real (se puede recuperar con email+contraseña).
    *  - Invitado (anónimo): NO se hace signOut — sin credenciales, destruir la sesión
@@ -241,24 +195,4 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
     this.asgard.triggerCloseMenu();
     this.router.navigate(['/login']);
   }
-
-
-  /** ADMIN: borra TODO el almacenamiento local (localStorage + Ionic Storage con las
-   *  partidas locales) y cierra sesión. Recarga la app en el login para que ningún
-   *  servicio siga con el estado viejo en memoria (ni el auto-save lo re-escriba). */
-  async clearLocalStorage(): Promise<void> {
-    if (!confirm(this.translate.instant('SETTINGS.CONFIRM.CLEAR_LOCAL'))) return;
-    try {
-      await this.connection.logout();   // signOut antes de borrar (necesita la sesión)
-    } catch (e) {
-      console.warn('[Settings] signOut falló al borrar el almacenamiento local', e);
-    }
-    try { localStorage.clear(); } catch { /* sin acceso a localStorage */ }
-    try { await this.storage.clear(); } catch (e) { console.warn('[Settings] No se pudo vaciar Storage', e); }
-    this.supabaseConnected = false;
-    this.asgard.triggerCloseMenu();
-    await this.router.navigate(['/login']);
-    location.reload();
-  }
-
 }

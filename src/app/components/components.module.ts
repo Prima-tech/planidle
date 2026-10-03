@@ -43,6 +43,7 @@ import { ProgressPanelComponent } from './progress-panel/progress-panel.componen
 import { AchievementToastComponent } from './achievement-toast/achievement-toast.component';
 import { QuestTrackerComponent } from './quest-tracker/quest-tracker.component';
 import { ShopComponent } from './shop/shop.component';
+import { AdminPanelComponent } from './admin-panel/admin-panel.component';
 import { BuildPanelComponent } from './build-panel/build-panel.component';
 import { BuildDeleteModalComponent } from './build-delete-modal/build-delete-modal.component';
 import { BuildShopComponent } from './build-shop/build-shop.component';
@@ -92,6 +93,7 @@ import { WorkbenchWindowComponent } from './workbench-window/workbench-window.co
     QuestTrackerComponent,
     ChatLogComponent,
     ShopComponent,
+    AdminPanelComponent,
     BuildPanelComponent,
     BuildDeleteModalComponent,
     BuildShopComponent,

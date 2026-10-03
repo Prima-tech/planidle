@@ -88,6 +88,13 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
 
   ion-icon { font-size: 17px; pointer-events: none; }
 
+  // Extremo de nivel (+ en la galaxia, − en el planeta): apagado y sin reacción
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+    filter: grayscale(0.6);
+  }
+
   &.active {
     background: $wood-btn;
     color: $text-brown;
@@ -104,15 +111,14 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   display: flex;
   gap: 4px;
 }
-// Con el globo de la Tierra la fila de abajo es la barra de zoom: las pestañas
-// suben encima del botón «+» de Phaser (esquina inf. dcha., ~42px)
-.view-tabs { bottom: 54px; }
+// Con la barra de zoom visible (globo de la Tierra) la fila de botones sube encima
+.view-tabs.raised { bottom: 46px; }
 
 // ── Barra de zoom del globo (abajo, entre la lista de mapas y el «+») ──────
 .zoom-bar {
   position: absolute;
   left: 120px;                       // pasada la lista de mapas (104px + márgenes)
-  right: 54px;                       // deja libre el botón «+» de la escena
+  right: 8px;
   bottom: 8px;
   z-index: 11;
   display: flex;

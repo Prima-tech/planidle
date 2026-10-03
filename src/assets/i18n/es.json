@@ -203,6 +203,9 @@
       "AUTO_SKILLS_DESC": "Lanza automáticamente las habilidades del HUD cuando están listas."
     }
   },
+  "ADMIN_PANEL": {
+    "TITLE": "Admin"
+  },
   "SHOP": {
     "TITLE": "Tienda premium",
     "BUY": "Comprar",
@@ -538,6 +541,8 @@
     "VIEW_GLOBE": "Globo",
     "VIEW_HEX": "Hexágonos",
     "VIEW_FLAT": "Mapa plano",
+    "VIEW_ZOOM_OUT": "Alejar vista",
+    "VIEW_ZOOM_IN": "Acercar vista",
     "LAYER_NORMAL": "Normal",
     "LAYER_ECONOMY": "Economía",
     "LAYER_WAR": "Guerra",

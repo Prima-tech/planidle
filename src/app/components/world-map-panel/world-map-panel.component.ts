@@ -1,6 +1,6 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_FLAT_KEY, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
+import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_FLAT_KEY, PLANET_MODE_KEY, ViewMode, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
 import { GlobeLayer } from 'src/app/scenes/earth-globe';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -64,6 +64,9 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   /** Globo o mapa plano (las tres capas existen en ambas proyecciones). */
   private static lastFlat = true;   // el mapa se abre de inicio en plano
   flat = WorldMapPanelComponent.lastFlat;
+  /** Vista actual de la escena: el «+» (alejar) se desactiva en la galaxia y el «−»
+   *  (acercar) en el planeta, que son los extremos. */
+  sceneMode: ViewMode = 'detail';
 
   /** Zoom del globo (barra inferior). La escena arranca siempre en 1 al abrir. */
   readonly zoomMin = EARTH_ZOOM_MIN;
@@ -117,6 +120,9 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       registry.set(PLANET_MAP_LOCKED_KEY, (mapId: string) => this.isMapLocked(mapId));
       registry.set(PLANET_LAYER_KEY, this.layer);
       registry.set(PLANET_FLAT_KEY, this.flat);
+      registry.set(PLANET_MODE_KEY, (m: ViewMode) => {
+        this.ngZone.run(() => { this.sceneMode = m; });
+      });
       // Rueda / pellizco en la escena → mover la barra de zoom
       registry.set(PLANET_ZOOM_CHANGED_KEY, (z: number) => {
         this.ngZone.run(() => { this.zoom = z; });
@@ -171,6 +177,16 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private applyZoom(z: number) {
     this.zoom = Math.min(this.zoomMax, Math.max(this.zoomMin, z));
     this.planetHost.scene?.setEarthZoom(this.zoom, false);
+  }
+
+  /** Botón «−»: acerca la vista un nivel (galaxia → constelación → sistema → planeta). */
+  zoomInView() {
+    this.planetHost.scene?.zoomInView();
+  }
+
+  /** Botón «+»: aleja la vista un nivel (planeta → sistema → constelación → galaxia). */
+  zoomOutView() {
+    this.planetHost.scene?.zoomOutView();
   }
 
   /** Botón globo ⇄ plano: mantiene la capa, el zoom y la zona centrada. */
@@ -230,7 +246,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
    *  ningún evento rezagado actúe sobre un panel ya destruido. */
   private destroyPlanetGame() {
     const reg = this.planetHost.registry;
-    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY, PLANET_ZOOM_CHANGED_KEY]) reg.set(k, undefined);
+    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY, PLANET_ZOOM_CHANGED_KEY, PLANET_MODE_KEY]) reg.set(k, undefined);
     this.planetHost.detach();
     this.selectedPlanet = null;
     this.charsOnPlanet  = [];

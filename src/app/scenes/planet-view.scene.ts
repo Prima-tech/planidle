@@ -75,7 +75,7 @@ interface SurfacePin {
 }
 
 const TIERRA_PINS: SurfacePin[] = [
-  { name: 'Asgard', mapId: 'hogar', color: 0xf0c040, tx: 200, ty: 300 },
+  { name: 'Asgard', mapId: 'hogar', color: 0xf0c040, tx: 300, ty: 192 },
   { name: '1-1',   mapId: '1-1',   color: 0x5bc0f8, tx: 250, ty: 300 },
   { name: '1-2',   mapId: '1-2',   color: 0x5bc0f8, tx: 300, ty: 300 },
   { name: '1-3',   mapId: '1-3',   color: 0x5bc0f8, tx: 270, ty: 235 },
@@ -109,6 +109,9 @@ export const PLANET_LAYER_KEY         = 'planetLayer';
 // Proyección del globo de la Tierra: true = mapa plano, false/ausente = globo.
 // Angular la escribe desde su botón; la escena la lee cada frame.
 export const PLANET_FLAT_KEY          = 'planetFlat';
+// Callback (mode: ViewMode) que registra Angular para saber en qué vista está la
+// escena (detalle / sistema / constelación / galaxia) y mostrar su botón «+».
+export const PLANET_MODE_KEY          = 'onPlanetMode';
 
 // Globo 3D de la Tierra (ver earth-globe.ts): textura-canvas redibujada en vivo
 const EARTH_TEX_KEY   = 'earth_globe';
@@ -177,7 +180,7 @@ const CONSTELLATION_LINES: [string, string][] = [
   ['megrez', 'dubhe'], ['dubhe', 'merak'], ['merak', 'phecda'], ['phecda', 'megrez'],
 ];
 
-type ViewMode = 'detail' | 'system' | 'constellation' | 'galaxy';
+export type ViewMode = 'detail' | 'system' | 'constellation' | 'galaxy';
 
 // ── Generación aleatoria de sistemas ─────────────────────────────────────────
 // Cada estrella (salvo la home, que usa PLANETS) genera 4-8 planetas al
@@ -334,7 +337,7 @@ export class PlanetViewScene extends Phaser.Scene {
     // La instancia del juego se REUTILIZA entre aperturas del panel (PlanetViewHostService):
     // cada apertura hace scene.restart(), así que el estado de vista se resetea aquí. Las
     // texturas procedurales sobreviven (createPlanetTexture salta las ya creadas).
-    this.mode = 'detail';
+    this.setMode('detail');
     this.transitioning = false;
     this.detailC = null;
     this.planet = null;
@@ -452,7 +455,7 @@ export class PlanetViewScene extends Phaser.Scene {
         this.buildSystemView();  // reconstruye con los planetas de esa estrella
       }
       this.systemC?.setVisible(true);
-      this.mode = 'system';
+      this.setMode('system');
       this.notifyDetail('');   // ya no estamos en el globo → ocultar lista de mapas
     }, zoomIn);
   }
@@ -468,7 +471,7 @@ export class PlanetViewScene extends Phaser.Scene {
       this.systemC?.setVisible(false);
       this.galaxyC?.setVisible(false);
       this.constellationC?.setVisible(true);
-      this.mode = 'constellation';
+      this.setMode('constellation');
     }, zoomIn);
   }
 
@@ -477,7 +480,7 @@ export class PlanetViewScene extends Phaser.Scene {
     this.transition(() => {
       this.constellationC?.setVisible(false);
       this.galaxyC?.setVisible(true);
-      this.mode = 'galaxy';
+      this.setMode('galaxy');
     }, /* zoomIn */ false);
   }
 
@@ -486,7 +489,7 @@ export class PlanetViewScene extends Phaser.Scene {
     this.transition(() => {
       this.systemC?.setVisible(false);
       this.buildDetailView(def);
-      this.mode = 'detail';
+      this.setMode('detail');
     }, /* zoomIn */ true);
   }
 
@@ -534,7 +537,6 @@ export class PlanetViewScene extends Phaser.Scene {
       this.planet = null;
       this.planetMask = null;
       this.buildEarthView(cx, cy, Math.min(W, H) * 0.3);
-      this.detailC.add(this.buildPlusButton(() => this.goToSystem()));
       this.notifyDetail(def.id, def.name);
       return;
     }
@@ -564,7 +566,6 @@ export class PlanetViewScene extends Phaser.Scene {
     this.routeGfx = null;
     if (def.id === 'mundo') this.buildWorldRoute();
 
-    this.detailC.add(this.buildPlusButton(() => this.goToSystem()));
 
     // Avisar a Angular qué planeta se está viendo (lista de mapas a la izda. + nombre).
     this.notifyDetail(def.id, def.name);
@@ -894,21 +895,32 @@ export class PlanetViewScene extends Phaser.Scene {
     }
   }
 
-  // Botón «+» (esquina inferior derecha): zoom-out al siguiente nivel
-  private buildPlusButton(onClick: () => void): Phaser.GameObjects.GameObject[] {
-    const r = 16 * DPR;
-    const bx = this.scale.width - 26 * DPR, by = this.scale.height - 26 * DPR;
-    const bg = this.add.circle(bx, by, r, 0x1e3a5f, 0.92).setStrokeStyle(1.5 * DPR, 0x3498db, 0.8);
-    const label = this.add.text(bx, by - DPR, '+', {
-      fontSize: `${22 * DPR}px`, color: '#5bc0f8', fontStyle: 'bold',
-    }).setOrigin(0.5, 0.5);
+  /** Botón «+» (lo pinta Angular en la fila de botones del panel): zoom-out al
+   *  siguiente nivel. Planeta → sistema → constelación → galaxia. */
+  zoomOutView(): void {
+    if (this.mode === 'detail') this.goToSystem();
+    else if (this.mode === 'system') this.goToConstellation();
+    else if (this.mode === 'constellation') this.goToGalaxy();
+  }
 
-    bg.setInteractive({ useHandCursor: true });
-    bg.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
-      event.stopPropagation();  // que no dispare el input de la vista de fondo
-      onClick();
-    });
-    return [bg, label];
+  /** Botón «−»: acerca la vista un nivel (lo contrario del «+»). Galaxia →
+   *  constelación → sistema actual → planeta (el último visto de ese sistema, o el
+   *  primero). En el planeta no hace nada: es el último nivel. */
+  zoomInView(): void {
+    if (this.mode === 'galaxy') this.goToConstellation();
+    else if (this.mode === 'constellation') this.goToSystem();
+    else if (this.mode === 'system') {
+      const planets = this.systemPlanets.get(this.currentStar.id) ?? [];
+      const def = planets.find(p => p.id === this.detailDef?.id) ?? planets[0];
+      if (def) this.goToPlanet(def);
+    }
+  }
+
+  /** Cambia de vista y avisa a Angular (activa/desactiva los botones «+» y «−»). */
+  private setMode(mode: ViewMode): void {
+    this.mode = mode;
+    const onMode = this.game.registry.get(PLANET_MODE_KEY) as ((m: ViewMode) => void) | undefined;
+    onMode?.(mode);
   }
 
   private initDrag(): void {
@@ -1044,9 +1056,6 @@ export class PlanetViewScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5).setAlpha(0.7).setDepth(10);
     this.systemC.add(hint);
 
-    const plusBtn = this.buildPlusButton(() => this.goToConstellation());
-    plusBtn.forEach(o => (o as Phaser.GameObjects.Arc).setDepth?.(20));
-    this.systemC.add(plusBtn);
 
     // Planetas
     for (const def of planets) {
@@ -1176,8 +1185,6 @@ export class PlanetViewScene extends Phaser.Scene {
       fontSize: `${11 * DPR}px`, color: '#6a8ab0', letterSpacing: 1,
     }).setOrigin(0.5, 0.5).setAlpha(0.7);
     this.constellationC.add([title, hint]);
-
-    this.constellationC.add(this.buildPlusButton(() => this.goToGalaxy()));
   }
 
   // ── Vista galaxia ───────────────────────────────────────────────────────────

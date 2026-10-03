@@ -203,6 +203,9 @@
       "AUTO_SKILLS_DESC": "Automatically casts your HUD skills when they are ready."
     }
   },
+  "ADMIN_PANEL": {
+    "TITLE": "Admin"
+  },
   "SHOP": {
     "TITLE": "Premium shop",
     "BUY": "Buy",
@@ -538,6 +541,8 @@
     "VIEW_GLOBE": "Globe",
     "VIEW_HEX": "Hexes",
     "VIEW_FLAT": "Flat map",
+    "VIEW_ZOOM_OUT": "Zoom out view",
+    "VIEW_ZOOM_IN": "Zoom in view",
     "LAYER_NORMAL": "Normal",
     "LAYER_ECONOMY": "Economy",
     "LAYER_WAR": "War",

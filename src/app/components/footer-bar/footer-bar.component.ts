@@ -9,6 +9,7 @@ import { SummonComponent } from '../summon/summon.component';
 import { TownChestComponent } from '../town-chest/town-chest.component';
 import { WorldMapPanelComponent } from '../world-map-panel/world-map-panel.component';
 import { ShopComponent } from '../shop/shop.component';
+import { AdminPanelComponent } from '../admin-panel/admin-panel.component';
 import { SkillDetailComponent } from '../skill-detail/skill-detail.component';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -45,6 +46,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   @ViewChild('skillDetailModal') skillDetailModal!: ModalContainerComponent;
   @ViewChild('worldMapModal')    worldMapModal!:    ModalContainerComponent;
   @ViewChild('shopModal')        shopModal!:        ModalContainerComponent;
+  @ViewChild('adminModal')       adminModal!:       ModalContainerComponent;
   @ViewChild('buildModal')       buildModal!:       ModalContainerComponent;
   @ViewChild('buildShopModal')   buildShopModal!:   ModalContainerComponent;
   @ViewChild('forgeModal')       forgeModal!:       ModalContainerComponent;
@@ -253,7 +255,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeOtherOnSide(side: 'left' | 'right', except: ModalContainerComponent) {
     const groups: Record<'left' | 'right', ModalContainerComponent[]> = {
       left:  [this.summonModal, this.chestModal, this.equipmentModal, this.skillDetailModal, this.worldMapModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal, this.workbenchModal],
-      right: [this.gameSettingsModal, this.inventoryModal, this.worldMapModal, this.shopModal],
+      right: [this.gameSettingsModal, this.inventoryModal, this.worldMapModal, this.shopModal, this.adminModal],
     };
     groups[side].forEach(m => { if (m !== except && m?.isOpenModal()) m.close(); });
   }
@@ -262,7 +264,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private closeAllPanels() {
     [this.gameSettingsModal, this.inventoryModal, this.equipmentModal,
      this.summonModal, this.chestModal, this.skillDetailModal,
-     this.worldMapModal, this.shopModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal, this.workbenchModal]
+     this.worldMapModal, this.shopModal, this.adminModal, this.buildModal, this.buildShopModal, this.forgeModal, this.globalTalentsModal, this.mapChestModal, this.workbenchModal]
       .forEach(m => { if (m?.isOpenModal()) m.close(); });
   }
 
@@ -463,6 +465,16 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     } else {
       this.closeOtherOnSide('right', this.shopModal);
       this.shopModal.open(ShopComponent, 'shop');
+    }
+  }
+
+  /** Ventana de admin: panel derecho, abierto desde el botón del minimapa. */
+  openAdmin() {
+    if (this.adminModal.isOpenModal()) {
+      this.adminModal.close();
+    } else {
+      this.closeOtherOnSide('right', this.adminModal);
+      this.adminModal.open(AdminPanelComponent, 'admin');
     }
   }
 

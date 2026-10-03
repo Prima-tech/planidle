@@ -51,7 +51,11 @@
     <!-- Capas del globo de la Tierra (mismo terreno en las tres): Normal / Economía /
          Guerra. El botón muestra la inicial del nombre traducido; el nombre entero va
          en el title. -->
-    <div class="view-tabs" *ngIf="detailPlanetId === 'mundo'">
+    <div
+      class="view-tabs"
+      [class.raised]="detailPlanetId === 'mundo' && !flat"
+    >
+      <ng-container *ngIf="detailPlanetId === 'mundo'">
       <button
         *ngFor="let l of layers"
         class="pml-item view-tab"
@@ -66,6 +70,15 @@
       <!-- DEBUG: cuadrícula tx/ty para colocar pines (apagada por defecto) -->
       <button class="grid-toggle-btn" [class.active]="gridOn" (click)="toggleGrid()" [title]="'MAP.GRID' | translate">
         <ion-icon name="grid-outline"></ion-icon>
+      </button>
+      </ng-container>
+      <!-- «+» aleja un nivel (desactivado en la galaxia); «−» acerca un nivel
+           (desactivado en el planeta). -->
+      <button class="grid-toggle-btn" [disabled]="sceneMode === 'galaxy'" (click)="zoomOutView()" [title]="'MAP.VIEW_ZOOM_OUT' | translate">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+      <button class="grid-toggle-btn" [disabled]="sceneMode === 'detail'" (click)="zoomInView()" [title]="'MAP.VIEW_ZOOM_IN' | translate">
+        <ion-icon name="remove-outline"></ion-icon>
       </button>
     </div>
 
