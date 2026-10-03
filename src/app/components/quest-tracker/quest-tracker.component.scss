@@ -255,3 +255,12 @@ $green-d: #1f7a2f;
     $inprog: #e6c85a, $ready: #6be0b0, $ready-text: #bff0dc
   );
 }
+
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) {
+  @include quest-theme(
+    $toggle-bg: rgba(12, 18, 82, 0.72), $row-bg: rgba(12, 18, 82, 0.68), $edge: rgba(255, 225, 77, 0.3),
+    $accent: #ffe14d, $text: #ffffff, $count: rgba(208, 216, 255, 1),
+    $inprog: #ffe14d, $ready: #7dff8a, $ready-text: #d0ffd6
+  );
+}

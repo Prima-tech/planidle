@@ -68,6 +68,7 @@ redefine sus colores con `:host-context([data-appstyle="<id>"])` en su propio SC
 | `arcano` | Arcano | `#221a3a→#140f24` | `#6d4bd6` (2px) | `#9d7ff0` (soft `rgba(122,80,230,.45)`) | `#ff6ba8→#c0246a` (magenta) | `#5be0ff→#1f8fd0` (turquesa) | serif, radius 10, texto `#ece6ff` / título `#b79cff` |
 | `sangre` | Sangre | `#1a1012→#0c0708` | `#6b1620` (2px) | `#cf3a48` (soft `rgba(150,20,30,.5)`) | `#e23b32→#8e0f16` | `#7a5cc0→#3a2470` (violeta) | serif, radius 8, nivel hueso `#e8c4a8`, texto `#f0d8ce` / título `#d98a92` |
 | `holo` | Holo azul | `rgba(8,18,30,.95)` | `rgba(80,180,255,.4)` | `#4db8ff` | `#ff6a5a→#c0292b` | `#4db8ff→#1c6fc0` | mono mayúsculas, radius 4, filete azul superior, texto `#dceefc` / título `#8fd4ff` |
+| `jrpg` | JRPG | azul `#3549c4→#141d6e→#0c1252` | blanco `#f4f4f4` (2px) + contorno `#10132e` | amarillo `#ffe14d` | `#ffb070→#e0452b` | `#a0ecff→#2f8ff0` | Pixelify Sans, radius 6, texto blanco / títulos amarillos. Bloques generados desde `desert` con el traductor de paleta (ver abajo). Barra de vida = mixin `hpbar-jrpg` (el mismo de la barra JRPG de Admin) |
 | `real` | Real | azul real `#1e2a56→#111838` | oro `#caa23c` (2px) | `#e0b53c` | `#ff7a5e→#c0392b` | `#6fa0ff→#2f56c0` | serif, radius 12, avatar circular, placa oro `#ffe9a8→#e0b53c→#b5851f`, texto `#f0e6cc` |
 
 Semánticos comunes en todos: bueno ≈ verde, malo ≈ rojo (`--good`/`--bad` del mixin).
@@ -125,6 +126,12 @@ añaden como reglas extra dentro del mismo bloque `:host-context`.
    con la paleta del tema (+ flourishes si toca).
 4. (Opcional) Tematizar otras piezas que ya tengan overrides (p. ej. `npc-dialogue`).
 5. El selector de Ajustes se actualiza solo (`*ngFor`).
+
+> **Atajo usado para `jrpg` (2026-10-03):** clonar el bloque `desert` de cada SCSS y traducir su paleta color a color con un script de node (hex + rgba + fuente Georgia → Pixelify). Sirve para crear un tema nuevo en toda la app de golpe; luego se retoca a mano.
+
+## Barra de vida independiente del tema (`data-hpbar`)
+
+Admin → Estilos → "Barra de vida": `default`/`blason`/`hierro`/`cristal`/`jrpg`. `AppStyleService.setHpBar()`. Overrides al FINAL de `top-bar.component.scss` para pisar al tema.
 
 ## Cómo MODIFICAR un estilo
 

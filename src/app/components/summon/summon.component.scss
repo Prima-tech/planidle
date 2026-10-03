@@ -738,3 +738,17 @@ $purple: #6e4a67;         // selección
   );
 }
 
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) {
+  @include summon-style(
+    $panel: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252), $bcol: #f4f4f4, $bw: 2px, $radius: 6px,
+    $shadow: (0 0 0 1px #10132e, 0 0 12px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #ffffff, $muted: rgba(208, 216, 255, 0.85), $title: #ffe14d,
+    $accent: #ffe14d, $on-accent: #10132e,
+    $cell: #0a1250, $cell-bd: #10132e, $frame: #05082a,
+    $tab: #1d2a90, $tab-hover: #2a3aa8, $inset: rgba(255, 225, 77, 0.08),
+    $plate: linear-gradient(180deg, #4f67ea, #1f2c96),
+    $font: ('Pixelify Sans', 'Courier New', monospace)
+  );
+}
+

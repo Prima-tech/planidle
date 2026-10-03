@@ -385,6 +385,15 @@ html[data-appstyle="desert"] {
   );
 }
 
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+html[data-appstyle="jrpg"] {
+  @include app-shared(
+    $btn-bg: linear-gradient(180deg, #3549c4, #1d2a90), $btn-bd: #f4f4f4, $btn-col: #ffffff, $btn-active-bg: #0c1252,
+    $coins-bg: #1d2a90, $coins-bd: #f4f4f4, $coins-col: #ffffff, $accent: #ffe14d,
+    $btn-font: ('Pixelify Sans', 'Courier New', monospace)
+  );
+}
+
 /* Toast "Cuenta creada" (login): pequeño, arriba-izquierda, sobrio. Overlay de Ionic →
    estilos globales vía ::part. Fondo oscuro, filete verde a la izquierda y texto mono. */
 ion-toast.toast-account-created {

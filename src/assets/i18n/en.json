@@ -54,7 +54,8 @@
       "ROYAL": "Royal",
       "SYLVAN": "Sylvan",
       "EMBER": "Ember",
-      "DESERT": "Desert"
+      "DESERT": "Desert",
+      "JRPG": "JRPG"
     },
     "SECTION": {
       "WORLD": "World",
@@ -460,26 +461,6 @@
       "DESC": "With an axe and a pickaxe you can do real work now. Chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and hand them to Mordekai. Reward: 10 gold and 10 XP.",
       "TRACK": "Gather 5 wood and 5 copper"
     },
-    "NOEXP_SLIMES": {
-      "NAME": "Slime Cleanup",
-      "DESC": "Mordekai wants to see you fight. Cross the west portal to 1-1 and take down 10 slimes.",
-      "TRACK": "Kill 10 slimes"
-    },
-    "NOEXP_SLIME_ELITE": {
-      "NAME": "The Elite Slime",
-      "DESC": "After enough kills in 1-1 an elite slime appears, tougher than the rest. Defeat it.",
-      "TRACK": "Kill the elite slime"
-    },
-    "NOEXP_RATAS": {
-      "NAME": "Rat Plague",
-      "DESC": "The rats of 1-2 have multiplied. Go through the 1-1 portal and take down 15.",
-      "TRACK": "Kill 15 rats"
-    },
-    "NOEXP_ORCOS": {
-      "NAME": "Orc Territory",
-      "DESC": "The orcs of 1-3 block the way. Prove your strength by defeating 20.",
-      "TRACK": "Kill 20 orcs"
-    },
     "MATA_RATA": {
       "NAME": "Hatchet Rat",
       "DESC": "Mordekai wants you to try steel. Head back to exploration and take down 1 hatchet rat, the ground enemy scurrying along the floor.",
@@ -499,6 +480,11 @@
       "NAME": "Orc Cleanup",
       "DESC": "Orcs prowl the area. Cut down 5 of them.",
       "TRACK": "Kill orcs"
+    },
+    "NOEXP_ARMAS": {
+      "NAME": "Weapon and armor",
+      "DESC": "Mordekai has taught you to craft your first combat gear: it is ready at the workbench. Craft the Rusty Dagger and the Ivory Cuirass (2 stone and 2 wood each), open them in your backpack and press Equip on both. Then talk to Mordekai. Reward: 10 gold and 10 experience.",
+      "TRACK": "Craft and equip weapon and cuirass"
     }
   },
   "PET": {
@@ -597,7 +583,18 @@
     "DOM_CHEST": "Map upgrades purchased",
     "DOM_REWARD": "Reward at 100%",
     "DOM_REWARD_DONE": "Map dominated!",
-    "DOM_REWARD_DROP": "loot on this map"
+    "DOM_REWARD_DROP": "loot on this map",
+    "TAB_RESOURCES": "Resources",
+    "TAB_PEOPLE": "People",
+    "RES_MINE": "Mine",
+    "RES_TREE": "Tree",
+    "RES_GEM": "Gem",
+    "GATHERABLE": "Gatherable",
+    "ENEMY_LOOT": "Enemy loot",
+    "NO_RESOURCES": "No resources",
+    "YOU": "You",
+    "TRAVEL": "Travel",
+    "LOCKED": "Locked"
   },
   "SUMMON": {
     "NO_ITEMS": "No items"
@@ -812,11 +809,7 @@
     "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold and 10 XP. Now put it to use: open the workbench and craft an axe; then find it in your bag and tap Equip. Then come talk to me again.",
     "MORDEKAI_AXE_CLAIM": "Now that is a proper axe, {{player}}! Take 10 gold and 10 XP. Let me teach you how to make a pickaxe: it is on the workbench now. Craft it, equip it and come back.",
     "MORDEKAI_PICK_CLAIM": "Perfect, {{player}}! Axe and pickaxe, all set. Take 10 gold and 10 XP. Now put them to use: chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and bring them to me.",
-    "MORDEKAI_FARM_CLAIM": "That is real work, {{player}}! I will keep the materials; take 10 gold and 10 XP. Now it is time to fight: cross the west portal to 1-1 and take down 10 slimes.",
-    "MORDEKAI_NOEXP_CLAIM1": "Good work! Keep killing in 1-1 and an elite slime will appear. Defeat it.",
-    "MORDEKAI_NOEXP_CLAIM2": "Impressive! Go through the 1-1 portal to 1-2 and take down 15 rats.",
-    "MORDEKAI_NOEXP_CLAIM3": "Rats gone! The next challenge is in 1-3: defeat 20 orcs.",
-    "MORDEKAI_NOEXP_CLAIM4": "You're a legend, bro! I have no more tasks for you for now.",
+    "MORDEKAI_FARM_CLAIM": "Now that is work, {{player}}! I will keep the materials; take 10 gold and 10 experience. Before you fight you need gear: I have taught you to make a dagger and a cuirass at the workbench. Craft them and put them on.",
     "MORDEKAI_PROGRESS": "You have {{prog}}/{{goal}} stars. Keep jumping for them in exploration (east portal).",
     "MORDEKAI_INTRO": "Now learn to explore, {{player}}: cross the east portal and gather stars. Tap the screen to jump and grab them on the fly.",
     "MORDEKAI_COLLECT_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Start by gathering 5 Stone and 5 Wood from the ground: walk up to the stones and logs and press the action button.",
@@ -827,7 +820,8 @@
     "MORDEKAI_PORTAL_CLAIM": "Portal opened, {{player}}! Here's 1 gold. Now learn to explore: cross the east portal and gather stars (tap to jump and grab them on the fly).",
     "KUGO_LINE": "{{player}}, long time no see!",
     "ITALIEN_LINE": "Hey {{player}}, ready for adventure?",
-    "RAKE_LINE": "{{player}}, we set off whenever you want."
+    "RAKE_LINE": "{{player}}, we set off whenever you want.",
+    "MORDEKAI_GEAR_CLAIM": "Now you look like a warrior, {{player}}! Take 10 gold and 10 experience."
   },
   "WORKBENCH": {
     "TITLE": "Workbench",

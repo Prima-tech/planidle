@@ -1652,6 +1652,142 @@ $phos: #21ff9a;
   );
 }
 
+/* ───────────────── JRPG · ventanas azules de marco blanco ─────────────────
+   Mixin compartido: lo usa el TEMA jrpg (data-appstyle, aquí, antes de los estilos
+   de barra para que una barra elegida en Admin lo pise) y la barra JRPG (data-hpbar). */
+$jrpg-hand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 7' shape-rendering='crispEdges'%3E%3Cpath fill='%2310132e' d='M5 0h5v1h-5zM0 1h5v1h-5zM10 1h1v1h-1zM0 2h1v1h-1zM10 2h1v1h-1zM1 3h3v1h-3zM10 3h1v1h-1zM3 4h1v1h-1zM10 4h1v1h-1zM3 5h1v1h-1zM9 5h1v1h-1zM4 6h5v1h-5z'/%3E%3Cpath fill='%23fff' d='M5 1h5v1h-5zM1 2h9v1h-9zM4 3h6v1h-6zM4 4h6v1h-6zM4 5h5v1h-5z'/%3E%3C/svg%3E");
+@mixin hpbar-jrpg {
+  @include appstyle-bar(
+    $panel: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252), $bcol: #f4f4f4, $bw: 2px, $radius: 6px,
+    $accent: #ffe14d, $accent-soft: rgba(255, 255, 255, 0.5), $on-accent: #10132e,
+    $text: #ffffff, $muted: #bcc6ff, $title: #ffe14d,
+    $name-bg: transparent, $name-col: #ffffff, $name-bd: none,
+    $name-font: ('Pixelify Sans', monospace), $name-tr: uppercase,
+    $av-bg: radial-gradient(circle at 50% 40%, #2b3aa8, #0a1250), $av-bd: none, $av-radius: 3px,
+    $lvl-bg: #ffe14d, $lvl-col: #10132e,
+    $track: #05082a, $track-bd: #f4f4f4,
+    $hp: linear-gradient(180deg, #ffb070, #e0452b), $mp: linear-gradient(180deg, #a0ecff, #2f8ff0),
+    $hp-glow: none, $mp-glow: none,
+    $num-col: #ffffff, $num-font: ('Pixelify Sans', monospace),
+    $inset: rgba(0, 0, 30, 0.25), $pill-bg: rgba(0, 0, 30, 0.4),
+    $good: #7dff8a, $bad: #ff8a7a
+  );
+
+  .char-block { text-shadow: 1px 1px 0 #10132e; }
+
+  // Dos ventanas separadas: la tarjeta conserva sus esquinas al abrir el panel
+  .char-widget,
+  .char-block--open .char-widget {
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #10132e, inset 0 0 0 1px #10132e, 0 4px 0 rgba(0, 0, 0, 0.3);
+  }
+  .map-info-panel {
+    top: calc(100% + 5px);
+    border-top: 2px solid #f4f4f4;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #10132e, inset 0 0 0 1px #10132e, 0 4px 0 rgba(0, 0, 0, 0.3);
+  }
+  .char-panel { padding: 24px 12px 9px 8px; align-items: flex-start; }
+
+  // Nombre en mayúsculas + nivel amarillo a la derecha
+  .char-name-pill {
+    top: 6px;
+    left: 10px;
+    right: 12px;
+    transform: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: none;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .char-name-lvl { display: inline; margin-left: auto; color: #ffe14d; text-transform: none; }
+
+  // Retrato cuadrado con marco blanco
+  .avatar-ring {
+    width: 40px;
+    height: 44px;
+    border-radius: 3px;
+    background: radial-gradient(circle at 50% 40%, #2b3aa8, #0a1250);
+    border: 2px solid #f4f4f4;
+    box-shadow: 0 0 0 1px #10132e;
+    .avatar-icon { border-radius: 0; background: transparent; box-shadow: none; }
+  }
+  .avatar-lvl { display: none; }
+
+  // Barras segmentadas con etiqueta (PV / PM / EXP) a la izquierda
+  .char-info { gap: 6px; padding-left: 22px; }
+  .bar-row { height: 12px; }
+  .bar-track {
+    overflow: visible;
+    border-radius: 0;
+    box-shadow: 0 0 0 1px #10132e;
+    &::before {
+      content: attr(data-label);
+      position: absolute;
+      right: calc(100% + 5px);
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Pixelify Sans', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      color: #ffe14d;
+      white-space: nowrap;
+    }
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent 0 5px, rgba(5, 8, 42, 0.85) 5px 6px);
+      pointer-events: none;
+    }
+  }
+  .bar-fill { border-radius: 0; }
+  .bar-num { z-index: 1; font-size: 9.5px; font-weight: 600; text-shadow: 1px 1px 0 #10132e; }
+  .bar-row--xp {
+    display: flex;
+    height: 5px;
+    .bar-track::before { font-size: 7px; }
+    .bar-track::after { content: none; }
+    .bar-fill--xp { background: #ffe14d; box-shadow: none; }
+  }
+
+  // Pestañas: ventanitas; la activa, señalada por la manita
+  .mip-tabs { left: calc(100% + 5px); top: 6px; gap: 4px; }
+  .mip-tab {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(#3549c4, #141d6e);
+    border: 2px solid #f4f4f4;
+    border-radius: 4px;
+    color: #bcc6ff;
+    box-shadow: 0 0 0 1px #10132e;
+    &.active {
+      background: linear-gradient(#4f67ea, #1f2c96);
+      color: #ffe14d;
+      box-shadow: 0 0 0 1px #10132e;
+      &::after {
+        content: '';
+        position: absolute;
+        left: calc(100% + 4px);
+        top: 50%;
+        width: 15px;
+        height: 11px;
+        margin-top: -5px;
+        background: $jrpg-hand center / contain no-repeat;
+        image-rendering: pixelated;
+        animation: jrpg-point 0.7s steps(2) infinite;
+      }
+    }
+  }
+}
+
+:host-context([data-appstyle="jrpg"]) { @include hpbar-jrpg; }
+
 /* ═══════════════════════════════════════════════════════════════════════════════
    ESTILOS DE BARRA DE VIDA (data-hpbar) — Admin → Estilos → Barra de vida.
    Independientes del tema: van al FINAL del archivo para pisar el override del
@@ -2068,138 +2204,10 @@ $iron-plate: (
 }
 
 /* ───────────────── JRPG · ventanas azules de marco blanco ───────────────── */
-$jrpg-hand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 7' shape-rendering='crispEdges'%3E%3Cpath fill='%2310132e' d='M5 0h5v1h-5zM0 1h5v1h-5zM10 1h1v1h-1zM0 2h1v1h-1zM10 2h1v1h-1zM1 3h3v1h-3zM10 3h1v1h-1zM3 4h1v1h-1zM10 4h1v1h-1zM3 5h1v1h-1zM9 5h1v1h-1zM4 6h5v1h-5z'/%3E%3Cpath fill='%23fff' d='M5 1h5v1h-5zM1 2h9v1h-9zM4 3h6v1h-6zM4 4h6v1h-6zM4 5h5v1h-5z'/%3E%3C/svg%3E");
-:host-context([data-hpbar="jrpg"]) {
-  @include appstyle-bar(
-    $panel: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252), $bcol: #f4f4f4, $bw: 2px, $radius: 6px,
-    $accent: #ffe14d, $accent-soft: rgba(255, 255, 255, 0.5), $on-accent: #10132e,
-    $text: #ffffff, $muted: #bcc6ff, $title: #ffe14d,
-    $name-bg: transparent, $name-col: #ffffff, $name-bd: none,
-    $name-font: ('Pixelify Sans', monospace), $name-tr: uppercase,
-    $av-bg: radial-gradient(circle at 50% 40%, #2b3aa8, #0a1250), $av-bd: none, $av-radius: 3px,
-    $lvl-bg: #ffe14d, $lvl-col: #10132e,
-    $track: #05082a, $track-bd: #f4f4f4,
-    $hp: linear-gradient(180deg, #ffb070, #e0452b), $mp: linear-gradient(180deg, #a0ecff, #2f8ff0),
-    $hp-glow: none, $mp-glow: none,
-    $num-col: #ffffff, $num-font: ('Pixelify Sans', monospace),
-    $inset: rgba(0, 0, 30, 0.25), $pill-bg: rgba(0, 0, 30, 0.4),
-    $good: #7dff8a, $bad: #ff8a7a
-  );
-
-  .char-block { text-shadow: 1px 1px 0 #10132e; }
-
-  // Dos ventanas separadas: la tarjeta conserva sus esquinas al abrir el panel
-  .char-widget,
-  .char-block--open .char-widget {
-    border-radius: 6px;
-    box-shadow: 0 0 0 1px #10132e, inset 0 0 0 1px #10132e, 0 4px 0 rgba(0, 0, 0, 0.3);
-  }
-  .map-info-panel {
-    top: calc(100% + 5px);
-    border-top: 2px solid #f4f4f4;
-    border-radius: 6px;
-    box-shadow: 0 0 0 1px #10132e, inset 0 0 0 1px #10132e, 0 4px 0 rgba(0, 0, 0, 0.3);
-  }
-  .char-panel { padding: 24px 12px 9px 8px; align-items: flex-start; }
-
-  // Nombre en mayúsculas + nivel amarillo a la derecha
-  .char-name-pill {
-    top: 6px;
-    left: 10px;
-    right: 12px;
-    transform: none;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: none;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-  }
-  .char-name-lvl { display: inline; margin-left: auto; color: #ffe14d; text-transform: none; }
-
-  // Retrato cuadrado con marco blanco
-  .avatar-ring {
-    width: 40px;
-    height: 44px;
-    border-radius: 3px;
-    background: radial-gradient(circle at 50% 40%, #2b3aa8, #0a1250);
-    border: 2px solid #f4f4f4;
-    box-shadow: 0 0 0 1px #10132e;
-    .avatar-icon { border-radius: 0; background: transparent; box-shadow: none; }
-  }
-  .avatar-lvl { display: none; }
-
-  // Barras segmentadas con etiqueta (PV / PM / EXP) a la izquierda
-  .char-info { gap: 6px; padding-left: 22px; }
-  .bar-row { height: 12px; }
-  .bar-track {
-    overflow: visible;
-    border-radius: 0;
-    box-shadow: 0 0 0 1px #10132e;
-    &::before {
-      content: attr(data-label);
-      position: absolute;
-      right: calc(100% + 5px);
-      top: 50%;
-      transform: translateY(-50%);
-      font-family: 'Pixelify Sans', monospace;
-      font-size: 9px;
-      font-weight: 700;
-      color: #ffe14d;
-      white-space: nowrap;
-    }
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(90deg, transparent 0 5px, rgba(5, 8, 42, 0.85) 5px 6px);
-      pointer-events: none;
-    }
-  }
-  .bar-fill { border-radius: 0; }
-  .bar-num { z-index: 1; font-size: 9.5px; font-weight: 600; text-shadow: 1px 1px 0 #10132e; }
-  .bar-row--xp {
-    display: flex;
-    height: 5px;
-    .bar-track::before { font-size: 7px; }
-    .bar-track::after { content: none; }
-    .bar-fill--xp { background: #ffe14d; box-shadow: none; }
-  }
-
-  // Pestañas: ventanitas; la activa, señalada por la manita
-  .mip-tabs { left: calc(100% + 5px); top: 6px; gap: 4px; }
-  .mip-tab {
-    position: relative;
-    width: 28px;
-    height: 28px;
-    background: linear-gradient(#3549c4, #141d6e);
-    border: 2px solid #f4f4f4;
-    border-radius: 4px;
-    color: #bcc6ff;
-    box-shadow: 0 0 0 1px #10132e;
-    &.active {
-      background: linear-gradient(#4f67ea, #1f2c96);
-      color: #ffe14d;
-      box-shadow: 0 0 0 1px #10132e;
-      &::after {
-        content: '';
-        position: absolute;
-        left: calc(100% + 4px);
-        top: 50%;
-        width: 15px;
-        height: 11px;
-        margin-top: -5px;
-        background: $jrpg-hand center / contain no-repeat;
-        image-rendering: pixelated;
-        animation: jrpg-point 0.7s steps(2) infinite;
-      }
-    }
-  }
-}
+:host-context([data-hpbar="jrpg"]) { @include hpbar-jrpg; }
 
 @keyframes jrpg-point { 50% { transform: translateX(3px); } }
 @media (prefers-reduced-motion: reduce) {
-  :host-context([data-hpbar="jrpg"]) .mip-tab.active::after { animation: none; }
+  :host-context([data-hpbar="jrpg"]) .mip-tab.active::after,
+  :host-context([data-appstyle="jrpg"]) .mip-tab.active::after { animation: none; }
 }

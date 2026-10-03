@@ -13,7 +13,7 @@ import { BehaviorSubject } from 'rxjs';
  *   bocadillo de diálogo. Lo que no tenga override cae al look wood automáticamente
  *   (base sin `:host-context`).
  */
-export type AppStyleId = 'wood' | 'cyberpunk' | 'arcano' | 'sangre' | 'holo' | 'real' | 'sylvan' | 'ember' | 'desert';
+export type AppStyleId = 'wood' | 'cyberpunk' | 'arcano' | 'sangre' | 'holo' | 'real' | 'sylvan' | 'ember' | 'desert' | 'jrpg';
 
 export interface AppStyleDef {
   id: AppStyleId;
@@ -30,6 +30,7 @@ export const APP_STYLES: AppStyleDef[] = [
   { id: 'sylvan', nameKey: 'SETTINGS.STYLE.SYLVAN' },
   { id: 'ember', nameKey: 'SETTINGS.STYLE.EMBER' },
   { id: 'desert', nameKey: 'SETTINGS.STYLE.DESERT' },
+  { id: 'jrpg', nameKey: 'SETTINGS.STYLE.JRPG' },
 ];
 
 /**
@@ -114,8 +115,7 @@ export class AppStyleService {
   private read(): AppStyleId {
     try {
       const v = localStorage.getItem(STORAGE_KEY);
-      if (v === 'wood' || v === 'cyberpunk' || v === 'arcano' || v === 'sangre' || v === 'holo' || v === 'real'
-          || v === 'sylvan' || v === 'ember' || v === 'desert') return v;
+      if (APP_STYLES.some(s => s.id === v)) return v as AppStyleId;
     } catch { /* sin storage */ }
     return DEFAULT;
   }

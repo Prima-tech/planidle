@@ -2,46 +2,73 @@
 
   <div class="map-area">
 
-    <!-- Info panel (compartido: se rellena al pulsar un pin del globo) -->
-    <div class="map-info-card" *ngIf="selectedMap">
-      <div class="info-name">{{ selectedMap.name }}</div>
-<div class="enemy-grid" *ngIf="selectedMap.spawns.length > 0">
-        <div class="info-enemy" *ngFor="let spawn of selectedMap.spawns">
-          <div class="enemy-frame">
-            <div class="enemy-sprite"
-                 [ngStyle]="spriteStyle(spawn.enemyType)"
-                 [ngClass]="spriteClass(spawn.enemyType)"></div>
-          </div>
-        </div>
+    <!-- Ficha de info del mapa (al pulsar un pin del globo): cabecera con nombre y
+         tier, tres pestañas (Enemigos / Recursos / Gente) y pie con el dominio del
+         mapa y el botón de viajar (o la nota de bloqueado). -->
+    <div class="map-info-card mi-card" *ngIf="selectedMap" [class.mi-raised]="detailPlanetId === 'mundo' && canZoom">
+      <div class="mi-head">
+        <span class="mi-name">{{ selectedMap.name }}</span>
+        <span class="mi-tier" *ngIf="selectedTier">T{{ selectedTier }}</span>
       </div>
 
-      <!-- Recursos recolectables del mapa (mina/árbol/gema según sus tiers) -->
-      <div class="resource-grid" *ngIf="mapResources.length > 0">
-        <div class="info-resource" *ngFor="let r of mapResources" [title]="r.type">
-          <div class="enemy-frame">
-            <img [src]="r.img" class="resource-img" alt="" draggable="false" />
-          </div>
-        </div>
+      <div class="mi-tabs" role="tablist">
+        <button role="tab" [attr.aria-selected]="infoTab === 'enemies'" (click)="setInfoTab('enemies')">{{ 'MAP.TAB_ENEMIES' | translate }}</button>
+        <button role="tab" [attr.aria-selected]="infoTab === 'resources'" (click)="setInfoTab('resources')">{{ 'MAP.TAB_RESOURCES' | translate }}</button>
+        <button role="tab" [attr.aria-selected]="infoTab === 'people'" (click)="setInfoTab('people')">{{ 'MAP.TAB_PEOPLE' | translate }}</button>
       </div>
 
-      <div class="info-chars" *ngIf="charsOnMap.length > 0">
-        <div class="info-char" *ngFor="let c of charsOnMap" [class.current]="c.isCurrent">
-          <div class="enemy-frame char-frame">
-            <app-character-sprite [size]="64" [equipmentSnapshot]="c.equipment" [characterName]="c.name"></app-character-sprite>
+      <div class="mi-pane" role="tabpanel" [ngSwitch]="infoTab">
+        <!-- Enemigos del mapa (sin élite ni oblivion) -->
+        <ng-container *ngSwitchCase="'enemies'">
+          <div class="mi-row" *ngFor="let e of enemyRows">
+            <div class="enemy-frame">
+              <div class="enemy-sprite" [ngStyle]="spriteStyle(e.type)" [ngClass]="spriteClass(e.type)"></div>
+            </div>
+            <span class="mi-txt"><b>{{ e.name }}</b></span>
           </div>
-          <span class="info-char-name">{{ c.name }}</span>
-        </div>
+          <div class="mi-empty" *ngIf="enemyRows.length === 0">{{ 'MAP.SAFE_ZONE' | translate }}</div>
+        </ng-container>
+
+        <!-- Recursos recolectables (mina/árbol/gema) + botín propio de los enemigos -->
+        <ng-container *ngSwitchCase="'resources'">
+          <div class="mi-row" *ngFor="let r of mapResources">
+            <div class="enemy-frame"><img [src]="r.img" class="resource-img" alt="" draggable="false" /></div>
+            <span class="mi-txt"><b>{{ r.labelKey | translate }} T{{ r.tier }}</b>{{ 'MAP.GATHERABLE' | translate }}</span>
+          </div>
+          <div class="mi-row" *ngFor="let d of mapDrops">
+            <div class="enemy-frame"><img [src]="d.icon" class="resource-img mi-drop-img" alt="" draggable="false" /></div>
+            <span class="mi-txt"><b>{{ d.name }}</b>{{ 'MAP.ENEMY_LOOT' | translate }}</span>
+          </div>
+          <div class="mi-empty" *ngIf="mapResources.length === 0 && mapDrops.length === 0">{{ 'MAP.NO_RESOURCES' | translate }}</div>
+        </ng-container>
+
+        <!-- Gente: personajes de la cuenta que están en este mapa -->
+        <ng-container *ngSwitchCase="'people'">
+          <div class="mi-row" *ngFor="let c of charsOnMap" [class.current]="c.isCurrent">
+            <div class="enemy-frame char-frame">
+              <app-character-sprite [size]="48" [equipmentSnapshot]="c.equipment" [characterName]="c.name"></app-character-sprite>
+            </div>
+            <span class="mi-txt"><b>{{ c.name }}</b><ng-container *ngIf="c.isCurrent">{{ 'MAP.YOU' | translate }}</ng-container></span>
+          </div>
+          <div class="mi-empty" *ngIf="charsOnMap.length === 0">{{ 'MAP.NO_CHARACTERS' | translate }}</div>
+        </ng-container>
       </div>
 
-      <button
-        *ngIf="canTeleport(selectedMap.id)"
-        class="teleport-btn"
-        (click)="teleport(selectedMap.id)"
-      >
-        <ion-icon name="navigate-outline"></ion-icon>
-      </button>
-      <div class="map-locked-note" *ngIf="isMapLocked(selectedMap.id)">
-        <ion-icon name="lock-closed"></ion-icon>
+      <div class="mi-foot">
+        <div class="mi-dom" *ngIf="dominionPercent !== null">
+          <div class="mi-dom-lbl"><span>{{ 'MAP.TAB_DOMINION' | translate }}</span><span>{{ dominionPercent }}%</span></div>
+          <div class="mi-dom-bar" role="progressbar" [attr.aria-valuenow]="dominionPercent" aria-valuemin="0" aria-valuemax="100">
+            <i [style.width.%]="dominionPercent"></i>
+          </div>
+        </div>
+        <button *ngIf="canTeleport(selectedMap.id)" class="rpg-btn rpg-btn--block mi-travel" (click)="teleport(selectedMap.id)">
+          <ion-icon name="navigate"></ion-icon>
+          <span>{{ 'MAP.TRAVEL' | translate }}</span>
+        </button>
+        <div class="mi-locked" *ngIf="isMapLocked(selectedMap.id)">
+          <ion-icon name="lock-closed"></ion-icon>
+          <span>{{ 'MAP.LOCKED' | translate }}</span>
+        </div>
       </div>
     </div>
 

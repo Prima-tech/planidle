@@ -298,3 +298,20 @@
   .ach-toast-label { color: #e6c85a; }
   .ach-toast-name  { color: #f0e6c8; text-shadow: none; }
 }
+
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) {
+  .ach-toast--gold,
+  .ach-toast--scroll {
+    background: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252);
+    border: 2px solid #f4f4f4;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #10132e, 0 0 12px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55);
+  }
+  .ach-toast--scroll::before,
+  .ach-toast--scroll::after { background: linear-gradient(90deg, #0a1250, #ffe14d, #0a1250); box-shadow: 0 0 0 1px #10132e; }
+  .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #ffe14d, #0a1250) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(255, 225, 77, 0.4) !important; }
+  .ach-toast-icon  { color: #ffe14d; }
+  .ach-toast-label { color: #ffe14d; }
+  .ach-toast-name  { color: #ffffff; text-shadow: none; }
+}

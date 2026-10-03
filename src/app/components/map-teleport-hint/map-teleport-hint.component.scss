@@ -142,3 +142,13 @@ $text-cream: #ecd9b4;
     0 0 0 1px rgba(230, 200, 90, 0.3), 0 0 12px rgba(184, 150, 60, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55);
   .mth-label { color: #e6c85a; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85); }
 }
+
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) .mth {
+  background: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252);
+  border: 2px solid #f4f4f4;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px #10132e, 0 0 12px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55);
+  .mth-label { color: #ffe14d; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85); }
+}

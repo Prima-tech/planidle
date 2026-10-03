@@ -552,6 +552,156 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   }
 }
 
+// ── Ficha de info del MAPA con pestañas (diseño 03 del taller) ──────────────
+// Reusa el marco de .map-info-card (metal + madera) y sus .enemy-frame/.enemy-sprite;
+// aquí solo cambia la estructura: cabecera oscura, pestañas, panel claro y pie.
+// Alto FIJO (igual en todas las pestañas y mapas): de arriba hasta justo encima de
+// los botones de abajo (.view-tabs: 30px + 8px de margen), para no taparlos. Lo que no
+// cabe en el panel de la pestaña hace scroll dentro de él.
+.map-info-card.mi-card {
+  width: 200px;
+  padding: 0;
+  bottom: 46px;                      // .view-tabs abajo (8 + 30 + 8)
+  &.mi-raised { bottom: 84px; }      // .view-tabs subidos encima de la barra de zoom (46 + 30 + 8)
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;              // pestañas y botón son clicables
+  color: $text-brown;
+  overflow: hidden;
+
+  .mi-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 8px;
+    background: $wood-btn-dark;
+    border-bottom: 2px solid $outline;
+  }
+  .mi-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 17px;
+    font-weight: bold;
+    color: $gold;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  }
+  .mi-tier {
+    flex-shrink: 0;
+    padding: 1px 5px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #3d2a06;
+    background: $gold;
+    border: 1px solid $outline;
+    box-shadow: inset 0 1px 0 #ffe6a0, inset 0 -2px 0 #b8861e;
+  }
+
+  // Pestañas: la activa baja 2px y se funde con el panel claro de debajo
+  .mi-tabs {
+    display: flex;
+    padding: 6px 6px 0;
+    button {
+      flex: 1;
+      min-width: 0;
+      padding: 4px 2px;
+      margin-right: -2px;
+      font: inherit;
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: $text-brown;
+      background: $wood-btn-light;
+      border: 2px solid $outline;
+      border-bottom: 0;
+      cursor: pointer;
+      &:last-child { margin-right: 0; }
+      &[aria-selected="true"] { background: #e9c88c; position: relative; top: 2px; }
+    }
+  }
+
+  .mi-head, .mi-tabs, .mi-foot { flex-shrink: 0; }
+  .mi-pane {
+    flex: 1;                          // ocupa el alto que sobra; su contenido hace scroll
+    min-height: 0;
+    display: grid;
+    gap: 5px;
+    align-content: start;
+    margin: 0 6px;
+    padding: 7px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #e9c88c;
+    border: 2px solid $outline;
+  }
+
+  .mi-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    &.current .char-frame {
+      border-color: $gold;
+      box-shadow: 0 0 0 1px $outline, 0 0 6px rgba(240, 192, 64, 0.6);
+    }
+  }
+  // Recuadros más pequeños que en la ficha antigua (36 en vez de 46)
+  .enemy-frame { width: 36px; height: 36px; }
+  .enemy-sprite { transform: translate(-50%, -50%) scale(0.78); }
+  .mi-drop-img { width: 70%; height: 70%; }
+
+  .mi-txt {
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.2;
+    color: #6e4424;
+    b {
+      display: block;
+      font-size: 13px;
+      color: $text-brown;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+  .mi-empty { padding: 10px 0; font-size: 11px; color: #6e4424; text-align: center; }
+
+  // Pie: barra de dominio + Viajar (o «Bloqueado»)
+  .mi-foot { display: grid; gap: 6px; padding: 7px 6px; }
+  .mi-dom { display: grid; gap: 2px; }
+  .mi-dom-lbl { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; }
+  .mi-dom-bar {
+    position: relative;
+    height: 9px;
+    background: #4a3023;
+    border: 1px solid $outline;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.35);
+    i {
+      position: absolute;
+      inset: 0 auto 0 0;
+      background: linear-gradient(180deg, #f6d36a, #c99a2c);
+      box-shadow: inset 0 1px 0 #ffe6a0;
+    }
+  }
+  .mi-travel { gap: 6px; align-items: center; justify-content: center; display: flex; }
+  .mi-locked {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: $text-brown;
+    border: 1px dashed rgba($outline, 0.5);
+  }
+}
+
 // Indicador de "bloqueado" en la tarjeta de info (en vez del botón de viajar).
 .map-locked-note {
   display: flex;
@@ -649,6 +799,23 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
       border-color: $btn-bd;
       color: $btn-col;
     }
+  }
+
+  // Ficha con pestañas: misma estructura, paleta del tema
+  .map-info-card.mi-card {
+    color: $text;
+    .mi-head { background: $item-active-bg; border-bottom-color: $card-bd; }
+    .mi-name { color: $title; text-shadow: none; }
+    .mi-tier { background: $accent; border-color: $card-bd; box-shadow: none; }
+    .mi-tabs button {
+      background: $btn-bg; border-color: $card-bd; color: $btn-col;
+      &[aria-selected="true"] { background: $item-bg; color: $accent; }
+    }
+    .mi-pane { background: $item-bg; border-color: $card-bd; }
+    .mi-txt, .mi-empty { color: $muted; b { color: $text; } }
+    .mi-row.current .char-frame { border-color: $accent; }
+    .mi-dom-lbl, .mi-locked { color: $text; }
+    .mi-dom-bar { background: $cell-bg; border-color: $card-bd; i { background: $accent; box-shadow: none; } }
   }
 
   .map-locked-note {
@@ -775,5 +942,20 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
     $btn-bg: #241f12, $btn-bd: #b8963c, $btn-col: #e6c85a, $btn-active-bg: linear-gradient(180deg,#f0d878,#b8963c), $btn-active-col: #2a2010,
     $item-bg: #1c190f, $item-bd: #4a3d18, $item-col: #f0e6c8, $item-active-bg: #181509,
     $radius: 8px
+  );
+}
+
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) {
+  @include wmp-style(
+    $font: ('Pixelify Sans', 'Courier New', monospace), $text: #ffffff, $muted: rgba(208, 216, 255, 0.85),
+    $accent: #ffe14d, $title: #ffe14d,
+    $panel-bg: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252), $bd: #f4f4f4,
+    $panel-shadow: (0 0 0 1px #10132e, 0 0 12px rgba(0, 0, 0, .25), 0 8px 24px rgba(0,0,0,.55)),
+    $area-bg: #0e1660, $area-bd: #5566cc, $area-shadow: (inset 0 0 12px rgba(0,0,0,.5)),
+    $card-bg: #0a1250, $card-bd: #f4f4f4, $cell-bg: #0a1250, $cell-bd: #10132e,
+    $btn-bg: #1d2a90, $btn-bd: #f4f4f4, $btn-col: #ffe14d, $btn-active-bg: linear-gradient(180deg, #4f67ea, #1f2c96), $btn-active-col: #ffe14d,
+    $item-bg: #0a1250, $item-bd: #5566cc, $item-col: #ffffff, $item-active-bg: #0e1660,
+    $radius: 6px
   );
 }

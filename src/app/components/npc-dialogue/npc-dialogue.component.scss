@@ -397,6 +397,19 @@ $gold-d: #b8922a;
   );
 }
 
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) {
+  @include dialog-theme(
+    $bg: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252), $border: 2px solid #f4f4f4, $radius: 6px,
+    $box-glow: (0 0 0 1px #10132e, 0 0 12px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55)),
+    $text: #ffffff,
+    $name-bg: linear-gradient(180deg, #4f67ea, #1f2c96), $name-col: #ffe14d, $name-bd: 1px solid #ffe14d,
+    $av-bg: #0a1250, $av-bd: 2px solid #f4f4f4, $av-radius: 6px,
+    $close-bg: #0a1250, $close-col: #ffe14d, $close-bd: 1px solid rgba(255, 225, 77, 0.4),
+    $hint: #ffe14d, $name-font: ('Pixelify Sans', 'Courier New', monospace), $accent-shadow: 0 0 10px rgba(255, 225, 77, 0.55)
+  );
+}
+
 @keyframes dlg-pop {
   from { transform: translateY(12px) scale(0.96); opacity: 0; }
   to   { transform: translateY(0)    scale(1);    opacity: 1; }

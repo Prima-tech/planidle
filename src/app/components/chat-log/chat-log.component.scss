@@ -191,3 +191,12 @@ $gold-2: #f0c040;
     $speaker: #3fd0c0, $text: #f0e6c8, $muted: rgba(240, 230, 200, 0.6)
   );
 }
+
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) {
+  @include chat-theme(
+    $fab-bg: rgba(53, 73, 196, 0.92), $fab-edge: rgba(255, 225, 77, 0.5), $fab-icon: #ffe14d,
+    $win-bg: rgba(12, 18, 82, 0.96), $win-edge: rgba(255, 225, 77, 0.4), $radius: 6px,
+    $speaker: #ffe14d, $text: #ffffff, $muted: rgba(208, 216, 255, 0.85)
+  );
+}

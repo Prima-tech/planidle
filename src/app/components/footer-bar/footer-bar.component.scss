@@ -935,3 +935,19 @@ $gold-light: #ffe9a8;
     $radius: 8px, $panel-shadow: (0 0 0 1px rgba(230,200,90,.3), 0 0 12px rgba(184,150,60,.25), 0 0 60px rgba(0,0,0,.9))
   );
 }
+
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) {
+  @include footer-style(
+    $font: ('Pixelify Sans', 'Courier New', monospace), $text: #ffffff, $muted: rgba(208, 216, 255, 0.85),
+    $accent: #ffe14d, $accent-soft: rgba(255, 225, 77, .5), $icon-col: #ffe14d,
+    $toolbar-bg: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252),
+    $bevel-l: #ffe14d, $bevel: #f4f4f4, $bevel-d: #10132e,
+    $btn-face: linear-gradient(180deg,#1d2a90,#0c1252), $btn-face-pressed: linear-gradient(180deg,#0c1252,#1d2a90),
+    $btn-bd: #f4f4f4,
+    $orb-face: radial-gradient(circle at 35% 28%,#2b3aa8 0%,#0a1250 55%,#10132e 100%),
+    $orb-pressed: radial-gradient(circle at 35% 72%,#0a1250 0%,#0c1252 55%,#10132e 100%),
+    $panel-bg: linear-gradient(180deg, #3549c4, #141d6e 70%, #0c1252), $panel-bd: #f4f4f4,
+    $radius: 6px, $panel-shadow: (0 0 0 1px #10132e, 0 0 12px rgba(0, 0, 0, .25), 0 0 60px rgba(0,0,0,.9))
+  );
+}

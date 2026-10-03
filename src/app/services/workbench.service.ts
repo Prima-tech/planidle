@@ -15,6 +15,8 @@ export interface WorkbenchRecipe {
 
 /** Flag que desbloquea la receta del pico de hierro (la dará una misión). */
 export const RECIPE_IRON_PICKAXE_FLAG = 'recipe.iron_pickaxe';
+/** Flag que desbloquea el arma y la pechera más básicas (misión noexp_armas). */
+export const RECIPE_STARTER_GEAR_FLAG = 'recipe.starter_gear';
 
 export const WORKBENCH_RECIPES: WorkbenchRecipe[] = [
   {
@@ -25,6 +27,16 @@ export const WORKBENCH_RECIPES: WorkbenchRecipe[] = [
     id: 'iron_pickaxe', result: 'Pico de Hierro',
     cost: [{ name: 'Piedra', qty: 2 }, { name: 'Madera', qty: 2 }],
     unlockFlag: RECIPE_IRON_PICKAXE_FLAG,
+  },
+  {
+    id: 'rusty_dagger', result: 'Daga Oxidada',
+    cost: [{ name: 'Piedra', qty: 2 }, { name: 'Madera', qty: 2 }],
+    unlockFlag: RECIPE_STARTER_GEAR_FLAG,
+  },
+  {
+    id: 'ivory_armor', result: 'Coraza de Marfil',
+    cost: [{ name: 'Piedra', qty: 2 }, { name: 'Madera', qty: 2 }],
+    unlockFlag: RECIPE_STARTER_GEAR_FLAG,
   },
 ];
 

@@ -15,6 +15,9 @@ import { mapFeatureId } from 'src/app/services/unlock-config';
 import { AdminService } from 'src/app/services/admin.service';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { PlanetViewHostService } from 'src/app/services/planet-view-host.service';
+import { MapDominionService } from 'src/app/services/map-dominion.service';
+import { ENEMY_REGISTRY } from 'src/app/enemy/enemy-config';
+import { LOOT_TABLES } from 'src/app/physics/griddrops';
 
 // Tamaño al que se renderiza cada frame del sprite del enemigo en la tarjeta de
 // info. El recuadro (.enemy-frame) recorta; con 96 el bicho se ve al doble.
@@ -56,6 +59,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private gs            = inject(GameSettingsService);
   private ngZone        = inject(NgZone);
   private planetHost    = inject(PlanetViewHostService);
+  private dominion      = inject(MapDominionService);
   private mapSub: Subscription;
 
   currentMapId = '';
@@ -411,16 +415,55 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
 
   /** Recursos recolectables que spawnean en el mapa seleccionado (mina/árbol/gema),
    *  derivados de sus tiers. El hogar (Asgard) no genera recursos. */
-  get mapResources(): { type: string; img: string }[] {
+  get mapResources(): { labelKey: string; tier: number; img: string }[] {
     const m = this.selectedMap;
     if (!m || m.id === 'hogar') return [];
-    const res: { type: string; img: string }[] = [
-      { type: 'Mina',  img: this.harvestImg(miningTier(m.mineTier).rockTexture) },
-      { type: 'Árbol', img: this.harvestImg(treeTier(m.treeTier).rockTexture) },
+    const res = [
+      { labelKey: 'MAP.RES_MINE', tier: m.mineTier ?? 1, img: this.harvestImg(miningTier(m.mineTier).rockTexture) },
+      { labelKey: 'MAP.RES_TREE', tier: m.treeTier ?? 1, img: this.harvestImg(treeTier(m.treeTier).rockTexture) },
     ];
     const gem = gemTier(m.gemTier);
-    if (gem) res.push({ type: 'Gema', img: this.harvestImg(gem.rockTexture) });
+    if (gem) res.push({ labelKey: 'MAP.RES_GEM', tier: m.gemTier, img: this.harvestImg(gem.rockTexture) });
     return res;
+  }
+
+  // ── Ficha de info del mapa (pestañas Enemigos / Recursos / Gente) ───────────
+
+  /** Pestaña abierta de la ficha; estática → se recuerda entre mapas y aperturas. */
+  private static lastInfoTab: 'enemies' | 'resources' | 'people' = 'enemies';
+  infoTab = WorldMapPanelComponent.lastInfoTab;
+  setInfoTab(tab: 'enemies' | 'resources' | 'people') {
+    this.infoTab = WorldMapPanelComponent.lastInfoTab = tab;
+  }
+
+  /** Tier del mapa (= nº de mapa: '1-3' → 3); null en el hogar. */
+  get selectedTier(): number | null {
+    return +(/^\d+-(\d+)$/.exec(this.selectedMap?.id ?? '')?.[1] ?? 0) || null;
+  }
+
+  /** Enemigos del mapa (solo el tipo base: élite/oblivion no se muestran). */
+  get enemyRows(): { type: string; name: string }[] {
+    return (this.selectedMap?.spawns ?? []).map(s => {
+      const cfg = ENEMY_REGISTRY[s.enemyType];
+      return { type: s.enemyType, name: cfg?.displayName ?? s.enemyType };
+    });
+  }
+
+  /** Botín propio de los enemigos del mapa (items con icono; sin oro), sin repetir. */
+  get mapDrops(): { name: string; icon: string }[] {
+    const seen = new Map<string, string>();
+    for (const r of this.enemyRows) {
+      for (const e of LOOT_TABLES[r.type] ?? []) {
+        if (e.type === 'item' && e.icon && !seen.has(e.name)) seen.set(e.name, e.icon);
+      }
+    }
+    return [...seen].map(([name, icon]) => ({ name, icon }));
+  }
+
+  /** Dominio del mapa seleccionado (0..100), o null si el mapa no tiene (hogar). */
+  get dominionPercent(): number | null {
+    const id = this.selectedMap?.id;
+    return id && this.dominion.hasDominion(id) ? this.dominion.state(id).percent : null;
   }
 
   /** Ruta del sprite a partir de la clave de textura del recurso (misma fuente de

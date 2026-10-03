@@ -10,7 +10,8 @@ import { InventoryItem, InventoryService } from './inventory.service';
 import { GameSettingsService } from './game-settings.service';
 import { CityBuildService } from './city-build.service';
 import { GatheringEquipmentService } from './gathering-equipment.service';
-import { RECIPE_IRON_PICKAXE_FLAG } from './workbench.service';
+import { RECIPE_IRON_PICKAXE_FLAG, RECIPE_STARTER_GEAR_FLAG } from './workbench.service';
+import { EquipmentService } from './equipment.service';
 import { ITEM_CATALOG, hydrateItem } from '../physics/griddrops';
 
 // Sistema de misiones.
@@ -98,14 +99,21 @@ export interface BuildObjective {
   buildType: string;   // `type` en BUILDABLES (city-build.service), p.ej. 'workbench'
 }
 
-/** Tener EQUIPADO un item concreto (p.ej. una herramienta fabricada en la mesa de
- *  trabajo). Progreso binario: 0 hasta equiparlo, `goal` (1) al equiparlo. Solo cuenta
- *  con el prerequisito cobrado (si ya lo llevabas puesto al llegar, cuenta al instante).
- *  Pegajoso: desequiparlo después no descompleta la misión. */
+/** Tener EQUIPADO uno o varios items concretos (p.ej. una herramienta o un arma
+ *  fabricadas en la mesa de trabajo). Vale cualquier slot: recolección (hacha/pico) o
+ *  combate (arma, armadura…). Progreso = nº de items pedidos que llevas puestos a la
+ *  vez (`goal` = nº de items). Solo cuenta con el prerequisito cobrado (si ya los
+ *  llevabas puestos al llegar, cuentan al instante). Pegajoso: no baja al desequipar. */
 export interface EquipObjective {
   type: 'equip';
-  goal: number;       // siempre 1
-  itemName: string;   // nombre en ITEM_CATALOG, p.ej. 'Hacha de Hierro'
+  goal: number;         // = nº de items (1 con itemName)
+  itemName?: string;    // un solo item (nombre en ITEM_CATALOG), p.ej. 'Hacha de Hierro'
+  itemNames?: string[]; // varios items a la vez, p.ej. ['Daga Oxidada', 'Coraza de Marfil']
+}
+
+/** Items que pide un objetivo 'equip' (itemName o itemNames). */
+export function equipItemsOf(o: EquipObjective): string[] {
+  return o.itemNames ?? (o.itemName ? [o.itemName] : []);
 }
 
 export interface QuestReward {
@@ -279,52 +287,20 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_FARM_CLAIM' },
   },
   {
-    id: 'noexp_slimes',
-    name: 'QUESTS.NOEXP_SLIMES.NAME',
-    desc: 'QUESTS.NOEXP_SLIMES.DESC',
-    icon: 'skull-outline',
-    track: 'QUESTS.NOEXP_SLIMES.TRACK',
-    objective: { type: 'kill', family: 'slime', goal: 10 },
-    reward: { coins: 50, exp: 10 },
+    // Al ofrecerla (cobrar la de farmeo) se desbloquean en la mesa de trabajo las
+    // recetas del arma y la pechera más básicas. Fabricar ambas y equipárselas; se
+    // entrega hablando con Mordekai.
+    id: 'noexp_armas',
+    name: 'QUESTS.NOEXP_ARMAS.NAME',
+    desc: 'QUESTS.NOEXP_ARMAS.DESC',
+    icon: 'shield-half-outline',
+    track: 'QUESTS.NOEXP_ARMAS.TRACK',
+    objective: { type: 'equip', goal: 2, itemNames: ['Daga Oxidada', 'Coraza de Marfil'] },
+    reward: { coins: 10, exp: 10 },
     requires: 'noexp_farmeo',
+    startFlags: [RECIPE_STARTER_GEAR_FLAG],
     giver: 'Mordekai',
-    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM1' },
-  },
-  {
-    id: 'noexp_slime_elite',
-    name: 'QUESTS.NOEXP_SLIME_ELITE.NAME',
-    desc: 'QUESTS.NOEXP_SLIME_ELITE.DESC',
-    icon: 'flame-outline',
-    track: 'QUESTS.NOEXP_SLIME_ELITE.TRACK',
-    objective: { type: 'kill', enemyTypes: ['slime4_elite'], goal: 1 },
-    reward: { coins: 150, exp: 10 },
-    requires: 'noexp_slimes',
-    giver: 'Mordekai',
-    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM2' },
-  },
-  {
-    id: 'noexp_ratas',
-    name: 'QUESTS.NOEXP_RATAS.NAME',
-    desc: 'QUESTS.NOEXP_RATAS.DESC',
-    icon: 'skull-outline',
-    track: 'QUESTS.NOEXP_RATAS.TRACK',
-    objective: { type: 'kill', family: 'rats', goal: 15 },
-    reward: { coins: 300, exp: 10 },
-    requires: 'noexp_slime_elite',
-    giver: 'Mordekai',
-    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM3' },
-  },
-  {
-    id: 'noexp_orcos',
-    name: 'QUESTS.NOEXP_ORCOS.NAME',
-    desc: 'QUESTS.NOEXP_ORCOS.DESC',
-    icon: 'skull-outline',
-    track: 'QUESTS.NOEXP_ORCOS.TRACK',
-    objective: { type: 'kill', family: 'orc', goal: 20 },
-    reward: { coins: 600, exp: 10 },
-    requires: 'noexp_ratas',
-    giver: 'Mordekai',
-    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM4' },
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_GEAR_CLAIM' },
   },
 ];
 
@@ -356,6 +332,7 @@ export class QuestService implements OnDestroy {
   private invSub: Subscription;
   private buildSub: Subscription;
   private equipSub: Subscription;
+  private combatEquipSub: Subscription;
   private skipSub: Subscription;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -370,6 +347,7 @@ export class QuestService implements OnDestroy {
     private gs: GameSettingsService,
     private cityBuild: CityBuildService,
     private gathering: GatheringEquipmentService,
+    private equipment: EquipmentService,
   ) {
     // Al cambiar "sin exploración" cambia la cadena entera: saneamos lo fijado y
     // re-enganchamos la que toca (ver syncChain).
@@ -391,6 +369,8 @@ export class QuestService implements OnDestroy {
     this.buildSub = this.cityBuild.placed$.subscribe(() => this.onBuild());
     // Equipo de recolección: al equipar/cambiar sincroniza las misiones 'equip'.
     this.equipSub = this.gathering.changes$.subscribe(() => this.onEquip());
+    // Equipo de combate (arma, armadura…): idem.
+    this.combatEquipSub = this.equipment.changes$.subscribe(() => this.onEquip());
   }
 
   ngOnDestroy(): void {
@@ -400,6 +380,7 @@ export class QuestService implements OnDestroy {
     this.invSub?.unsubscribe();
     this.buildSub?.unsubscribe();
     this.equipSub?.unsubscribe();
+    this.combatEquipSub?.unsubscribe();
     this.skipSub?.unsubscribe();
     if (this.persistTimer) clearTimeout(this.persistTimer);
   }
@@ -535,7 +516,15 @@ export class QuestService implements OnDestroy {
    *  o null. La UI resalta el camino: Fabricar → mochila → item → Equipar. */
   pendingEquipItem(): string | null {
     const q = this.available().find(d => d.objective.type === 'equip' && !this.isClaimable(d));
-    return q?.objective.type === 'equip' ? q.objective.itemName : null;
+    if (q?.objective.type !== 'equip') return null;
+    // Con varios items, el primero que aún no lleves puesto.
+    return equipItemsOf(q.objective).find(n => !this.isEquipped(n)) ?? null;
+  }
+
+  /** ¿Llevas puesto este item en algún slot (recolección o combate)? */
+  private isEquipped(name: string): boolean {
+    return this.gathering.slots.some(sl => sl.item?.name === name)
+        || this.equipment.slots.some(sl => sl.item?.name === name);
   }
 
   completed(): QuestDef[] {
@@ -706,8 +695,8 @@ export class QuestService implements OnDestroy {
     }
   }
 
-  /** Marca el progreso de las misiones 'equip' si el item pedido está equipado en algún
-   *  slot de recolección. Solo con el prerequisito cobrado; pegajoso (no baja). */
+  /** Marca el progreso de las misiones 'equip': nº de items pedidos que llevas puestos
+   *  (recolección o combate). Solo con el prerequisito cobrado; pegajoso (no baja). */
   private onEquip(): void {
     let changed = false;
     for (const def of this.list()) {
@@ -716,11 +705,11 @@ export class QuestService implements OnDestroy {
       if (!this.prereqMet(def)) continue;
       const cur = this.progress[def.id] ?? 0;
       if (cur >= def.objective.goal) continue;
-      const name = def.objective.itemName;
-      if (!this.gathering.slots.some(sl => sl.item?.name === name)) continue;   // no equipado
-      this.progress[def.id] = def.objective.goal;
+      const worn = equipItemsOf(def.objective).filter(n => this.isEquipped(n)).length;
+      if (worn <= cur) continue;
+      this.progress[def.id] = Math.min(worn, def.objective.goal);
       changed = true;
-      this.flagQuestsBadge();
+      if (worn >= def.objective.goal) this.flagQuestsBadge();
     }
     if (changed) {
       this.notify();

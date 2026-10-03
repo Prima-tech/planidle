@@ -54,7 +54,8 @@
       "ROYAL": "Real",
       "SYLVAN": "Silvano",
       "EMBER": "Brasa",
-      "DESERT": "Desierto"
+      "DESERT": "Desierto",
+      "JRPG": "JRPG"
     },
     "SECTION": {
       "WORLD": "Mundo",
@@ -460,26 +461,6 @@
       "DESC": "Con hacha y pico ya puedes trabajar de verdad. Tala árboles y pica menas hasta reunir 5 de Madera y 5 de Mineral de Cobre, y entrégaselos a Mordekai. Recompensa: 10 de oro y 10 de experiencia.",
       "TRACK": "Reúne 5 de madera y 5 de cobre"
     },
-    "NOEXP_SLIMES": {
-      "NAME": "Limpieza de slimes",
-      "DESC": "Mordekai quiere ver cómo peleas. Cruza el portal del oeste hasta 1-1 y acaba con 10 slimes.",
-      "TRACK": "Mata 10 slimes"
-    },
-    "NOEXP_SLIME_ELITE": {
-      "NAME": "El slime élite",
-      "DESC": "Tras tantas bajas en 1-1 aparece un slime élite, más duro que el resto. Derrótalo.",
-      "TRACK": "Mata al slime élite"
-    },
-    "NOEXP_RATAS": {
-      "NAME": "Plaga de ratas",
-      "DESC": "Las ratas de 1-2 se han multiplicado. Avanza por el portal de 1-1 y acaba con 15.",
-      "TRACK": "Mata 15 ratas"
-    },
-    "NOEXP_ORCOS": {
-      "NAME": "Territorio orco",
-      "DESC": "Los orcos de 1-3 cortan el paso. Demuestra tu fuerza derrotando a 20.",
-      "TRACK": "Mata 20 orcos"
-    },
     "MATA_RATA": {
       "NAME": "Rata hachiática",
       "DESC": "Mordekai quiere que pruebes el acero. Vuelve a la exploración y acaba con 1 rata hachiática, el enemigo de tierra que corretea a ras de suelo.",
@@ -499,6 +480,11 @@
       "NAME": "Limpieza de orcos",
       "DESC": "Los orcos acechan la zona. Abate a 5 de ellos.",
       "TRACK": "Mata orcos"
+    },
+    "NOEXP_ARMAS": {
+      "NAME": "Arma y armadura",
+      "DESC": "Mordekai te ha enseñado a fabricar tu primer equipo de combate: ya lo tienes en la mesa de trabajo. Fabrica la Daga Oxidada y la Coraza de Marfil (2 de piedra y 2 de madera cada una), ábrelas en la mochila y pulsa Equipar en las dos. Después habla con Mordekai. Recompensa: 10 de oro y 10 de experiencia.",
+      "TRACK": "Fabrica y equipa arma y coraza"
     }
   },
   "PET": {
@@ -597,7 +583,18 @@
     "DOM_CHEST": "Mejoras de mapa compradas",
     "DOM_REWARD": "Recompensa al 100%",
     "DOM_REWARD_DONE": "¡Mapa dominado!",
-    "DOM_REWARD_DROP": "botín en este mapa"
+    "DOM_REWARD_DROP": "botín en este mapa",
+    "TAB_RESOURCES": "Recursos",
+    "TAB_PEOPLE": "Gente",
+    "RES_MINE": "Mina",
+    "RES_TREE": "Árbol",
+    "RES_GEM": "Gema",
+    "GATHERABLE": "Recolectable",
+    "ENEMY_LOOT": "Botín de enemigo",
+    "NO_RESOURCES": "Sin recursos",
+    "YOU": "Tú",
+    "TRAVEL": "Viajar",
+    "LOCKED": "Bloqueado"
   },
   "SUMMON": {
     "NO_ITEMS": "Sin items"
@@ -812,11 +809,7 @@
     "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de oro y 10 de experiencia. Ahora úsalo: abre la mesa de trabajo y fabrica un hacha; luego búscala en la mochila y pulsa Equipar. Luego vuelve a hablar conmigo.",
     "MORDEKAI_AXE_CLAIM": "¡Eso es un hacha como Dios manda, {{player}}! Toma 10 de oro y 10 de experiencia. Ahora te enseño a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrícalo, equípatelo y vuelve.",
     "MORDEKAI_PICK_CLAIM": "¡Perfecto, {{player}}! Ya tienes hacha y pico. Toma 10 de oro y 10 de experiencia. Ahora estrénalos: tala árboles y pica menas hasta reunir 5 de Madera y 5 de Mineral de Cobre, y tráemelos.",
-    "MORDEKAI_FARM_CLAIM": "¡Eso es trabajar, {{player}}! Me quedo los materiales; toma 10 de oro y 10 de experiencia. Ahora toca pelear: cruza el portal del oeste hacia 1-1 y acaba con 10 slimes.",
-    "MORDEKAI_NOEXP_CLAIM1": "¡Buen trabajo! Si sigues matando en 1-1 aparecerá un slime élite. Derrótalo.",
-    "MORDEKAI_NOEXP_CLAIM2": "¡Impresionante! Sigue por el portal de 1-1 hasta 1-2 y acaba con 15 ratas.",
-    "MORDEKAI_NOEXP_CLAIM3": "¡Ratas fuera! El siguiente reto está en 1-3: derrota a 20 orcos.",
-    "MORDEKAI_NOEXP_CLAIM4": "¡Eres una leyenda, bro! Por ahora no tengo más encargos para ti.",
+    "MORDEKAI_FARM_CLAIM": "¡Eso es trabajar, {{player}}! Me quedo los materiales; toma 10 de oro y 10 de experiencia. Antes de pelear necesitas equipo: te he enseñado a hacer una daga y una coraza en la mesa de trabajo. Fabrícalas y póntelas.",
     "MORDEKAI_PROGRESS": "Llevas {{prog}}/{{goal}} estrellas. Sigue saltando a por ellas en la exploración (portal del este).",
     "MORDEKAI_INTRO": "Ahora aprende a explorar, {{player}}: cruza el portal del este y reúne estrellas. Toca la pantalla para saltar y recógelas al vuelo.",
     "MORDEKAI_COLLECT_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Empieza recogiendo del suelo 5 de Piedra y 5 de Madera: acércate a las piedras y troncos y pulsa el botón de acción.",
@@ -827,7 +820,8 @@
     "MORDEKAI_PORTAL_CLAIM": "¡Portal abierto, {{player}}! Toma 1 de oro. Ahora aprende a explorar: cruza el portal del este y reúne estrellas (toca para saltar y recógelas al vuelo).",
     "KUGO_LINE": "{{player}}, ¡cuánto tiempo!",
     "ITALIEN_LINE": "Eh, {{player}}, ¿listo para la aventura?",
-    "RAKE_LINE": "{{player}}, cuando quieras partimos."
+    "RAKE_LINE": "{{player}}, cuando quieras partimos.",
+    "MORDEKAI_GEAR_CLAIM": "¡Ahora sí pareces un guerrero, {{player}}! Toma 10 de oro y 10 de experiencia."
   },
   "WORKBENCH": {
     "TITLE": "Mesa de trabajo",

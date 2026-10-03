@@ -160,3 +160,15 @@
   }
   .beb-amount { color: #f0e6c8; }
 }
+
+/* ───────────────── JRPG · ventana azul de marco blanco (clásico de consola) ───────────────── */
+:host-context([data-appstyle="jrpg"]) {
+  .beb-name {
+    color: #ffe14d;
+    text-shadow:
+      0 0 8px rgba(255, 225, 77, 0.7), 0 0 18px rgba(255, 225, 77, 0.4),
+      0 2px 3px rgba(0, 0, 0, 0.7),
+      -1px -1px 0 #0c1252, 1px -1px 0 #0c1252, -1px 1px 0 #0c1252, 1px 1px 0 #0c1252;
+  }
+  .beb-amount { color: #ffffff; }
+}
