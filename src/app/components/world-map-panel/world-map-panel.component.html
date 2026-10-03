@@ -3,7 +3,7 @@
   <div class="map-area">
 
     <!-- DEBUG: activa/desactiva la cuadrícula de coordenadas del globo -->
-    <button class="grid-toggle-btn" [class.active]="gridOn" (click)="toggleGrid()" title="Cuadrícula (debug)">
+    <button class="grid-toggle-btn" *ngIf="view === 'globe'" [class.active]="gridOn" (click)="toggleGrid()" title="Cuadrícula (debug)">
       <ion-icon name="grid-outline"></ion-icon>
     </button>
 
@@ -51,13 +51,30 @@
     </div>
 
     <!-- Nombre del planeta en vista detalle (overlay Angular sobre el globo) -->
-    <div class="planet-title" *ngIf="detailPlanetName">{{ detailPlanetName }}</div>
+    <div class="planet-title" *ngIf="view === 'globe' && detailPlanetName">{{ detailPlanetName }}</div>
+
+    <!-- Pestañas de vista: globo (Phaser) / tablero hexagonal (canvas 2D) -->
+    <div class="view-tabs">
+      <button class="pml-item view-tab" [class.selected]="view === 'globe'" (click)="setView('globe')">{{ 'MAP.VIEW_GLOBE' | translate }}</button>
+      <button class="pml-item view-tab" [class.selected]="view === 'hex'" (click)="setView('hex')">{{ 'MAP.VIEW_HEX' | translate }}</button>
+    </div>
+
+    <!-- Tablero hexagonal: tapa al globo (que se duerme mientras no se ve) -->
+    <app-hex-map
+      *ngIf="view === 'hex'"
+      class="hex-area"
+      [isLocked]="isMapLockedFn"
+      [currentMapId]="currentMapId"
+      [selectedMapId]="selectedMap?.id"
+      (pinSelect)="selectPin($event)"
+      (pinTeleport)="teleport($event)"
+    ></app-hex-map>
 
     <!-- Planeta interactivo (mini-instancia Phaser propia) -->
     <div class="planet-area" id="planet-view"></div>
 
     <!-- Lista de mapas desbloqueados del planeta; pinchar gira el globo -->
-    <div class="planet-map-list" *ngIf="planetMapList.length > 0">
+    <div class="planet-map-list" *ngIf="view === 'globe' && planetMapList.length > 0">
       <button
         *ngFor="let m of planetMapList"
         class="pml-item"
@@ -70,7 +87,7 @@
     </div>
 
     <!-- Tarjeta de info del planeta seleccionado -->
-    <div class="map-info-card planet-info-card" *ngIf="selectedPlanet">
+    <div class="map-info-card planet-info-card" *ngIf="view === 'globe' && selectedPlanet">
       <div class="info-name">{{ selectedPlanet.name }}</div>
 
       <div class="info-chars" *ngIf="charsOnPlanet.length > 0">

@@ -25,6 +25,8 @@ export class PlanetViewHostService {
   private host: HTMLDivElement | null = null;
   /** Aparcamiento fuera de pantalla (fuera de layout visible, pero en el DOM). */
   private parking: HTMLDivElement | null = null;
+  /** Pausado por otra vista del panel (pestaña hexagonal): un restart no lo despierta. */
+  private paused = false;
   private dpr = Math.min(window.devicePixelRatio || 1, 3);
 
   get scene(): PlanetViewScene | null {
@@ -65,6 +67,18 @@ export class PlanetViewHostService {
     else this.game!.events.once(Phaser.Core.Events.READY, () => this.restartScene(w, h, false));
   }
 
+  /** Duerme el bucle sin descolgar el canvas (otra vista lo tapa en el panel). */
+  pause(): void {
+    this.paused = true;
+    this.game?.loop.sleep();
+  }
+
+  /** Despierta el bucle tras pause(). */
+  resume(): void {
+    this.paused = false;
+    this.game?.loop.wake();
+  }
+
   /** Al cerrar el panel: aparca el canvas y duerme el bucle (no se destruye). */
   detach(): void {
     if (!this.game || !this.host) return;
@@ -79,6 +93,7 @@ export class PlanetViewHostService {
     if (resized) game.scale.resize(w, h);
     game.loop.wake();
     if (force || resized) this.scene?.scene.restart();
+    if (this.paused) game.loop.sleep();
   }
 
   private create(w: number, h: number, parent: HTMLElement): void {

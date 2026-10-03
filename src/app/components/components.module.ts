@@ -35,6 +35,7 @@ import { RunStatsComponent } from './run-stats/run-stats.component';
 import { NpcDialogueComponent } from './npc-dialogue/npc-dialogue.component';
 import { PortalUnlockComponent } from './portal-unlock/portal-unlock.component';
 import { WorldMapPanelComponent } from './world-map-panel/world-map-panel.component';
+import { HexMapComponent } from './hex-map/hex-map.component';
 import { EnemyNamePipe } from '../pipes/enemy-name.pipe';
 import { CompactNumberPipe } from '../pipes/compact-number.pipe';
 import { CharacterSpriteComponent } from './character-sprite/character-sprite.component';
@@ -82,6 +83,7 @@ import { WorkbenchWindowComponent } from './workbench-window/workbench-window.co
     RunStatsComponent,
     NpcDialogueComponent,
     WorldMapPanelComponent,
+    HexMapComponent,
     EnemyNamePipe,
     CompactNumberPipe,
     CharacterSpriteComponent,

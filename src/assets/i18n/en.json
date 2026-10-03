@@ -530,6 +530,8 @@
     "SAFE_ZONE": "Safe zone",
     "NO_CHARACTERS": "No characters",
     "VIEW_PLANET": "View planet",
+    "VIEW_GLOBE": "Globe",
+    "VIEW_HEX": "Hexes",
     "AFK_PRODUCTION": "AFK production / hour",
     "GOLD": "Gold",
     "XP": "XP",

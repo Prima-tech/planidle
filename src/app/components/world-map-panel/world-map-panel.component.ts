@@ -56,6 +56,13 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   selectedPlanet: { id: string; name: string } | null = null;
   charsOnPlanet: CharOnMap[] = [];
 
+  /** Vista del panel: globo (Phaser) o tablero hexagonal. Estática → se recuerda
+   *  entre aperturas del panel durante la sesión. */
+  private static lastView: 'globe' | 'hex' = 'globe';
+  view: 'globe' | 'hex' = WorldMapPanelComponent.lastView;
+  /** Predicado de bloqueo enlazado, para pasarlo como @Input al tablero hexagonal. */
+  readonly isMapLockedFn = (mapId: string) => this.isMapLocked(mapId);
+
   // DEBUG: estado de la cuadrícula del globo (arranca igual que DEBUG_PIN_GRID en la escena).
   gridOn = true;
 
@@ -128,6 +135,16 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     // La instancia se reutiliza: el botón de debug refleja el estado real del grid.
     const scene = this.planetHost.scene;
     if (scene) this.gridOn = scene.debugGridOn;
+    if (this.view === 'hex') this.planetHost.pause();
+  }
+
+  /** Cambia de pestaña. El globo sigue colgado del panel pero se duerme mientras el
+   *  tablero hexagonal lo tapa (cero coste de render). */
+  setView(view: 'globe' | 'hex') {
+    if (this.view === view) return;
+    this.view = WorldMapPanelComponent.lastView = view;
+    if (view === 'hex') this.planetHost.pause();
+    else this.planetHost.resume();
   }
 
   /** Mapas DESBLOQUEADOS del planeta que se está viendo, para la lista de la izquierda

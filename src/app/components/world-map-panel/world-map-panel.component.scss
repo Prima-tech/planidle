@@ -98,6 +98,20 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   }
 }
 
+// ── Pestañas de vista (globo / hexágonos), abajo a la derecha ──────────────
+.view-tabs {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 11;                       // sobre globo, tablero y tarjetas
+  display: flex;
+  gap: 4px;
+}
+.pml-item.view-tab { width: auto; }
+
+// Tablero hexagonal: por encima del globo (z 5) y de la lista de mapas (z 6)
+.hex-area { z-index: 7; }
+
 .planet-area {
   position: absolute;
   inset: 0;
