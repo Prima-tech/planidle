@@ -21,16 +21,10 @@
           <p class="gs-section-label">Admin</p>
 
           <!-- Borrar el almacenamiento local (localStorage + partidas locales) y cerrar sesión. -->
-          <div class="gs-row gs-row-stack">
-            <div class="gs-row-info">
-              <span class="gs-row-title">{{ 'SETTINGS.CLEAR_LOCAL.TITLE' | translate }}</span>
-              <span class="gs-row-desc">{{ 'SETTINGS.CLEAR_LOCAL.DESC' | translate }}</span>
-            </div>
-            <button class="rpg-btn gs-save-btn gs-clear-local-btn" (click)="clearLocalStorage()">
-              <span class="gs-save-icon">🗑</span>
-              <span>{{ 'SETTINGS.CLEAR_LOCAL.BTN' | translate }}</span>
-            </button>
-          </div>
+          <button class="rpg-btn gs-save-btn gs-clear-local-btn" (click)="clearLocalStorage()">
+            <span class="gs-save-icon">🗑</span>
+            <span>{{ 'SETTINGS.CLEAR_LOCAL.BTN' | translate }}</span>
+          </button>
 
           <!-- Regalar monedas: barra 1..1.000.000 + placa de oro + botón. -->
           <div class="gs-row gs-row-stack">

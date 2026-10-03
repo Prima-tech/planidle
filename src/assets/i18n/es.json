@@ -113,9 +113,7 @@
       "ACCOUNT": "Cuenta · Email"
     },
     "CLEAR_LOCAL": {
-      "TITLE": "Borrar almacenamiento local",
-      "DESC": "Vacía el localStorage y las partidas guardadas en este dispositivo, y cierra la sesión. Lo que esté en la nube no se toca.",
-      "BTN": "Borrar y cerrar sesión"
+      "BTN": "Borrar local"
     },
     "CONFIRM": {
       "CLEAR_LOCAL": "¿Borrar TODO el almacenamiento local de este dispositivo? Se cerrará la sesión. Si juegas como invitado sin correo vinculado, perderás el acceso a esa cuenta.",
@@ -541,6 +539,8 @@
     "VIEW_GLOBE": "Globo",
     "VIEW_HEX": "Hexágonos",
     "VIEW_FLAT": "Mapa plano",
+    "LOCK_MAP": "Fijar mapa",
+    "UNLOCK_MAP": "Desbloquear mapa",
     "VIEW_ZOOM_OUT": "Alejar vista",
     "VIEW_ZOOM_IN": "Acercar vista",
     "LAYER_NORMAL": "Normal",

@@ -109,9 +109,16 @@ export const PLANET_LAYER_KEY         = 'planetLayer';
 // Proyección del globo de la Tierra: true = mapa plano, false/ausente = globo.
 // Angular la escribe desde su botón; la escena la lee cada frame.
 export const PLANET_FLAT_KEY          = 'planetFlat';
+// Candado del mapa plano: true (o ausente) = estático y encuadrado; false = se puede
+// arrastrar y hacer zoom como el globo. Lo escribe Angular desde su botón.
+export const PLANET_FLAT_LOCK_KEY     = 'planetFlatLock';
 // Callback (mode: ViewMode) que registra Angular para saber en qué vista está la
 // escena (detalle / sistema / constelación / galaxia) y mostrar su botón «+».
 export const PLANET_MODE_KEY          = 'onPlanetMode';
+// Callback () que registra Angular: toque en una zona vacía del planeta (ni pin ni
+// arrastre) → deseleccionar el mapa y cerrar su ficha de info.
+export const PLANET_EMPTY_TAP_KEY     = 'onPlanetEmptyTap';
+const TAP_SLOP = 8;              // px CSS: más movimiento que esto ya es arrastre
 
 // Globo 3D de la Tierra (ver earth-globe.ts): textura-canvas redibujada en vivo
 const EARTH_TEX_KEY   = 'earth_globe';
@@ -309,11 +316,15 @@ export class PlanetViewScene extends Phaser.Scene {
   private earthZones: { zone: Phaser.GameObjects.Zone; mapId: string }[] = [];
   private earthLayer: GlobeLayer = 'base';
   private earthFlat = false;
+  private earthFlatLocked = true;
   private earthLastDraw = 0;
   private earthZoom = 1;
   private earthDirty = false;      // forzar redibujado (zoom) aunque esté quieto
   private pinchDist = 0;           // >0 mientras hay un pellizco en curso
   private pinchZoom = 1;           // zoom al empezar el pellizco
+  // Inicio de un toque en zona vacía del planeta (los pines cortan la propagación,
+  // así que si llega aquí no era un pin). null = no es candidato a toque vacío.
+  private emptyTap: { x: number; y: number } | null = null;
 
   // Vista sistema — una por estrella; los sistemas generados se cachean por sesión
   private systemC: Phaser.GameObjects.Container | null = null;
@@ -688,6 +699,7 @@ export class PlanetViewScene extends Phaser.Scene {
     this.detailR  = radius;
     this.earthLayer = (this.game.registry.get(PLANET_LAYER_KEY) as GlobeLayer) || 'base';
     this.earthFlat = !!this.game.registry.get(PLANET_FLAT_KEY);
+    this.earthFlatLocked = this.game.registry.get(PLANET_FLAT_LOCK_KEY) !== false;
 
     // Orientar al mapa del jugador (o a la capital) y pintar el primer frame ya
     const getMap = this.game.registry.get(PLANET_CURRENT_MAP_KEY) as (() => string) | undefined;
@@ -709,6 +721,21 @@ export class PlanetViewScene extends Phaser.Scene {
     let force = false;
     const layer = (this.game.registry.get(PLANET_LAYER_KEY) as GlobeLayer) || 'base';
     const flat = !!this.game.registry.get(PLANET_FLAT_KEY);
+    const locked = this.game.registry.get(PLANET_FLAT_LOCK_KEY) !== false;
+    if (locked !== this.earthFlatLocked) {
+      this.earthFlatLocked = locked;
+      force = true;
+      // Al abrir el candado en plano se parte del encuadre fijo (sin salto): misma
+      // zona centrada y el zoom que la iguala
+      if (!locked && flat) {
+        this.tweens.killTweensOf(this.earthRot);
+        this.velX = 0;
+        this.velY = 0;
+        this.earthRot.yaw = FLAT_ROT.yaw;
+        this.earthRot.pitch = FLAT_ROT.pitch;
+        if (this.earthTex) this.setEarthZoom(this.flatStaticK(this.earthTex) / this.detailR);
+      }
+    }
     if (layer !== this.earthLayer || flat !== this.earthFlat) {
       this.earthLayer = layer;
       this.earthFlat = flat;
@@ -730,14 +757,11 @@ export class PlanetViewScene extends Phaser.Scene {
     const tex = this.earthTex;
     if (!this.earth || !tex || !this.earthImg) return;
     this.earthLastDraw = time;
-    // Plano: fijo y encajado (centro lon 0 / lat 0); globo: giro y zoom del jugador
-    const fitWorld = Math.min(tex.width / (2 * Math.PI), tex.height / Math.PI);
-    const flatK = Math.max(fitWorld, Math.min(
-      tex.width * FLAT_FRAME / FLAT_BOX.lonSpan,
-      tex.height * FLAT_FRAME / FLAT_BOX.latSpan,
-    ));
+    // Plano con candado cerrado: encuadre fijo sobre los mapas. Globo, o plano con el
+    // candado abierto: giro/desplazamiento y zoom del jugador
+    const fixed = this.flatStatic;
     const hits = this.earth.draw(tex.context, tex.width, tex.height,
-      this.earthFlat ? flatK : this.earthR, this.earthFlat ? FLAT_ROT : this.earthRot,
+      fixed ? this.flatStaticK(tex) : this.earthR, fixed ? FLAT_ROT : this.earthRot,
       time / 1000, this.earthLayer, DPR, this.debugGrid, this.earthFlat);
     tex.refresh();
 
@@ -793,6 +817,19 @@ export class PlanetViewScene extends Phaser.Scene {
       duration: 700,
       ease: 'Cubic.easeInOut',
     });
+  }
+
+  /** Mapa plano con el candado cerrado: ni arrastre ni zoom. */
+  private get flatStatic(): boolean { return this.earthFlat && this.earthFlatLocked; }
+
+  /** Escala (px/radián) del encuadre fijo del plano: los mapas ocupan ~FLAT_FRAME de
+   *  la vista, sin quedar nunca más lejos que el mundo entero encajado. */
+  private flatStaticK(tex: Phaser.Textures.CanvasTexture): number {
+    const fitWorld = Math.min(tex.width / (2 * Math.PI), tex.height / Math.PI);
+    return Math.max(fitWorld, Math.min(
+      tex.width * FLAT_FRAME / FLAT_BOX.lonSpan,
+      tex.height * FLAT_FRAME / FLAT_BOX.latSpan,
+    ));
   }
 
   /** Radio del globo en pantalla con el zoom aplicado. */
@@ -929,13 +966,16 @@ export class PlanetViewScene extends Phaser.Scene {
 
     // Rueda del ratón → zoom del globo de la Tierra
     this.input.on('wheel', (_p: Phaser.Input.Pointer, _objs: unknown, _dx: number, dy: number) => {
-      if (this.mode !== 'detail' || !this.earth || this.earthFlat || this.transitioning) return;
+      if (this.mode !== 'detail' || !this.earth || this.flatStatic || this.transitioning) return;
       this.setEarthZoom(this.earthZoom * Math.exp(-dy * WHEEL_ZOOM_K));
     });
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      this.emptyTap = null;
       if (this.mode !== 'detail' || this.transitioning) return;
-      if (this.earth && this.earthFlat) return;   // mapa plano estático: ni arrastre ni pellizco
+      // Un segundo dedo nunca es un toque; el primero sí puede serlo
+      this.emptyTap = this.pinchSpan() > 0 ? null : { x: p.x, y: p.y };
+      if (this.earth && this.flatStatic) return;   // plano con candado: ni arrastre ni pellizco
       // Segundo dedo: empieza el pellizco y se suelta el giro (no pelean)
       const span = this.earth ? this.pinchSpan() : 0;
       if (span > 0) {
@@ -993,8 +1033,18 @@ export class PlanetViewScene extends Phaser.Scene {
       // siguiente toque empieza un arrastre limpio (sin salto)
       if (this.pinchDist > 0) { this.pinchDist = 0; this.velX = 0; this.velY = 0; }
     };
-    this.input.on('pointerup', stop);
-    this.input.on('pointerupoutside', stop);
+    this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
+      const tap = this.emptyTap;
+      this.emptyTap = null;
+      // Toque corto en zona vacía (sin arrastrar ni pellizcar) → deseleccionar mapa
+      if (tap && this.mode === 'detail' && this.pinchDist === 0 &&
+          Phaser.Math.Distance.Between(tap.x, tap.y, p.x, p.y) <= TAP_SLOP * DPR) {
+        const onEmpty = this.game.registry.get(PLANET_EMPTY_TAP_KEY) as (() => void) | undefined;
+        onEmpty?.();
+      }
+      stop();
+    });
+    this.input.on('pointerupoutside', () => { this.emptyTap = null; stop(); });
   }
 
   private updateInertia(): void {

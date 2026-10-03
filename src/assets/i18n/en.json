@@ -113,9 +113,7 @@
       "ACCOUNT": "Account · Email"
     },
     "CLEAR_LOCAL": {
-      "TITLE": "Clear local storage",
-      "DESC": "Wipes localStorage and the saves stored on this device, and logs you out. Nothing in the cloud is touched.",
-      "BTN": "Clear and log out"
+      "BTN": "Clear local"
     },
     "CONFIRM": {
       "CLEAR_LOCAL": "Clear ALL local storage on this device? You will be logged out. If you play as a guest without a linked email, you will lose access to that account.",
@@ -541,6 +539,8 @@
     "VIEW_GLOBE": "Globe",
     "VIEW_HEX": "Hexes",
     "VIEW_FLAT": "Flat map",
+    "LOCK_MAP": "Lock map",
+    "UNLOCK_MAP": "Unlock map",
     "VIEW_ZOOM_OUT": "Zoom out view",
     "VIEW_ZOOM_IN": "Zoom in view",
     "LAYER_NORMAL": "Normal",

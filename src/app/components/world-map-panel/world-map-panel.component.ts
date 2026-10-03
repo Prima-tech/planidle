@@ -1,6 +1,6 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_FLAT_KEY, PLANET_MODE_KEY, ViewMode, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
+import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_FLAT_KEY, PLANET_FLAT_LOCK_KEY, PLANET_MODE_KEY, PLANET_EMPTY_TAP_KEY, ViewMode, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
 import { GlobeLayer } from 'src/app/scenes/earth-globe';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -64,6 +64,10 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   /** Globo o mapa plano (las tres capas existen en ambas proyecciones). */
   private static lastFlat = true;   // el mapa se abre de inicio en plano
   flat = WorldMapPanelComponent.lastFlat;
+  /** Candado del mapa plano: cerrado = estático y encuadrado; abierto = se mueve y
+   *  tiene zoom. Arranca cerrado. */
+  private static lastFlatLocked = true;
+  flatLocked = WorldMapPanelComponent.lastFlatLocked;
   /** Vista actual de la escena: el «+» (alejar) se desactiva en la galaxia y el «−»
    *  (acercar) en el planeta, que son los extremos. */
   sceneMode: ViewMode = 'detail';
@@ -120,6 +124,10 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       registry.set(PLANET_MAP_LOCKED_KEY, (mapId: string) => this.isMapLocked(mapId));
       registry.set(PLANET_LAYER_KEY, this.layer);
       registry.set(PLANET_FLAT_KEY, this.flat);
+      registry.set(PLANET_FLAT_LOCK_KEY, this.flatLocked);
+      registry.set(PLANET_EMPTY_TAP_KEY, () => {
+        this.ngZone.run(() => this.deselectMap());
+      });
       registry.set(PLANET_MODE_KEY, (m: ViewMode) => {
         this.ngZone.run(() => { this.sceneMode = m; });
       });
@@ -190,6 +198,16 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   }
 
   /** Botón globo ⇄ plano: mantiene la capa, el zoom y la zona centrada. */
+  toggleFlatLock() {
+    this.flatLocked = WorldMapPanelComponent.lastFlatLocked = !this.flatLocked;
+    this.planetHost.registry?.set(PLANET_FLAT_LOCK_KEY, this.flatLocked);
+  }
+
+  /** ¿Hay zoom en la vista actual? Globo siempre; plano solo con el candado abierto. */
+  get canZoom(): boolean {
+    return !this.flat || !this.flatLocked;
+  }
+
   toggleFlat() {
     this.flat = WorldMapPanelComponent.lastFlat = !this.flat;
     this.planetHost.registry?.set(PLANET_FLAT_KEY, this.flat);
@@ -246,7 +264,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
    *  ningún evento rezagado actúe sobre un panel ya destruido. */
   private destroyPlanetGame() {
     const reg = this.planetHost.registry;
-    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY, PLANET_ZOOM_CHANGED_KEY, PLANET_MODE_KEY]) reg.set(k, undefined);
+    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY, PLANET_ZOOM_CHANGED_KEY, PLANET_MODE_KEY, PLANET_EMPTY_TAP_KEY]) reg.set(k, undefined);
     this.planetHost.detach();
     this.selectedPlanet = null;
     this.charsOnPlanet  = [];
@@ -296,6 +314,13 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       this.selectedMap = cfg;
       await this.loadCharsOnMap(pinId);
     }
+  }
+
+  /** Toque en una zona vacía del mapa (ni pin ni arrastre): deselecciona el mapa
+   *  y se cierra su ficha de info. */
+  deselectMap() {
+    this.selectedMap = null;
+    this.charsOnMap  = [];
   }
 
   private async loadCharsOnMap(mapId: string) {

@@ -179,7 +179,7 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
 /* Borrar almacenamiento local (admin): texto rojizo como el de borrar cuenta, ancho completo. */
 .gs-clear-local-btn {
   color: #e3a48f;
-  margin-bottom: 0;
+  margin-bottom: 12px;   /* aire hasta la fila de monedas */
 }
 
 /* Borrar todo: acción peligrosa — marco de madera de la app pero texto rojizo y
