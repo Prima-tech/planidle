@@ -2,12 +2,18 @@ import { inject, Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { InventoryUnlockService } from './inventory-unlock.service';
 
+/** Rareza de un objeto: pinta el fondo de su casilla (gris → verde → azul → morado →
+ *  naranja). Sin definir = 'common'. De 'legendary' para arriba lleva además destello
+ *  y latido. Estilos en global.scss ([data-rarity]). */
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+
 // El inventario vive en memoria en este servicio y se persiste (local y Supabase)
 // dentro del GameSnapshot vía SaveService (getSnapshot/restoreFromSnapshot).
 export interface InventoryItem {
   id: string;
   name: string;
   category?: string;       // tipo de slot (ej. 'Casco', 'Arma') — usado por EquipmentService
+  rarity?: ItemRarity;     // fondo de la casilla; estático (se rehidrata del catálogo)
   icon?: string;
   iconSheet?: string;
   iconFrame?: number;

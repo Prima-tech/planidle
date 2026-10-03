@@ -87,54 +87,44 @@ $gold-2: #f0c040;
 
 /* Pestañas (Chat · Progreso · Combate): botones FLOTANTES de solo icono, en columna,
    colgados por fuera del borde izquierdo de la ventana (la ventana no tiene overflow,
-   así que asoman). Madera con bisel de piedra como los del hub; la activa, en oro. */
+   así que asoman). Mismo material que la ventana de texto: panel oscuro translúcido con
+   marco de piedra; la activa, con el icono en oro y un poco más clara. */
 .chat-tabs {
   position: absolute;
   top: 0;
-  right: calc(100% + 6px);
+  right: calc(100% + 5px);
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .chat-tab {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  color: $text-cream;
-  background: linear-gradient(180deg, $wood-btn, $wood-btn-dark);
+  color: rgba(236, 217, 180, 0.55);
+  background: rgba(28, 19, 12, 0.95);
   border: 2px solid;
   border-color: $stone-light $stone-dark $stone-dark $stone;
   border-radius: 7px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    inset 0 2px 2px rgba(255, 255, 255, 0.25),
-    inset 0 -3px 4px rgba(0, 0, 0, 0.3),
-    0 2px 6px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, 0 4px 12px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.15s, filter 0.15s;
+  transition: color 0.15s, background-color 0.15s;
 
-  ion-icon { font-size: 16px; }
+  ion-icon { font-size: 15px; }
 
-  &:not(.active) { filter: brightness(0.82) saturate(0.85); }
-  &:hover { color: $gold; }
+  &:hover { color: $text-cream; }
   &:active { transform: scale(0.92); }
 
   &.active {
     color: $gold-2;
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
-      inset 0 2px 2px rgba(255, 255, 255, 0.28),
-      inset 0 -3px 4px rgba(0, 0, 0, 0.3),
-      0 0 8px rgba(240, 192, 64, 0.55),
-      0 2px 6px rgba(0, 0, 0, 0.5);
+    background: rgba(56, 38, 24, 0.97);
+    box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline, inset 0 0 6px rgba(240, 192, 64, 0.18), 0 4px 12px rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -202,13 +192,14 @@ $gold-2: #f0c040;
   .chat-speaker, .chat-colon { color: $speaker; }
   .chat-msg, .chat-log-line { color: $text; }
   .chat-log-line[data-tone="gold"] { color: $speaker; }
+  // Pestañas: mismo panel que la ventana; la activa, con el color de los nombres.
   .chat-tab {
-    background: $fab-bg;
-    border: 1px solid $fab-edge;
+    background: $win-bg;
+    border: 1px solid $win-edge;
+    border-radius: $radius;
     color: $muted;
     box-shadow: none;
-    filter: none;
-    &.active { color: $fab-icon; border-color: $fab-icon; box-shadow: 0 0 8px $fab-edge; }
+    &.active { color: $speaker; border-color: $speaker; }
   }
   .chat-empty { color: $muted; }
 }

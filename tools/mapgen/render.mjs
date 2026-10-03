@@ -38,14 +38,15 @@ const blit = (gid, dx, dy) => {
     const di = ((dy + y) * out.width + (dx + x)) * 4;
     const a = s.png.data[si + 3];
     if (a === 0) continue;
-    out.data[di] = s.png.data[si]; out.data[di + 1] = s.png.data[si + 1];
-    out.data[di + 2] = s.png.data[si + 2]; out.data[di + 3] = 255;
+    const alpha=a/255;
+    for(let c=0;c<3;c++) out.data[di+c]=Math.round(s.png.data[si+c]*alpha+out.data[di+c]*(1-alpha));
+    out.data[di + 3] = 255;
   }
 };
 
-const L = {}; for (const l of m.layers) if (l.type === 'tilelayer') L[l.name] = l.data;
-for (const name of ['Base', 'Agua', 'Deco']) {         // mismo orden de dibujo que el juego
-  const data = L[name]; if (!data) continue;
+for (const layer of m.layers) {                      // respetar el orden real de las capas
+  if (layer.type !== 'tilelayer' || layer.visible === false) continue;
+  const data = layer.data;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) blit(data[y * W + x], x * TILE, y * TILE);
 }
 

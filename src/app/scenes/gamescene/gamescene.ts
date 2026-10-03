@@ -389,7 +389,7 @@ export class GameScene extends Phaser.Scene {
       }
 
       // Recursos (drop al suelo desde el panel de invocación)
-      this.load.image('madera', 'assets/icon/resources/madera_t1.png');   // drop de Madera (icono #19)
+      this.load.image('madera', 'assets/icon/resources/madera.png');   // drop de Madera (mismo icono que en el inventario)
       // Objetos recogibles del suelo (fijos en Asgard): piedra (→ Piedra) y árbol roto
       // (→ Madera). La textura del drop en inventario ('madera') se carga aparte arriba.
       this.load.image('piedra', 'assets/tilemaps/biomas/grasslands/Objects_separated/Stone5_grass_shadow.png');

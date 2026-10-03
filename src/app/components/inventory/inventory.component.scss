@@ -183,9 +183,13 @@ $purple: #6e4a67;         // celda seleccionada
     inset 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
+/* Tamaño EXACTO 32px (el de los PNG de icono): estirarlos al hueco (38-40px) es un
+   escalado no entero que duplica filas de píxeles sueltas y engorda el contorno de
+   abajo como una sombra negra. A 1:1 el pixel art queda nítido. */
 .item-icon {
-  width: 100%;
-  height: 100%;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
   object-fit: contain;
   image-rendering: pixelated;
   pointer-events: none;

@@ -1,4 +1,4 @@
-import { InventoryItem, InventoryService } from '../services/inventory.service';
+import { InventoryItem, InventoryService, ItemRarity } from '../services/inventory.service';
 import { PlayerStateService } from '../services/player-state.service';
 import { CharacterStatsService } from '../services/character-stats.service';
 import { WorldService } from '../services/world.service';
@@ -28,6 +28,7 @@ export interface LootEntry {
   scale: number;
   order: number;
   description?: string;
+  rarity?: ItemRarity;       // fondo de la casilla (sin definir = 'common', gris)
   stats?: Record<string, number>;
   inventorySlots?: number;   // bolsas: celdas de inventario que desbloquea al equiparse
   petId?: string;            // mascotas: id en PET_REGISTRY
@@ -417,7 +418,7 @@ const RESOURCES_CATALOG: LootEntry[] = [
     type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: true,
     texture: 'piedra',
-    icon: 'assets/tilemaps/biomas/grasslands/Objects_separated/Stone5_grass_shadow.png',
+    icon: 'assets/icon/resources/piedra.png',
     scale: 2, order: 6,
     description: 'Piedra recogida del suelo. Material de construcción.',
   },
@@ -427,7 +428,7 @@ const RESOURCES_CATALOG: LootEntry[] = [
     type: 'item',
     chance: 1, minQty: 1, maxQty: 1, mergeable: true,
     texture: 'madera',
-    icon: 'assets/icon/resources/madera_t1.png',
+    icon: 'assets/icon/resources/madera.png',
     scale: 2, order: 6,
     description: 'Madera recolectada. Material de construcción.',
   },
@@ -827,6 +828,7 @@ export function hydrateItem(item: InventoryItem): InventoryItem {
     mergeable:       cat.mergeable,
     order:           cat.order,
     description:     cat.description,
+    rarity:          cat.rarity,
     stats:           cat.stats,
     inventorySlots:  cat.inventorySlots,
     petId:           cat.petId,

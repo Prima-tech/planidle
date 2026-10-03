@@ -4,6 +4,8 @@ import path from 'node:path';
 import { generateMap } from './generate.mjs';
 import { loadStamp, writeTmj } from './tmj.mjs';
 import { makeRng } from './rng.mjs';
+import { buildPond } from './water.mjs';
+import { dirtMask, dirtTile, resolveDirtSaddles } from './terrain.mjs';
 
 const W = 80, H = 50;
 const spawn = { x: 40, y: 25 };
@@ -26,7 +28,6 @@ const blocked = new Set();
 for (const o of objects) for (let y = o.y / 16; y < (o.y + o.height) / 16; y++)
   for (let x = o.x / 16; x < (o.x + o.width) / 16; x++) blocked.add(`${x},${y}`);
 const occupied = new Set();
-const rng = makeRng('bosquetes-referencia');
 const stamps = new Map();
 const stamp = name => {
   if (!stamps.has(name)) stamps.set(name, loadStamp(path.join(import.meta.dirname, 'stamps', `${name}.tmj`)));
@@ -38,10 +39,16 @@ const stamp = name => {
   }
   if(name==='glades_pond') {
     const s=stamps.get(name);
-    // El recorte arrastraba fragmentos de talud ajenos a la charca.
-    for(const data of Object.values(s.layers)) for(let i=0;i<data.length;i++) {
-      const g=data[i]&0x1FFFFFFF;
-      if(g>0&&g<743&&g!==56) data[i]=0;
+    // Sustituir el recorte incompleto por una charca completa del mismo pack.
+    // No arrastrar pilares, matas ni fragmentos de orillas de la escena original.
+    const pond=buildPond(makeRng('charca-inferior-completa'),s.w,s.h);
+    s.layers={Base:new Array(s.w*s.h).fill(0),Agua:new Array(s.w*s.h).fill(0)};
+    s.collision=new Set(pond.fill);
+    for(const k of pond.fill) {
+      const [x,y]=k.split(',').map(Number);s.layers.Base[y*s.w+x]=2459;
+    }
+    for(const [k,tile] of pond.coast) {
+      const [x,y]=k.split(',').map(Number);s.layers.Agua[y*s.w+x]=743+tile;
     }
   }
   return stamps.get(name);
@@ -79,6 +86,10 @@ function place(name, sx, sy) {
   for(const k of s.collision) { const [x,y]=k.split(',').map(Number); test.add(`${sx+x},${sy+y}`); }
   const seen=reachable(test);
   if(!portals.every(p=>seen.has(`${p.x},${p.y}`))) return false;
+  if(name==='glades_pond') for(let y=0;y<s.h;y++) for(let x=0;x<s.w;x++) {
+    layers.Agua[(sy+y)*W+sx+x]=0;
+    layers.Deco[(sy+y)*W+sx+x]=0;
+  }
   for(const [name,data] of Object.entries(s.layers)) for(let y=0;y<s.h;y++) for(let x=0;x<s.w;x++) {
     const g=data[y*s.w+x];
     if(g) layers[name][(sy+y)*W+sx+x]=g;
@@ -92,28 +103,41 @@ function place(name, sx, sy) {
 }
 const landmarks = [['glades_ruin',17,29], ['glades_tower',60,29], ['glades_pond',48,36]];
 const destinations=[...portals];
+let ruinSite;
 for(const [name,x,y] of landmarks) {
   let done=false;
   for(let r=0;r<=20&&!done;r++) for(let dy=-r;dy<=r&&!done;dy++) for(let dx=-r;dx<=r&&!done;dx++) {
     done=place(name,x+dx,y+dy);
-    if(done) destinations.push({x:x+dx+Math.floor(stamp(name).w/2),y:y+dy+stamp(name).h});
+    if(done) {
+      destinations.push(name==='glades_pond'
+        ? {x:x+dx-3,y:y+dy+Math.floor(stamp(name).h/2)}
+        : {x:x+dx+Math.floor(stamp(name).w/2),y:y+dy+stamp(name).h});
+      if(name==='glades_ruin') ruinSite={x:x+dx,y:y+dy};
+    }
   }
   if(!done) throw new Error(`No se pudo colocar ${name}`);
 }
-let trees=0;
-// Bosquetes asimétricos, con claros entre grupos.
-for(const [cx,cy,rx,ry,count] of [[12,12,10,8,12],[40,7,13,5,11],[67,15,9,10,13],[12,39,10,7,12],[69,40,9,7,11],[34,42,9,5,7]]) {
-  let done=0;
-  for(let i=0;i<300&&done<count;i++) {
-    const x=rng.int(cx-rx,cx+rx),y=rng.int(cy-ry,cy+ry);
-    if(((x-cx)/rx)**2+((y-cy)/ry)**2>1) continue;
-    if(place(rng.int(0,4)===0?'tree_apple':'tree_green',x,y)) {done++;trees++;}
+// Reservar el patio de la ruina para conectarlo al sendero.
+const ruinCourt=new Set();
+for(let y=ruinSite.y+2;y<=ruinSite.y+10;y++) for(let x=ruinSite.x-3;x<=ruinSite.x+9;x++) {
+  if(((x-ruinSite.x-3)/6.5)**2+((y-ruinSite.y-6)/4.5)**2<=1) {
+    ruinCourt.add(`${x},${y}`);
+    occupied.add(`${x},${y}`);
   }
 }
+// Sin árboles: el usuario los coloca aparte; no deben tapar los caminos.
 const seen=reachable(blocked);
 if(!portals.every(p=>seen.has(`${p.x},${p.y}`))) throw new Error('Portal inaccesible');
 // Caminos sobre suelo transitable, conectados a las entradas de cada hito.
 const road=new Set();
+// Separar los senderos de las orillas: la máscara de esquinas ocupa también
+// el tile siguiente, por lo que se reservan dos celdas alrededor del agua.
+const shoreBuffer=new Set();
+for(let y=1;y<H-2;y++) for(let x=1;x<W-1;x++) {
+  const g=layers.Base[y*W+x]&0x1FFFFFFF,a=layers.Agua[y*W+x]&0x1FFFFFFF;
+  if(!(g>=743&&g<5345||a>=743&&a<2459)) continue;
+  for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) shoreBuffer.add(`${x+dx},${y+dy}`);
+}
 for(const target of destinations) {
   const start=`${spawn.x},${spawn.y}`, parents=new Map([[start,null]]), queue=[[spawn.x,spawn.y]];
   let end;
@@ -124,37 +148,56 @@ for(const target of destinations) {
       Math.hypot(x+a[0]-target.x,y+a[1]-target.y)-Math.hypot(x+b[0]-target.x,y+b[1]-target.y));
     for(const [dx,dy] of dirs) {
       const nx=x+dx,ny=y+dy,k=`${nx},${ny}`;
-      if(nx<1||ny<1||nx>=W-1||ny>=H-2||blocked.has(k)||parents.has(k)) continue;
+      if(nx<1||ny<1||nx>=W-1||ny>=H-2||blocked.has(k)||shoreBuffer.has(k)||parents.has(k)) continue;
       parents.set(k,key);queue.push([nx,ny]);
     }
   }
   if(!end) throw new Error('No hay camino al punto de interés');
   for(let k=end;k;k=parents.get(k)) {
     const [x,y]=k.split(',').map(Number);
-    for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++) {
+    for(let dy=0;dy<=0;dy++) for(let dx=0;dx<=0;dx++) {
       const nx=x+dx,ny=y+dy,key=`${nx},${ny}`;
       if(nx>0&&ny>0&&nx<W-1&&ny<H-2&&!blocked.has(key)&&!occupied.has(key)) road.add(key);
     }
   }
 }
-// Unir los caminos al terreno de tierra existente antes de vestir los bordes.
+// Suelo gastado bajo el edificio y patio frente a la entrada, unido al sendero.
+// La máscara también cuenta bajo la ruina para evitar un borde de césped artificial.
+for(const k of ruinCourt) road.add(k);
+// Retirar los parches aleatorios antiguos: solo conservar tierra en los
+// senderos y el patio, sin manchas que se peguen a la charca o al marco.
 const dirtTiles=new Set([434,109,214,215,3,161,162,57,55,60,5,6,58,59,108,110,2,4]);
 for(let y=1;y<H-2;y++) for(let x=1;x<W-1;x++) {
   const k=`${x},${y}`;
-  if(!occupied.has(k)&&!blocked.has(k)&&dirtTiles.has(layers.Base[y*W+x])) road.add(k);
+  if(!occupied.has(k)&&!blocked.has(k)&&dirtTiles.has(layers.Base[y*W+x])) {
+    layers.Base[y*W+x]=56;
+  }
 }
-for(const key of road) {
-  const [x,y]=key.split(',').map(Number),i=y*W+x;
-  const n=!road.has(`${x},${y-1}`),s=!road.has(`${x},${y+1}`),w=!road.has(`${x-1},${y}`),e=!road.has(`${x+1},${y}`);
-  let tile=433;
-  if(n&&w) tile=4; else if(n&&e) tile=5; else if(s&&w) tile=57; else if(s&&e) tile=58;
-  else if(n) tile=108; else if(s) tile=2; else if(w) tile=56; else if(e) tile=54;
-  else if(!road.has(`${x-1},${y-1}`)) tile=107;
-  else if(!road.has(`${x+1},${y-1}`)) tile=109;
-  else if(!road.has(`${x-1},${y+1}`)) tile=1;
-  else if(!road.has(`${x+1},${y+1}`)) tile=3;
-  layers.Base[i]=tile+1;layers.Agua[i]=0;layers.Deco[i]=0;
+resolveDirtSaddles(road,W,H);
+for(let y=1;y<H-2;y++)for(let x=1;x<W-1;x++) {
+  const key=`${x},${y}`,i=y*W+x;
+  if(!dirtMask(road,x,y))continue;
+  const ground=layers.Base[i]&0x1FFFFFFF,overlay=layers.Agua[i]&0x1FFFFFFF;
+  // Mantener el suelo continuo bajo copas, troncos y ruinas. Sólo el agua y sus
+  // orillas están protegidas: excluir rectángulos de prefabs cortaba el camino.
+  if(ground>=743&&ground<5345||overlay>=743&&overlay<2459)continue;
+  layers.Base[i]=dirtTile(road,x,y);
+  if(!occupied.has(key)||ruinCourt.has(key)&&!blocked.has(key)) {
+    layers.Agua[i]=0;layers.Deco[i]=0;
+  }
 }
+// Matas en el margen del patio: transición entre suelo pisado y pradera.
+const tuft=stamp('deco_detail2');
+for(const [dx,dy] of [[-3,5],[-2,8],[0,10],[7,9],[9,6],[8,3]]) {
+  const sx=ruinSite.x+dx,sy=ruinSite.y+dy;
+  for(const data of Object.values(tuft.layers)) for(let y=0;y<tuft.h;y++) for(let x=0;x<tuft.w;x++) {
+    const px=sx+x,py=sy+y,k=`${px},${py}`,gid=data[y*tuft.w+x];
+    if(gid&&px>0&&py>0&&px<W-1&&py<H-2&&!blocked.has(k)&&!layers.Deco[py*W+px])
+      layers.Deco[py*W+px]=gid;
+  }
+}
+const finalSeen=reachable(blocked);
+if(!destinations.every(p=>finalSeen.has(`${p.x},${p.y}`))) throw new Error('Acceso a hito bloqueado');
 for (const ts of map.tilesets) ts.image = `../../src/assets/tilemaps/biomas/grasslands/${path.basename(ts.image)}`;
 writeTmj(path.join(import.meta.dirname,'reference.tmj'),map);
-console.log(`Referencia: ${trees} árboles, 3 hitos, portales accesibles (${seen.size} celdas).`);
+console.log(`Referencia: sin árboles, 3 hitos, portales accesibles (${seen.size} celdas).`);

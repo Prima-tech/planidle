@@ -22,7 +22,7 @@ function edgeSeq(rng, side, len) {
 }
 
 // Lago w×h (relativo a 0,0): fill = rect menos las 4 esquinas; coast por posición.
-function buildPond(rng, w, h) {
+export function buildPond(rng, w, h) {
   const R = AT.rect;
   const fill = new Set(), coast = new Map();
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {

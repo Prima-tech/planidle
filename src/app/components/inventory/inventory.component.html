@@ -46,6 +46,7 @@
         <ng-container *ngIf="cell">
           <div
             class="inventory-item"
+            [attr.data-rarity]="cell.rarity || 'common'"
             cdkDrag
             [cdkDragData]="{ sourceContext: 'inventory', tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
             (cdkDragMoved)="onDragMoved($event)"
