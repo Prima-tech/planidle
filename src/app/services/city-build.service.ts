@@ -129,22 +129,21 @@ export const BUILDABLES: BuildableDef[] = [
   },
 
   // ── Estaciones de oficio (decorativas + animadas) ──
-  // Horno detallado (128×208). En reposo apagado (furnace_central_off); al abrir su
-  // ventana (menú de la forja) se enciende el fuego (litAnimKey 'furnace_central').
-  // Para usar el otro horno: cambia spriteKey a 'furnace_lvl1_off' (y carga su hoja).
+  // Forja (64×64). En reposo apagada (forge_off); mientras produce se enciende el
+  // fuego con humo (litAnimKey 'forge_lit', 5 frames de forge_lit).
   {
     type: 'forge', name: 'BUILD.FORGE',
-    spriteKey: 'furnace_central_off', frame: 0,
-    frameSize: 128, scale: 0.8,
+    spriteKey: 'forge_off', frame: 0,
+    frameSize: 64, scale: 2.5,
     tilesW: 3, tilesH: 3, unique: false,
     requiresRecipe: true,
     opensWindow: true,
-    litAnimKey: 'furnace_central', litTexture: 'furnace_central',
-    litFrames: [0,1,2,3,4,5,6,7,8,9,10,11], litFrameRate: 10,
-    previewUrl: 'assets/sprites/stations/furnace_central_off.png',
-    previewSrc: { x: 0, y: 0, w: 128, h: 224 },
-    previewSheet: { w: 128, h: 224 },
-    previewScale: +(58 / 224).toFixed(3),
+    litAnimKey: 'forge_lit', litTexture: 'forge_lit',
+    litFrames: [0,1,2,3,4], litFrameRate: 8,
+    previewUrl: 'assets/sprites/stations/forge_off.png',
+    previewSrc: { x: 0, y: 0, w: 64, h: 64 },
+    previewSheet: { w: 64, h: 64 },
+    previewScale: 1,
   },
   // Fundición: usa su textura apagada propia (smelter_off, fuego retirado) y sin
   // animKey, así que no parpadea fuego. Se pulsa para abrir su menú (opensWindow).

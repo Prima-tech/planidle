@@ -357,13 +357,10 @@ export class GameScene extends Phaser.Scene {
       // Fundición apagada (frame de la hoja stations con el fuego retirado, 64×92).
       this.load.spritesheet('workbench', 'assets/sprites/stations/workbench.png', { frameWidth: 34, frameHeight: 25 });
       this.load.spritesheet('smelter_off', 'assets/sprites/stations/smelter_off.png', { frameWidth: 64, frameHeight: 92 });
-      // Hornos detallados (reemplazan a la fragua). Cada uno: hoja encendida de 12
-      // frames 128×208 (animación de fuego) + textura apagada del mismo tamaño.
-      // city-build elige cuál con su spriteKey (…_off); cambiar de horno = 1 línea.
-      for (const f of ['furnace_central', 'furnace_lvl1']) {
-        this.load.spritesheet(f,          `assets/sprites/stations/${f}.png`,     { frameWidth: 128, frameHeight: 224 });
-        this.load.spritesheet(`${f}_off`, `assets/sprites/stations/${f}_off.png`, { frameWidth: 128, frameHeight: 224 });
-      }
+      // Forja: textura apagada (64×64) + hoja encendida de 5 frames 64×64 (fuego + humo).
+      // (Los hornos detallados furnace_central/furnace_lvl1 siguen en assets, sin cargar.)
+      this.load.spritesheet('forge_off', 'assets/sprites/stations/forge_off.png', { frameWidth: 64, frameHeight: 64 });
+      this.load.spritesheet('forge_lit', 'assets/sprites/stations/forge_lit.png', { frameWidth: 64, frameHeight: 64 });
       // Imagen escénica para los temas de parallax 'scenic_*' (vista de mundo).
       this.load.image('paralax_scene', 'assets/sprites/resources/paralax.jpg');
       // Portal = arco de piedra con vórtice (hoja de 8 frames 64×64, animación en initPortals).
@@ -955,78 +952,80 @@ export class GameScene extends Phaser.Scene {
         .setPosition(t.sprite.x, t.sprite.y - t.sprite.displayHeight * 0.45 + bob);
     }
 
-    /** Marcador flotante RPG sobre los NPCs con misión (Mordekai): "!" amarillo si la
-     *  misión está DISPONIBLE, "!" transparente si ya te la dio (activa/en curso), "?"
-     *  amarillo si se puede entregar, y nada si está completada. Se crea perezosamente
-     *  por NPC (la instancia de
-     *  escena se reutiliza; el restart destruye el texto pero recrea el array). */
+    /** Marcador flotante RPG sobre los NPCs con misión (Mordekai), en pixel art a la
+     *  escala del sprite (estilo A de la galería): "!" dorado si la misión está
+     *  DISPONIBLE, "!" plateado si ya te la dio (activa/en curso), "?" dorado si se puede
+     *  entregar, y nada si está completada. Se crea perezosamente por NPC (la instancia de
+     *  escena se reutiliza; el restart destruye la imagen pero recrea el array). */
     private updateNpcQuestMarkers(): void {
       const quests = this.reg.quests;
       this.ensureQuestMarkerTextures();
-      const bob = Math.sin(this.time.now / 300) * 3;   // balanceo lento
+      const PX = GameScene.QUEST_MARKER_SCALE;
+      // Balanceo lento a saltos de píxel de arte (±2), para no emborronar el pixel art.
+      const bob = Math.round(Math.sin(this.time.now / 300) * 2) * PX;
       for (const npc of this.cityNpcs) {
         // Referencia muerta tras un restart de escena → soltarla.
         if (npc.marker && !npc.marker.active) npc.marker = undefined;
-        // Estado de la misión → textura + alpha (estilo RPG):
-        //  · disponible (sin dar aún) → "!" amarillo brillante
-        //  · dada / en curso (activa) → "!" transparente ("ya la tienes")
-        //  · objetivo cumplido → "?" brillante (entrégala)
+        // Estado de la misión → textura:
+        //  · disponible (sin dar aún) → "!" dorado
+        //  · dada / en curso (activa) → "!" plateado ("ya la tienes")
+        //  · objetivo cumplido → "?" dorado (entrégala)
         //  · completada / sin misión → sin marcador
-        let texKey = '', alpha = 1;
+        let texKey = '';
         if (quests && npc.questId && npc.sprite.active) {
           // La misión vigente del NPC, no una fija: la cadena avanza y el marcador con
           // ella (al cobrar una aparece la siguiente, y el "?" vuelve al completarla).
           const def = quests.questForGiver(npc.name);
           if (def) {
-            if (quests.isClaimable(def)) { texKey = 'quest_ques'; alpha = 1; }
-            else if (quests.isActive(def)) { texKey = 'quest_excl'; alpha = 0.4; }
-            else { texKey = 'quest_excl'; alpha = 1; }
+            if (quests.isClaimable(def)) texKey = 'quest_ques';
+            else if (quests.isActive(def)) texKey = 'quest_excl_active';
+            else texKey = 'quest_excl';
           }
         }
         if (!texKey) { npc.marker?.setVisible(false); continue; }
         if (!npc.marker) {
-          npc.marker = this.add.image(0, 0, texKey).setOrigin(0.5, 1).setDepth(6000).setScale(0.72);
+          npc.marker = this.add.image(0, 0, texKey).setOrigin(0.5, 1).setDepth(6000).setScale(PX);
         }
         npc.marker.setTexture(texKey)
           .setVisible(true)
-          .setAlpha(alpha)
-          .setPosition(npc.sprite.x, npc.sprite.y - npc.sprite.displayHeight * 0.42 + bob);
+          .setPosition(Math.round(npc.sprite.x), Math.round(npc.sprite.y - npc.sprite.displayHeight * 0.42) + bob);
       }
     }
 
-    /** Genera (una vez) las texturas de los iconos de misión "!" y "?" con formas
-     *  (barra/gancho + punto separado), en vez de una fuente cuyo "!" se ve pegado.
-     *  Dorado con contorno oscuro, estilo RPG. */
+    /** Escala del marcador de misión: algo mayor que la del sprite de NPC (2.5) para que se
+     *  lea bien desde lejos. */
+    private static readonly QUEST_MARKER_SCALE = 3.25;
+
+    /** Genera (una vez) las texturas pixel art de los iconos de misión: glifo con
+     *  contorno oscuro de 1px (también en diagonal) y brillo en los bordes de arriba e
+     *  izquierda. "!" dorado, "!" plateado (en curso) y "?" dorado. Filtro NEAREST. */
     private ensureQuestMarkerTextures(): void {
       if (this.textures.exists('quest_excl')) return;
-      const DARK = 0x3a2600, GOLD = 0xffd21e, W = 80, H = 120, cx = 40, deg = Phaser.Math.DegToRad;
-
-      // "!" — barra redondeada + punto, con hueco claro entre ambos.
-      let g = this.make.graphics({ x: 0, y: 0 }, false);
-      g.lineStyle(9, DARK, 1);
-      g.strokeRoundedRect(cx - 9, 12, 18, 58, 8);
-      g.strokeCircle(cx, 89, 11);
-      g.fillStyle(GOLD, 1);
-      g.fillRoundedRect(cx - 9, 12, 18, 58, 8);
-      g.fillCircle(cx, 89, 11);
-      g.generateTexture('quest_excl', W, H);
-      g.destroy();
-
-      // "?" — gancho (arco + cola) + punto separado.
-      g = this.make.graphics({ x: 0, y: 0 }, false);
-      const hook = (width: number, color: number) => {
-        g.lineStyle(width, color, 1);
-        g.beginPath();
-        g.arc(cx, 36, 18, deg(150), deg(390), false);   // curva superior (izq→arriba→dcha)
-        g.lineTo(cx, 66);                                 // cola baja hasta el centro
-        g.strokePath();
+      const EXCL = ['.##.', '####', '####', '####', '.##.', '.##.', '.##.', '....', '.##.', '.##.'];
+      const QUES = ['.####.', '##..##', '##..##', '....##', '...##.', '..##..', '..##..', '......', '..##..', '..##..'];
+      const GOLD   = { fill: '#ffd21e', hi: '#fff3a0', dark: '#3a2600' };
+      const SILVER = { fill: '#a9b0b8', hi: '#e6ebf0', dark: '#2a2d33' };
+      const make = (key: string, g: string[], pal: typeof GOLD) => {
+        const w = g[0].length, h = g.length;
+        const on = (x: number, y: number) => y >= 0 && y < h && x >= 0 && x < w && g[y][x] === '#';
+        const tex = this.textures.createCanvas(key, w + 2, h + 2)!;
+        const ctx = tex.getContext();
+        for (let y = -1; y <= h; y++) for (let x = -1; x <= w; x++) {
+          let col: string | null = null;
+          if (on(x, y)) col = (!on(x - 1, y) || !on(x, y - 1)) ? pal.hi : pal.fill;
+          else {
+            for (let dy = -1; dy <= 1 && !col; dy++) for (let dx = -1; dx <= 1; dx++) {
+              if (on(x + dx, y + dy)) { col = pal.dark; break; }
+            }
+          }
+          if (col) { ctx.fillStyle = col; ctx.fillRect(x + 1, y + 1, 1, 1); }
+        }
+        tex.refresh();
+        tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
       };
-      hook(20, DARK);   // contorno
-      hook(12, GOLD);   // relleno
-      g.lineStyle(9, DARK, 1); g.strokeCircle(cx, 89, 11);
-      g.fillStyle(GOLD, 1); g.fillCircle(cx, 89, 11);
-      g.generateTexture('quest_ques', W, H);
-      g.destroy();
+      make('quest_excl', EXCL, GOLD);
+      make('quest_excl_active', EXCL, SILVER);
+      make('quest_ques', QUES, GOLD);
     }
 
     /** true si el talento global de auto-lanzado de skills (attack_5) está activo. */

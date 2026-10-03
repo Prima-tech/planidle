@@ -707,7 +707,13 @@ const _recipe = (name: string, buildType: string, iconFrame: number, desc: strin
 const RECIPES_CATALOG: LootEntry[] = [
   _recipe('Cofre de ciudad',       'town_chest',       0,  'Planos de un cofre de ciudad: almacén compartido entre personajes.'),
   _recipe('Tienda',                'shop',             3,  'Planos de una tienda: compra y vende objetos con su propio oro.'),
-  _recipe('Fragua',                'forge',            6,  'Planos de una fragua: produce con el tiempo, incluso sin jugar.'),
+  // Icono = el propio sprite de la forja del mapa (recorte 48×48 de forge_off), no la hoja Icons.
+  {
+    ..._recipe('Fragua',           'forge',            6,  'Planos de una fragua: produce con el tiempo, incluso sin jugar.'),
+    texture: 'forge_off', frame: 0, scale: 1,
+    icon: 'assets/icon/recipes/forge.png',
+    iconSheet: undefined, iconFrame: undefined, iconFrameSize: undefined, iconFrameCols: undefined,
+  },
   _recipe('Forja',                 'smelter',          9,  'Planos de una forja: funde minerales y madera.'),
   _recipe('Mesa de alquimia',      'alchemy_table',    12, 'Planos de una mesa de alquimia.'),
   _recipe('Alambique',             'alembic',          20, 'Planos de un alambique.'),

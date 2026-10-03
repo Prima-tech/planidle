@@ -272,6 +272,19 @@ export class SaveService {
     const gains = snapshot ? this.offlineGains.calculate(snapshot, serverElapsedMs) : null;
     this.pendingGains$.next(gains);
     this._isRestoring = false;
+    this.oneShotGift();
+  }
+
+  /** REGALO PUNTUAL (2026-10-03): una receta de "Fragua" al inventario, UNA sola vez por
+   *  dispositivo (guard en localStorage). Petición del usuario para probar la forja nueva;
+   *  no es una mecánica. Borrar este método (y su llamada) cuando ya no haga falta. */
+  private oneShotGift(): void {
+    const KEY = 'oneshot_gift_forge_recipe_20261003';
+    try {
+      if (localStorage.getItem(KEY)) return;
+      localStorage.setItem(KEY, '1');
+    } catch { return; }
+    this.inventory.addOrDropToWorld(hydrateItem({ id: this.inventory.generateId(), name: 'Fragua' } as InventoryItem));
   }
 
   /**
