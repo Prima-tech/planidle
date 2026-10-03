@@ -292,7 +292,7 @@ ion-content::part(scroll)::-webkit-scrollbar {
 }
 
 /* ── Rareza de objetos: fondo de la casilla (estilo F de la galería) ─────────────────
-   Lo lleva el OBJETO (.inventory-item [data-rarity]), no la casilla: así el fondo viaja
+   Lo lleva el OBJETO (.inventory-item / .equip-item [data-rarity]), no la casilla: así el fondo viaja
    con él al arrastrar (el placeholder de CDK pasa a la casilla nueva y la copia que se
    arrastra también lo lleva). El halo se pinta en un ::before DETRÁS del icono
    (isolation + z-index -1), así no pisa el background ni el box-shadow de la celda. Fondo oscuro con resplandor del color
@@ -321,9 +321,12 @@ ion-content::part(scroll)::-webkit-scrollbar {
 }
 
 // El objeto (40px) está centrado en el hueco de la casilla (42px): el halo sobresale 1px
-// para llenar la casilla entera, con el redondeo de la celda.
+// para llenar la casilla entera, con el redondeo de la celda. Igual en los huecos de
+// equipo (combate y recolección: .equip-item, misma geometría 46/40).
 .inventory-item[data-rarity]::before,
-.inventory-item[data-rarity]::after {
+.inventory-item[data-rarity]::after,
+.equip-item[data-rarity]::before,
+.equip-item[data-rarity]::after {
   inset: -1px;
   border-radius: 5px;
 }

@@ -1039,6 +1039,7 @@
   >
     <div *ngIf="slot.item; else emptySlot"
          class="equip-item"
+         [attr.data-rarity]="slot.item.rarity || 'common'"
          [class.selected]="selectedEquippedItem === slot.item"
          cdkDrag
          [cdkDragData]="{ sourceContext: 'equipment', slotId: 'equip-' + slot.id, item: slot.item }"
@@ -1087,6 +1088,7 @@
   >
     <div *ngIf="slot.item; else gatheringEmptySlot"
          class="equip-item"
+         [attr.data-rarity]="slot.item.rarity || 'common'"
          [class.selected]="selectedEquippedItem === slot.item"
          cdkDrag
          [cdkDragData]="{ sourceContext: 'gathering', slotId: 'gather-' + slot.id, item: slot.item }"
