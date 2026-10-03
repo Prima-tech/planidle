@@ -250,6 +250,47 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   }
 }
 
+// Rótulo «Estás en» sobre el mapa actual (texto suelto sobre el globo)
+.pml-label {
+  width: 104px;
+  text-align: center;
+  color: $text-cream;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+// Cabecera del desplegable = mapa actual: acento dorado fijo + chevron a la derecha
+.pml-toggle {
+  justify-content: space-between;
+  padding-left: 6px;
+  padding-right: 6px;
+
+  ion-icon { flex-shrink: 0; font-size: 13px; pointer-events: none; }
+  .pml-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+
+  &.pml-current {
+    border-color: $gold;
+    color: $gold;
+    background: $wood-btn-dark;
+  }
+}
+
+// Resto de mapas: columna bajo la cabecera, con sangría para que se lea como "dentro"
+.pml-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 6px;
+  border-left: 2px solid rgba($gold, 0.45);
+  margin-left: 4px;
+
+  .pml-item { width: 92px; }
+}
+
 // ── Info card (placa oscura) ───────────────────────────────────────────────
 
 .map-info-card {
@@ -546,7 +587,11 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
       background: $item-bg;
       &.selected { color: $accent; border-color: $accent; }
     }
+    &.pml-current { border-color: $accent; color: $accent; background: $item-active-bg; }
   }
+
+  .pml-label { color: $muted; }
+  .pml-dropdown { border-left-color: $accent; }
 
   .map-info-card {
     background: $card-bg;

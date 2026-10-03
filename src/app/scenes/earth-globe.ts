@@ -85,10 +85,11 @@ const W = 512, H = 256;
 let HT: Float32Array, TY: Uint8Array, COAST: Uint8Array, MO: Float32Array;
 
 /** Tipo de terreno a partir de altura, humedad y latitud (globo y mapa plano). */
+// Este mundo NO tiene nieve ni banquisa (tipos 7/8 sin uso): las cumbres son roca
+// y los polos siguen la regla normal de su altura/humedad.
 function classify(h: number, m: number, lat: number): number {
   const al = Math.abs(lat);
-  if (h < 0) return al > 1.25 ? 8 : h < -.16 ? 0 : 1;
-  if (h > .5 || al > 1.12) return 7;
+  if (h < 0) return h < -.16 ? 0 : 1;
   if (h > .34) return 6;
   if (h < .035) return 2;
   if (m < .45 && al < .7) return 5;
@@ -240,7 +241,7 @@ function ensureScenery(pins: PinW[]): Prop[] {
     if (t === 4 && rnd < .5) SCENERY.push({ w, k: 'tree' });
     else if (t === 3 && rnd < .06) SCENERY.push({ w, k: 'tree' });
     else if (t === 6 && rnd < .3) SCENERY.push({ w, k: 'rock' });
-    else if (t === 7 && HT[idxW(w)] >= 0 && rnd < .18) SCENERY.push({ w, k: 'pine' });
+    else if (t === 6 && rnd < .42) SCENERY.push({ w, k: 'pine' });
     else if (t === 5 && rnd < .05) SCENERY.push({ w, k: 'cactus' });
   });
   return SCENERY;
@@ -362,7 +363,6 @@ export class EarthGlobe {
       ctx.fillStyle = 'rgba(30,80,40,.35)'; ctx.beginPath(); ctx.arc(0, -s * .95, s * .43, .2, PI - .2); ctx.fill();
     } else if (k === 'pine') {
       shape('#3f8f6a', () => { ctx.moveTo(-s * .45, -s * .2); ctx.lineTo(0, -s * 1.6); ctx.lineTo(s * .45, -s * .2); ctx.closePath(); });
-      shape('#fff', () => { ctx.moveTo(-s * .17, -s * 1.08); ctx.lineTo(0, -s * 1.6); ctx.lineTo(s * .17, -s * 1.08); ctx.closePath(); });
     } else if (k === 'rock') {
       shape('#a99a8e', () => { ctx.moveTo(-s * .5, 0); ctx.lineTo(-s * .3, -s * .55); ctx.lineTo(s * .1, -s * .7); ctx.lineTo(s * .5, -s * .3); ctx.lineTo(s * .45, 0); ctx.closePath(); });
     } else if (k === 'cactus') {

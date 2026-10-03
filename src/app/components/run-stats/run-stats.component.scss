@@ -460,7 +460,8 @@ $metal-dark: #6b6357;
   font-size: 0.62em;
   // franja de madera bajo el botón para tapar los hitos que scrollean por detrás
   // (cubre el padding inferior del panel y el hueco del gap).
-  box-shadow: 0 6px 0 6px $wood-bg, 0 -5px 7px -3px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--rpg-shape), 0 6px 0 6px $wood-bg, 0 -5px 7px -3px rgba(0, 0, 0, 0.45);   // forma pixel + franja
+  clip-path: none;   // la franja va POR FUERA del botón; el recorte de esquinas la taparía
 
   // Deshabilitado: NADA de opacity. Este botón está anclado (sticky) sobre la lista de
   // hitos, que scrollea por detrás; bajar la opacidad (lo que hace .rpg-btn:disabled por
@@ -588,7 +589,7 @@ $metal-dark: #6b6357;
   // Franja de máscara del botón sticky "comprar todo": recolorada al fondo del tema
   // para que siga tapando los hitos que scrollean por detrás (sin tocar .rpg-btn).
   .rs-buy-all {
-    box-shadow: 0 6px 0 6px $panel-solid, 0 -5px 7px -3px rgba(0, 0, 0, 0.45);
+    box-shadow: var(--rpg-shape), 0 6px 0 6px $panel-solid, 0 -5px 7px -3px rgba(0, 0, 0, 0.45);
   }
 }
 

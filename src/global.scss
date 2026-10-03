@@ -188,47 +188,81 @@ ion-content::part(scroll)::-webkit-scrollbar {
   50%      { box-shadow: 0 0 0 2px rgba(255, 235, 140, 1),   0 0 14px 6px rgba(255, 200, 60, 0.9); }
 }
 
+/* Fuente pixel de los botones de acción (OFL, ver assets/fonts/PixelifySans-OFL.txt).
+   Empaquetada en la app: en el móvil no dependemos de Google Fonts. */
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('./assets/fonts/PixelifySans.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────
-   Botón de acción estándar de la app — estilo del botón "Recoger" (AFK).
+   Botón de acción estándar de la app — "píxel macizo" (elegido 2026-10-03).
    Fuente ÚNICA para todos los botones de acción con texto. Para aplicarlo,
-   pon class="rpg-btn" (y "rpg-btn--block" si debe ocupar todo el ancho).
+   pon class="rpg-btn" (y "rpg-btn--block" si debe ocupar todo el ancho;
+   "rpg-btn--danger" para acciones destructivas: borrar, reiniciar…).
+   Todo se pinta DENTRO de la caja (nada sobresale → no lo recortan los paneles):
+   contorno = borde real (abajo el doble: el "labio"), esquinas en escalón con
+   clip-path, luz/sombra con inset. Al pulsar, el labio pasa arriba: la cara baja
+   un píxel-grande sin cambiar el tamaño del botón.
+   Los colores van en variables para que cada tema (data-appstyle) y cada
+   variante cambien la paleta sin tocar la forma. --p = grosor del píxel.
    ───────────────────────────────────────────────────────────────────────── */
 .rpg-btn {
+  --p: 3px;
+  --rpg-face: #c98a4e;        // cara de madera
+  --rpg-face-hover: #d99a5c;
+  --rpg-hi: #ecb47b;          // luz superior
+  --rpg-lo: #8a5530;          // sombra inferior
+  --rpg-ol: #3a2c20;          // contorno + labio
+  --rpg-ink: #3a1f0e;         // texto
+
   display: inline-block;
-  padding: 11px 16px;
-  background:
-    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 14px),
-    #c08349;
-  color: #53301c;
-  border: 3px solid;
-  border-color: #d99a5c #8a5530 #8a5530 #d99a5c;
-  border-radius: 7px;
-  box-shadow:
-    0 0 0 1px #3a2c20,
-    inset 0 0 0 1px #3a2c20,
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 3px 8px rgba(0, 0, 0, 0.4);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.78em;
-  font-weight: bold;
-  letter-spacing: 0.1em;
+  box-sizing: border-box;
+  padding: 6px 12px 8px;
+  background: var(--rpg-face);
+  color: var(--rpg-ink);
+  border: var(--p) solid var(--rpg-ol);
+  border-bottom-width: calc(var(--p) * 2);
+  border-radius: 0;
+  // Luz/sombra interiores en una variable: quien necesite añadir sombras propias
+  // (p.ej. la franja de máscara de .rs-buy-all) hace `box-shadow: var(--rpg-shape), …`.
+  --rpg-shape:
+    inset 0 var(--p) 0 var(--rpg-hi),
+    inset 0 calc(var(--p) * -1.67) 0 var(--rpg-lo);
+  box-shadow: var(--rpg-shape);
+  // Esquinas en escalón (pixel-art): se quita un píxel en cada esquina; abajo, dos
+  // de alto para que el labio también quede escalonado.
+  clip-path: polygon(
+    var(--p) 0, calc(100% - var(--p)) 0,
+    calc(100% - var(--p)) var(--p), 100% var(--p),
+    100% calc(100% - var(--p) * 2), calc(100% - var(--p)) calc(100% - var(--p) * 2),
+    calc(100% - var(--p)) 100%, var(--p) 100%,
+    var(--p) calc(100% - var(--p) * 2), 0 calc(100% - var(--p) * 2),
+    0 var(--p), var(--p) var(--p)
+  );
+  font-family: 'Pixelify Sans', 'Courier New', monospace;
+  font-size: 0.95em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, transform 0.05s;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, color 0.15s;
 }
 
-.rpg-btn:hover { background: #d99a5c; }
+.rpg-btn:hover { background: var(--rpg-face-hover); }
 
+/* Pulsado: el labio pasa de abajo a arriba → la cara baja sin cambiar de tamaño. */
 .rpg-btn:active {
-  background: #8a5530;
-  color: #ecd9b4;
-  transform: translateY(1px);
-  box-shadow:
-    0 0 0 1px #3a2c20,
-    inset 0 0 0 1px #3a2c20,
-    inset 0 2px 5px rgba(0, 0, 0, 0.4);
+  border-top-width: calc(var(--p) * 2);
+  border-bottom-width: var(--p);
+  box-shadow: inset 0 calc(var(--p) * 1.67) 0 var(--rpg-lo);
 }
+
+.rpg-btn:focus-visible { outline: 2px solid #e8c86e; outline-offset: -6px; }   // dentro: el clip-path cortaría uno exterior
 
 .rpg-btn:disabled,
 .rpg-btn.disabled {
@@ -240,13 +274,21 @@ ion-content::part(scroll)::-webkit-scrollbar {
 
 .rpg-btn--block { display: block; width: 100%; }
 
+/* Acción destructiva (borrar, reiniciar…): bloque rojo, texto claro. */
+.rpg-btn--danger {
+  --rpg-face: #b8473a;
+  --rpg-face-hover: #c95345;
+  --rpg-hi: #e07a6c;
+  --rpg-lo: #7a2a20;
+  --rpg-ink: #fbe3d6;
+}
+
 /* Variante compacta para paneles estrechos (talentos, misiones, progreso…). */
 .rpg-btn--sm {
-  padding: 5px 10px;
-  font-size: 0.64em;
-  letter-spacing: 0.06em;
-  border-width: 2px;
-  border-radius: 6px;
+  --p: 2px;
+  padding: 4px 9px 5px;
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
 }
 
 /* ═══════════════ Estilos de app · superficies COMPARTIDAS (data-appstyle) ═══════════════
@@ -257,14 +299,23 @@ ion-content::part(scroll)::-webkit-scrollbar {
    Ver skill app-styles. */
 @mixin app-shared($btn-bg, $btn-bd, $btn-col, $btn-active-bg, $coins-bg, $coins-bd, $coins-col, $accent, $btn-font: null) {
   .rpg-btn {
+    // Misma forma pixel; el tema solo cambia cara, contorno, luz/sombra y tinta.
+    --rpg-ol: #{$btn-bd};
+    --rpg-hi: rgba(255, 255, 255, 0.14);
+    --rpg-lo: rgba(0, 0, 0, 0.4);
+    --rpg-ink: #{$btn-col};
     background: $btn-bg;
-    border-color: $btn-bd;
     color: $btn-col;
-    text-shadow: none;
     @if $btn-font != null { font-family: $btn-font; }
 
     &:hover  { background: $btn-bg; filter: brightness(1.13); }
     &:active { background: $btn-active-bg; color: $btn-col; filter: none; }
+
+    &.rpg-btn--danger {
+      background: linear-gradient(180deg, #9a3328, #6b1f18);
+      color: #ffd9cc;
+      &:active { background: #4e1610; }
+    }
   }
 
   .coins-section {

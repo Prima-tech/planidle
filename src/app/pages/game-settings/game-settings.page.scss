@@ -176,16 +176,13 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   opacity: 0.92;
 }
 
-/* Borrar almacenamiento local (admin): texto rojizo como el de borrar cuenta, ancho completo. */
+/* Borrar almacenamiento local (admin): .rpg-btn--danger, ancho completo. */
 .gs-clear-local-btn {
-  color: #e3a48f;
   margin-bottom: 12px;   /* aire hasta la fila de monedas */
 }
 
-/* Borrar todo: acción peligrosa — marco de madera de la app pero texto rojizo y
-   tinte rojo al pulsar. Media línea, alineado a la derecha y más bajo. */
+/* Reiniciar exploración: acción peligrosa (.rpg-btn--danger). Media línea, a la derecha. */
 .gs-danger-btn {
-  color: #e3a48f;        // texto rojizo: acción peligrosa
   width: 50%;
   margin-left: auto;     // a la derecha
 }
@@ -212,19 +209,19 @@ $metal-dark: #6b6357;     // bisel metálico en sombra
   flex: 1 1 100%;   // ocupa toda la fila; los chips envuelven en varias filas
 }
 .gs-style-btn {
-  padding: 7px 8px;
-  font-size: 0.7em;
+  --p: 2px;       // píxel compacto (como .rpg-btn--sm)
+  padding: 4px 6px 5px;
+  font-size: 0.8em;
   white-space: nowrap;
-  border-radius: 9px;
   min-width: 0;   // permite que el texto se ajuste dentro de su celda
 
+  // Activo: mismo bloque pixel, en oro (solo cambia la paleta, no la forma)
   &.active {
-    border-color: #ffe6a0 #a8781f #a8781f #d8a53a;
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px rgba(255, 235, 150, 0.5),
-      0 0 8px rgba(240, 192, 64, 0.55);
-    filter: brightness(1.06);
+    --rpg-face: #e8b84a;
+    --rpg-face-hover: #f0c65c;
+    --rpg-hi: #ffe6a0;
+    --rpg-lo: #a8781f;
+    --rpg-ink: #3d2a06;
   }
 }
 

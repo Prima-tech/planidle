@@ -21,7 +21,7 @@
           <p class="gs-section-label">Admin</p>
 
           <!-- Borrar el almacenamiento local (localStorage + partidas locales) y cerrar sesión. -->
-          <button class="rpg-btn gs-save-btn gs-clear-local-btn" (click)="clearLocalStorage()">
+          <button class="rpg-btn rpg-btn--danger gs-save-btn gs-clear-local-btn" (click)="clearLocalStorage()">
             <span class="gs-save-icon">🗑</span>
             <span>{{ 'SETTINGS.CLEAR_LOCAL.BTN' | translate }}</span>
           </button>
@@ -76,7 +76,7 @@
               <span class="gs-row-title">Reiniciar exploración</span>
               <span class="gs-row-desc">Borra todo el progreso del Modo Exploración: 0 estrellas, mejoras y armas descompradas, 0 ★/min y mapas re-bloqueados. Como empezar de cero.</span>
             </div>
-            <button class="rpg-btn gs-coins-btn gs-danger-btn" (click)="resetExploration()">
+            <button class="rpg-btn rpg-btn--danger gs-coins-btn gs-danger-btn" (click)="resetExploration()">
               <span class="gs-save-icon">🗑</span>
               <span>Reiniciar exploración</span>
             </button>

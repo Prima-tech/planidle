@@ -134,11 +134,15 @@ const WHEEL_ZOOM_K = 0.0015;     // sensibilidad de la rueda (por unidad de delt
 // mapas de TIERRA_PINS: centrado en su caja y con zoom para que ocupen ~FLAT_FRAME
 // de la vista (nunca menos zoom que el mundo entero encajado).
 const FLAT_FRAME = 0.6;
+// Desplazamiento del centro del encuadre en unidades de textura (tx, 0..512). >0 mueve
+// la vista al este → el mapa queda más a la izquierda de la pantalla. Al oeste de los
+// mapas (tx < 250) todo es océano y el continente sigue hacia el este (hasta ~tx 500).
+const FLAT_SHIFT_TX = 30;
 const FLAT_BOX = (() => {
   const xs = TIERRA_PINS.map(p => p.tx), ys = TIERRA_PINS.map(p => p.ty);
   const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
   return {
-    rot: rotFacing((minX + maxX) / 2, (minY + maxY) / 2),
+    rot: rotFacing((minX + maxX) / 2 + FLAT_SHIFT_TX, (minY + maxY) / 2),
     lonSpan: Math.max(0.2, (maxX - minX) / 512 * Math.PI * 2),   // rad
     latSpan: Math.max(0.2, (maxY - minY) / 512 * Math.PI),       // rad
   };

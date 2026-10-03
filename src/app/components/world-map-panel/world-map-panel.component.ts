@@ -218,6 +218,29 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     this.planetHost.registry?.set(PLANET_LAYER_KEY, layer);
   }
 
+  /** Desplegable de mapas disponibles (columna izquierda): abierto o contraído.
+   *  Estático → se recuerda entre aperturas del panel durante la sesión. */
+  private static lastMapListOpen = true;
+  mapListOpen = WorldMapPanelComponent.lastMapListOpen;
+
+  toggleMapList() {
+    this.mapListOpen = WorldMapPanelComponent.lastMapListOpen = !this.mapListOpen;
+  }
+
+  /** Mapa donde está el jugador, arriba de la columna izquierda. En exploración es la
+   *  entrada «Exploración» (currentMapId sigue siendo el de origen). null si el jugador
+   *  no está en este planeta. */
+  get currentEntry(): { id: string; name: string; current: boolean; run?: boolean } | null {
+    const list = this.planetMapList;
+    return list.find(m => m.run && m.current) ?? list.find(m => !m.run && m.current) ?? null;
+  }
+
+  /** Resto de mapas disponibles (sin el actual), para el desplegable. */
+  get otherMaps(): { id: string; name: string; current: boolean; run?: boolean }[] {
+    const cur = this.currentEntry;
+    return this.planetMapList.filter(m => m.id !== cur?.id);
+  }
+
   /** Mapas DESBLOQUEADOS del planeta que se está viendo, para la lista de la izquierda
    *  del globo. Pinchar uno gira el globo hacia su pin (focusPlanetMap). */
   get planetMapList(): { id: string; name: string; current: boolean; run?: boolean }[] {
