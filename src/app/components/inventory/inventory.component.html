@@ -49,7 +49,13 @@
             cdkDrag
             [cdkDragData]="{ sourceContext: 'inventory', tabIndex: tabIndex, row: rowIndex, col: colIndex, item: cell }"
             (cdkDragMoved)="onDragMoved($event)"
+            (cdkDragStarted)="cancelHold()"
             (click)="selectItem(tabIndex, rowIndex, colIndex, $event)"
+            (pointerdown)="onHoldStart(tabIndex, rowIndex, colIndex, $event)"
+            (pointerup)="cancelHold()"
+            (pointerleave)="cancelHold()"
+            (pointercancel)="cancelHold()"
+            (contextmenu)="isPendingBlueprint(cell) && $event.preventDefault()"
             [title]="cell.name"
             [ngClass]="{
               selected:
@@ -78,6 +84,8 @@
                  [class.item-icon--pants]="cell.category === 'Pantalones'">
             <span *ngIf="!cell.icon && cell.iconSheet == null" class="item-fallback">{{ cell.name.charAt(0) }}</span>
             <div class="item-sum" *ngIf="cell.sum !== undefined">{{ cell.sum }}</div>
+            <!-- Pulsación larga sobre receta sin aprender: se llena en 3s y la aprende -->
+            <div class="hold-learn" *ngIf="isHolding(tabIndex, rowIndex, colIndex)"></div>
           </div>
         </ng-container>
       </div>

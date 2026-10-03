@@ -158,6 +158,23 @@ $purple: #6e4a67;         // celda seleccionada
   transition: border 0.15s ease, background-color 0.15s ease;
 }
 
+/* Pulsación larga para aprender receta: relleno que sube de abajo arriba en 3s */
+.hold-learn {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(232, 200, 110, 0.55), rgba(232, 200, 110, 0.2));
+  box-shadow: 0 0 8px rgba(232, 200, 110, 0.7);
+  transform-origin: bottom;
+  animation: hold-learn-fill 3s linear forwards;
+}
+
+@keyframes hold-learn-fill {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
 .inventory-item.selected {
   background-color: rgba(232, 200, 110, 0.16);
   border: 2px solid #e8c86e;

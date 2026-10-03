@@ -4,7 +4,7 @@
 // dibujada en Canvas 2D por EarthGlobe.draw() sobre una CanvasTexture de Phaser.
 // Tres CAPAS que comparten el MISMO terreno (mapa de alturas procedural sobre la
 // esfera, semilla fija) para que los continentes coincidan al cambiar de capa:
-//  - 'base':    mundo de bolsillo (toon, árboles/castillo/banderas que asoman, nubes)
+//  - 'base':    mundo de bolsillo (toon, árboles/castillo/banderas que asoman)
 //  - 'economy': tablero hexagonal geodésico con relieve
 //  - 'war':     proyección táctica (holograma de puntos, meridianos, radar)
 //
@@ -81,14 +81,14 @@ export function rotFacing(tx: number, ty: number): GlobeRot {
 
 // ── Terreno compartido por las 3 capas ──────────────────────────────────────
 // 0 fondo · 1 costa · 2 arena · 3 pradera · 4 bosque · 5 desierto · 6 roca · 7 nieve · 8 banquisa
-const W = 512, H = 256, CW = 256, CH = 128;
-let HT: Float32Array, TY: Uint8Array, COAST: Uint8Array, CL: Float32Array;
+const W = 512, H = 256;
+let HT: Float32Array, TY: Uint8Array, COAST: Uint8Array;
 
 /** Se genera UNA vez (la posición de los pines levanta tierra bajo ellos y a lo
  *  largo de la ruta, para que el camino vaya siempre por un continente). */
 function ensureTerrain(pins: PinW[]): void {
   if (HT) return;
-  HT = new Float32Array(W * H); TY = new Uint8Array(W * H); COAST = new Uint8Array(W * H); CL = new Float32Array(CW * CH);
+  HT = new Float32Array(W * H); TY = new Uint8Array(W * H); COAST = new Uint8Array(W * H);
   const bumps: V3[] = [];
   for (let i = 0; i < pins.length - 1; i++) for (let s = 0; s <= 6; s++) bumps.push(slerp(pins[i].w, pins[i + 1].w, s / 6));
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
@@ -112,10 +112,6 @@ function ensureTerrain(pins: PinW[]): void {
     const k = j * W + i, s = HT[k] >= 0, r = j * W + (i + 1) % W, d = j < H - 1 ? k + W : k;
     COAST[k] = ((HT[r] >= 0) !== s || (HT[d] >= 0) !== s) ? 1 : 0;
   }
-  for (let j = 0; j < CH; j++) for (let i = 0; i < CW; i++) {
-    const w = v3(PI / 2 - (j + .5) / CH * PI, (i + .5) / CW * TAU - PI);
-    CL[j * CW + i] = fbm(w[0] * 3 + 40, w[1] * 3 + 40, w[2] * 3 + 40, 4);
-  }
 }
 function idxOf(lat: number, lon: number): number {
   let i = ((lon + PI) / TAU * W) | 0; if (i >= W) i = W - 1; if (i < 0) i = 0;
@@ -123,10 +119,6 @@ function idxOf(lat: number, lon: number): number {
   return j * W + i;
 }
 const idxW = (w: V3) => idxOf(Math.asin(Math.max(-1, Math.min(1, w[1]))), Math.atan2(w[0], w[2]));
-function cloudAt(lat: number, lon: number): number {
-  let u = ((lon + PI) / TAU) % 1; if (u < 0) u += 1;
-  return CL[(((PI / 2 - lat) / PI * CH) | 0) * CW + ((u * CW) | 0)] || 0;
-}
 
 // ── Proyección ──────────────────────────────────────────────────────────────
 const L = norm([-.5, .55, .7]);
@@ -234,7 +226,6 @@ function ensureHolo(): void {
 type PropKind = 'tree' | 'pine' | 'rock' | 'cactus' | 'castle' | 'flag';
 interface Prop { w: V3; k: PropKind; pin?: PinW; }
 let SCENERY: Prop[] | null = null;
-const PUFFS = fib(11).map((w, i) => ({ w: norm([w[0], w[1] * .6, w[2]]), s: .8 + h3(i, 9, 9) * .6 }));
 function ensureScenery(pins: PinW[]): Prop[] {
   if (SCENERY) return SCENERY;
   SCENERY = [];
@@ -306,16 +297,6 @@ export class EarthGlobe {
 
     const placed = this.props.map(pr => ({ pr, v: proj(pr.w, r) })).filter(o => o.v[2] > -.3);
     placed.sort((a, b) => a.v[2] - b.v[2]);
-    const ry: Rot = { ...r, cy: Math.cos(r.yaw + t * .05), sy: Math.sin(r.yaw + t * .05) };
-    const puffs = PUFFS.map(pf => ({ pf, v: proj(pf.w, ry) }));
-
-    const drawPuff = ({ pf, v }: { pf: { s: number }; v: V3 }) => {
-      const x = cx + v[0] * R * 1.25, y = cy - v[1] * R * 1.25, k = R * .07 * pf.s;
-      ctx.lineWidth = k * .22; ctx.strokeStyle = OUT; ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(x - k, y, k * .8, 0, TAU); ctx.arc(x + k, y, k * .75, 0, TAU); ctx.arc(x, y - k * .45, k, 0, TAU);
-      ctx.stroke(); ctx.fill();
-      ctx.fillStyle = '#dbe3f5'; ctx.fillRect(x - k * 1.7, y + k * .2, k * 3.4, k * .55);
-    };
     // Cada prop se planta en su punto de la superficie, orientado a la normal en
     // pantalla: en el borde se ve de perfil y asoma por la silueta del planeta.
     const putProp = ({ pr, v }: { pr: Prop; v: V3 }) => {
@@ -326,7 +307,6 @@ export class EarthGlobe {
     };
 
     // Lo que está detrás pero asoma por el borde se pinta ANTES: el globo lo tapa.
-    puffs.filter(o => o.v[2] < 0).forEach(drawPuff);
     placed.filter(o => o.v[2] < 0).forEach(putProp);
 
     raster(this.buf, r, (d, o, x, y, z, _lat, _lon, i) => {
@@ -350,7 +330,6 @@ export class EarthGlobe {
     ctx.setLineDash([]);
 
     placed.filter(o => o.v[2] >= 0).forEach(putProp);
-    puffs.filter(o => o.v[2] >= 0).forEach(drawPuff);
 
     const hits: GlobeHit[] = [];
     ctx.font = `bold ${Math.round(13 * dpr)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';

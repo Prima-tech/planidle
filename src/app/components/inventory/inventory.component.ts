@@ -153,6 +153,10 @@ export class InventoryComponent implements OnInit, OnDestroy {
   async learnSelected(): Promise<void> {
     if (!this.selectedItem) return;
     const { tabIndex, row, col } = this.selectedItem;
+    await this.learnAt(tabIndex, row, col);
+  }
+
+  private async learnAt(tabIndex: number, row: number, col: number): Promise<void> {
     const item = this.inventories[tabIndex][row][col];
     if (!item?.teachesBuild) return;
     if (!await this.cityBuild.learn(item.teachesBuild)) return;   // ya la sabía
@@ -161,11 +165,48 @@ export class InventoryComponent implements OnInit, OnDestroy {
       item.sum! -= 1;                       // gasta una del stack
     } else {
       this.inventories[tabIndex][row][col] = null;   // última: vacía la celda
-      this.selectedItem = null;
+      if (this.selectedItem?.tabIndex === tabIndex && this.selectedItem.row === row && this.selectedItem.col === col) {
+        this.selectedItem = null;
+      }
     }
     this.splitMenuOpen = false;
     this.deleteModalOpen = false;
     this.triggerSave();
+  }
+
+  // --- Mantener pulsado 3s sobre una receta sin aprender → la aprende ---
+
+  static readonly HOLD_LEARN_MS = 3000;
+  /** Celda que se está manteniendo pulsada (pinta el relleno de progreso). */
+  holding: { tabIndex: number; row: number; col: number } | null = null;
+  private holdTimer: any;
+  /** Tras aprender por pulsación, el click que llega al soltar no debe (des)seleccionar. */
+  private swallowClick = false;
+
+  isHolding(tabIndex: number, row: number, col: number): boolean {
+    const h = this.holding;
+    return !!h && h.tabIndex === tabIndex && h.row === row && h.col === col;
+  }
+
+  onHoldStart(tabIndex: number, row: number, col: number, event: PointerEvent): void {
+    this.swallowClick = false;   // por si el click de la pulsación anterior nunca llegó
+    if (event.button !== 0) return;
+    if (!this.isPendingBlueprint(this.inventories[tabIndex][row][col])) return;
+    this.cancelHold();
+    this.holding = { tabIndex, row, col };
+    this.holdTimer = setTimeout(() => {
+      this.holding = null;
+      this.holdTimer = null;
+      this.swallowClick = true;
+      this.learnAt(tabIndex, row, col);
+    }, InventoryComponent.HOLD_LEARN_MS);
+  }
+
+  /** Soltar, salir de la celda o empezar a arrastrar cancela la pulsación. */
+  cancelHold(): void {
+    clearTimeout(this.holdTimer);
+    this.holdTimer = null;
+    this.holding = null;
   }
 
   useSelected(): void {
@@ -251,6 +292,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     clearTimeout(this.saveTimer);
+    this.cancelHold();
     this.inventoryService.save(this.inventories);
     this.dropSub?.unsubscribe();
     this.removeSub?.unsubscribe();
@@ -354,6 +396,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   selectItem(tabIndex: number, row: number, col: number, event: MouseEvent): void {
     event.stopPropagation();
+    if (this.swallowClick) { this.swallowClick = false; return; }
     if (!this.inventories[tabIndex][row][col]) return;
 
     // Doble clic con la forja abierta → transferencia rápida a la forja.
