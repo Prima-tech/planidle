@@ -58,7 +58,10 @@ export function prewarmCharacterSprite(characterName: string | null, items: any[
 
 @Component({
   selector: 'app-character-sprite',
-  template: `<canvas #cv [width]="size" [height]="size" class="sprite-canvas"></canvas>`,
+  // Sin [width]/[height] en la plantilla: ese binding se aplica DESPUÉS de ngOnInit y
+  // redimensionar un canvas lo borra, así que se perdía el primer frame (~130 ms en
+  // blanco). El tamaño se fija a mano antes de pintar (fitCanvas).
+  template: `<canvas #cv class="sprite-canvas"></canvas>`,
   styles: [`:host { display: block; } .sprite-canvas { image-rendering: pixelated; display: block; }`],
   standalone: false,
 })
@@ -85,6 +88,7 @@ export class CharacterSpriteComponent implements OnInit, OnChanges, OnDestroy {
   constructor(private equipment: EquipmentService) {}
 
   ngOnInit(): void {
+    this.fitCanvas();
     this.ctx = this.cvRef.nativeElement.getContext('2d')!;
     this.ctx.imageSmoothingEnabled = false;
 
@@ -96,8 +100,18 @@ export class CharacterSpriteComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  /** Ajusta el canvas a `size` solo si cambia (asignar width, aunque sea igual, lo borra). */
+  private fitCanvas(): void {
+    const cv = this.cvRef.nativeElement;
+    if (cv.width !== this.size) cv.width = this.size;
+    if (cv.height !== this.size) cv.height = this.size;
+  }
+
   ngOnChanges(): void {
-    if (this.ctx) this.reload();
+    if (!this.ctx) return;
+    this.fitCanvas();
+    this.ctx.imageSmoothingEnabled = false;   // se resetea al redimensionar
+    this.reload();
   }
 
   ngOnDestroy(): void {
