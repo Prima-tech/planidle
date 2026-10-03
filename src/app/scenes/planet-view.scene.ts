@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { EarthGlobe, GlobeLayer, GlobeRot, rotFacing } from './earth-globe';
 
 // Dos vistas en la misma escena:
 //  - 'detail': un planeta (TileSprite + máscara circular) que gira al arrastrar,
@@ -21,7 +22,7 @@ const DPR = Math.min(window.devicePixelRatio || 1, 3);
 
 // DEBUG: pinta una cuadrícula con las coordenadas tx,ty sobre la Tierra para
 // colocar los pines de mapa a ojo. Poner a false cuando ya estén situados.
-const DEBUG_PIN_GRID = true;
+const DEBUG_PIN_GRID = false;
 
 // Estilos pixel-art basados en los sprites de referencia (Downloads/Planets):
 // terran (Terran.png), lava (Lava.png), ice (Ice.png), baren (Baren.png),
@@ -102,6 +103,14 @@ export const PLANET_CURRENT_MAP_KEY   = 'planetCurrentMap';
 // Callback (planetId) que la escena llama al construir una vista detalle: Angular lo
 // usa para saber qué planeta se está viendo y mostrar su lista de mapas a la izquierda.
 export const PLANET_DETAIL_KEY        = 'onPlanetDetail';
+// Capa del globo de la Tierra (GlobeLayer: 'base' | 'economy' | 'war'). Angular la
+// escribe desde los botones Economía/Guerra; la escena la lee cada frame.
+export const PLANET_LAYER_KEY         = 'planetLayer';
+
+// Globo 3D de la Tierra (ver earth-globe.ts): textura-canvas redibujada en vivo
+const EARTH_TEX_KEY   = 'earth_globe';
+const EARTH_MIN_VEL   = 0.0002;  // rad/frame: umbral para frenar la inercia
+const EARTH_FRAME_MS  = 33;      // sin arrastre/giro, redibujar a ~30 fps (nubes, radar)
 
 const DOUBLE_CLICK_MS = 300;
 
@@ -262,6 +271,16 @@ export class PlanetViewScene extends Phaser.Scene {
   private velX = 0;
   private velY = 0;
 
+  // Tierra: globo 3D (sustituye al TileSprite en la vista detalle de 'mundo').
+  // velX/velY van en rad/frame mientras está activo.
+  private earth: EarthGlobe | null = null;
+  private earthImg: Phaser.GameObjects.Image | null = null;
+  private earthTex: Phaser.Textures.CanvasTexture | null = null;
+  private earthRot: GlobeRot = { yaw: 0, pitch: 0 };
+  private earthZones: { zone: Phaser.GameObjects.Zone; mapId: string }[] = [];
+  private earthLayer: GlobeLayer = 'base';
+  private earthLastDraw = 0;
+
   // Vista sistema — una por estrella; los sistemas generados se cachean por sesión
   private systemC: Phaser.GameObjects.Container | null = null;
   private orbiting: OrbitingPlanet[] = [];
@@ -298,6 +317,10 @@ export class PlanetViewScene extends Phaser.Scene {
     this.dragging = false;
     this.velX = 0;
     this.velY = 0;
+    this.earth = null;
+    this.earthImg = null;
+    this.earthZones = [];
+    this.earthLastDraw = 0;
 
     this.cameras.main.setBackgroundColor('#05060f');
     this.createStars(this.scale.width, this.scale.height);
@@ -331,8 +354,10 @@ export class PlanetViewScene extends Phaser.Scene {
     return planets;
   }
 
-  override update(_t: number, delta: number): void {
-    if (this.mode === 'detail') {
+  override update(time: number, delta: number): void {
+    if (this.mode === 'detail' && this.earth) {
+      this.updateEarth(time);
+    } else if (this.mode === 'detail') {
       this.updateInertia();
       this.updatePins();   // los pines y la ruta siguen el giro del globo
     } else if (this.mode === 'system') {
@@ -465,6 +490,21 @@ export class PlanetViewScene extends Phaser.Scene {
     const radius = Math.min(W, H) * 0.34;
 
     this.detailC = this.add.container(0, 0);
+    this.earth = null;
+    this.earthImg = null;
+    this.earthZones = [];
+    this.pinObjs = [];
+    this.routeGfx = null;
+
+    // La Tierra usa el globo 3D por capas (earth-globe.ts) en lugar del TileSprite
+    if (def.id === 'mundo') {
+      this.planet = null;
+      this.planetMask = null;
+      this.buildEarthView(cx, cy, Math.min(W, H) * 0.3);
+      this.detailC.add(this.buildPlusButton(() => this.goToSystem()));
+      this.notifyDetail(def.id, def.name);
+      return;
+    }
 
     const edge = this.add.circle(cx, cy, radius + DPR, 0x000000, 0)
       .setStrokeStyle(2 * DPR, def.halo, 0.6);
@@ -532,19 +572,7 @@ export class PlanetViewScene extends Phaser.Scene {
       if (!locked) {
         // Centro local del Arc en (dotR, dotR); área de toque generosa.
         dot.setInteractive(new Phaser.Geom.Circle(dotR, dotR, 16 * DPR), Phaser.Geom.Circle.Contains);
-        let lastClick = 0;
-        dot.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
-          event.stopPropagation();  // que no arranque el drag del planeta
-          const now = Date.now();
-          if (now - lastClick < DOUBLE_CLICK_MS) {
-            const onTeleport = this.game.registry.get(PLANET_PIN_TELEPORT_KEY) as ((mapId: string) => void) | undefined;
-            onTeleport?.(pin.mapId);
-          } else {
-            const onPin = this.game.registry.get(PLANET_PIN_SELECT_KEY) as ((mapId: string) => void) | undefined;
-            onPin?.(pin.mapId);
-          }
-          lastClick = now;
-        });
+        dot.on('pointerdown', this.pinTapHandler(pin.mapId));
       }
 
       const label = this.add.text(0, 0, pin.name, {
@@ -567,10 +595,120 @@ export class PlanetViewScene extends Phaser.Scene {
     this.focusMap(getMap?.() ?? '', false);
   }
 
+  /** Toque en un pin: click → tarjeta de info; doble click → teletransporte. */
+  private pinTapHandler(mapId: string) {
+    let lastClick = 0;
+    return (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();  // que no arranque el drag del planeta
+      const now = Date.now();
+      if (now - lastClick < DOUBLE_CLICK_MS) {
+        const onTeleport = this.game.registry.get(PLANET_PIN_TELEPORT_KEY) as ((mapId: string) => void) | undefined;
+        onTeleport?.(mapId);
+      } else {
+        const onPin = this.game.registry.get(PLANET_PIN_SELECT_KEY) as ((mapId: string) => void) | undefined;
+        onPin?.(mapId);
+      }
+      lastClick = now;
+    };
+  }
+
+  // ── Tierra: globo 3D por capas ──────────────────────────────────────────────
+
+  /** Monta el globo de la Tierra: una imagen con textura-canvas que EarthGlobe
+   *  redibuja en vivo, y una zona de toque invisible por mapa desbloqueado que
+   *  sigue al pin cada frame. */
+  private buildEarthView(cx: number, cy: number, radius: number): void {
+    const lockFn = this.game.registry.get(PLANET_MAP_LOCKED_KEY) as ((id: string) => boolean) | undefined;
+    const isLocked = (id: string) => !!lockFn && lockFn(id);
+
+    this.earth = new EarthGlobe(TIERRA_PINS.map(p => ({
+      name: p.name, mapId: p.mapId, tx: p.tx, ty: p.ty,
+      home: p.mapId === 'hogar', locked: isLocked(p.mapId),
+    })));
+
+    // La textura sobrevive a los restart (instancia reutilizada): se redimensiona en
+    // sitio, nunca textures.remove (dejaría frames nulos → crash 'glTexture').
+    const S = Math.ceil(radius * 2 * EarthGlobe.MARGIN);
+    let tex = this.textures.exists(EARTH_TEX_KEY)
+      ? this.textures.get(EARTH_TEX_KEY) as Phaser.Textures.CanvasTexture
+      : this.textures.createCanvas(EARTH_TEX_KEY, S, S);
+    if (tex.width !== S || tex.height !== S) tex.setSize(S, S);
+    this.earthTex = tex;
+    this.earthImg = this.add.image(cx, cy, EARTH_TEX_KEY);
+    this.detailC!.add(this.earthImg);
+
+    const hitR = 18 * DPR;
+    for (const pin of TIERRA_PINS) {
+      if (isLocked(pin.mapId)) continue;
+      const zone = this.add.zone(cx, cy, hitR * 2, hitR * 2)
+        .setInteractive(new Phaser.Geom.Circle(hitR, hitR, hitR), Phaser.Geom.Circle.Contains);
+      zone.on('pointerdown', this.pinTapHandler(pin.mapId));
+      zone.input!.enabled = false;
+      this.detailC!.add(zone);
+      this.earthZones.push({ zone, mapId: pin.mapId });
+    }
+
+    this.detailCX = cx;
+    this.detailCY = cy;
+    this.detailR  = radius;
+    this.earthLayer = (this.game.registry.get(PLANET_LAYER_KEY) as GlobeLayer) || 'base';
+
+    // Orientar al mapa del jugador (o a la capital) y pintar el primer frame ya
+    const getMap = this.game.registry.get(PLANET_CURRENT_MAP_KEY) as (() => string) | undefined;
+    this.focusMap(getMap?.() ?? '', false);
+    this.drawEarth(this.time.now);
+  }
+
+  /** Inercia del arrastre, cambio de capa y redibujado (a ~30 fps si está quieto). */
+  private updateEarth(time: number): void {
+    const coasting = !this.dragging &&
+      (Math.abs(this.velX) > EARTH_MIN_VEL || Math.abs(this.velY) > EARTH_MIN_VEL);
+    if (coasting) {
+      this.earthRot.yaw += this.velX;
+      this.earthRot.pitch = Phaser.Math.Clamp(this.earthRot.pitch + this.velY, -1.2, 1.2);
+      this.velX *= FRICTION;
+      this.velY *= FRICTION;
+    }
+
+    let force = false;
+    const layer = (this.game.registry.get(PLANET_LAYER_KEY) as GlobeLayer) || 'base';
+    if (layer !== this.earthLayer) {
+      this.earthLayer = layer;
+      force = true;
+      if (this.earthImg) {
+        this.tweens.killTweensOf(this.earthImg);
+        this.earthImg.setAlpha(0.3);
+        this.tweens.add({ targets: this.earthImg, alpha: 1, duration: 220, ease: 'Sine.easeOut' });
+      }
+    }
+
+    const moving = this.dragging || coasting || this.tweens.isTweening(this.earthRot);
+    if (!force && !moving && time - this.earthLastDraw < EARTH_FRAME_MS) return;
+    this.drawEarth(time);
+  }
+
+  private drawEarth(time: number): void {
+    const tex = this.earthTex;
+    if (!this.earth || !tex || !this.earthImg) return;
+    this.earthLastDraw = time;
+    const S = tex.width;
+    const hits = this.earth.draw(tex.context, S, this.detailR, this.earthRot, time / 1000,
+      this.earthLayer, DPR, this.debugGrid);
+    tex.refresh();
+
+    const ox = this.detailCX - S / 2, oy = this.detailCY - S / 2;
+    for (const z of this.earthZones) {
+      const h = hits.find(k => k.mapId === z.mapId);
+      if (h) z.zone.setPosition(ox + h.x, oy + h.y);
+      z.zone.input!.enabled = !!h;
+    }
+  }
+
   /** Gira el globo para centrar el pin del mapa dado en la cara visible (o la capital
    *  'hogar' si ese mapa no existe en este planeta). `animate` = giro suave; si no, lo
    *  coloca al instante (apertura). Solo aplica en la vista detalle con pines. */
   focusMap(mapId: string, animate = true): void {
+    if (this.earth) { this.focusEarth(mapId, animate); return; }
     if (!this.planet || this.pinObjs.length === 0) return;
     const pin = this.pinObjs.find(p => p.mapId === mapId)
              ?? this.pinObjs.find(p => p.mapId === 'hogar')
@@ -607,6 +745,37 @@ export class PlanetViewScene extends Phaser.Scene {
       targets: this.planet,
       tilePositionX: shortest(this.planet.tilePositionX, targetX),
       tilePositionY: shortest(this.planet.tilePositionY, targetY),
+      duration: 700,
+      ease: 'Cubic.easeInOut',
+    });
+  }
+
+  private focusEarth(mapId: string, animate: boolean): void {
+    const pin = TIERRA_PINS.find(p => p.mapId === mapId)
+             ?? TIERRA_PINS.find(p => p.mapId === 'hogar')
+             ?? TIERRA_PINS[0];
+    if (!pin) return;
+    const target = rotFacing(pin.tx, pin.ty);
+
+    this.dragging = false;
+    this.velX = 0;
+    this.velY = 0;
+    this.tweens.killTweensOf(this.earthRot);
+
+    // Camino más corto en yaw (da igual cuántas vueltas lleve acumuladas)
+    let dYaw = (target.yaw - this.earthRot.yaw) % (Math.PI * 2);
+    if (dYaw >  Math.PI) dYaw -= Math.PI * 2;
+    if (dYaw < -Math.PI) dYaw += Math.PI * 2;
+    const yaw = this.earthRot.yaw + dYaw;
+
+    if (!animate) {
+      this.earthRot.yaw = yaw;
+      this.earthRot.pitch = target.pitch;
+      return;
+    }
+    this.tweens.add({
+      targets: this.earthRot,
+      yaw, pitch: target.pitch,
       duration: 700,
       ease: 'Cubic.easeInOut',
     });
@@ -680,6 +849,7 @@ export class PlanetViewScene extends Phaser.Scene {
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       if (this.mode !== 'detail' || this.transitioning) return;
       if (this.planet) this.tweens.killTweensOf(this.planet);  // cancela el giro a un mapa
+      if (this.earth) this.tweens.killTweensOf(this.earthRot);
       this.dragging = true;
       this.lastX = p.x;
       this.lastY = p.y;
@@ -688,7 +858,20 @@ export class PlanetViewScene extends Phaser.Scene {
     });
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
-      if (!this.dragging || !this.planet) return;
+      if (!this.dragging) return;
+      if (this.earth) {
+        // Globo 3D: px / radio = radianes → la superficie del centro sigue al dedo
+        const dx = (p.x - this.lastX) / this.detailR;
+        const dy = (p.y - this.lastY) / this.detailR;
+        this.lastX = p.x;
+        this.lastY = p.y;
+        this.earthRot.yaw += dx;
+        this.earthRot.pitch = Phaser.Math.Clamp(this.earthRot.pitch + dy, -1.2, 1.2);
+        this.velX = dx;
+        this.velY = dy;
+        return;
+      }
+      if (!this.planet) return;
       // /DPR: tilePosition va en px de textura y la textura se pinta a escala
       // DPR — así la superficie sigue exactamente al dedo
       const dx = (p.x - this.lastX) / DPR;

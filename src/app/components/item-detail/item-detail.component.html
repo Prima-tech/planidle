@@ -83,10 +83,18 @@
     {{ 'INVENTORY.EQUIP' | translate }}
   </button>
 
+  <!-- Equipar directo (herramientas): sin abrir la ventana de equipo ni arrastrar. -->
+  <button *ngIf="!compareWith && canEquip" class="rpg-btn rpg-btn--block detail-equip-btn"
+          [class.guide-glow]="guideEquip"
+          (click)="equip.emit(); $event.stopPropagation()">
+    {{ 'INVENTORY.EQUIP' | translate }}
+  </button>
+
   <!-- Botón aprender: recetas de construcción desde el inventario. Gasta el item y
        desbloquea su construible en el panel Construir (permanente y global). -->
   <button *ngIf="canUse && isRecipe" class="rpg-btn rpg-btn--block detail-use-btn"
           [disabled]="recipeLearned"
+          [class.guide-glow]="!recipeLearned"
           (click)="learn.emit(); $event.stopPropagation()">
     {{ (recipeLearned ? 'INVENTORY.LEARNED' : 'INVENTORY.LEARN') | translate }}
   </button>

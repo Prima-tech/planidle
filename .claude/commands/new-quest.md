@@ -167,21 +167,22 @@ misión no pertenece a ella. Las dos comparten la primera (mismo id → mismo pr
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro |
-| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro |
+| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro + 10 exp |
+| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro + 10 exp |
 
 **Cadena `QUESTS_NO_EXPLORATION`** (sin runner, todo combate en 1-1/1-2/1-3):
 
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera, **se entregan**) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro |
-| noexp_hacha | equip `Hacha de Hierro` (se fabrica en la mesa) | 1 | Fabrica y equipa el hacha | 10 oro |
-| noexp_pico | equip `Pico de Hierro` · `startFlags: recipe.iron_pickaxe` (al ofrecerla desbloquea la receta) | 1 | Fabrica y equipa el pico | 10 oro |
-| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro |
-| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro |
-| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro |
-| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro |
+| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro + 10 exp |
+| noexp_hacha | equip `Hacha de Hierro` (se fabrica en la mesa) | 1 | Fabrica y equipa el hacha | 10 oro + 10 exp |
+| noexp_pico | equip `Pico de Hierro` · `startFlags: recipe.iron_pickaxe` (al ofrecerla desbloquea la receta) | 1 | Fabrica y equipa el pico | 10 oro + 10 exp |
+| noexp_farmeo | collect (5 Madera + 5 Mineral de Cobre, **se entregan**) | 2 | Reúne 5 de madera y 5 de cobre | 10 oro + 10 exp |
+| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro + 10 exp |
+| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro + 10 exp |
+| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro + 10 exp |
+| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro + 10 exp |
 
 Al añadir una misión, **actualizar esta tabla**.
 
@@ -364,19 +365,19 @@ misión no pertenece a ella. Las dos comparten la primera (mismo id → mismo pr
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro |
-| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro |
+| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro + 10 exp |
+| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro + 10 exp |
 
 **Cadena `QUESTS_NO_EXPLORATION`** (sin runner, todo combate en 1-1/1-2/1-3):
 
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro |
-| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro |
-| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro |
-| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro |
-| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro |
+| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro + 10 exp |
+| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro + 10 exp |
+| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro + 10 exp |
+| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro + 10 exp |
+| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro + 10 exp |
 
 Al añadir una misión, **actualizar esta tabla**.
 
@@ -559,21 +560,22 @@ misión no pertenece a ella. Las dos comparten la primera (mismo id → mismo pr
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro |
-| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro |
+| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro + 10 exp |
+| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro + 10 exp |
 
 **Cadena `QUESTS_NO_EXPLORATION`** (sin runner, todo combate en 1-1/1-2/1-3):
 
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera, **se entregan**) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro |
-| noexp_hacha | equip `Hacha de Hierro` (se fabrica en la mesa) | 1 | Fabrica y equipa el hacha | 10 oro |
-| noexp_pico | equip `Pico de Hierro` · `startFlags: recipe.iron_pickaxe` (al ofrecerla desbloquea la receta) | 1 | Fabrica y equipa el pico | 10 oro |
-| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro |
-| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro |
-| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro |
-| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro |
+| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro + 10 exp |
+| noexp_hacha | equip `Hacha de Hierro` (se fabrica en la mesa) | 1 | Fabrica y equipa el hacha | 10 oro + 10 exp |
+| noexp_pico | equip `Pico de Hierro` · `startFlags: recipe.iron_pickaxe` (al ofrecerla desbloquea la receta) | 1 | Fabrica y equipa el pico | 10 oro + 10 exp |
+| noexp_farmeo | collect (5 Madera + 5 Mineral de Cobre, **se entregan**) | 2 | Reúne 5 de madera y 5 de cobre | 10 oro + 10 exp |
+| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro + 10 exp |
+| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro + 10 exp |
+| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro + 10 exp |
+| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro + 10 exp |
 
 Al añadir una misión, **actualizar esta tabla**.
 
@@ -756,19 +758,19 @@ misión no pertenece a ella. Las dos comparten la primera (mismo id → mismo pr
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro |
-| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro |
+| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro + 10 exp |
+| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro + 10 exp |
 
 **Cadena `QUESTS_NO_EXPLORATION`** (sin runner, todo combate en 1-1/1-2/1-3):
 
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro |
-| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro |
-| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro |
-| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro |
-| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro |
+| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro + 10 exp |
+| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro + 10 exp |
+| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro + 10 exp |
+| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro + 10 exp |
+| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro + 10 exp |
 
 Al añadir una misión, **actualizar esta tabla**.
 
@@ -955,19 +957,19 @@ misión no pertenece a ella. Las dos comparten la primera (mismo id → mismo pr
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro |
-| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro |
+| primeras_estrellas | stars | 100 | Consigue 100 estrellas | 10 oro + 10 exp |
+| mata_rata | kill family `rats` | 1 | Mata 1 rata | 100 oro + 10 exp |
 
 **Cadena `QUESTS_NO_EXPLORATION`** (sin runner, todo combate en 1-1/1-2/1-3):
 
 | id | objetivo | goal | track | recompensa |
 |----|----------|------|-------|------------|
 | recoge_materiales | collect (5 Piedra + 5 Madera) | 2 | Reúne materiales | 10 exp + 1 Mesa de trabajo |
-| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro |
-| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro |
-| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro |
-| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro |
-| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro |
+| noexp_mesa_trabajo | build `workbench` | 1 | Construye el banco de trabajo | 10 oro + 10 exp |
+| noexp_slimes | kill family `slime` | 10 | Mata 10 slimes | 50 oro + 10 exp |
+| noexp_slime_elite | kill `slime4_elite` | 1 | Mata al slime élite | 150 oro + 10 exp |
+| noexp_ratas | kill family `rats` | 15 | Mata 15 ratas | 300 oro + 10 exp |
+| noexp_orcos | kill family `orc` | 20 | Mata 20 orcos | 600 oro + 10 exp |
 
 Al añadir una misión, **actualizar esta tabla**.
 

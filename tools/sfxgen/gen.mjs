@@ -167,6 +167,55 @@ function unlock(soft) {
   return soft ? lowpass(out, 5500) : out;
 }
 
+
+// ── Recoger del suelo: variantes elegibles en Ajustes → Sonido (pickup_1..6) ──
+// 1 pop: burbuja que sube de tono, cortita.
+function pickupPop() {
+  const dur = 0.11, env = expEnv(seconds(dur), 0.035);
+  return lowpass(make(dur, (i, c) => c.osc(i, lerp(320, 950, Math.sqrt(i / c.n)), sine) * env[i] * 0.6), 5000);
+}
+// 2 blip: dos notitas ascendentes muy rápidas.
+function pickupBlip() {
+  const dur = 0.14, n = seconds(dur), half = n / 2;
+  return lowpass(make(dur, (i, c) => {
+    const local = (i % half) / half;
+    return c.osc(i, i < half ? 880 : 1175, triangle) * Math.exp(-local * 6) * 0.45;
+  }), 4500);
+}
+// 3 swoosh: soplido de ruido que se "traga" el objeto + tick final.
+function pickupSwoosh() {
+  const dur = 0.18, n = seconds(dur);
+  const buf = make(dur, (i, c) => {
+    const t = i / c.n;
+    const air = noise() * Math.sin(Math.PI * Math.min(1, t / 0.8)) * 0.5;
+    const tick = t > 0.8 ? c.osc(i, 1400, sine) * Math.exp(-(t - 0.8) * 40) * 0.5 : 0;
+    return air + tick;
+  });
+  return lowpass(buf, 3000);
+}
+// 4 pluck: cuerda pulsada suave (fundamental + octava).
+function pickupPluck() {
+  const dur = 0.25, env = expEnv(seconds(dur), 0.07);
+  let ph = 0;
+  return lowpass(make(dur, (i) => { ph += 660 / SR; return (triangle(ph) * 0.6 + sine(ph * 2) * 0.25) * env[i] * 0.6; }), 3500);
+}
+// 5 chime: campanita (parciales inarmónicos tipo bell).
+function pickupChime() {
+  const dur = 0.4, env = expEnv(seconds(dur), 0.12);
+  let ph = 0;
+  return make(dur, (i) => { ph += 1568 / SR; return (sine(ph) * 0.5 + sine(ph * 1.5) * 0.2 + sine(ph * 2.76) * 0.12) * env[i] * 0.5; });
+}
+// 6 bag: "a la mochila" — golpe sordo de cuero, grave y corto.
+function pickupBag() {
+  const dur = 0.13, env = expEnv(seconds(dur), 0.03);
+  return lowpass(make(dur, (i, c) => {
+    const t = i / c.n;
+    return (c.osc(i, lerp(170, 90, t), sine) * 0.8 + noise() * Math.pow(1 - t, 4) * 0.35) * env[i] * 0.8;
+  }), 1600);
+}
+
+const PICKUPS = [pickupPop, pickupBlip, pickupSwoosh, pickupPluck, pickupChime, pickupBag];
+
 const EFFECTS = { coin, hit, enemy_death: enemyDeath, levelup, mine, ui_click: uiClick, unlock };
 
 // ── Escritura WAV ────────────────────────────────────────────────────────────
@@ -194,6 +243,17 @@ function writeWav(path, samples) {
 //   node gen.mjs <outDir>          -> compara ambos estilos (nombre_sharp / nombre_soft)
 //   node gen.mjs <outDir> --final  -> set definitivo, solo suavizado, nombres limpios
 const FINAL = process.argv.includes('--final');
+
+//   node gen.mjs <outDir> --pickups -> solo las variantes de recoger (pickup_1..6.wav)
+if (process.argv.includes('--pickups')) {
+  PICKUPS.forEach((fn, i) => {
+    _seed = 1337;
+    const file = `pickup_${i + 1}.wav`;
+    writeWav(join(outDir, file), fn());
+    console.log('✓', file);
+  });
+  process.exit(0);
+}
 
 if (FINAL) {
   for (const [name, fn] of Object.entries(EFFECTS)) {

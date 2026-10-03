@@ -7,6 +7,7 @@ import { MapUpgradesService } from './map-upgrades.service';
 import { AccountShopService } from './account-shop.service';
 import { RunProgressService } from './run-progress.service';
 import { UnlockService } from './unlock.service';
+import { CityBuildService } from './city-build.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -18,7 +19,8 @@ export class SupabaseService {
               private mapUpgrades: MapUpgradesService,
               private accountShop: AccountShopService,
               private runProgress: RunProgressService,
-              private unlocks: UnlockService) {
+              private unlocks: UnlockService,
+              private cityBuild: CityBuildService) {
     const offlineFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
       fetch(input, init).catch(() => new Response(null, { status: 503, statusText: 'Service Unavailable' }));
 
@@ -218,6 +220,12 @@ export class SupabaseService {
       // REEMPLAZA lo local: si no, al entrar con otra cuenta en el mismo dispositivo se
       // heredarían sus flags y Asgard aparecería ya saqueado.
       await this.unlocks.restoreGlobal((data as any).account?.unlocksGlobal ?? null);
+
+      // Construcciones y recetas de Asgard (account.cityBuild): también de CUENTA. Antes
+      // vivían solo en el dispositivo y una cuenta nueva heredaba la ciudad anterior.
+      const account = (data as any).account;
+      await this.cityBuild.restoreForAccount(userId, account?.cityBuild ?? null,
+        !!account && Object.keys(account).length > 0);
 
       // Compras de la tienda premium (account.accountShop): fusiona nube + local.
       await this.accountShop.restore((data as any).account?.accountShop ?? null);

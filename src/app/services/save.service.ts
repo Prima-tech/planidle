@@ -25,6 +25,7 @@ import { GlobalTalentsService } from './global-talents.service';
 import { MapUpgradesService } from './map-upgrades.service';
 import { AccountShopService } from './account-shop.service';
 import { RunProgressService } from './run-progress.service';
+import { CityBuildService } from './city-build.service';
 
 /**
  * true  → el botón "Guardar" solo escribe en local, nunca llama a Supabase.
@@ -127,6 +128,7 @@ export class SaveService {
     private mapUpgrades: MapUpgradesService,
     private accountShop: AccountShopService,
     private runProgress: RunProgressService,
+    private cityBuild: CityBuildService,
   ) {
     // auditTime (no debounceTime): con farmeo continuo las emisiones nunca paran
     // y un debounce no dispararía jamás — auditTime garantiza un save cada 2s de actividad
@@ -492,6 +494,7 @@ export class SaveService {
           accountShop: this.accountShop.getSnapshot(),       // compras de la tienda premium
           runProgress: this.runProgress.getSnapshot(),       // estrellas + hitos del run (compartidos)
           unlocksGlobal: this.unlocks.getGlobalSnapshot(),   // flags de cuenta (recogidas de Asgard, reclutas…)
+          cityBuild: await this.cityBuild.getAccountSnapshot(), // construcciones + recetas de Asgard
         });
       } catch (e) {
         console.warn('[Save] global_data no se pudo actualizar (logros/mejoras de cuenta)', e);

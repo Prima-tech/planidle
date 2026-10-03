@@ -142,6 +142,17 @@
     "VOLUME_MASTER": "Master volume",
     "VOLUME_SFX": "Effects (SFX)",
     "VOLUME_MUSIC": "Music",
+    "PICKUP_SOUND": {
+      "TITLE": "Pickup sound",
+      "DESC": "Tap one to hear it and pick it.",
+      "POP": "Bubble",
+      "BLIP": "Blip",
+      "SWOOSH": "Swoosh",
+      "PLUCK": "Pluck",
+      "CHIME": "Chime",
+      "BAG": "Backpack",
+      "NONE": "No sound"
+    },
     "RUNNER_BG": "Runner background",
     "RUNNER_BG_DESC": "Choose the World Mode parallax."
   },
@@ -425,23 +436,28 @@
     },
     "PRIMERAS_ESTRELLAS": {
       "NAME": "Mordekai's Call",
-      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and gather 100 stars: tap the screen to jump and grab them on the fly. Reward: 10 gold.",
+      "DESC": "Mordekai asks you to learn to explore before fighting. Cross the exploration portal (the east one) and gather 100 stars: tap the screen to jump and grab them on the fly. Reward: 10 gold and 10 XP.",
       "TRACK": "Collect 100 stars"
     },
     "NOEXP_MESA_TRABAJO": {
       "NAME": "Build the workbench",
-      "DESC": "Mordekai gave you workbench plans. Open them from your inventory with the Learn button, then tap the hammer in the bottom menu (Asgard only) to build it. Reward: 10 gold.",
+      "DESC": "Mordekai gave you workbench plans. Open them from your inventory with the Learn button, then tap the hammer in the bottom menu (Asgard only) to build it. Reward: 10 gold and 10 XP.",
       "TRACK": "Build the workbench"
     },
     "NOEXP_HACHA": {
       "NAME": "Craft an axe",
-      "DESC": "Mordekai wants to see you with proper tools. Open the workbench, craft the Iron Axe (2 stone and 2 wood) and equip it in its slot in the equipment window. Then talk to Mordekai. Reward: 10 gold.",
+      "DESC": "Mordekai wants to see you with proper tools. Open the workbench, craft the Iron Axe (2 stone and 2 wood), then open it in your bag and tap Equip. Then talk to Mordekai. Reward: 10 gold and 10 XP.",
       "TRACK": "Craft and equip the axe"
     },
     "NOEXP_PICO": {
       "NAME": "Craft a pickaxe",
-      "DESC": "Mordekai taught you how to make a pickaxe: it is now on the workbench. Craft the Iron Pickaxe (2 stone and 2 wood) and equip it in its slot in the equipment window. Then talk to Mordekai. Reward: 10 gold.",
+      "DESC": "Mordekai taught you how to make a pickaxe: it is now on the workbench. Craft the Iron Pickaxe (2 stone and 2 wood), then open it in your bag and tap Equip. Then talk to Mordekai. Reward: 10 gold and 10 XP.",
       "TRACK": "Craft and equip the pickaxe"
+    },
+    "NOEXP_FARMEO": {
+      "NAME": "Break in your tools",
+      "DESC": "With an axe and a pickaxe you can do real work now. Chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and hand them to Mordekai. Reward: 10 gold and 10 XP.",
+      "TRACK": "Gather 5 wood and 5 copper"
     },
     "NOEXP_SLIMES": {
       "NAME": "Slime Cleanup",
@@ -532,6 +548,10 @@
     "VIEW_PLANET": "View planet",
     "VIEW_GLOBE": "Globe",
     "VIEW_HEX": "Hexes",
+    "LAYER_NORMAL": "Normal",
+    "LAYER_ECONOMY": "Economy",
+    "LAYER_WAR": "War",
+    "GRID": "Grid",
     "AFK_PRODUCTION": "AFK production / hour",
     "GOLD": "Gold",
     "XP": "XP",
@@ -779,9 +799,10 @@
     "MORDEKAI_NOEXP_CLAIM0": "Well done! Hand me that stone and wood… and take these plans in exchange; you also earn 10 XP. Open them in your inventory and hit Learn; then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_INTRO": "Those plans are no use in your bag, {{player}}. Tap the item in your inventory, hit Learn, then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_PROGRESS": "I still do not see your workbench, {{player}}. If you already learned the plans, tap the hammer in the bottom menu, drag it to a free spot and confirm with ✓.",
-    "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold. Now put it to use: open the workbench, craft an axe and equip it. Then come talk to me again.",
-    "MORDEKAI_AXE_CLAIM": "Now that is a proper axe, {{player}}! Take 10 gold. Let me teach you how to make a pickaxe: it is on the workbench now. Craft it, equip it and come back.",
-    "MORDEKAI_PICK_CLAIM": "Perfect, {{player}}! Axe and pickaxe, all set. Take 10 gold. Now it is time to fight: cross the west portal to 1-1 and take down 10 slimes.",
+    "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold and 10 XP. Now put it to use: open the workbench and craft an axe; then find it in your bag and tap Equip. Then come talk to me again.",
+    "MORDEKAI_AXE_CLAIM": "Now that is a proper axe, {{player}}! Take 10 gold and 10 XP. Let me teach you how to make a pickaxe: it is on the workbench now. Craft it, equip it and come back.",
+    "MORDEKAI_PICK_CLAIM": "Perfect, {{player}}! Axe and pickaxe, all set. Take 10 gold and 10 XP. Now put them to use: chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and bring them to me.",
+    "MORDEKAI_FARM_CLAIM": "That is real work, {{player}}! I will keep the materials; take 10 gold and 10 XP. Now it is time to fight: cross the west portal to 1-1 and take down 10 slimes.",
     "MORDEKAI_NOEXP_CLAIM1": "Good work! Keep killing in 1-1 and an elite slime will appear. Defeat it.",
     "MORDEKAI_NOEXP_CLAIM2": "Impressive! Go through the 1-1 portal to 1-2 and take down 15 rats.",
     "MORDEKAI_NOEXP_CLAIM3": "Rats gone! The next challenge is in 1-3: defeat 20 orcs.",

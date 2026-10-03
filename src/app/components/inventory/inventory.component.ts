@@ -12,6 +12,7 @@ import { PanelStateService } from 'src/app/services/panel-state.service';
 import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
+import { QuestService } from 'src/app/services/quest.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -52,6 +53,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   private equipPanel = inject(EquipmentPanelService);
   private playerState = inject(PlayerStateService);
   private playerBridge = inject(PlayerBridgeService);
+  private quests = inject(QuestService);
   unlock = inject(InventoryUnlockService);
 
   coins$ = this.playerState.coins$;
@@ -116,6 +118,33 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.splitMenuOpen = false;
     this.deleteModalOpen = false;
     this.triggerSave();
+  }
+
+  /** Guía: plano aún sin aprender → su celda brilla hasta que se aprende. */
+  isPendingBlueprint(item: InventoryItem | null): boolean {
+    return !!item?.teachesBuild && !this.cityBuild.isLearned(item.teachesBuild);
+  }
+
+  /** Guía: herramienta que pide equipar la misión en curso (p.ej. el hacha). */
+  isGuideEquip(item: InventoryItem | null): boolean {
+    return !!item && item.name === this.quests.pendingEquipItem();
+  }
+
+  /** Celda resaltada por la guía: plano sin aprender o herramienta por equipar. */
+  isGuideCell(item: InventoryItem | null): boolean {
+    return this.isPendingBlueprint(item) || this.isGuideEquip(item);
+  }
+
+  /** ¿Hay algo resaltado en esa pestaña? (brilla la pestaña si no es la activa). */
+  tabHasGuide(tabIndex: number): boolean {
+    return !!this.inventories[tabIndex]?.some(row => row.some(it => this.isGuideCell(it)));
+  }
+
+  /** Botón Equipar directo en la ficha (sin abrir la ventana de equipo ni arrastrar):
+   *  herramientas de recolección. Si el comparador está visible, ya trae el suyo. */
+  get canEquipDirect(): boolean {
+    const sel = this.selectedItemData;
+    return !!sel && !this.compareItemData && this.targetSlotFor(sel)?.kind === 'gather';
   }
 
   /** Usa el consumible seleccionado (poción): cura al jugador y gasta una unidad. */

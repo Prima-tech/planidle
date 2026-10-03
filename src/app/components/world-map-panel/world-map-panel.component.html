@@ -2,11 +2,6 @@
 
   <div class="map-area">
 
-    <!-- DEBUG: activa/desactiva la cuadrícula de coordenadas del globo -->
-    <button class="grid-toggle-btn" *ngIf="view === 'globe'" [class.active]="gridOn" (click)="toggleGrid()" title="Cuadrícula (debug)">
-      <ion-icon name="grid-outline"></ion-icon>
-    </button>
-
     <!-- Info panel (compartido: se rellena al pulsar un pin del globo) -->
     <div class="map-info-card" *ngIf="selectedMap">
       <div class="info-name">{{ selectedMap.name }}</div>
@@ -51,30 +46,30 @@
     </div>
 
     <!-- Nombre del planeta en vista detalle (overlay Angular sobre el globo) -->
-    <div class="planet-title" *ngIf="view === 'globe' && detailPlanetName">{{ detailPlanetName }}</div>
+    <div class="planet-title" *ngIf="detailPlanetName">{{ detailPlanetName }}</div>
 
-    <!-- Pestañas de vista: globo (Phaser) / tablero hexagonal (canvas 2D) -->
-    <div class="view-tabs">
-      <button class="pml-item view-tab" [class.selected]="view === 'globe'" (click)="setView('globe')">{{ 'MAP.VIEW_GLOBE' | translate }}</button>
-      <button class="pml-item view-tab" [class.selected]="view === 'hex'" (click)="setView('hex')">{{ 'MAP.VIEW_HEX' | translate }}</button>
+    <!-- Capas del globo de la Tierra (mismo terreno en las tres): Normal / Economía /
+         Guerra. El botón muestra la inicial del nombre traducido; el nombre entero va
+         en el title. -->
+    <div class="view-tabs" *ngIf="detailPlanetId === 'mundo'">
+      <button
+        *ngFor="let l of layers"
+        class="pml-item view-tab"
+        [class.selected]="layer === l.id"
+        [title]="l.key | translate"
+        (click)="setLayer(l.id)"
+      >{{ (l.key | translate).charAt(0) }}</button>
+      <!-- DEBUG: cuadrícula tx/ty para colocar pines (apagada por defecto) -->
+      <button class="grid-toggle-btn" [class.active]="gridOn" (click)="toggleGrid()" [title]="'MAP.GRID' | translate">
+        <ion-icon name="grid-outline"></ion-icon>
+      </button>
     </div>
-
-    <!-- Tablero hexagonal: tapa al globo (que se duerme mientras no se ve) -->
-    <app-hex-map
-      *ngIf="view === 'hex'"
-      class="hex-area"
-      [isLocked]="isMapLockedFn"
-      [currentMapId]="currentMapId"
-      [selectedMapId]="selectedMap?.id"
-      (pinSelect)="selectPin($event)"
-      (pinTeleport)="teleport($event)"
-    ></app-hex-map>
 
     <!-- Planeta interactivo (mini-instancia Phaser propia) -->
     <div class="planet-area" id="planet-view"></div>
 
     <!-- Lista de mapas desbloqueados del planeta; pinchar gira el globo -->
-    <div class="planet-map-list" *ngIf="view === 'globe' && planetMapList.length > 0">
+    <div class="planet-map-list" *ngIf="planetMapList.length > 0">
       <button
         *ngFor="let m of planetMapList"
         class="pml-item"
@@ -87,7 +82,7 @@
     </div>
 
     <!-- Tarjeta de info del planeta seleccionado -->
-    <div class="map-info-card planet-info-card" *ngIf="view === 'globe' && selectedPlanet">
+    <div class="map-info-card planet-info-card" *ngIf="selectedPlanet">
       <div class="info-name">{{ selectedPlanet.name }}</div>
 
       <div class="info-chars" *ngIf="charsOnPlanet.length > 0">

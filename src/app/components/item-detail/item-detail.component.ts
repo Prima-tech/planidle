@@ -39,6 +39,10 @@ export class ItemDetailComponent {
   @Input() compareWith?: InventoryItem | null;
   /** true → muestra el botón "Usar" para consumibles (solo desde el inventario). */
   @Input() canUse = false;
+  /** true → botón "Equipar" en la propia ficha (herramientas, sin comparador). */
+  @Input() canEquip = false;
+  /** true → la guía resalta ese botón "Equipar" (misión de equipar en curso). */
+  @Input() guideEquip = false;
   /** Emite al pulsar "Equipar" (solo en modo comparador). */
   @Output() equip = new EventEmitter<void>();
   /** Emite al pulsar "Usar" (consumibles). */

@@ -1,6 +1,7 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY } from 'src/app/scenes/planet-view.scene';
+import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY } from 'src/app/scenes/planet-view.scene';
+import { GlobeLayer } from 'src/app/scenes/earth-globe';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
@@ -56,15 +57,13 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   selectedPlanet: { id: string; name: string } | null = null;
   charsOnPlanet: CharOnMap[] = [];
 
-  /** Vista del panel: globo (Phaser) o tablero hexagonal. Estática → se recuerda
-   *  entre aperturas del panel durante la sesión. */
-  private static lastView: 'globe' | 'hex' = 'globe';
-  view: 'globe' | 'hex' = WorldMapPanelComponent.lastView;
-  /** Predicado de bloqueo enlazado, para pasarlo como @Input al tablero hexagonal. */
-  readonly isMapLockedFn = (mapId: string) => this.isMapLocked(mapId);
+  /** Capa del globo de la Tierra: base (mundo), Economía o Guerra. Estática → se
+   *  recuerda entre aperturas del panel durante la sesión. */
+  private static lastLayer: GlobeLayer = 'base';
+  layer: GlobeLayer = WorldMapPanelComponent.lastLayer;
 
   // DEBUG: estado de la cuadrícula del globo (arranca igual que DEBUG_PIN_GRID en la escena).
-  gridOn = true;
+  gridOn = false;
 
   // Planeta cuyo globo se está viendo en la vista detalle (lo reporta la escena).
   // Determina la lista de mapas que se muestra a la izquierda del globo.
@@ -108,6 +107,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       // para que la change detection pinte la tarjeta.
       // El globo pinta en gris los mapas bloqueados y no extiende la ruta hasta ellos.
       registry.set(PLANET_MAP_LOCKED_KEY, (mapId: string) => this.isMapLocked(mapId));
+      registry.set(PLANET_LAYER_KEY, this.layer);
       registry.set(PLANET_PIN_SELECT_KEY, (mapId: string) => {
         this.ngZone.run(() => this.selectPin(mapId));
       });
@@ -135,16 +135,19 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
     // La instancia se reutiliza: el botón de debug refleja el estado real del grid.
     const scene = this.planetHost.scene;
     if (scene) this.gridOn = scene.debugGridOn;
-    if (this.view === 'hex') this.planetHost.pause();
   }
 
-  /** Cambia de pestaña. El globo sigue colgado del panel pero se duerme mientras el
-   *  tablero hexagonal lo tapa (cero coste de render). */
-  setView(view: 'globe' | 'hex') {
-    if (this.view === view) return;
-    this.view = WorldMapPanelComponent.lastView = view;
-    if (view === 'hex') this.planetHost.pause();
-    else this.planetHost.resume();
+  /** Pestañas de capa del globo (botón = inicial del nombre traducido). */
+  readonly layers: { id: GlobeLayer; key: string }[] = [
+    { id: 'base',    key: 'MAP.LAYER_NORMAL' },
+    { id: 'economy', key: 'MAP.LAYER_ECONOMY' },
+    { id: 'war',     key: 'MAP.LAYER_WAR' },
+  ];
+
+  /** Activa una capa del globo. La escena lee la capa del registry en cada frame. */
+  setLayer(layer: GlobeLayer) {
+    this.layer = WorldMapPanelComponent.lastLayer = layer;
+    this.planetHost.registry?.set(PLANET_LAYER_KEY, layer);
   }
 
   /** Mapas DESBLOQUEADOS del planeta que se está viendo, para la lista de la izquierda

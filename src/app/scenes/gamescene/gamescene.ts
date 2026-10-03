@@ -788,7 +788,15 @@ export class GameScene extends Phaser.Scene {
       // deja de contar como "cercano" tras abrirse (p.ej. el cofre de ciudad sale de
       // nearestOpenableChest al abrirse), el botón aún pulsado NO suelta un golpe.
       if (this.mobileInput?.isAttackHeld) {
-        if (nearChest) {
+        // Con un diálogo abierto, el botón (bocadillo) actúa como un toque en el cuadro:
+        // pasa de página/línea y en la última lo CIERRA. Antes volvía a hablar con el NPC
+        // y reabría la conversación sin fin.
+        if (this.reg.dialogue?.isOpen) {
+          if (!this.interactLatched) {
+            this.interactLatched = true;
+            this.reg.dialogue.requestNext();
+          }
+        } else if (nearChest) {
           if (!this.interactLatched) {
             this.interactLatched = true;
             this.openChest(nearChest);
@@ -3023,13 +3031,14 @@ export class GameScene extends Phaser.Scene {
           const qty = Phaser.Math.Between(kind.drop.min, kind.drop.max) * effQty * dropMult;
           const baseY = s.y - GameScene.TILE_SIZE;
           const origin = new Phaser.Math.Vector2(s.x, baseY);
-          // Cada unidad sale volando desde el centro del nodo hacia un punto de caída
-          // esparcido a su alrededor, en vez de nacer todas en el mismo sitio.
+          // Cada unidad sale DISPARADA desde el nodo en un abanico de 180° por delante del
+          // jugador (dirección jugador → nodo): cae lejos de él, así se ve salir y no se
+          // autorrecoge al instante pisándola.
+          const ps = this.player.getSprite();
+          const dir = Math.atan2(baseY - ps.y, s.x - ps.x);
           for (let i = 0; i < qty; i++) {
             const loot = { ...base, minQty: 1, maxQty: 1 };
-            const px = s.x + Phaser.Math.Between(-GameScene.TILE_SIZE, GameScene.TILE_SIZE);
-            const py = baseY + Phaser.Math.Between(-GameScene.TILE_SIZE * 0.5, GameScene.TILE_SIZE * 0.5);
-            this.gridDrops?.spawnDrop(new Phaser.Math.Vector2(px, py), loot, origin);
+            this.gridDrops?.spawnDrop(origin.clone(), loot, origin, dir);
           }
         }
       }
@@ -3632,7 +3641,7 @@ export class GameScene extends Phaser.Scene {
 
       const item = hydrateItem({ id: `pick-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: p.itemName, sum: 1 });
       this.reg.inventory?.addOrDropToWorld(item);
-      this.reg.audio?.play('mine');
+      this.reg.audio?.playPickup();   // sonido de recoger elegido en Ajustes → Sonido
 
       const sp = p.sprite;   // pop: sube y se desvanece antes de destruirse
       this.tweens.add({

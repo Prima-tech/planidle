@@ -16,7 +16,7 @@
     <!-- Aro de piedra sobre el minimapa Phaser (MM_TOP/MM_MARGIN=10, MM_RADIUS=49) -->
     <div class="minimap-frame" *ngIf="dataLoaded && sceneVisible && !(playerBridgeService.runMode$ | async)" (click)="footerBar.openWorldMap()">
       <span class="minimap-name">{{ (worldService.currentMap$ | async)?.name }}</span>
-      <button class="minimap-btn minimap-btn--bag" (click)="footerBar.openInventory(); $event.stopPropagation()">
+      <button class="minimap-btn minimap-btn--bag" [class.guide-glow]="blueprintPending || guideEquipPending" (click)="footerBar.openInventory(); $event.stopPropagation()">
         <img class="minimap-btn-img minimap-btn-img--bag" src="assets/icon/menu/inventory.png" alt="" draggable="false" />
       </button>
       <button class="minimap-btn minimap-btn--settings" (click)="footerBar.openGameSettings(); $event.stopPropagation()">

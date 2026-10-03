@@ -133,6 +133,18 @@ export class LayoutComponent implements OnDestroy {
     this.loadGame();
   }
 
+  /** Guía: hay un plano en la mochila sin aprender (p.ej. el de la mesa de trabajo que da
+   *  Mordekai) → la mochila brilla hasta que se aprende. */
+  get blueprintPending(): boolean {
+    return this.inventoryService.some(it => !!it.teachesBuild && !this.cityBuildService.isLearned(it.teachesBuild));
+  }
+
+  /** Guía: la herramienta que pide equipar una misión ya está en la mochila. */
+  get guideEquipPending(): boolean {
+    const name = this.questService.pendingEquipItem();
+    return !!name && this.inventoryService.countByName(name) > 0;
+  }
+
   ngOnInit(): void {
     this.regenService.start();
     this.ambientChatService.start();   // charla ambiental de otros personajes en el chat

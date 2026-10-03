@@ -1,5 +1,7 @@
 <app-item-detail [item]="selectedItemData" [panelStyle]="detailPanelStyle"
-                 [canUse]="true" (use)="useSelected()" (learn)="learnSelected()"></app-item-detail>
+                 [canUse]="true" (use)="useSelected()" (learn)="learnSelected()"
+                 [canEquip]="canEquipDirect" [guideEquip]="isGuideEquip(selectedItemData)"
+                 (equip)="equipSelected()"></app-item-detail>
 
 <!-- Comparador: equipo equipado equivalente, con deltas del ítem nuevo (seleccionado) -->
 <app-item-detail [item]="compareItemData" [panelStyle]="comparePanelStyle"
@@ -13,6 +15,7 @@
     [attr.data-tab-index]="index"
     [ngClass]="{ active: index === activeTabIndex }"
     [hidden]="!isTabVisible(index)"
+    [class.guide-glow]="index !== activeTabIndex && tabHasGuide(index)"
     (click)="selectTab(index); $event.stopPropagation()"
   >
     {{ tab }}
@@ -31,6 +34,7 @@
       <div
         *ngIf="isCellUnlocked(tabIndex, rowIndex, colIndex)"
         class="inventory-cell"
+        [class.guide-glow]="isGuideCell(cell)"
         cdkDropList
         cdkDropListSortingDisabled
         [id]="'inv-' + tabIndex + '-' + rowIndex + '-' + colIndex"

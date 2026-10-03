@@ -12,7 +12,25 @@ export const SFX = {
   mine:        'assets/audio/sfx/mine.wav',
   ui_click:    'assets/audio/sfx/ui_click.wav',
   unlock:      'assets/audio/sfx/unlock.wav',
+  // Variantes del sonido de RECOGER del suelo (elegible en Ajustes → Sonido).
+  pickup_1:    'assets/audio/sfx/pickup_1.wav',
+  pickup_2:    'assets/audio/sfx/pickup_2.wav',
+  pickup_3:    'assets/audio/sfx/pickup_3.wav',
+  pickup_4:    'assets/audio/sfx/pickup_4.wav',
+  pickup_5:    'assets/audio/sfx/pickup_5.wav',
+  pickup_6:    'assets/audio/sfx/pickup_6.wav',
 } as const;
+
+/** Opciones del sonido de recoger: 0 = sin sonido, 1..6 = pickup_N. `label` = clave i18n. */
+export const PICKUP_SOUNDS: { id: number; label: string }[] = [
+  { id: 1, label: 'SETTINGS.PICKUP_SOUND.POP' },
+  { id: 2, label: 'SETTINGS.PICKUP_SOUND.BLIP' },
+  { id: 3, label: 'SETTINGS.PICKUP_SOUND.SWOOSH' },
+  { id: 4, label: 'SETTINGS.PICKUP_SOUND.PLUCK' },
+  { id: 5, label: 'SETTINGS.PICKUP_SOUND.CHIME' },
+  { id: 6, label: 'SETTINGS.PICKUP_SOUND.BAG' },
+  { id: 0, label: 'SETTINGS.PICKUP_SOUND.NONE' },
+];
 
 export type SfxId = keyof typeof SFX;
 
@@ -22,10 +40,11 @@ interface AudioSettings {
   sfx: number;      // 0..1
   music: number;    // 0..1
   muted: boolean;
+  pickupSound: number;   // 0 = sin sonido, 1..6 = pickup_N (ver PICKUP_SOUNDS)
 }
 
 const STORAGE_KEY = 'idle_audio_settings';
-const DEFAULTS: AudioSettings = { master: 0.8, sfx: 0.9, music: 0.4, muted: false };
+const DEFAULTS: AudioSettings = { master: 0.8, sfx: 0.9, music: 0.4, muted: false, pickupSound: 1 };
 
 // Evita solapar el mismo efecto demasiadas veces por frame (p. ej. varios golpes)
 const SAME_SFX_MIN_GAP_MS = 40;
@@ -161,6 +180,16 @@ export class AudioService {
   get muted$() { return this._subject.pipe(map(s => s.muted), distinctUntilChanged()); }
   setMuted(v: boolean) { this.update({ muted: v }); }
   toggleMuted() { this.setMuted(!this._settings.muted); }
+
+  // ── Sonido de recoger (elegible) ────────────────────────────────────────────
+  get pickupSound(): number { return this._settings.pickupSound; }
+  get pickupSound$() { return this._subject.pipe(map(s => s.pickupSound), distinctUntilChanged()); }
+  setPickupSound(id: number) { this.update({ pickupSound: id }); }
+
+  /** Suena el efecto de recoger elegido (nada si es 0). `id` fuerza una variante (preescucha). */
+  playPickup(id = this._settings.pickupSound, volume = 1): void {
+    if (id >= 1 && id <= 6) this.play(`pickup_${id}` as SfxId, volume);
+  }
 
   /** Bus de música, por si luego se añaden loops de fondo por bioma. */
   get musicBus(): GainNode | null { this.ensureContext(); return this.musicGain; }

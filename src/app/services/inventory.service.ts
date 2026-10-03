@@ -145,6 +145,11 @@ export class InventoryService {
     return false;
   }
 
+  /** ¿Hay algún item que cumpla `pred`? (p.ej. un plano aún sin aprender). */
+  some(pred: (it: InventoryItem) => boolean): boolean {
+    return this.grid.some(tab => tab.some(row => row.some(it => !!it && pred(it))));
+  }
+
   /** Suma total de un material apilable por nombre (todas las pilas del inventario). */
   countByName(name: string): number {
     let total = 0;

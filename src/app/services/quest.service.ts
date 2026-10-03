@@ -189,7 +189,7 @@ export const QUESTS: QuestDef[] = [
     objective: { type: 'stars', goal: 100 },
     // Recompensa: 10 de oro. El Impulso ya NO se otorga aquí: se compra con estrellas
     // en el panel de mejoras del run (hito 'sprint', 10★).
-    reward: { coins: 10 },
+    reward: { coins: 10, exp: 10 },
     requires: 'recoge_materiales',   // sigue a la misión de recoger materiales
     giver: 'Mordekai',
     // Al cobrarla en la ventana de equipo: se cierra y Mordekai suelta el hint de la rata.
@@ -202,7 +202,7 @@ export const QUESTS: QuestDef[] = [
     icon: 'skull-outline',
     track: 'QUESTS.MATA_RATA.TRACK',
     objective: { type: 'kill', family: 'rats', goal: 1 },
-    reward: { coins: 100 },
+    reward: { coins: 100, exp: 10 },
     giver: 'Mordekai',
     requires: 'primeras_estrellas',   // aparece solo tras cobrar la de la estrella
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_CLAIM2' },
@@ -229,7 +229,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     icon: 'hammer-outline',
     track: 'QUESTS.NOEXP_MESA_TRABAJO.TRACK',
     objective: { type: 'build', goal: 1, buildType: 'workbench' },
-    reward: { coins: 10 },
+    reward: { coins: 10, exp: 10 },
     requires: 'recoge_materiales',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_BENCH_CLAIM' },
@@ -243,7 +243,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     icon: 'construct-outline',
     track: 'QUESTS.NOEXP_HACHA.TRACK',
     objective: { type: 'equip', goal: 1, itemName: 'Hacha de Hierro' },
-    reward: { coins: 10 },
+    reward: { coins: 10, exp: 10 },
     requires: 'noexp_mesa_trabajo',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_AXE_CLAIM' },
@@ -257,11 +257,26 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     icon: 'hammer-outline',
     track: 'QUESTS.NOEXP_PICO.TRACK',
     objective: { type: 'equip', goal: 1, itemName: 'Pico de Hierro' },
-    reward: { coins: 10 },
+    reward: { coins: 10, exp: 10 },
     requires: 'noexp_hacha',
     startFlags: [RECIPE_IRON_PICKAXE_FLAG],
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_PICK_CLAIM' },
+  },
+  {
+    // Estrenar las herramientas: talar y picar hasta reunir 5 Madera + 5 Mineral de Cobre
+    // (lo que sueltan árboles y rocas de Asgard; la Piedra solo sale del suelo), que se
+    // entregan a Mordekai al cobrarla.
+    id: 'noexp_farmeo',
+    name: 'QUESTS.NOEXP_FARMEO.NAME',
+    desc: 'QUESTS.NOEXP_FARMEO.DESC',
+    icon: 'leaf-outline',
+    track: 'QUESTS.NOEXP_FARMEO.TRACK',
+    objective: { type: 'collect', goal: 2, consume: true, items: [{ name: 'Madera', qty: 5 }, { name: 'Mineral de Cobre', qty: 5 }] },
+    reward: { coins: 10, exp: 10 },
+    requires: 'noexp_pico',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_FARM_CLAIM' },
   },
   {
     id: 'noexp_slimes',
@@ -270,8 +285,8 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     icon: 'skull-outline',
     track: 'QUESTS.NOEXP_SLIMES.TRACK',
     objective: { type: 'kill', family: 'slime', goal: 10 },
-    reward: { coins: 50 },
-    requires: 'noexp_pico',
+    reward: { coins: 50, exp: 10 },
+    requires: 'noexp_farmeo',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM1' },
   },
@@ -282,7 +297,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     icon: 'flame-outline',
     track: 'QUESTS.NOEXP_SLIME_ELITE.TRACK',
     objective: { type: 'kill', enemyTypes: ['slime4_elite'], goal: 1 },
-    reward: { coins: 150 },
+    reward: { coins: 150, exp: 10 },
     requires: 'noexp_slimes',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM2' },
@@ -294,7 +309,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     icon: 'skull-outline',
     track: 'QUESTS.NOEXP_RATAS.TRACK',
     objective: { type: 'kill', family: 'rats', goal: 15 },
-    reward: { coins: 300 },
+    reward: { coins: 300, exp: 10 },
     requires: 'noexp_slime_elite',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM3' },
@@ -306,7 +321,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     icon: 'skull-outline',
     track: 'QUESTS.NOEXP_ORCOS.TRACK',
     objective: { type: 'kill', family: 'orc', goal: 20 },
-    reward: { coins: 600 },
+    reward: { coins: 600, exp: 10 },
     requires: 'noexp_ratas',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_NOEXP_CLAIM4' },
@@ -514,6 +529,13 @@ export class QuestService implements OnDestroy {
   questForGiver(giver: string): QuestDef | null {
     const mine = this.available().filter(q => q.giver === giver);
     return mine.find(q => this.isClaimable(q)) ?? mine[0] ?? null;
+  }
+
+  /** Guía: item que pide equipar una misión 'equip' en curso (p.ej. 'Hacha de Hierro'),
+   *  o null. La UI resalta el camino: Fabricar → mochila → item → Equipar. */
+  pendingEquipItem(): string | null {
+    const q = this.available().find(d => d.objective.type === 'equip' && !this.isClaimable(d));
+    return q?.objective.type === 'equip' ? q.objective.itemName : null;
   }
 
   completed(): QuestDef[] {
@@ -724,6 +746,7 @@ export class QuestService implements OnDestroy {
     for (const def of this.list()) {
       if (def.objective.type !== 'collect') continue;
       if (this.completedSet.has(def.id)) continue;
+      if (!this.prereqMet(def)) continue;   // aún no ofrecida: no acumula (la cuenta al ofrecerse)
       const done = def.objective.items.filter(it => this.inventory.countByName(it.name) >= it.qty).length;
       const cur = this.progress[def.id] ?? 0;
       const next = Math.max(cur, done);
@@ -750,6 +773,7 @@ export class QuestService implements OnDestroy {
     for (const q of this.list()) if (q.requires === def.id) this.activate(q);
     this.grantStartFlags();   // las recién ofrecidas desbloquean lo suyo (p.ej. receta)
     this.onEquip();           // si ya llevas puesto lo que pide la siguiente, cuenta ya
+    this.onCollect();         // ídem con los materiales que ya lleves encima
     this.completed$.next(def);
     this.notify();
     this.persistNow();  // los completados se guardan al momento (recompensa ya dada)

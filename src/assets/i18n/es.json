@@ -142,6 +142,17 @@
     "VOLUME_MASTER": "Volumen general",
     "VOLUME_SFX": "Efectos (SFX)",
     "VOLUME_MUSIC": "Música",
+    "PICKUP_SOUND": {
+      "TITLE": "Sonido al recoger",
+      "DESC": "Toca uno para oírlo y elegirlo.",
+      "POP": "Burbuja",
+      "BLIP": "Blip",
+      "SWOOSH": "Soplido",
+      "PLUCK": "Cuerda",
+      "CHIME": "Campanita",
+      "BAG": "Mochila",
+      "NONE": "Sin sonido"
+    },
     "RUNNER_BG": "Fondo del runner",
     "RUNNER_BG_DESC": "Elige el parallax del Modo Mundo."
   },
@@ -425,23 +436,28 @@
     },
     "PRIMERAS_ESTRELLAS": {
       "NAME": "La llamada de Mordekai",
-      "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y reúne 100 estrellas: toca la pantalla para saltar y recógelas al vuelo. Recompensa: 10 de oro.",
+      "DESC": "Mordekai te pide aprender a explorar antes de luchar. Cruza el portal de exploración (el del este) y reúne 100 estrellas: toca la pantalla para saltar y recógelas al vuelo. Recompensa: 10 de oro y 10 de experiencia.",
       "TRACK": "Consigue 100 estrellas"
     },
     "NOEXP_MESA_TRABAJO": {
       "NAME": "Construye el banco de trabajo",
-      "DESC": "Mordekai te ha dado los planos de una mesa de trabajo. Ábrelos desde el inventario con el botón Aprender y luego pulsa el martillo del menú de abajo (solo en Asgard) para construirla. Recompensa: 10 de oro.",
+      "DESC": "Mordekai te ha dado los planos de una mesa de trabajo. Ábrelos desde el inventario con el botón Aprender y luego pulsa el martillo del menú de abajo (solo en Asgard) para construirla. Recompensa: 10 de oro y 10 de experiencia.",
       "TRACK": "Construye el banco de trabajo"
     },
     "NOEXP_HACHA": {
       "NAME": "Fabrica un hacha",
-      "DESC": "Mordekai quiere verte con herramientas de verdad. Abre la mesa de trabajo, fabrica el Hacha de Hierro (2 de piedra y 2 de madera) y equípala en su hueco de la ventana de equipo. Después habla con Mordekai. Recompensa: 10 de oro.",
+      "DESC": "Mordekai quiere verte con herramientas de verdad. Abre la mesa de trabajo, fabrica el Hacha de Hierro (2 de piedra y 2 de madera) y luego ábrela en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de oro y 10 de experiencia.",
       "TRACK": "Fabrica y equipa el hacha"
     },
     "NOEXP_PICO": {
       "NAME": "Fabrica un pico",
-      "DESC": "Mordekai te ha enseñado a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrica el Pico de Hierro (2 de piedra y 2 de madera) y equípalo en su hueco de la ventana de equipo. Después habla con Mordekai. Recompensa: 10 de oro.",
+      "DESC": "Mordekai te ha enseñado a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrica el Pico de Hierro (2 de piedra y 2 de madera) y luego ábrelo en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de oro y 10 de experiencia.",
       "TRACK": "Fabrica y equipa el pico"
+    },
+    "NOEXP_FARMEO": {
+      "NAME": "Estrena las herramientas",
+      "DESC": "Con hacha y pico ya puedes trabajar de verdad. Tala árboles y pica menas hasta reunir 5 de Madera y 5 de Mineral de Cobre, y entrégaselos a Mordekai. Recompensa: 10 de oro y 10 de experiencia.",
+      "TRACK": "Reúne 5 de madera y 5 de cobre"
     },
     "NOEXP_SLIMES": {
       "NAME": "Limpieza de slimes",
@@ -532,6 +548,10 @@
     "VIEW_PLANET": "Ver planeta",
     "VIEW_GLOBE": "Globo",
     "VIEW_HEX": "Hexágonos",
+    "LAYER_NORMAL": "Normal",
+    "LAYER_ECONOMY": "Economía",
+    "LAYER_WAR": "Guerra",
+    "GRID": "Cuadrícula",
     "AFK_PRODUCTION": "Producción AFK / hora",
     "GOLD": "Oro",
     "XP": "XP",
@@ -779,9 +799,10 @@
     "MORDEKAI_NOEXP_CLAIM0": "¡Bien hecho! Dame esa piedra y esa madera… y toma estos planos a cambio; además ganas 10 de experiencia. Ábrelos en el inventario y pulsa Aprender; luego levanta el banco con el martillo del menú de abajo.",
     "MORDEKAI_BENCH_INTRO": "Esos planos no sirven de nada en la mochila, {{player}}. Pulsa el item en el inventario, dale a Aprender y después levanta el banco con el martillo del menú de abajo.",
     "MORDEKAI_BENCH_PROGRESS": "Aún no veo tu banco de trabajo, {{player}}. Si ya aprendiste los planos, pulsa el martillo del menú de abajo, arrástralo a un hueco libre y confirma con ✓.",
-    "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de oro. Ahora úsalo: abre la mesa de trabajo, fabrica un hacha y equípatela. Luego vuelve a hablar conmigo.",
-    "MORDEKAI_AXE_CLAIM": "¡Eso es un hacha como Dios manda, {{player}}! Toma 10 de oro. Ahora te enseño a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrícalo, equípatelo y vuelve.",
-    "MORDEKAI_PICK_CLAIM": "¡Perfecto, {{player}}! Ya tienes hacha y pico. Toma 10 de oro. Ahora toca pelear: cruza el portal del oeste hacia 1-1 y acaba con 10 slimes.",
+    "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de oro y 10 de experiencia. Ahora úsalo: abre la mesa de trabajo y fabrica un hacha; luego búscala en la mochila y pulsa Equipar. Luego vuelve a hablar conmigo.",
+    "MORDEKAI_AXE_CLAIM": "¡Eso es un hacha como Dios manda, {{player}}! Toma 10 de oro y 10 de experiencia. Ahora te enseño a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrícalo, equípatelo y vuelve.",
+    "MORDEKAI_PICK_CLAIM": "¡Perfecto, {{player}}! Ya tienes hacha y pico. Toma 10 de oro y 10 de experiencia. Ahora estrénalos: tala árboles y pica menas hasta reunir 5 de Madera y 5 de Mineral de Cobre, y tráemelos.",
+    "MORDEKAI_FARM_CLAIM": "¡Eso es trabajar, {{player}}! Me quedo los materiales; toma 10 de oro y 10 de experiencia. Ahora toca pelear: cruza el portal del oeste hacia 1-1 y acaba con 10 slimes.",
     "MORDEKAI_NOEXP_CLAIM1": "¡Buen trabajo! Si sigues matando en 1-1 aparecerá un slime élite. Derrótalo.",
     "MORDEKAI_NOEXP_CLAIM2": "¡Impresionante! Sigue por el portal de 1-1 hasta 1-2 y acaba con 15 ratas.",
     "MORDEKAI_NOEXP_CLAIM3": "¡Ratas fuera! El siguiente reto está en 1-3: derrota a 20 orcos.",

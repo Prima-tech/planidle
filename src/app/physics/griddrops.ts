@@ -945,7 +945,11 @@ export class GridDrops {
     this.mainScene.load.start();
   }
 
-  spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry, from?: Phaser.Math.Vector2): void {
+  /** `dir` (radianes, opcional, solo con `from`): en vez de dispersarse en 360°, el drop
+   *  sale disparado en un abanico de 180° centrado en esa dirección y más lejos. Lo usa
+   *  la recolección para lanzarlo por delante del jugador: así no cae encima de él (no
+   *  se autorrecoge) y se ve salir. */
+  spawnDrop(position: Phaser.Math.Vector2, loot: LootEntry, from?: Phaser.Math.Vector2, dir?: number): void {
     // Con la carga perezosa de equipo, la hoja LPC `*_main` que usa el drop puede no
     // estar cargada (solo se carga lo equipado) → el sprite saldría en blanco. Si la
     // textura falta pero hay un PNG `icon` (el mismo del inventario), se usa ese:
@@ -954,10 +958,10 @@ export class GridDrops {
       const key = `icondrop:${loot.icon}`;
       const iconLoot: LootEntry = { ...loot, texture: key, frame: 0, scale: 2.5 };
       if (this.mainScene.textures.exists(key)) {
-        this.spawnDrop(position, iconLoot, from);
+        this.spawnDrop(position, iconLoot, from, dir);
       } else {
         this.mainScene.load.image(key, loot.icon);
-        this.mainScene.load.once('complete', () => this.spawnDrop(position, iconLoot, from));
+        this.mainScene.load.once('complete', () => this.spawnDrop(position, iconLoot, from, dir));
         this.mainScene.load.start();
       }
       return;
@@ -969,8 +973,10 @@ export class GridDrops {
     let offsetX: number;
     let offsetY: number;
     if (from) {
-      const angle = Math.random() * Math.PI * 2;
-      const dist  = Phaser.Math.Between(48, 90);
+      const angle = dir !== undefined
+        ? dir + Phaser.Math.FloatBetween(-Math.PI / 2, Math.PI / 2)   // abanico de 180°
+        : Math.random() * Math.PI * 2;
+      const dist  = dir !== undefined ? Phaser.Math.Between(64, 110) : Phaser.Math.Between(48, 90);
       offsetX = Math.cos(angle) * dist;
       offsetY = Math.sin(angle) * dist * 0.6;   // achatado para perspectiva isométrica
     } else {
@@ -1149,5 +1155,6 @@ export class GridDrops {
       weaponKind: loot.weaponKind,
     };
     this.inventoryService.addDroppedItem(item);
+    this.mainScene.game.registry.get(REGISTRY_KEYS.AUDIO)?.playPickup();   // elegido en Ajustes → Sonido
   }
 }

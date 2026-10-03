@@ -184,6 +184,12 @@ const STORAGE_KEY = 'city_buildings';
 // Recetas de construcción aprendidas. Global (como las construcciones): lo que
 // aprende un personaje lo saben todos.
 const RECIPES_KEY = 'build_recipes';
+// Cuenta (userId de Supabase) a la que pertenecen las construcciones/recetas locales.
+// Sin esto, entrar con OTRA cuenta en el mismo dispositivo heredaba la ciudad anterior.
+const OWNER_KEY = 'city_owner';
+
+/** Estado de ciudad que viaja en global_data.account.cityBuild. */
+export interface CityBuildSnapshot { buildings: PlacedBuilding[]; recipes: string[]; }
 
 @Injectable({ providedIn: 'root' })
 export class CityBuildService {
@@ -310,6 +316,44 @@ export class CityBuildService {
     if (idx !== -1) this.cache![idx] = { ...this.cache![idx], tileX: to.tileX, tileY: to.tileY };
     else this.cache!.push({ type: from.type, tileX: to.tileX, tileY: to.tileY });
     await this.storage.set(STORAGE_KEY, this.cache);
+  }
+
+  // ── Ámbito de CUENTA (Supabase) ─────────────────────────────────────────────
+  // La ciudad es compartida entre personajes, pero es de la CUENTA, no del dispositivo.
+
+  /** Instantánea para subir a global_data.account.cityBuild. */
+  async getAccountSnapshot(): Promise<CityBuildSnapshot> {
+    const buildings = await this.load();
+    return { buildings, recipes: [...(this.recipes ?? [])] };
+  }
+
+  /** Restaura la ciudad al entrar con una cuenta. Manda la nube y REEMPLAZA lo local.
+   *  Si la nube aún no la tiene (cuentas anteriores a este campo), se conserva lo local
+   *  SOLO si es de esta misma cuenta (o, sin dueño registrado, si la cuenta ya tenía
+   *  datos guardados: migración). Una cuenta nueva arranca con Asgard vacío. */
+  async restoreForAccount(userId: string, data: CityBuildSnapshot | null, accountHasData: boolean): Promise<void> {
+    const owner: string | null = await this.storage.get(OWNER_KEY);
+    let buildings: PlacedBuilding[];
+    let recipes: string[];
+    if (data) {
+      buildings = Array.isArray(data.buildings) ? data.buildings : [];
+      recipes   = Array.isArray(data.recipes) ? data.recipes : [];
+    } else if (owner === userId || (!owner && accountHasData)) {
+      buildings = (await this.storage.get(STORAGE_KEY)) ?? [];
+      recipes   = (await this.storage.get(RECIPES_KEY)) ?? [];
+    } else {
+      buildings = [];
+      recipes   = [];
+    }
+    this.cache = null;
+    this.recipes = null;
+    await Promise.all([
+      this.storage.set(STORAGE_KEY, buildings),
+      this.storage.set(RECIPES_KEY, recipes),
+      this.storage.set(OWNER_KEY, userId),
+    ]);
+    await this.load();
+    this.cleared$.next();   // si la escena ya corría, quita los sprites de la cuenta anterior
   }
 
   /** Borra TODAS las construcciones (storage compartido) y notifica a la escena. */

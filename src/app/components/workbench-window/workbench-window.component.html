@@ -20,7 +20,7 @@
       </div>
 
       <button *ngIf="wb.isUnlocked(r); else locked" type="button" class="rpg-btn wbw-craft"
-              [disabled]="!wb.canCraft(r)" (click)="craft(r)">
+              [disabled]="!wb.canCraft(r)" [class.guide-glow]="isGuide(r) && wb.canCraft(r)" (click)="craft(r)">
         {{ 'WORKBENCH.CRAFT' | translate }}
       </button>
       <ng-template #locked>

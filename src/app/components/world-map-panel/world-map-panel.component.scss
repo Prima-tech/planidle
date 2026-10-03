@@ -69,12 +69,9 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
 
 // ── Planeta (tab 2) ────────────────────────────────────────────────────────
 
-/* DEBUG: botón para alternar la cuadrícula de coordenadas del globo (esquina sup. izq.). */
+/* DEBUG: botón para alternar la cuadrícula de coordenadas del globo (junto a las
+   pestañas de capa N/E/G, dentro de .view-tabs). */
 .grid-toggle-btn {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  z-index: 11;                       // por encima del canvas del globo y las tarjetas
   width: 30px;
   height: 30px;
   display: flex;
@@ -107,7 +104,14 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   display: flex;
   gap: 4px;
 }
-.pml-item.view-tab { width: auto; }
+// Pestañas de capa del globo: una sola letra (N/E/G) → botón cuadrado
+.pml-item.view-tab {
+  width: 30px;
+  padding-left: 0;
+  padding-right: 0;
+  justify-content: center;
+  text-align: center;
+}
 
 // Tablero hexagonal: por encima del globo (z 5) y de la lista de mapas (z 6)
 .hex-area { z-index: 7; }
