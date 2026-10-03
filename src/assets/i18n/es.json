@@ -415,7 +415,7 @@
     "NONE_COMPLETED": "Aún no has completado ninguna misión.",
     "RECOGE_MATERIALES": {
       "NAME": "Recoge materiales",
-      "DESC": "Mordekai te pide reunir 5 Piedra y 5 Madera del suelo de Asgard. Acércate a las piedras y troncos y pulsa el botón de acción para recogerlos. Recompensa: 1 de oro (y, sin Modo Exploración, te los cambia por los planos del banco de trabajo).",
+      "DESC": "Mordekai te pide reunir 5 Piedra y 5 Madera del suelo de Asgard. Acércate a las piedras y troncos y pulsa el botón de acción para recogerlos. Recompensa: 10 de experiencia (y, sin Modo Exploración, te los cambia por los planos del banco de trabajo).",
       "TRACK": "Reúne materiales"
     },
     "ABRE_PORTAL": {
@@ -774,7 +774,7 @@
     "MORDEKAI_CLAIM": "¡Ya tienes tu estrella, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
     "MORDEKAI_CLAIM1": "¡Bien hecho, bro! Ahora mata 1 rata hachiática. Las verás en la exploración, correteando a ras de suelo.",
     "MORDEKAI_CLAIM2": "¡Buena, bro!",
-    "MORDEKAI_NOEXP_CLAIM0": "¡Bien hecho! Dame esa piedra y esa madera… y toma 1 de oro y estos planos a cambio. Ábrelos en el inventario y pulsa Aprender; luego levanta el banco con el martillo del menú de abajo.",
+    "MORDEKAI_NOEXP_CLAIM0": "¡Bien hecho! Dame esa piedra y esa madera… y toma estos planos a cambio; además ganas 10 de experiencia. Ábrelos en el inventario y pulsa Aprender; luego levanta el banco con el martillo del menú de abajo.",
     "MORDEKAI_BENCH_INTRO": "Esos planos no sirven de nada en la mochila, {{player}}. Pulsa el item en el inventario, dale a Aprender y después levanta el banco con el martillo del menú de abajo.",
     "MORDEKAI_BENCH_PROGRESS": "Aún no veo tu banco de trabajo, {{player}}. Si ya aprendiste los planos, pulsa el martillo del menú de abajo, arrástralo a un hueco libre y confirma con ✓.",
     "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de oro. Ahora úsalo: abre la mesa de trabajo, fabrica un hacha y equípatela. Luego vuelve a hablar conmigo.",
@@ -788,7 +788,7 @@
     "MORDEKAI_INTRO": "Ahora aprende a explorar, {{player}}: cruza el portal del este y reúne estrellas. Toca la pantalla para saltar y recógelas al vuelo.",
     "MORDEKAI_COLLECT_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Empieza recogiendo del suelo 5 de Piedra y 5 de Madera: acércate a las piedras y troncos y pulsa el botón de acción.",
     "MORDEKAI_COLLECT_PROGRESS": "Sigue recogiendo, {{player}}: necesitas 5 de Piedra y 5 de Madera del suelo.",
-    "MORDEKAI_COLLECT_CLAIM": "¡Bien hecho, {{player}}! Toma 1 de oro. Con esos materiales puedes abrir el portal sellado de la derecha cuando quieras. Ahora aprende a explorar: cruza el portal del este y reúne estrellas (toca para saltar y recógelas al vuelo).",
+    "MORDEKAI_COLLECT_CLAIM": "¡Bien hecho, {{player}}! Has ganado 10 de experiencia. Con esos materiales puedes abrir el portal sellado de la derecha cuando quieras. Ahora aprende a explorar: cruza el portal del este y reúne estrellas (toca para saltar y recógelas al vuelo).",
     "MORDEKAI_PORTAL_INTRO": "Ve al portal sellado de la derecha, {{player}}, y ábrelo entregando tus 5 de Piedra y 5 de Madera.",
     "MORDEKAI_PORTAL_PROGRESS": "Acércate al portal sellado de la derecha y ábrelo, {{player}}.",
     "MORDEKAI_PORTAL_CLAIM": "¡Portal abierto, {{player}}! Toma 1 de oro. Ahora aprende a explorar: cruza el portal del este y reúne estrellas (toca para saltar y recógelas al vuelo).",

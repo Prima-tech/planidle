@@ -251,6 +251,12 @@ export class TopBarComponent implements OnInit, OnDestroy {
   /** ¿El personaje está en el Modo Mundo ahora mismo? (la CD del tick lo reevalúa). */
   get isExploring(): boolean { return this.activity.current === 'exploring'; }
 
+  /** La info de mapa NO está disponible en Asgard (ciudad); sí en el resto de mapas y
+   *  al explorar (récords del Modo Mundo), aunque la exploración se lance desde Asgard. */
+  get mapPanelAvailable(): boolean {
+    return this.isExploring || this.worldService.currentMap$.value?.id !== 'hogar';
+  }
+
   toggleMapPanel() { this.mapPanelOpen = !this.mapPanelOpen; }
 
   // ── Selector de personaje (botón arriba-dcha de la pastilla) ────────────────

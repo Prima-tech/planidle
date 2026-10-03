@@ -33,11 +33,15 @@
 
         <div class="char-panel">
           <div class="avatar-col">
-            <div class="avatar-icon">
-              <img *ngIf="activityIcon" [src]="activityIcon" class="avatar-activity-img" alt="">
-              <span *ngIf="!activityIcon" class="avatar-zzz">Zzz</span>
+            <!-- Anillo de experiencia alrededor del avatar (se rellena con el % de EXP
+                 del nivel actual) + placa de nivel abajo. -->
+            <div class="avatar-ring" [style.--xp]="(((valueXP$ | async)?.ratio ?? 0) * 100) + '%'">
+              <div class="avatar-icon">
+                <img *ngIf="activityIcon" [src]="activityIcon" class="avatar-activity-img" alt="">
+                <span *ngIf="!activityIcon" class="avatar-zzz">Zzz</span>
+              </div>
               <!-- Insignia de nivel del personaje -->
-              <span class="avatar-lvl">{{ lvl$ | async }}</span>
+              <span class="avatar-lvl"><em>{{ 'STAT.LEVEL_SHORT' | translate }}</em>{{ lvl$ | async }}</span>
             </div>
           </div>
 
@@ -65,12 +69,13 @@
         </div>
       </div>
 
-      <button class="map-open-btn" (click)="toggleMapPanel()">
+      <!-- En Asgard (ciudad) no hay info de mapa: sin enemigos ni dominio. Sí al explorar. -->
+      <button class="map-open-btn" *ngIf="mapPanelAvailable" (click)="toggleMapPanel()">
         <ion-icon [name]="mapPanelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
       </button>
 
       <!-- Panel info del mapa -->
-      <div class="map-info-panel" *ngIf="mapPanelOpen">
+      <div class="map-info-panel" *ngIf="mapPanelOpen && mapPanelAvailable">
 
         <!-- Modo exploración (Modo Mundo): récord de distancia + muertes de la
              expedición. Filas label→valor, igual que las de Oro/XP del panel. -->

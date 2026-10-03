@@ -176,7 +176,7 @@ export const QUESTS: QuestDef[] = [
     // Cadena CON exploración: NO se entregan. El jugador los necesita después para
     // abrir el portal sellado de Asgard (ver `unlockCost` en map-config).
     objective: { type: 'collect', goal: 2, items: MATERIALES_INICIALES },
-    reward: { coins: 1, items: [{ name: 'Mesa de trabajo', qty: 1 }] },
+    reward: { exp: 10, items: [{ name: 'Mesa de trabajo', qty: 1 }] },
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_COLLECT_CLAIM' },
   },

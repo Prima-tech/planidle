@@ -275,6 +275,12 @@ export class CityBuildService {
     return !!this.recipes?.includes(type);
   }
 
+  /** ¿Sabe ya alguna receta? Con ninguna no hay nada que construir, así que el botón
+   *  de construir del footer sale BLOQUEADO (con candado) hasta la primera. */
+  hasAnyRecipe(): boolean {
+    return !!this.recipes?.length;
+  }
+
   /** ¿Se puede construir ya? (no necesita receta, o ya está aprendida). */
   isAvailable(def: BuildableDef): boolean {
     return !def.requiresRecipe || this.isLearned(def.type);

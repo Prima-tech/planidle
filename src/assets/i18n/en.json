@@ -415,7 +415,7 @@
     "NONE_COMPLETED": "You haven't completed any quests yet.",
     "RECOGE_MATERIALES": {
       "NAME": "Gather Materials",
-      "DESC": "Mordekai asks you to gather 5 Stone and 5 Wood from the ground in Asgard. Walk up to the stones and logs and press the action button to pick them up. Reward: 1 gold (and, without Exploration Mode, he trades them for the workbench plans).",
+      "DESC": "Mordekai asks you to gather 5 Stone and 5 Wood from the ground in Asgard. Walk up to the stones and logs and press the action button to pick them up. Reward: 10 XP (and, without Exploration Mode, he trades them for the workbench plans).",
       "TRACK": "Gather materials"
     },
     "ABRE_PORTAL": {
@@ -774,7 +774,7 @@
     "MORDEKAI_CLAIM": "You got your star, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
     "MORDEKAI_CLAIM1": "Well done, bro! Now kill 1 hatchet rat. You'll spot them out in exploration, scurrying along the ground.",
     "MORDEKAI_CLAIM2": "Nice one, bro!",
-    "MORDEKAI_NOEXP_CLAIM0": "Well done! Hand me that stone and wood… and take 1 gold and these plans in exchange. Open them in your inventory and hit Learn; then put the bench up with the hammer in the bottom menu.",
+    "MORDEKAI_NOEXP_CLAIM0": "Well done! Hand me that stone and wood… and take these plans in exchange; you also earn 10 XP. Open them in your inventory and hit Learn; then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_INTRO": "Those plans are no use in your bag, {{player}}. Tap the item in your inventory, hit Learn, then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_PROGRESS": "I still do not see your workbench, {{player}}. If you already learned the plans, tap the hammer in the bottom menu, drag it to a free spot and confirm with ✓.",
     "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 gold. Now put it to use: open the workbench, craft an axe and equip it. Then come talk to me again.",
@@ -788,7 +788,7 @@
     "MORDEKAI_INTRO": "Now learn to explore, {{player}}: cross the east portal and gather stars. Tap the screen to jump and grab them on the fly.",
     "MORDEKAI_COLLECT_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Start by gathering 5 Stone and 5 Wood from the ground: walk up to the stones and logs and press the action button.",
     "MORDEKAI_COLLECT_PROGRESS": "Keep gathering, {{player}}: you need 5 Stone and 5 Wood from the ground.",
-    "MORDEKAI_COLLECT_CLAIM": "Well done, {{player}}! Here's 1 gold. You can open the sealed portal on the right with those materials whenever you like. Now learn to explore: cross the east portal and gather stars (tap to jump and grab them on the fly).",
+    "MORDEKAI_COLLECT_CLAIM": "Well done, {{player}}! You earned 10 XP. You can open the sealed portal on the right with those materials whenever you like. Now learn to explore: cross the east portal and gather stars (tap to jump and grab them on the fly).",
     "MORDEKAI_PORTAL_INTRO": "Head to the sealed portal on the right, {{player}}, and open it by handing over your 5 Stone and 5 Wood.",
     "MORDEKAI_PORTAL_PROGRESS": "Walk up to the sealed portal on the right and open it, {{player}}.",
     "MORDEKAI_PORTAL_CLAIM": "Portal opened, {{player}}! Here's 1 gold. Now learn to explore: cross the east portal and gather stars (tap to jump and grab them on the fly).",

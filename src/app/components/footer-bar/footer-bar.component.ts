@@ -423,7 +423,14 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Construir sigue BLOQUEADO mientras no se haya aprendido ninguna receta: sin
+   *  recetas el panel saldría vacío, así que mejor un candado que una ventana vacía. */
+  get buildLocked(): boolean {
+    return !this.cityBuild.hasAnyRecipe();
+  }
+
   openBuild() {
+    if (this.buildLocked) return;
     if (this.buildModal.isOpenModal()) {
       this.buildModal.close();
     } else {

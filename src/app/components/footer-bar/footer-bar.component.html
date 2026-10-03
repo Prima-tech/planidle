@@ -61,8 +61,10 @@
     </div>
 
     <div class="icon-menu-wrapper" *ngIf="currentMapId === 'hogar' && !(runMode$ | async)"
-         [class.active]="buildModal.isOpenModal()" (click)="openBuild()">
-      <ion-icon name="hammer" class="footer-ion-icon"></ion-icon>
+         [class.active]="buildModal.isOpenModal()" [class.locked]="buildLocked" (click)="openBuild()">
+      <!-- Bloqueado → candado EN LUGAR del icono: no se desvela qué hay detrás.
+           Patrón reutilizable para cualquier botón del hub aún no desbloqueado. -->
+      <ion-icon [name]="buildLocked ? 'lock-closed' : 'hammer'" class="footer-ion-icon"></ion-icon>
     </div>
 
     <!-- Chat: abre el registro de conversaciones (app-chat-log). `data-chat-toggle`

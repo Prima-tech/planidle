@@ -140,16 +140,11 @@ $gold-light: #ffe9a8;
   &:focus, &:focus-visible { outline: none; }
 }
 
-/* Botones del hub: ORBES de acero pulido (redondos, con reflejo arriba), iconos
-   "grabados" en el metal como las placas del footer. Pisa la placa rectangular
-   que heredan de .icon-menu-wrapper. */
-/* Contador de mensajes sin leer del botón de chat. Va DENTRO del círculo: el botón
-   del hub tiene overflow:hidden (recorta al círculo), así que un badge asomando por
-   la esquina quedaría cortado. */
+/* Contador de mensajes sin leer del botón de chat. Muerde la esquina superior derecha. */
 .footer-unread {
   position: absolute;
-  top: 3px;
-  right: 3px;
+  top: -5px;
+  right: -5px;
   min-width: 14px;
   height: 14px;
   padding: 0 3px;
@@ -166,6 +161,9 @@ $gold-light: #ffe9a8;
   pointer-events: none;
 }
 
+/* Botones del hub: placas de acero pulido con las esquinas apenas matadas e iconos
+   "grabados" en el metal, como las placas del footer. Pisa lo que heredan de
+   .icon-menu-wrapper (tamaño, flotado y cara metálica). */
 :host .hub-buttons .icon-menu-wrapper {
   float: none;
   margin: 0;
@@ -184,7 +182,8 @@ $gold-light: #ffe9a8;
     inset 0 2px 3px rgba(255, 255, 255, 0.4),
     inset 0 -4px 7px rgba(0, 0, 0, 0.3),
     0 3px 10px rgba(0, 0, 0, 0.55);
-  overflow: hidden;
+  /* Sin overflow: los badges (candado, no leídos) muerden la esquina y asoman fuera.
+     Ya no hace falta recortar — el reflejo ::before va metido hacia dentro. */
   transition: transform 80ms ease-out, box-shadow 0.15s;
 
   /* Reflejo superior del acero pulido */
@@ -234,7 +233,46 @@ $gold-light: #ffe9a8;
   /* Sin el subrayado dorado de las placas del footer: el estado abierto ya lo marca
      el halo ámbar. */
   &.active::after { display: none; }
+
+  /* ── BLOQUEADO ──────────────────────────────────────────────────────────────
+     Patrón reutilizable: cualquier botón del hub que aún no esté desbloqueado se marca
+     con .locked y pinta un CANDADO en lugar de su icono — así no se desvela qué hay
+     detrás. La pieza conserva la silueta de acero (se intuye que ahí habrá algo) pero
+     en frío: gris apagado, sin reflejo y sin feedback al pulsar. */
+  &.locked {
+    cursor: not-allowed;
+    border-color: $stone-dark $stone-dark $stone-dark $stone-dark;
+    background: linear-gradient(160deg, #938d82 0%, #7a7468 45%, #605a51 100%);
+    box-shadow:
+      0 0 0 1px $outline,
+      inset 0 0 0 1px $outline,
+      inset 0 2px 2px rgba(255, 255, 255, 0.12),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.5);
+
+    /* El acero apagado no refleja. */
+    &::before { opacity: 0.25; }
+
+    /* El icono es el CANDADO, así que tiene que leerse. Va grabado en oscuro sobre el
+       acero, con una línea de luz debajo (mismo relieve que el resto de iconos).
+       El glifo del candado no está centrado en su caja (se va a la derecha) y tiene la
+       masa abajo, así que geométricamente centrado se ve corrido: 1px a la izquierda y
+       1px arriba lo cuadran ópticamente. */
+    .footer-ion-icon {
+      color: #3b352d;
+      opacity: 1;
+      filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.28));
+      transform: translate(-1px, -1px);
+    }
+
+    /* Sin feedback de pulsación: no hace nada al tocarlo. */
+    &:active {
+      transform: none;
+      background: linear-gradient(160deg, #938d82 0%, #7a7468 45%, #605a51 100%);
+    }
+  }
 }
+
 
 /* Botones del hub: fila que se colapsa hacia el tirador con animación.
    OJO: overflow:hidden recorta también las sombras/halos de los orbes en un
