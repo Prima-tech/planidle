@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { GameSettingsService, AppLanguage } from 'src/app/services/game-settings.service';
-import { AudioService, PICKUP_SOUNDS } from 'src/app/services/audio.service';
+import { AudioService } from 'src/app/services/audio.service';
 import { ConnectionService } from 'src/app/services/connection.service';
 import { SupabaseService } from 'src/app/services/supabase.service';
 import { SaveService } from 'src/app/services/save.service';
@@ -168,14 +168,6 @@ export class GameSettingsPageComponent implements OnInit, OnDestroy {
 
   /** Suena un click al soltar el slider de SFX para oír el nivel elegido. */
   previewSfx(): void { this.audio.unlock(); this.audio.play('ui_click'); }
-
-  readonly pickupSounds = PICKUP_SOUNDS;
-  /** Elige el sonido de recoger y lo reproduce para oírlo. */
-  choosePickupSound(id: number): void {
-    this.audio.unlock();
-    this.audio.setPickupSound(id);
-    this.audio.playPickup(id);
-  }
 
   async save(): Promise<void> {
     this.saveMsg = '';

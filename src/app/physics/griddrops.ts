@@ -1155,6 +1155,6 @@ export class GridDrops {
       weaponKind: loot.weaponKind,
     };
     this.inventoryService.addDroppedItem(item);
-    this.mainScene.game.registry.get(REGISTRY_KEYS.AUDIO)?.playPickup();   // elegido en Ajustes → Sonido
+    this.mainScene.game.registry.get(REGISTRY_KEYS.AUDIO)?.play('pickup');
   }
 }

@@ -3641,7 +3641,7 @@ export class GameScene extends Phaser.Scene {
 
       const item = hydrateItem({ id: `pick-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: p.itemName, sum: 1 });
       this.reg.inventory?.addOrDropToWorld(item);
-      this.reg.audio?.playPickup();   // sonido de recoger elegido en Ajustes → Sonido
+      this.reg.audio?.play('pickup');
 
       const sp = p.sprite;   // pop: sube y se desvanece antes de destruirse
       this.tweens.add({

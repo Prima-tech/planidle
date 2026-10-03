@@ -111,6 +111,14 @@ export const PLANET_LAYER_KEY         = 'planetLayer';
 const EARTH_TEX_KEY   = 'earth_globe';
 const EARTH_MIN_VEL   = 0.0002;  // rad/frame: umbral para frenar la inercia
 const EARTH_FRAME_MS  = 33;      // sin arrastre/giro, redibujar a ~30 fps (nubes, radar)
+// Zoom del globo: factor sobre el radio base. Lo cambian la barra de Angular, la
+// rueda del ratón y el pellizco con dos dedos.
+export const EARTH_ZOOM_MIN = 0.6;
+export const EARTH_ZOOM_MAX = 2.5;
+const WHEEL_ZOOM_K = 0.0015;     // sensibilidad de la rueda (por unidad de deltaY)
+// Callback (zoom: number) que registra Angular para mover su barra cuando el zoom
+// cambia desde la escena (rueda / pellizco).
+export const PLANET_ZOOM_CHANGED_KEY  = 'onGlobeZoom';
 
 const DOUBLE_CLICK_MS = 300;
 
@@ -280,6 +288,10 @@ export class PlanetViewScene extends Phaser.Scene {
   private earthZones: { zone: Phaser.GameObjects.Zone; mapId: string }[] = [];
   private earthLayer: GlobeLayer = 'base';
   private earthLastDraw = 0;
+  private earthZoom = 1;
+  private earthDirty = false;      // forzar redibujado (zoom) aunque esté quieto
+  private pinchDist = 0;           // >0 mientras hay un pellizco en curso
+  private pinchZoom = 1;           // zoom al empezar el pellizco
 
   // Vista sistema — una por estrella; los sistemas generados se cachean por sesión
   private systemC: Phaser.GameObjects.Container | null = null;
@@ -321,6 +333,8 @@ export class PlanetViewScene extends Phaser.Scene {
     this.earthImg = null;
     this.earthZones = [];
     this.earthLastDraw = 0;
+    this.earthZoom = 1;
+    this.pinchDist = 0;
 
     this.cameras.main.setBackgroundColor('#05060f');
     this.createStars(this.scale.width, this.scale.height);
@@ -626,13 +640,14 @@ export class PlanetViewScene extends Phaser.Scene {
       home: p.mapId === 'hogar', locked: isLocked(p.mapId),
     })));
 
-    // La textura sobrevive a los restart (instancia reutilizada): se redimensiona en
+    // Textura del tamaño de la vista: con zoom el globo puede llenar (y desbordar) la
+    // pantalla. Sobrevive a los restart (instancia reutilizada): se redimensiona en
     // sitio, nunca textures.remove (dejaría frames nulos → crash 'glTexture').
-    const S = Math.ceil(radius * 2 * EarthGlobe.MARGIN);
-    let tex = this.textures.exists(EARTH_TEX_KEY)
+    const TW = Math.ceil(this.scale.width), TH = Math.ceil(this.scale.height);
+    const tex = this.textures.exists(EARTH_TEX_KEY)
       ? this.textures.get(EARTH_TEX_KEY) as Phaser.Textures.CanvasTexture
-      : this.textures.createCanvas(EARTH_TEX_KEY, S, S);
-    if (tex.width !== S || tex.height !== S) tex.setSize(S, S);
+      : this.textures.createCanvas(EARTH_TEX_KEY, TW, TH);
+    if (tex.width !== TW || tex.height !== TH) tex.setSize(TW, TH);
     this.earthTex = tex;
     this.earthImg = this.add.image(cx, cy, EARTH_TEX_KEY);
     this.detailC!.add(this.earthImg);
@@ -682,6 +697,7 @@ export class PlanetViewScene extends Phaser.Scene {
       }
     }
 
+    if (this.earthDirty) { this.earthDirty = false; force = true; }
     const moving = this.dragging || coasting || this.tweens.isTweening(this.earthRot);
     if (!force && !moving && time - this.earthLastDraw < EARTH_FRAME_MS) return;
     this.drawEarth(time);
@@ -691,12 +707,11 @@ export class PlanetViewScene extends Phaser.Scene {
     const tex = this.earthTex;
     if (!this.earth || !tex || !this.earthImg) return;
     this.earthLastDraw = time;
-    const S = tex.width;
-    const hits = this.earth.draw(tex.context, S, this.detailR, this.earthRot, time / 1000,
-      this.earthLayer, DPR, this.debugGrid);
+    const hits = this.earth.draw(tex.context, tex.width, tex.height, this.earthR, this.earthRot,
+      time / 1000, this.earthLayer, DPR, this.debugGrid);
     tex.refresh();
 
-    const ox = this.detailCX - S / 2, oy = this.detailCY - S / 2;
+    const ox = this.detailCX - tex.width / 2, oy = this.detailCY - tex.height / 2;
     for (const z of this.earthZones) {
       const h = hits.find(k => k.mapId === z.mapId);
       if (h) z.zone.setPosition(ox + h.x, oy + h.y);
@@ -748,6 +763,28 @@ export class PlanetViewScene extends Phaser.Scene {
       duration: 700,
       ease: 'Cubic.easeInOut',
     });
+  }
+
+  /** Radio del globo en pantalla con el zoom aplicado. */
+  private get earthR(): number { return this.detailR * this.earthZoom; }
+
+  /** Fija el zoom del globo (desde la barra de Angular, la rueda o el pellizco).
+   *  `notify` = avisar a Angular para que mueva su barra (no hace falta si viene de ella). */
+  setEarthZoom(zoom: number, notify = true): void {
+    const z = Phaser.Math.Clamp(zoom, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX);
+    if (Math.abs(z - this.earthZoom) < 0.0005) return;
+    this.earthZoom = z;
+    this.earthDirty = true;
+    if (notify) {
+      const onZoom = this.game.registry.get(PLANET_ZOOM_CHANGED_KEY) as ((z: number) => void) | undefined;
+      onZoom?.(z);
+    }
+  }
+
+  /** Distancia entre los dos dedos si hay dos tocando la pantalla (0 si no). */
+  private pinchSpan(): number {
+    const a = this.input.pointer1, b = this.input.pointer2;
+    return a?.isDown && b?.isDown ? Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y) : 0;
   }
 
   private focusEarth(mapId: string, animate: boolean): void {
@@ -846,8 +883,27 @@ export class PlanetViewScene extends Phaser.Scene {
   }
 
   private initDrag(): void {
+    // Un segundo puntero táctil para el pellizco (por defecto Phaser solo trae uno)
+    if (!this.input.pointer2) this.input.addPointer(1);
+
+    // Rueda del ratón → zoom del globo de la Tierra
+    this.input.on('wheel', (_p: Phaser.Input.Pointer, _objs: unknown, _dx: number, dy: number) => {
+      if (this.mode !== 'detail' || !this.earth || this.transitioning) return;
+      this.setEarthZoom(this.earthZoom * Math.exp(-dy * WHEEL_ZOOM_K));
+    });
+
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       if (this.mode !== 'detail' || this.transitioning) return;
+      // Segundo dedo: empieza el pellizco y se suelta el giro (no pelean)
+      const span = this.earth ? this.pinchSpan() : 0;
+      if (span > 0) {
+        this.pinchDist = span;
+        this.pinchZoom = this.earthZoom;
+        this.dragging = false;
+        this.velX = 0;
+        this.velY = 0;
+        return;
+      }
       if (this.planet) this.tweens.killTweensOf(this.planet);  // cancela el giro a un mapa
       if (this.earth) this.tweens.killTweensOf(this.earthRot);
       this.dragging = true;
@@ -858,11 +914,16 @@ export class PlanetViewScene extends Phaser.Scene {
     });
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (this.pinchDist > 0) {
+        const span = this.pinchSpan();
+        if (span > 0) this.setEarthZoom(this.pinchZoom * span / this.pinchDist);
+        return;
+      }
       if (!this.dragging) return;
       if (this.earth) {
         // Globo 3D: px / radio = radianes → la superficie del centro sigue al dedo
-        const dx = (p.x - this.lastX) / this.detailR;
-        const dy = (p.y - this.lastY) / this.detailR;
+        const dx = (p.x - this.lastX) / this.earthR;
+        const dy = (p.y - this.lastY) / this.earthR;
         this.lastX = p.x;
         this.lastY = p.y;
         this.earthRot.yaw += dx;
@@ -884,7 +945,12 @@ export class PlanetViewScene extends Phaser.Scene {
       this.velY = dy;
     });
 
-    const stop = () => { this.dragging = false; };
+    const stop = () => {
+      this.dragging = false;
+      // Al levantar un dedo del pellizco no se reanuda el giro con el que queda: el
+      // siguiente toque empieza un arrastre limpio (sin salto)
+      if (this.pinchDist > 0) { this.pinchDist = 0; this.velX = 0; this.velY = 0; }
+    };
     this.input.on('pointerup', stop);
     this.input.on('pointerupoutside', stop);
   }

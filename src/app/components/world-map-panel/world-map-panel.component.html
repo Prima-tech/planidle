@@ -65,6 +65,27 @@
       </button>
     </div>
 
+    <!-- Barra de zoom del globo (también rueda del ratón y pellizco con dos dedos) -->
+    <div class="zoom-bar" *ngIf="detailPlanetId === 'mundo'">
+      <button class="zoom-btn" (click)="stepZoom(-1)" [title]="'MAP.ZOOM_OUT' | translate">
+        <ion-icon name="remove-outline"></ion-icon>
+      </button>
+      <input
+        id="globe-zoom"
+        class="zoom-range"
+        type="range"
+        step="0.01"
+        [min]="zoomMin"
+        [max]="zoomMax"
+        [value]="zoom"
+        [attr.aria-label]="'MAP.ZOOM' | translate"
+        (input)="onZoomInput($event)"
+      />
+      <button class="zoom-btn" (click)="stepZoom(1)" [title]="'MAP.ZOOM_IN' | translate">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </div>
+
     <!-- Planeta interactivo (mini-instancia Phaser propia) -->
     <div class="planet-area" id="planet-view"></div>
 

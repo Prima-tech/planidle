@@ -104,6 +104,54 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   display: flex;
   gap: 4px;
 }
+// Con el globo de la Tierra la fila de abajo es la barra de zoom: las pestañas
+// suben encima del botón «+» de Phaser (esquina inf. dcha., ~42px)
+.view-tabs { bottom: 54px; }
+
+// ── Barra de zoom del globo (abajo, entre la lista de mapas y el «+») ──────
+.zoom-bar {
+  position: absolute;
+  left: 120px;                       // pasada la lista de mapas (104px + márgenes)
+  right: 54px;                       // deja libre el botón «+» de la escena
+  bottom: 8px;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 3px 4px;
+  background: rgba($outline, 0.75);
+  border: 2px solid $outline;
+  border-radius: 8px;
+}
+.zoom-btn {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  background: $wood-btn;
+  color: $text-brown;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px $wood-btn-light, inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+
+  ion-icon { font-size: 16px; pointer-events: none; }
+  &:active { background: $wood-btn-dark; }
+}
+.zoom-range {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  accent-color: $gold;
+  cursor: pointer;
+}
+
 // Pestañas de capa del globo: una sola letra (N/E/G) → botón cuadrado
 .pml-item.view-tab {
   width: 30px;

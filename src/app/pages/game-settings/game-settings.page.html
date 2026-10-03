@@ -145,20 +145,6 @@
                  [(ngModel)]="sfxPct" (change)="previewSfx()" [disabled]="audio.muted">
         </div>
 
-        <!-- Sonido al recoger objetos del suelo: tocar una opción la elige y la reproduce. -->
-        <div class="gs-row gs-row-stack">
-          <div class="gs-row-info">
-            <span class="gs-row-title">{{ 'SETTINGS.PICKUP_SOUND.TITLE' | translate }}</span>
-            <span class="gs-row-desc">{{ 'SETTINGS.PICKUP_SOUND.DESC' | translate }}</span>
-          </div>
-          <div class="gs-options">
-            <button *ngFor="let s of pickupSounds" class="gs-option-btn"
-                    [class.active]="audio.pickupSound === s.id" (click)="choosePickupSound(s.id)">
-              {{ s.label | translate }}
-            </button>
-          </div>
-        </div>
-
         <div class="gs-row gs-row-stack">
           <div class="gs-row-info">
             <span class="gs-row-title">{{ 'SETTINGS.VOLUME_MUSIC' | translate }}</span>

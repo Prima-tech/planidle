@@ -1,6 +1,6 @@
 import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY } from 'src/app/scenes/planet-view.scene';
+import { PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_MAP_LOCKED_KEY, PLANET_CURRENT_MAP_KEY, PLANET_DETAIL_KEY, PLANET_LAYER_KEY, PLANET_ZOOM_CHANGED_KEY, EARTH_ZOOM_MIN, EARTH_ZOOM_MAX } from 'src/app/scenes/planet-view.scene';
 import { GlobeLayer } from 'src/app/scenes/earth-globe';
 import { WorldService } from 'src/app/services/world.service';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
@@ -62,6 +62,11 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   private static lastLayer: GlobeLayer = 'base';
   layer: GlobeLayer = WorldMapPanelComponent.lastLayer;
 
+  /** Zoom del globo (barra inferior). La escena arranca siempre en 1 al abrir. */
+  readonly zoomMin = EARTH_ZOOM_MIN;
+  readonly zoomMax = EARTH_ZOOM_MAX;
+  zoom = 1;
+
   // DEBUG: estado de la cuadrícula del globo (arranca igual que DEBUG_PIN_GRID en la escena).
   gridOn = false;
 
@@ -108,6 +113,10 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
       // El globo pinta en gris los mapas bloqueados y no extiende la ruta hasta ellos.
       registry.set(PLANET_MAP_LOCKED_KEY, (mapId: string) => this.isMapLocked(mapId));
       registry.set(PLANET_LAYER_KEY, this.layer);
+      // Rueda / pellizco en la escena → mover la barra de zoom
+      registry.set(PLANET_ZOOM_CHANGED_KEY, (z: number) => {
+        this.ngZone.run(() => { this.zoom = z; });
+      });
       registry.set(PLANET_PIN_SELECT_KEY, (mapId: string) => {
         this.ngZone.run(() => this.selectPin(mapId));
       });
@@ -145,6 +154,21 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
   ];
 
   /** Activa una capa del globo. La escena lee la capa del registry en cada frame. */
+  /** Barra de zoom: arrastrar el deslizador. */
+  onZoomInput(ev: Event) {
+    this.applyZoom(+(ev.target as HTMLInputElement).value);
+  }
+
+  /** Botones −/+ de la barra: un paso de zoom (×1.25). */
+  stepZoom(dir: 1 | -1) {
+    this.applyZoom(this.zoom * Math.pow(1.25, dir));
+  }
+
+  private applyZoom(z: number) {
+    this.zoom = Math.min(this.zoomMax, Math.max(this.zoomMin, z));
+    this.planetHost.scene?.setEarthZoom(this.zoom, false);
+  }
+
   setLayer(layer: GlobeLayer) {
     this.layer = WorldMapPanelComponent.lastLayer = layer;
     this.planetHost.registry?.set(PLANET_LAYER_KEY, layer);
@@ -196,7 +220,7 @@ export class WorldMapPanelComponent implements OnInit, OnDestroy {
    *  ningún evento rezagado actúe sobre un panel ya destruido. */
   private destroyPlanetGame() {
     const reg = this.planetHost.registry;
-    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY]) reg.set(k, undefined);
+    if (reg) for (const k of [PLANET_PIN_SELECT_KEY, PLANET_PIN_TELEPORT_KEY, PLANET_SELECT_KEY, PLANET_ZOOM_KEY, PLANET_DETAIL_KEY, PLANET_ZOOM_CHANGED_KEY]) reg.set(k, undefined);
     this.planetHost.detach();
     this.selectedPlanet = null;
     this.charsOnPlanet  = [];

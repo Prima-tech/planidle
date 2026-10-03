@@ -142,17 +142,6 @@
     "VOLUME_MASTER": "Master volume",
     "VOLUME_SFX": "Effects (SFX)",
     "VOLUME_MUSIC": "Music",
-    "PICKUP_SOUND": {
-      "TITLE": "Pickup sound",
-      "DESC": "Tap one to hear it and pick it.",
-      "POP": "Bubble",
-      "BLIP": "Blip",
-      "SWOOSH": "Swoosh",
-      "PLUCK": "Pluck",
-      "CHIME": "Chime",
-      "BAG": "Backpack",
-      "NONE": "No sound"
-    },
     "RUNNER_BG": "Runner background",
     "RUNNER_BG_DESC": "Choose the World Mode parallax."
   },
@@ -552,6 +541,9 @@
     "LAYER_ECONOMY": "Economy",
     "LAYER_WAR": "War",
     "GRID": "Grid",
+    "ZOOM": "Zoom",
+    "ZOOM_IN": "Zoom in",
+    "ZOOM_OUT": "Zoom out",
     "AFK_PRODUCTION": "AFK production / hour",
     "GOLD": "Gold",
     "XP": "XP",

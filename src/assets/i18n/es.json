@@ -142,17 +142,6 @@
     "VOLUME_MASTER": "Volumen general",
     "VOLUME_SFX": "Efectos (SFX)",
     "VOLUME_MUSIC": "Música",
-    "PICKUP_SOUND": {
-      "TITLE": "Sonido al recoger",
-      "DESC": "Toca uno para oírlo y elegirlo.",
-      "POP": "Burbuja",
-      "BLIP": "Blip",
-      "SWOOSH": "Soplido",
-      "PLUCK": "Cuerda",
-      "CHIME": "Campanita",
-      "BAG": "Mochila",
-      "NONE": "Sin sonido"
-    },
     "RUNNER_BG": "Fondo del runner",
     "RUNNER_BG_DESC": "Elige el parallax del Modo Mundo."
   },
@@ -552,6 +541,9 @@
     "LAYER_ECONOMY": "Economía",
     "LAYER_WAR": "Guerra",
     "GRID": "Cuadrícula",
+    "ZOOM": "Zoom",
+    "ZOOM_IN": "Acercar",
+    "ZOOM_OUT": "Alejar",
     "AFK_PRODUCTION": "Producción AFK / hora",
     "GOLD": "Oro",
     "XP": "XP",

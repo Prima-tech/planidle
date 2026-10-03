@@ -284,28 +284,25 @@ export class EarthGlobe {
     ];
   }
 
-  /** Margen que necesita el canvas alrededor del globo (props, nubes, anillo HUD). */
-  static readonly MARGIN = 1.42;
-
-  /** Dibuja la capa en un canvas S×S con el globo de radio R centrado. Devuelve los
+  /** Dibuja la capa en un canvas w×h con el globo de radio R centrado. Devuelve los
    *  pines visibles (para colocar las zonas de toque). */
-  draw(ctx: CanvasRenderingContext2D, S: number, R: number, rot: GlobeRot, t: number,
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, rot: GlobeRot, t: number,
        layer: GlobeLayer, dpr: number, debugGrid: boolean): GlobeHit[] {
-    ctx.clearRect(0, 0, S, S);
+    ctx.clearRect(0, 0, w, h);
     const r = rotPre(rot);
     let hits: GlobeHit[];
-    if (layer === 'economy') hits = this.drawHex(ctx, S, R, r, t, dpr);
-    else if (layer === 'war') hits = this.drawHolo(ctx, S, R, r, t, dpr);
-    else hits = this.drawToon(ctx, S, R, r, t, dpr);
-    if (debugGrid) this.drawDebugGrid(ctx, S, R, r, dpr);
+    if (layer === 'economy') hits = this.drawHex(ctx, w, h, R, r, t, dpr);
+    else if (layer === 'war') hits = this.drawHolo(ctx, w, h, R, r, t, dpr);
+    else hits = this.drawToon(ctx, w, h, R, r, t, dpr);
+    if (debugGrid) this.drawDebugGrid(ctx, w, h, R, r, dpr);
     return hits;
   }
 
   // ── Capa base: mundo de bolsillo ──────────────────────────────────────────
-  private drawToon(ctx: CanvasRenderingContext2D, S: number, R: number, r: Rot, t: number, dpr: number): GlobeHit[] {
+  private drawToon(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, r: Rot, t: number, dpr: number): GlobeHit[] {
     const N = Math.min(360, Math.max(120, Math.round(R)));
     if (!this.buf || this.buf.N !== N) this.buf = makeBuf(N);
-    const cx = S / 2, cy = S / 2, s = R * .05;
+    const cx = w / 2, cy = h / 2, s = R * .05;
 
     const placed = this.props.map(pr => ({ pr, v: proj(pr.w, r) })).filter(o => o.v[2] > -.3);
     placed.sort((a, b) => a.v[2] - b.v[2]);
@@ -397,8 +394,8 @@ export class EarthGlobe {
   }
 
   // ── Capa economía: tablero hexagonal ──────────────────────────────────────
-  private drawHex(ctx: CanvasRenderingContext2D, S: number, R: number, r: Rot, t: number, dpr: number): GlobeHit[] {
-    const tiles = ensureHex(), cx = S / 2, cy = S / 2;
+  private drawHex(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, r: Rot, t: number, dpr: number): GlobeHit[] {
+    const tiles = ensureHex(), cx = w / 2, cy = h / 2;
     const pinTile = new Map<HexTile, PinW>();
     for (const pin of this.pins) {
       let best: HexTile = tiles[0], bd = -2;
@@ -454,12 +451,12 @@ export class EarthGlobe {
   }
 
   // ── Capa guerra: proyección táctica ───────────────────────────────────────
-  private drawHolo(ctx: CanvasRenderingContext2D, S: number, R: number, r: Rot, t: number, dpr: number): GlobeHit[] {
+  private drawHolo(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, r: Rot, t: number, dpr: number): GlobeHit[] {
     ensureHolo();
-    const cx = S / 2, cy = S / 2;
+    const cx = w / 2, cy = h / 2;
     const bg = ctx.createRadialGradient(cx, cy, R * .2, cx, cy, R * 1.4);
     bg.addColorStop(0, 'rgba(40,140,120,.25)'); bg.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, S, S);
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
 
     // Retícula: delante y detrás en dos trazos (detrás casi transparente)
     const front = new Path2D(), back = new Path2D();
@@ -527,20 +524,20 @@ export class EarthGlobe {
       if (!p.locked && v[2] > .05) hits.push({ mapId: p.mapId, x, y });
     });
 
-    // Lecturas numéricas (sin texto: no requieren traducción)
+    // Lecturas numéricas bajo el anillo HUD (sin texto: no requieren traducción).
+    // Van pegadas al globo (no a las esquinas) para no chocar con los botones del panel.
     const deg = (a: number) => ((a * 180 / PI) % 360 + 540) % 360 - 180;
-    const m = 10 * dpr, open = this.pins.filter(p => !p.locked).length;
+    const open = this.pins.filter(p => !p.locked).length;
     ctx.fillStyle = `rgba(${CY},.85)`; ctx.font = `${Math.round(11 * dpr)}px monospace`;
-    ctx.textAlign = 'left';
-    ctx.fillText(`${deg(-r.yaw).toFixed(1)}°  ${deg(r.pitch).toFixed(1)}°`, m, S - m);
-    ctx.textAlign = 'right';
-    ctx.fillText(`${open}/${this.pins.length}`, S - m, S - m);
+    ctx.textAlign = 'center';
+    ctx.fillText(`${deg(-r.yaw).toFixed(1)}°  ${deg(r.pitch).toFixed(1)}°  ·  ${open}/${this.pins.length}`,
+      cx, cy + R * 1.2 + 26 * dpr);
     return hits;
   }
 
   // ── DEBUG: cuadrícula tx/ty para colocar pines (TIERRA_PINS) ─────────────
-  private drawDebugGrid(ctx: CanvasRenderingContext2D, S: number, R: number, r: Rot, dpr: number): void {
-    const cx = S / 2, cy = S / 2, STEP = 32;
+  private drawDebugGrid(ctx: CanvasRenderingContext2D, w: number, h: number, R: number, r: Rot, dpr: number): void {
+    const cx = w / 2, cy = h / 2, STEP = 32;
     ctx.strokeStyle = 'rgba(255,60,60,.45)'; ctx.lineWidth = dpr;
     for (let tx = 0; tx < TEX; tx += STEP) {
       const pts: V3[] = [];
