@@ -140,10 +140,6 @@ interface HarvestNode {
 export class GameScene extends Phaser.Scene {
 
     static readonly TILE_SIZE = 48;
-    /** Rojo casi puro para teñir el DISCO de un portal bloqueado/sellado. Verde/azul ≈ 0
-     *  a propósito: los aros se dibujan con blend ADD y sus canales se suman al solaparse,
-     *  así que un rojo con G/B altos (p.ej. 0xff4d4d) apilado viraría a amarillo. */
-    private static readonly PORTAL_BLOCKED_TINT = 0xff1414;
     /** Zoom de DISEÑO de la cámara (se multiplica por DPR en initCamera). Con el canvas
      *  a resolución nativa y CSS a 1/DPR, la escala mundo→pantalla queda en este factor:
      *  1 unidad de mundo = CAMERA_DESIGN_ZOOM px CSS → worldPerCss = 1/CAMERA_DESIGN_ZOOM. */
@@ -164,10 +160,8 @@ export class GameScene extends Phaser.Scene {
     // Portales vivos en la escena. Siempre abiertos: ya no se desbloquean matando.
     private activePortals: {
       config: PortalConfig;
-      cx: number; cy: number; angle: number;
-      outer: Phaser.GameObjects.Image;
-      inner: Phaser.GameObjects.Image;
-      core: Phaser.GameObjects.Image;
+      cx: number; cy: number;
+      arch: Phaser.GameObjects.Sprite;
       halo: Phaser.GameObjects.Ellipse;
       featureId: string;   // feature de desbloqueo del mapa destino
       locked: boolean;     // estado actual (rojo bloqueado / verde desbloqueado)
@@ -361,6 +355,7 @@ export class GameScene extends Phaser.Scene {
       // Fragua apagada (textura propia 64×92, sin animación de fuego).
       this.load.spritesheet('forge_off', 'assets/sprites/stations/forge_off.png', { frameWidth: 64, frameHeight: 92 });
       // Fundición apagada (frame de la hoja stations con el fuego retirado, 64×92).
+      this.load.spritesheet('workbench', 'assets/sprites/stations/workbench.png', { frameWidth: 34, frameHeight: 25 });
       this.load.spritesheet('smelter_off', 'assets/sprites/stations/smelter_off.png', { frameWidth: 64, frameHeight: 92 });
       // Hornos detallados (reemplazan a la fragua). Cada uno: hoja encendida de 12
       // frames 128×208 (animación de fuego) + textura apagada del mismo tamaño.
@@ -371,9 +366,8 @@ export class GameScene extends Phaser.Scene {
       }
       // Imagen escénica para los temas de parallax 'scenic_*' (vista de mundo).
       this.load.image('paralax_scene', 'assets/sprites/resources/paralax.jpg');
-      // Portal = disco de acreción "agujero negro" (doble anillo contrarrotante + núcleo
-      // oscuro). Es 100% procedural: las texturas se generan en initPortals/buildPortalTextures,
-      // no hay asset que precargar.
+      // Portal = arco de piedra con vórtice (hoja de 8 frames 64×64, animación en initPortals).
+      this.load.spritesheet('portal_arch', 'assets/sprites/decor/portal_arch.png', { frameWidth: 64, frameHeight: 64 });
 
       // Bolsas (equipo secundario): iconos sueltos usados como sprite del drop al invocar.
       this.load.image('bag_1', 'assets/icon/bags/bag_01.png');
@@ -1925,11 +1919,24 @@ export class GameScene extends Phaser.Scene {
 
     }
 
+    /** Tinte del arco según estado. El sprite ya es verde (= abierto, sin tinte);
+     *  'back' → azul, bloqueado/sellado → rojo. */
+    private static readonly PORTAL_BACK_TINT = 0x8cc4ff;
+    private static readonly PORTAL_ARCH_BLOCKED_TINT = 0xff6a6a;
+
     initPortals() {
-      this.buildPortalTextures();
       const TS = GameScene.TILE_SIZE;
-      const SQUASH = 0.5;             // aplastado (perspectiva de suelo)
-      const D = TS * 3.4;             // diámetro del disco externo
+      const SQUASH = 0.5;             // aplastado del halo (perspectiva de suelo)
+      const D = TS * 2.6;             // ancho del halo en el suelo
+      const SCALE = 2;                // 64px → 128px, escala entera (pixel art nítido)
+      if (!this.anims.exists('portal_arch_idle')) {
+        this.anims.create({
+          key: 'portal_arch_idle',
+          frames: this.anims.generateFrameNumbers('portal_arch', { start: 0, end: 7 }),
+          frameRate: 8,
+          repeat: -1,
+        });
+      }
       const noRun = this.reg.gameSettings?.skipExploration ?? false;
       this.currentMapConfig.portals.forEach(cfg => {
         // Sin exploración: entradas al Modo Mundo ocultas; la salida de cada mapa lleva a Asgard.
@@ -1948,79 +1955,39 @@ export class GameScene extends Phaser.Scene {
         const unlocked = back ? true : (this.reg.unlocks?.isUnlocked(featureId) ?? true);
         const open = !sealed && unlocked;
         const color = back ? 0x60c0ff : (open ? 0x50e070 : 0xff4d4d);
-        // Bloqueado/sellado (rojo): tiñe TODO el disco (interno + núcleo también), no solo
-        // el aro externo → lee claramente en rojo en vez de un aro rojo con centro blanco.
         const blocked = !back && !open;
-        // Tinte del DISCO cuando está bloqueado: las capas ADD (aro externo + interno) SUMAN
-        // sus canales; 0xff4d4d (con G/B a 77) apilado se va a AMARILLO. Un rojo casi puro
-        // (G/B ≈ 0) mantiene el rojo al sumarse. El halo (una sola capa tenue) sí usa `color`.
-        const discTint = blocked ? GameScene.PORTAL_BLOCKED_TINT : color;
 
-        // Resplandor en el suelo (no rota → óvalo aplastado directo, sin deformación).
-        const halo = this.add.ellipse(cx, cy, D * 1.4, D * 1.4 * SQUASH, color, blocked ? 0.22 : 0.14)
+        // Resplandor en el suelo, a los pies del arco.
+        const footY = cy + TS * 0.5;
+        const halo = this.add.ellipse(cx, footY - 4, D, D * SQUASH, color, blocked ? 0.22 : 0.14)
           .setDepth(0).setBlendMode(Phaser.BlendModes.ADD);
 
-        // Contenedor aplastado: los aros giran DENTRO como círculos (la textura es
-        // simétrica, así que rotar solo mueve el punto brillante) y el contenedor los
-        // achata al suelo → disco plano con el brillo orbitando, sin "wobble".
-        const cont = this.add.container(cx, cy).setDepth(1).setScale(1, SQUASH);
-        const outer = this.add.image(0, 0, 'portal_disc')
-          .setBlendMode(Phaser.BlendModes.ADD).setTint(discTint).setDisplaySize(D, D);
-        const inner = this.add.image(0, 0, 'portal_disc')
-          .setBlendMode(Phaser.BlendModes.ADD).setDisplaySize(D * 0.6, D * 0.6);   // interno (blanco, o rojo si bloqueado)
-        if (blocked) inner.setTint(discTint);
-        const core = this.add.image(0, 0, 'portal_core').setDisplaySize(D * 0.52, D * 0.52);
-        if (blocked) core.setTint(discTint);
-        cont.add([outer, inner, core]);
+        // Arco: pies (fila 55 del frame) apoyados en el borde inferior del tile; depth por
+        // Y de los pies para ordenarse con el jugador (pasa por detrás/delante).
+        const arch = this.add.sprite(cx, footY, 'portal_arch', 0)
+          .setOrigin(0.5, 56 / 64).setScale(SCALE).setDepth(footY);
+        arch.play('portal_arch_idle');
+        arch.anims.setProgress(Math.random());   // desincroniza varios portales
+        if (back) arch.setTint(GameScene.PORTAL_BACK_TINT);
+        else if (blocked) arch.setTint(GameScene.PORTAL_ARCH_BLOCKED_TINT);
 
-        this.activePortals.push({ config: portal, cx, cy, angle: 0, outer, inner, core, halo, featureId, locked: back ? false : !open, sealed });
+        this.activePortals.push({ config: portal, cx, cy, arch, halo, featureId, locked: back ? false : !open, sealed });
       });
     }
 
-    /** Texturas del portal (disco de acreción tipo cometa + núcleo oscuro). Se generan
-     *  una vez y se reutilizan en cada mapa (guard por textura existente). */
-    private buildPortalTextures(): void {
-      if (!this.textures.exists('portal_disc')) {
-        const R = 58, pad = 8, size = (R + pad) * 2;
-        const g = this.make.graphics({ x: 0, y: 0 }, false);
-        const c = size / 2;
-        for (let i = 0; i < 200; i++) {
-          const a = (i / 200) * Math.PI * 2;
-          const b = Math.pow(Math.sin(a) * 0.5 + 0.5, 2.2);   // arco brillante (cometa)
-          g.fillStyle(0xffffff, 0.08 + b * 0.9);
-          g.fillCircle(c + Math.cos(a) * R, c + Math.sin(a) * R, 1.6 + b * 3.4);
-        }
-        g.generateTexture('portal_disc', size, size);
-        g.destroy();
-      }
-      if (!this.textures.exists('portal_core')) {
-        const cs = 96;
-        const tex = this.textures.createCanvas('portal_core', cs, cs);
-        const ctx = tex!.getContext();
-        const grd = ctx.createRadialGradient(cs / 2, cs / 2, 2, cs / 2, cs / 2, cs / 2);
-        grd.addColorStop(0, 'rgba(0,0,0,1)');
-        grd.addColorStop(0.6, 'rgba(4,5,10,0.92)');
-        grd.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = grd;
-        ctx.fillRect(0, 0, cs, cs);
-        tex!.refresh();
-      }
-    }
-
-    /** Giro de los portales por proximidad: inactivo lento; acelera (cuadrático) según
-     *  te acercas. El turbo de entrada lo dispara un tween en checkPortals. */
+    /** Animación de los portales por proximidad: inactivo a ritmo normal; el vórtice
+     *  acelera (cuadrático) según te acercas. El turbo de entrada lo dispara checkPortals. */
     private updatePortals(playerPos: Phaser.Math.Vector2, delta: number): void {
       if (!this.activePortals.length) return;
       const TS = GameScene.TILE_SIZE;
-      const dt = delta / 1000;
       const px = playerPos.x, py = playerPos.y - TS / 2;
-      const IDLE = 0.35, MAXA = 9;                 // rad/s (inactivo → cerca)
+      const MAX_TS = 2.5;                          // timeScale de la anim al estar encima
       const nearR = TS * 10, enterR = TS * 1.1;    // enterR = radio de activación
       for (const p of this.activePortals) {
         // Estado bloqueado/desbloqueado (por si se desbloquea el destino o se paga el
         // sello EN VIVO): recolorear solo cuando cambia. Un portal está ABIERTO (verde)
         // solo si su feature está desbloqueada Y su sello (si tiene) está marcado; si no,
-        // bloqueado (rojo, disco entero teñido). Los 'back' (azules) no se tocan.
+        // bloqueado (rojo). Los 'back' (azules) no se tocan.
         if (p.config.direction !== 'back') {
           const flag = p.config.unlockFlag;
           const sealed = !!flag && !(this.reg.unlocks?.hasFlag(flag));
@@ -2028,22 +1995,16 @@ export class GameScene extends Phaser.Scene {
           const open = !sealed && unlocked;
           if (open === p.locked) {   // p.locked = !open anterior → el estado ha cambiado
             p.locked = !open;
-            const col = open ? 0x50e070 : 0xff4d4d;                          // color del halo
-            const disc = open ? 0x50e070 : GameScene.PORTAL_BLOCKED_TINT;    // tinte del disco (rojo casi puro si bloqueado)
-            p.outer.setTint(disc);
-            p.halo.setFillStyle(col);
-            if (open) { p.inner.clearTint(); p.core.clearTint(); }
-            else      { p.inner.setTint(disc); p.core.setTint(disc); }
+            p.halo.setFillStyle(open ? 0x50e070 : 0xff4d4d);
+            if (open) p.arch.clearTint();
+            else      p.arch.setTint(GameScene.PORTAL_ARCH_BLOCKED_TINT);
           }
         }
 
         const dx = px - p.cx, dy = py - p.cy;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const f = Phaser.Math.Clamp((nearR - dist) / (nearR - enterR), 0, 1);
-        const speed = IDLE + f * f * (MAXA - IDLE);
-        p.angle += speed * dt;
-        p.outer.setRotation(p.angle);
-        p.inner.setRotation(-p.angle * 1.6);       // contrarrotación
+        p.arch.anims.timeScale = 1 + f * f * (MAX_TS - 1);
         p.halo.setAlpha(0.12 + f * 0.3);
       }
     }
@@ -2070,10 +2031,10 @@ export class GameScene extends Phaser.Scene {
         const dx = px - cx;
         const dy = py - cy;
         if (dx * dx + dy * dy <= r2) {
-          // Turbo de entrada: los aros aceleran a tope durante el fundido (update() sale
-          // antes al haber cooldown, así que el giro lo llevan estos tweens).
-          this.tweens.add({ targets: p.outer, rotation: p.outer.rotation + Math.PI * 9, duration: 260, ease: 'Cubic.easeIn' });
-          this.tweens.add({ targets: p.inner, rotation: p.inner.rotation - Math.PI * 14, duration: 260, ease: 'Cubic.easeIn' });
+          // Turbo de entrada: el vórtice se acelera y el halo se enciende durante el fundido
+          // (update() sale antes al haber cooldown).
+          p.arch.anims.timeScale = 4;
+          this.tweens.add({ targets: p.halo, alpha: 0.7, duration: 260, ease: 'Cubic.easeIn' });
           this.portalCooldown = true;
           this.cameras.main.fadeOut(250, 0, 0, 0);
           this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
@@ -3624,11 +3585,8 @@ export class GameScene extends Phaser.Scene {
       }
       if (!pu.request$.value) this.openSealedPortal(p);   // abrir una sola vez
 
-      const TS = GameScene.TILE_SIZE;
-      const D = TS * 3.4, SQUASH = 0.5;                   // igual que initPortals()
-      const cx = p.config.tilePos.x * TS + TS / 2;
-      const cy = p.config.tilePos.y * TS + TS / 2;
-      const topY = cy - D * 0.5 * SQUASH;                 // borde superior del disco (mundo)
+      const cx = p.cx;
+      const topY = p.arch.getBounds().top + 4;            // cima del arco (mundo; 2px vacíos ×2)
       const wv = this.cameras.main.worldView;
       const Z = GameScene.CAMERA_DESIGN_ZOOM;             // px CSS por unidad de mundo
       pu.setAnchor((cx - wv.x) * Z, (topY - wv.y) * Z);

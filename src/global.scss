@@ -291,14 +291,15 @@ ion-content::part(scroll)::-webkit-scrollbar {
   letter-spacing: 0.05em;
 }
 
-/* ── Rareza de objetos: fondo de la casilla (estilo F de la galería) ─────────────────
+/* ── Rareza de objetos: fondo de la casilla (mezcla O + J de la galería) ─────────────────
    Lo lleva el OBJETO (.inventory-item / .equip-item [data-rarity]), no la casilla: así el fondo viaja
    con él al arrastrar (el placeholder de CDK pasa a la casilla nueva y la copia que se
-   arrastra también lo lleva). El halo se pinta en un ::before DETRÁS del icono
-   (isolation + z-index -1), así no pisa el background ni el box-shadow de la celda. Fondo oscuro con resplandor del color
-   desde el centro. De 'legendary' para ARRIBA (naranja y lo que se añada por encima):
-   destello que cruza la casilla + latido; si se crea una rareza mayor, añádela a esos
-   dos selectores. */
+   arrastra también lo lleva). El marco se pinta en un ::before DETRÁS del icono
+   (isolation + z-index -1), así no pisa el background ni el box-shadow de la celda.
+   Marco "neón" (O): fondo oscuro con filo fino del color y resplandor interior; y el propio
+   sprite se perfila con 1px del color + brillo (J). Común: sin perfil, solo sombra.
+   Épico y superiores: el filo late. De 'legendary' para ARRIBA: además destello que cruza
+   la casilla; si se crea una rareza mayor, añádela a esos selectores. */
 [data-rarity] {
   --r-c: #7d7d80; --r-l: #b4b4b8; --r-d: #4a4a4e;   // común (gris)
   position: relative;
@@ -316,11 +317,26 @@ ion-content::part(scroll)::-webkit-scrollbar {
   z-index: -1;
   border-radius: inherit;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 55%, var(--r-l) 0%, var(--r-c) 38%, var(--r-d) 85%);
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.55);
+  background: #1b140f;
+  box-shadow:
+    inset 0 0 0 1px var(--r-l),
+    inset 0 0 10px color-mix(in srgb, var(--r-c) 70%, transparent);
 }
 
-// El objeto (40px) está centrado en el hueco de la casilla (42px): el halo sobresale 1px
+// Contorno del sprite (img o celda de spritesheet): 1px del color en las 4 direcciones + brillo.
+[data-rarity] > .item-icon,
+[data-rarity] > .item-icon-sheet {
+  filter:
+    drop-shadow(1px 0 0 var(--r-l)) drop-shadow(-1px 0 0 var(--r-l))
+    drop-shadow(0 1px 0 var(--r-l)) drop-shadow(0 -1px 0 var(--r-l))
+    drop-shadow(0 0 4px var(--r-c));
+}
+[data-rarity="common"] > .item-icon,
+[data-rarity="common"] > .item-icon-sheet {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+// El objeto (40px) está centrado en el hueco de la casilla (42px): el marco sobresale 1px
 // para llenar la casilla entera, con el redondeo de la celda. Igual en los huecos de
 // equipo (combate y recolección: .equip-item, misma geometría 46/40).
 .inventory-item[data-rarity]::before,
@@ -331,8 +347,14 @@ ion-content::part(scroll)::-webkit-scrollbar {
   border-radius: 5px;
 }
 
+// Épico y superiores: el filo late con un resplandor exterior del color.
+[data-rarity="epic"]::before,
+[data-rarity="legendary"]::before {
+  animation: rarity-pulse 1.8s ease-in-out infinite;
+}
+
 // Naranja y superiores: destello diagonal (se anima la posición del degradado, así no
-// hace falta overflow: hidden en la celda) + latido dorado alrededor.
+// hace falta overflow: hidden en la celda).
 [data-rarity="legendary"]::after {
   content: '';
   position: absolute;
@@ -344,16 +366,18 @@ ion-content::part(scroll)::-webkit-scrollbar {
   background-size: 300% 100%;
   animation: rarity-sweep 2.6s ease-in-out infinite;
 }
-[data-rarity="legendary"]::before {
-  animation: rarity-pulse 1.8s ease-in-out infinite;
-}
 
 @keyframes rarity-sweep {
   0%        { background-position: 100% 0; }
   60%, 100% { background-position: 0% 0; }
 }
 @keyframes rarity-pulse {
-  50% { box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.55), 0 0 8px #ffb347; }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px var(--r-l),
+      inset 0 0 10px color-mix(in srgb, var(--r-c) 70%, transparent),
+      0 0 9px 1px var(--r-l);
+  }
 }
 
 /* ═══════════════ Estilos de app · superficies COMPARTIDAS (data-appstyle) ═══════════════

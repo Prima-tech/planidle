@@ -163,7 +163,18 @@ export const BUILDABLES: BuildableDef[] = [
   station('alchemy_table',    'BUILD.ALCHEMY_TABLE',    1, 0),
   station('alembic',          'BUILD.ALEMBIC',          1, 1),
   // Su receta ('Mesa de trabajo') la da la primera misión de Mordekai.
-  { ...station('workbench', 'BUILD.WORKBENCH', 2, 0), opensWindow: true },   // abre su ventana (izquierda)
+  // Sprite propio (34×25, estático) en vez del de la hoja stations. Escala 3 para que
+  // ocupe lo mismo que el anterior (~100px de ancho en el mapa).
+  {
+    ...station('workbench', 'BUILD.WORKBENCH', 2, 0),
+    spriteKey: 'workbench', frame: 0, animKey: undefined,
+    frameSize: 34, scale: 3,
+    opensWindow: true,   // abre su ventana (izquierda)
+    previewUrl: 'assets/sprites/stations/workbench.png',
+    previewSrc: { x: 0, y: 0, w: 34, h: 25 },
+    previewSheet: { w: 34, h: 25 },
+    previewScale: 2,
+  },
   station('loom',             'BUILD.LOOM',             2, 1),
   station('enchanting_table', 'BUILD.ENCHANTING_TABLE', 3, 0),
   station('drying_rack',      'BUILD.DRYING_RACK',      3, 1),
