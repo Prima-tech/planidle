@@ -180,6 +180,7 @@ misión no pertenece a ella. Las dos comparten la primera (mismo id → mismo pr
 | noexp_pico | equip `Pico de Hierro` · `startFlags: recipe.iron_pickaxe` (al ofrecerla desbloquea la receta) | 1 | Fabrica y equipa el pico | 10 oro + 10 exp |
 | noexp_farmeo | collect (5 Madera + 5 Mineral de Cobre, **se entregan**) | 2 | Reúne 5 de madera y 5 de cobre | 10 oro + 10 exp |
 | noexp_armas | equip `Daga Oxidada` + `Coraza de Marfil` (itemNames, goal 2) · `startFlags: recipe.starter_gear` (recetas en la mesa, 2 Piedra + 2 Madera c/u) | 2 | Fabrica y equipa arma y coraza | 10 oro + 10 exp |
+| noexp_kugo | talk `Kugo` (1-1) · se cobra en el diálogo con Kugo, que sigue apareciendo en 1-1 aunque esté reclutado · al ofrecerse, los árboles y rocas de tala/minería de Asgard (5 + 5, `HOGAR_NODE_SPOTS`) dejan de reaparecer (antes: cada 30 s en su sitio) | 1 | Habla con Kugo en 1-1 | 10 oro + 10 exp |
 
 Al añadir una misión, **actualizar esta tabla**.
 
@@ -772,6 +773,7 @@ Al añadir una misión, **actualizar esta tabla**.
   prerequisito cobrado; pegajoso. Campo `startFlags` del QuestDef: flags (personaje)
   que se marcan al OFRECERSE la misión (al cobrar la previa), p.ej. una receta de la
   mesa de trabajo (`WORKBENCH_RECIPES` en workbench.service).
+- **`talk`** — hablar con un NPC (`npc`). `QuestService.onTalk(npc)` la cumple desde `talkToNpc` (gamescene) y se cobra en ese mismo diálogo con su `claimDialogue`. `pendingTalk(npc)` hace que un reclutable ya reclutado siga apareciendo mientras la misión esté pendiente. `isOffered(id)` dice si una misión ya se ofreció (lo usa la escena para cortar la reaparición de los árboles y rocas de Asgard).
 - **`build`** — levantar un edificio en Asgard. Progreso binario sobre
   `CityBuildService.isBuilt(buildType)`; fuente: `placed# new-quest — Añadir una misión nueva
 

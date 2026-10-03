@@ -150,6 +150,14 @@
       "IRON": "Iron & gems",
       "GLASS": "Glass",
       "JRPG": "JRPG"
+    },
+    "MINIMAP": {
+      "TITLE": "Minimap",
+      "DEFAULT": "Current",
+      "FRAME": "Frame with bar",
+      "TOP_BUTTONS": "Buttons on top",
+      "IRON_CORNERS": "Iron corners",
+      "MEDALLION": "Medallion"
     }
   },
   "GAME_SETTINGS": {
@@ -489,6 +497,11 @@
       "NAME": "Weapon and armor",
       "DESC": "Mordekai has taught you to craft your first combat gear: it is ready at the workbench. Craft the Rusty Dagger and the Ivory Cuirass (2 stone and 2 wood each), open them in your backpack and press Equip on both. Then talk to Mordekai. Reward: 10 gold and 10 experience.",
       "TRACK": "Craft and equip weapon and cuirass"
+    },
+    "NOEXP_KUGO": {
+      "NAME": "Visit Kugo",
+      "DESC": "Mordekai wants you to meet Kugo, who is waiting for you on map 1-1. Cross the west portal of Asgard and talk to him. Reward: 10 gold and 10 experience.",
+      "TRACK": "Talk to Kugo in 1-1"
     }
   },
   "PET": {
@@ -825,12 +838,17 @@
     "KUGO_LINE": "{{player}}, long time no see!",
     "ITALIEN_LINE": "Hey {{player}}, ready for adventure?",
     "RAKE_LINE": "{{player}}, we set off whenever you want.",
-    "MORDEKAI_GEAR_CLAIM": "Now you look like a warrior, {{player}}! Take 10 gold and 10 experience."
+    "MORDEKAI_GEAR_CLAIM": "Now you look like a warrior, {{player}}! Take 10 gold and 10 experience. Now go to 1-1 through the west portal and talk to Kugo: he is waiting for you.",
+    "MORDEKAI_KUGO_INTRO": "You have more than enough gear now, {{player}}. Go to 1-1 through the west portal and find Kugo: he is waiting for you.",
+    "MORDEKAI_KUGO_PROGRESS": "Have you not talked to Kugo yet, {{player}}? He is in 1-1, past the west portal.",
+    "KUGO_QUEST_CLAIM": "So you are {{player}}! Mordekai told me about you. Take 10 gold and 10 experience for the walk."
   },
   "WORKBENCH": {
     "TITLE": "Workbench",
     "CRAFT": "Craft",
-    "LOCKED": "Locked"
+    "LOCKED": "Locked",
+    "PREV": "Previous",
+    "NEXT": "Next"
   },
   "MAP_UPGRADES": {
     "TITLE": "Map upgrades",

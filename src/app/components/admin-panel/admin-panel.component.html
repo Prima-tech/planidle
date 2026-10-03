@@ -182,6 +182,21 @@
         </div>
       </div>
 
+      <!-- Estilo del minimapa (independiente del tema): aro redondo o marco con barra. -->
+      <div class="gs-style">
+        <span class="gs-style-label">{{ 'SETTINGS.MINIMAP.TITLE' | translate }}</span>
+        <div class="gs-style-btns">
+          <button
+            *ngFor="let s of appStyle.minimapStyles"
+            type="button"
+            class="rpg-btn gs-style-btn"
+            [class.active]="appStyle.isMinimap(s.id)"
+            (click)="appStyle.setMinimap(s.id)">
+            {{ s.nameKey | translate }}
+          </button>
+        </div>
+      </div>
+
       <!-- Estilo de la barra de vida (independiente del tema): "Actual" = la del tema. -->
       <div class="gs-style">
         <span class="gs-style-label">{{ 'SETTINGS.HP_BAR.TITLE' | translate }}</span>

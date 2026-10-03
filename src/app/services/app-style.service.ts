@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { MINIMAP_STYLE_ATTR, MINIMAP_STYLE_EVENT } from '../scenes/gamescene/constants';
 
 /**
  * Estilo visual (tema) de TODA la app. Selector en Ajustes (un botón por estilo,
@@ -48,6 +49,21 @@ export const HP_BAR_STYLES: { id: HpBarStyleId; nameKey: string }[] = [
   { id: 'jrpg', nameKey: 'SETTINGS.HP_BAR.JRPG' },
 ];
 
+/** Estilo del MINIMAPA, independiente del tema. 'default' = aro redondo de siempre; el
+ *  resto = mapa cuadrado en un panel (marco con barra, botones arriba, esquinas de hierro,
+ *  medallón). Geometría en MM_GEOMETRY (mobile-hud) + layout.component.scss. */
+export type MinimapStyleId = 'default' | 'marco' | 'cabecera' | 'esquinas' | 'medallon';
+
+export const MINIMAP_STYLES: { id: MinimapStyleId; nameKey: string }[] = [
+  { id: 'default', nameKey: 'SETTINGS.MINIMAP.DEFAULT' },
+  { id: 'marco', nameKey: 'SETTINGS.MINIMAP.FRAME' },
+  { id: 'cabecera', nameKey: 'SETTINGS.MINIMAP.TOP_BUTTONS' },
+  { id: 'esquinas', nameKey: 'SETTINGS.MINIMAP.IRON_CORNERS' },
+  { id: 'medallon', nameKey: 'SETTINGS.MINIMAP.MEDALLION' },
+];
+
+const MINIMAP_KEY = 'minimap_style';
+
 const HP_BAR_KEY = 'hpbar_style';
 const HP_BAR_ATTR = 'data-hpbar';
 
@@ -60,8 +76,10 @@ export class AppStyleService {
 
   readonly styles = APP_STYLES;
   readonly hpBarStyles = HP_BAR_STYLES;
+  readonly minimapStyles = MINIMAP_STYLES;
   private readonly _current$: BehaviorSubject<AppStyleId>;
   private _hpBar: HpBarStyleId = 'default';
+  private _minimap: MinimapStyleId = 'default';
 
   constructor() {
     const saved = this.read();
@@ -69,6 +87,34 @@ export class AppStyleService {
     this.apply(saved);   // pinta el atributo al arrancar (sin parpadeo)
     this._hpBar = this.readHpBar();
     this.applyHpBar(this._hpBar);
+    this._minimap = this.readMinimap();
+    this.applyMinimap(this._minimap);
+  }
+
+  get minimap(): MinimapStyleId { return this._minimap; }
+  isMinimap(id: MinimapStyleId): boolean { return this._minimap === id; }
+
+  /** Cambia el estilo del minimapa: persiste, pinta el atributo y avisa a la escena
+   *  del HUD (Phaser) para que lo redibuje con su forma (redonda/cuadrada). */
+  setMinimap(id: MinimapStyleId): void {
+    if (id === this._minimap) return;
+    this._minimap = id;
+    try { localStorage.setItem(MINIMAP_KEY, id); } catch { /* sin storage */ }
+    this.applyMinimap(id);
+    window.dispatchEvent(new Event(MINIMAP_STYLE_EVENT));
+  }
+
+  private applyMinimap(id: MinimapStyleId): void {
+    if (id === 'default') document.documentElement.removeAttribute(MINIMAP_STYLE_ATTR);
+    else document.documentElement.setAttribute(MINIMAP_STYLE_ATTR, id);
+  }
+
+  private readMinimap(): MinimapStyleId {
+    try {
+      const v = localStorage.getItem(MINIMAP_KEY);
+      if (MINIMAP_STYLES.some(s => s.id === v)) return v as MinimapStyleId;
+    } catch { /* sin storage */ }
+    return 'default';
   }
 
   get hpBar(): HpBarStyleId { return this._hpBar; }

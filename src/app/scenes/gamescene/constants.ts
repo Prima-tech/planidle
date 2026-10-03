@@ -80,3 +80,8 @@ export const enemyTags = {
   ATTACK:'_attack_',
   DIE: '_die_',
 }
+/** Evento de window al cambiar el estilo del minimapa (Admin → Estilos → Minimapa):
+ *  MobileHUDScene se relanza para redibujarlo con la forma nueva (redonda/cuadrada). */
+export const MINIMAP_STYLE_EVENT = 'minimap-style-change';
+/** Atributo de <html> con el estilo del minimapa. 'marco' = mapa cuadrado en panel. */
+export const MINIMAP_STYLE_ATTR = 'data-minimap';

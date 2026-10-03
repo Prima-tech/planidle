@@ -409,3 +409,281 @@
       --background: black;
   }
 }
+
+/* ═══════════════ Minimapa · estilos de PANEL (data-minimap) ═══════════════
+   Admin → Estilos → Minimapa. Sin atributo = aro redondo (arriba). Con atributo, el mapa
+   lo dibuja Phaser CUADRADO (o de esquinas redondas) según MM_GEOMETRY en
+   mobile-hud.scene.ts, y aquí se monta el panel alrededor. Las medidas del hueco del
+   mapa DEBEN cuadrar con las de MM_GEOMETRY (px del border-box del panel, anclado a 8px
+   de arriba/dcha). Van al FINAL para pisar el aro del tema (misma especificidad, gana el
+   último); de momento solo tienen aspecto de madera/piedra.
+     marco     (C) panel 108×152 · mapa 96 en (6,23)  · botones en barra abajo
+     cabecera  (I) panel 108×153 · mapa 96 en (6,35)  · botones arriba, nombre abajo
+     esquinas  (J) losa 108 en x=30 · mapa 96 en (36,6) · botones en columna a la izq.
+     medallon  (L) madera 108 en y=8 · mapa 96 en (6,14) · tachuelas en el borde de abajo */
+
+$mm-wood: (repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px), #a86f3e);
+
+// Base común: fuera el aro redondo; botones y nombre listos para recolocar.
+@mixin mm-panel($w, $h) {
+  .minimap-frame {
+    top: 8px;
+    right: 8px;
+    width: $w;
+    height: $h;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .minimap-name {
+    bottom: auto;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    text-transform: none;
+    text-shadow: none;
+    font-family: 'Russo One', sans-serif;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .minimap-btn {
+    right: auto;
+    bottom: auto;
+    &::before,
+    &::after { content: none; display: none; }
+    ion-icon { font-size: 14px; filter: none; }
+    &:active { transform: scale(0.92); }
+  }
+  .minimap-btn-img,
+  .minimap-btn--bag .minimap-btn-img,
+  .minimap-btn--settings .minimap-btn-img {
+    display: block;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Tabla con un HUECO para el mapa: todo el pseudo menos la ventana (x, y, lado).
+@mixin mm-holed($x, $y, $size) {
+  -webkit-mask:
+    linear-gradient(#000 0 0) $x $y / $size $size no-repeat,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) $x $y / $size $size no-repeat exclude,
+    linear-gradient(#000 0 0);
+}
+
+// Marco oscuro del hueco (asienta el mapa dentro de la tabla).
+@mixin mm-window($x, $y, $size, $radius: 2px) {
+  content: '';
+  position: absolute;
+  left: $x - 2px;
+  top: $y - 2px;
+  width: $size + 4px;
+  height: $size + 4px;
+  box-sizing: border-box;
+  border: 2px solid #3a2c20;
+  border-radius: $radius;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+}
+
+// Botón de madera cuadrado (barra de la C)
+@mixin mm-btn-wood {
+  border: 2px solid #3a2c20;
+  border-radius: 5px;
+  background: linear-gradient(#d99a5c, #c08349);
+  color: #53301c;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  &:active { background: linear-gradient(#c08349, #a86f3e); box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.3); }
+}
+
+// Tecla de piedra (cabecera de la I, columna de la J)
+@mixin mm-btn-stone {
+  border: 2px solid #3a2c20;
+  border-radius: 5px;
+  background: linear-gradient(#e2dccf, #9b9285);
+  color: #3a342c;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  &:active { background: linear-gradient(#9b9285, #847b6e); box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.3); }
+}
+
+/* ── C · Marco con barra ── */
+:host-context([data-minimap="marco"]) {
+  @include mm-panel(108px, 152px);
+  .minimap-frame {
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-sizing: border-box;
+      border-radius: 9px;
+      background: $mm-wood;
+      border: 3px solid;
+      border-color: #a59c8d #6b6357 #6b6357 #8f8678;
+      @include mm-holed(6px, 23px, 96px);
+      pointer-events: none;
+    }
+    &::after { @include mm-window(6px, 23px, 96px); }
+  }
+  .minimap-name { top: 3px; left: 0; width: 100%; height: 20px; line-height: 20px; transform: none; text-align: center; background: none; color: #53301c; }
+  .minimap-btn { top: 123px; width: 22px; height: 22px; @include mm-btn-wood; }
+  .minimap-btn--admin    { left: 6px; }
+  .minimap-btn--settings { left: 31px; }
+  .minimap-btn--shop     { left: 56px; }
+  .minimap-btn--bag      { left: 81px; }
+}
+
+/* ── I · Botones arriba ── */
+:host-context([data-minimap="cabecera"]) {
+  @include mm-panel(108px, 153px);
+  .minimap-frame {
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-sizing: border-box;
+      border-radius: 9px;
+      // Madera + filete bajo la fila de teclas (y=32)
+      background: linear-gradient(rgba(58, 44, 32, 0.45), rgba(58, 44, 32, 0.45)) 3px 31px / calc(100% - 6px) 1px no-repeat, $mm-wood;
+      border: 3px solid;
+      border-color: #a59c8d #6b6357 #6b6357 #8f8678;
+      @include mm-holed(6px, 35px, 96px);
+      pointer-events: none;
+    }
+    &::after { @include mm-window(6px, 35px, 96px); }
+  }
+  .minimap-name { top: 133px; left: 6px; width: 96px; height: 16px; line-height: 16px; transform: none; text-align: center; color: #ecd9b4; background: #6b4226; border-radius: 4px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5); }
+  .minimap-btn { top: 6px; width: 22px; height: 22px; @include mm-btn-stone; }
+  .minimap-btn--admin    { left: 6px; }
+  .minimap-btn--settings { left: 31px; }
+  .minimap-btn--shop     { left: 56px; }
+  .minimap-btn--bag      { left: 81px; }
+}
+
+/* ── J · Esquinas de hierro ── */
+$mm-iron: #4a4e55;
+$mm-rivet: radial-gradient(circle, #c9cdd3 0 1.6px, transparent 2.2px);
+:host-context([data-minimap="esquinas"]) {
+  @include mm-panel(138px, 118px);
+  .minimap-frame {
+    // Losa de piedra (a la derecha del frame, x=30) con hueco para el mapa
+    &::before {
+      content: '';
+      position: absolute;
+      left: 30px;
+      top: 0;
+      width: 108px;
+      height: 108px;
+      box-sizing: border-box;
+      border-radius: 4px;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.12), transparent 60%),
+        repeating-conic-gradient(#8f8678 0 25%, #877e70 0 50%) 0 0 / 6px 6px;
+      border: 2px solid #3a2c20;
+      @include mm-holed(6px, 6px, 96px);
+      pointer-events: none;
+    }
+    // Escuadras de hierro remachadas en las 4 esquinas de la losa (sobre el marco del hueco)
+    &::after {
+      content: '';
+      position: absolute;
+      left: 28px;
+      top: -2px;
+      width: 112px;
+      height: 112px;
+      pointer-events: none;
+      background:
+        $mm-rivet 2px 2px / 8px 8px no-repeat,
+        $mm-rivet right 2px top 2px / 8px 8px no-repeat,
+        $mm-rivet 2px bottom 2px / 8px 8px no-repeat,
+        $mm-rivet right 2px bottom 2px / 8px 8px no-repeat,
+        linear-gradient($mm-iron, $mm-iron) left top / 18px 5px no-repeat,
+        linear-gradient($mm-iron, $mm-iron) left top / 5px 18px no-repeat,
+        linear-gradient($mm-iron, $mm-iron) right top / 18px 5px no-repeat,
+        linear-gradient($mm-iron, $mm-iron) right top / 5px 18px no-repeat,
+        linear-gradient($mm-iron, $mm-iron) left bottom / 18px 5px no-repeat,
+        linear-gradient($mm-iron, $mm-iron) left bottom / 5px 18px no-repeat,
+        linear-gradient($mm-iron, $mm-iron) right bottom / 18px 5px no-repeat,
+        linear-gradient($mm-iron, $mm-iron) right bottom / 5px 18px no-repeat;
+      filter: drop-shadow(0 1px 0 #111);
+    }
+  }
+  .minimap-name {
+    top: 100px;
+    left: 84px;
+    transform: translateX(-50%);
+    padding: 1px 9px;
+    font-size: 10.5px;
+    color: #e7e2d6;
+    background: linear-gradient(#5a5f67, #34373c);
+    border: 1px solid #111214;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  .minimap-btn { left: 0; width: 24px; height: 24px; @include mm-btn-stone; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 2px 0 0 $mm-iron, 0 2px 4px rgba(0, 0, 0, 0.4); }
+  .minimap-btn--admin    { top: 2px; }
+  .minimap-btn--settings { top: 28px; }
+  .minimap-btn--shop     { top: 54px; }
+  .minimap-btn--bag      { top: 80px; }
+}
+
+/* ── L · Medallón cuadrado ── */
+:host-context([data-minimap="medallon"]) {
+  @include mm-panel(108px, 127px);
+  .minimap-frame {
+    // Madera de esquinas muy redondas (y=8) con hueco redondeado para el mapa
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 108px;
+      height: 108px;
+      box-sizing: border-box;
+      border-radius: 28px;
+      background: $mm-wood;
+      border: 3px solid #3a2c20;
+      box-shadow: inset 0 0 0 2px #c08349, inset 0 3px 0 rgba(255, 255, 255, 0.2);
+      // Hueco con esquinas redondas (radio 20 = MM_GEOMETRY.medallon.radius)
+      -webkit-mask:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='20'/%3E%3C/svg%3E") 6px 6px / 96px 96px no-repeat,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='20'/%3E%3C/svg%3E") 6px 6px / 96px 96px no-repeat exclude,
+        linear-gradient(#000 0 0);
+      pointer-events: none;
+    }
+    &::after { @include mm-window(6px, 14px, 96px, 20px); border-radius: 22px; }
+  }
+  .minimap-name {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1px 10px;
+    color: #53301c;
+    background: linear-gradient(#ffe9a8, #f0c040 60%, #b8922a);
+    border: 2px solid #3a2c20;
+    border-radius: 8px;
+    z-index: 1;
+  }
+  .minimap-btn {
+    top: 105px;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #3a2410;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 28%, #fff1c8, #e3ad55 45%, #9b6420 85%);
+    color: #3a2410;
+    box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.35), 0 2px 5px rgba(0, 0, 0, 0.5);
+    &:active { background: radial-gradient(circle at 35% 72%, #e3ad55, #9b6420); }
+  }
+  .minimap-btn--admin    { left: 8px; }
+  .minimap-btn--settings { left: 32px; }
+  .minimap-btn--shop     { left: 56px; }
+  .minimap-btn--bag      { left: 80px; }
+}

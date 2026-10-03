@@ -43,7 +43,8 @@ export type QuestObjective =
   | OpenPortalObjective
   | CollectObjective
   | BuildObjective
-  | EquipObjective;
+  | EquipObjective
+  | TalkObjective;
 // Futuro: | { type: 'reachLevel'; goal: number }
 //         | { type: 'collectItem'; itemId: string; goal: number }
 //         | { type: 'spendCoins'; goal: number } ...
@@ -109,6 +110,15 @@ export interface EquipObjective {
   goal: number;         // = nº de items (1 con itemName)
   itemName?: string;    // un solo item (nombre en ITEM_CATALOG), p.ej. 'Hacha de Hierro'
   itemNames?: string[]; // varios items a la vez, p.ej. ['Daga Oxidada', 'Coraza de Marfil']
+}
+
+/** Hablar con un NPC concreto (p.ej. Kugo en 1-1). Progreso binario: 0 hasta hablarle
+ *  con la misión ya ofrecida (prerequisito cobrado), `goal` (1) al hacerlo. Se cobra en
+ *  el acto, en el diálogo de ese NPC (ver `onTalk` + talkToNpc en gamescene). */
+export interface TalkObjective {
+  type: 'talk';
+  goal: number;   // siempre 1
+  npc: string;    // nombre del NPC (CITY_NPCS / RECRUIT_NPCS de gamescene)
 }
 
 /** Items que pide un objetivo 'equip' (itemName o itemNames). */
@@ -301,6 +311,22 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     startFlags: [RECIPE_STARTER_GEAR_FLAG],
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_GEAR_CLAIM' },
+  },
+  {
+    // Mordekai te manda a 1-1 a hablar con Kugo. Se cumple y se cobra en el propio
+    // diálogo con Kugo (que sigue apareciendo en 1-1 mientras la misión esté pendiente,
+    // aunque ya lo hayas reclutado). Al OFRECERSE (cobrar la de armas) los árboles y rocas
+    // de Asgard dejan de reaparecer (ver HOGAR_NODES_STOP_QUEST en gamescene).
+    id: 'noexp_kugo',
+    name: 'QUESTS.NOEXP_KUGO.NAME',
+    desc: 'QUESTS.NOEXP_KUGO.DESC',
+    icon: 'chatbubbles-outline',
+    track: 'QUESTS.NOEXP_KUGO.TRACK',
+    objective: { type: 'talk', goal: 1, npc: 'Kugo' },
+    reward: { coins: 10, exp: 10 },
+    requires: 'noexp_armas',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Kugo', text: 'NPC.KUGO_QUEST_CLAIM' },
   },
 ];
 
@@ -501,6 +527,30 @@ export class QuestService implements OnDestroy {
 
   available(): QuestDef[] {
     return this.list().filter(q => !this.completedSet.has(q.id) && this.prereqMet(q));
+  }
+
+  /** ¿La misión `id` ya se le ha OFRECIDO a este personaje (es de la cadena vigente y
+   *  su prerequisito está cobrado)? Sigue siendo true al completarla. */
+  isOffered(id: string): boolean {
+    const def = this.list().find(q => q.id === id);
+    return !!def && this.prereqMet(def);
+  }
+
+  /** Misión 'talk' pendiente con este NPC (ofrecida y sin completar), o null. La escena
+   *  la usa para seguir mostrando al NPC aunque ya esté reclutado. */
+  pendingTalk(npc: string): QuestDef | null {
+    return this.available().find(q => q.objective.type === 'talk' && q.objective.npc === npc) ?? null;
+  }
+
+  /** Has hablado con `npc`: si tenía una misión 'talk' pendiente, la deja cumplida y la
+   *  devuelve (el que llama la cobra en el mismo diálogo); si no, null. */
+  onTalk(npc: string): QuestDef | null {
+    const def = this.pendingTalk(npc);
+    if (!def) return null;
+    this.progress[def.id] = def.objective.goal;
+    this.notify();
+    this.persistNow();
+    return def;
   }
 
   /** Misión vigente de un NPC que reparte misiones (`giver`): la primera que se le

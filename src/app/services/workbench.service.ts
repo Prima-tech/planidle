@@ -38,6 +38,23 @@ export const WORKBENCH_RECIPES: WorkbenchRecipe[] = [
     cost: [{ name: 'Piedra', qty: 2 }, { name: 'Madera', qty: 2 }],
     unlockFlag: RECIPE_STARTER_GEAR_FLAG,
   },
+  // Resto del equipo básico (el primero de cada tipo del catálogo), con el mismo
+  // desbloqueo que la coraza.
+  {
+    id: 'leather_greaves', result: 'Grebas de Cuero',
+    cost: [{ name: 'Piedra', qty: 10 }, { name: 'Madera', qty: 10 }],
+    unlockFlag: RECIPE_STARTER_GEAR_FLAG,
+  },
+  {
+    id: 'iron_helm', result: 'Yelmo de Hierro',
+    cost: [{ name: 'Piedra', qty: 10 }, { name: 'Madera', qty: 10 }],
+    unlockFlag: RECIPE_STARTER_GEAR_FLAG,
+  },
+  {
+    id: 'ivory_boots', result: 'Botas de Marfil',
+    cost: [{ name: 'Piedra', qty: 10 }, { name: 'Madera', qty: 10 }],
+    unlockFlag: RECIPE_STARTER_GEAR_FLAG,
+  },
 ];
 
 /** Lógica de la mesa de trabajo (recetas, coste y fabricación). La ventana es
@@ -56,6 +73,11 @@ export class WorkbenchService {
   /** Icono del catálogo (aunque el jugador no tenga ninguno). */
   iconFor(name: string): string {
     return ITEM_CATALOG.find(e => e.name === name)?.icon ?? '';
+  }
+
+  /** Descripción del catálogo (para la ficha de la receta). */
+  descFor(name: string): string {
+    return ITEM_CATALOG.find(e => e.name === name)?.description ?? '';
   }
 
   have(name: string): number { return this.inventory.countByName(name); }

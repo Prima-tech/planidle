@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Direction } from '../pnj/interfaces/Direction';
 import { REGISTRY_KEYS } from './game-registry';
-import { NATIVE_DPR } from './gamescene/constants';
+import { NATIVE_DPR, MINIMAP_STYLE_ATTR, MINIMAP_STYLE_EVENT } from './gamescene/constants';
 import { Subscription } from 'rxjs';
 
 export interface MobileInput {
@@ -58,6 +58,16 @@ const THUMB_R  = 26 * DPR;
 const MM_RADIUS     = 49 * DPR;   // radio del minimapa circular (px CSS × DPR)
 const MM_MARGIN     = 27 * DPR;   // separación del borde derecho (aro HTML a 22px + 5px de bisel)
 const MM_TOP        = 15 * DPR;   // separación del borde superior (aro HTML a 10px + 5px de bisel)
+// Estilos de PANEL del minimapa (data-minimap, Admin → Estilos → Minimapa): mapa de 96px
+// cuadrado (o de esquinas redondas) dentro de un panel HTML anclado a 8px arriba/dcha.
+// Las cifras (px CSS) DEBEN cuadrar con el hueco de cada panel en layout.component.scss.
+// margin = distancia del borde dcho. de pantalla al mapa · top = del borde superior.
+const MM_GEOMETRY: Record<string, { half: number; margin: number; top: number; radius?: number }> = {
+  marco:    { half: 48, margin: 14, top: 31 },              // C: cabecera 20 + marco 3
+  cabecera: { half: 48, margin: 14, top: 43 },              // I: fila de teclas encima
+  esquinas: { half: 48, margin: 14, top: 14 },              // J: losa de piedra
+  medallon: { half: 48, margin: 14, top: 22, radius: 20 },  // L: esquinas redondas
+};
 const MM_DOT_PORTAL    = 3   * DPR;
 const MM_COLOR_PORTAL  = 0x48c4f8;
 const MM_DOT_NODE      = 3.5 * DPR;   // árboles (las rocas usan icono)
@@ -92,6 +102,9 @@ export class MobileHUDScene extends Phaser.Scene {
   private mmData: MinimapData | null = null;
   private mmCX = 0;       // centro del círculo en pantalla
   private mmCY = 0;
+  private mmSquare = false;        // mapa cuadrado (estilos de panel) en vez de círculo
+  private mmCorner = 0;            // radio de las esquinas del cuadrado (0 = vivas)
+  private mmHalf = MM_RADIUS;      // radio (círculo) o medio lado (cuadrado)
   private mmOffX = 0;     // origen del mapa proyectado (centrado en el círculo)
   private mmOffY = 0;
   private mmScale = 0;
@@ -145,6 +158,10 @@ export class MobileHUDScene extends Phaser.Scene {
     const input = this.registry.get(MOBILE_INPUT_KEY) as MobileInput;
 
     this.createMinimap(W);
+    // Cambio de estilo del minimapa (Admin → Estilos): se relanza para redibujarlo.
+    const onMinimapStyle = () => { if (this.scene.isActive()) this.scene.restart(); };
+    window.addEventListener(MINIMAP_STYLE_EVENT, onMinimapStyle);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => window.removeEventListener(MINIMAP_STYLE_EVENT, onMinimapStyle));
     this.createFpsOverlay();
     this.createLowHpVignette();
 
@@ -415,15 +432,21 @@ export class MobileHUDScene extends Phaser.Scene {
     if (!data || !data.mapWidthPx || !data.mapHeightPx) return;
     this.mmData = data;
 
-    this.mmCX        = screenW - MM_MARGIN - MM_RADIUS;
-    this.mmCY        = MM_TOP + MM_RADIUS;
-    this.mmBaseScale = (MM_RADIUS * 2) / Math.max(data.mapWidthPx, data.mapHeightPx);
+    const geo = MM_GEOMETRY[document.documentElement.getAttribute(MINIMAP_STYLE_ATTR) ?? ''];
+    this.mmSquare    = !!geo;
+    this.mmCorner    = (geo?.radius ?? 0) * DPR;
+    this.mmHalf      = geo ? geo.half * DPR : MM_RADIUS;
+    this.mmCX        = screenW - (geo ? geo.margin * DPR : MM_MARGIN) - this.mmHalf;
+    this.mmCY        = (geo ? geo.top * DPR : MM_TOP) + this.mmHalf;
+    this.mmBaseScale = (this.mmHalf * 2) / Math.max(data.mapWidthPx, data.mapHeightPx);
 
     // Suelo coloreado (verde hierba, azul agua…). Si hay terreno, el fondo oscuro
     // se vuelve transparente para que se vea; si no, mantiene el relleno de siempre.
     const hasTerrain = data.terrain ? this.renderTerrain(data.terrain) : false;
 
-    const bg = this.add.circle(this.mmCX, this.mmCY, MM_RADIUS, 0x1a1a2e, hasTerrain ? 0 : 0.55);
+    const bg = this.mmSquare
+      ? this.add.rectangle(this.mmCX, this.mmCY, this.mmHalf * 2, this.mmHalf * 2, 0x1a1a2e, hasTerrain ? 0 : 0.55)
+      : this.add.circle(this.mmCX, this.mmCY, this.mmHalf, 0x1a1a2e, hasTerrain ? 0 : 0.55);
     bg.setStrokeStyle(1.5 * DPR, 0x3498db, 0.5);
 
     // Portales (estáticos): se crean una vez y se recolocan en layoutStatic().
@@ -518,7 +541,10 @@ export class MobileHUDScene extends Phaser.Scene {
     // Máscara circular: el suelo no se sale del aro del minimapa.
     const mask = this.make.graphics({});
     mask.fillStyle(0xffffff);
-    mask.fillCircle(this.mmCX, this.mmCY, MM_RADIUS - 1 * DPR);
+    const r = this.mmHalf - 1 * DPR;
+    if (this.mmSquare && this.mmCorner > 0) mask.fillRoundedRect(this.mmCX - r, this.mmCY - r, r * 2, r * 2, this.mmCorner);
+    else if (this.mmSquare) mask.fillRect(this.mmCX - r, this.mmCY - r, r * 2, r * 2);
+    else mask.fillCircle(this.mmCX, this.mmCY, r);
     im.setMask(mask.createGeometryMask());
 
     this.mmTerrain = im;
@@ -529,15 +555,22 @@ export class MobileHUDScene extends Phaser.Scene {
   // Proyecta px de mundo al minimapa y retiene el punto dentro del círculo
   // (lo que queda fuera se pega al borde, estilo radar)
   private mmPlace(dot: Phaser.GameObjects.Arc, worldX: number, worldY: number): void {
-    let dx = this.mmOffX + worldX * this.mmScale - this.mmCX;
-    let dy = this.mmOffY + worldY * this.mmScale - this.mmCY;
-    const maxR = MM_RADIUS - dot.radius - 2 * DPR;
-    const d = Math.sqrt(dx * dx + dy * dy);
-    if (d > maxR) {
-      dx = (dx / d) * maxR;
-      dy = (dy / d) * maxR;
-    }
+    const [dx, dy] = this.mmClamp(
+      this.mmOffX + worldX * this.mmScale - this.mmCX,
+      this.mmOffY + worldY * this.mmScale - this.mmCY,
+      this.mmHalf - dot.radius - 2 * DPR,
+    );
     dot.setPosition(this.mmCX + dx, this.mmCY + dy);
+  }
+
+  /** Retiene un desplazamiento (desde el centro) dentro del minimapa: radio en el
+   *  círculo, cada eje por separado en el cuadrado. Lo de fuera queda pegado al borde. */
+  private mmClamp(dx: number, dy: number, max: number): [number, number] {
+    if (this.mmSquare) {
+      return [Math.max(-max, Math.min(max, dx)), Math.max(-max, Math.min(max, dy))];
+    }
+    const d = Math.sqrt(dx * dx + dy * dy);
+    return d > max ? [(dx / d) * max, (dy / d) * max] : [dx, dy];
   }
 
   private updateMinimap(): void {
@@ -647,11 +680,11 @@ export class MobileHUDScene extends Phaser.Scene {
   }
 
   private mmPlaceImg(img: Phaser.GameObjects.Image, half: number, worldX: number, worldY: number): void {
-    let dx = this.mmOffX + worldX * this.mmScale - this.mmCX;
-    let dy = this.mmOffY + worldY * this.mmScale - this.mmCY;
-    const maxR = MM_RADIUS - half - 2 * DPR;
-    const d = Math.sqrt(dx * dx + dy * dy);
-    if (d > maxR) { dx = (dx / d) * maxR; dy = (dy / d) * maxR; }
+    const [dx, dy] = this.mmClamp(
+      this.mmOffX + worldX * this.mmScale - this.mmCX,
+      this.mmOffY + worldY * this.mmScale - this.mmCY,
+      this.mmHalf - half - 2 * DPR,
+    );
     img.setPosition(this.mmCX + dx, this.mmCY + dy);
   }
 }

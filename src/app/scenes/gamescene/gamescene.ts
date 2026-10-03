@@ -131,6 +131,7 @@ interface HarvestNode {
   tileKeys: string[];
   kind: HarvestKindId;
   tier?: number;         // tier propio del nodo (sitios fijos de Asgard); sin él, el del mapa
+  hogarSpot?: number;    // Asgard: índice de su sitio fijo en HOGAR_NODE_SPOTS (reaparece ahí)
   // Barra de vida: se crea/muestra en cuanto el recurso baja del 100% de vida.
   hpBarTrack?: Phaser.GameObjects.Rectangle;
   hpBarFill?:  Phaser.GameObjects.Rectangle;
@@ -2659,22 +2660,79 @@ export class GameScene extends Phaser.Scene {
     /** Asgard: rocas y árboles en posiciones FIJAS (esquina sup. izq. de la huella 2×2,
      *  en tiles) para practicar con el pico y el hacha de la mesa de trabajo. Cantera al
      *  noreste y arboleda al suroeste; elegidas libres de agua/colisión y lejos de
-     *  portales, spawn, Mordekai, el cofre y los recogibles del suelo. Al picar/talar uno
-     *  reaparece en SU sitio (respawn normal). Sin mejoras de mapa (es la ciudad).
+     *  portales, spawn, Mordekai, el cofre y los recogibles del suelo. 5 de cada. Al
+     *  picar/talar uno reaparece en SU sitio a los HOGAR_NODE_RESPAWN_MS, hasta que Mordekai
+     *  ofrece la misión HOGAR_NODES_STOP_QUEST: desde entonces lo picado/talado ya no
+     *  vuelve (flag de personaje `asgard.node.<tipo>.<sitio>`). Sin mejoras de mapa.
      *  `tier` opcional = tier propio del sitio (sin él, el del mapa = tier 1). */
     private static readonly HOGAR_NODE_SPOTS: Partial<Record<HarvestKindId, { x: number; y: number; tier?: number }[]>> = {
       rock: [
         { x: 68, y: 8 }, { x: 68, y: 13 }, { x: 63, y: 7 }, { x: 71, y: 3 }, { x: 74, y: 9 },
-        { x: 67, y: 4 }, { x: 72, y: 15 }, { x: 63, y: 14 }, { x: 61, y: 3 }, { x: 64, y: 18 },
       ],
       tree: [
         { x: 9, y: 40 }, { x: 9, y: 35 }, { x: 4, y: 38 }, { x: 7, y: 45 }, { x: 15, y: 43 },
-        { x: 14, y: 35 }, { x: 9, y: 30 }, { x: 20, y: 37 }, { x: 18, y: 32 }, { x: 23, y: 44 },
       ],
     };
+    /** Asgard: lo que tarda un árbol/roca en reaparecer en su sitio tras talarlo/picarlo. */
+    private static readonly HOGAR_NODE_RESPAWN_MS = 30_000;
+    /** Misión que, al ofrecerse, corta la reaparición de los árboles/rocas de Asgard. */
+    private static readonly HOGAR_NODES_STOP_QUEST = 'noexp_kugo';
+
+    /** ¿Ya no reaparecen los árboles/rocas de Asgard? (Mordekai ya ofreció la misión 7). */
+    private hogarNodesStopped(): boolean {
+      return !!this.reg.quests?.isOffered(GameScene.HOGAR_NODES_STOP_QUEST);
+    }
+
+    private hogarNodeFlag(id: HarvestKindId, spot: number): string {
+      return `asgard.node.${id}.${spot}`;
+    }
+
+    /** Asgard: planta cada árbol/roca en su sitio fijo (salvo los ya gastados para
+     *  siempre tras la misión 7). Su reaparición la lleva destroyNode → respawn por sitio. */
+    private initHogarNodes(): void {
+      const stopped = this.hogarNodesStopped();
+      for (const id of Object.keys(GameScene.HOGAR_NODE_SPOTS) as HarvestKindId[]) {
+        if (!this.textures.exists(this.harvestTexture(id))) continue;
+        GameScene.HOGAR_NODE_SPOTS[id].forEach((_sp, i) => {
+          if (stopped && this.reg.unlocks?.hasFlag(this.hogarNodeFlag(id, i))) return;
+          this.spawnHogarNode(id, i);
+        });
+      }
+    }
+
+    /** Asgard: planta el nodo `id` en su sitio `spot` si está libre (true si lo planta). */
+    private spawnHogarNode(id: HarvestKindId, spot: number): boolean {
+      const kind = HARVEST_KINDS[id], sp = GameScene.HOGAR_NODE_SPOTS[id][spot];
+      const keys: string[] = [];
+      for (let dx = 0; dx < kind.footprintW; dx++)
+        for (let dy = 0; dy < kind.footprintH; dy++) keys.push(`${sp.x + dx},${sp.y + dy}`);
+      if (keys.some(k => this.collisionTiles.has(k))) return false;   // ocupado (edificio…)
+      this.spawnNode(id, kind, sp.x, sp.y, keys, sp.tier);
+      this.nodes[this.nodes.length - 1].hogarSpot = spot;
+      return true;
+    }
+
+    /** Asgard: tras talar/picar, el nodo vuelve a SU sitio a los 30 s… o nunca, si ya
+     *  tocaba la misión 7 (entonces queda gastado para siempre para este personaje).
+     *  Si el jugador está encima del hueco, reintenta en 2 s para no encerrarlo. */
+    private onHogarNodeDestroyed(id: HarvestKindId, spot: number): void {
+      if (this.hogarNodesStopped()) { this.reg.unlocks?.setFlag(this.hogarNodeFlag(id, spot), 'char'); return; }
+      const retry = (delay: number) => this.time.delayedCall(delay, () => {
+        if (this.hogarNodesStopped()) { this.reg.unlocks?.setFlag(this.hogarNodeFlag(id, spot), 'char'); return; }
+        const kind = HARVEST_KINDS[id], sp = GameScene.HOGAR_NODE_SPOTS[id][spot];
+        const TS = GameScene.TILE_SIZE, pos = this.player?.getPosition();
+        if (pos) {
+          const px = Math.floor(pos.x / TS), py = Math.floor(pos.y / TS);
+          if (px >= sp.x && px < sp.x + kind.footprintW && py >= sp.y && py < sp.y + kind.footprintH) { retry(2_000); return; }
+        }
+        if (!this.spawnHogarNode(id, spot)) retry(2_000);
+      });
+      retry(GameScene.HOGAR_NODE_RESPAWN_MS);
+    }
 
     private initHarvestNodes(): void {
       const mapId = this.currentMapConfig.id;
+      if (mapId === 'hogar') { this.initHogarNodes(); return; }
       for (const id of Object.keys(HARVEST_KINDS) as HarvestKindId[]) {
         const kind = HARVEST_KINDS[id];
         // Gemas: solo si el mapa tiene gemTier Y están desbloqueadas en la ventana de mapa.
@@ -3015,6 +3073,7 @@ export class GameScene extends Phaser.Scene {
     private destroyNode(node: HarvestNode): void {
       const idx = this.nodes.indexOf(node);
       if (idx !== -1) this.nodes.splice(idx, 1);
+      if (node.hogarSpot !== undefined) this.onHogarNodeDestroyed(node.kind, node.hogarSpot);
       this.destroyNodeHpBar(node);
       for (const k of node.tileKeys) this.collisionTiles.delete(k);   // libera la huella
 
@@ -3426,7 +3485,8 @@ export class GameScene extends Phaser.Scene {
      *  y ya no se spawnea. */
     private initRecruitNpcs(): void {
       for (const r of RECRUIT_NPCS.filter(rn => rn.mapId === this.currentMapConfig.id)) {
-        if (this.reg.unlocks?.isCharacterUnlocked(r.name)) continue;   // ya reclutado
+        // Ya reclutado → no aparece… salvo que una misión pida hablar con él (Kugo, misión 7).
+        if (this.reg.unlocks?.isCharacterUnlocked(r.name) && !this.reg.quests?.pendingTalk(r.name)) continue;
         if (!this.textures.exists(r.texKey)) continue;
         const animKey = `${r.texKey}_idle_down`;
         this.ensureNpcAnim(r.texKey, animKey);
@@ -3679,6 +3739,17 @@ export class GameScene extends Phaser.Scene {
     private talkToNpc(npc: typeof this.cityNpcs[0]): void {
       // Mordekai: dador de la primera misión (diálogo según su estado).
       if (npc.name === 'Mordekai') { this.talkToMordekai(); return; }
+      // Misión de "ve a hablar con X": se cumple y se cobra aquí mismo. Si además es un
+      // reclutable sin reclutar, se recluta igual que con su saludo normal.
+      const talkQuest = this.reg.quests?.onTalk(npc.name);
+      if (talkQuest) {
+        this.reg.quests.claim(talkQuest);
+        if (npc.recruit && !this.reg.unlocks?.isCharacterUnlocked(npc.name)) {
+          this.reg.unlocks?.setFlag(npc.recruit.charFlag, 'global');
+        }
+        this.reg.dialogue?.show(npc.name, this.t(talkQuest.claimDialogue?.text ?? 'NPC.MORDEKAI_GENERIC_CLAIM', { player: this.playerName() }));
+        return;
+      }
       if (npc.recruit && !this.reg.unlocks?.isCharacterUnlocked(npc.name)) {
         this.reg.dialogue?.show(npc.name, this.t('NPC.RECRUIT_GREETING', { player: this.playerName() }));
         this.reg.unlocks?.setFlag(npc.recruit.charFlag, 'global');
@@ -3705,6 +3776,7 @@ export class GameScene extends Phaser.Scene {
         recoge_materiales:  { intro: 'NPC.MORDEKAI_COLLECT_INTRO', progress: 'NPC.MORDEKAI_COLLECT_PROGRESS' },
         noexp_mesa_trabajo: { intro: 'NPC.MORDEKAI_BENCH_INTRO',   progress: 'NPC.MORDEKAI_BENCH_PROGRESS' },
         primeras_estrellas: { intro: 'NPC.MORDEKAI_INTRO',         progress: 'NPC.MORDEKAI_PROGRESS' },
+        noexp_kugo:         { intro: 'NPC.MORDEKAI_KUGO_INTRO',    progress: 'NPC.MORDEKAI_KUGO_PROGRESS' },
       };
 
       // Su misión vigente — la MISMA que decide el marcador !/? de su cabeza: la primera

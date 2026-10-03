@@ -150,6 +150,14 @@
       "IRON": "Hierro y gemas",
       "GLASS": "Cristal",
       "JRPG": "JRPG"
+    },
+    "MINIMAP": {
+      "TITLE": "Minimapa",
+      "DEFAULT": "Actual",
+      "FRAME": "Marco con barra",
+      "TOP_BUTTONS": "Botones arriba",
+      "IRON_CORNERS": "Esquinas de hierro",
+      "MEDALLION": "Medallón"
     }
   },
   "GAME_SETTINGS": {
@@ -489,6 +497,11 @@
       "NAME": "Arma y armadura",
       "DESC": "Mordekai te ha enseñado a fabricar tu primer equipo de combate: ya lo tienes en la mesa de trabajo. Fabrica la Daga Oxidada y la Coraza de Marfil (2 de piedra y 2 de madera cada una), ábrelas en la mochila y pulsa Equipar en las dos. Después habla con Mordekai. Recompensa: 10 de oro y 10 de experiencia.",
       "TRACK": "Fabrica y equipa arma y coraza"
+    },
+    "NOEXP_KUGO": {
+      "NAME": "Visita a Kugo",
+      "DESC": "Mordekai quiere que conozcas a Kugo, que te espera en el mapa 1-1. Cruza el portal del oeste de Asgard y habla con él. Recompensa: 10 de oro y 10 de experiencia.",
+      "TRACK": "Habla con Kugo en 1-1"
     }
   },
   "PET": {
@@ -825,12 +838,17 @@
     "KUGO_LINE": "{{player}}, ¡cuánto tiempo!",
     "ITALIEN_LINE": "Eh, {{player}}, ¿listo para la aventura?",
     "RAKE_LINE": "{{player}}, cuando quieras partimos.",
-    "MORDEKAI_GEAR_CLAIM": "¡Ahora sí pareces un guerrero, {{player}}! Toma 10 de oro y 10 de experiencia."
+    "MORDEKAI_GEAR_CLAIM": "¡Ahora sí pareces un guerrero, {{player}}! Toma 10 de oro y 10 de experiencia. Ahora ve a 1-1 por el portal del oeste y habla con Kugo: te está esperando.",
+    "MORDEKAI_KUGO_INTRO": "Ya tienes equipo de sobra, {{player}}. Ve a 1-1 por el portal del oeste y busca a Kugo: te está esperando.",
+    "MORDEKAI_KUGO_PROGRESS": "¿Aún no has hablado con Kugo, {{player}}? Está en 1-1, cruzando el portal del oeste.",
+    "KUGO_QUEST_CLAIM": "¡Así que tú eres {{player}}! Mordekai me habló de ti. Toma 10 de oro y 10 de experiencia por el paseo."
   },
   "WORKBENCH": {
     "TITLE": "Mesa de trabajo",
     "CRAFT": "Fabricar",
-    "LOCKED": "Bloqueada"
+    "LOCKED": "Bloqueada",
+    "PREV": "Anterior",
+    "NEXT": "Siguiente"
   },
   "MAP_UPGRADES": {
     "TITLE": "Mejoras de mapa",
