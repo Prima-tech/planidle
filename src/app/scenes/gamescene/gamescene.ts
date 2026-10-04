@@ -201,12 +201,14 @@ export class GameScene extends Phaser.Scene {
       isOpenUnsub?: () => void;
       shadow?: Phaser.GameObjects.Ellipse;
     }[] = [];
-    // Estado del modo colocación de construcciones (ghost + botones confirmar/cancelar)
+    // Estado del modo colocación de construcciones: ghost sin teñir + sombra de color en el
+    // suelo (verde = se puede, roja = choca) + pastilla de madera ✕|✓ encima.
     private buildPlacement: {
       def: BuildableDef;
       ghost: Phaser.GameObjects.Sprite;
-      check: Phaser.GameObjects.Container;
-      cancel: Phaser.GameObjects.Container;
+      shadow: Phaser.GameObjects.Ellipse;
+      pill: Phaser.GameObjects.Container;
+      pillGfx: Phaser.GameObjects.Graphics;
       tileX: number;
       tileY: number;
       valid: boolean;
@@ -4148,14 +4150,14 @@ export class GameScene extends Phaser.Scene {
 
       const ghost = this.add.sprite(x, y, def.spriteKey, def.frame);
       ghost.setScale(def.scale);
-      ghost.setAlpha(0.6);
       ghost.setDepth(9000);
       if (def.animKey && this.anims.exists(def.animKey)) ghost.play(def.animKey);
 
-      const check  = this.makeBuildButton(0x2ecc40, '✓').setDepth(9001);
-      const cancel = this.makeBuildButton(0xff4136, '✕').setDepth(9001);
+      const shadow  = this.add.ellipse(x, y, 10, 10, 0x5fd35f, 0.55).setDepth(8999);
+      const pillGfx = this.add.graphics();
+      const pill    = this.add.container(x, y, [pillGfx]).setDepth(9001);
 
-      this.buildPlacement = { def, ghost, check, cancel, tileX, tileY, valid: false, dragging: false, moving };
+      this.buildPlacement = { def, ghost, shadow, pill, pillGfx, tileX, tileY, valid: false, dragging: false, moving };
       this.refreshGhost();
     }
 
@@ -4164,8 +4166,8 @@ export class GameScene extends Phaser.Scene {
       if (!bp) return;
       this.buildPlacement = null;
       bp.ghost.destroy();
-      bp.check.destroy();
-      bp.cancel.destroy();
+      bp.shadow.destroy();
+      bp.pill.destroy();
       // Cancelar una reubicación sin confirmar → restaurar el edificio en su sitio.
       if (bp.moving) this.spawnBuilding(bp.moving);
     }
@@ -4176,22 +4178,47 @@ export class GameScene extends Phaser.Scene {
       this.cancelBuildPlacement();
     }
 
-    /** Botón circular (✓ / ✕) como container para colocarlo en coordenadas de mundo. */
-    private makeBuildButton(color: number, symbol: string): Phaser.GameObjects.Container {
-      const R = 40;
-      const g = this.add.graphics();
-      g.fillStyle(color, 1);
-      g.fillCircle(0, 0, R);
-      g.lineStyle(5, 0x000000, 1);
-      g.strokeCircle(0, 0, R);
-      const t = this.add.text(0, 0, symbol, {
-        fontSize: '52px', fontStyle: 'bold', color: '#ffffff',
-        stroke: '#000000', strokeThickness: 6,
-      }).setOrigin(0.5);
-      return this.add.container(0, 0, [g, t]);
+    // Pastilla ✕|✓ (coordenadas de mundo, centrada en el container): dos mitades de
+    // madera con marco oscuro, sombra desplazada y flechita hacia el edificio.
+    private static readonly PILL_HALF_W = 72;
+    private static readonly PILL_H      = 58;
+
+    /** Repinta la pastilla. Con `valid` false la mitad ✓ sale gris (no se puede construir). */
+    private drawPlacementPill(g: Phaser.GameObjects.Graphics, valid: boolean): void {
+      const W = GameScene.PILL_HALF_W, H = GameScene.PILL_H, O = 4;   // O = grosor del marco
+      const x0 = -W, y0 = -H / 2;
+      g.clear();
+      // Sombra (abajo-derecha) + marco exterior + flechita
+      g.fillStyle(0x000000, 0.35);
+      g.fillRect(x0 + 6, y0 + 6, W * 2 + O * 2, H + O * 2);
+      g.fillStyle(0x3a2c20, 1);
+      g.fillRect(x0 - O, y0 - O, W * 2 + O * 2, H + O * 2);
+      g.fillTriangle(-12, y0 + H + O - 1, 12, y0 + H + O - 1, 0, y0 + H + O + 14);
+      // Mitad ✕ (roja) y mitad ✓ (verde, o gris si no se puede)
+      const half = (hx: number, base: number, light: number) => {
+        g.fillStyle(base, 1);
+        g.fillRect(hx, y0, W, H);
+        g.lineStyle(4, light, 1);
+        g.strokeRect(hx + 2, y0 + 2, W - 4, H - 4);
+      };
+      half(x0, 0xa8402f, 0xcf6a55);
+      half(0, valid ? 0x5f8f3a : 0x6a6a6a, valid ? 0x86b85a : 0x8a8a8a);
+      g.fillStyle(0x3a2c20, 1);
+      g.fillRect(-2, y0, 4, H);   // separador
+      // Iconos dibujados (nítidos a cualquier escala)
+      g.lineStyle(8, 0xffffff, 1);
+      const cx = x0 + W / 2;
+      g.lineBetween(cx - 12, -12, cx + 12, 12);
+      g.lineBetween(cx - 12, 12, cx + 12, -12);
+      g.lineStyle(8, valid ? 0xffffff : 0xbbbbbb, 1);
+      g.beginPath();
+      g.moveTo(W / 2 - 15, 1);
+      g.lineTo(W / 2 - 4, 12);
+      g.lineTo(W / 2 + 16, -12);
+      g.strokePath();
     }
 
-    /** Recalcula validez (colisión + límites) y actualiza tinte + botones. */
+    /** Recalcula validez (colisión + límites) y actualiza sombra de color + pastilla. */
     private refreshGhost(): void {
       const bp = this.buildPlacement;
       if (!bp) return;
@@ -4210,13 +4237,18 @@ export class GameScene extends Phaser.Scene {
       const free = tiles.every(k => !this.collisionTiles.has(k) && !occupants.has(k));
       bp.valid = inBounds && free;
 
-      bp.ghost.setTint(bp.valid ? 0x66ff66 : 0xff5555);
+      // El edificio no se tiñe: se ve tal cual (algo más apagado si choca). El color va
+      // en la sombra del suelo, bajo su base (mismos ajustes que su sombra real).
+      const def = bp.def, g = bp.ghost;
+      bp.ghost.setAlpha(bp.valid ? 0.85 : 0.6);
+      const baseY = y + g.displayHeight / 2 + (def.shadowOffsetY ?? 0) * def.scale - g.displayHeight * 0.06;
+      bp.shadow.setPosition(x + (def.shadowOffsetX ?? 0) * def.scale, baseY);
+      bp.shadow.setSize(g.displayWidth * Math.max(0.75, def.shadowWidth ?? 0.5), Math.max(24, g.displayHeight * 0.2));
+      bp.shadow.setFillStyle(bp.valid ? 0x5fd35f : 0xff5a4a, bp.valid ? 0.55 : 0.6);
 
-      // Botones por encima del ghost: ✓ a la derecha, ✕ a la izquierda
-      const by = y - half - 50;
-      bp.check.setPosition(x + 70, by);
-      bp.cancel.setPosition(x - 70, by);
-      bp.check.setVisible(bp.valid);   // el check solo aparece si se puede colocar
+      // Pastilla ✕|✓ encima del edificio (la flechita apunta a él)
+      bp.pill.setPosition(x, y - g.displayHeight / 2 - GameScene.PILL_H / 2 - 22);
+      this.drawPlacementPill(bp.pillGfx, bp.valid);
     }
 
     private handleBuildPointer(pointer: Phaser.Input.Pointer): void {
@@ -4224,12 +4256,13 @@ export class GameScene extends Phaser.Scene {
       if (!bp) return;
       const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
 
-      // ¿Tocó un botón? (hit-test manual por distancia al centro en mundo)
-      const HIT = 55;
-      const onCheck  = bp.check.visible &&
-        Phaser.Math.Distance.Between(world.x, world.y, bp.check.x, bp.check.y)  <= HIT;
-      const onCancel =
-        Phaser.Math.Distance.Between(world.x, world.y, bp.cancel.x, bp.cancel.y) <= HIT;
+      // ¿Tocó la pastilla? (hit-test manual en mundo, con algo de margen para el dedo)
+      const PAD = 10, W = GameScene.PILL_HALF_W, H = GameScene.PILL_H;
+      const dx = world.x - bp.pill.x, dy = world.y - bp.pill.y;
+      const inPill   = Math.abs(dy) <= H / 2 + PAD && Math.abs(dx) <= W + PAD;
+      const onCancel = inPill && dx < 0;
+      const onCheck  = inPill && dx >= 0;
+      if (onCheck && !bp.valid) return;   // ✓ gris: no hace nada (ni mueve el fantasma)
 
       if (onCancel) { this.closePlacement(); return; }
       if (onCheck && bp.valid) { this.confirmBuildPlacement(); return; }

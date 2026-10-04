@@ -57,12 +57,10 @@
     bottom: 61px;  /* footer ~51px + 10px de aire, como summon */
     left: calc(10px + var(--safe-left, 0px));
     width: fit-content;
-    /* El marco madera/piedra lo pinta el propio BuildPanelComponent (:host) */
+    /* El marco madera/piedra lo pinta el propio BuildPanelComponent (:host). Alto fijo:
+       el scroll lo hace la rejilla de dentro, así el marco (y su borde) no se mueve. */
     background: transparent;
-    overflow-y: auto;
-    /* Scroll sí, barra no: la barra lateral afeaba la rejilla de peanas. */
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
+    overflow: hidden;
   }
   &.build-shop {
     top: 10px;

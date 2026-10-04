@@ -12,10 +12,13 @@ $cell-border: #21130e;
 $text-brown: #53301c;
 $text-cream: #ecd9b4;
 
+/* Alto FIJO al del hueco de la ventana: el marco no se mueve y solo hace scroll la
+   rejilla de dentro (.build-grid). Con min-height crecía y el borde de abajo se iba. */
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
-  min-height: calc(100% - 4px);
+  height: calc(100% - 4px);
   margin: 2px;
   padding: 10px 8px 8px;
   width: 292px;   /* FIJO: cambiar de pestaña no puede redimensionar la ventana */
@@ -98,10 +101,17 @@ $text-cream: #ecd9b4;
 
 /* Fichas en peana, 2 por fila */
 .build-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-content: start;
   gap: 8px;
-  padding: 2px;
+  padding: 6px;          // aire para el brillo de guía y la insignia ¡NUEVO! (si no, los recorta)
+  margin: -4px -4px 0;
+  scrollbar-width: none; // scroll sí, barra no
+  &::-webkit-scrollbar { display: none; }
 }
 
 .build-card {
@@ -212,7 +222,12 @@ $text-cream: #ecd9b4;
 /* ── Ficha de detalle a la derecha (misma piel que app-item-detail del inventario) ── */
 .build-detail {
   position: fixed;
+  box-sizing: border-box;   // el alto (= el de la ventana de Construir) incluye borde y padding
   width: 170px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+  > * { flex-shrink: 0; }   // en pantallas bajas, scroll interno en vez de aplastar la ficha
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -280,6 +295,8 @@ $text-cream: #ecd9b4;
 }
 
 .bd-build {
+  margin-top: auto;   // el botón Construir, abajo del todo de la ficha
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;

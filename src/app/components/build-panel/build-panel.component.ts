@@ -74,8 +74,10 @@ export class BuildPanelComponent {
     if (this.selected === card.def) { this.selected = null; return; }
     this.selected = card.def;
     const rect = this.el.nativeElement.getBoundingClientRect();
+    // Mismo alto que la ventana de Construir (arriba y abajo alineadas con ella).
     this.detailStyle = {
       top:       rect.top + 'px',
+      height:    rect.height + 'px',
       left:      (rect.right + 12) + 'px',
       'z-index': '210',
     };
