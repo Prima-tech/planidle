@@ -847,6 +847,10 @@
     "SEALED_OPEN": "Create",
     "SEALED_MISSING": "Missing materials"
   },
+  "EQUIP_VIEW": {
+    "COMBAT": "Combat",
+    "GATHERING": "Gathering"
+  },
   "TOAST": {
     "ACHIEVEMENT_UNLOCKED": "Achievement unlocked",
     "QUEST_COMPLETED": "Quest complete!",

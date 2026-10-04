@@ -847,6 +847,10 @@
     "SEALED_OPEN": "Crear",
     "SEALED_MISSING": "Te faltan materiales"
   },
+  "EQUIP_VIEW": {
+    "COMBAT": "Combate",
+    "GATHERING": "Recolección"
+  },
   "TOAST": {
     "ACHIEVEMENT_UNLOCKED": "Logro desbloqueado",
     "QUEST_COMPLETED": "¡Misión completada!",

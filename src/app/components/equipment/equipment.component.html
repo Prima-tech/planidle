@@ -60,13 +60,18 @@
     <!-- Centro: preview del personaje (siempre montado) -->
     <div class="eq-center">
       <app-char-stats section="header"></app-char-stats>
+      <!-- Interruptor combate ⚔ | recolección ⛏, entre la cabecera y el retrato (montado
+           sobre el borde de su marco: en la columna no cabe otra fila entera). La bola se
+           desliza roja → verde; pulsar en cualquier sitio alterna. -->
+      <button class="gear-toggle" [class.gathering]="showGathering"
+              (click)="showGathering = !showGathering; clearEquippedSelection()"
+              [title]="(showGathering ? 'EQUIP_VIEW.GATHERING' : 'EQUIP_VIEW.COMBAT') | translate">
+        <span class="gear-toggle-knob"></span>
+        <span class="gear-toggle-ic gear-toggle-ic--combat"><ion-icon name="shield"></ion-icon></span>
+        <span class="gear-toggle-ic gear-toggle-ic--gather"><ion-icon name="hammer"></ion-icon></span>
+      </button>
       <div class="preview-frame">
         <app-player-preview [size]="96"></app-player-preview>
-        <!-- Alterna entre equipo de combate y de recolección (y vuelve) -->
-        <button class="preview-corner-btn" (click)="showGathering = !showGathering; clearEquippedSelection()"
-                [title]="showGathering ? 'Equipo de combate' : 'Equipo de recolección'">
-          <ion-icon [name]="showGathering ? 'shield-outline' : 'bag-handle-outline'"></ion-icon>
-        </button>
       </div>
       <!-- Pastilla con los 6 stats base: abre el flyout de reparto de puntos.
            Bloqueada hasta tener el 1er punto libre (nivel ≥ 2): se ve, pero no abre. -->
