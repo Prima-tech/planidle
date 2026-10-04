@@ -111,6 +111,10 @@ $purple: #6e4a67;         // celda seleccionada
   z-index: 1;
   opacity: 0;
   pointer-events: none;
+
+  // Invisibles pero en el DOM: sin esto, los latidos/destellos de rareza y los halos de
+  // guía de las 4 pestañas seguían repintando cada frame (tirones en móvil).
+  &, * , *::before, *::after { animation: none !important; }
 }
 
 .inventory-row {

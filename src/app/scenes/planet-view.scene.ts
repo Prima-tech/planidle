@@ -18,7 +18,7 @@ const SHADE_KEY  = 'planet_shade';
 // El canvas se crea a resolución nativa (ver world-map-panel): toda medida en
 // px fijos (fuentes, pins, botón) se multiplica por DPR para mantener el
 // tamaño visual con texto nítido. Las medidas relativas a W/H escalan solas.
-const DPR = Math.min(window.devicePixelRatio || 1, 3);
+const DPR = Math.min(window.devicePixelRatio || 1, 2);   // capado a 2 como el juego (NATIVE_DPR): a 3 la textura del globo era ~2,25× más grande
 
 // DEBUG: pinta una cuadrícula con las coordenadas tx,ty sobre la Tierra para
 // colocar los pines de mapa a ojo. Poner a false cuando ya estén situados.

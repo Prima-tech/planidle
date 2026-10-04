@@ -27,7 +27,7 @@ export class PlanetViewHostService {
   private parking: HTMLDivElement | null = null;
   /** Pausado por otra vista del panel (pestaña hexagonal): un restart no lo despierta. */
   private paused = false;
-  private dpr = Math.min(window.devicePixelRatio || 1, 3);
+  private dpr = Math.min(window.devicePixelRatio || 1, 2);   // = DPR de planet-view.scene
 
   get scene(): PlanetViewScene | null {
     return (this.game?.scene.getScene('PlanetViewScene') as PlanetViewScene) ?? null;
@@ -44,9 +44,15 @@ export class PlanetViewHostService {
     if (this.game) return;
     const { w, h } = this.estimateSize();
     this.create(w, h, this.ensureParking());
-    // Cuando termine de arrancar, a dormir hasta que se abra el panel.
+    // Cuando termine de arrancar, a dormir hasta que se abra el panel. OJO: no vale
+    // dormir en READY — Phaser emite READY y JUSTO DESPUÉS arranca el bucle
+    // (Game.texturesReady → start()), y loop.sleep() no hace nada si aún no corre:
+    // el globo se quedaba redibujándose a 30 fps fuera de pantalla toda la partida.
+    // Se duerme tras el primer frame (escena ya creada y pintada = precalentada).
     this.game!.events.once(Phaser.Core.Events.READY, () => {
-      if (this.host?.parentElement === this.parking) this.game?.loop.sleep();
+      this.game?.events.once(Phaser.Core.Events.POST_RENDER, () => {
+        if (this.host?.parentElement === this.parking) this.game?.loop.sleep();
+      });
     });
   }
 

@@ -56,11 +56,16 @@ export class ChatLogComponent implements OnInit, OnDestroy {
       this.entries = list;
       if (this.open && this.tab === 'chat' && stick) this.scrollToBottomSoon();
     }));
-    // Registros: llegan desde la escena Phaser (fuera de la zona) → reentra en NgZone.
-    this.sub.add(this.log.loot$.subscribe(list => this.zone.run(() => { this.loot = list; this.onLog('loot'); })));
-    this.sub.add(this.log.combat$.subscribe(list => this.zone.run(() => { this.combat = list; this.onLog('combat'); })));
+    // Registros: llegan desde la escena Phaser (fuera de la zona). Se guardan SIEMPRE,
+    // pero solo se reentra en NgZone (= change detection de toda la app) si la ventana
+    // está abierta en esa pestaña: en combate AFK llegan golpes sin parar y entrar en la
+    // zona en cada uno daba tirones en móvil aunque el chat estuviera cerrado.
+    this.sub.add(this.log.loot$.subscribe(list => { this.loot = list; this.onLog('loot'); }));
+    this.sub.add(this.log.combat$.subscribe(list => { this.combat = list; this.onLog('combat'); }));
     this.sub.add(this.dialogue.chatOpen$.subscribe(open => this.zone.run(() => {
       this.open = open;
+      // Lo llegado con la ventana cerrada no se pintó: refrescar la pestaña al abrir.
+      if (open && this.tab !== 'chat') this.logEntries = this.tab === 'loot' ? this.loot : this.combat;
       if (open) this.scrollToBottomSoon();
     })));
     // Ajuste "Chat": al desactivar, oculta la ventana y la cierra si estaba abierta.
@@ -80,15 +85,17 @@ export class ChatLogComponent implements OnInit, OnDestroy {
     this.scrollToBottomSoon();
   }
 
-  trackLog(_: number, e: LogEntry): string { return e.id + ':' + e.text; }
+  trackLog(_: number, e: LogEntry): number | string { return e.id; }
 
   /** Llegó una línea a un registro: si es la pestaña visible, la pinta y baja el scroll
    *  — salvo que estés leyendo más arriba (no te arranca de donde estás). */
   private onLog(ch: 'loot' | 'combat'): void {
-    if (this.tab !== ch) return;
-    const stick = this.atBottom();
-    this.logEntries = ch === 'loot' ? this.loot : this.combat;
-    if (this.open && stick) this.scrollToBottomSoon();
+    if (this.tab !== ch || !this.open) return;   // al abrir / cambiar de pestaña se refresca
+    this.zone.run(() => {
+      const stick = this.atBottom();
+      this.logEntries = ch === 'loot' ? this.loot : this.combat;
+      if (stick) this.scrollToBottomSoon();
+    });
   }
 
   /** ¿El historial está pegado abajo (o aún no hay ventana)? */
