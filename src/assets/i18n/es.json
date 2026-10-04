@@ -3,7 +3,8 @@
     "ACCOUNT_CREATED": "Cuenta creada",
     "TITLE": "Bienvenido",
     "SUBTITLE": "Ingresa a tu cuenta",
-    "TAGLINE": "Tu aventura te espera",
+    "TAGLINE": "Tu aventura te espera más allá de la aurora.",
+    "STELE_TITLE": "Cruza el umbral",
     "EMAIL_PLACEHOLDER": "Email",
     "PASSWORD_PLACEHOLDER": "Contraseña",
     "BUTTON": "INGRESAR",
@@ -463,7 +464,9 @@
     "NOEXP_HERRAMIENTAS": {
       "NAME": "Fabrica tus herramientas",
       "DESC": "Mordekai quiere verte con herramientas de verdad. En la mesa de trabajo fabrica el Hacha de Hierro y el Pico de Hierro (2 de piedra y 2 de madera cada uno), ábrelos en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Fabrica y equipa hacha y pico"
+      "TRACK": "Fabrica y equipa hacha y pico",
+      "TRACK_AXE": "Fabrica y equipa el hacha",
+      "TRACK_PICK": "Fabrica y equipa el pico"
     },
     "MATA_RATA": {
       "NAME": "Rata hachiática",
@@ -473,12 +476,16 @@
     "NOEXP_ARMAS": {
       "NAME": "Fabrica arma y armadura",
       "DESC": "Antes de pelear necesitas equiparte. En la mesa de trabajo ya sabes hacer la Daga Oxidada y la Coraza de Marfil (2 de piedra y 2 de madera cada una). Fabrica las dos, ábrelas en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: la experiencia justa para subir a nivel 2.",
-      "TRACK": "Fabrica y equipa daga y coraza"
+      "TRACK": "Fabrica y equipa daga y coraza",
+      "TRACK_DAGGER": "Fabrica y equipa la daga",
+      "TRACK_ARMOR": "Fabrica y equipa la coraza"
     },
     "NOEXP_NIVEL_TALENTO": {
       "NAME": "Sube de nivel",
       "DESC": "Has subido a nivel 2 y tienes un punto de talento nuevo. Abre el árbol de talentos en la ventana de equipo y asígnalo. Después habla con Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Asigna tu punto de talento"
+      "TRACK": "Asigna tu punto de talento",
+      "TRACK_LEVEL": "Sube a nivel 2",
+      "TRACK_TALENT": "Asigna un punto de talento"
     },
     "NOEXP_KUGO": {
       "NAME": "Visita a Kugo",

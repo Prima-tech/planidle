@@ -160,6 +160,9 @@ export interface QuestDef {
   /** Etiqueta corta para el rastreador del HUD ("lo que hay que hacer").
    *  Si se omite, el HUD usa `name`. */
   track?: string;
+  /** Rastreador del HUD en varias líneas (una por objetivo) en vez de `track`. En las
+   *  misiones 'equip' van en el mismo orden que `itemNames`: cada línea lleva su ✓. */
+  trackLines?: string[];
   objective: QuestObjective;
   reward?: QuestReward;
   /** Misión previa necesaria: hasta completarla, esta NO aparece (cadena de onboarding). */
@@ -289,6 +292,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     desc: 'QUESTS.NOEXP_HERRAMIENTAS.DESC',
     icon: 'hammer-outline',
     track: 'QUESTS.NOEXP_HERRAMIENTAS.TRACK',
+    trackLines: ['QUESTS.NOEXP_HERRAMIENTAS.TRACK_AXE', 'QUESTS.NOEXP_HERRAMIENTAS.TRACK_PICK'],
     objective: { type: 'equip', goal: 2, itemNames: ['Hacha de Hierro', 'Pico de Hierro'] },
     reward: { exp: 10 },
     requires: 'noexp_mesa_trabajo',
@@ -307,6 +311,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     desc: 'QUESTS.NOEXP_ARMAS.DESC',
     icon: 'shield-half-outline',
     track: 'QUESTS.NOEXP_ARMAS.TRACK',
+    trackLines: ['QUESTS.NOEXP_ARMAS.TRACK_DAGGER', 'QUESTS.NOEXP_ARMAS.TRACK_ARMOR'],
     objective: { type: 'equip', goal: 2, itemNames: ['Daga Oxidada', 'Coraza de Marfil'] },
     // Da la exp justa para llegar a nivel 2: en Asgard no hay enemigos y el portal a 1-1
     // sigue cerrado hasta la misión de nivel, así que el nivel 2 sale de aquí.
@@ -326,6 +331,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     desc: 'QUESTS.NOEXP_NIVEL_TALENTO.DESC',
     icon: 'trending-up-outline',
     track: 'QUESTS.NOEXP_NIVEL_TALENTO.TRACK',
+    trackLines: ['QUESTS.NOEXP_NIVEL_TALENTO.TRACK_LEVEL', 'QUESTS.NOEXP_NIVEL_TALENTO.TRACK_TALENT'],
     objective: { type: 'levelTalent', goal: 2, level: 2 },
     reward: { exp: 10 },
     requires: 'noexp_armas',
@@ -641,8 +647,21 @@ export class QuestService implements OnDestroy {
     return equipItemsOf(q.objective).filter(n => !this.isEquipped(n));
   }
 
+  /** Guía: misión 'levelTalent' en curso con el nivel ya alcanzado y el punto de talento
+   *  aún sin asignar. La UI hace brillar el camino (nombre → pestaña de talentos). */
+  talentGuidePending(): boolean {
+    return this.available().some(d =>
+      d.objective.type === 'levelTalent' && !this.isClaimable(d) && this.progressOf(d) === 1);
+  }
+
+  /** Misión 'levelTalent' sin entregar y con el nivel ya alcanzado: mientras dure, la
+   *  UI guía también el reparto del punto de stats (además del de talento). */
+  levelGuideActive(): boolean {
+    return this.available().some(d => d.objective.type === 'levelTalent' && this.progressOf(d) >= 1);
+  }
+
   /** ¿Llevas puesto este item en algún slot (recolección o combate)? */
-  private isEquipped(name: string): boolean {
+  isEquipped(name: string): boolean {
     return this.gathering.slots.some(sl => sl.item?.name === name)
         || this.equipment.slots.some(sl => sl.item?.name === name);
   }
@@ -850,7 +869,10 @@ export class QuestService implements OnDestroy {
       const cur = this.progress[def.id] ?? 0;
       if (cur >= obj.goal) continue;
       const leveled = this.playerState.snapshot().lvl >= obj.level;
-      const assigned = leveled && this.talent.pointsSpent() >= obj.level;
+      // El punto NUEVO del nivel: basta con level−1 gastados (los puntos totales = nivel,
+      // pero el del nivel 1 puede no haberse gastado; pedir `level` dejaba la misión
+      // colgada con el punto ya asignado).
+      const assigned = leveled && this.talent.pointsSpent() >= Math.max(1, obj.level - 1);
       const done = (leveled ? 1 : 0) + (assigned ? 1 : 0);
       if (done <= cur) continue;
       this.progress[def.id] = done;

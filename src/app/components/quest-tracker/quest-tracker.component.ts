@@ -1,6 +1,6 @@
 import { Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { QuestDef, QuestService } from 'src/app/services/quest.service';
+import { QuestDef, QuestService, equipItemsOf } from 'src/app/services/quest.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 
@@ -51,6 +51,17 @@ export class QuestTrackerComponent implements OnInit, OnDestroy {
   /** Materiales a recoger de una misión de recogida (vacío si no es de ese tipo). */
   collectItems(q: QuestDef): { name: string; qty: number }[] {
     return q.objective.type === 'collect' ? q.objective.items : [];
+  }
+
+  /** ¿Línea `i` de `trackLines` cumplida? En 'equip' = llevas puesto su item (o la
+   *  misión ya está lista para cobrar: el progreso es pegajoso). En 'levelTalent' son
+   *  pasos en orden (nivel, talento): la línea i está hecha con progreso > i. */
+  lineDone(q: QuestDef, i: number): boolean {
+    if (this.quests.isClaimable(q)) return true;
+    if (q.objective.type === 'levelTalent') return this.quests.progressOf(q) > i;
+    if (q.objective.type !== 'equip') return false;
+    const name = equipItemsOf(q.objective)[i];
+    return !!name && this.quests.isEquipped(name);
   }
 
   /** Cuánto tiene el jugador de un material (por nombre) en el inventario. */

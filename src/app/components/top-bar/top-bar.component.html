@@ -9,13 +9,13 @@
 
         <!-- Pastilla flotante con el nombre: al pulsarla abre la ventana de equipo.
              Punto de novedad cuando hay algo que reclamar dentro (misión, stats…). -->
-        <div class="char-name-pill" (click)="openEquipment.emit()">
+        <div class="char-name-pill" [class.guide-glow]="talentGuide" (click)="openEquipment.emit()">
           <span class="char-name-text">{{ asgardService?.selectedPlayer?.name }}</span>
           <!-- Nivel junto al nombre: oculto en la barra por defecto; lo muestran
                algunos estilos de barra (data-hpbar) que no llevan placa en el avatar. -->
           <span class="char-name-lvl">{{ 'STAT.LEVEL_SHORT' | translate }} {{ lvl$ | async }}</span>
           <span class="char-activity-label">{{ activityLabelKey | translate }}</span>
-          <span class="notif-dot" *ngIf="equipBadge"></span>
+          <span class="notif-dot" *ngIf="equipBadge && !talentGuide"></span>
         </div>
 
         <!-- Selector de personaje: despliega el roster hacia la derecha.

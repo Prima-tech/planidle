@@ -197,6 +197,14 @@ ion-content::part(scroll)::-webkit-scrollbar {
   font-display: swap;
 }
 
+/* Fuente rúnica del login (OFL, ver assets/fonts/Metamorphous-OFL.txt). */
+@font-face {
+  font-family: 'Metamorphous';
+  src: url('./assets/fonts/Metamorphous.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────
    Botón de acción estándar de la app — "píxel macizo" (elegido 2026-10-03).
    Fuente ÚNICA para todos los botones de acción con texto. Para aplicarlo,

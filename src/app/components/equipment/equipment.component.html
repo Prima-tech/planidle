@@ -8,7 +8,8 @@
     <button class="eq-vtab" *ngIf="tabVisible(2)" [class.active]="activeTab === 2" (click)="activeTab = 2">
       <ion-icon name="podium-outline"></ion-icon>
     </button>
-    <button class="eq-vtab" *ngIf="tabVisible(4)" [class.active]="activeTab === 4" (click)="activeTab = 4">
+    <button class="eq-vtab" *ngIf="tabVisible(4)" [class.active]="activeTab === 4"
+            [class.guide-glow]="quests.talentGuidePending()" (click)="activeTab = 4">
       <ion-icon name="git-network-outline"></ion-icon>
     </button>
     <button class="eq-vtab" *ngIf="tabVisible(7)" [class.active]="activeTab === 7" (click)="activeTab = 7">
@@ -57,6 +58,7 @@
            sobre el borde de su marco: en la columna no cabe otra fila entera). La bola se
            desliza roja → verde; pulsar en cualquier sitio alterna. -->
       <button class="gear-toggle" [class.gathering]="showGathering"
+              [class.guide-glow]="toggleGuidePending"
               (click)="showGathering = !showGathering; clearEquippedSelection()"
               [title]="(showGathering ? 'EQUIP_VIEW.GATHERING' : 'EQUIP_VIEW.COMBAT') | translate">
         <span class="gear-toggle-knob"></span>
@@ -71,12 +73,13 @@
       <div class="base-stats-plaque"
            [class.open]="statsFlyoutOpen"
            [class.locked]="!statsAllocUnlocked"
+           [class.guide-glow]="statsGuide"
            (click)="toggleStatsFlyout()">
         <div class="bsp-cell" *ngFor="let s of statsList">
           <span class="bsp-label">{{ s.label }}</span>
           <span class="bsp-val">{{ charStats.stats[s.key] }}</span>
         </div>
-        <span class="notif-dot" *ngIf="statsAllocUnlocked && badges.has('equip.stats')"></span>
+        <span class="notif-dot" *ngIf="statsAllocUnlocked && badges.has('equip.stats') && !statsGuide"></span>
       </div>
     </div>
 
@@ -998,6 +1001,7 @@
   <div
     class="equip-slot"
     [class.occupied]="slot.item !== null"
+    [class.guide-glow]="isGuideSlot(slot)"
     cdkDropList
     cdkDropListSortingDisabled
     [id]="'equip-' + slot.id"
@@ -1047,6 +1051,7 @@
   <div
     class="equip-slot"
     [class.occupied]="slot.item !== null"
+    [class.guide-glow]="isGuideSlot(slot)"
     cdkDropList
     cdkDropListSortingDisabled
     [id]="'gather-' + slot.id"

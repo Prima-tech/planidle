@@ -211,6 +211,11 @@ $metal-dark: #6b6357;     // marco metálico (sombra)
   overflow-y: auto;
   padding: 0;                       // sin caja: los items van sueltos sobre el globo
   max-width: 40%;
+  // La columna ocupa todo el alto, pero solo la caja recibe toques: el hueco de debajo
+  // los deja pasar al globo (tocar ahí pliega la lista, como en cualquier zona vacía).
+  pointer-events: none;
+
+  > * { pointer-events: auto; }
 }
 
 .pml-item {

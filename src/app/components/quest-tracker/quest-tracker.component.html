@@ -13,7 +13,7 @@
         <ion-icon class="qt-icon" [name]="q.icon"></ion-icon>
 
         <!-- Misión de recogida: cada material con su contador (llevo/necesito) a la derecha. -->
-        <ng-container *ngIf="q.objective.type === 'collect'; else genericTask">
+        <ng-container *ngIf="q.objective.type === 'collect'; else multiLine">
           <div class="qt-reqs">
             <div class="qt-req" *ngFor="let c of collectItems(q)">
               <span class="qt-req-name">{{ c.name }}</span>
@@ -21,6 +21,18 @@
             </div>
           </div>
         </ng-container>
+
+        <!-- Misión con varios objetivos (p.ej. equipar hacha Y pico): una línea por
+             objetivo, cada una con su ✓ o 0/1. -->
+        <ng-template #multiLine>
+          <div class="qt-reqs" *ngIf="q.trackLines?.length; else genericTask">
+            <div class="qt-req" *ngFor="let line of q.trackLines; let i = index">
+              <span class="qt-req-name">{{ line | translate }}</span>
+              <ion-icon class="qt-req-check" *ngIf="lineDone(q, i); else lineTodo" name="checkmark-circle"></ion-icon>
+              <ng-template #lineTodo><span class="qt-req-count">0/1</span></ng-template>
+            </div>
+          </div>
+        </ng-template>
 
         <!-- Resto de misiones (incl. abrir el portal): tarea + contador de progreso. El
              contador 0/1 se oculta en 'openPortal' (es de acción, no de conteo). -->

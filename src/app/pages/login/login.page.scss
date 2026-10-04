@@ -1,310 +1,303 @@
+// Login "Runas": cielo nórdico con aurora (canvas) + estela de piedra con el formulario.
+
+$ice: #eaf6ff;
+$text: #d9e6ef;
+$muted: #9fb3c4;
+$dim: #6f8496;
+$aurora: #7fe3c2;
+$bronze: #c9965a;
+$slate-line: #445261;
+
 ion-content {
-  --background: url('../../../assets/images/map_background_1.jpg') center / cover no-repeat;
-  --ion-background-color: transparent;
+  --background: #050a14;
 }
 
-.bg-overlay {
+.login-scene {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 100%;
-  background: rgba(4, 7, 18, 0.78);
-  padding: 16px;
-  box-sizing: border-box;
-}
-
-// ── Card (dos columnas) ───────────────────────────────────────────────────────
-
-.login-card {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0;
-  background: rgba(10, 15, 35, 0.97);
-  border: 1px solid #2e4270;
-  border-radius: 14px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.85);
   overflow: hidden;
-  width: 100%;
-  max-width: 520px;
+  color: $text;
 }
 
-// ── Columna izquierda: branding ───────────────────────────────────────────────
+.sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.login-layout {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 48px 56px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+// ── Título (izquierda) ────────────────────────────────────────────────────────
 
 .login-brand {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 24px 28px;
-  flex: 0 0 auto;
-  min-width: 150px;
+  gap: 4px;
+  min-width: 0;
 }
 
-.login-emblem {
-  width: 52px;
-  height: 52px;
-  background: rgba(52, 152, 219, 0.1);
-  border: 1px solid rgba(52, 152, 219, 0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.emblem-icon {
-  font-size: 26px;
-  color: #5bc0f8;
+.runes {
+  font-size: 18px;
+  letter-spacing: 10px;
+  color: $bronze;
+  text-shadow: 0 0 12px rgba(201, 150, 90, 0.6);
 }
 
 .game-title {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #e0ecff;
-  letter-spacing: 4px;
   margin: 0;
-  text-shadow: 0 0 20px rgba(91, 192, 248, 0.2);
+  font-family: 'Metamorphous', serif;
+  font-weight: 400;
+  font-size: clamp(40px, 8vw, 62px);
+  line-height: 1;
+  letter-spacing: 3px;
+  color: $ice;
+  text-shadow: 0 0 30px rgba(120, 255, 210, 0.35), 0 3px 0 #0a1626;
 }
 
 .game-brand-sub {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #5bc0f8;
-  letter-spacing: 3px;
+  font-size: 13px;
+  letter-spacing: 6px;
   text-transform: uppercase;
-  margin: 0;
+  color: $aurora;
 }
 
 .game-subtitle {
-  font-size: 0.65rem;
-  color: #4a6a9a;
-  margin: 0;
-  letter-spacing: 0.3px;
-  text-align: center;
+  margin: 10px 0 0;
+  font-size: 15px;
+  font-style: italic;
+  color: $muted;
+  max-width: 28ch;
 }
 
-// ── Divisor vertical ──────────────────────────────────────────────────────────
+// ── Estela (derecha) ──────────────────────────────────────────────────────────
 
-.login-divider {
-  width: 1px;
-  align-self: stretch;
-  background: #2e4270;
-  flex-shrink: 0;
-}
-
-// ── Columna derecha: formulario ───────────────────────────────────────────────
-
-.login-form {
+.stele {
+  position: relative;
+  flex: 0 0 300px;
+  width: 300px;
+  padding: 30px 30px 22px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 24px 24px;
-  flex: 1;
+  gap: 12px;
+  background: linear-gradient(160deg, #2b3540, #161d25 70%);
+  clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%, 0 18px);
+  box-shadow:
+    inset 0 0 0 2px $slate-line,
+    inset 0 0 0 6px #10161d,
+    inset 0 0 40px rgba(0, 0, 0, 0.6);
+
+  // Fila de runas grabada en el borde superior (decorativa).
+  &::before {
+    content: 'ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 8px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: #56687a;
+  }
+}
+
+.stele-title {
+  margin: 4px 0;
+  font-family: 'Metamorphous', serif;
+  font-weight: 400;
+  font-size: 17px;
+  letter-spacing: 2px;
+  text-align: center;
+  color: $bronze;
 }
 
 .input-wrapper {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #2e4270;
-  border-radius: 7px;
-  padding: 0 12px;
-  gap: 8px;
-  transition: border-color 0.2s;
+  gap: 12px;
+  height: 40px;
+  border-bottom: 2px solid $slate-line;
+  transition: border-color 0.2s, box-shadow 0.2s;
 
   &:focus-within {
-    border-color: #3498db;
-    background: rgba(52, 152, 219, 0.04);
+    border-color: $aurora;
+    box-shadow: 0 8px 14px -10px rgba(127, 227, 194, 0.6);
   }
 }
 
-// ── Toggles de modo (abajo a la izquierda, fuera de la pastilla) ──────────────
+.input-rune {
+  width: 18px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 18px;
+  color: $aurora;
+}
 
-/* Pastillas compactas: solo palabra + toggle pequeño */
+ion-input.rune-input {
+  --color: #{$text};
+  --placeholder-color: #{$muted};
+  --placeholder-opacity: 0.6;
+  --background: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  font-size: 15px;
+  min-height: 38px;
+}
+
+// ── Botones ───────────────────────────────────────────────────────────────────
+
+/* Entrar: placa de bronce con puntas. */
+.login-btn {
+  margin-top: 8px;
+  height: 44px;
+  border: 0;
+  font-family: 'Metamorphous', serif;
+  font-size: 16px;
+  letter-spacing: 4px;
+  color: #1c1006;
+  background: linear-gradient(#e8c07f, #b07a3d);
+  box-shadow: inset 0 0 0 2px #f6dcaa;
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.05s;
+
+  &:hover { filter: brightness(1.1); }
+  &:active { transform: translateY(1px); filter: brightness(0.95); }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: saturate(0.5);
+    transform: none;
+  }
+}
+
+/* Invitado: enlace subrayado, discreto. */
+.guest-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  padding: 2px;
+  font-family: inherit;
+  font-size: 14px;
+  color: $muted;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: $slate-line;
+  cursor: pointer;
+
+  &:hover { color: $aurora; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+/* Reanudar invitado: algo más visible y con el ID al lado. */
+.guest-btn--resume {
+  color: $text;
+
+  .guest-id {
+    font-family: monospace;
+    font-size: 12px;
+    color: $aurora;
+    text-decoration: none;
+  }
+}
+
+/* Enlace para descartar el invitado guardado y crear uno nuevo. */
+.guest-new-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12px;
+  color: $dim;
+  cursor: pointer;
+
+  &:hover { color: $muted; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+.login-error {
+  margin: 0;
+  font-size: 12px;
+  text-align: center;
+  color: #ff8a7a;
+}
+
+// ── Toggles de modo (abajo a la izquierda) ────────────────────────────────────
+
 .mode-toggles {
   position: absolute;
+  z-index: 2;
   left: 16px;
-  bottom: 16px;
+  bottom: 12px;
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 118px;
+  gap: 14px;
 }
 
 .mode-toggle {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(10, 15, 35, 0.9);
-  border: 1px solid #2e4270;
-  border-radius: 6px;
-  padding: 1px 4px 1px 9px;
+  gap: 2px;
 
   .mode-label {
-    flex: 1;
-    color: #9fb6d8;
-    font-size: 0.66rem;
-    letter-spacing: 0.3px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: $dim;
   }
 
   ion-toggle {
     transform: scale(0.62);
-    transform-origin: right center;
-    margin: -6px 0;                 /* compensa el alto natural del toggle */
-    --background: #1e3a5f;
-    --background-checked: #3498db;
-    --handle-background: #e0ecff;
+    transform-origin: left center;
+    margin: -6px -16px -6px 0;      /* compensa el alto/ancho natural del toggle */
+    --track-background: #1d2731;
+    --track-background-checked: #{$aurora};
+    --handle-background: #{$text};
     --handle-background-checked: #fff;
   }
-}
-
-// ── Botón invitado (secundario, discreto) ─────────────────────────────────────
-
-.guest-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 100%;
-  padding: 9px 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #2e4270;
-  border-radius: 7px;
-  color: #9fb6d8;
-  font-family: inherit;
-  font-size: 0.76rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-
-  ion-icon { font-size: 16px; }
-
-  &:hover {
-    background: rgba(52, 152, 219, 0.06);
-    border-color: #3a5a8a;
-    color: #cfe0f8;
-  }
-
-  &:active { transform: translateY(1px); }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    transform: none;
-  }
-}
-
-/* Reanudar invitado: algo más marcado que el "nuevo invitado" y con el ID a la derecha. */
-.guest-btn--resume {
-  color: #cfe0f8;
-  border-color: #3a5a8a;
-
-  .guest-id {
-    margin-left: auto;
-    font-family: monospace;
-    font-size: 0.7rem;
-    color: #5bc0f8;
-    opacity: 0.9;
-  }
-}
-
-/* Enlace discreto para descartar el invitado guardado y crear uno nuevo. */
-.guest-new-link {
-  background: none;
-  border: none;
-  color: #4a6a9a;
-  font-family: inherit;
-  font-size: 0.68rem;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 2px;
-
-  &:hover { color: #9fb6d8; }
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
-}
-
-.login-error {
-  color: #e06a6a;
-  font-size: 0.72rem;
-  margin: 0;
-  text-align: center;
 }
 
 // ── Versión (abajo a la derecha) ──────────────────────────────────────────────
 
 .app-version {
   position: absolute;
+  z-index: 2;
   right: 16px;
-  bottom: 16px;
-  color: #9fb6d8;
-  font-size: 0.68rem;
+  bottom: 12px;
+  font-size: 11px;
   letter-spacing: 0.4px;
-  opacity: 0.85;
+  color: #56687a;
   pointer-events: none;
 }
 
-.input-icon {
-  color: #3a5a8a;
-  font-size: 16px;
-  flex-shrink: 0;
-}
+// ── Vertical / pantallas estrechas: título arriba, estela debajo ─────────────
 
-ion-input.dark-input {
-  --color: #e0ecff;
-  --placeholder-color: #2e4270;
-  --background: transparent;
-  --padding-start: 0;
-  --padding-end: 0;
-  font-size: 0.85rem;
-  height: 38px;
-}
-
-// ── Botón ─────────────────────────────────────────────────────────────────────
-
-/* Entrar: estilo azul-acero que pega con la paleta de la tarjeta (sobreescribe .rpg-btn). */
-.login-btn {
-  margin-top: 4px;
-  padding: 11px 16px;
-  background: linear-gradient(180deg, #3aa0e8 0%, #2e7fc4 50%, #245f9a 100%);
-  color: #eaf4ff;
-  border: 1px solid #5bc0f8;
-  border-radius: 7px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 0 14px rgba(52, 152, 219, 0.35),
-    0 3px 8px rgba(0, 0, 0, 0.45);
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-  transition: background 0.15s, box-shadow 0.15s, transform 0.05s;
-
-  &:hover {
-    background: linear-gradient(180deg, #4aaef2 0%, #3a8fd2 50%, #2e6faa 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.32),
-      0 0 18px rgba(91, 192, 248, 0.5),
-      0 3px 8px rgba(0, 0, 0, 0.45);
+@media (max-width: 640px) {
+  .login-layout {
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px 16px 64px;
+    gap: 20px;
   }
 
-  &:active {
-    background: linear-gradient(180deg, #245f9a 0%, #2e7fc4 100%);
-    transform: translateY(1px);
-    box-shadow:
-      inset 0 2px 6px rgba(0, 0, 0, 0.4),
-      0 0 10px rgba(52, 152, 219, 0.3);
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    filter: saturate(0.6);
-    transform: none;
-    box-shadow: none;
-  }
+  .login-brand { align-items: center; text-align: center; }
+  .game-subtitle { margin-top: 4px; }
+  .stele { flex: 0 0 auto; width: 100%; max-width: 320px; }
 }

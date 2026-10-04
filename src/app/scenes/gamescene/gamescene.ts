@@ -956,17 +956,18 @@ export class GameScene extends Phaser.Scene {
         .setPosition(t.sprite.x, t.sprite.y - t.sprite.displayHeight * 0.45 + bob);
     }
 
-    /** Marcador flotante RPG sobre los NPCs con misión (Mordekai), en pixel art a la
-     *  escala del sprite (estilo A de la galería): "!" dorado si la misión está
-     *  DISPONIBLE, "!" plateado si ya te la dio (activa/en curso), "?" dorado si se puede
-     *  entregar, y nada si está completada. Se crea perezosamente por NPC (la instancia de
-     *  escena se reutiliza; el restart destruye la imagen pero recrea el array). */
+    /** Marcador flotante RPG sobre los NPCs con misión (Mordekai), estilo "oro vectorial"
+     *  (B de la galería): "!" dorado si la misión está DISPONIBLE, "!" plateado si ya te
+     *  la dio (activa/en curso), "?" dorado si se puede entregar, y nada si está
+     *  completada. Se crea perezosamente por NPC (la instancia de escena se reutiliza; el
+     *  restart destruye la imagen pero recrea el array). */
     private updateNpcQuestMarkers(): void {
       const quests = this.reg.quests;
       this.ensureQuestMarkerTextures();
-      const PX = GameScene.QUEST_MARKER_SCALE;
-      // Balanceo lento a saltos de píxel de arte (±2), para no emborronar el pixel art.
-      const bob = Math.round(Math.sin(this.time.now / 300) * 2) * PX;
+      // La textura está a resolución FÍSICA: escala 1/zoom → 1 texel = 1 píxel de pantalla.
+      const scale = 1 / this.cameras.main.zoom;
+      // Balanceo lento (±2 px CSS) a saltos de píxel físico entero, para que no emborrone.
+      const bob = Math.round(Math.sin(this.time.now / 300) * 2 * NATIVE_DPR) * scale;
       for (const npc of this.cityNpcs) {
         // Referencia muerta tras un restart de escena → soltarla.
         if (npc.marker && !npc.marker.active) npc.marker = undefined;
@@ -988,48 +989,92 @@ export class GameScene extends Phaser.Scene {
         }
         if (!texKey) { npc.marker?.setVisible(false); continue; }
         if (!npc.marker) {
-          npc.marker = this.add.image(0, 0, texKey).setOrigin(0.5, 1).setDepth(6000).setScale(PX);
+          npc.marker = this.add.image(0, 0, texKey).setOrigin(0.5, 1).setDepth(6000);
         }
         npc.marker.setTexture(texKey)
+          .setScale(scale)
           .setVisible(true)
           .setPosition(Math.round(npc.sprite.x), Math.round(npc.sprite.y - npc.sprite.displayHeight * 0.42) + bob);
       }
     }
 
-    /** Escala del marcador de misión: algo mayor que la del sprite de NPC (2.5) para que se
-     *  lea bien desde lejos. */
-    private static readonly QUEST_MARKER_SCALE = 3.25;
+    /** Alto del marcador de misión en px CSS de pantalla (≈ 1/3 del NPC, que mide 64). */
+    private static readonly QUEST_MARKER_CSS_PX = 22;
 
-    /** Genera (una vez) las texturas pixel art de los iconos de misión: glifo con
-     *  contorno oscuro de 1px (también en diagonal) y brillo en los bordes de arriba e
-     *  izquierda. "!" dorado, "!" plateado (en curso) y "?" dorado. Filtro NEAREST. */
+    /** Genera (una vez) las texturas de los iconos de misión, estilo "oro vectorial":
+     *  glifo liso con degradado vertical, contorno grueso oscuro y un brillo arriba.
+     *  Se dibujan a resolución FÍSICA (alto = QUEST_MARKER_CSS_PX × NATIVE_DPR) y se
+     *  pintan a escala 1/zoom: 1 texel = 1 píxel de pantalla → nitidez máxima (el pixel
+     *  art anterior quedaba a ~2,6 px físicos por píxel de arte y se veía borroso).
+     *  "!" dorado, "!" plateado (en curso) y "?" dorado. */
     private ensureQuestMarkerTextures(): void {
       if (this.textures.exists('quest_excl')) return;
-      const EXCL = ['.##.', '####', '####', '####', '.##.', '.##.', '.##.', '....', '.##.', '.##.'];
-      const QUES = ['.####.', '##..##', '##..##', '....##', '...##.', '..##..', '..##..', '......', '..##..', '..##..'];
-      const GOLD   = { fill: '#ffd21e', hi: '#fff3a0', dark: '#3a2600' };
-      const SILVER = { fill: '#a9b0b8', hi: '#e6ebf0', dark: '#2a2d33' };
-      const make = (key: string, g: string[], pal: typeof GOLD) => {
-        const w = g[0].length, h = g.length;
-        const on = (x: number, y: number) => y >= 0 && y < h && x >= 0 && x < w && g[y][x] === '#';
-        const tex = this.textures.createCanvas(key, w + 2, h + 2)!;
-        const ctx = tex.getContext();
-        for (let y = -1; y <= h; y++) for (let x = -1; x <= w; x++) {
-          let col: string | null = null;
-          if (on(x, y)) col = (!on(x - 1, y) || !on(x, y - 1)) ? pal.hi : pal.fill;
-          else {
-            for (let dy = -1; dy <= 1 && !col; dy++) for (let dx = -1; dx <= 1; dx++) {
-              if (on(x + dx, y + dy)) { col = pal.dark; break; }
-            }
-          }
-          if (col) { ctx.fillStyle = col; ctx.fillRect(x + 1, y + 1, 1, 1); }
-        }
-        tex.refresh();
-        tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+      const GOLD   = { top: '#fff6b8', mid: '#ffd21e', bot: '#e08a00', dark: '#3a2200', hi: '#fffbe0' };
+      const SILVER = { top: '#ffffff', mid: '#c4ccd6', bot: '#7d8794', dark: '#22262c', hi: '#ffffff' };
+      const H = Math.round(GameScene.QUEST_MARKER_CSS_PX * NATIVE_DPR);
+      const o = Math.max(2, Math.round(H * 0.09));   // grosor del contorno
+      const h = H - o * 2, top = o;                  // alto del glifo sin contorno
+      const W = Math.ceil(H * 0.6), cx = W / 2;
+
+      // "!": barra ahusada con puntas redondas + punto.
+      const exclPath = (ctx: CanvasRenderingContext2D) => {
+        const wT = h * 0.30, wB = h * 0.19, barH = h * 0.64, r = wT / 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - wT / 2, top + r);
+        ctx.arc(cx, top + r, r, Math.PI, 0);
+        ctx.lineTo(cx + wB / 2, top + barH - wB / 2);
+        ctx.arc(cx, top + barH - wB / 2, wB / 2, 0, Math.PI);
+        ctx.closePath();
+        const d = h * 0.155;
+        ctx.moveTo(cx + d, top + h - d);
+        ctx.arc(cx, top + h - d, d, 0, Math.PI * 2);
       };
-      make('quest_excl', EXCL, GOLD);
-      make('quest_excl_active', EXCL, SILVER);
-      make('quest_ques', QUES, GOLD);
+      // "?": gancho trazado (stroke) + punto.
+      const quesHook = (ctx: CanvasRenderingContext2D) => {
+        const R = h * 0.23, cy = top + R + h * 0.06;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, Math.PI * 1.08, Math.PI * 2.32);
+        ctx.quadraticCurveTo(cx, cy + R * 1.25, cx, top + h * 0.66);
+      };
+      const quesDot = (ctx: CanvasRenderingContext2D) => {
+        const d = h * 0.145;
+        ctx.beginPath();
+        ctx.arc(cx, top + h - d, d, 0, Math.PI * 2);
+      };
+
+      const make = (key: string, glyph: '!' | '?', pal: typeof GOLD) => {
+        const tex = this.textures.createCanvas(key, W, H)!;
+        const ctx = tex.getContext();
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        const grad = ctx.createLinearGradient(0, top, 0, top + h);
+        grad.addColorStop(0, pal.top);
+        grad.addColorStop(0.45, pal.mid);
+        grad.addColorStop(1, pal.bot);
+        if (glyph === '!') {
+          exclPath(ctx);
+          ctx.strokeStyle = pal.dark; ctx.lineWidth = o * 2; ctx.stroke();
+          ctx.fillStyle = grad; ctx.fill();
+        } else {
+          const t = h * 0.17;   // grosor del trazo del gancho
+          quesHook(ctx); ctx.strokeStyle = pal.dark; ctx.lineWidth = t + o * 2; ctx.stroke();
+          quesDot(ctx); ctx.lineWidth = o * 2; ctx.stroke();
+          quesHook(ctx); ctx.strokeStyle = grad; ctx.lineWidth = t; ctx.stroke();
+          quesDot(ctx); ctx.fillStyle = grad; ctx.fill();
+        }
+        // Brillo arriba a la izquierda del glifo.
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.ellipse(cx - h * 0.045, top + h * 0.14, h * 0.05, h * 0.09, 0, 0, Math.PI * 2);
+        ctx.fillStyle = pal.hi;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        tex.refresh();
+        tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      };
+      make('quest_excl', '!', GOLD);
+      make('quest_excl_active', '!', SILVER);
+      make('quest_ques', '?', GOLD);
     }
 
     /** true si el talento global de auto-lanzado de skills (attack_5) está activo. */

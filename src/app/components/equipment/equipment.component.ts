@@ -129,6 +129,28 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     return ITEM_CATALOG.find(e => e.name === name)?.icon ?? '';
   }
 
+  /** Guía (misiones de equipar): la casilla brilla mientras falte equipar el item que le
+   *  toca (la del hacha por el hacha, la del arma por la daga…). Vale para slots de
+   *  recolección y de combate; se apaga al ponerse ese item. */
+  isGuideSlot(slot: { accepts: string[] }): boolean {
+    return this.quests.pendingEquipItems().some(name => {
+      const e = ITEM_CATALOG.find(c => c.name === name);
+      return slot.accepts.includes(e?.category ?? name);
+    });
+  }
+
+  /** Guía de la misión de nivel: la pastilla de stats brilla mientras quede el punto
+   *  de stats sin repartir (en vez de su "!"). */
+  get statsGuide(): boolean {
+    return this.quests.levelGuideActive() && this.charStats.freePoints > 0;
+  }
+
+  /** ¿Alguna casilla de la OTRA vista pide brillo? (brilla el interruptor combate ↔ recolección). */
+  get toggleGuidePending(): boolean {
+    const other = this.showGathering ? this.equipmentService.slots : this.gatheringService.slots;
+    return other.some(s => this.isGuideSlot(s));
+  }
+
 
   // Vista de equipo (tab 0): combate ↔ recolección comparten el mismo preview
   // (no se re-renderiza el sprite); solo cambian los slots equipables.

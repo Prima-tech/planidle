@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -17,7 +17,11 @@ import { APP_VERSION } from 'src/app/version';
     styleUrls: ['./login.page.scss'],
     standalone: false,
 })
-export class LoginPage implements OnInit {
+export class LoginPage implements OnInit, AfterViewInit, OnDestroy {
+    @ViewChild('sky', { static: true }) private skyRef: ElementRef<HTMLCanvasElement>;
+    private skyRaf = 0;
+    private skyObserver: ResizeObserver;
+
     email = '';
     password = '';
     loading = false;
@@ -45,6 +49,7 @@ export class LoginPage implements OnInit {
         private adminService: AdminService,
         private saveService: SaveService,
         private translate: TranslateService,
+        private zone: NgZone,
     ) { }
 
     async ngOnInit() {
@@ -209,6 +214,104 @@ export class LoginPage implements OnInit {
             duration: 2500,
         });
         await toast.present();
+    }
+
+    // ── Cielo nórdico (estrellas + aurora + montañas) ───────────────────────────
+    // Canvas a DPR 1 (todo es difuso, no gana nada con más) y a ~30 fps, fuera de la
+    // zona de Angular para no disparar detección de cambios en cada frame.
+
+    private stars: { x: number; y: number; r: number; p: number }[] = [];
+    private ridges: [number, number][][] = [];
+
+    ngAfterViewInit(): void {
+        this.sizeSky();
+        // ion-content puede medir 0 en el primer frame: se re-mide al tener tamaño real.
+        this.skyObserver = new ResizeObserver(() => this.sizeSky());
+        this.skyObserver.observe(this.skyRef.nativeElement);
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+        this.zone.runOutsideAngular(() => {
+            let last = 0;
+            const loop = (t: number) => {
+                this.skyRaf = requestAnimationFrame(loop);
+                if (t - last < 33 || document.hidden) return;
+                last = t;
+                this.drawSky(t + 8000);
+            };
+            this.skyRaf = requestAnimationFrame(loop);
+        });
+    }
+
+    ngOnDestroy(): void {
+        cancelAnimationFrame(this.skyRaf);
+        this.skyObserver?.disconnect();
+    }
+
+    private sizeSky(): void {
+        const cv = this.skyRef.nativeElement;
+        const W = cv.width = Math.max(1, cv.clientWidth);
+        const H = cv.height = Math.max(1, cv.clientHeight);
+        this.stars = Array.from({ length: Math.round(W * H / 3000) }, () => ({
+            x: Math.random() * W, y: Math.random() * H * 0.7, r: Math.random() * 1.3 + 0.3, p: Math.random() * 6,
+        }));
+        const ridge = (base: number, amp: number, seed: number, step: number) => {
+            const pts: [number, number][] = [];
+            for (let x = 0; x <= W + step; x += step) {
+                pts.push([x, base - Math.abs(Math.sin(x * 0.011 + seed) * amp + Math.sin(x * 0.031 + seed * 2) * amp * 0.4)]);
+            }
+            return pts;
+        };
+        this.ridges = [ridge(H * 0.85, H * 0.18, 1.3, 8), ridge(H * 0.95, H * 0.1, 4.1, 6)];
+        this.drawSky(8000);
+    }
+
+    private drawSky(t: number): void {
+        const cv = this.skyRef.nativeElement;
+        const g = cv.getContext('2d');
+        if (!g) return;
+        const W = cv.width, H = cv.height;
+
+        const sky = g.createLinearGradient(0, 0, 0, H);
+        sky.addColorStop(0, '#03060e');
+        sky.addColorStop(0.7, '#0b1a2a');
+        sky.addColorStop(1, '#12283a');
+        g.fillStyle = sky;
+        g.fillRect(0, 0, W, H);
+
+        g.fillStyle = '#dfefff';
+        for (const s of this.stars) {
+            g.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(t * 0.0012 + s.p));
+            g.fillRect(s.x, s.y, s.r, s.r);
+        }
+        g.globalAlpha = 1;
+
+        // Aurora: 3 bandas de franjas verticales con degradado, ondulando.
+        g.globalCompositeOperation = 'lighter';
+        const top = H * 0.18, gap = H * 0.067, wave = H * 0.087, len = H * 0.18;
+        for (let band = 0; band < 3; band++) {
+            const hue = [150, 170, 195][band];
+            for (let x = 0; x < W; x += 3) {
+                const y = top + band * gap + Math.sin(x * 0.008 + t * 0.0004 * (band + 1) + band) * wave + Math.sin(x * 0.021 - t * 0.0007) * wave * 0.35;
+                const h = len + Math.sin(x * 0.013 + t * 0.0009 + band * 2) * len * 0.57;
+                const a = 0.05 + 0.05 * Math.sin(x * 0.017 + t * 0.001 + band);
+                const gr = g.createLinearGradient(0, y - h, 0, y + 10);
+                gr.addColorStop(0, `hsla(${hue + 40},90%,60%,0)`);
+                gr.addColorStop(0.7, `hsla(${hue},90%,60%,${a + 0.06})`);
+                gr.addColorStop(1, `hsla(${hue},90%,70%,0)`);
+                g.fillStyle = gr;
+                g.fillRect(x, y - h, 3, h + 10);
+            }
+        }
+        g.globalCompositeOperation = 'source-over';
+
+        const colors = ['#0a1420', '#04080e'];
+        this.ridges.forEach((pts, i) => {
+            g.fillStyle = colors[i];
+            g.beginPath();
+            g.moveTo(0, H);
+            for (const [x, y] of pts) g.lineTo(x, y);
+            g.lineTo(W, H);
+            g.fill();
+        });
     }
 
 }

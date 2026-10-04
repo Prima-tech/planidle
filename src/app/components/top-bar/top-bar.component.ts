@@ -22,6 +22,7 @@ import { MapUpgradesService } from 'src/app/services/map-upgrades.service';
 import { MapDominionService, DominionState, DOMINION_DROP_BONUS } from 'src/app/services/map-dominion.service';
 import { CharacterStatsService, combatPowerScore } from 'src/app/services/character-stats.service';
 import { ENEMY_REGISTRY } from 'src/app/enemy/enemy-config';
+import { QuestService } from 'src/app/services/quest.service';
 
 export interface MapPanelData {
   mapId: string;
@@ -85,6 +86,15 @@ export class TopBarComponent implements OnInit, OnDestroy {
    *  una recompensa de logro por recoger (persiste hasta cobrarla, no al abrir). */
   get equipBadge(): boolean {
     return this.questBadge || this.achievements.hasClaimable();
+  }
+
+  private quests = inject(QuestService);
+
+  /** Guía de la misión de nivel: la pastilla brilla (en vez del "!") mientras falte
+   *  asignar el punto de talento O el punto de stats. */
+  get talentGuide(): boolean {
+    return this.quests.talentGuidePending()
+        || (this.quests.levelGuideActive() && this.charStats.freePoints > 0);
   }
 
   valueHP$: any = null;

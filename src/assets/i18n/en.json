@@ -3,7 +3,8 @@
     "ACCOUNT_CREATED": "Account created",
     "TITLE": "Welcome",
     "SUBTITLE": "Sign in to your account",
-    "TAGLINE": "Your adventure awaits",
+    "TAGLINE": "Your adventure awaits beyond the aurora.",
+    "STELE_TITLE": "Cross the threshold",
     "EMAIL_PLACEHOLDER": "Email",
     "PASSWORD_PLACEHOLDER": "Password",
     "BUTTON": "SIGN IN",
@@ -463,7 +464,9 @@
     "NOEXP_HERRAMIENTAS": {
       "NAME": "Craft your tools",
       "DESC": "Mordekai wants to see you with proper tools. At the workbench craft the Iron Axe and the Iron Pickaxe (2 stone and 2 wood each), open them in your backpack and press Equip. Then talk to Mordekai. Reward: 10 XP.",
-      "TRACK": "Craft and equip axe and pickaxe"
+      "TRACK": "Craft and equip axe and pickaxe",
+      "TRACK_AXE": "Craft and equip the axe",
+      "TRACK_PICK": "Craft and equip the pickaxe"
     },
     "MATA_RATA": {
       "NAME": "Hatchet Rat",
@@ -473,12 +476,16 @@
     "NOEXP_ARMAS": {
       "NAME": "Craft weapon and armor",
       "DESC": "Before you fight you need to gear up. You can now make the Rusty Dagger and the Ivory Cuirass at the workbench (2 stone and 2 wood each). Craft both, open them in your backpack and press Equip. Then talk to Mordekai. Reward: just enough XP to reach level 2.",
-      "TRACK": "Craft and equip dagger and cuirass"
+      "TRACK": "Craft and equip dagger and cuirass",
+      "TRACK_DAGGER": "Craft and equip the dagger",
+      "TRACK_ARMOR": "Craft and equip the cuirass"
     },
     "NOEXP_NIVEL_TALENTO": {
       "NAME": "Level up",
       "DESC": "You reached level 2 and have a new talent point. Open the talent tree in the equipment window and assign it. Then talk to Mordekai. Reward: 10 XP.",
-      "TRACK": "Assign your talent point"
+      "TRACK": "Assign your talent point",
+      "TRACK_LEVEL": "Reach level 2",
+      "TRACK_TALENT": "Assign a talent point"
     },
     "NOEXP_KUGO": {
       "NAME": "Visit Kugo",

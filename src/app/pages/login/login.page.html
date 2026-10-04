@@ -1,50 +1,48 @@
 <ion-content [fullscreen]="true">
-  <div class="bg-overlay">
-    <div class="login-card">
+  <div class="login-scene">
+    <!-- Cielo nórdico: estrellas + aurora + montañas (pintado en login.page.ts). -->
+    <canvas #sky class="sky"></canvas>
+
+    <div class="login-layout">
 
       <div class="login-brand">
-        <div class="login-emblem">
-          <ion-icon name="shield-half-outline" class="emblem-icon"></ion-icon>
-        </div>
-        <h1 class="game-title">VALHALLA</h1>
-        <p class="game-brand-sub">Idle RPG</p>
+        <span class="runes">ᚹᚨᛚᚺᚨᛚᛚᚨ</span>
+        <h1 class="game-title">Valhalla</h1>
+        <span class="game-brand-sub">Idle RPG</span>
         <p class="game-subtitle">{{ 'LOGIN.TAGLINE' | translate }}</p>
       </div>
 
-      <div class="login-divider"></div>
-
-      <div class="login-form">
+      <form class="stele" (ngSubmit)="login()">
+        <h2 class="stele-title">{{ 'LOGIN.STELE_TITLE' | translate }}</h2>
 
         <div class="input-wrapper">
-          <ion-icon name="person-outline" class="input-icon"></ion-icon>
-          <ion-input [(ngModel)]="email" type="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" class="dark-input"></ion-input>
+          <span class="input-rune">ᛗ</span>
+          <ion-input [(ngModel)]="email" name="email" type="email" [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate" class="rune-input"></ion-input>
         </div>
         <div class="input-wrapper">
-          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-          <ion-input [(ngModel)]="password" type="password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" class="dark-input"></ion-input>
+          <span class="input-rune">ᛉ</span>
+          <ion-input [(ngModel)]="password" name="password" type="password" [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate" class="rune-input"></ion-input>
         </div>
 
-        <button class="rpg-btn rpg-btn--block login-btn" (click)="login()" [disabled]="loading">{{ 'LOGIN.BUTTON' | translate }}</button>
+        <button type="submit" class="login-btn" [disabled]="loading">{{ 'LOGIN.BUTTON' | translate }}</button>
 
         <!-- Invitado = cuenta anónima en la NUBE. En modo Local (toggle ON) no aplica:
              se ocultan todas sus variantes para no contradecir la elección. -->
-        <button *ngIf="!localMode && !guestId" class="guest-btn" (click)="loginAsGuest()" [disabled]="loading">
-          <ion-icon name="person-circle-outline"></ion-icon>
-          <span>{{ 'LOGIN.GUEST' | translate }}</span>
+        <button type="button" *ngIf="!localMode && !guestId" class="guest-btn" (click)="loginAsGuest()" [disabled]="loading">
+          {{ 'LOGIN.GUEST' | translate }}
         </button>
 
-        <button *ngIf="!localMode && guestId" class="guest-btn guest-btn--resume" (click)="resumeGuest()" [disabled]="loading">
-          <ion-icon name="person-circle-outline"></ion-icon>
+        <button type="button" *ngIf="!localMode && guestId" class="guest-btn guest-btn--resume" (click)="resumeGuest()" [disabled]="loading">
           <span>{{ 'LOGIN.GUEST_RESUME' | translate }}</span>
           <span class="guest-id">{{ guestId.slice(0, 8) }}</span>
         </button>
 
-        <button *ngIf="!localMode && guestId" class="guest-new-link" (click)="loginAsGuest()" [disabled]="loading">
+        <button type="button" *ngIf="!localMode && guestId" class="guest-new-link" (click)="loginAsGuest()" [disabled]="loading">
           {{ 'LOGIN.GUEST_NEW' | translate }}
         </button>
 
         <p class="login-error" *ngIf="error">{{ error }}</p>
-      </div>
+      </form>
 
     </div>
 
