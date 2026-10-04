@@ -600,6 +600,7 @@ export class GameScene extends Phaser.Scene {
         this.moveSub?.unsubscribe();
         this.deleteSub?.unsubscribe();
         this.removedSub?.unsubscribe();
+        if (this.reg.cityBuild) this.reg.cityBuild.autoPlacer = null;
         this.pxSub?.unsubscribe();
         this.pxWarpP.length = 0;
         // No re-spawnear el original durante el teardown (la persistencia lo conserva).
@@ -4189,6 +4190,40 @@ export class GameScene extends Phaser.Scene {
       });
       // Confirmado el borrado en el modal → quita el edificio de la escena.
       this.removedSub = cityBuild.removed$.subscribe(b => this.removeBuildingFromScene(b));
+      // Admin (completar misión de construir): la escena le busca hueco y lo levanta.
+      cityBuild.autoPlacer = this.currentMapConfig.id === 'hogar' ? (type => this.autoPlaceBuilding(type)) : null;
+    }
+
+    /** Levanta `type` en el primer hueco libre (mismas reglas que el fantasma de
+     *  construir), buscando en anillos alrededor de Mordekai. false si no hay sitio. */
+    private autoPlaceBuilding(type: string): boolean {
+      const def = this.reg.cityBuild?.def(type);
+      if (!def || !this.sys.isActive()) return false;
+      const TS = GameScene.TILE_SIZE;
+      const half = (def.frameSize * def.scale) / 2;
+      const occupants = this.occupantTiles();
+      const fits = (tx: number, ty: number) => {
+        const { x, y } = this.buildingCenterPx(tx, ty);
+        const inBounds =
+          Math.floor((x - half) / TS) >= 0 && Math.floor((y - half) / TS) >= 0 &&
+          Math.floor((x + half - 1) / TS) < this.currentMap.width &&
+          Math.floor((y + half - 1) / TS) < this.currentMap.height;
+        return inBounds && this.computeFootprintTiles(x, y, half)
+          .every(k => !this.collisionTiles.has(k) && !occupants.has(k));
+      };
+      const anchor = CITY_NPCS.find(n => n.name === 'Mordekai') ?? { tileX: 30, tileY: 30 };
+      for (let r = 3; r <= 14; r++) {
+        for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;   // solo el anillo r
+          const tileX = anchor.tileX + dx, tileY = anchor.tileY + dy;
+          if (!fits(tileX, tileY)) continue;
+          const b: PlacedBuilding = { type, tileX, tileY };
+          this.reg.cityBuild.add(b);
+          this.spawnBuilding(b);
+          return true;
+        }
+      }
+      return false;
     }
 
     /** Arranca el ghost de colocación. Si `moving` está, es la reubicación de un

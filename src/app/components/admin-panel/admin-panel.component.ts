@@ -72,6 +72,7 @@ export class AdminPanelComponent {
     const parts: string[] = [];
     if (r.coins) parts.push(`+${r.coins} ${t('ADMIN_PANEL.GOLD')}`);
     if (r.exp) parts.push(`+${r.exp} ${t('STAT.EXP_SHORT')}`);
+    if (r.toLevel) parts.push(`→ ${this.translate.instant('ADMIN_PANEL.TO_LEVEL', { n: r.toLevel })}`);
     for (const it of r.items ?? []) parts.push(`${it.name} ×${it.qty}`);
     return parts.join(' · ');
   }

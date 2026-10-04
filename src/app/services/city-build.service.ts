@@ -224,6 +224,9 @@ const BASE_BUILD_LIMIT = 1;
 // Recetas de construcción aprendidas. Global (como las construcciones): lo que
 // aprende un personaje lo saben todos.
 const RECIPES_KEY = 'build_recipes';
+/** Tile donde el admin deja un edificio si la escena no está en la ciudad para buscarle
+ *  hueco (al lado de Mordekai, 28,30, y del punto de aparición, 30,30). */
+const ADMIN_FALLBACK_TILE = { tileX: 32, tileY: 27 };
 // Cuenta (userId de Supabase) a la que pertenecen las construcciones/recetas locales.
 // Sin esto, entrar con OTRA cuenta en el mismo dispositivo heredaba la ciudad anterior.
 const OWNER_KEY = 'city_owner';
@@ -295,6 +298,22 @@ export class CityBuildService {
     this.cache!.push({ ...b });
     await this.storage.set(STORAGE_KEY, this.cache);
     this.placed$.next(b);
+  }
+
+  /** Colocador automático que registra la escena mientras está en la ciudad: busca un
+   *  hueco libre, persiste y pinta el edificio. Devuelve false si no pudo. */
+  autoPlacer: ((type: string) => boolean) | null = null;
+
+  /** Admin (completar misiones de construir): aprende la receta y deja el edificio
+   *  PUESTO en la ciudad si aún no lo está. Con la escena en la ciudad lo coloca ella en
+   *  un hueco libre junto a Mordekai; si no, se guarda en un tile por defecto y aparece
+   *  al entrar. */
+  async adminPlace(type: string): Promise<void> {
+    await this.load();
+    if (!this.isLearned(type)) await this.learn(type);
+    if (this.isBuilt(type)) return;
+    if (this.autoPlacer?.(type)) return;
+    await this.add({ type, ...ADMIN_FALLBACK_TILE });
   }
 
   /** Máximo de construcciones de un tipo. Hoy 1 para todos (BASE_BUILD_LIMIT); los

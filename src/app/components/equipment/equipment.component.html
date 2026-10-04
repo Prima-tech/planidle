@@ -566,10 +566,13 @@
     <div class="talent-tree-tabs">
       <button class="talent-tree-tab" *ngFor="let tr of talentTrees; let i = index"
               [class.active]="activeTalentTree === i"
-              [title]="tr.label | translate"
+              [class.locked]="talentTreeLocked(i)"
+              [title]="talentTreeLocked(i) ? '' : (tr.label | translate)"
               [attr.aria-label]="tr.label | translate"
-              (click)="activeTalentTree = i">
-        <ion-icon [name]="tr.icon"></ion-icon>
+              [attr.aria-disabled]="talentTreeLocked(i)"
+              (click)="selectTalentTree(i)">
+        <!-- Bloqueada: candado en lugar del icono (no desvela qué árbol es). -->
+        <ion-icon [name]="talentTreeLocked(i) ? 'lock-closed' : tr.icon"></ion-icon>
       </button>
     </div>
 
@@ -1102,6 +1105,7 @@
          [class.slot-placeholder-img--necklace]="slot.id === 'necklace'"
          [class.slot-placeholder-img--food]="slot.id === 'food'"
          [class.slot-placeholder-img--potion]="slot.id === 'potion'"
+         [class.slot-placeholder-img--tool]="slot.id === 'pickaxe' || slot.id === 'axe'"
          [src]="ph.img"
          (error)="onPlaceholderImgError(slot.id)"
          [title]="slot.label">

@@ -230,7 +230,8 @@
     "ADVANCE": "Avance",
     "ACT": "Arco {{n}}",
     "COMPLETE_ALL": "Completar todo el arco",
-    "GOLD": "oro"
+    "GOLD": "oro",
+    "TO_LEVEL": "nivel {{n}}"
   },
   "SHOP": {
     "TITLE": "Tienda premium",

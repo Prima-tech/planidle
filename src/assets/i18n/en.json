@@ -230,7 +230,8 @@
     "ADVANCE": "Progress",
     "ACT": "Arc {{n}}",
     "COMPLETE_ALL": "Complete the whole arc",
-    "GOLD": "gold"
+    "GOLD": "gold",
+    "TO_LEVEL": "level {{n}}"
   },
   "SHOP": {
     "TITLE": "Premium shop",

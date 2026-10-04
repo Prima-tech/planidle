@@ -203,11 +203,11 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     food:     { img: 'assets/icon/placeholder/meat.png',   icon: 'restaurant-outline' },
     potion:   { img: 'assets/icon/placeholder/potion.png', icon: 'flask-outline' },
     // ── Recolección ──
-    // Sin `img`: sus PNGs (assets/icon/slots/*.png) no existen aún y referenciarlos
-    // dispara un 404 por slot al abrir la pestaña. Cuando se cree el PNG, añadir aquí
-    // su `img` (ver README de esa carpeta).
-    pickaxe:     { icon: 'hammer-outline' },
-    axe:         { icon: 'cut-outline' },
+    // Pico y hacha: silueta del Pico/Hacha de Hierro (las de las primeras misiones).
+    // El resto aún sin `img`: referenciar un PNG que no existe dispara un 404 por slot
+    // al abrir la pestaña. Cuando se cree el PNG, añadir aquí su `img`.
+    pickaxe:     { img: 'assets/icon/placeholder/pick.png', icon: 'hammer-outline' },
+    axe:         { img: 'assets/icon/placeholder/axe.png',  icon: 'cut-outline' },
     fishing_rod: { icon: 'fish-outline' },
     shovel:      { icon: 'trail-sign-outline' },
     lantern:     { icon: 'flashlight-outline' },
@@ -367,6 +367,17 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this._activeTalentTree = v;
     this.panelState.set('talent.tree', v);
     this.clearTalentSelection();
+  }
+
+  /** Árboles 2 y 3 (Arcano / Técnica): de momento bloqueados, solo el primero se puede
+   *  usar (salvo admin). Cablear aquí su condición cuando se defina. */
+  talentTreeLocked(i: number): boolean {
+    return i > 0 && !this.admin.isAdmin;
+  }
+
+  selectTalentTree(i: number): void {
+    if (this.talentTreeLocked(i)) return;
+    this.activeTalentTree = i;
   }
 
   // Geometría de la escalera (px, dentro del tablero de 222px de ancho interior):
@@ -542,7 +553,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     // Si la pestaña restaurada aún no está desbloqueada (onboarding), volver a Equipo.
     if (!this.tabVisible(this._activeTab)) this._activeTab = 0;
     const tree = this.panelState.get('talent.tree', 0);
-    this._activeTalentTree = tree >= 0 && tree < this.talentTrees.length ? tree : 0;
+    this._activeTalentTree = tree >= 0 && tree < this.talentTrees.length && !this.talentTreeLocked(tree) ? tree : 0;
     // Publica el estado para el comparador del inventario
     this.equipPanel.open = true;
     this.equipPanel.tab = this._activeTab;

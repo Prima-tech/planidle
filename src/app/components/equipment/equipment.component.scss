@@ -761,6 +761,14 @@ $metal-dark: #6b6357;
   margin-top: 3px;
 }
 
+/* Pico y hacha (icono 32×32 de la herramienta, dibujo ~24px): a 32px, nítido y centrado */
+.slot-placeholder-img--tool {
+  width: 32px;
+  height: 32px;
+  margin-top: 2px;
+  image-rendering: pixelated;
+}
+
 // Cooldown de auto-poción: barrido cónico oscuro + segundos restantes
 .slot-cooldown {
   position: absolute;
@@ -1150,6 +1158,20 @@ $metal-dark: #6b6357;
     box-shadow:
       inset 0 0 0 1px $wood-btn-light,
       inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  /* Árbol aún bloqueado: piedra fría con candado, sin hover ni feedback (patrón .locked
+     de los botones del hub). */
+  &.locked,
+  &.locked:hover {
+    cursor: not-allowed;
+    background: linear-gradient(160deg, $stone 0%, $stone-dark 100%);
+    color: #3b352d;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+
+    ion-icon { filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.28)); }
   }
 }
 

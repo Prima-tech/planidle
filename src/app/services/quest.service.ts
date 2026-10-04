@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { StorageService } from './storage.service';
 import { KillService } from './kill.service';
@@ -12,7 +12,9 @@ import { CityBuildService } from './city-build.service';
 import { GatheringEquipmentService } from './gathering-equipment.service';
 import { RECIPE_IRON_PICKAXE_FLAG, RECIPE_STARTER_GEAR_FLAG } from './workbench.service';
 import { EquipmentService } from './equipment.service';
-import { TalentService } from './talent.service';
+import { TalentService, TALENT_TREES } from './talent.service';
+import { CharacterStatsService } from './character-stats.service';
+import { HudSkillSlotsService } from './hud-skill-slots.service';
 import { ITEM_CATALOG, hydrateItem } from '../physics/griddrops';
 
 // Sistema de misiones.
@@ -395,6 +397,9 @@ export class QuestService implements OnDestroy {
   private talentSub: Subscription;
   private skipSub: Subscription;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  // Solo para el admin (completar la misión de nivel/talento haciendo el reparto).
+  private charStats = inject(CharacterStatsService);
+  private hudSlots = inject(HudSkillSlotsService);
 
   constructor(
     private storage: StorageService,
@@ -947,15 +952,51 @@ export class QuestService implements OnDestroy {
    *  sin gastar los materiales que pida. Encadena igual que un cobro normal. */
   adminComplete(def: QuestDef): void {
     if (this.completedSet.has(def.id)) return;
-    // Misiones de equipar (herramientas, armas): el objeto aparece en la mochila como si
-    // lo hubieras fabricado — salvo que ya lo lleves puesto o en el inventario.
+    // Misiones de equipar (herramientas, armas): el objeto queda PUESTO, como si lo
+    // hubieras fabricado y equipado (si estaba en la mochila, sale de ahí).
     if (def.objective.type === 'equip') {
-      for (const name of equipItemsOf(def.objective)) {
-        if (!this.isEquipped(name) && this.inventory.countByName(name) === 0) this.grantItem(name, 1);
-      }
+      for (const name of equipItemsOf(def.objective)) this.adminEquip(name);
     }
+    // Misiones de construir: el edificio queda levantado en la ciudad.
+    if (def.objective.type === 'build') void this.cityBuild.adminPlace(def.objective.buildType);
+    // Misión de subir de nivel y repartir puntos: hace el reparto como lo haría el jugador.
+    if (def.objective.type === 'levelTalent') this.adminLevelAndAssign(def.objective.level);
     this.progress[def.id] = def.objective.goal;
     this.claim(def, true);
+  }
+
+  /** Admin: equipa `name` en su ranura (combate o recolección; la libre si hay varias).
+   *  Lo que ocupaba la ranura vuelve a la mochila. Nada si ya lo llevas puesto. */
+  private adminEquip(name: string): void {
+    if (this.isEquipped(name) || !ITEM_CATALOG.some(e => e.name === name)) return;
+    const item = hydrateItem({ id: this.inventory.generateId(), name });
+    const key = item.category ?? item.name;
+    const pick = <T extends { accepts: string[]; item: InventoryItem | null }>(slots: T[]) => {
+      const ok = slots.filter(s => s.accepts.includes(key));
+      return ok.find(s => !s.item) ?? ok[0];
+    };
+    const eq = pick(this.equipment.slots);
+    const ga = eq ? undefined : pick(this.gathering.slots);
+    if (!eq && !ga) { console.warn(`[Quests] admin: "${name}" no tiene ranura`); return; }
+    if (this.inventory.countByName(name) > 0) this.inventory.consumeByName(name, 1);
+    const displaced = eq
+      ? this.equipment.equip(`equip-${eq.id}`, item)
+      : this.gathering.equip(`gather-${ga.id}`, item);
+    if (displaced) this.inventory.addOrDropToWorld(displaced);
+  }
+
+  /** Admin: llega al nivel pedido, pone el punto de stats libre en STR y aprende el
+   *  ataque del primer árbol (Tajo de Guerrero), dejándolo en la primera ranura del HUD.
+   *  Lo que ya esté repartido/aprendido no se toca. */
+  private adminLevelAndAssign(level: number): void {
+    const need = this.playerState.expToReachLevel(level);
+    if (need > 0) this.playerState.addExp(need);
+    if (this.charStats.freePoints > 0) this.charStats.increment('STR');
+    const attack = TALENT_TREES[0].nodes.find(n => n.tier === 1)?.id;
+    if (attack && this.talent.canUnlock(attack)) {
+      this.talent.unlock(attack);
+      this.hudSlots.assignLearned(attack);
+    }
   }
 
   /** Admin: completa en orden todas las misiones de la cadena vigente. */
