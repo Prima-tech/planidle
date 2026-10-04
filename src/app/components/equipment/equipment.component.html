@@ -1001,11 +1001,12 @@
         </span>
       </div>
 
-      <!-- Objetivo cumplido: botón para cobrar la recompensa -->
-      <button class="rpg-btn rpg-btn--sm quest-claim-btn" *ngIf="quests.isClaimable(q)" (click)="claimQuest(q)">
-        <ion-icon name="checkmark-circle-outline"></ion-icon>
-        {{ 'QUESTS.CLAIM' | translate }}
-      </button>
+      <!-- Objetivo cumplido: las misiones se ENTREGAN hablando con su NPC, no desde aquí.
+           Solo un aviso de a quién llevársela. -->
+      <p class="quest-claim-hint" *ngIf="q.giver && quests.isClaimable(q)">
+        <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+        {{ 'QUESTS.TALK_TO_CLAIM' | translate: { npc: q.giver } }}
+      </p>
 
       <!-- Activar = fijar en el rastreador del HUD (máx 5) -->
       <div class="quest-activate" *ngIf="!done && !quests.isClaimable(q)">

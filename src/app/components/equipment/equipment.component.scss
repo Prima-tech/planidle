@@ -2067,14 +2067,18 @@ $metal-dark: #6b6357;
   color: rgba(236, 217, 180, 0.82);
 }
 
-/* Reclamar: estilo global .rpg-btn--sm; aquí solo maquetación (icono + alineado) */
-.quest-claim-btn {
-  display: inline-flex;
-  align-self: flex-start;
+/* Aviso "Habla con X para entregarla" (sustituye al antiguo botón Completar). */
+.quest-claim-hint {
+  display: flex;
   align-items: center;
   gap: 5px;
+  margin: 0;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: #ffd76a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 
-  ion-icon { font-size: 15px; }
+  ion-icon { font-size: 14px; flex-shrink: 0; }
 }
 
 .quest-activate {

@@ -1,12 +1,16 @@
 # Genera todos los iconos de Android desde resources\icon.png
 # Sin dependencias: usa System.Drawing (incluido en Windows).
 # Uso:  powershell -ExecutionPolicy Bypass -File tools\gen-android-icons.ps1
+#
+# El fondo del icono adaptativo es el color @color/valhalla_icon_background
+# (values\icon_colors.xml); debe coincidir con el fondo liso del PNG.
 
 Add-Type -AssemblyName System.Drawing
 
 $root = Split-Path -Parent $PSScriptRoot
 $src  = Join-Path $root 'resources\icon.png'
 $res  = Join-Path $root 'android\app\src\main\res'
+$bgHex = '#011645'
 
 if (-not (Test-Path $src)) {
     Write-Error "No encuentro $src. Copia tu icono ahi (1024x1024 PNG)."
@@ -14,9 +18,11 @@ if (-not (Test-Path $src)) {
 }
 
 $source = [System.Drawing.Image]::FromFile($src)
+$bg = [System.Drawing.ColorTranslator]::FromHtml($bgHex)
 
+# Scale = fraccion del lienzo que ocupa el dibujo (centrado). Fill = pinta el fondo.
 function Resize-Png {
-    param([int]$Size, [string]$OutPath, [bool]$Round = $false)
+    param([int]$Size, [string]$OutPath, [bool]$Round = $false, [double]$Scale = 1.0, [bool]$Fill = $false)
 
     $bmp = New-Object System.Drawing.Bitmap $Size, $Size
     $g   = [System.Drawing.Graphics]::FromImage($bmp)
@@ -30,8 +36,11 @@ function Resize-Png {
         $path.AddEllipse(0, 0, $Size, $Size)
         $g.SetClip($path)
     }
+    if ($Fill) { $g.Clear($bg) ; if ($Round) { $g.ResetClip(); $g.Clear([System.Drawing.Color]::Transparent); $g.SetClip($path); $g.FillEllipse((New-Object System.Drawing.SolidBrush $bg), 0, 0, $Size, $Size) } }
 
-    $g.DrawImage($source, 0, 0, $Size, $Size)
+    $d   = [int][Math]::Round($Size * $Scale)
+    $off = [int][Math]::Floor(($Size - $d) / 2)
+    $g.DrawImage($source, $off, $off, $d, $d)
     $g.Dispose()
 
     $dir = Split-Path -Parent $OutPath
@@ -54,10 +63,21 @@ Write-Host "Generando iconos desde: $src"
 foreach ($d in $densities.Keys) {
     $folder = Join-Path $res $d
     $sz = $densities[$d]
-    Resize-Png -Size $sz.legacy -OutPath (Join-Path $folder 'ic_launcher.png')
-    Resize-Png -Size $sz.legacy -OutPath (Join-Path $folder 'ic_launcher_round.png') -Round $true
-    Resize-Png -Size $sz.fg     -OutPath (Join-Path $folder 'ic_launcher_foreground.png')
+    Resize-Png -Size $sz.legacy -OutPath (Join-Path $folder 'ic_launcher.png')       -Scale 0.9 -Fill $true
+    Resize-Png -Size $sz.legacy -OutPath (Join-Path $folder 'ic_launcher_round.png') -Scale 0.9 -Fill $true -Round $true
+    # Adaptativo: el launcher solo muestra ~66 de los 108dp (y recorta en circulo) -> dibujo al 64%
+    Resize-Png -Size $sz.fg     -OutPath (Join-Path $folder 'ic_launcher_foreground.png') -Scale 0.64
 }
 
 $source.Dispose()
+
+$colors = Join-Path $res 'values\icon_colors.xml'
+@"
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="valhalla_icon_background">$bgHex</color>
+</resources>
+"@ | Set-Content -Encoding utf8 $colors
+Write-Host "  $colors ($bgHex)"
+
 Write-Host "Listo. Reconstruye el APK para ver el icono nuevo."

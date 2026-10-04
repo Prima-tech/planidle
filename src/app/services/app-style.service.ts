@@ -62,6 +62,19 @@ export const MINIMAP_STYLES: { id: MinimapStyleId; nameKey: string }[] = [
   { id: 'medallon', nameKey: 'SETTINGS.MINIMAP.MEDALLION' },
 ];
 
+/** Estilo de los BOCADILLOS de diálogo de los NPC (npc-dialogue), independiente del
+ *  tema. 'default' = el del tema activo; 'runa' = losa rúnica (piedra oscura + cian).
+ *  Pinta `data-dialogue` en <html>; overrides al final de npc-dialogue.component.scss. */
+export type DialogueStyleId = 'default' | 'runa';
+
+export const DIALOGUE_STYLES: { id: DialogueStyleId; nameKey: string }[] = [
+  { id: 'default', nameKey: 'SETTINGS.DIALOGUE.DEFAULT' },
+  { id: 'runa', nameKey: 'SETTINGS.DIALOGUE.RUNE' },
+];
+
+const DIALOGUE_KEY = 'dialogue_style';
+const DIALOGUE_ATTR = 'data-dialogue';
+
 const MINIMAP_KEY = 'minimap_style';
 
 const HP_BAR_KEY = 'hpbar_style';
@@ -77,9 +90,11 @@ export class AppStyleService {
   readonly styles = APP_STYLES;
   readonly hpBarStyles = HP_BAR_STYLES;
   readonly minimapStyles = MINIMAP_STYLES;
+  readonly dialogueStyles = DIALOGUE_STYLES;
   private readonly _current$: BehaviorSubject<AppStyleId>;
   private _hpBar: HpBarStyleId = 'default';
   private _minimap: MinimapStyleId = 'default';
+  private _dialogue: DialogueStyleId = 'default';
 
   constructor() {
     const saved = this.read();
@@ -89,6 +104,32 @@ export class AppStyleService {
     this.applyHpBar(this._hpBar);
     this._minimap = this.readMinimap();
     this.applyMinimap(this._minimap);
+    this._dialogue = this.readDialogue();
+    this.applyDialogue(this._dialogue);
+  }
+
+  get dialogue(): DialogueStyleId { return this._dialogue; }
+  isDialogue(id: DialogueStyleId): boolean { return this._dialogue === id; }
+
+  /** Cambia el estilo de los bocadillos de diálogo: persiste y lo aplica en caliente. */
+  setDialogue(id: DialogueStyleId): void {
+    if (id === this._dialogue) return;
+    this._dialogue = id;
+    try { localStorage.setItem(DIALOGUE_KEY, id); } catch { /* sin storage */ }
+    this.applyDialogue(id);
+  }
+
+  private applyDialogue(id: DialogueStyleId): void {
+    if (id === 'default') document.documentElement.removeAttribute(DIALOGUE_ATTR);
+    else document.documentElement.setAttribute(DIALOGUE_ATTR, id);
+  }
+
+  private readDialogue(): DialogueStyleId {
+    try {
+      const v = localStorage.getItem(DIALOGUE_KEY);
+      if (DIALOGUE_STYLES.some(s => s.id === v)) return v as DialogueStyleId;
+    } catch { /* sin storage */ }
+    return 'default';
   }
 
   get minimap(): MinimapStyleId { return this._minimap; }

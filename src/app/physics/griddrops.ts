@@ -717,7 +717,13 @@ const RECIPES_CATALOG: LootEntry[] = [
   _recipe('Forja',                 'smelter',          9,  'Planos de una forja: funde minerales y madera.'),
   _recipe('Mesa de alquimia',      'alchemy_table',    12, 'Planos de una mesa de alquimia.'),
   _recipe('Alambique',             'alembic',          20, 'Planos de un alambique.'),
-  _recipe('Mesa de trabajo',       'workbench',        23, 'Planos de un banco de trabajo.'),
+  // Icono = el propio sprite del banco del mapa (34×25 centrado en 34×34), no la hoja Icons.
+  {
+    ..._recipe('Mesa de trabajo',  'workbench',        23, 'Planos de un banco de trabajo.'),
+    texture: 'workbench', frame: 0, scale: 2,
+    icon: 'assets/icon/recipes/workbench.png',
+    iconSheet: undefined, iconFrame: undefined, iconFrameSize: undefined, iconFrameCols: undefined,
+  },
   _recipe('Telar',                 'loom',             26, 'Planos de un telar.'),
   _recipe('Mesa de encantamientos','enchanting_table', 30, 'Planos de una mesa de encantamientos.'),
   _recipe('Secadero',              'drying_rack',      33, 'Planos de un secadero.'),

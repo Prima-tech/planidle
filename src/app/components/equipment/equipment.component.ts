@@ -17,8 +17,6 @@ import { QuestService, QuestDef, NPC_PORTRAITS } from 'src/app/services/quest.se
 import { ITEM_CATALOG } from 'src/app/physics/griddrops';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
-import { DialogueService } from 'src/app/services/dialogue.service';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-equipment',
@@ -36,8 +34,6 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   quests = inject(QuestService);
   private playerBridge = inject(PlayerBridgeService);
   private asgard = inject(AsgardService);
-  private dialogue = inject(DialogueService);
-  private translate = inject(TranslateService);
   admin = inject(AdminService);
 
   // Cooldown de la poción auto-equipada (overlay sobre el slot)
@@ -129,15 +125,6 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     return ITEM_CATALOG.find(e => e.name === name)?.icon ?? '';
   }
 
-  claimQuest(q: QuestDef): void {
-    if (!this.quests.isClaimable(q)) return;
-    const dlg = q.claimDialogue;
-    this.quests.claim(q);
-    if (!dlg) return;
-    this.asgard.closeAllMenus();   // cierra la ventana de equipo (modal no persistente)
-    const player = this.asgard.selectedPlayer?.name ?? this.translate.instant('NPC.DEFAULT_PLAYER_NAME');
-    this.dialogue.show(dlg.speaker, this.translate.instant(dlg.text, { player }), { manual: true });
-  }
 
   // Vista de equipo (tab 0): combate ↔ recolección comparten el mismo preview
   // (no se re-renderiza el sprite); solo cambian los slots equipables.

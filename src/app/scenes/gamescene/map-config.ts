@@ -186,6 +186,7 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     ...gen('asgard'),
     tilemapJson: 'assets/tilemaps/wip/asgard.tmj',
     id: 'hogar', name: 'Asgard',
+    mineTier: 0,   // rocas de PIEDRA (tier 0): el AFK minando en Asgard da Piedra, no cobre
     spawns: [],
     portals: [
       { tilePos: { x: 17, y: 17 }, targetMapId: '1-1',       direction: 'next' },

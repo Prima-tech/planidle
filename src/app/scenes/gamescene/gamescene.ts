@@ -2634,8 +2634,7 @@ export class GameScene extends Phaser.Scene {
      *  de corte: son la fuente fija de piedra de la ciudad. */
     private static readonly HOGAR_NODE_SPOTS: Partial<Record<HarvestKindId, { x: number; y: number; tier?: number }[]>> = {
       rock: [
-        { x: 68, y: 8 }, { x: 68, y: 13 }, { x: 63, y: 7 }, { x: 71, y: 3 }, { x: 74, y: 9 },
-        // Rocas de piedra (tier 0), alrededor de las de mineral.
+        // Solo rocas de PIEDRA (tier 0): el cobre se quitó de Asgard (se mina en los mapas).
         { x: 58, y: 4, tier: 0 }, { x: 56, y: 8, tier: 0 }, { x: 62, y: 10, tier: 0 },
         { x: 60, y: 13, tier: 0 }, { x: 66, y: 16, tier: 0 },
       ],

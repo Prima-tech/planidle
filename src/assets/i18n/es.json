@@ -151,6 +151,11 @@
       "GLASS": "Cristal",
       "JRPG": "JRPG"
     },
+    "DIALOGUE": {
+      "TITLE": "Bocadillos",
+      "DEFAULT": "Actual",
+      "RUNE": "Losa rúnica"
+    },
     "MINIMAP": {
       "TITLE": "Minimapa",
       "DEFAULT": "Actual",
@@ -433,6 +438,7 @@
     "COMPLETED": "Completadas",
     "REWARD": "Recompensa",
     "CLAIM": "Completar",
+    "TALK_TO_CLAIM": "Habla con {{npc}} para entregarla",
     "ACTIVATE": "Activar",
     "DEACTIVATE": "Quitar del HUD",
     "FULL": "Máx. 5 activas",
@@ -465,8 +471,8 @@
     },
     "NOEXP_FARMEO": {
       "NAME": "Estrena las herramientas",
-      "DESC": "Con hacha y pico ya puedes trabajar de verdad. Tala árboles y pica menas hasta reunir 5 de Madera y 5 de Mineral de Cobre, y entrégaselos a Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Reúne 5 de madera y 5 de cobre"
+      "DESC": "Con hacha y pico ya puedes trabajar de verdad. Tala árboles y pica rocas hasta reunir 5 de Madera y 5 de Piedra, y entrégaselos a Mordekai. Recompensa: 10 de experiencia.",
+      "TRACK": "Reúne 5 de madera y 5 de piedra"
     },
     "MATA_RATA": {
       "NAME": "Rata hachiática",

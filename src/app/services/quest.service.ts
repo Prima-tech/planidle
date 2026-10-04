@@ -296,16 +296,16 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_PICK_CLAIM' },
   },
   {
-    // Estrenar las herramientas: talar y picar hasta reunir 5 Madera + 5 Mineral de Cobre
-    // (lo que sueltan árboles y rocas de Asgard; la Piedra solo sale del suelo), que se
-    // entregan a Mordekai al cobrarla.
+    // Estrenar las herramientas: talar y picar hasta reunir 5 Madera + 5 Piedra (lo que
+    // sueltan los árboles y las rocas de piedra de Asgard), que se entregan a Mordekai
+    // al cobrarla.
     id: 'noexp_farmeo',
     arc: 1,
     name: 'QUESTS.NOEXP_FARMEO.NAME',
     desc: 'QUESTS.NOEXP_FARMEO.DESC',
     icon: 'leaf-outline',
     track: 'QUESTS.NOEXP_FARMEO.TRACK',
-    objective: { type: 'collect', goal: 2, consume: true, items: [{ name: 'Madera', qty: 5 }, { name: 'Mineral de Cobre', qty: 5 }] },
+    objective: { type: 'collect', goal: 2, consume: true, items: [{ name: 'Madera', qty: 5 }, { name: 'Piedra', qty: 5 }] },
     reward: { exp: 10 },
     requires: 'noexp_pico',
     giver: 'Mordekai',

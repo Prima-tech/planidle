@@ -151,6 +151,11 @@
       "GLASS": "Glass",
       "JRPG": "JRPG"
     },
+    "DIALOGUE": {
+      "TITLE": "Speech bubbles",
+      "DEFAULT": "Current",
+      "RUNE": "Rune slab"
+    },
     "MINIMAP": {
       "TITLE": "Minimap",
       "DEFAULT": "Current",
@@ -433,6 +438,7 @@
     "COMPLETED": "Completed",
     "REWARD": "Reward",
     "CLAIM": "Complete",
+    "TALK_TO_CLAIM": "Talk to {{npc}} to hand it in",
     "ACTIVATE": "Activate",
     "DEACTIVATE": "Remove from HUD",
     "FULL": "Max 5 active",
@@ -465,8 +471,8 @@
     },
     "NOEXP_FARMEO": {
       "NAME": "Break in your tools",
-      "DESC": "With an axe and a pickaxe you can do real work now. Chop trees and mine ores until you have 5 Wood and 5 Copper Ore, and hand them to Mordekai. Reward: 10 XP.",
-      "TRACK": "Gather 5 wood and 5 copper"
+      "DESC": "With an axe and a pickaxe you can do real work now. Chop trees and mine rocks until you have 5 Wood and 5 Stone, and hand them to Mordekai. Reward: 10 XP.",
+      "TRACK": "Gather 5 wood and 5 stone"
     },
     "MATA_RATA": {
       "NAME": "Hatchet Rat",
