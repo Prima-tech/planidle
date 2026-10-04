@@ -133,7 +133,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
   /** Guía: herramienta que pide equipar la misión en curso (p.ej. el hacha). */
   isGuideEquip(item: InventoryItem | null): boolean {
-    return !!item && item.name === this.quests.pendingEquipItem();
+    return !!item && this.quests.pendingEquipItems().includes(item.name);
   }
 
   /** Celda resaltada por la guía: plano que pide la misión o herramienta por equipar. */
@@ -423,6 +423,13 @@ export class InventoryComponent implements OnInit, OnDestroy {
       this.selectedItem?.col === col;
 
     this.selectedItem = isSame ? null : { tabIndex, row, col };
+
+    // Guía: pulsar la herramienta/arma que pide la misión abre la ventana de equipo justo
+    // donde se equipa (herramientas → vista de recolección; armas → equipo de combate).
+    const picked = this.inventories[tabIndex][row][col];
+    if (this.selectedItem && this.isGuideEquip(picked)) {
+      this.equipPanel.requestView({ tab: 0, gathering: this.targetSlotFor(picked)?.kind === 'gather' });
+    }
 
     if (this.selectedItem) {
       const rect = (this.el.nativeElement as HTMLElement).getBoundingClientRect();

@@ -623,10 +623,15 @@ export class QuestService implements OnDestroy {
   /** Guía: item que pide equipar una misión 'equip' en curso (p.ej. 'Hacha de Hierro'),
    *  o null. La UI resalta el camino: Fabricar → mochila → item → Equipar. */
   pendingEquipItem(): string | null {
+    return this.pendingEquipItems()[0] ?? null;
+  }
+
+  /** Todos los items que pide equipar la misión en curso y aún no llevas puestos
+   *  (p.ej. la daga Y la coraza a la vez): la guía los resalta todos en el inventario. */
+  pendingEquipItems(): string[] {
     const q = this.available().find(d => d.objective.type === 'equip' && !this.isClaimable(d));
-    if (q?.objective.type !== 'equip') return null;
-    // Con varios items, el primero que aún no lleves puesto.
-    return equipItemsOf(q.objective).find(n => !this.isEquipped(n)) ?? null;
+    if (q?.objective.type !== 'equip') return [];
+    return equipItemsOf(q.objective).filter(n => !this.isEquipped(n));
   }
 
   /** ¿Llevas puesto este item en algún slot (recolección o combate)? */

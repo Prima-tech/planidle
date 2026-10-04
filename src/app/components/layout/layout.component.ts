@@ -149,8 +149,7 @@ export class LayoutComponent implements OnDestroy {
 
   /** Guía: la herramienta que pide equipar una misión ya está en la mochila. */
   get guideEquipPending(): boolean {
-    const name = this.questService.pendingEquipItem();
-    return !!name && this.inventoryService.countByName(name) > 0;
+    return this.questService.pendingEquipItems().some(name => this.inventoryService.countByName(name) > 0);
   }
 
   ngOnInit(): void {

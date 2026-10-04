@@ -22,6 +22,7 @@ import { CityBuildService } from 'src/app/services/city-build.service';
 import { DialogueService } from 'src/app/services/dialogue.service';
 import { GameSettingsService } from 'src/app/services/game-settings.service';
 import { AdminService } from 'src/app/services/admin.service';
+import { EquipmentPanelService } from 'src/app/services/equipment-panel.service';
 import { GlobalTalentsService } from 'src/app/services/global-talents.service';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
 import { BuildPanelComponent } from '../build-panel/build-panel.component';
@@ -69,6 +70,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private townChestCloseSub: Subscription;
   private worldSub:          Subscription;
   private placementSub:      Subscription;
+  private equipViewSub:      Subscription;
   private moveModeSub:       Subscription;
   private deleteModeSub:     Subscription;
   private openWindowSub:     Subscription;
@@ -103,6 +105,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   private worldService           = inject(WorldService);
   private cityBuild              = inject(CityBuildService);
   admin                          = inject(AdminService);
+  private equipPanel             = inject(EquipmentPanelService);
   private globalTalents          = inject(GlobalTalentsService);
   private hudSlots               = inject(HudSkillSlotsService);
   private dialogue               = inject(DialogueService);
@@ -205,6 +208,12 @@ export class FooterBarComponent implements OnInit, OnDestroy {
       if (def) this.closeAllPanels();
     });
 
+    // Alguien pide una vista concreta del equipo (p.ej. pulsar la herramienta de la guía
+    // en el inventario): abre la ventana si estaba cerrada; ella aplica la vista.
+    this.equipViewSub = this.equipPanel.openRequest$.subscribe(() => {
+      if (!this.equipmentModal.isOpenModal()) this.openEquipment();
+    });
+
     // Al entrar en "mover edificio", cierra todas las ventanas para poder pinchar
     // un edificio del mapa sin paneles de por medio.
     this.moveModeSub = this.cityBuild.moveMode$.subscribe(active => {
@@ -259,6 +268,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     this.townChestCloseSub?.unsubscribe();
     this.worldSub?.unsubscribe();
     this.placementSub?.unsubscribe();
+    this.equipViewSub?.unsubscribe();
     this.moveModeSub?.unsubscribe();
     this.deleteModeSub?.unsubscribe();
     this.openWindowSub?.unsubscribe();

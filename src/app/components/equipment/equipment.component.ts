@@ -651,6 +651,10 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     // Publica el estado para el comparador del inventario
     this.equipPanel.open = true;
     this.equipPanel.tab = this._activeTab;
+    // Vista pedida desde fuera (p.ej. la herramienta de la guía en el inventario): al
+    // abrirse, y también al vuelo si ya estaba abierta.
+    this.applyPendingView();
+    this.viewSub = this.equipPanel.openRequest$.subscribe(() => this.applyPendingView());
 
     // Refresca el overlay de cooldown de poción mientras el panel está abierto
     this.potionCdInterval = setInterval(() => {
@@ -660,7 +664,18 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     }, 250);
   }
 
+  private viewSub?: { unsubscribe(): void };
+
+  /** Salta a la vista pedida por EquipmentPanelService.requestView (si hay). */
+  private applyPendingView(): void {
+    const v = this.equipPanel.takePendingView();
+    if (!v) return;
+    this.activeTab = v.tab;
+    if (v.tab === 0) this.showGathering = !!v.gathering;
+  }
+
   ngOnDestroy(): void {
+    this.viewSub?.unsubscribe();
     this.equipPanel.open = false;
     clearInterval(this.potionCdInterval);
   }

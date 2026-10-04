@@ -74,6 +74,6 @@ export class WorkbenchWindowComponent {
   /** Guía: la misión en curso pide equipar este resultado y aún no lo tienes → brilla
    *  su casilla y su botón Fabricar (al fabricarlo la guía pasa a la mochila). */
   isGuide(r: WorkbenchRecipe): boolean {
-    return r.result === this.quests.pendingEquipItem() && this.wb.have(r.result) === 0;
+    return this.quests.pendingEquipItems().includes(r.result) && this.wb.have(r.result) === 0;
   }
 }
