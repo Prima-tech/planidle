@@ -49,32 +49,6 @@ $metal-dark: #6b6357;
   height: 100%;
 }
 
-.eq-wrapper--wide {
-  .eq-content {
-    /* hasta el borde derecho de la pantalla dejando 10px:
-       25px (modal+marco izq.) + 40px (vtabs+gap) + 13px (marco dcho.) + 2px anillo + 10px */
-    width: calc(100dvw - 90px);
-    height: 100%;
-    max-height: none;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .talent-panel {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .talent-viewport {
-    flex: 1;
-    height: auto;
-    min-height: 0;
-  }
-}
-
 .eq-vtabs {
   display: flex;
   flex-direction: column;
@@ -461,7 +435,7 @@ $metal-dark: #6b6357;
   font-size: 0.8em;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #ffd700;                       // dorado sobre la madera (como tpicker-name)
+  color: #ffd700;                       // dorado sobre la madera
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
@@ -577,39 +551,26 @@ $metal-dark: #6b6357;
   ion-icon { font-size: 14px; color: #7fbf6a; }
 }
 
-// Picker de nodo de talento: tarjeta oscura flotante sobre el árbol, arriba a
-// la derecha — mismo estilo que las info-cards del mapa (map-info-card)
+// Ficha del talento: flotante a la derecha de la ventana, madera clara con marco metálico.
 .talent-picker-flyout.talent-node-card {
   /* Minimizado: la tarjeta sale FUERA de la ventana, adyacente por la derecha
      (igual que el flyout de stats), para no tapar el árbol estrecho. */
   left: calc(100% + 27px);
   right: auto;
   top: -13px;
-  width: 150px;
-  /* Marco metálico + fondo marrón claro, igual que la pastilla del nombre (char-stats) */
-  background: $wood-btn-dark;
+  width: 168px;
+  background:
+    repeating-linear-gradient(0deg, rgba(138, 85, 48, 0.1) 0 2px, transparent 2px 9px),
+    $wood-btn-light;
   border: 3px solid;
   border-color: $metal-light $metal-dark $metal-dark $metal;
   border-radius: 7px;
   padding: 8px 10px;
-  backdrop-filter: blur(4px);
   box-shadow:
     0 0 0 1px $outline,
     inset 0 0 0 1px $outline,
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 4px 16px rgba(0, 0, 0, 0.7);
-
-  .tpicker-name {
-    color: #ffd700;   /* sobre fondo oscuro, no el marrón de madera */
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  }
-}
-
-/* Expandido: como antes — la tarjeta flota DENTRO, arriba a la derecha del árbol */
-.eq-wrapper--wide .talent-picker-flyout.talent-node-card {
-  left: auto;
-  right: 8px;
-  top: 36px;
 }
 
 // Flyout de stats: mismo marco que el picker de talentos.
@@ -1219,10 +1180,9 @@ $metal-dark: #6b6357;
   ion-icon { font-size: 2em; }
 }
 
-// Barra de esferas (fila simple, sin marco propio)
-.talent-sphere-bar {
+// Barra de puntos de talento libres
+.talent-points-bar {
   display: flex;
-  gap: 3px;
   justify-content: center;
   align-items: center;
 }
@@ -1243,7 +1203,9 @@ $metal-dark: #6b6357;
     0 0 0 1px $outline,
     inset 0 0 0 1px $outline;
 
-  ion-icon { font-size: 1.1em; color: #f0d24a; }
+  gap: 5px;
+  color: $text-brown;
+  font-weight: 700;
   &--empty { opacity: 0.5; }
 }
 
@@ -1252,267 +1214,96 @@ $metal-dark: #6b6357;
   font-weight: 800;
 }
 
-/* Cada esfera: placa de madera con bisel de piedra, como la placa de monedas */
-.tsphere {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 6px;
-  background: $wood-btn;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
-  font-size: 0.65em;
-  user-select: none;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-}
-
-.tsphere-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  border: 1px solid $outline;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
-}
-
-.tsphere-label {
-  color: $text-brown;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.tsphere-count {
-  color: $text-brown;
-  font-weight: 800;
-}
-
-// Resumen de bonos
-.talent-bonus-bar {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  font-size: 0.68em;
-  color: #f0c040;
-  font-weight: bold;
-}
-
-// Árbol de habilidades (viewport pannable)
-.talent-viewport {
+// Escalera del árbol: tablero de madera clara con una fila por tier. Los nodos son
+// medallones metálicos centrados en su punto (x, y); aprendidos = oro.
+.tladder {
   position: relative;
-  overflow: hidden;
-  height: 260px;
-  touch-action: none;
-  user-select: none;
-  cursor: grab;
-  background: #0c0908;
-  border: 2px solid $cell-border;
-  border-radius: 5px;
-  box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.06);
-
-  &:active { cursor: grabbing; }
-
-  canvas { display: block; }
-}
-
-// Botón de zoom del árbol (esquina inferior derecha del viewport)
-.talent-zoom-btn {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 26px;
-  height: 26px;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $wood-btn;
-  color: $text-brown;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
-  cursor: pointer;
-  padding: 0;
-  font-size: 15px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-  transition: background 0.15s;
-
-  ion-icon { pointer-events: none; }
-  &:hover  { background: $wood-btn-light; }
-  &:active { background: $wood-btn-dark; color: $text-cream; }
-}
-
-// Variante del árbol HTML clásico (tab 4): pozo excavado con marco de piedra
-.talent-viewport--classic {
+  border: 2px solid $outline;
+  border-radius: 4px;
   background:
-    radial-gradient(circle at 50% 38%, rgba(240, 192, 64, 0.06), transparent 62%),
-    linear-gradient(rgba(12, 9, 8, 0.55), rgba(12, 9, 8, 0.55)),
-    url('../../../assets/images/talents.jpeg') center center / cover no-repeat,
-    $cell-bg;
-  border: 4px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 8px;
-  box-shadow:
-    0 0 0 2px $outline,
-    inset 0 0 0 2px $outline,
-    inset 0 5px 12px rgba(0, 0, 0, 0.5);
+    repeating-linear-gradient(0deg, rgba(138, 85, 48, 0.1) 0 2px, transparent 2px 9px),
+    $wood-btn-light;
+  box-shadow: inset 0 0 0 2px rgba(255, 235, 200, 0.35);
+  user-select: none;
 }
 
-.talent-canvas {
+.tladder-lines {
   position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: 0 0;   // el scale del zoom parte de la esquina, como el pan
-  will-change: transform;
-  transition: transform 0.3s ease;
-}
-
-.talent-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
   pointer-events: none;
-}
 
-// Caminos punteados tipo mapa del tesoro; encendidos en dorado al activar
-.tline {
-  stroke: #6b6357;   // gris piedra: une módulos bloqueados
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-dasharray: 1 6;
+  path {
+    fill: none;
+    stroke: $outline;
+    stroke-width: 3;
+    stroke-linecap: round;
+    opacity: 0.4;
 
-  &--active {
-    stroke: #f0c040;
-    stroke-dasharray: none;
-    filter: drop-shadow(0 0 3px rgba(240, 192, 64, 0.7));
-  }
-
-  // Línea hacia un módulo desbloqueable: gris piedra, sin brillo
-  &--unlockable {
-    stroke: #8f8678;
-    stroke-dasharray: none;
+    &.next { opacity: 0.8; stroke-dasharray: 2 5; }
+    &.on   { stroke: #a8741a; stroke-width: 4; opacity: 1; }
   }
 }
 
-// Nodos: medallones de piedra biselados sobre el pozo
 .tnode {
   position: absolute;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 3px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  background: radial-gradient(circle at 32% 28%, #4e3429, $cell-bg 72%);
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 5px;
+  border: 2px solid $outline;
+  background: radial-gradient(circle at 35% 30%, #e6dfd2, $metal 60%, $metal-dark);
+  color: $text-brown;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline,
-    inset 0 2px 4px rgba(0, 0, 0, 0.5);
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s;
 
-  &--small {
-    width: 19px;
-    height: 19px;
-    margin-left: 9px;
-    margin-top: 9px;
-    border-width: 2px;
+  &--ability {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border-width: 3px;
   }
 
-  &--locked {
-    opacity: 0.35;
-    filter: grayscale(50%);
-    cursor: not-allowed;
-  }
+  &--locked { filter: grayscale(1) brightness(0.85); opacity: 0.7; }
+  &--reach  { opacity: 0.9; }
+  &--avail  { animation: tnode-avail 1.6s ease-in-out infinite; }
 
-  // Alcanzable (padre desbloqueado): borde discontinuo, estático
-  &--unlockable {
-    opacity: 0.85;
-    border-style: dashed;
-    border-color: lighten($stone-light, 8%);
-  }
-
-  // Solo los que puedes desbloquear AHORA (alcanzable + hay puntos) parpadean
-  &--can-unlock {
-    animation: tnode-unlockable 1.4s ease-in-out infinite;
-  }
-
-  // Desbloqueado sin gema: solo el fondo, sin brillo (mate, no parpadea)
-  &--available {
-    background: radial-gradient(circle at 32% 28%, #6a4630, #46291d 72%);
-  }
-
-  &--slotted {
-    // El aro toma el color de la esfera vía [style.border-color] inline
-    background: radial-gradient(circle at 32% 28%, #50362a, #2a1812 75%);
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
-      0 0 7px rgba(255, 255, 255, 0.22);
+  &--on {
+    background: radial-gradient(circle at 35% 30%, #fff1b8, #f4c24f 55%, #a8741a);
+    box-shadow: 0 0 0 2px #fff3c8, 0 0 10px 2px rgba(244, 194, 79, 0.7);
   }
 
   &--selected {
-    transform: scale(1.1);
-    border-color: #e8c86e;
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
-      0 0 12px rgba(232, 200, 110, 0.85);
-  }
-
-  // No se puede desbloquear ahora: atenuado, se ve menos activo que los que parpadean
-  &--dim {
-    opacity: 0.55;
-    filter: saturate(55%);
+    transform: translate(-50%, -50%) scale(1.12);
+    outline: 2px dashed $text-brown;
+    outline-offset: 3px;
   }
 }
 
-@keyframes tnode-unlockable {
-  0%, 100% {
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
-      0 0 4px rgba(120, 200, 255, 0.4);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
-      0 0 10px rgba(120, 200, 255, 0.85);
-  }
+@keyframes tnode-avail {
+  0%, 100% { box-shadow: 0 0 0 2px #fff2c4, 0 0 9px 2px rgba(255, 236, 170, 0.85); }
+  50%      { box-shadow: 0 0 0 2px #fff2c4, 0 0 2px 1px rgba(255, 236, 170, 0.35); }
 }
 
-@keyframes tnode-glow {
-  0%, 100% {
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
-      0 0 5px rgba(240, 192, 64, 0.35);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 0 0 1px $outline,
-      0 0 12px rgba(240, 192, 64, 0.8);
-  }
+@media (prefers-reduced-motion: reduce) {
+  .tnode--avail { animation: none; box-shadow: 0 0 0 2px #fff2c4; }
 }
 
 .tnode-icon {
-  font-size: 1em;
-  color: $text-cream;
+  font-size: 14px;
+  color: $text-brown;
   pointer-events: none;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
 }
 
-/* Imagen de habilidad como fondo del nodo (rellena el círculo) */
+.tnode--ability .tnode-icon { font-size: 18px; }
+
+/* Imagen de habilidad: rellena el círculo */
 .tnode-img {
   position: absolute;
   inset: 0;
@@ -1521,72 +1312,6 @@ $metal-dark: #6b6357;
   border-radius: 50%;
   object-fit: cover;
   pointer-events: none;
-}
-
-.tnode-toplabel {
-  position: absolute;
-  top: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: #f0c040;
-  white-space: nowrap;
-  pointer-events: none;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.6);
-}
-
-.tnode-num {
-  position: absolute;
-  bottom: 1px;
-  left: 2px;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  color: $text-cream;
-  pointer-events: none;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-}
-
-.tnode-sphere-dot {
-  position: absolute;
-  bottom: 1px;
-  right: 1px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  border: 1px solid $outline;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 0 4px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-}
-
-.talent-expand-btn {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  background: $wood-btn;
-  color: $text-brown;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 20;
-  font-size: 0.85em;
-  flex-shrink: 0;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-  transition: background 0.15s;
-
-  &:hover  { background: $wood-btn-light; }
-  &:active { background: $wood-btn-dark; color: $text-cream; }
 }
 
 // Picker flotante (a la derecha del panel)
@@ -1612,197 +1337,133 @@ $metal-dark: #6b6357;
     0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
-.tpicker-name {
-  font-size: 0.72em;
-  font-weight: bold;
-  font-family: Georgia, 'Times New Roman', serif;
-  color: $text-brown;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Imagen de la habilidad en la ficha del picker (miniatura enmarcada) */
-.tpicker-img {
-  display: block;
-  width: 56px;
-  height: 56px;
-  margin: 6px auto 0;
-  object-fit: cover;
-  background: $cell-bg;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 8px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-}
-
-/* Fila: valor del efecto a la izq. + botón de desbloqueo a la dcha. */
-.tpicker-row {
+// ── Ficha del talento (.talent-node-card) ──────────────────────────────────────
+.tcard-head {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 6px 0;
+  gap: 8px;
 }
 
-/* Valor del efecto enmarcado igual que las monedas del inventario */
-.tpicker-active {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  height: 24px;
-  margin: 6px 0;
-  padding: 0 8px;
-  background: $wood-btn;
-  border: 2px solid;
-  border-color: $stone-light $stone-dark $stone-dark $stone;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 0 0 1px $outline;
-  font-size: 0.66em;
-  font-weight: 700;
-  color: $text-brown;
-}
-
-/* Dentro de la fila el plaque no necesita margen propio */
-.tpicker-row .tpicker-active { margin: 0; }
-
-/* Ranura circular de la esfera: hueco hundido (vacío) o gema (con esfera puesta) */
-.tpicker-slot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin: 6px auto 0;          // centrada bajo el valor
-  border-radius: 50%;
-  background: $cell-bg;        // vacío: hueco oscuro
-  border: 2px solid;
-  border-color: $stone-dark $stone-light $stone-light $stone-dark; // bisel hundido
-  box-shadow:
-    0 0 0 1px $outline,
-    inset 0 2px 4px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  transition: filter 0.1s;
-
-  ion-icon { font-size: 1em; color: rgba(236, 217, 180, 0.5); }
-  &:active { filter: brightness(0.9); }
-
-  /* Con esfera: gema con brillo y contorno (el color lo pone el binding inline) */
-  &.tpicker-slot--filled {
-    border-color: $outline;
-    box-shadow:
-      0 0 0 1px $outline,
-      inset 0 2px 2px rgba(255, 255, 255, 0.5),
-      inset 0 -3px 4px rgba(0, 0, 0, 0.45);
-  }
-  &.tpicker-slot--open { box-shadow: 0 0 0 2px #ffd700, inset 0 2px 4px rgba(0, 0, 0, 0.5); }
-}
-
-/* Acordeón: fila de esferas disponibles (una por color) */
-.tpicker-accordion {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 6px;
-  padding: 8px 6px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px $outline;
-  animation: tpicker-accordion-in 0.12s ease-out;
-}
-
-@keyframes tpicker-accordion-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Esfera del acordeón: gema redonda clicable con su contador */
-.tpicker-gem {
+/* Medallón: cuadrado para atributos, círculo para habilidades; dorado si aprendido */
+.tcard-medal {
   position: relative;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid $outline;
-  cursor: pointer;
-  box-shadow:
-    inset 0 2px 2px rgba(255, 255, 255, 0.55),
-    inset 0 -3px 4px rgba(0, 0, 0, 0.4);
-  transition: transform 0.1s;
-
-  &:hover  { transform: scale(1.12); }
-  &:active { transform: scale(0.95); }
-  &.selected { box-shadow: 0 0 0 2px #ffd700, inset 0 2px 2px rgba(255, 255, 255, 0.55); }
-}
-
-.tpicker-gem-count {
-  position: absolute;
-  bottom: -7px;
-  right: -5px;
-  font-size: 0.5em;
-  font-weight: 700;
-  color: $text-cream;
-  background: $cell-bg;
-  border: 1px solid $outline;
-  border-radius: 7px;
-  padding: 0 3px;
-  line-height: 1.4;
-}
-
-.tpicker-accordion-empty {
-  font-size: 0.6em;
-  color: rgba(236, 217, 180, 0.6);
-}
-
-.tpicker-unslot {
-  background: #a03325;
-  border: 2px solid $outline;
-  border-radius: 5px;
-  color: #f5e3c8;
-  font-size: 0.65em;
-  font-weight: 600;
-  padding: 5px 8px;
-  cursor: pointer;
-  text-align: center;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-  transition: filter 0.1s;
-  &:active { filter: brightness(0.85); }
-}
-
-.tpicker-unlock {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  margin-left: auto;          /* pegado a la derecha de la fila */
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  background: #2f6d4a;
+  overflow: hidden;
   border: 2px solid $outline;
-  border-radius: 5px;
-  cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-  transition: filter 0.1s;
-  ion-icon { font-size: 1.25em; color: #f0d24a; }
-  &:active { filter: brightness(0.85); }
-  &:disabled {
-    background: #4a4036;
-    cursor: not-allowed;
-    opacity: 0.6;
-    ion-icon { color: #9a8c6a; }
+  border-radius: 6px;
+  background: radial-gradient(circle at 35% 30%, #e6dfd2, $metal 60%, $metal-dark);
+  color: $text-brown;
+
+  &--ability { width: 42px; height: 42px; border-radius: 50%; border-width: 3px; }
+  &--on {
+    background: radial-gradient(circle at 35% 30%, #fff1b8, #f4c24f 55%, #a8741a);
+    box-shadow: 0 0 8px rgba(244, 194, 79, 0.7);
   }
+
+  img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  ion-icon { font-size: 18px; }
 }
 
-.tpicker-hint {
-  font-size: 0.58em;
-  color: #d98b7a;
+.tcard-title {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tcard-name {
+  font-size: 0.78em;
+  font-weight: 800;
+  line-height: 1.1;
+  color: $text-brown;
+}
+
+.tcard-kind {
+  align-self: flex-start;
+  padding: 0 5px;
+  font-size: 0.55em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $text-brown;
+  background: $metal-light;
+  border: 1px solid $outline;
+  border-radius: 3px;
+}
+
+/* Datos de la habilidad: poder · maná · recarga */
+.tcard-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+  background: rgba(255, 240, 210, 0.45);
+  border: 1px solid rgba(58, 44, 32, 0.35);
+  border-radius: 4px;
+}
+
+.tcard-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.62em;
+  color: $text-brown;
+  font-variant-numeric: tabular-nums;
+
+  b { font-weight: 800; }
+}
+
+/* Bono de un atributo (p.ej. "+5 HP") */
+.tcard-effect {
+  padding: 4px 6px;
+  font-size: 0.72em;
+  font-weight: 800;
   text-align: center;
-  margin-top: -2px;
+  color: $text-brown;
+  background: rgba(255, 240, 210, 0.45);
+  border: 1px solid rgba(58, 44, 32, 0.35);
+  border-radius: 4px;
+}
+
+.tcard-learn { width: 100%; }
+
+.tcard-done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.68em;
+  font-weight: 800;
+  color: #6b4a0e;
+
+  ion-icon { font-size: 1.2em; color: #c9921f; }
+}
+
+.tcard-note {
+  font-size: 0.58em;
+  text-align: center;
+  color: $text-brown;
+  opacity: 0.85;
+
+  &--warn { color: #9a2f1f; opacity: 1; font-weight: 700; }
+}
+
+.tcard-forget {
+  align-self: center;
+  padding: 1px 8px;
+  font-size: 0.58em;
+  font-weight: 700;
+  color: $text-brown;
+  background: transparent;
+  border: 1px dashed rgba(58, 44, 32, 0.5);
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover { background: rgba(255, 240, 210, 0.45); }
 }
 
 // ── Tab 6: Misiones ───────────────────────────────────────────────────────────
@@ -2504,7 +2165,7 @@ $metal-dark: #6b6357;
     color: $title;
     &.empty { color: $muted; }
   }
-  .stat-btn, .talent-zoom-btn, .talent-expand-btn {
+  .stat-btn {
     background: $btn-bg;
     border-color: $btn-bd;
     color: $btn-col;
@@ -2530,47 +2191,25 @@ $metal-dark: #6b6357;
   }
 
   // ── Árbol de talentos ──────────────────────────────────────────────────────
-  .talent-viewport { border-color: $cell-bd; }
-  .talent-viewport:not(.talent-viewport--classic) { background: $frame-bg; }
-  .talent-viewport--classic { border-color: $frame-bd; }
-
+  .tladder { border-color: $frame-bd; }
   .tnode {
     border-color: $plaque-bd;
-    background: $node-bg;
-    &--available, &--slotted { background: $node-bg; }
-    &--unlockable { border-color: $accent; }
-    &--selected {
-      border-color: $accent;
-      box-shadow: 0 0 0 1px $bd, inset 0 0 0 1px $bd, 0 0 12px $accent-soft;
-    }
+    &--selected { outline-color: $accent; }
   }
-  .tnode-icon, .tnode-num { color: $text; }
-  .tnode-toplabel { color: $title; }
-  .tline--active {
-    stroke: $accent;
-    filter: drop-shadow(0 0 3px $accent-soft);
-  }
+  .tladder-lines path.on { stroke: $accent; }
 
-  // Picker + esferas
+  // Ficha del talento
   .talent-picker-flyout {
     background: $panel-bg;
     border-color: $bd;
     box-shadow: $panel-shadow;
   }
-  .tpicker-name { color: $title; }
-  .tpicker-img  { background: $cell-bg; border-color: $plaque-bd; }
-  .tpicker-active {
-    background: $tab-bg;
-    border-color: $tab-bd;
-    color: $text;
-  }
-  .tpicker-slot { background: $cell-bg; border-color: $cell-bd; }
-  .tpicker-gem-count { background: $cell-bg; border-color: $cell-bd; color: $text; }
-  .tpicker-accordion-empty { color: $muted; }
-  .tpicker-hint { color: $bad; }
+  .tcard-name, .tcard-stat, .tcard-effect { color: $text; }
+  .tcard-kind { background: $tab-bg; border-color: $tab-bd; color: $text; }
+  .tcard-note--warn { color: $bad; }
 
-  .tpoints, .tsphere { background: $tab-bg; border-color: $tab-bd; }
-  .tpoints-count, .tsphere-label, .tsphere-count { color: $text; }
+  .tpoints { background: $tab-bg; border-color: $tab-bd; color: $text; }
+  .tpoints-count { color: $text; }
 
   // ── Misiones ───────────────────────────────────────────────────────────────
   .quest-section-head, .quest-card-body, .quest-card-icon-wrap {

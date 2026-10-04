@@ -194,6 +194,16 @@ export class PlayerStateService {
     this._patch({ exp, lvl });
   }
 
+  /** Exp que falta para llegar al nivel `target` (0 si ya se tiene). */
+  expToReachLevel(target: number): number {
+    const s = this._state$.getValue();
+    let lvl = s.lvl || 1;
+    if (lvl >= target || lvl >= MAX_LEVEL) return 0;
+    let need = expNeeded(lvl) - (s.exp || 0);
+    while (++lvl < Math.min(target, MAX_LEVEL)) need += expNeeded(lvl);
+    return Math.max(0, need);
+  }
+
   resetExpCurrentLevel(): void {
     this._patch({ exp: 0 });
   }

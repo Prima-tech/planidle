@@ -34,6 +34,9 @@ export interface PortalConfig {
   unlockScope?: 'char' | 'global';
   /** Materiales para abrirlo (nombre de item en el inventario + cantidad). */
   unlockCost?: { name: string; qty: number }[];
+  /** Portal BLOQUEADO hasta cobrar esta misión (rojo y no transitable; al tocarlo avisa
+   *  de qué misión falta). No bloquea si la misión no está en la cadena del personaje. */
+  requiresQuest?: string;
 }
 
 export interface TilesetConfig {
@@ -189,11 +192,13 @@ export const MAP_REGISTRY: Record<string, MapConfig> = {
     mineTier: 0,   // rocas de PIEDRA (tier 0): el AFK minando en Asgard da Piedra, no cobre
     spawns: [],
     portals: [
-      { tilePos: { x: 17, y: 17 }, targetMapId: '1-1',       direction: 'next' },
+      // Borde derecho, a media altura (mapa 80×50). Cerrado hasta subir de nivel y asignar
+      // el talento (misión de Mordekai).
+      { tilePos: { x: 77, y: 25 }, targetMapId: '1-1',       direction: 'next', requiresQuest: 'noexp_nivel_talento' },
       { tilePos: { x: 30, y: 17 }, targetMapId: 'world-run', direction: 'next' }, // entrada al Modo Mundo (runner)
-      // Portal SELLADO a la derecha del todo: bloqueado (rojo) hasta pagar 5 Madera +
+      // Portal SELLADO en la esquina superior derecha: bloqueado (rojo) hasta pagar 5 Madera +
       // 5 Piedra (recogidas del suelo en Asgard). targetMapId es provisional (cámbialo al destino real).
-      { tilePos: { x: 76, y: 25 }, targetMapId: 'world-run', direction: 'next',
+      { tilePos: { x: 77, y: 2 },  targetMapId: 'world-run', direction: 'next',
         unlockFlag: 'portal.asgard.sealed', unlockScope: 'char',
         unlockCost: [{ name: 'Madera', qty: 5 }, { name: 'Piedra', qty: 5 }] },
     ],

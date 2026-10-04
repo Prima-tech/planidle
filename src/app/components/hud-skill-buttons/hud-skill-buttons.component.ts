@@ -1,7 +1,7 @@
 import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
-import { TalentService, SPHERE_MULT } from 'src/app/services/talent.service';
+import { TalentService } from 'src/app/services/talent.service';
 import { SkillActivationService } from 'src/app/services/skill-activation.service';
 import { SkillEquipService } from 'src/app/services/skill-equip.service';
 import { PlayerStateService } from 'src/app/services/player-state.service';
@@ -62,7 +62,8 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
     );
     // Visibilidad de las ranuras según los talentos globales de Ataque.
     this.subs.push(
-      this.globalTalents.changes$.subscribe(() => this.refreshVisibleSlots())
+      this.globalTalents.changes$.subscribe(() => this.refreshVisibleSlots()),
+      this.talentService.changes$.subscribe(() => this.refreshVisibleSlots())
     );
     this.refreshVisibleSlots();
     this.startCdLoop();
@@ -70,7 +71,7 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
 
   private refreshVisibleSlots(): void {
     for (let i = 0; i < 3; i++) {
-      this.visibleSlot[i] = this.globalTalents.isUnlocked(GlobalTalentsService.SKILL_SLOT_NODES[i]);
+      this.visibleSlot[i] = this.hudSlots.isOpen(i);
     }
   }
 
@@ -151,9 +152,7 @@ export class HudSkillButtonsComponent implements OnInit, OnDestroy {
     const node = this.nodeAt(index);
     if (!node?.effect?.ability) return;
     if (this.noMana(index)) return;   // sin maná suficiente → no se lanza
-    const sphere = this.talentService.slotted[node.id];
-    const damage = node.effect.base * (sphere ? SPHERE_MULT[sphere] : 1);
-    this.skillActivation.request(node.effect.ability, damage);
+    this.skillActivation.request(node.effect.ability, node.effect.base);
     this.startCdLoop();
   }
 

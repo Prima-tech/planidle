@@ -460,20 +460,10 @@
       "DESC": "Mordekai gave you workbench plans. Open them from your inventory with the Learn button, then tap the hammer in the bottom menu (Asgard only) to build it. Reward: 10 XP.",
       "TRACK": "Build the workbench"
     },
-    "NOEXP_HACHA": {
-      "NAME": "Craft an axe",
-      "DESC": "Mordekai wants to see you with proper tools. Open the workbench, craft the Iron Axe (2 stone and 2 wood), then open it in your bag and tap Equip. Then talk to Mordekai. Reward: 10 XP.",
-      "TRACK": "Craft and equip the axe"
-    },
-    "NOEXP_PICO": {
-      "NAME": "Craft a pickaxe",
-      "DESC": "Mordekai taught you how to make a pickaxe: it is now on the workbench. Craft the Iron Pickaxe (2 stone and 2 wood), then open it in your bag and tap Equip. Then talk to Mordekai. Reward: 10 XP.",
-      "TRACK": "Craft and equip the pickaxe"
-    },
-    "NOEXP_DAGA": {
-      "NAME": "Craft a rusty dagger",
-      "DESC": "Mordekai has taught you to make your first weapon: it is ready at the workbench. Craft the Rusty Dagger (2 stone and 2 wood), open it in your backpack and press Equip. Then talk to Mordekai. Reward: 10 XP.",
-      "TRACK": "Craft and equip the dagger"
+    "NOEXP_HERRAMIENTAS": {
+      "NAME": "Craft your tools",
+      "DESC": "Mordekai wants to see you with proper tools. At the workbench craft the Iron Axe and the Iron Pickaxe (2 stone and 2 wood each), open them in your backpack and press Equip. Then talk to Mordekai. Reward: 10 XP.",
+      "TRACK": "Craft and equip axe and pickaxe"
     },
     "MATA_RATA": {
       "NAME": "Hatchet Rat",
@@ -481,15 +471,21 @@
       "TRACK": "Kill 1 rat"
     },
     "NOEXP_ARMAS": {
-      "NAME": "Craft some armor",
-      "DESC": "Now protect yourself: you can also make the Ivory Cuirass at the workbench. Craft it (2 stone and 2 wood), open it in your backpack and press Equip. Then talk to Mordekai. Reward: 10 XP.",
-      "TRACK": "Craft and equip the cuirass"
+      "NAME": "Craft weapon and armor",
+      "DESC": "Before you fight you need to gear up. You can now make the Rusty Dagger and the Ivory Cuirass at the workbench (2 stone and 2 wood each). Craft both, open them in your backpack and press Equip. Then talk to Mordekai. Reward: just enough XP to reach level 2.",
+      "TRACK": "Craft and equip dagger and cuirass"
+    },
+    "NOEXP_NIVEL_TALENTO": {
+      "NAME": "Level up",
+      "DESC": "You reached level 2 and have a new talent point. Open the talent tree in the equipment window and assign it. Then talk to Mordekai. Reward: 10 XP.",
+      "TRACK": "Assign your talent point"
     },
     "NOEXP_KUGO": {
       "NAME": "Visit Kugo",
-      "DESC": "Mordekai wants you to meet Kugo, who is waiting for you on map 1-1. Cross the west portal of Asgard and talk to him. Reward: 10 XP.",
+      "DESC": "Mordekai wants you to meet Kugo, who is waiting for you on map 1-1. Cross the east portal of Asgard and talk to him. Reward: 10 XP.",
       "TRACK": "Talk to Kugo in 1-1"
-    }
+    },
+    "REWARD_TO_LEVEL": "Reach level {{level}}"
   },
   "PET": {
     "LEVEL": "Level",
@@ -502,13 +498,48 @@
     "BOUND_TO": "Bound to"
   },
   "TALENT": {
-    "REMOVE_SPHERE": "Remove sphere",
-    "UNLOCK": "Unlock",
     "NO_POINTS": "No talent points",
     "LOCKED_PATH": "Unlock the previous node first",
     "RELOCK": "Refund point",
-    "NO_SPHERES": "No spheres",
-    "TREE_COMBAT": "Combat"
+    "NEEDS_LEVEL": "Requires level {{level}}",
+    "LOCKED_BOTH": "Requires both branches",
+    "TREE": {
+      "WARRIOR": "Warrior",
+      "ARCANE": "Arcane",
+      "TECHNIQUE": "Technique"
+    },
+    "NODE": {
+      "STR1": "Strength I",
+      "VIT1": "Vitality I",
+      "GUARD1": "Guard I",
+      "CRIT1": "Sure Strike",
+      "STR2": "Strength II",
+      "OAK_HEART": "Heart of Oak",
+      "INT1": "Wit I",
+      "MANA1": "Mana I",
+      "INT2": "Wit II",
+      "SERENITY": "Serenity",
+      "MANA_WELL": "Mana Well",
+      "SPEED1": "Celerity I",
+      "LUCK1": "Fortune I",
+      "EXPLORER1": "Explorer I",
+      "REFLEX1": "Reflexes I",
+      "WIND_HANDS": "Wind Hands",
+      "MINER": "Expert Miner",
+      "MINE_DROP": "Double Mining Loot",
+      "BLESSING": "Blessing of Loot"
+    },
+    "POINTS": "Points",
+    "KIND_ABILITY": "Ability",
+    "KIND_STAT": "Attribute",
+    "POWER": "Power",
+    "MANA_COST": "Mana",
+    "COOLDOWN": "Cooldown",
+    "LEARNED": "Learned",
+    "IN_HUD": "On your skill bar",
+    "LEARN_ABILITY": "Learn this new ability",
+    "LEARN": "Learn",
+    "COST_ONE": "Costs 1 point"
   },
   "SKILLS": {
     "TITLE": "Skills",
@@ -845,7 +876,8 @@
     "SEALED_TITLE": "Sealed portal",
     "SEALED_DESC": "This portal is sealed. Hand over the materials to open it.",
     "SEALED_OPEN": "Create",
-    "SEALED_MISSING": "Missing materials"
+    "SEALED_MISSING": "Missing materials",
+    "LOCKED_QUEST": "Finish the quest \"{{quest}}\""
   },
   "EQUIP_VIEW": {
     "COMBAT": "Combat",
@@ -863,17 +895,15 @@
     "MORDEKAI_GENERIC_INTRO": "Next job, {{player}}: {{task}}.",
     "MORDEKAI_GENERIC_PROGRESS": "{{task}} — you are at {{prog}}/{{goal}}. Keep going.",
     "MORDEKAI_GENERIC_CLAIM": "Done, {{player}}! Here is your reward.",
-    "MORDEKAI_DONE": "When you feel like real fighting, {{player}}, cross the west portal to 1-1. The first monsters await you there.",
-    "MORDEKAI_CLAIM": "You got your star, {{player}}! Now you know how to move out there. Take this and head to the west portal, to 1-1: time to wield steel.",
+    "MORDEKAI_DONE": "When you feel like real fighting, {{player}}, cross the east portal to 1-1. The first monsters await you there.",
+    "MORDEKAI_CLAIM": "You got your star, {{player}}! Now you know how to move out there. Take this and head to the east portal, to 1-1: time to wield steel.",
     "MORDEKAI_CLAIM1": "Well done, bro! Now kill 1 hatchet rat. You'll spot them out in exploration, scurrying along the ground.",
     "MORDEKAI_CLAIM2": "Nice one, bro!",
     "MORDEKAI_NOEXP_CLAIM0": "Well done! Hand me that stone and wood… and take these plans in exchange; you also earn 10 XP. Open them in your inventory and hit Learn; then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_INTRO": "Those plans are no use in your bag, {{player}}. Tap the item in your inventory, hit Learn, then put the bench up with the hammer in the bottom menu.",
     "MORDEKAI_BENCH_PROGRESS": "I still do not see your workbench, {{player}}. If you already learned the plans, tap the hammer in the bottom menu, drag it to a free spot and confirm with ✓.",
-    "MORDEKAI_BENCH_CLAIM": "There it is, {{player}}! Take 10 XP. Now put it to use: open the workbench and craft an axe; then find it in your bag and tap Equip. Then come talk to me again.",
-    "MORDEKAI_AXE_CLAIM": "Now that is a proper axe, {{player}}! Take 10 XP. Let me teach you how to make a pickaxe: it is on the workbench now. Craft it, equip it and come back.",
-    "MORDEKAI_PICK_CLAIM": "Perfect, {{player}}! Axe and pickaxe, all set. Take 10 XP. Before you fight you need a weapon: I have taught you to make a dagger at the workbench. Craft it and put it on.",
-    "MORDEKAI_DAGGER_CLAIM": "Now that cuts, {{player}}! Take 10 XP. Now protect yourself: you can also make a cuirass at the workbench. Craft it and put it on.",
+    "MORDEKAI_BENCH_CLAIM": "There you go, {{player}}! Take 10 XP. Now put it to use: open the workbench and craft an axe and a pickaxe; then find them in your backpack and press Equip. Then come talk to me again.",
+    "MORDEKAI_PICK_CLAIM": "Perfect, {{player}}! Axe and pickaxe, all set. Take 10 XP. Before you fight you need to gear up: I have taught you to make a dagger and a cuirass at the workbench. Craft both and put them on.",
     "MORDEKAI_PROGRESS": "You have {{prog}}/{{goal}} stars. Keep jumping for them in exploration (east portal).",
     "MORDEKAI_INTRO": "Now learn to explore, {{player}}: cross the east portal and gather stars. Tap the screen to jump and grab them on the fly.",
     "MORDEKAI_COLLECT_INTRO": "Welcome to Asgard, {{player}}. I am Mordekai. Start by gathering 5 Stone and 5 Wood from the ground: walk up to the stones and logs and press the action button.",
@@ -884,9 +914,10 @@
     "KUGO_LINE": "{{player}}, long time no see!",
     "ITALIEN_LINE": "Hey {{player}}, ready for adventure?",
     "RAKE_LINE": "{{player}}, we set off whenever you want.",
-    "MORDEKAI_GEAR_CLAIM": "Now you look like a warrior, {{player}}! Take 10 XP. Now go to 1-1 through the west portal and talk to Kugo: he is waiting for you.",
-    "MORDEKAI_KUGO_INTRO": "You have more than enough gear now, {{player}}. Go to 1-1 through the west portal and find Kugo: he is waiting for you.",
-    "MORDEKAI_KUGO_PROGRESS": "Have you not talked to Kugo yet, {{player}}? He is in 1-1, past the west portal.",
+    "MORDEKAI_GEAR_CLAIM": "Now you look like a warrior, {{player}}! Take this XP: you are level 2 now. Go assign your talent point in the talent tree and come talk to me again.",
+    "MORDEKAI_LEVEL_CLAIM": "You have clearly grown, {{player}}! Take 10 XP. Now go to 1-1 through the east portal and talk to Kugo: he is waiting for you.",
+    "MORDEKAI_KUGO_INTRO": "You have more than enough gear now, {{player}}. Go to 1-1 through the east portal and find Kugo: he is waiting for you.",
+    "MORDEKAI_KUGO_PROGRESS": "Have you not talked to Kugo yet, {{player}}? He is in 1-1, past the east portal.",
     "KUGO_QUEST_CLAIM": "So you are {{player}}! Mordekai told me about you. Take 10 XP for the walk."
   },
   "WORKBENCH": {

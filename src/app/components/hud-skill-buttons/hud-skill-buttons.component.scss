@@ -107,10 +107,12 @@
 }
 
 // Arco alrededor del botón de ataque (radio ~84px desde su centro)
-// slot 0 — arriba del botón de ataque
+// Empieza abajo a la izquierda: la primera habilidad (slot 0) es la que se abre al
+// aprender la primera en el árbol de talentos, y va junto al pulgar.
+// slot 0 — a la izquierda
 .hud-btn-slot-0 {
-  right: calc(64px + var(--safe-right, 0px));
-  bottom: 116px;
+  right: calc(148px + var(--safe-right, 0px));
+  bottom: 32px;
 }
 
 // slot 1 — diagonal
@@ -119,10 +121,10 @@
   bottom: 91px;
 }
 
-// slot 2 — a la izquierda
+// slot 2 — arriba del botón de ataque
 .hud-btn-slot-2 {
-  right: calc(148px + var(--safe-right, 0px));
-  bottom: 32px;
+  right: calc(64px + var(--safe-right, 0px));
+  bottom: 116px;
 }
 
 .hud-btn-icon {

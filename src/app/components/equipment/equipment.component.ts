@@ -6,7 +6,7 @@ import { GatheringSkillsService, GATHERING_SKILLS, GatheringSkillId } from 'src/
 import { InventoryItem, InventoryService } from 'src/app/services/inventory.service';
 import { CharacterStatsService, BaseStats, DefenseBreakdown, EvasionBreakdown, CritChanceBreakdown, CritDamageBreakdown, MagicDamageBreakdown, RegenBreakdown, DropRateBreakdown } from 'src/app/services/character-stats.service';
 import { PlayerStateService, expNeeded, MAX_LEVEL } from 'src/app/services/player-state.service';
-import { TalentService, TalentNodeConfig, SphereType, SPHERE_MULT, TALENT_NODES } from 'src/app/services/talent.service';
+import { TalentService, TalentNodeConfig, TALENT_TREES, TalentTreeConfig, TalentTreeId, TalentBranch } from 'src/app/services/talent.service';
 import { SKILL_REGISTRY } from 'src/app/services/skill-config';
 import { AdminService } from 'src/app/services/admin.service';
 import { PanelStateService } from 'src/app/services/panel-state.service';
@@ -17,6 +17,14 @@ import { QuestService, QuestDef, NPC_PORTRAITS } from 'src/app/services/quest.se
 import { ITEM_CATALOG } from 'src/app/physics/griddrops';
 import { PlayerBridgeService } from 'src/app/services/player-bridge.service';
 import { AsgardService } from 'src/app/services/asgard';
+import { HudSkillSlotsService } from 'src/app/services/hud-skill-slots.service';
+
+/** Árbol de talentos ya colocado para pintarlo (posiciones en px). */
+interface TalentLadderLine { from: string; to: string; d: string; }
+interface TalentLadder {
+  nodes: { id: string; node: TalentNodeConfig; x: number; y: number; ability: boolean }[];
+  lines: TalentLadderLine[];
+}
 
 @Component({
   selector: 'app-equipment',
@@ -27,6 +35,7 @@ import { AsgardService } from 'src/app/services/asgard';
 export class EquipmentComponent implements OnInit, OnDestroy {
 
   private panelState = inject(PanelStateService);
+  private hudSlots = inject(HudSkillSlotsService);
   private equipPanel = inject(EquipmentPanelService);
   private el = inject(ElementRef);
   badges = inject(NotificationBadgeService);
@@ -48,11 +57,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this._activeTab = v;
     this.panelState.set('equip.tab', v);
     this.equipPanel.tab = v;
-    if (v === 4) this.initPan();
-    if (v !== 4) {
-      this.selectedNodeId = null;
-      this.talentExpanded = false;
-    }
+    if (v !== 4) this.selectedNodeId = null;
     if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; this.selectedEquippedItem = null; }
     if (v !== 5) { this.selectedAch = null; this.expandedAchId = null; }
     if (v === 5) this.badges.clear('equip.achievements');
@@ -271,7 +276,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
       case 0: return true;
       case 5: return this.achievementsUnlocked;
       case 6: return this.missionsUnlocked;
-      case 2: case 4: case 7: return this.pendingTabsUnlocked;
+      case 4: return true;   // TEMPORAL: talentos siempre visibles para revisar el nuevo árbol
+      case 2: case 7: return this.pendingTabsUnlocked;
       default: return false;
     }
   }
@@ -329,151 +335,73 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     { key: 'CHR',   label: 'CHR' },
   ];
 
-  // ── Talentos ─────────────────────────────────────────────────────────────────
+  // ── Talentos (tab 4): pestañas Guerrero / Arcano / Técnica, árbol en escalera ──
 
-  readonly talentTrees: { label: string; icon: string; nodes: TalentNodeConfig[] }[] = [
-    { label: 'Combate', icon: 'shield-half-outline',  nodes: TALENT_NODES },
-  ];
+  readonly talentTrees = TALENT_TREES;
 
   private _activeTalentTree = 0;
   get activeTalentTree(): number { return this._activeTalentTree; }
   set activeTalentTree(v: number) {
     this._activeTalentTree = v;
-    this.selectedNodeId = null;
-    if (this._activeTab === 4) this.initPan();
+    this.panelState.set('talent.tree', v);
+    this.clearTalentSelection();
   }
 
-  // ── Árbol HTML clásico (tab 4) ───────────────────────────────────────────────
+  // Geometría de la escalera (px, dentro del tablero de 222px de ancho interior):
+  // una fila por tier; ramas izquierda / centro / derecha.
+  private static readonly LADDER_TOP = 26;
+  private static readonly LADDER_ROW = 50;
+  private static readonly LADDER_X: Record<TalentBranch, number> = { C: 111, L: 60, R: 162 };
+  private static readonly LADDER_PAIR = 21;   // separación de dos nodos de la misma rama y fila
 
-  private initPan(): void {
-    this.classicZoom = 1;
-    this.classicZoomedOut = false;
-    const nodes = this.activeTreeNodes;
-    const root = nodes.find(n => n.requires.length === 0) ?? nodes[0];
-    if (!root) { this.panX = 0; this.panY = 0; return; }
-    this.panX = 113 - (root.col * 33 + 16);  // centra X en viewport 226px
-    this.panY = 100 - (root.row * 48 + 22);  // nodo raíz a ~38% desde arriba
+  readonly ladderHeight = EquipmentComponent.LADDER_TOP * 2 + 5 * EquipmentComponent.LADDER_ROW;
+
+  /** Posiciones y líneas de cada árbol (estáticas: se calculan una vez). */
+  private readonly ladderCache = new Map<TalentTreeId, TalentLadder>();
+
+  get ladder(): TalentLadder {
+    const tree = this.talentTrees[this._activeTalentTree] ?? this.talentTrees[0];
+    let l = this.ladderCache.get(tree.id);
+    if (!l) { l = this.buildLadder(tree); this.ladderCache.set(tree.id, l); }
+    return l;
   }
 
-  // Zoom del árbol clásico: '+' encaja el árbol completo, '−' vuelve al hub
-  classicZoom = 1;
-  classicZoomedOut = false;
-
-  toggleClassicZoom(viewport: HTMLElement): void {
-    this.classicZoomedOut = !this.classicZoomedOut;
-    if (this.classicZoomedOut) {
-      const s = Math.min(
-        viewport.clientWidth  / this.canvasWidth,
-        viewport.clientHeight / this.canvasHeight,
-      );
-      this.classicZoom = s;
-      this.panX = (viewport.clientWidth  - this.canvasWidth  * s) / 2;
-      this.panY = (viewport.clientHeight - this.canvasHeight * s) / 2;
-    } else {
-      this.initPan();
+  private buildLadder(tree: TalentTreeConfig): TalentLadder {
+    const C = EquipmentComponent;
+    const pos = new Map<string, { x: number; y: number }>();
+    for (const tn of tree.nodes) {
+      const same = tree.nodes.filter(o => o.tier === tn.tier && o.branch === tn.branch);
+      const k = same.indexOf(tn);
+      const x = C.LADDER_X[tn.branch] + (same.length > 1 ? (k === 0 ? -C.LADDER_PAIR : C.LADDER_PAIR) : 0);
+      pos.set(tn.id, { x, y: C.LADDER_TOP + (tn.tier - 1) * C.LADDER_ROW });
     }
+    const nodes = tree.nodes
+      .map(tn => ({ id: tn.id, node: this.talent.nodes.find(n => n.id === tn.id), ...pos.get(tn.id) }))
+      .filter(n => !!n.node)
+      .map(n => ({ ...n, ability: n.node.effect.type === 'ability' }));
+    const lines = tree.nodes.flatMap(tn => tn.requires.map(from => {
+      const a = pos.get(from), b = pos.get(tn.id);
+      const my = (a.y + b.y) / 2;
+      return { from, to: tn.id, d: `M${a.x} ${a.y} C${a.x} ${my} ${b.x} ${my} ${b.x} ${b.y}` };
+    }));
+    return { nodes, lines };
   }
 
-  panX = 0;
-  panY = 0;
-  get panActive(): boolean { return this._panActive; }
-  private _panActive = false;
-  private _panStartClientX = 0;
-  private _panStartClientY = 0;
-  private _panStartPanX = 0;
-  private _panStartPanY = 0;
-  panMoved = false;
-
-  get canvasWidth(): number {
-    const nodes = this.activeTreeNodes;
-    if (!nodes.length) return 220;
-    return (Math.max(...nodes.map(n => n.col)) + 1) * 33 + 33;
+  /** 'on' aprendido · 'avail' se puede aprender ya · 'reach' alcanzable sin puntos · 'locked'. */
+  ladderNodeState(id: string): 'on' | 'avail' | 'reach' | 'locked' {
+    if (this.talent.isUnlocked(id)) return 'on';
+    if (this.talent.canUnlock(id)) return 'avail';
+    return this.talent.isReachable(id) ? 'reach' : 'locked';
   }
 
-  get canvasHeight(): number {
-    const nodes = this.activeTreeNodes;
-    if (!nodes.length) return 200;
-    return (Math.max(...nodes.map(n => n.row)) + 1) * 48 + 48;
+  /** Línea dorada si los dos extremos están aprendidos DE VERDAD (no por admin). */
+  ladderLineOn(l: TalentLadderLine): boolean {
+    return this.talent.isReallyUnlocked(l.from) && this.talent.isReallyUnlocked(l.to);
   }
 
-  onCanvasPointerDown(e: PointerEvent): void {
-    this._panActive = true;
-    this.panMoved = false;
-    this._panStartClientX = e.clientX;
-    this._panStartClientY = e.clientY;
-    this._panStartPanX = this.panX;
-    this._panStartPanY = this.panY;
-  }
-
-  onCanvasPointerMove(e: PointerEvent): void {
-    if (!this._panActive) return;
-    const dx = e.clientX - this._panStartClientX;
-    const dy = e.clientY - this._panStartClientY;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this.panMoved = true;
-    if (this.panMoved) {
-      this.panX = this._panStartPanX + dx;
-      this.panY = this._panStartPanY + dy;
-    }
-  }
-
-  onCanvasPointerUp(): void {
-    this._panActive = false;
-  }
-
-  /** Nodos que se pintan. Admin: todos. Juego normal: solo desbloqueados + alcanzables
-   *  (lo más profundo queda oculto). Como un alcanzable tiene siempre sus padres
-   *  desbloqueados, ningún nodo visible queda con líneas colgando. */
-  get visibleTreeNodes(): TalentNodeConfig[] {
-    const nodes = this.activeTreeNodes;
-    if (this.admin.isAdmin) return nodes;
-    return nodes.filter(n => this.talent.isUnlocked(n.id) || this.talent.isReachable(n.id));
-  }
-
-  get treeLines(): { x1: number; y1: number; x2: number; y2: number; active: boolean; unlockable: boolean }[] {
-    const nodes = this.visibleTreeNodes;
-    const CW = 33, CH = 48;
-    const cx = (col: number) => col * CW + CW / 2;
-    const cy = (row: number) => row * CH + 21;
-    return nodes.flatMap(node =>
-      node.requires
-        .map(reqId => {
-          const parent = nodes.find(n => n.id === reqId);
-          if (!parent) return null;
-          // Dorada SOLO si ambos extremos están desbloqueados DE VERDAD (no por el override
-          // de admin). Cualquier línea que toque un módulo bloqueado queda gris (base).
-          const unlockable = this.nodeCanUnlock(node);
-          return {
-            x1: cx(parent.col), y1: cy(parent.row),
-            x2: cx(node.col),   y2: cy(node.row),
-            active: !unlockable && !!this.talent.unlocked[reqId] && !!this.talent.unlocked[node.id],
-            unlockable,
-          };
-        })
-        .filter((l): l is NonNullable<typeof l> => l !== null)
-    );
-  }
-
-  nodeState(node: TalentNodeConfig): 'locked' | 'unlockable' | 'available' | 'slotted' {
-    if (this.talent.isUnlocked(node.id)) {
-      return this.talent.slotted[node.id] ? 'slotted' : 'available';
-    }
-    return this.talent.isReachable(node.id) ? 'unlockable' : 'locked';
-  }
-
-  nodeStyle(node: TalentNodeConfig): Record<string, string> {
-    return { left: `${node.col * 33 + 3}px`, top: `${node.row * 48 + 3}px` };
-  }
-
-  /** Parpadea si está unido a un talento ya desbloqueado de verdad (tiene requisito
-   *  y su padre real está desbloqueado) Y hay un punto disponible. Usa el estado REAL,
-   *  no el override de admin: `canUnlock` = `isReachable` real + puntos. */
-  nodeCanUnlock(node: TalentNodeConfig): boolean {
-    return node.requires.length > 0 && this.talent.canUnlock(node.id);
-  }
-
-  nodeColor(node: TalentNodeConfig): string {
-    const sphere = this.talent.slotted[node.id];
-    return sphere ? this.sphereColors[sphere] : '';
+  /** Línea hacia lo que se puede aprender ahora. */
+  ladderLineNext(l: TalentLadderLine): boolean {
+    return this.talent.isReallyUnlocked(l.from) && this.talent.canUnlock(l.to);
   }
 
   /** Imagen de la habilidad del nodo (icono del registro de skills), o null si no es habilidad. */
@@ -482,108 +410,59 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     return ability ? (SKILL_REGISTRY[ability]?.iconPath ?? null) : null;
   }
 
-  onNodeClick(node: TalentNodeConfig): void {
-    if (this.panMoved) return;
-    // Se abre si ya está desbloqueado (poner gema) o es alcanzable (desbloquear).
-    if (!this.talent.isUnlocked(node.id) && !this.talent.isReachable(node.id)) return;
-    this.selectedNodeId = this.selectedNodeId === node.id ? null : node.id;
-    this.sphereAccordionOpen = false;
-  }
-
-  get activeTreeNodes(): TalentNodeConfig[] {
-    return this.talentTrees[this._activeTalentTree]?.nodes ?? [];
+  onNodeClick(id: string): void {
+    this.selectedNodeId = this.selectedNodeId === id ? null : id;
   }
 
   selectedNodeId: string | null = null;
-
-  readonly sphereTypes: SphereType[] = ['normal', 'rare', 'epic'];
-
-  readonly sphereColors: Record<SphereType, string> = {
-    normal: '#4caf50',
-    rare:   '#2196f3',
-    epic:   '#9c27b0',
-  };
-
-  readonly sphereLabels: Record<SphereType, string> = {
-    normal: 'N', rare: 'R', epic: 'E',
-  };
 
   get selectedNode(): TalentNodeConfig | null {
     return this.talent.nodes.find(n => n.id === this.selectedNodeId) ?? null;
   }
 
-  get talentBonus() { return this.talent.getBonus(); }
-
-  private _talentExpanded = false;
-  get talentExpanded(): boolean { return this._talentExpanded; }
-  set talentExpanded(v: boolean) {
-    this._talentExpanded = v;
-    const modal = this.el.nativeElement.closest('.modal-window') as HTMLElement;
-    if (modal) modal.style.bottom = v ? '10px' : '';
-    // El cambio de tamaño del viewport lo recoge el ResizeObserver del juego
+  /** Datos de combate de la habilidad seleccionada (poder, maná, recarga), o null si es atributo. */
+  get selectedSkill(): { power: number; mana: number; cooldown: number } | null {
+    const node = this.selectedNode;
+    const cfg = node?.effect.ability ? SKILL_REGISTRY[node.effect.ability] : null;
+    if (!cfg) return null;
+    return { power: node.effect.base, mana: cfg.manaCost ?? 0, cooldown: Math.round(cfg.cooldown / 100) / 10 };
   }
 
-  /** Acordeón de esferas abierto bajo la ranura del nodo seleccionado */
-  sphereAccordionOpen = false;
-
-  toggleSphereAccordion(): void {
-    this.sphereAccordionOpen = !this.sphereAccordionOpen;
-  }
-
-  /** Esferas elegibles para el nodo: una por color con stock (o la ya equipada). */
-  availableSpheres(): SphereType[] {
-    const id = this.selectedNodeId;
-    if (!id) return [];
-    return this.sphereTypes.filter(
-      s => this.talent.spheresAvailable(s) > 0 || this.talent.slotted[id] === s,
-    );
+  /** ¿La habilidad seleccionada está puesta en una ranura del HUD? */
+  get selectedInHud(): boolean {
+    return !!this.selectedNodeId && this.hudSlots.slots.includes(this.selectedNodeId);
   }
 
   clearTalentSelection(): void {
     this.selectedNodeId = null;
-    this.sphereAccordionOpen = false;
   }
 
   // ── Puntos de talento ──────────────────────────────────────────────────────
   get talentPointsAvailable(): number { return this.talent.pointsAvailable(); }
-  get talentPointsTotal(): number     { return this.talent.pointsTotal(); }
 
-  /** El nodo seleccionado está sin desbloquear pero es alcanzable (muestra botón) */
+  /** El nodo seleccionado está sin aprender pero es alcanzable (muestra el botón) */
   selectedIsReachable(): boolean {
     return !!this.selectedNodeId && this.talent.isReachable(this.selectedNodeId);
   }
 
-  /** Hay puntos para pagar el desbloqueo del nodo seleccionado (botón activo) */
+  /** Hay puntos para aprender el nodo seleccionado (botón activo) */
   canAffordUnlock(): boolean {
     return !!this.selectedNodeId && this.talent.canUnlock(this.selectedNodeId);
   }
 
-  /** El nodo seleccionado ya está desbloqueado (admite gemas). Usa el estado REAL,
-   *  no el override de admin: si no, en admin todos los nodos cuentan como
-   *  desbloqueados y nunca se mostraría el botón de desbloquear (la estrella). */
+  /** El nodo seleccionado ya está aprendido. Usa el estado REAL, no el override de
+   *  admin: si no, en admin nunca se mostraría el botón de aprender. */
   selectedIsUnlocked(): boolean {
     return !!this.selectedNodeId && this.talent.isReallyUnlocked(this.selectedNodeId);
   }
 
+  /** Aprende el nodo. Si es una habilidad y la primera ranura del HUD está libre, se
+   *  asigna ahí (aprender la primera habilidad abre esa ranura). */
   unlockSelected(): void {
-    if (this.selectedNodeId) this.talent.unlock(this.selectedNodeId);
-    // No cerramos: tras desbloquear, el picker pasa a mostrar las gemas.
-  }
-
-  slotSphere(sphere: SphereType): void {
-    if (!this.selectedNodeId) return;
-    this.talent.slot(this.selectedNodeId, sphere);
-    // No cerramos el picker: cierra solo el acordeón para ver el nuevo valor del efecto.
-    this.sphereAccordionOpen = false;
-  }
-
-  canUnslotSelected(): boolean {
-    return !!this.selectedNodeId && !!this.talent.slotted[this.selectedNodeId];
-  }
-
-  unslotSelected(): void {
-    if (this.selectedNodeId) this.talent.unslot(this.selectedNodeId);
-    this.sphereAccordionOpen = false;
+    const node = this.selectedNode;
+    if (!node || !this.talent.canUnlock(node.id)) return;
+    this.talent.unlock(node.id);
+    if (node.effect.type === 'ability') this.hudSlots.assignLearned(node.id);
   }
 
   canLockSelected(): boolean {
@@ -595,15 +474,9 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     this.clearTalentSelection();
   }
 
-  nodeEffectLabel(node: TalentNodeConfig, sphere: SphereType): string {
-    return this.effectLabel(node, node.effect.base * SPHERE_MULT[sphere]);
-  }
-
-  /** Lo que aporta el nodo AHORA mismo: ×mult de la gema puesta, o ×1 si solo está desbloqueado. */
+  /** Lo que aporta el nodo (atributos): p.ej. "+5 HP". */
   nodeActiveEffect(node: TalentNodeConfig): string {
-    const sphere = this.talent.slotted[node.id];
-    const mult = sphere ? SPHERE_MULT[sphere] : 1;
-    return this.effectLabel(node, node.effect.base * mult);
+    return this.effectLabel(node, node.effect.base);
   }
 
   private effectLabel(node: TalentNodeConfig, val: number): string {
@@ -627,7 +500,7 @@ export class EquipmentComponent implements OnInit, OnDestroy {
   }
 
   formatNodeLabel(node: TalentNodeConfig): string {
-    return node.label.replace('\n', ' ');
+    return node.label.replace(/\n/g, ' ');
   }
 
   constructor(
@@ -646,7 +519,8 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     if (this._activeTab > 7 || this._activeTab === 1 || this._activeTab === 3) this._activeTab = 0;
     // Si la pestaña restaurada aún no está desbloqueada (onboarding), volver a Equipo.
     if (!this.tabVisible(this._activeTab)) this._activeTab = 0;
-    if (this._activeTab === 4) this.initPan();
+    const tree = this.panelState.get('talent.tree', 0);
+    this._activeTalentTree = tree >= 0 && tree < this.talentTrees.length ? tree : 0;
     // Publica el estado para el comparador del inventario
     this.equipPanel.open = true;
     this.equipPanel.tab = this._activeTab;

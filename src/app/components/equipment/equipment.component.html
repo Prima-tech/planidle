@@ -1,10 +1,4 @@
-<div class="eq-wrapper" [class.eq-wrapper--wide]="talentExpanded && activeTab === 4">
-
-  <button *ngIf="activeTab === 4"
-          class="talent-expand-btn"
-          (click)="talentExpanded = !talentExpanded">
-    <ion-icon [name]="talentExpanded ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
-  </button>
+<div class="eq-wrapper">
 
   <div class="eq-vtabs">
     <!-- Equipo: siempre. El resto se desbloquea en el onboarding (ver tabVisible). -->
@@ -563,77 +557,50 @@
 
   </div>
 
-  <!-- Tab 4: Árbol de habilidades clásico (HTML + SVG) -->
+  <!-- Tab 4: Talentos — una pestaña por árbol; cada árbol baja en escalera (una fila por nivel) -->
   <div class="talent-panel" *ngIf="activeTab === 4">
 
-    <!-- Puntos de talento + inventario de esferas -->
-    <div class="talent-sphere-bar">
+    <div class="talent-tree-tabs">
+      <button class="talent-tree-tab" *ngFor="let tr of talentTrees; let i = index"
+              [class.active]="activeTalentTree === i"
+              [title]="tr.label | translate"
+              [attr.aria-label]="tr.label | translate"
+              (click)="activeTalentTree = i">
+        <ion-icon [name]="tr.icon"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Puntos de talento libres -->
+    <div class="talent-points-bar">
       <div class="tpoints" [class.tpoints--empty]="talentPointsAvailable === 0">
-        <ion-icon name="star-outline"></ion-icon>
+        <span>{{ 'TALENT.POINTS' | translate }}</span>
         <span class="tpoints-count">{{ talentPointsAvailable }}</span>
-      </div>
-      <div *ngFor="let s of sphereTypes" class="tsphere" [title]="s">
-        <span class="tsphere-dot" [style.background]="sphereColors[s]"></span>
-        <span class="tsphere-label">{{ sphereLabels[s] }}</span>
-        <span class="tsphere-count">{{ talent.spheresAvailable(s) }}</span>
       </div>
     </div>
 
-    <!-- Árbol -->
-    <div class="talent-viewport talent-viewport--classic" #classicViewport
-         (pointerdown)="onCanvasPointerDown($event)"
-         (pointermove)="onCanvasPointerMove($event)"
-         (pointerup)="onCanvasPointerUp()"
-         (pointercancel)="onCanvasPointerUp()"
-         (mouseleave)="onCanvasPointerUp()">
+    <!-- Escalera: una fila por tier, de arriba a abajo -->
+    <div class="tladder" [style.height.px]="ladderHeight">
 
-      <button class="talent-zoom-btn"
-              (pointerdown)="$event.stopPropagation()"
-              (click)="toggleClassicZoom(classicViewport)">
-        <ion-icon [name]="classicZoomedOut ? 'remove-outline' : 'add-outline'"></ion-icon>
+      <svg class="tladder-lines">
+        <path *ngFor="let l of ladder.lines" [attr.d]="l.d"
+              [class.on]="ladderLineOn(l)"
+              [class.next]="!ladderLineOn(l) && ladderLineNext(l)"></path>
+      </svg>
+
+      <button *ngFor="let p of ladder.nodes"
+              class="tnode tnode--{{ ladderNodeState(p.id) }}"
+              [class.tnode--ability]="p.ability"
+              [class.tnode--selected]="selectedNodeId === p.id"
+              [style.left.px]="p.x"
+              [style.top.px]="p.y"
+              [title]="formatNodeLabel(p.node) | translate"
+              (click)="onNodeClick(p.id)">
+        <img *ngIf="nodeImage(p.node)" class="tnode-img" [src]="nodeImage(p.node)" alt=""/>
+        <ion-icon *ngIf="!nodeImage(p.node)" [name]="p.node.icon" class="tnode-icon"></ion-icon>
       </button>
+    </div>
 
-      <div class="talent-canvas"
-           [style.transform]="'translate(' + panX + 'px, ' + panY + 'px) scale(' + classicZoom + ')'"
-           [style.transition]="panActive ? 'none' : null">
-
-        <svg class="talent-svg" [attr.width]="canvasWidth" [attr.height]="canvasHeight">
-          <line *ngFor="let l of treeLines"
-                [attr.x1]="l.x1" [attr.y1]="l.y1"
-                [attr.x2]="l.x2" [attr.y2]="l.y2"
-                [class.tline--active]="l.active"
-                [class.tline--unlockable]="l.unlockable"
-                class="tline"
-          />
-        </svg>
-
-        <div *ngFor="let node of visibleTreeNodes"
-             class="tnode"
-             [class.tnode--small]="node.small"
-             [class.tnode--locked]="nodeState(node) === 'locked'"
-             [class.tnode--unlockable]="nodeState(node) === 'unlockable'"
-             [class.tnode--can-unlock]="nodeCanUnlock(node)"
-             [class.tnode--dim]="!nodeCanUnlock(node) && nodeState(node) !== 'locked' && selectedNodeId !== node.id"
-             [class.tnode--available]="nodeState(node) === 'available'"
-             [class.tnode--slotted]="nodeState(node) === 'slotted'"
-             [class.tnode--selected]="selectedNodeId === node.id"
-             [style.left]="nodeStyle(node)['left']"
-             [style.top]="nodeStyle(node)['top']"
-             [style.border-color]="nodeColor(node) || null"
-             [title]="node.label"
-             (click)="onNodeClick(node)"
-        >
-          <span *ngIf="node.topLabel" class="tnode-toplabel">{{ node.topLabel }}</span>
-          <img *ngIf="nodeImage(node)" class="tnode-img" [src]="nodeImage(node)" alt=""/>
-          <ion-icon *ngIf="!node.small && !nodeImage(node)" [name]="node.icon" class="tnode-icon"></ion-icon>
-          <span *ngIf="node.num" class="tnode-num">{{ node.num }}</span>
-          <span *ngIf="nodeState(node) === 'slotted'" class="tnode-sphere-dot" [style.background]="nodeColor(node)"></span>
-        </div>
-
-      </div>
-    </div><!-- talent-viewport -->
-
-  </div><!-- talent-panel clásico -->
+  </div><!-- talent-panel -->
 
   <!-- Tab 5: Logros -->
   <div class="ach-panel" *ngIf="activeTab === 5">
@@ -861,67 +828,59 @@
     </ng-container>
   </div>
 
-  <!-- Picker flotante: aparece a la derecha del panel al seleccionar un talento -->
-  <div class="talent-picker-flyout talent-node-card" *ngIf="activeTab === 4 && selectedNodeId">
-    <div class="tpicker-name">{{ formatNodeLabel(selectedNode!) }}</div>
-    <img *ngIf="nodeImage(selectedNode!)" class="tpicker-img" [src]="nodeImage(selectedNode!)" alt=""/>
+  <!-- Ficha del talento: aparece a la derecha del panel al seleccionar un nodo -->
+  <div class="talent-picker-flyout talent-node-card" *ngIf="activeTab === 4 && selectedNode as node">
 
-    <!-- Nodo sin desbloquear: qué dará al desbloquear + botón para gastar 1 punto -->
-    <ng-container *ngIf="!selectedIsUnlocked() && selectedIsReachable()">
-      <div class="tpicker-row">
-        <div class="tpicker-active">{{ nodeActiveEffect(selectedNode!) }}</div>
-        <button class="tpicker-unlock"
-                [disabled]="!canAffordUnlock()"
-                (click)="unlockSelected()">
-          <ion-icon name="star-outline"></ion-icon>
-        </button>
+    <!-- Cabecera: medallón + nombre + tipo -->
+    <div class="tcard-head">
+      <span class="tcard-medal" [class.tcard-medal--ability]="node.effect.type === 'ability'"
+            [class.tcard-medal--on]="selectedIsUnlocked()">
+        <img *ngIf="nodeImage(node)" [src]="nodeImage(node)" alt=""/>
+        <ion-icon *ngIf="!nodeImage(node)" [name]="node.icon"></ion-icon>
+      </span>
+      <div class="tcard-title">
+        <span class="tcard-name">{{ formatNodeLabel(node) | translate }}</span>
+        <span class="tcard-kind">{{ (node.effect.type === 'ability' ? 'TALENT.KIND_ABILITY' : 'TALENT.KIND_STAT') | translate }}</span>
       </div>
-      <div class="tpicker-hint" *ngIf="!canAffordUnlock()">
-        {{ 'TALENT.NO_POINTS' | translate }}
-      </div>
-    </ng-container>
+    </div>
 
-    <!-- Nodo bloqueado (el camino no llega aún, p.ej. viéndolo en admin): muestra
-         igualmente QUÉ hace + aviso — antes la ficha salía solo con el nombre -->
-    <ng-container *ngIf="!selectedIsUnlocked() && !selectedIsReachable()">
-      <div class="tpicker-active">{{ nodeActiveEffect(selectedNode!) }}</div>
-      <div class="tpicker-hint">{{ 'TALENT.LOCKED_PATH' | translate }}</div>
-    </ng-container>
+    <!-- Qué hace: datos de la habilidad o el bono del atributo -->
+    <div class="tcard-stats" *ngIf="selectedSkill as sk">
+      <div class="tcard-stat"><span>{{ 'TALENT.POWER' | translate }}</span><b>{{ sk.power }}</b></div>
+      <div class="tcard-stat"><span>{{ 'TALENT.MANA_COST' | translate }}</span><b>{{ sk.mana }}</b></div>
+      <div class="tcard-stat"><span>{{ 'TALENT.COOLDOWN' | translate }}</span><b>{{ sk.cooldown }} s</b></div>
+    </div>
+    <div class="tcard-effect" *ngIf="!selectedSkill">{{ nodeActiveEffect(node) }}</div>
 
-    <!-- Nodo desbloqueado: valor + ranura de esfera con acordeón -->
+    <!-- Aprendido -->
     <ng-container *ngIf="selectedIsUnlocked()">
-      <div class="tpicker-active">{{ nodeActiveEffect(selectedNode!) }}</div>
-
-      <!-- Ranura: círculo vacío o con la esfera puesta; abre/cierra el acordeón -->
-      <button class="tpicker-slot"
-              [class.tpicker-slot--filled]="talent.slotted[selectedNodeId!]"
-              [class.tpicker-slot--open]="sphereAccordionOpen"
-              [style.background]="nodeColor(selectedNode!) || null"
-              (click)="toggleSphereAccordion()">
-        <ion-icon *ngIf="!talent.slotted[selectedNodeId!]" name="add-outline"></ion-icon>
-      </button>
-
-      <!-- Acordeón: una esfera por color disponible -->
-      <div class="tpicker-accordion" *ngIf="sphereAccordionOpen">
-        <button *ngFor="let s of availableSpheres()"
-                class="tpicker-gem"
-                [class.selected]="talent.slotted[selectedNodeId!] === s"
-                [style.background]="sphereColors[s]"
-                [title]="nodeEffectLabel(selectedNode!, s)"
-                (click)="slotSphere(s)">
-          <span class="tpicker-gem-count">×{{ talent.spheresAvailable(s) }}</span>
-        </button>
-        <span class="tpicker-accordion-empty" *ngIf="availableSpheres().length === 0">
-          {{ 'TALENT.NO_SPHERES' | translate }}
-        </span>
+      <div class="tcard-done">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        <span>{{ 'TALENT.LEARNED' | translate }}</span>
       </div>
-
-      <button class="tpicker-unslot" *ngIf="canUnslotSelected()" (click)="unslotSelected()">
-        {{ 'TALENT.REMOVE_SPHERE' | translate }}
-      </button>
-      <button class="tpicker-unslot" *ngIf="canLockSelected()" (click)="lockSelected()">
+      <div class="tcard-note" *ngIf="selectedInHud">{{ 'TALENT.IN_HUD' | translate }}</div>
+      <button class="tcard-forget" *ngIf="canLockSelected()" (click)="lockSelected()">
         {{ 'TALENT.RELOCK' | translate }}
       </button>
+    </ng-container>
+
+    <!-- Se puede aprender -->
+    <ng-container *ngIf="!selectedIsUnlocked() && selectedIsReachable()">
+      <button class="rpg-btn rpg-btn--sm tcard-learn" [disabled]="!canAffordUnlock()" (click)="unlockSelected()">
+        {{ (node.effect.type === 'ability' ? 'TALENT.LEARN_ABILITY' : 'TALENT.LEARN') | translate }}
+      </button>
+      <div class="tcard-note" *ngIf="canAffordUnlock()">{{ 'TALENT.COST_ONE' | translate }}</div>
+      <div class="tcard-note tcard-note--warn" *ngIf="!canAffordUnlock()">{{ 'TALENT.NO_POINTS' | translate }}</div>
+    </ng-container>
+
+    <!-- Bloqueado: por qué -->
+    <ng-container *ngIf="!selectedIsUnlocked() && !selectedIsReachable()">
+      <div class="tcard-note tcard-note--warn" *ngIf="!talent.levelReached(node.id)">
+        {{ 'TALENT.NEEDS_LEVEL' | translate:{ level: talent.tierLevel(node.id) } }}
+      </div>
+      <div class="tcard-note tcard-note--warn" *ngIf="talent.levelReached(node.id)">
+        {{ (talent.treeNode(node.id)?.requiresAll ? 'TALENT.LOCKED_BOTH' : 'TALENT.LOCKED_PATH') | translate }}
+      </div>
     </ng-container>
   </div>
 
@@ -994,6 +953,10 @@
         <span class="quest-reward-item" *ngIf="q.reward.exp">
           <ion-icon class="qr-xp" name="star"></ion-icon>
           <span class="qr-amount">{{ q.reward.exp | compactNumber }} EXP</span>
+        </span>
+        <span class="quest-reward-item" *ngIf="q.reward.toLevel">
+          <ion-icon class="qr-xp" name="star"></ion-icon>
+          <span class="qr-amount">{{ 'QUESTS.REWARD_TO_LEVEL' | translate:{ level: q.reward.toLevel } }}</span>
         </span>
         <span class="quest-reward-item" *ngFor="let it of q.reward.items">
           <img class="qr-item" [src]="rewardItemIcon(it.name)" alt="">

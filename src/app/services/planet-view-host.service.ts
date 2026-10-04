@@ -1,5 +1,6 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import Phaser from 'phaser';
+import { Capacitor } from '@capacitor/core';
 import { PlanetViewScene } from '../scenes/planet-view.scene';
 
 /**
@@ -42,6 +43,10 @@ export class PlanetViewHostService {
    *  el globo. Idempotente. Lo llama el layout tras arrancar la partida. */
   prewarm(): void {
     if (this.game) return;
+    // En el móvil NO: crear un segundo juego Phaser (otro contexto WebGL) y generar las
+    // texturas de los planetas congela la partida un buen rato justo al entrar — y luego
+    // ocupa memoria de GPU aunque duerma. Allí el globo se crea al abrir el mapa del mundo.
+    if (Capacitor.isNativePlatform()) return;
     const { w, h } = this.estimateSize();
     this.create(w, h, this.ensureParking());
     // Cuando termine de arrancar, a dormir hasta que se abra el panel. OJO: no vale

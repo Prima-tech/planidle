@@ -86,8 +86,7 @@ export class FooterBarComponent implements OnInit, OnDestroy {
    *  attack_2/3/4 desbloqueado)? El candado (editar HUD) solo tiene sentido si hay algo
    *  que editar; una skill en una ranura oculta no cuenta. */
   get hasHudSkill(): boolean {
-    return this.hudSlots.slots.some((s, i) =>
-      !!s && this.globalTalents.isUnlocked(GlobalTalentsService.SKILL_SLOT_NODES[i]));
+    return this.hudSlots.slots.some((s, i) => !!s && this.hudSlots.isOpen(i));
   }
   /** Hub de botones (abajo-izquierda): arranca COLAPSADO al entrar en la app /
    *  loguearse; el tirador lo despliega. */

@@ -14,7 +14,6 @@ import { InventoryItem } from "src/app/services/inventory.service";
 import { HarvestKind, HarvestKindId, HARVEST_KINDS, miningTier, gemTier, treeTier, MiningTier } from "./harvest-config";
 import { EQUIP_LAYER_REGISTRY, EquipLayerConfig } from "src/app/pnj/player/equip-layer-registry";
 import { SKILL_REGISTRY, SkillConfig } from "src/app/services/skill-config";
-import { SPHERE_MULT } from "src/app/services/talent.service";
 import { GlobalTalentsService } from "src/app/services/global-talents.service";
 import { NATIVE_DPR, playerTags } from "./constants";
 import { spawnFloatingText } from "./floating-text";
@@ -1041,10 +1040,10 @@ export class GameScene extends Phaser.Scene {
     /** Skills equipadas en ranuras del HUD DESBLOQUEADAS (talentos attack_2/3/4).
      *  Una skill en una ranura oculta no cuenta: ni auto-cast ni dash. */
     private unlockedHudSkillIds(): string[] {
-      const gt = this.reg.globalTalents;
+      const hud = this.reg.hudSlots;
       const out: string[] = [];
-      (this.reg.hudSlots?.slots ?? []).forEach((id, i) => {
-        if (id && gt?.isUnlocked(GlobalTalentsService.SKILL_SLOT_NODES[i])) out.push(id);
+      (hud?.slots ?? []).forEach((id, i) => {
+        if (id && hud.isOpen(i)) out.push(id);
       });
       return out;
     }
@@ -1075,9 +1074,7 @@ export class GameScene extends Phaser.Scene {
         const ability = node?.effect?.ability;
         if (!ability || ability === 'dash') continue;   // dash automático marearía
         if (acts.isOnCooldown(ability) || !acts.hasTarget(ability)) continue;
-        const sphere = talent.slotted[nodeId];
-        const damage = node.effect.base * (sphere ? SPHERE_MULT[sphere] : 1);
-        acts.request(ability, damage, true);
+        acts.request(ability, node.effect.base, true);
         // La siguiente pasada continúa por la skill posterior a esta
         this.autoSkillIdx   = (this.autoSkillIdx + i + 1) % ids.length;
         this.autoSkillGapMs = 1100;
@@ -1956,7 +1953,7 @@ export class GameScene extends Phaser.Scene {
         // SELLADO: tiene flag de desbloqueo y aún no está marcado → rojo, no transitable
         // (al acercarse el botón de acción pide su coste en materiales para abrirlo).
         const sealed = !!portal.unlockFlag && !(this.reg.unlocks?.hasFlag(portal.unlockFlag));
-        const unlocked = back ? true : (this.reg.unlocks?.isUnlocked(featureId) ?? true);
+        const unlocked = back ? true : ((this.reg.unlocks?.isUnlocked(featureId) ?? true) && this.portalQuestDone(portal));
         const open = !sealed && unlocked;
         const color = back ? 0x60c0ff : (open ? 0x50e070 : 0xff4d4d);
         const blocked = !back && !open;
@@ -1995,7 +1992,7 @@ export class GameScene extends Phaser.Scene {
         if (p.config.direction !== 'back') {
           const flag = p.config.unlockFlag;
           const sealed = !!flag && !(this.reg.unlocks?.hasFlag(flag));
-          const unlocked = this.reg.unlocks?.isUnlocked(p.featureId) ?? true;
+          const unlocked = (this.reg.unlocks?.isUnlocked(p.featureId) ?? true) && this.portalQuestDone(p.config);
           const open = !sealed && unlocked;
           if (open === p.locked) {   // p.locked = !open anterior → el estado ha cambiado
             p.locked = !open;
@@ -2011,6 +2008,23 @@ export class GameScene extends Phaser.Scene {
         p.arch.anims.timeScale = 1 + f * f * (MAX_TS - 1);
         p.halo.setAlpha(0.12 + f * 0.3);
       }
+    }
+
+    /** ¿Ya está cobrada la misión que abre el portal (`requiresQuest`)? Sin misión, sí. */
+    private portalQuestDone(cfg: PortalConfig): boolean {
+      return !cfg.requiresQuest || (this.reg.quests?.missionSatisfied(cfg.requiresQuest) ?? true);
+    }
+
+    /** Aviso flotante sobre un portal cerrado por misión (como mucho uno cada 2 s). */
+    private portalQuestHintAt = 0;
+    private showPortalQuestHint(p: { config: PortalConfig; cx: number; cy: number }): void {
+      if (this.time.now < this.portalQuestHintAt) return;
+      this.portalQuestHintAt = this.time.now + 2000;
+      const quest = this.reg.quests?.byId(p.config.requiresQuest);
+      const name = quest ? this.t(quest.name) : '';
+      spawnFloatingText(this, p.cx, p.cy - GameScene.TILE_SIZE * 2.2,
+        this.t('PORTAL.LOCKED_QUEST', { quest: name }),
+        { fontSize: 26, color: '#ffd700', strokeThickness: 6, rise: 40, duration: 1800 });
     }
 
     checkPortals(playerPos: Phaser.Math.Vector2) {
@@ -2035,6 +2049,8 @@ export class GameScene extends Phaser.Scene {
         const dx = px - cx;
         const dy = py - cy;
         if (dx * dx + dy * dy <= r2) {
+          // Cerrado por misión: no transita; avisa de qué misión falta.
+          if (!this.portalQuestDone(p.config)) { this.showPortalQuestHint(p); continue; }
           // Turbo de entrada: el vórtice se acelera y el halo se enciende durante el fundido
           // (update() sale antes al haber cooldown).
           p.arch.anims.timeScale = 4;
@@ -3765,7 +3781,7 @@ export class GameScene extends Phaser.Scene {
      *  (1º abrir el portal recogiendo 5 Piedra + 5 Madera, 2º explorar → estrellas): da y
      *  fija la que toca, informa del progreso, la cobra al completarla y, cuando ya no le
      *  queda ninguna, apunta al combate (1-1, portal oeste).
-     *  Portales del hogar: exploración = este (x30), 1-1 = oeste (x17). */
+     *  Portales del hogar: exploración = este (x30), 1-1 = borde este a media altura (x77,y25). */
     private talkToMordekai(): void {
       const quests = this.reg.quests;
       const player = this.playerName();

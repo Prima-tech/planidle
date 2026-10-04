@@ -12,6 +12,7 @@ import { CityBuildService } from './city-build.service';
 import { GatheringEquipmentService } from './gathering-equipment.service';
 import { RECIPE_IRON_PICKAXE_FLAG, RECIPE_STARTER_GEAR_FLAG } from './workbench.service';
 import { EquipmentService } from './equipment.service';
+import { TalentService } from './talent.service';
 import { ITEM_CATALOG, hydrateItem } from '../physics/griddrops';
 
 // Sistema de misiones.
@@ -43,7 +44,8 @@ export type QuestObjective =
   | CollectObjective
   | BuildObjective
   | EquipObjective
-  | TalkObjective;
+  | TalkObjective
+  | LevelTalentObjective;
 // Futuro: | { type: 'reachLevel'; goal: number }
 //         | { type: 'collectItem'; itemId: string; goal: number }
 //         | { type: 'spendCoins'; goal: number } ...
@@ -120,6 +122,16 @@ export interface TalkObjective {
   npc: string;    // nombre del NPC (CITY_NPCS / RECRUIT_NPCS de gamescene)
 }
 
+/** Subir de nivel Y gastar puntos de talento: dos pasos, goal 2. Paso 1 = llegar al
+ *  nivel `level`; paso 2 = tener `level` puntos de talento gastados (el nodo central
+ *  cuenta el del nivel 1, así que pide repartir los ganados al subir). Solo con el
+ *  prerequisito cobrado; pegajoso (no baja). */
+export interface LevelTalentObjective {
+  type: 'levelTalent';
+  goal: number;    // siempre 2
+  level: number;   // nivel a alcanzar (y nº de puntos de talento que tener gastados)
+}
+
 /** Items que pide un objetivo 'equip' (itemName o itemNames). */
 export function equipItemsOf(o: EquipObjective): string[] {
   return o.itemNames ?? (o.itemName ? [o.itemName] : []);
@@ -128,6 +140,8 @@ export function equipItemsOf(o: EquipObjective): string[] {
 export interface QuestReward {
   coins?: number;
   exp?: number;
+  /** Da la exp JUSTA para llegar a este nivel (lo que falte al cobrar; 0 si ya se tiene). */
+  toLevel?: number;
   /** Hito del Modo Mundo que se otorga al cobrar (p.ej. 'sprint' = Impulso). */
   runMilestone?: string;
   /** Items que se meten en la mochila al cobrar (nombre en ITEM_CATALOG). Si no
@@ -264,74 +278,64 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_BENCH_CLAIM' },
   },
   {
-    // Fabricar el Hacha de Hierro en la mesa de trabajo (receta disponible de serie) y
-    // equiparla. Se entrega hablando con Mordekai.
-    id: 'noexp_hacha',
-    arc: 1,
-    name: 'QUESTS.NOEXP_HACHA.NAME',
-    desc: 'QUESTS.NOEXP_HACHA.DESC',
-    icon: 'construct-outline',
-    track: 'QUESTS.NOEXP_HACHA.TRACK',
-    objective: { type: 'equip', goal: 1, itemName: 'Hacha de Hierro' },
-    reward: { exp: 10 },
-    requires: 'noexp_mesa_trabajo',
-    giver: 'Mordekai',
-    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_AXE_CLAIM' },
-  },
-  {
-    // Al ofrecerla (cobrar la del hacha) se desbloquea la receta del Pico de Hierro en
-    // la mesa de trabajo. Fabricarlo y equiparlo; se entrega hablando con Mordekai.
+    // UNA misión con dos objetivos: fabricar y equiparse el Hacha de Hierro (receta de
+    // serie) Y el Pico de Hierro (su receta se desbloquea al ofrecerla, startFlags). Se
+    // entrega hablando con Mordekai. Conserva el id 'noexp_pico' (antes iba tras la del
+    // hacha): la de armas cuelga de él y ya está en las partidas guardadas, y quien ya
+    // cobró la del hacha la encuentra ofrecida con el hacha contando.
     id: 'noexp_pico',
     arc: 1,
-    name: 'QUESTS.NOEXP_PICO.NAME',
-    desc: 'QUESTS.NOEXP_PICO.DESC',
+    name: 'QUESTS.NOEXP_HERRAMIENTAS.NAME',
+    desc: 'QUESTS.NOEXP_HERRAMIENTAS.DESC',
     icon: 'hammer-outline',
-    track: 'QUESTS.NOEXP_PICO.TRACK',
-    objective: { type: 'equip', goal: 1, itemName: 'Pico de Hierro' },
+    track: 'QUESTS.NOEXP_HERRAMIENTAS.TRACK',
+    objective: { type: 'equip', goal: 2, itemNames: ['Hacha de Hierro', 'Pico de Hierro'] },
     reward: { exp: 10 },
-    requires: 'noexp_hacha',
+    requires: 'noexp_mesa_trabajo',
     startFlags: [RECIPE_IRON_PICKAXE_FLAG],
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_PICK_CLAIM' },
   },
   {
-    // Tras el pico, directo al equipo de combate (ya no hay misión de reunir madera y
-    // piedra). Al OFRECERLA se desbloquean en la mesa de trabajo las recetas del arma y
-    // la pechera básicas (startFlags). Fabricar la daga y equipársela; se entrega
-    // hablando con Mordekai.
-    id: 'noexp_daga',
-    arc: 1,
-    name: 'QUESTS.NOEXP_DAGA.NAME',
-    desc: 'QUESTS.NOEXP_DAGA.DESC',
-    icon: 'flash-outline',
-    track: 'QUESTS.NOEXP_DAGA.TRACK',
-    objective: { type: 'equip', goal: 1, itemName: 'Daga Oxidada' },
-    reward: { exp: 10 },
-    requires: 'noexp_pico',
-    startFlags: [RECIPE_STARTER_GEAR_FLAG],
-    giver: 'Mordekai',
-    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_DAGGER_CLAIM' },
-  },
-  {
-    // Fabricar la coraza y equipársela. Conserva el id 'noexp_armas' (antes pedía daga
-    // Y coraza a la vez): la de Kugo cuelga de él y ya está en las partidas guardadas.
+    // Tras el pico, directo al equipo de combate: UNA misión con dos objetivos, fabricar
+    // y equiparse la daga Y la coraza. Al OFRECERLA se desbloquean sus recetas en la mesa
+    // de trabajo (startFlags). Se entrega hablando con Mordekai. Id 'noexp_armas': ya
+    // está en las partidas guardadas y la tienda se desbloquea con él (unlock-config).
     id: 'noexp_armas',
     arc: 1,
     name: 'QUESTS.NOEXP_ARMAS.NAME',
     desc: 'QUESTS.NOEXP_ARMAS.DESC',
     icon: 'shield-half-outline',
     track: 'QUESTS.NOEXP_ARMAS.TRACK',
-    objective: { type: 'equip', goal: 1, itemName: 'Coraza de Marfil' },
-    reward: { exp: 10 },
-    requires: 'noexp_daga',
+    objective: { type: 'equip', goal: 2, itemNames: ['Daga Oxidada', 'Coraza de Marfil'] },
+    // Da la exp justa para llegar a nivel 2: en Asgard no hay enemigos y el portal a 1-1
+    // sigue cerrado hasta la misión de nivel, así que el nivel 2 sale de aquí.
+    reward: { toLevel: 2 },
+    requires: 'noexp_pico',
     startFlags: [RECIPE_STARTER_GEAR_FLAG],
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_GEAR_CLAIM' },
   },
   {
+    // Ya en nivel 2 (lo da la misión de armas): repartir el punto de talento ganado en el
+    // árbol de talentos. Se entrega hablando con Mordekai; al cobrarla Mordekai manda a
+    // Kugo y se abre el portal de Asgard a 1-1 (requiresQuest en map-config).
+    id: 'noexp_nivel_talento',
+    arc: 1,
+    name: 'QUESTS.NOEXP_NIVEL_TALENTO.NAME',
+    desc: 'QUESTS.NOEXP_NIVEL_TALENTO.DESC',
+    icon: 'trending-up-outline',
+    track: 'QUESTS.NOEXP_NIVEL_TALENTO.TRACK',
+    objective: { type: 'levelTalent', goal: 2, level: 2 },
+    reward: { exp: 10 },
+    requires: 'noexp_armas',
+    giver: 'Mordekai',
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_LEVEL_CLAIM' },
+  },
+  {
     // Mordekai te manda a 1-1 a hablar con Kugo. Se cumple y se cobra en el propio
     // diálogo con Kugo (que sigue apareciendo en 1-1 mientras la misión esté pendiente,
-    // aunque ya lo hayas reclutado). Al OFRECERSE (cobrar la de armas) los árboles y rocas
+    // aunque ya lo hayas reclutado). Al OFRECERSE (cobrar la de nivel) los árboles y rocas
     // de Asgard dejan de reaparecer (ver HOGAR_NODES_STOP_QUEST en gamescene).
     id: 'noexp_kugo',
     arc: 1,
@@ -341,7 +345,7 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     track: 'QUESTS.NOEXP_KUGO.TRACK',
     objective: { type: 'talk', goal: 1, npc: 'Kugo' },
     reward: { exp: 10 },
-    requires: 'noexp_armas',
+    requires: 'noexp_nivel_talento',
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Kugo', text: 'NPC.KUGO_QUEST_CLAIM' },
   },
@@ -381,6 +385,8 @@ export class QuestService implements OnDestroy {
   private buildSub: Subscription;
   private equipSub: Subscription;
   private combatEquipSub: Subscription;
+  private levelSub: Subscription;
+  private talentSub: Subscription;
   private skipSub: Subscription;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -396,6 +402,7 @@ export class QuestService implements OnDestroy {
     private cityBuild: CityBuildService,
     private gathering: GatheringEquipmentService,
     private equipment: EquipmentService,
+    private talent: TalentService,
   ) {
     // Al cambiar "sin exploración" cambia la cadena entera: saneamos lo fijado y
     // re-enganchamos la que toca (ver syncChain).
@@ -421,6 +428,9 @@ export class QuestService implements OnDestroy {
     this.equipSub = this.gathering.changes$.subscribe(() => this.onEquip());
     // Equipo de combate (arma, armadura…): idem.
     this.combatEquipSub = this.equipment.changes$.subscribe(() => this.onEquip());
+    // Nivel y árbol de talentos: sincronizan las misiones 'levelTalent'.
+    this.levelSub = this.playerState.lvl$.subscribe(() => this.onLevelTalent());
+    this.talentSub = this.talent.changes$.subscribe(() => this.onLevelTalent());
   }
 
   ngOnDestroy(): void {
@@ -431,6 +441,8 @@ export class QuestService implements OnDestroy {
     this.buildSub?.unsubscribe();
     this.equipSub?.unsubscribe();
     this.combatEquipSub?.unsubscribe();
+    this.levelSub?.unsubscribe();
+    this.talentSub?.unsubscribe();
     this.skipSub?.unsubscribe();
     if (this.persistTimer) clearTimeout(this.persistTimer);
   }
@@ -466,6 +478,8 @@ export class QuestService implements OnDestroy {
     // (Los startFlags NO se marcan aquí: UnlockService carga sus flags DESPUÉS que las
     // misiones en SaveService.loadCharacter y los pisaría. Se marcan al cobrar la previa.)
     this.onEquip();
+    // Nivel y talentos actuales (misiones 'levelTalent').
+    this.onLevelTalent();
     // Calienta el cache de construcciones/recetas (idempotente) para que el panel
     // Construir y la ficha del item sepan desde el primer frame qué hay aprendido.
     await this.cityBuild.load();
@@ -492,6 +506,11 @@ export class QuestService implements OnDestroy {
         for (const f of q.startFlags ?? []) if (!this.unlocks.hasFlag(f)) this.unlocks.setFlag(f, 'char');
       }
       this.persistNow();
+    } else {
+      // Recetas de las misiones ya ofrecidas: normalmente se dan al cobrar la previa, pero
+      // si la cadena cambia (p.ej. dos misiones fusionadas en una) una misión puede quedar
+      // ofrecida sin haberlas dado. Aquí los flags ya están cargados; es idempotente.
+      this.grantStartFlags();
     }
     this.notify();
   }
@@ -632,10 +651,11 @@ export class QuestService implements OnDestroy {
     return this.list().filter(q => this.completedSet.has(q.id));
   }
 
-  /** Para UnlockService: ¿cuenta la misión `id` como hecha? Cobrada, o bien fuera de la
-   *  cadena de este personaje (sin ella no podría desbloquearse nunca). Sin personaje
-   *  cargado, no: el desbloqueo es permanente y no debe concederse antes de tiempo. */
-  private missionSatisfied(id: string): boolean {
+  /** ¿Cuenta la misión `id` como hecha? Cobrada, o bien fuera de la cadena de este
+   *  personaje (sin ella no podría desbloquearse nunca). Sin personaje cargado, no: el
+   *  desbloqueo es permanente y no debe concederse antes de tiempo. Lo usan UnlockService
+   *  y los portales bloqueados por misión (`requiresQuest`). */
+  missionSatisfied(id: string): boolean {
     if (!this.charId || !this.loaded) return false;
     if (this.completedSet.has(id)) return true;
     return !this.list().some(q => q.id === id);
@@ -817,6 +837,31 @@ export class QuestService implements OnDestroy {
     }
   }
 
+  /** Marca el progreso de las misiones 'levelTalent': 1 al llegar al nivel pedido, 2 al
+   *  tener además esos puntos de talento gastados. Solo con el prerequisito cobrado;
+   *  pegajoso (no baja aunque resetees el árbol). */
+  private onLevelTalent(): void {
+    let changed = false;
+    for (const def of this.list()) {
+      const obj = def.objective;
+      if (obj.type !== 'levelTalent') continue;
+      if (this.completedSet.has(def.id)) continue;
+      if (!this.prereqMet(def)) continue;
+      const cur = this.progress[def.id] ?? 0;
+      if (cur >= obj.goal) continue;
+      const leveled = this.playerState.snapshot().lvl >= obj.level;
+      const assigned = leveled && this.talent.pointsSpent() >= obj.level;
+      const done = (leveled ? 1 : 0) + (assigned ? 1 : 0);
+      if (done <= cur) continue;
+      this.progress[def.id] = done;
+      changed = true;
+    }
+    if (changed) {
+      this.notify();
+      this.schedulePersist();
+    }
+  }
+
   /** Marca los `startFlags` de las misiones que ya están ofrecidas (prerequisito
    *  cobrado), p.ej. la receta del pico al ofrecer su misión. Idempotente. */
   private grantStartFlags(): void {
@@ -863,6 +908,7 @@ export class QuestService implements OnDestroy {
     this.grantStartFlags();   // las recién ofrecidas desbloquean lo suyo (p.ej. receta)
     this.onEquip();           // si ya llevas puesto lo que pide la siguiente, cuenta ya
     this.onCollect();         // ídem con los materiales que ya lleves encima
+    this.onLevelTalent();     // ídem con el nivel y los talentos ya repartidos
     this.completed$.next(def);
     this.notify();
     this.persistNow();  // los completados se guardan al momento (recompensa ya dada)
@@ -907,6 +953,10 @@ export class QuestService implements OnDestroy {
     if (!reward) return;
     if (reward.coins) this.playerState.collectCoins(reward.coins);
     if (reward.exp)   this.playerState.addExp(reward.exp);
+    if (reward.toLevel) {
+      const need = this.playerState.expToReachLevel(reward.toLevel);
+      if (need > 0) this.playerState.addExp(need);
+    }
     if (reward.runMilestone) this.runProgress.grant(reward.runMilestone);
     for (const want of reward.items ?? []) this.grantItem(want.name, want.qty);
   }

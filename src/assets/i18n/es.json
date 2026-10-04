@@ -460,20 +460,10 @@
       "DESC": "Mordekai te ha dado los planos de una mesa de trabajo. Ábrelos desde el inventario con el botón Aprender y luego pulsa el martillo del menú de abajo (solo en Asgard) para construirla. Recompensa: 10 de experiencia.",
       "TRACK": "Construye el banco de trabajo"
     },
-    "NOEXP_HACHA": {
-      "NAME": "Fabrica un hacha",
-      "DESC": "Mordekai quiere verte con herramientas de verdad. Abre la mesa de trabajo, fabrica el Hacha de Hierro (2 de piedra y 2 de madera) y luego ábrela en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Fabrica y equipa el hacha"
-    },
-    "NOEXP_PICO": {
-      "NAME": "Fabrica un pico",
-      "DESC": "Mordekai te ha enseñado a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrica el Pico de Hierro (2 de piedra y 2 de madera) y luego ábrelo en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Fabrica y equipa el pico"
-    },
-    "NOEXP_DAGA": {
-      "NAME": "Fabrica una daga oxidada",
-      "DESC": "Mordekai te ha enseñado a hacer tu primera arma: ya la tienes en la mesa de trabajo. Fabrica la Daga Oxidada (2 de piedra y 2 de madera), ábrela en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Fabrica y equipa la daga"
+    "NOEXP_HERRAMIENTAS": {
+      "NAME": "Fabrica tus herramientas",
+      "DESC": "Mordekai quiere verte con herramientas de verdad. En la mesa de trabajo fabrica el Hacha de Hierro y el Pico de Hierro (2 de piedra y 2 de madera cada uno), ábrelos en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
+      "TRACK": "Fabrica y equipa hacha y pico"
     },
     "MATA_RATA": {
       "NAME": "Rata hachiática",
@@ -481,15 +471,21 @@
       "TRACK": "Mata 1 rata"
     },
     "NOEXP_ARMAS": {
-      "NAME": "Fabrica una armadura",
-      "DESC": "Ahora protégete: en la mesa de trabajo también sabes hacer la Coraza de Marfil. Fabrícala (2 de piedra y 2 de madera), ábrela en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Fabrica y equipa la coraza"
+      "NAME": "Fabrica arma y armadura",
+      "DESC": "Antes de pelear necesitas equiparte. En la mesa de trabajo ya sabes hacer la Daga Oxidada y la Coraza de Marfil (2 de piedra y 2 de madera cada una). Fabrica las dos, ábrelas en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: la experiencia justa para subir a nivel 2.",
+      "TRACK": "Fabrica y equipa daga y coraza"
+    },
+    "NOEXP_NIVEL_TALENTO": {
+      "NAME": "Sube de nivel",
+      "DESC": "Has subido a nivel 2 y tienes un punto de talento nuevo. Abre el árbol de talentos en la ventana de equipo y asígnalo. Después habla con Mordekai. Recompensa: 10 de experiencia.",
+      "TRACK": "Asigna tu punto de talento"
     },
     "NOEXP_KUGO": {
       "NAME": "Visita a Kugo",
-      "DESC": "Mordekai quiere que conozcas a Kugo, que te espera en el mapa 1-1. Cruza el portal del oeste de Asgard y habla con él. Recompensa: 10 de experiencia.",
+      "DESC": "Mordekai quiere que conozcas a Kugo, que te espera en el mapa 1-1. Cruza el portal del este de Asgard y habla con él. Recompensa: 10 de experiencia.",
       "TRACK": "Habla con Kugo en 1-1"
-    }
+    },
+    "REWARD_TO_LEVEL": "Sube a nivel {{level}}"
   },
   "PET": {
     "LEVEL": "Nivel",
@@ -502,13 +498,48 @@
     "BOUND_TO": "Vinculado con"
   },
   "TALENT": {
-    "REMOVE_SPHERE": "Quitar esfera",
-    "UNLOCK": "Desbloquear",
     "NO_POINTS": "Sin puntos de talento",
     "LOCKED_PATH": "Desbloquea antes el nodo anterior",
     "RELOCK": "Recuperar punto",
-    "NO_SPHERES": "Sin esferas",
-    "TREE_COMBAT": "Combate"
+    "NEEDS_LEVEL": "Necesitas nivel {{level}}",
+    "LOCKED_BOTH": "Necesitas las dos ramas",
+    "TREE": {
+      "WARRIOR": "Guerrero",
+      "ARCANE": "Arcano",
+      "TECHNIQUE": "Técnica"
+    },
+    "NODE": {
+      "STR1": "Fuerza I",
+      "VIT1": "Vitalidad I",
+      "GUARD1": "Guardia I",
+      "CRIT1": "Golpe Certero",
+      "STR2": "Fuerza II",
+      "OAK_HEART": "Corazón de Roble",
+      "INT1": "Ingenio I",
+      "MANA1": "Maná I",
+      "INT2": "Ingenio II",
+      "SERENITY": "Serenidad",
+      "MANA_WELL": "Pozo de Maná",
+      "SPEED1": "Celeridad I",
+      "LUCK1": "Fortuna I",
+      "EXPLORER1": "Explorador I",
+      "REFLEX1": "Reflejos I",
+      "WIND_HANDS": "Manos de Viento",
+      "MINER": "Minero Experto",
+      "MINE_DROP": "Doble Botín de Minería",
+      "BLESSING": "Bendición del Botín"
+    },
+    "POINTS": "Puntos",
+    "KIND_ABILITY": "Habilidad",
+    "KIND_STAT": "Atributo",
+    "POWER": "Poder",
+    "MANA_COST": "Maná",
+    "COOLDOWN": "Recarga",
+    "LEARNED": "Aprendido",
+    "IN_HUD": "En tu barra de habilidades",
+    "LEARN_ABILITY": "Aprende esta nueva habilidad",
+    "LEARN": "Aprender",
+    "COST_ONE": "Cuesta 1 punto"
   },
   "SKILLS": {
     "TITLE": "Habilidades",
@@ -845,7 +876,8 @@
     "SEALED_TITLE": "Portal sellado",
     "SEALED_DESC": "Este portal está sellado. Entrega los materiales para abrirlo.",
     "SEALED_OPEN": "Crear",
-    "SEALED_MISSING": "Te faltan materiales"
+    "SEALED_MISSING": "Te faltan materiales",
+    "LOCKED_QUEST": "Termina la misión «{{quest}}»"
   },
   "EQUIP_VIEW": {
     "COMBAT": "Combate",
@@ -863,17 +895,15 @@
     "MORDEKAI_GENERIC_INTRO": "Siguiente encargo, {{player}}: {{task}}.",
     "MORDEKAI_GENERIC_PROGRESS": "{{task}} — llevas {{prog}}/{{goal}}. Sigue.",
     "MORDEKAI_GENERIC_CLAIM": "¡Hecho, {{player}}! Toma tu recompensa.",
-    "MORDEKAI_DONE": "Cuando quieras luchar de verdad, {{player}}, cruza el portal del oeste hacia 1-1. Ahí te esperan los primeros monstruos.",
-    "MORDEKAI_CLAIM": "¡Ya tienes tu estrella, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del oeste, a 1-1: es hora de empuñar el acero.",
+    "MORDEKAI_DONE": "Cuando quieras luchar de verdad, {{player}}, cruza el portal del este hacia 1-1. Ahí te esperan los primeros monstruos.",
+    "MORDEKAI_CLAIM": "¡Ya tienes tu estrella, {{player}}! Ya sabes moverte ahí fuera. Toma esto y ve al portal del este, a 1-1: es hora de empuñar el acero.",
     "MORDEKAI_CLAIM1": "¡Bien hecho, bro! Ahora mata 1 rata hachiática. Las verás en la exploración, correteando a ras de suelo.",
     "MORDEKAI_CLAIM2": "¡Buena, bro!",
     "MORDEKAI_NOEXP_CLAIM0": "¡Bien hecho! Dame esa piedra y esa madera… y toma estos planos a cambio; además ganas 10 de experiencia. Ábrelos en el inventario y pulsa Aprender; luego levanta el banco con el martillo del menú de abajo.",
     "MORDEKAI_BENCH_INTRO": "Esos planos no sirven de nada en la mochila, {{player}}. Pulsa el item en el inventario, dale a Aprender y después levanta el banco con el martillo del menú de abajo.",
     "MORDEKAI_BENCH_PROGRESS": "Aún no veo tu banco de trabajo, {{player}}. Si ya aprendiste los planos, pulsa el martillo del menú de abajo, arrástralo a un hueco libre y confirma con ✓.",
-    "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de experiencia. Ahora úsalo: abre la mesa de trabajo y fabrica un hacha; luego búscala en la mochila y pulsa Equipar. Luego vuelve a hablar conmigo.",
-    "MORDEKAI_AXE_CLAIM": "¡Eso es un hacha como Dios manda, {{player}}! Toma 10 de experiencia. Ahora te enseño a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrícalo, equípatelo y vuelve.",
-    "MORDEKAI_PICK_CLAIM": "¡Perfecto, {{player}}! Ya tienes hacha y pico. Toma 10 de experiencia. Antes de pelear necesitas un arma: te he enseñado a hacer una daga en la mesa de trabajo. Fabrícala y póntela.",
-    "MORDEKAI_DAGGER_CLAIM": "¡Eso ya corta, {{player}}! Toma 10 de experiencia. Ahora protégete: en la mesa de trabajo también sabes hacer una coraza. Fabrícala y póntela.",
+    "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de experiencia. Ahora úsalo: abre la mesa de trabajo y fabrica un hacha y un pico; luego búscalos en la mochila y pulsa Equipar. Luego vuelve a hablar conmigo.",
+    "MORDEKAI_PICK_CLAIM": "¡Perfecto, {{player}}! Ya tienes hacha y pico. Toma 10 de experiencia. Antes de pelear necesitas equiparte: te he enseñado a hacer una daga y una coraza en la mesa de trabajo. Fabrica las dos y póntelas.",
     "MORDEKAI_PROGRESS": "Llevas {{prog}}/{{goal}} estrellas. Sigue saltando a por ellas en la exploración (portal del este).",
     "MORDEKAI_INTRO": "Ahora aprende a explorar, {{player}}: cruza el portal del este y reúne estrellas. Toca la pantalla para saltar y recógelas al vuelo.",
     "MORDEKAI_COLLECT_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Empieza recogiendo del suelo 5 de Piedra y 5 de Madera: acércate a las piedras y troncos y pulsa el botón de acción.",
@@ -884,9 +914,10 @@
     "KUGO_LINE": "{{player}}, ¡cuánto tiempo!",
     "ITALIEN_LINE": "Eh, {{player}}, ¿listo para la aventura?",
     "RAKE_LINE": "{{player}}, cuando quieras partimos.",
-    "MORDEKAI_GEAR_CLAIM": "¡Ahora sí pareces un guerrero, {{player}}! Toma 10 de experiencia. Ahora ve a 1-1 por el portal del oeste y habla con Kugo: te está esperando.",
-    "MORDEKAI_KUGO_INTRO": "Ya tienes equipo de sobra, {{player}}. Ve a 1-1 por el portal del oeste y busca a Kugo: te está esperando.",
-    "MORDEKAI_KUGO_PROGRESS": "¿Aún no has hablado con Kugo, {{player}}? Está en 1-1, cruzando el portal del oeste.",
+    "MORDEKAI_GEAR_CLAIM": "¡Ahora sí pareces un guerrero, {{player}}! Toma esta experiencia: ya eres nivel 2. Ahora asigna tu punto de talento en el árbol de talentos y vuelve a hablar conmigo.",
+    "MORDEKAI_LEVEL_CLAIM": "¡Se nota que has crecido, {{player}}! Toma 10 de experiencia. Ahora ve a 1-1 por el portal del este y habla con Kugo: te está esperando.",
+    "MORDEKAI_KUGO_INTRO": "Ya tienes equipo de sobra, {{player}}. Ve a 1-1 por el portal del este y busca a Kugo: te está esperando.",
+    "MORDEKAI_KUGO_PROGRESS": "¿Aún no has hablado con Kugo, {{player}}? Está en 1-1, cruzando el portal del este.",
     "KUGO_QUEST_CLAIM": "¡Así que tú eres {{player}}! Mordekai me habló de ti. Toma 10 de experiencia por el paseo."
   },
   "WORKBENCH": {
