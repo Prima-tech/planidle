@@ -24,9 +24,8 @@ import { ITEM_CATALOG, hydrateItem } from '../physics/griddrops';
 // Estados:
 //   - DISPONIBLE: progreso < objetivo (en curso)
 //   - RECLAMABLE: progreso >= objetivo pero aún NO cobrada (sigue en Disponibles
-//     con un botón "Completar"). Al llegar al objetivo NO se autocompleta: se
-//     enciende el aviso (notif-dot 'equip.quests', mismo sistema que el punto de
-//     stats al subir de nivel) para indicar que se puede cobrar.
+//     con un botón "Completar"). Al llegar al objetivo NO se autocompleta. (Sin
+//     punto de aviso: se quitó a petición — no se avisa en el nombre ni en la pestaña.)
 //   - COMPLETADA: el jugador pulsó "Completar" → recompensa entregada.
 // Ortogonal a esos: una misión no completada puede estar ACTIVA (fijada). Las
 // activas se muestran en el rastreador del HUD (arriba-izquierda); máximo 5.
@@ -296,34 +295,35 @@ export const QUESTS_NO_EXPLORATION: QuestDef[] = [
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_PICK_CLAIM' },
   },
   {
-    // Estrenar las herramientas: talar y picar hasta reunir 5 Madera + 5 Piedra (lo que
-    // sueltan los árboles y las rocas de piedra de Asgard), que se entregan a Mordekai
-    // al cobrarla.
-    id: 'noexp_farmeo',
+    // Tras el pico, directo al equipo de combate (ya no hay misión de reunir madera y
+    // piedra). Al OFRECERLA se desbloquean en la mesa de trabajo las recetas del arma y
+    // la pechera básicas (startFlags). Fabricar la daga y equipársela; se entrega
+    // hablando con Mordekai.
+    id: 'noexp_daga',
     arc: 1,
-    name: 'QUESTS.NOEXP_FARMEO.NAME',
-    desc: 'QUESTS.NOEXP_FARMEO.DESC',
-    icon: 'leaf-outline',
-    track: 'QUESTS.NOEXP_FARMEO.TRACK',
-    objective: { type: 'collect', goal: 2, consume: true, items: [{ name: 'Madera', qty: 5 }, { name: 'Piedra', qty: 5 }] },
+    name: 'QUESTS.NOEXP_DAGA.NAME',
+    desc: 'QUESTS.NOEXP_DAGA.DESC',
+    icon: 'flash-outline',
+    track: 'QUESTS.NOEXP_DAGA.TRACK',
+    objective: { type: 'equip', goal: 1, itemName: 'Daga Oxidada' },
     reward: { exp: 10 },
     requires: 'noexp_pico',
+    startFlags: [RECIPE_STARTER_GEAR_FLAG],
     giver: 'Mordekai',
-    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_FARM_CLAIM' },
+    claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_DAGGER_CLAIM' },
   },
   {
-    // Al ofrecerla (cobrar la de farmeo) se desbloquean en la mesa de trabajo las
-    // recetas del arma y la pechera más básicas. Fabricar ambas y equipárselas; se
-    // entrega hablando con Mordekai.
+    // Fabricar la coraza y equipársela. Conserva el id 'noexp_armas' (antes pedía daga
+    // Y coraza a la vez): la de Kugo cuelga de él y ya está en las partidas guardadas.
     id: 'noexp_armas',
     arc: 1,
     name: 'QUESTS.NOEXP_ARMAS.NAME',
     desc: 'QUESTS.NOEXP_ARMAS.DESC',
     icon: 'shield-half-outline',
     track: 'QUESTS.NOEXP_ARMAS.TRACK',
-    objective: { type: 'equip', goal: 2, itemNames: ['Daga Oxidada', 'Coraza de Marfil'] },
+    objective: { type: 'equip', goal: 1, itemName: 'Coraza de Marfil' },
     reward: { exp: 10 },
-    requires: 'noexp_farmeo',
+    requires: 'noexp_daga',
     startFlags: [RECIPE_STARTER_GEAR_FLAG],
     giver: 'Mordekai',
     claimDialogue: { speaker: 'Mordekai', text: 'NPC.MORDEKAI_GEAR_CLAIM' },
@@ -471,9 +471,6 @@ export class QuestService implements OnDestroy {
     await this.cityBuild.load();
     // Si vino del snapshot, sincroniza la clave local para que coincida.
     if (override) this.persistNow();
-    // Si quedó alguna misión lista para cobrar, reaviva el notif-dot al cargar
-    // (solo si la UI de misiones ya está desbloqueada; ver flagQuestsBadge).
-    if (this.hasClaimable()) this.flagQuestsBadge();
     this.notify();
   }
 
@@ -567,15 +564,6 @@ export class QuestService implements OnDestroy {
    *  ('recoge_materiales' activa o completada). Antes de eso NO debe encenderse el aviso
    *  (notif-dot), aunque el objetivo ya esté "reclamable" (p.ej. recoger materiales antes
    *  de hablar con Mordekai): el punto rojo apuntaría a una pestaña oculta sin nada que cobrar. */
-  private questsUiUnlocked(): boolean {
-    return this.activeSet.has('recoge_materiales') || this.completedSet.has('recoge_materiales');
-  }
-
-  /** Enciende el aviso de misiones, pero solo si la UI ya está desbloqueada. */
-  private flagQuestsBadge(): void {
-    if (this.questsUiUnlocked()) this.badges.flag('equip.quests');
-  }
-
   available(): QuestDef[] {
     return this.list().filter(q => !this.completedSet.has(q.id) && this.prereqMet(q));
   }
@@ -708,9 +696,6 @@ export class QuestService implements OnDestroy {
     if (this.activeSet.has(def.id)) return;
     if (!this.canActivate()) return;
     this.activeSet.add(def.id);
-    // Si al darla ya estaba reclamable (p.ej. cogiste la estrella antes de que
-    // Mordekai te la diera), enciende ahora el aviso: la UI acaba de desbloquearse.
-    if (this.isClaimable(def)) this.flagQuestsBadge();
     this.notify();
     this.persistNow();
   }
@@ -739,9 +724,6 @@ export class QuestService implements OnDestroy {
 
       this.progress[def.id] = (this.progress[def.id] ?? 0) + 1;
       changed = true;
-      // Justo al alcanzar el objetivo: enciende el aviso (mismo notif-dot que
-      // el punto de stats al subir de nivel) para indicar que se puede cobrar.
-      if (this.progress[def.id] >= def.objective.goal) this.flagQuestsBadge();
     }
     if (changed) {
       this.notify();
@@ -763,7 +745,6 @@ export class QuestService implements OnDestroy {
       if (next !== cur) {
         this.progress[def.id] = next;
         changed = true;
-        if (next >= def.objective.goal) this.flagQuestsBadge();
       }
     }
     if (changed) {
@@ -786,7 +767,6 @@ export class QuestService implements OnDestroy {
       if (!this.unlocks.hasFlag(def.objective.flag)) continue;   // portal aún sellado
       this.progress[def.id] = def.objective.goal;
       changed = true;
-      this.flagQuestsBadge();
     }
     if (changed) {
       this.notify();
@@ -809,7 +789,6 @@ export class QuestService implements OnDestroy {
       if (!this.cityBuild.isBuilt(def.objective.buildType)) continue;   // aún sin construir
       this.progress[def.id] = def.objective.goal;
       changed = true;
-      this.flagQuestsBadge();
     }
     if (changed) {
       this.notify();
@@ -831,7 +810,6 @@ export class QuestService implements OnDestroy {
       if (worn <= cur) continue;
       this.progress[def.id] = Math.min(worn, def.objective.goal);
       changed = true;
-      if (worn >= def.objective.goal) this.flagQuestsBadge();
     }
     if (changed) {
       this.notify();
@@ -864,7 +842,6 @@ export class QuestService implements OnDestroy {
       if (next !== cur) {
         this.progress[def.id] = next;
         changed = true;
-        if (next >= def.objective.goal) this.flagQuestsBadge();
       }
     }
     if (changed) {

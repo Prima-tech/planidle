@@ -333,6 +333,9 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     if (this.equipmentModal.isOpenModal()) {
       this.equipmentModal.close();
     } else {
+      // El equipo sustituye a la mesa de trabajo (mismo lado): el inventario que abrió la
+      // mesa se queda abierto — vas a equipar desde él (p.ej. el pico/hacha recién hecho).
+      this.inventoryOpenedByWorkbench = false;
       this.closeOtherOnSide('left', this.equipmentModal);
       this.equipmentModal.open(EquipmentComponent, 'equipment');
     }

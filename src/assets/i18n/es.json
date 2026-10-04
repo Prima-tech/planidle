@@ -470,10 +470,10 @@
       "DESC": "Mordekai te ha enseñado a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrica el Pico de Hierro (2 de piedra y 2 de madera) y luego ábrelo en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
       "TRACK": "Fabrica y equipa el pico"
     },
-    "NOEXP_FARMEO": {
-      "NAME": "Estrena las herramientas",
-      "DESC": "Con hacha y pico ya puedes trabajar de verdad. Tala árboles y pica rocas hasta reunir 5 de Madera y 5 de Piedra, y entrégaselos a Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Reúne 5 de madera y 5 de piedra"
+    "NOEXP_DAGA": {
+      "NAME": "Fabrica una daga oxidada",
+      "DESC": "Mordekai te ha enseñado a hacer tu primera arma: ya la tienes en la mesa de trabajo. Fabrica la Daga Oxidada (2 de piedra y 2 de madera), ábrela en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
+      "TRACK": "Fabrica y equipa la daga"
     },
     "MATA_RATA": {
       "NAME": "Rata hachiática",
@@ -481,9 +481,9 @@
       "TRACK": "Mata 1 rata"
     },
     "NOEXP_ARMAS": {
-      "NAME": "Arma y armadura",
-      "DESC": "Mordekai te ha enseñado a fabricar tu primer equipo de combate: ya lo tienes en la mesa de trabajo. Fabrica la Daga Oxidada y la Coraza de Marfil (2 de piedra y 2 de madera cada una), ábrelas en la mochila y pulsa Equipar en las dos. Después habla con Mordekai. Recompensa: 10 de experiencia.",
-      "TRACK": "Fabrica y equipa arma y coraza"
+      "NAME": "Fabrica una armadura",
+      "DESC": "Ahora protégete: en la mesa de trabajo también sabes hacer la Coraza de Marfil. Fabrícala (2 de piedra y 2 de madera), ábrela en la mochila y pulsa Equipar. Después habla con Mordekai. Recompensa: 10 de experiencia.",
+      "TRACK": "Fabrica y equipa la coraza"
     },
     "NOEXP_KUGO": {
       "NAME": "Visita a Kugo",
@@ -872,8 +872,8 @@
     "MORDEKAI_BENCH_PROGRESS": "Aún no veo tu banco de trabajo, {{player}}. Si ya aprendiste los planos, pulsa el martillo del menú de abajo, arrástralo a un hueco libre y confirma con ✓.",
     "MORDEKAI_BENCH_CLAIM": "¡Ahí lo tienes, {{player}}! Toma 10 de experiencia. Ahora úsalo: abre la mesa de trabajo y fabrica un hacha; luego búscala en la mochila y pulsa Equipar. Luego vuelve a hablar conmigo.",
     "MORDEKAI_AXE_CLAIM": "¡Eso es un hacha como Dios manda, {{player}}! Toma 10 de experiencia. Ahora te enseño a hacer un pico: ya lo tienes en la mesa de trabajo. Fabrícalo, equípatelo y vuelve.",
-    "MORDEKAI_PICK_CLAIM": "¡Perfecto, {{player}}! Ya tienes hacha y pico. Toma 10 de experiencia. Ahora estrénalos: tala árboles y pica menas hasta reunir 5 de Madera y 5 de Mineral de Cobre, y tráemelos.",
-    "MORDEKAI_FARM_CLAIM": "¡Eso es trabajar, {{player}}! Me quedo los materiales; toma 10 de experiencia. Antes de pelear necesitas equipo: te he enseñado a hacer una daga y una coraza en la mesa de trabajo. Fabrícalas y póntelas.",
+    "MORDEKAI_PICK_CLAIM": "¡Perfecto, {{player}}! Ya tienes hacha y pico. Toma 10 de experiencia. Antes de pelear necesitas un arma: te he enseñado a hacer una daga en la mesa de trabajo. Fabrícala y póntela.",
+    "MORDEKAI_DAGGER_CLAIM": "¡Eso ya corta, {{player}}! Toma 10 de experiencia. Ahora protégete: en la mesa de trabajo también sabes hacer una coraza. Fabrícala y póntela.",
     "MORDEKAI_PROGRESS": "Llevas {{prog}}/{{goal}} estrellas. Sigue saltando a por ellas en la exploración (portal del este).",
     "MORDEKAI_INTRO": "Ahora aprende a explorar, {{player}}: cruza el portal del este y reúne estrellas. Toca la pantalla para saltar y recógelas al vuelo.",
     "MORDEKAI_COLLECT_INTRO": "Bienvenido a Asgard, {{player}}. Soy Mordekai. Empieza recogiendo del suelo 5 de Piedra y 5 de Madera: acércate a las piedras y troncos y pulsa el botón de acción.",

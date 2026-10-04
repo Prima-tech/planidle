@@ -56,7 +56,6 @@ export class EquipmentComponent implements OnInit, OnDestroy {
     if (v !== 0) { this.statsFlyoutOpen = false; this.showGathering = false; this.selectedEquippedItem = null; }
     if (v !== 5) { this.selectedAch = null; this.expandedAchId = null; }
     if (v === 5) this.badges.clear('equip.achievements');
-    if (v === 6) this.badges.clear('equip.quests');
   }
 
   // ── Skills de recolección (tab 7) ────────────────────────────────────────────
