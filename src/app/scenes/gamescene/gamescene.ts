@@ -135,6 +135,7 @@ interface HarvestNode {
   // Barra de vida: se crea/muestra en cuanto el recurso baja del 100% de vida.
   hpBarTrack?: Phaser.GameObjects.Rectangle;
   hpBarFill?:  Phaser.GameObjects.Rectangle;
+  shadow?:     Phaser.GameObjects.Ellipse;   // sombra bajo la base (tiers con `shadow`)
 }
 
 export class GameScene extends Phaser.Scene {
@@ -2852,10 +2853,17 @@ export class GameScene extends Phaser.Scene {
       // árbol); si está por debajo, el jugador pasa por delante.
       sprite.setDepth(baseY);
       for (const k of tileKeys) this.collisionTiles.add(k);   // bloquea su huella
+      // Sombra de elipse bajo la base (como los edificios), solo en tiers que la piden.
+      let shadow: Phaser.GameObjects.Ellipse | undefined;
+      if (this.harvestTierOf(id, tier)?.shadow) {
+        shadow = this.add.ellipse(cx, cy - sprite.displayHeight * 0.08,
+          sprite.displayWidth * 0.95, sprite.displayHeight * 0.35, 0x000000, 0.28);
+        shadow.setDepth(1.9);   // sobre el suelo, bajo todo lo que se ordena por Y
+      }
       // El recurso nace con la vida de su tier (menas, gemas y árboles); cada golpe le
       // resta la fuerza del jugador (minado/tala).
       const mineHp = this.harvestTierOf(id, tier)?.mineHp ?? 20;
-      this.nodes.push({ sprite, hits: 0, mineHp, mineHpMax: mineHp, tileKeys, kind: id, tier });
+      this.nodes.push({ sprite, hits: 0, mineHp, mineHpMax: mineHp, tileKeys, kind: id, tier, shadow });
     }
 
     /** Herramienta de la categoría dada equipada en su slot de recolección, o null. */
@@ -3098,6 +3106,8 @@ export class GameScene extends Phaser.Scene {
         targets: s, scaleX: baseScale * 1.2, scaleY: baseScale * 1.2, alpha: 0, duration: 220, ease: 'Quad.easeOut',
         onComplete: () => s.destroy(),
       });
+      const sh = node.shadow;
+      if (sh) this.tweens.add({ targets: sh, alpha: 0, duration: 220, onComplete: () => sh.destroy() });
     }
 
     /** Pequeño destello blanco que se expande y desvanece en el punto de impacto. */
@@ -3856,11 +3866,26 @@ export class GameScene extends Phaser.Scene {
 
     /** Lista de tiles `${x},${y}` cubiertas por una caja de lado 2·half px centrada en (x,y). */
     private computeFootprintTiles(centerX: number, centerY: number, half: number): string[] {
+      return this.computeRectTiles(centerX - half, centerY - half, centerX + half, centerY + half);
+    }
+
+    /** Tiles sólidos de un edificio: su `hitbox` (px de la textura, escalado) o, sin
+     *  ella, el frame entero. La hitbox se mide desde la esquina del frame REAL del
+     *  sprite (puede no ser cuadrado, p.ej. la mesa de trabajo 34×25). */
+    private buildingCollisionTiles(def: BuildableDef, sprite: Phaser.GameObjects.Sprite): string[] {
+      const hb = def.hitbox;
+      if (!hb) return this.computeFootprintTiles(sprite.x, sprite.y, (def.frameSize * def.scale) / 2);
+      const left = sprite.x - sprite.displayWidth  / 2 + hb.x * def.scale;
+      const top  = sprite.y - sprite.displayHeight / 2 + hb.y * def.scale;
+      return this.computeRectTiles(left, top, left + hb.w * def.scale, top + hb.h * def.scale);
+    }
+
+    private computeRectTiles(left: number, top: number, right: number, bottom: number): string[] {
       const TS  = GameScene.TILE_SIZE;
-      const tx0 = Math.floor((centerX - half) / TS);
-      const tx1 = Math.floor((centerX + half - 1) / TS);
-      const ty0 = Math.floor((centerY - half) / TS);
-      const ty1 = Math.floor((centerY + half - 1) / TS);
+      const tx0 = Math.floor(left / TS);
+      const tx1 = Math.floor((right - 1) / TS);
+      const ty0 = Math.floor(top / TS);
+      const ty1 = Math.floor((bottom - 1) / TS);
       const tiles: string[] = [];
       for (let tx = tx0; tx <= tx1; tx++) {
         for (let ty = ty0; ty <= ty1; ty++) tiles.push(`${tx},${ty}`);
@@ -3903,15 +3928,20 @@ export class GameScene extends Phaser.Scene {
       } else {
         const sprite = this.add.sprite(x, y, def.spriteKey, def.frame);
         sprite.setScale(def.scale);
-        sprite.setDepth(2);
+        // Orden por Y como el jugador y los recursos: profundidad = base del dibujo
+        // (fondo de la hitbox si la tiene). Así, al acercarse por arriba, el jugador
+        // queda DETRÁS del edificio.
+        sprite.setDepth(def.hitbox
+          ? y - sprite.displayHeight / 2 + (def.hitbox.y + def.hitbox.h) * def.scale
+          : y + sprite.displayHeight / 2);
         if (def.animKey && this.anims.exists(def.animKey)) sprite.play(def.animKey);
-        // Sombra de elipse bajo la base del sprite (objetos estáticos).
+        // Sombra de elipse bajo la base del sprite (todos salvo shadow: false).
         let shadow: Phaser.GameObjects.Ellipse | undefined;
-        if (def.shadow) {
-          const baseY = sprite.y + sprite.displayHeight / 2;
-          shadow = this.add.ellipse(sprite.x, baseY - sprite.displayHeight * 0.06,
-            sprite.displayWidth * 0.5, sprite.displayHeight * 0.16, 0x000000, 0.28);
-          shadow.setDepth(1.9);   // bajo el sprite (depth 2), sobre el suelo
+        if (def.shadow !== false) {
+          const baseY = sprite.y + sprite.displayHeight / 2 + (def.shadowOffsetY ?? 0) * def.scale;
+          shadow = this.add.ellipse(sprite.x + (def.shadowOffsetX ?? 0) * def.scale, baseY - sprite.displayHeight * 0.06,
+            sprite.displayWidth * (def.shadowWidth ?? 0.5), sprite.displayHeight * 0.16, 0x000000, 0.28);
+          shadow.setDepth(1.9);   // sobre el suelo, bajo todo lo que se ordena por Y
         }
         // Los edificios con ventana (fragua, fundición, tienda…) se pulsan para abrir
         // su menú: los marcamos interactivos para que los controles móviles
@@ -3921,7 +3951,7 @@ export class GameScene extends Phaser.Scene {
           sprite.setInteractive();
           sprite.setData('blockControls', true);
         }
-        const blocked = this.computeFootprintTiles(x, y, (def.frameSize * def.scale) / 2);
+        const blocked = this.buildingCollisionTiles(def, sprite);
         for (const k of blocked) this.collisionTiles.add(k);
         const pb = { building, sprite, blocked, shadow };
         this.placedBuildings.push(pb);

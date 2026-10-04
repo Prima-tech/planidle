@@ -36,6 +36,7 @@ export interface MiningTier {
   dropName:    string;   // item que suelta (nombre en ITEM_CATALOG)
   mmFrame?:    number;   // frame del icono en el minimapa (Icons.png 16px); sin él → punto (árboles)
   scale?:      number;   // escala visual; si falta usa la del HarvestKind (sprites de distinto tamaño)
+  shadow?:     boolean;  // true → elipse de sombra bajo la base (sprites sin sombra pintada)
   // Eficiencia de minado requerida para 100% de acierto. El jugador acierta el golpe
   // con prob = min(1, eficienciaJugador / efficiency); los fallos muestran "MISS" y no
   // cuentan para destruir la mena. Solo aplica a minería (rocas/gemas), no a árboles.
@@ -47,7 +48,7 @@ export interface MiningTier {
 export const MINING_TIERS: Record<number, MiningTier> = {
   // Tier 0 = roca de PIEDRA (no es mena): suelta "Piedra". Solo la usan sitios fijos de
   // Asgard (HOGAR_NODE_SPOTS con tier 0); ningún mapa tiene mineTier 0.
-  0: { rockTexture: 'rock_stone', dropName: 'Piedra', mmFrame: 150, efficiency: 5, mineHp: 15 },   // eff 5 = el Pico de Hierro no falla nunca; 3 golpes
+  0: { rockTexture: 'rock_stone', dropName: 'Piedra', mmFrame: 150, efficiency: 5, mineHp: 15, scale: 2, shadow: true },   // eff 5 = el Pico de Hierro no falla nunca; 3 golpes
   1: { rockTexture: 'rock_tier3', dropName: 'Mineral de Cobre',  mmFrame: 150, efficiency: 10,   mineHp: 20 }, // cobre (mena/icono del antiguo tier 3)
   2: { rockTexture: 'rock_tier2', dropName: 'Mineral de Bronce', mmFrame: 30,  efficiency: 50,   mineHp: 60 },  // bronce
   3: { rockTexture: 'rock_tier1', dropName: 'Mineral de Hierro', mmFrame: 33,  efficiency: 150,  mineHp: 150 },  // hierro (mena/icono del antiguo tier 1)

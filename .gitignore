@@ -73,3 +73,9 @@ Thumbs.db
 
 # Archivo basura de Windows (redirects a > NUL en Git Bash)
 NUL
+
+# Temporales de Playwright (capturas, perfiles de navegador)
+.playwright-tmp/
+
+# Cache de PowerShell que a veces se crea en el repo
+Microsoft/

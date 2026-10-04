@@ -32,8 +32,20 @@ export interface BuildableDef {
   isTownChest?: boolean;
   /** true → al pulsar el edificio en el mapa abre su ventana (openWindow$). */
   opensWindow?: boolean;
-  /** true → pinta una elipse de sombra bajo el sprite en el mapa. */
+  /** Elipse de sombra bajo el sprite en el mapa. Por defecto TODOS la llevan;
+   *  `false` la quita. Ajustar su sitio con shadowOffsetX/Y y shadowWidth. */
   shadow?: boolean;
+  /** Desplazamiento de la sombra en px de la textura original (se multiplican por
+   *  `scale`): X positivo → derecha, Y positivo → abajo. Para dibujos que no están
+   *  centrados en su frame o que dejan hueco transparente bajo la base. Default 0. */
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
+  /** Ancho de la sombra como fracción del ancho pintado del sprite. Default 0.5. */
+  shadowWidth?: number;
+  /** Zona SÓLIDA (colisión) en px de la textura original, relativa a la esquina
+   *  superior izquierda del frame. Sin definir → bloquea el frame entero. Sirve para
+   *  poder acercarse por arriba (la mitad superior del dibujo queda "detrás"). */
+  hitbox?: { x: number; y: number; w: number; h: number };
   /** true → hay que APRENDER su receta antes de poder construirlo (pestaña
    *  "Desbloqueadas" del panel). La receta se aprende desde el inventario, pulsando
    *  el item que la enseña (`teachesBuild`) y su botón "Aprender". Es permanente y
@@ -138,6 +150,12 @@ export const BUILDABLES: BuildableDef[] = [
     tilesW: 3, tilesH: 3, unique: false,
     requiresRecipe: true,
     opensWindow: true,
+    // El cuerpo de piedra está a la izquierda (el fuelle cuelga a la dcha.) y deja
+    // 11px libres abajo: sombra corrida a la izquierda y asomando bajo la base.
+    shadowOffsetX: -6, shadowOffsetY: -8, shadowWidth: 0.6,
+    // Dibujo en x 8..55, y 11..52: sólida solo la mitad inferior → se puede llegar
+    // por arriba hasta media altura.
+    hitbox: { x: 8, y: 32, w: 48, h: 21 },
     litAnimKey: 'forge_lit', litTexture: 'forge_lit',
     litFrames: [0,1,2,3,4], litFrameRate: 8,
     previewUrl: 'assets/sprites/stations/forge_off.png',
@@ -151,7 +169,6 @@ export const BUILDABLES: BuildableDef[] = [
     ...station('smelter', 'BUILD.SMELTER', 0, 1),
     spriteKey: 'smelter_off', frame: 0, animKey: undefined,
     scale: 1.5,   // 1/4 más pequeño que la escala base (2) al pintarlo en el mapa
-    shadow: true,
     opensWindow: true,
     litAnimKey: 'smelter_lit', litTexture: 'stations', litFrames: [3,4,5], litFrameRate: 4,
     previewUrl: 'assets/sprites/stations/smelter_off.png',
@@ -168,6 +185,10 @@ export const BUILDABLES: BuildableDef[] = [
     ...station('workbench', 'BUILD.WORKBENCH', 2, 0),
     spriteKey: 'workbench', frame: 0, animKey: undefined,
     frameSize: 34, scale: 3,
+    shadowOffsetY: 2, shadowWidth: 0.85,   // mesa ancha y baja: sombra alargada bajo las patas
+    // Hitbox reducida 1/3 por arriba (sólidos los 2/3 inferiores) → se llega más
+    // cerca por arriba. Ocupa 3×2 tiles en vez de 3×3.
+    hitbox: { x: 0, y: 8, w: 34, h: 17 },
     opensWindow: true,   // abre su ventana (izquierda)
     previewUrl: 'assets/sprites/stations/workbench.png',
     previewSrc: { x: 0, y: 0, w: 34, h: 25 },

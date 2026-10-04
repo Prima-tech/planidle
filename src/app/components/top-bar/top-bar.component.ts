@@ -355,6 +355,10 @@ export class TopBarComponent implements OnInit, OnDestroy {
   // (espada/pico/botas/hacha). null = idle (p.ej. en Asgard) → el template pinta "Zzz".
   activityIcon: string | null = null;
 
+  get activityLabelKey(): string {
+    return this.activity.def(this.activity.current).labelKey;
+  }
+
   /** Actualiza el icono del avatar según la actividad actual del personaje. */
   private refreshActivityIcon(): void {
     this.activityIcon = this.activity.def(this.activity.current).iconImg ?? null;

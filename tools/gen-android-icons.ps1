@@ -10,7 +10,7 @@ Add-Type -AssemblyName System.Drawing
 $root = Split-Path -Parent $PSScriptRoot
 $src  = Join-Path $root 'resources\icon.png'
 $res  = Join-Path $root 'android\app\src\main\res'
-$bgHex = '#011645'
+$bgHex = '#FEC902'   # amarillo del fondo de main.png
 
 if (-not (Test-Path $src)) {
     Write-Error "No encuentro $src. Copia tu icono ahi (1024x1024 PNG)."
@@ -63,10 +63,13 @@ Write-Host "Generando iconos desde: $src"
 foreach ($d in $densities.Keys) {
     $folder = Join-Path $res $d
     $sz = $densities[$d]
-    Resize-Png -Size $sz.legacy -OutPath (Join-Path $folder 'ic_launcher.png')       -Scale 0.9 -Fill $true
-    Resize-Png -Size $sz.legacy -OutPath (Join-Path $folder 'ic_launcher_round.png') -Scale 0.9 -Fill $true -Round $true
-    # Adaptativo: el launcher solo muestra ~66 de los 108dp (y recorta en circulo) -> dibujo al 64%
-    Resize-Png -Size $sz.fg     -OutPath (Join-Path $folder 'ic_launcher_foreground.png') -Scale 0.64
+    # El icono es un cuadro lleno (fondo amarillo incluido): legacy a sangre, sin margen.
+    Resize-Png -Size $sz.legacy -OutPath (Join-Path $folder 'ic_launcher.png')       -Scale 1.0 -Fill $true
+    Resize-Png -Size $sz.legacy -OutPath (Join-Path $folder 'ic_launcher_round.png') -Scale 1.0 -Fill $true -Round $true
+    # Adaptativo: el launcher muestra como mucho el cuadro central de 72 de los 108dp.
+    # Al 72% (78dp) el borde de la imagen cae fuera de cualquier mascara y el resto
+    # lo rellena el fondo del mismo amarillo.
+    Resize-Png -Size $sz.fg     -OutPath (Join-Path $folder 'ic_launcher_foreground.png') -Scale 0.72
 }
 
 $source.Dispose()

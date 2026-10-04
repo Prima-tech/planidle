@@ -39,7 +39,7 @@ export const APP_STYLES: AppStyleDef[] = [
  * `default` = la del tema activo (no pinta nada). El resto pinta `data-hpbar` en
  * <html> y top-bar.component.scss lo sobrescribe encima del tema.
  */
-export type HpBarStyleId = 'default' | 'blason' | 'hierro' | 'cristal' | 'jrpg';
+export type HpBarStyleId = 'default' | 'blason' | 'hierro' | 'cristal' | 'jrpg' | 'reliquia';
 
 export const HP_BAR_STYLES: { id: HpBarStyleId; nameKey: string }[] = [
   { id: 'default', nameKey: 'SETTINGS.HP_BAR.DEFAULT' },
@@ -47,6 +47,7 @@ export const HP_BAR_STYLES: { id: HpBarStyleId; nameKey: string }[] = [
   { id: 'hierro', nameKey: 'SETTINGS.HP_BAR.IRON' },
   { id: 'cristal', nameKey: 'SETTINGS.HP_BAR.GLASS' },
   { id: 'jrpg', nameKey: 'SETTINGS.HP_BAR.JRPG' },
+  { id: 'reliquia', nameKey: 'SETTINGS.HP_BAR.RELIC' },
 ];
 
 /** Estilo del MINIMAPA, independiente del tema. 'default' = aro redondo de siempre; el

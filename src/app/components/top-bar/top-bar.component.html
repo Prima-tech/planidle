@@ -14,6 +14,7 @@
           <!-- Nivel junto al nombre: oculto en la barra por defecto; lo muestran
                algunos estilos de barra (data-hpbar) que no llevan placa en el avatar. -->
           <span class="char-name-lvl">{{ 'STAT.LEVEL_SHORT' | translate }} {{ lvl$ | async }}</span>
+          <span class="char-activity-label">{{ activityLabelKey | translate }}</span>
           <span class="notif-dot" *ngIf="equipBadge"></span>
         </div>
 
@@ -81,7 +82,11 @@
       </div>
 
       <!-- En Asgard (ciudad) no hay info de mapa: sin enemigos ni dominio. Sí al explorar. -->
-      <button class="map-open-btn" *ngIf="mapPanelAvailable" (click)="toggleMapPanel()">
+      <button class="map-open-btn" *ngIf="mapPanelAvailable" (click)="toggleMapPanel()" [attr.aria-expanded]="mapPanelOpen">
+        <span class="map-open-name">
+          <ion-icon name="map-outline"></ion-icon>
+          {{ isExploring ? ('ACTIVITY.EXPLORING' | translate) : (mapName$ | async) }}
+        </span>
         <ion-icon [name]="mapPanelOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
       </button>
 
@@ -112,15 +117,19 @@
           <div class="mip-tabs">
             <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'enemies'" (click)="mapInfoTab = 'enemies'" [title]="'MAP.TAB_ENEMIES' | translate">
               <ion-icon name="skull-outline"></ion-icon>
+              <span class="mip-tab-label">{{ 'MAP.TAB_ENEMIES' | translate }}</span>
             </button>
             <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'mining'" (click)="mapInfoTab = 'mining'" [title]="'MAP.TAB_MINING' | translate">
               <ion-icon name="diamond-outline"></ion-icon>
+              <span class="mip-tab-label">{{ 'MAP.TAB_MINING' | translate }}</span>
             </button>
             <button class="mip-tab" type="button" [class.active]="mapInfoTab === 'wood'" (click)="mapInfoTab = 'wood'" [title]="'MAP.TAB_WOOD' | translate">
               <ion-icon name="leaf-outline"></ion-icon>
+              <span class="mip-tab-label">{{ 'MAP.TAB_WOOD' | translate }}</span>
             </button>
             <button class="mip-tab" type="button" *ngIf="d.dominion" [class.active]="mapInfoTab === 'dominion'" (click)="mapInfoTab = 'dominion'" [title]="'MAP.TAB_DOMINION' | translate">
               <ion-icon name="trophy-outline"></ion-icon>
+              <span class="mip-tab-label">{{ 'MAP.TAB_DOMINION' | translate }}</span>
             </button>
           </div>
 

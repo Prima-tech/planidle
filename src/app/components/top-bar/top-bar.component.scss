@@ -1798,6 +1798,7 @@ $jrpg-hand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 // Piezas que solo usan algunos estilos de barra: ocultas en la barra por defecto.
 .char-name-lvl { display: none; }
 .bar-row--xp   { display: none; }
+.char-activity-label, .map-open-name, .mip-tab-label { display: none; }
 
 // Limpia los adornos de los temas (corchete cyberpunk, filete holo) bajo cualquier
 // estilo de barra; cada estilo pone los suyos.
@@ -2210,4 +2211,238 @@ $iron-plate: (
 @media (prefers-reduced-motion: reduce) {
   :host-context([data-hpbar="jrpg"]) .mip-tab.active::after,
   :host-context([data-appstyle="jrpg"]) .mip-tab.active::after { animation: none; }
+}
+
+/* ───────────────── RELIQUIA · medallón de EXP y relicario de metal antiguo ── */
+:host-context([data-hpbar="reliquia"]) {
+  @include appstyle-bar(
+    $panel: linear-gradient(115deg, #303429, #1c201d 40%, #161b1a),
+    $bcol: #827044, $bw: 2px, $radius: 6px,
+    $accent: #d9bb7d, $accent-soft: #827044, $on-accent: #e9e4d5,
+    $text: #e9e4d5, $muted: #a7ab9d, $title: #d9bb7d,
+    $name-bg: transparent, $name-col: #e7d9b5, $name-bd: none,
+    $name-font: (Georgia, serif),
+    $av-bg: radial-gradient(ellipse at 50% 30%, #ffffff12, transparent 65%) #101411,
+    $av-bd: 1px solid #827044, $av-radius: 50%,
+    $lvl-bg: #101411, $lvl-col: #d9bb7d,
+    $track: #050809, $track-bd: #69583d,
+    $hp: linear-gradient(0deg, #8d3439, #c44850),
+    $mp: linear-gradient(0deg, #3e657a, #568ca9),
+    $hp-glow: inset 0 1px #ffffff35, $mp-glow: inset 0 1px #ffffff35,
+    $num-col: #ffffff, $num-font: ('Segoe UI', sans-serif),
+    $inset: #131814, $pill-bg: #101411,
+    $good: #a3c58e, $bad: #ff8b91
+  );
+
+  .left-side { align-self: flex-start; margin-top: 0; }
+  .char-block {
+    margin-top: 8px;
+    width: 288px;
+    min-width: 0;
+    max-width: calc(100vw - 32px - var(--safe-left, 0px) - var(--safe-right, 0px));
+  }
+  .char-widget {
+    box-shadow: inset 0 0 0 2px #131814, inset 0 0 0 3px #b095552e, 0 5px 12px #0006;
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      bottom: auto;
+      width: 4px;
+      height: 4px;
+      background: #d5b376;
+      border: none;
+      border-radius: 0;
+      transform: rotate(45deg);
+      box-shadow: none;
+      pointer-events: none;
+    }
+    &::before { left: 5px; right: auto; }
+    &::after { right: 5px; left: auto; }
+  }
+  .char-panel { padding: 13px; gap: 12px; }
+  .char-name-pill {
+    top: 11px;
+    left: 77px;
+    right: 13px;
+    transform: none;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    text-transform: none;
+    .char-name-text { min-width: 0; max-width: none; }
+    .notif-dot { top: -4px; right: -7px; }
+  }
+  .char-activity-label {
+    display: inline;
+    color: #a7ab9d;
+    font: 8px 'Segoe UI', sans-serif;
+    letter-spacing: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .avatar-ring {
+    width: 52px;
+    height: 52px;
+    --ring: #cba56a;
+    --ring-empty: #ffffff19;
+    box-shadow: 0 0 0 2px #1a1c1b, 0 0 0 3px #827044;
+    .avatar-icon { width: 48px; height: 48px; }
+  }
+  .avatar-activity-img { width: 34px; height: 34px; }
+  .avatar-lvl {
+    bottom: -7px;
+    height: 14px;
+    padding: 1px 6px;
+    border: 1px solid #827044;
+    border-radius: 2px;
+    font: 700 9px 'Segoe UI', sans-serif;
+  }
+  .char-info { flex: 1; min-width: 0; gap: 4px; margin-top: 23px; }
+  .bar-row { height: 15px; }
+  .bar-row:nth-child(2) { height: 11px; }
+  .bar-track {
+    border-radius: 6px 1px 6px 1px;
+    &::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #fff;
+      font: 700 7px 'Segoe UI', sans-serif;
+      text-shadow: 0 1px 2px #000;
+      z-index: 2;
+    }
+    &::after { content: none; }
+  }
+  .bar-fill { border-radius: 0; }
+  .bar-num { font-size: 8px; padding-right: 4px; letter-spacing: 0; }
+  .bar-row--xp {
+    display: flex;
+    height: 2px;
+    margin-top: 2px;
+    .bar-track {
+      border: none;
+      border-radius: 0;
+      background: #ffffff0e;
+      box-shadow: none;
+      &::before { content: none; }
+    }
+    .bar-fill--xp { background: #cba56a; box-shadow: none; }
+  }
+  .map-open-btn {
+    bottom: -25px;
+    width: 100%;
+    height: 25px;
+    padding: 0 11px;
+    justify-content: space-between;
+    border: 2px solid #827044;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(0deg, #131a14, #292c21);
+    box-shadow: 0 4px 8px #0004;
+    > ion-icon { font-size: 10px; }
+    &:hover, &:active { background: #292c21; color: #e7d9b5; }
+  }
+  .map-open-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font: 8px 'Segoe UI', sans-serif;
+    ion-icon { flex-shrink: 0; font-size: 11px; }
+  }
+  .char-block--open .map-open-btn { border-radius: 0; }
+  .map-info-panel {
+    top: calc(100% + 25px);
+    padding: 8px 12px 12px;
+    background: linear-gradient(100deg, #20251f, #161c19);
+    box-shadow: inset 0 0 0 2px #131814, inset 0 0 0 3px #b095551c, 0 6px 12px #0006;
+  }
+  .mip-tabs {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    padding: 0;
+    border: none;
+    border-bottom: 1px solid #ffffff12;
+    border-radius: 0;
+    background: none;
+  }
+  .mip-tab {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    height: 29px;
+    gap: 4px;
+    padding: 0 2px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: none;
+    color: #a7ab9d;
+    box-shadow: none;
+    ion-icon { font-size: 12px; flex-shrink: 0; }
+    &::before, &::after { content: none; }
+    &.active {
+      color: #d9bb7d;
+      border-bottom-color: #d9bb7d;
+      background: linear-gradient(0deg, #d9bb7d17, transparent);
+      box-shadow: none;
+    }
+  }
+  .mip-tab-label { display: inline; font: 8px 'Segoe UI', sans-serif; }
+  .mip-content { padding-top: 4px; }
+  .mip-power-side { align-items: flex-start; }
+  .mip-power-side:last-child { align-items: flex-end; }
+  .mip-power-label { font-size: 8px; text-transform: none; letter-spacing: 0; }
+  .mip-power-val { font-size: 20px; font-weight: 500; }
+  .mip-power-vs { color: #a7ab9d; }
+  .mip-power--good { color: #d9bb7d; }
+  .mip-bar { border: none; background: #ffffff10; border-radius: 1px; box-shadow: none; }
+  .mip-bar-fill--elite { background: #cba56a; }
+  .mip-spawn-tier--elite { color: #d9bb7d; }
+  .mip-bar-fill--oblivion { background: #ab89c6; }
+  .mip-spawn-tier--oblivion { color: #c3a7d4; }
+  .mip-divider { background: #ffffff12; }
+  .mip-stat-row, .mip-eff-head { background: #ffffff05; }
+  .char-switch-btn { border-width: 1px; border-color: #827044; }
+  .char-roster { background: linear-gradient(100deg, #20251f, #161c19); }
+  .char-roster-item { background: #101411; color: #e9e4d5; border-color: #827044; }
+  .char-roster-item.current { border-color: #d9bb7d; color: #d9bb7d; }
+
+  @media (max-width: 600px) {
+    // Reserva el espacio del minimapa a la derecha también en orientación vertical.
+    .char-block { width: calc(100vw - 158px); max-width: 288px; }
+    .char-panel { padding: 10px 8px; gap: 9px; }
+    .char-name-pill { top: 8px; left: 56px; right: 9px; font-size: 13px; gap: 3px; }
+    .char-activity-label { font-size: 7px; }
+    .char-info { margin-top: 20px; }
+    .avatar-ring {
+      width: 38px;
+      height: 38px;
+      .avatar-icon { width: 34px; height: 34px; }
+    }
+    .avatar-activity-img { width: 26px; height: 26px; }
+    .avatar-lvl { font-size: 8px; height: 12px; }
+    .mip-tab-label { display: none; }
+    .mip-tab ion-icon { font-size: 14px; }
+    .mip-power-val { font-size: 17px; }
+  }
+  @media (max-width: 360px) {
+    .char-activity-label { display: none; }
+    .mip-power-label { font-size: 7px; }
+    .map-info-panel { padding-left: 9px; padding-right: 9px; }
+  }
 }

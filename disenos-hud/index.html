@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101214">
+  <title>Valhalla · HUD Design Lab</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23101214'/%3E%3Cpath d='M9 10l11 22 11-22h-6l-5 12-5-12z' fill='%23dcf990'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <a class="brand" href="#"><span class="brand-mark" aria-hidden="true">V</span> VALHALLA <span class="brand-divider">/</span> <span class="brand-sub">DESIGN LAB</span></a>
+    <div class="masthead-right"><span class="edition" data-i18n="edition"></span><button class="language" id="language" type="button" aria-label="Switch to English">EN</button></div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div><p class="eyebrow" data-i18n="eyebrow"></p><h1 id="page-title" data-i18n="title"></h1><p class="intro-copy" data-i18n="intro"></p></div>
+      <div class="intro-index" aria-hidden="true"><span>06</span><small data-i18n="directions"></small></div>
+    </section>
+    <section class="lab-controls" aria-label="Controles de la demo" data-i18n-aria="controls">
+      <div class="health-control"><label for="health"><span class="control-icon" aria-hidden="true">♥</span><span data-i18n="health"></span></label><input id="health" type="range" min="0" max="100" value="76"><output id="health-output" for="health">76%</output></div>
+      <div class="combat-controls"><button type="button" id="damage" class="control-button"><span aria-hidden="true">−</span><span data-i18n="damage"></span></button><button type="button" id="heal" class="control-button"><span aria-hidden="true">+</span><span data-i18n="heal"></span></button></div>
+      <span class="control-divider"></span>
+      <div class="background-control"><label for="background" data-i18n="backdrop"></label><select id="background"><option value="forest" data-i18n="forest"></option><option value="mountain" data-i18n="mountain"></option><option value="studio" data-i18n="studio"></option></select></div>
+      <button type="button" id="reset" class="reset-button" data-i18n="reset"></button>
+    </section>
+    <div class="gallery-heading"><span data-i18n="gallery"></span><span class="interaction-hint" data-i18n="hint"></span></div>
+    <section id="gallery" class="gallery" aria-label="Propuestas de diseño" data-i18n-aria="gallery"></section>
+    <footer class="page-footer"><span>VALHALLA <span class="footer-cross">×</span> HUD EXPLORATIONS</span><p data-i18n="footer"></p></footer>
+  </main>
+  <div id="announcement" class="sr-only" aria-live="polite"></div>
+  <dialog id="focus-dialog" aria-labelledby="focus-title">
+    <div class="focus-heading"><div><span class="eyebrow" data-i18n="inspect"></span><h2 id="focus-title"></h2></div><button id="close-focus" class="close-button" type="button" aria-label="Cerrar" data-i18n-aria="close">×</button></div>
+    <div id="focus-stage" class="focus-stage"></div>
+    <p class="focus-caption" data-i18n="focusHint"></p>
+  </dialog>
+</body>
+</html>

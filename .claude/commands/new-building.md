@@ -55,6 +55,19 @@ Archivo: `src/app/services/city-build.service.ts` → array `BUILDABLES`.
 },
 ```
 
+**Sombra:** todos los edificios llevan de serie una elipse de sombra bajo la base
+(`shadow: false` la quita). Si el dibujo no está centrado en su frame o deja hueco
+transparente abajo, ajústala con `shadowOffsetX` / `shadowOffsetY` (px de la textura
+original, positivo = derecha/abajo) y `shadowWidth` (fracción del ancho, default 0.5).
+Ej. forja: `shadowOffsetX: -6, shadowOffsetY: -8, shadowWidth: 0.6`.
+
+**Hitbox:** por defecto el edificio bloquea su frame entero (`frameSize × scale`).
+Si el dibujo es alto o no llena el frame, define `hitbox: { x, y, w, h }` (px de la
+textura original, desde la esquina superior izquierda del frame) con solo la parte
+sólida — normalmente la mitad inferior del dibujo, para poder acercarse por arriba.
+Los edificios se ordenan por Y (profundidad = fondo de la hitbox o del sprite), así
+que el jugador queda detrás al acercarse por arriba. Ej. forja: `hitbox: { x: 8, y: 32, w: 48, h: 21 }`.
+
 Con esto **ya funciona**: aparece en el panel Construir, se coloca con
 placeholder verde/rojo + check, persiste y se vuelve a pintar al entrar en
 Asgard. No hay que tocar la escena salvo casos especiales (Pasos 4-5).
