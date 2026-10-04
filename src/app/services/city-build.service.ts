@@ -27,7 +27,7 @@ export interface BuildableDef {
   scale: number;      // escala del sprite en el mundo
   tilesW: number;     // footprint en tiles (ancho)
   tilesH: number;     // footprint en tiles (alto)
-  unique: boolean;    // true → solo uno por tipo (desaparece del menú al construir)
+  unique: boolean;    // true → solo uno por tipo SIEMPRE (no le afectan las ampliaciones de buildLimit)
   /** true → al colocarlo se comporta como cofre de ciudad (abre el almacén compartido). */
   isTownChest?: boolean;
   /** Filtro del panel Construir: oficio (estaciones), almacén o comercio. Default 'craft'.
@@ -219,6 +219,8 @@ export interface PlacedBuilding {
 }
 
 const STORAGE_KEY = 'city_buildings';
+/** Máximo de construcciones de cada tipo, de base (ver CityBuildService.buildLimit). */
+const BASE_BUILD_LIMIT = 1;
 // Recetas de construcción aprendidas. Global (como las construcciones): lo que
 // aprende un personaje lo saben todos.
 const RECIPES_KEY = 'build_recipes';
@@ -293,6 +295,20 @@ export class CityBuildService {
     this.cache!.push({ ...b });
     await this.storage.set(STORAGE_KEY, this.cache);
     this.placed$.next(b);
+  }
+
+  /** Máximo de construcciones de un tipo. Hoy 1 para todos (BASE_BUILD_LIMIT); los
+   *  `unique` se quedan en 1 siempre. Punto ÚNICO para ampliarlo a futuro (misiones,
+   *  mejoras de cuenta…): sumar aquí el extra de ese tipo. */
+  buildLimit(type: string): number {
+    const def = this.def(type);
+    if (def?.unique) return 1;
+    return BASE_BUILD_LIMIT;
+  }
+
+  /** ¿Ya tiene el máximo de este tipo? (el panel deja verlo pero no construir más) */
+  isAtLimit(type: string): boolean {
+    return this.countBuilt(type) >= this.buildLimit(type);
   }
 
   /** Cuántas construcciones de este tipo hay colocadas (ficha del panel Construir). */

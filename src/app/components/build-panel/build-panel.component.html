@@ -23,9 +23,11 @@
   <button *ngFor="let c of cards; trackBy: trackCard" class="build-card"
           [class.locked]="c.locked"
           [class.selected]="selected === c.def"
+          [class.maxed]="!c.locked && isMaxed(c.def)"
           [class.guide-glow]="isGuide(c.def)"
           (click)="pick(c, $event)">
     <span class="build-new" *ngIf="isGuide(c.def)">{{ 'BUILD.NEW' | translate }}</span>
+    <span class="build-count" *ngIf="!c.locked">{{ builtCount(c.def) }}/{{ buildLimit(c.def) }}</span>
     <div class="build-frame">
       <div [ngStyle]="frameStyle(c.def)"></div>
       <ion-icon *ngIf="c.locked" name="lock-closed" class="build-lock"></ion-icon>
@@ -46,10 +48,11 @@
   </div>
   <p class="bd-desc">{{ descKey(selected) | translate }}</p>
   <div class="bd-info">
-    <span>{{ (selected.unique ? 'BUILD.UNIQUE' : 'BUILD.BUILT_COUNT') | translate: { n: builtCount(selected) } }}</span>
+    <span>{{ 'BUILD.BUILT_COUNT' | translate: { n: builtCount(selected), max: buildLimit(selected) } }}</span>
   </div>
-  <button class="rpg-btn rpg-btn--block bd-build" [class.guide-glow]="isGuide(selected)" (click)="build(); $event.stopPropagation()">
-    <ion-icon name="hammer"></ion-icon>
-    <span>{{ 'BUILD.BUILD_BTN' | translate }}</span>
+  <button class="rpg-btn rpg-btn--block bd-build" [class.guide-glow]="isGuide(selected)"
+          [disabled]="isMaxed(selected)" (click)="build(); $event.stopPropagation()">
+    <ion-icon [name]="isMaxed(selected) ? 'lock-closed' : 'hammer'"></ion-icon>
+    <span>{{ (isMaxed(selected) ? 'BUILD.MAXED' : 'BUILD.BUILD_BTN') | translate }}</span>
   </button>
 </div>

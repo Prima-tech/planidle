@@ -657,8 +657,8 @@
     "CAT_TRADE": "Trade",
     "NEW": "NEW!",
     "BUILD_BTN": "Build",
-    "BUILT_COUNT": "Built: {{n}}",
-    "UNIQUE": "Unique: only one per town",
+    "BUILT_COUNT": "Built: {{n}}/{{max}}",
+    "MAXED": "Limit reached",
     "DESC": {
       "TOWN_CHEST": "Stores items. Each chest has its own storage.",
       "SHOP": "Buy and sell items for gold.",

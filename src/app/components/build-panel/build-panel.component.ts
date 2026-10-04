@@ -43,14 +43,15 @@ export class BuildPanelComponent {
     this.selected = null;
   }
 
-  /** Fichas de la rejilla: primero lo construible (sin los uniques ya puestos), luego lo
-   *  que aún no tiene receta, en silueta y con candado (no desvela qué es).
+  /** Fichas de la rejilla: primero lo aprendido (también lo que ya está al máximo, que se
+   *  ve pero no deja construir otro), luego lo que aún no tiene receta, en silueta y con
+   *  candado (no desvela qué es).
    *  En modo admin, el catálogo entero construible (lo que hacía la antigua pestaña Admin). */
   get cards(): BuildCard[] {
     const inFilter = (d: BuildableDef) => this.filter === 'all' || (d.category ?? 'craft') === this.filter;
     const defs = this.cityBuild.buildables.filter(inFilter);
     if (this.admin.isAdmin) return defs.map(def => ({ def, locked: false }));
-    const open   = defs.filter(d => this.cityBuild.isAvailable(d) && !(d.unique && this.cityBuild.isBuilt(d.type)));
+    const open   = defs.filter(d => this.cityBuild.isAvailable(d));
     const locked = defs.filter(d => !this.cityBuild.isAvailable(d));
     return [...open.map(def => ({ def, locked: false })), ...locked.map(def => ({ def, locked: true }))];
   }
@@ -85,7 +86,7 @@ export class BuildPanelComponent {
 
   /** Construir desde la ficha: arranca el ghost (el footer cierra todas las ventanas). */
   build(): void {
-    if (!this.selected) return;
+    if (!this.selected || this.isMaxed(this.selected)) return;
     const def = this.selected;
     this.selected = null;
     this.cityBuild.startPlacement(def);
@@ -97,6 +98,16 @@ export class BuildPanelComponent {
 
   builtCount(def: BuildableDef): number {
     return this.cityBuild.countBuilt(def.type);
+  }
+
+  buildLimit(def: BuildableDef): number {
+    return this.cityBuild.buildLimit(def.type);
+  }
+
+  /** Ya tiene el máximo de este tipo: la ficha lo marca y Construir se desactiva.
+   *  En modo admin no hay tope (para probar). */
+  isMaxed(def: BuildableDef): boolean {
+    return !this.admin.isAdmin && this.cityBuild.isAtLimit(def.type);
   }
 
   /** Cierra la ficha al pinchar fuera de las fichas o de la propia ficha de detalle. */

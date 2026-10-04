@@ -657,8 +657,8 @@
     "CAT_TRADE": "Comercio",
     "NEW": "¡NUEVO!",
     "BUILD_BTN": "Construir",
-    "BUILT_COUNT": "Construidos: {{n}}",
-    "UNIQUE": "Único: solo uno por ciudad",
+    "BUILT_COUNT": "Construidos: {{n}}/{{max}}",
+    "MAXED": "Máximo construido",
     "DESC": {
       "TOWN_CHEST": "Guarda objetos. Cada cofre tiene su propio almacén.",
       "SHOP": "Compra y vende objetos a cambio de oro.",
