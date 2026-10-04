@@ -2,17 +2,18 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { AchievementService } from 'src/app/services/achievement.service';
-import { QuestService } from 'src/app/services/quest.service';
+import { QuestReward, QuestService } from 'src/app/services/quest.service';
 import { UnlockService } from 'src/app/services/unlock.service';
 
 /** Diseño del toast: 'gold' = placa de oro (logros y desbloqueos) · 'scroll' =
- *  pergamino (misiones). */
+ *  bloque de madera pixelado (misiones; la clase conserva el nombre histórico). */
 type ToastVariant = 'gold' | 'scroll';
 
 interface Toast {
   icon: string;
   name: string;
-  label: string;   // texto pequeño superior ("Logro desbloqueado" / "Misión completada")
+  label: string;   // texto superior ("Logro desbloqueado" / "¡Misión completada!")
+  reward?: string; // recompensa ya traducida ("+10 EXP · +50 oro"); solo misiones
   variant: ToastVariant;
   id: number;
   leaving: boolean;
@@ -42,9 +43,9 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
       // Logros → placa de oro.
       this.achievements.unlocked$.subscribe(def =>
         this.show(def.icon, def.name, 'TOAST.ACHIEVEMENT_UNLOCKED', 'gold')),
-      // Misiones → pergamino.
+      // Misiones → bloque de madera pixelado, con su recompensa.
       this.quests.completed$.subscribe(def =>
-        this.show(def.icon, def.name, 'TOAST.QUEST_COMPLETED', 'scroll')),
+        this.show(def.icon, def.name, 'TOAST.QUEST_COMPLETED', 'scroll', this.rewardText(def.reward))),
       // Solo las features con `toast` definido muestran pastilla (p.ej. mapas). Usan
       // el diseño de placa (desbloqueo genérico).
       this.unlocks.unlocked$.subscribe(def => {
@@ -57,7 +58,16 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
   }
 
-  private show(icon: string, name: string, label: string, variant: ToastVariant): void {
+  /** "+10 EXP · +50 oro" (solo EXP y oro; los items ya avisan al caer en la mochila). */
+  private rewardText(reward?: QuestReward): string | undefined {
+    if (!reward) return undefined;
+    const parts: string[] = [];
+    if (reward.exp)   parts.push(this.translate.instant('TOAST.REWARD_EXP',   { n: reward.exp }));
+    if (reward.coins) parts.push(this.translate.instant('TOAST.REWARD_COINS', { n: reward.coins }));
+    return parts.length ? parts.join(' · ') : undefined;
+  }
+
+  private show(icon: string, name: string, label: string, variant: ToastVariant, reward?: string): void {
     // name/label pueden ser claves i18n (logros/misiones) o texto ya literal
     // (unlocks); instant() traduce las claves y deja el texto plano intacto.
     const toast: Toast = {
@@ -65,6 +75,7 @@ export class AchievementToastComponent implements OnInit, OnDestroy {
       name: this.translate.instant(name),
       label: this.translate.instant(label),
       variant,
+      reward,
       id: this.nextId++, leaving: false,
     };
     this.toasts.push(toast);

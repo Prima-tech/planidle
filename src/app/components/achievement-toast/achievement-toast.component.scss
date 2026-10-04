@@ -91,47 +91,47 @@
   .ach-toast-name  { color: #3a2708; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35); }
 }
 
-/* ═══════════════ Pergamino (misiones) ═══════════════ */
+/* ═══════════════ Píxel macizo (misiones) ═══════════════
+   Bloque de madera pixelado con marco escalonado (mismo look que .rpg-btn), título en
+   Pixelify, nombre y recompensa. Entra cayendo suave con un pequeño rebote. */
 .ach-toast--scroll {
-  padding: 10px 20px 10px 12px;
-  border-radius: 8px;
-  background:
-    repeating-linear-gradient(92deg, rgba(120, 86, 40, 0.05) 0 3px, transparent 3px 7px),
-    linear-gradient(180deg, #efe0b8, #e2cd97 60%, #d3ba82);
+  gap: 12px;
+  padding: 10px 18px 10px 12px;
+  background: #8a5a2c;
   box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.55),
-    inset 0 0 0 2px #b79256,
-    inset 0 0 0 3px #6f5326;
-  transform-origin: left center;
-  animation: ach-unfurl 0.5s cubic-bezier(0.2, 0.9, 0.25, 1) both;
-
-  // Varillas de madera a los lados
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    top: -3px;
-    bottom: -3px;
-    width: 9px;
-    border-radius: 3px;
-    background: linear-gradient(90deg, #6e4a24, #a9713a, #6e4a24);
-    box-shadow: 0 0 0 1px #3a2410;
-  }
-  &::before { left: -4px; }
-  &::after  { right: -4px; }
+    inset 0 0 0 2px #c58a4a,
+    inset 0 0 0 4px #5a3818,
+    0 0 0 2px #2e1c0a,
+    4px 4px 0 2px rgba(0, 0, 0, 0.45);
+  animation: ach-drop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 
   .ach-toast-medal {
     width: 34px;
     height: 34px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #b8433a, #7e241d);
-    box-shadow:
-      inset 0 0 0 2px rgba(255, 255, 255, 0.15),
-      0 2px 4px rgba(0, 0, 0, 0.4);
+    background: #3a2410;
+    box-shadow: inset 0 0 0 2px #5a3818, inset 2px 2px 0 2px #1e1206;
   }
-  .ach-toast-icon  { color: #ffe0b0; }
-  .ach-toast-label { color: #7c5a24; }
-  .ach-toast-name  { color: #3a2712; }
+  .ach-toast-icon { color: #ffd964; }
+  .ach-toast-body { gap: 2px; }
+  .ach-toast-label {
+    font-family: 'Pixelify Sans', monospace;
+    font-size: 1em;
+    letter-spacing: 0.02em;
+    color: #ffd964;
+    text-shadow: 2px 2px 0 #2e1c0a;
+  }
+  .ach-toast-name {
+    font-family: 'Pixelify Sans', monospace;
+    font-weight: 400;
+    font-size: 0.8em;
+    color: #fff1d6;
+    text-shadow: 1px 1px 0 #2e1c0a;
+  }
+  .ach-toast-reward {
+    margin-left: 6px;
+    color: #b9f28a;
+    text-shadow: 1px 1px 0 #2e1c0a;
+  }
 }
 
 /* La salida (fade+subida) gana a la animación de entrada de cualquier variante
@@ -152,10 +152,10 @@
   100% { left: 130%; opacity: 0; }
 }
 
-@keyframes ach-unfurl {
-  0%   { opacity: 0; transform: scaleX(0.35); }
-  70%  { opacity: 1; transform: scaleX(1.02); }
-  100% { opacity: 1; transform: scaleX(1);    }
+@keyframes ach-drop {
+  0%   { opacity: 0; transform: translateY(-28px); }
+  40%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes ach-leave {
@@ -169,8 +169,8 @@
 }
 
 /* ═══════════════ Avisos de logro/misión · overrides por estilo (data-appstyle) ═══════════════
-   Base: placa de oro (logros) + pergamino (misiones). Cada estilo repinta ambas superficies
-   (fondo/borde/sombra + medalla + textos) con su paleta. Se conservan pop/sweep/unfurl. */
+   Base: placa de oro (logros) + bloque pixelado (misiones). Cada estilo repinta ambas superficies
+   (fondo/borde/sombra + medalla + textos) con su paleta. Se conservan pop/sweep/drop. */
 :host-context([data-appstyle="cyberpunk"]) {
   .ach-toast--gold,
   .ach-toast--scroll {
@@ -179,8 +179,6 @@
     border-radius: 3px;
     box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6), 0 0 14px rgba(33, 255, 154, 0.2), 0 8px 24px rgba(0, 0, 0, 0.6);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, #0a0f0d, #21ff9a, #0a0f0d); box-shadow: 0 0 0 1px #04140c; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #0f1613, #04140c) !important; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.7), 0 0 8px rgba(33, 255, 154, 0.35) !important; }
   .ach-toast-icon  { color: #21ff9a; }
   .ach-toast-label { color: #6fd8a8; }
@@ -195,8 +193,6 @@
     border-radius: 10px;
     box-shadow: 0 0 14px rgba(122, 80, 230, 0.35), 0 8px 24px rgba(0, 0, 0, 0.55);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, #160f28, #9d7ff0, #160f28); box-shadow: 0 0 0 1px #0d0a18; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #8a63f0, #3a2d5e) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(157, 127, 240, 0.4) !important; }
   .ach-toast-icon  { color: #b79cff; }
   .ach-toast-label { color: #b79cff; }
@@ -211,8 +207,6 @@
     border-radius: 8px;
     box-shadow: 0 0 14px rgba(150, 20, 30, 0.45), 0 8px 24px rgba(0, 0, 0, 0.6);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, #12080a, #cf3a48, #12080a); box-shadow: 0 0 0 1px #0a0506; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #b8433a, #6b1620) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(207, 58, 72, 0.4) !important; }
   .ach-toast-icon  { color: #e8c4a8; }
   .ach-toast-label { color: #d98a92; }
@@ -227,8 +221,6 @@
     border-radius: 4px;
     box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(77, 184, 255, 0.28), 0 8px 24px rgba(0, 0, 0, 0.5);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, rgba(10, 26, 42, 0.9), #4db8ff, rgba(10, 26, 42, 0.9)); box-shadow: 0 0 0 1px #06131f; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #4db8ff, #0a1a2a) !important; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5), 0 0 8px rgba(77, 184, 255, 0.4) !important; }
   .ach-toast-icon  { color: #8fd4ff; }
   .ach-toast-label { color: #8fd4ff; }
@@ -243,8 +235,6 @@
     border-radius: 12px;
     box-shadow: 0 0 0 1px rgba(224, 181, 60, 0.3), 0 0 12px rgba(224, 181, 60, 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, #182248, #e0b53c, #182248); box-shadow: 0 0 0 1px #0e1430; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #ffe9a8, #b5851f) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 8px rgba(224, 181, 60, 0.4) !important; }
   .ach-toast-icon  { color: #3a2a08; }
   .ach-toast-label { color: #ffe9a8; }
@@ -259,8 +249,6 @@
     border-radius: 10px;
     box-shadow: 0 0 0 1px rgba(216, 200, 120, 0.25), 0 0 14px rgba(80, 140, 60, 0.3), 0 8px 24px rgba(0, 0, 0, 0.5);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, #16241a, #9fd06a, #16241a); box-shadow: 0 0 0 1px #0c140f; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #9fd06a, #16241a) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(159, 208, 106, 0.4) !important; }
   .ach-toast-icon  { color: #d8c878; }
   .ach-toast-label { color: #d8c878; }
@@ -275,8 +263,6 @@
     border-radius: 5px;
     box-shadow: 0 0 0 1px rgba(255, 122, 42, 0.25), inset 0 -18px 30px rgba(255, 90, 20, 0.12), 0 0 16px rgba(255, 90, 20, 0.2), 0 8px 24px rgba(0, 0, 0, 0.6);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, #140f0c, #ff7a2a, #140f0c); box-shadow: 0 0 0 1px #050302; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #ff7a2a, #140f0c) !important; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 122, 42, 0.4) !important; }
   .ach-toast-icon  { color: #ff7a2a; }
   .ach-toast-label { color: #ffb066; }
@@ -291,8 +277,6 @@
     border-radius: 8px;
     box-shadow: 0 0 0 1px rgba(230, 200, 90, 0.3), 0 0 12px rgba(184, 150, 60, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, #1c190f, #3fd0c0, #1c190f); box-shadow: 0 0 0 1px #0c0a05; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #3fd0c0, #1c190f) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(63, 208, 192, 0.4) !important; }
   .ach-toast-icon  { color: #e6c85a; }
   .ach-toast-label { color: #e6c85a; }
@@ -308,8 +292,6 @@
     border-radius: 6px;
     box-shadow: 0 0 0 1px #10132e, 0 0 12px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.55);
   }
-  .ach-toast--scroll::before,
-  .ach-toast--scroll::after { background: linear-gradient(90deg, #0a1250, #ffe14d, #0a1250); box-shadow: 0 0 0 1px #10132e; }
   .ach-toast-medal { background: radial-gradient(circle at 38% 32%, #ffe14d, #0a1250) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(255, 225, 77, 0.4) !important; }
   .ach-toast-icon  { color: #ffe14d; }
   .ach-toast-label { color: #ffe14d; }

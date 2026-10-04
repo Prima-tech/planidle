@@ -650,7 +650,28 @@
     "LOOM": "Loom",
     "ENCHANTING_TABLE": "Enchanting table",
     "DRYING_RACK": "Drying rack",
-    "BUTCHER_TABLE": "Butcher table"
+    "BUTCHER_TABLE": "Butcher table",
+    "CAT_ALL": "All",
+    "CAT_CRAFT": "Crafting",
+    "CAT_STORAGE": "Storage",
+    "CAT_TRADE": "Trade",
+    "NEW": "NEW!",
+    "BUILD_BTN": "Build",
+    "BUILT_COUNT": "Built: {{n}}",
+    "UNIQUE": "Unique: only one per town",
+    "DESC": {
+      "TOWN_CHEST": "Stores items. Each chest has its own storage.",
+      "SHOP": "Buy and sell items for gold.",
+      "FORGE": "Smelts ore into ingots. It lights up while producing.",
+      "SMELTER": "Smelting furnace for working metal.",
+      "ALCHEMY_TABLE": "A table for brewing potions.",
+      "ALEMBIC": "Distills essences and liquids.",
+      "WORKBENCH": "Crafts tools: axes, pickaxes and basic parts.",
+      "LOOM": "Weaves cloth from fibers.",
+      "ENCHANTING_TABLE": "Imbues gear with magic.",
+      "DRYING_RACK": "Dries hides and herbs.",
+      "BUTCHER_TABLE": "Butchers prey for meat and hides."
+    }
   },
   "OFFLINE": {
     "TITLE": "AFK gains",
@@ -828,7 +849,9 @@
   },
   "TOAST": {
     "ACHIEVEMENT_UNLOCKED": "Achievement unlocked",
-    "QUEST_COMPLETED": "Quest completed"
+    "QUEST_COMPLETED": "Quest complete!",
+    "REWARD_EXP": "+{{n}} EXP",
+    "REWARD_COINS": "+{{n}} gold"
   },
   "NPC": {
     "DEFAULT_PLAYER_NAME": "traveler",

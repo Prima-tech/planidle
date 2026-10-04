@@ -22,7 +22,7 @@
       <button class="minimap-btn minimap-btn--settings" (click)="footerBar.openGameSettings(); $event.stopPropagation()">
         <img class="minimap-btn-img" src="assets/icon/menu/config.png" alt="" draggable="false" />
       </button>
-      <button class="minimap-btn minimap-btn--shop" (click)="footerBar.openShop(); $event.stopPropagation()">
+      <button *ngIf="shopUnlocked" class="minimap-btn minimap-btn--shop" (click)="footerBar.openShop(); $event.stopPropagation()">
         <ion-icon name="storefront-outline"></ion-icon>
       </button>
       <!-- Admin: arriba a la izquierda del aro (simétrico a ajustes) -->

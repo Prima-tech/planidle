@@ -32,88 +32,173 @@ $text-cream: #ecd9b4;
     0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
-.build-title {
-  font-size: 0.72em;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: $text-brown;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-/* Pestañas Desbloqueadas / Admin (mismo patrón que las de la tienda) */
-.build-tabs {
+/* Cabecera: título (Pixelify dorado) + Mover/Borrar como iconos */
+.build-head {
   display: flex;
-  gap: 5px;
-  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
-.build-tab {
-  flex: 1 1 0;
-  text-align: center;
-  padding: 5px 0;
-  border: 2px solid $outline;
-  border-radius: 5px;
-  font-size: 0.7em;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  user-select: none;
-  color: $text-cream;
-  background: $wood-btn-dark;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
-
-  &.active {
-    background: $wood-btn;
-    color: $text-brown;
-    box-shadow: inset 0 0 0 1px $wood-btn-light, inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-  }
+.build-title {
+  font-family: 'Pixelify Sans', monospace;
+  font-size: 1.1em;
+  color: #ffd964;
+  text-shadow: 2px 2px 0 #2e1c0a;
 }
 
-.build-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.build-tools {
+  display: flex;
   gap: 6px;
 }
 
+.build-tool {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-size: 17px;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 0 2px $outline, inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+
+  &:active:not([disabled]) { transform: translateY(1px); }
+  &[disabled] { opacity: 0.45; cursor: default; }
+  &--danger { background: #8a3424; }
+}
+
+/* Filtros por tipo (Todo / Oficio / Almacén / Comercio) */
+.build-chips {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.build-chip {
+  flex: 1 1 0;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.66em;
+  color: $text-cream;
+  background: $wood-btn-dark;
+  border: 2px solid $outline;
+  border-radius: 12px;
+  cursor: pointer;
+
+  &.active {
+    background: #ffd964;
+    color: $text-brown;
+    font-weight: 700;
+  }
+}
+
+/* Fichas en peana, 2 por fila */
+.build-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 2px;
+}
+
 .build-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  background: $cell-bg;
-  border: 2px solid $outline;
+  align-items: stretch;
+  padding: 0;
+  font: inherit;
+  background: none;
+  border: 0;
   border-radius: 6px;
-  padding: 8px 4px 6px;
   cursor: pointer;
   color: $text-cream;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  transition: border-color 0.15s, background 0.15s;
 
-  &:active { background: lighten($cell-bg, 5%); }
+  &:active:not(.locked) .build-frame { filter: brightness(1.15); }
+  &.locked { cursor: default; }
 }
 
+/* Peana: hueco oscuro con luz cálida abajo y sombra elíptica bajo el sprite */
 .build-frame {
-  width: 64px;
-  height: 64px;
+  position: relative;
+  height: 92px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  background: $cell-border;
-  border-radius: 4px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  padding-bottom: 12px;
   overflow: hidden;
-  flex-shrink: 0;
+  border: 2px solid $outline;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255, 220, 140, 0.18), transparent 60%),
+    linear-gradient(180deg, #4a3020, #2e1c12);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 7px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  > div { position: relative; z-index: 1; }
 }
 
+/* Placa de piedra con el nombre */
 .build-label {
-  font-size: 0.62em;
-  color: $text-cream;
+  padding: 4px 2px;
+  font-family: 'Pixelify Sans', monospace;
+  font-size: 0.72em;
+  line-height: 1.15;
   text-align: center;
-  line-height: 1.2;
-  overflow-wrap: anywhere;   /* nombres largos parten en 2 líneas; no ensanchan la ficha */
+  overflow-wrap: anywhere;
+  color: $text-brown;
+  background: linear-gradient(180deg, $stone-light, $stone);
+  border: 2px solid $outline;
+  border-radius: 0 0 6px 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.build-card.selected .build-frame,
+.build-card.selected .build-label { border-color: #ffd964; }
+
+/* Bloqueado: silueta oscura + candado (no desvela qué es) */
+.build-card.locked {
+  .build-frame { filter: brightness(0.55); }
+  .build-frame > div { filter: brightness(0) opacity(0.55); }
+  .build-label { color: #4a4238; }
+}
+
+.build-lock {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-size: 22px;
+  color: #cfc6b8;
+}
+
+/* Insignia "¡NUEVO!" de la guía (banco de trabajo aprendido sin construir) */
+.build-new {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  z-index: 3;
+  padding: 1px 4px;
+  font-family: 'Pixelify Sans', monospace;
+  font-size: 10px;
+  color: #fff;
+  background: #c0392b;
+  border: 1px solid #5a1208;
+  border-radius: 3px;
 }
 
 .build-empty {
@@ -124,18 +209,84 @@ $text-cream: #ecd9b4;
   padding: 12px 0;
 }
 
-/* Mover / Borrar edificio: estilo global .rpg-btn; aquí solo maquetación */
-.build-move-btn {
+/* ── Ficha de detalle a la derecha (misma piel que app-item-detail del inventario) ── */
+.build-detail {
+  position: fixed;
+  width: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  color: $text-brown;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 16px),
+    $wood-bg;
+  border: 4px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px $outline,
+    inset 0 0 0 2px $outline,
+    -4px 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Placas de madera con bisel de piedra (como las del detalle de item) */
+.bd-header,
+.bd-desc,
+.bd-info {
+  background: $wood-btn;
+  border: 2px solid;
+  border-color: $stone-light $stone-dark $stone-dark $stone;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px $outline, inset 0 0 0 1px $outline;
+}
+
+.bd-header {
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.bd-name {
+  font-family: 'Pixelify Sans', monospace;
+  font-size: 0.9em;
+  color: $text-brown;
+}
+
+.bd-preview {
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid $outline;
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 70%, #4a3220, $cell-border);
+  overflow: hidden;
+}
+
+.bd-desc {
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 0.68em;
+  line-height: 1.35;
+  color: $text-brown;
+}
+
+.bd-info {
+  padding: 4px 8px;
+  font-size: 0.66em;
+  font-weight: 700;
+  text-align: center;
+  color: $cell-bg;
+}
+
+.bd-build {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 10px;
 
-  ion-icon { font-size: 1.3em; }
+  ion-icon { font-size: 1.2em; }
 }
-
-.build-delete-btn { margin-top: 6px; }
 
 /* ═══════════════ Build-panel · overrides por estilo (data-appstyle) ═══════════════
    Base = wood (arriba). Cada estilo redefine panel, título, tarjetas, marcos internos
@@ -153,17 +304,18 @@ $text-cream: #ecd9b4;
   color: $text;
   @if $font != null { font-family: $font; }
 
-  .build-title { color: $title; }
-  .build-card {
-    background: $card-bg;
-    border-color: $card-bd;
-    box-shadow: $card-inset;
-    color: $text;
-    &:active { filter: brightness(1.12); background: $card-bg; }
-  }
-  .build-frame { background: $frame-bg; }
-  .build-label { color: $text; }
+  .build-title { color: $title; text-shadow: none; }
+  .build-frame { background: $frame-bg; border-color: $card-bd; box-shadow: $card-inset; }
+  .build-label { color: $text; background: $card-bg; border-color: $card-bd; box-shadow: none; }
+  .build-card.locked .build-label { color: $muted; }
+  .build-chip, .build-tool { background: $card-bg; color: $text; border-color: $card-bd; }
+  .build-chip.active { background: $accent; color: #10100c; }
   .build-empty { color: $muted; }
+  .build-detail { background: $panel-bg; border: $bw solid $bd; box-shadow: $panel-shadow; color: $text; }
+  .bd-header, .bd-desc, .bd-info { background: $card-bg; border-color: $card-bd; box-shadow: $card-inset; }
+  .bd-name, .bd-desc { color: $text; }
+  .bd-info { color: $muted; }
+  .bd-preview { background: $frame-bg; border-color: $card-bd; }
 }
 
 /* CYBERPUNK · negro + fósforo */

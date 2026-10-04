@@ -141,6 +141,12 @@ export class LayoutComponent implements OnDestroy {
     return this.inventoryService.some(it => !!it.teachesBuild && !this.cityBuildService.isLearned(it.teachesBuild));
   }
 
+  /** Botón de la tienda (monedas estigma) del aro del minimapa: aparece al cobrar la
+   *  misión de armas, la que manda a ver a Kugo ('panel.shop'). En admin, siempre. */
+  get shopUnlocked(): boolean {
+    return this.adminService.isAdmin || this.unlockService.isUnlocked('panel.shop');
+  }
+
   /** Guía: la herramienta que pide equipar una misión ya está en la mochila. */
   get guideEquipPending(): boolean {
     const name = this.questService.pendingEquipItem();

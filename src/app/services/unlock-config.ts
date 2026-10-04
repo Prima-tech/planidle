@@ -23,7 +23,7 @@ export type UnlockSource =
   | { type: 'level';       value: number }                         // char: nivel del personaje
   | { type: 'kills';       value: number; scope: UnlockScope }     // kills char o globales
   | { type: 'achievement'; id: string }                            // logro desbloqueado (AchievementService)
-  | { type: 'mission';     id: string }                            // misión completada (futuro MissionService)
+  | { type: 'mission';     id: string }                            // misión cobrada (QuestService; no bloquea si no está en tu cadena)
   | { type: 'flag';        id: string };                           // evento manual "por definir"
 
 /** Cómo se presenta lo bloqueado: oculto del todo, o visible con candado. */
@@ -64,6 +64,12 @@ export const FEATURES: FeatureDef[] = [
   // El botón del cofre de ciudad NO aparece en el footer hasta desbloquearlo.
   { id: 'panel.chest', scope: 'char', display: 'hidden', requires: [{ type: 'level', value: 3 }],
     name: 'Cofre de ciudad' },
+
+  // La tienda de monedas estigma (botón del aro del minimapa) aparece al cobrar la misión
+  // de equipar armas, la que te manda a ver a Kugo. Si esa misión no está en la cadena del
+  // personaje (no es el dueño del arco 1 o juega con exploración) no le bloquea.
+  { id: 'panel.shop', scope: 'char', display: 'hidden', requires: [{ type: 'mission', id: 'noexp_armas' }],
+    name: 'Tienda' },
 
   // ── Mapas (char) — destinos de teletransporte ────────────────────────────────
   // Todos los 1-x empiezan BLOQUEADOS (display 'locked' = se ven con candado en el

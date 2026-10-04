@@ -43,6 +43,9 @@ export class UnlockService {
   private unlockedGlobal = new Set<string>();
   private flagsChar      = new Set<string>();
   private flagsGlobal    = new Set<string>();
+  /** ¿Misión completada? Lo registra QuestService (que ya inyecta este servicio: al
+   *  revés sería una dependencia circular). Hasta entonces nada cuenta como hecho. */
+  private missionDone: (id: string) => boolean = () => false;
 
   constructor(
     private storage: StorageService,
@@ -122,6 +125,11 @@ export class UnlockService {
   isCharacterUnlocked(name: string): boolean {
     if (this.admin.isAdmin) return true;
     return this.isUnlocked(characterFeatureId(name));
+  }
+
+  /** Lo llama QuestService al crearse: resuelve las fuentes { type: 'mission' }. */
+  setMissionResolver(fn: (id: string) => boolean): void {
+    this.missionDone = fn;
   }
 
   // ── Eventos / mutación ──────────────────────────────────────────────────────
@@ -263,7 +271,7 @@ export class UnlockService {
         return ach ? this.achievements.isUnlocked(ach) : false;
       }
       case 'mission':
-        return false; // TODO: cuando exista MissionService
+        return this.missionDone(src.id);
       case 'flag':
         return this.flagsChar.has(src.id) || this.flagsGlobal.has(src.id);
     }

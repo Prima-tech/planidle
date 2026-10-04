@@ -1,31 +1,55 @@
-<div class="build-title">{{ 'BUILD.TITLE' | translate }}</div>
-
-<div class="build-tabs">
-  <div class="build-tab" [class.active]="tab === 'unlocked'" (click)="setTab('unlocked')">
-    {{ 'BUILD.TAB_UNLOCKED' | translate }}
-  </div>
-  <div class="build-tab" [class.active]="tab === 'admin'" (click)="setTab('admin')">
-    {{ 'BUILD.TAB_ADMIN' | translate }}
+<!-- Cabecera: título + Mover/Borrar como iconos -->
+<div class="build-head">
+  <span class="build-title">{{ 'BUILD.TITLE' | translate }}</span>
+  <div class="build-tools">
+    <button class="build-tool" [disabled]="!hasBuildings" [title]="'BUILD.MOVE' | translate" (click)="startMove()">
+      <ion-icon name="move-outline"></ion-icon>
+    </button>
+    <button class="build-tool build-tool--danger" [disabled]="!hasBuildings" [title]="'BUILD.DELETE' | translate" (click)="startDelete()">
+      <ion-icon name="trash-outline"></ion-icon>
+    </button>
   </div>
 </div>
 
+<!-- Filtros por tipo -->
+<div class="build-chips">
+  <button *ngFor="let f of FILTERS" class="build-chip" [class.active]="filter === f.key" (click)="setFilter(f.key)">
+    {{ f.label | translate }}
+  </button>
+</div>
+
+<!-- Fichas en peana (2 por fila). Lo bloqueado sale en silueta con candado. -->
 <div class="build-grid">
-  <button *ngFor="let def of buildables" class="build-card" (click)="select(def)">
+  <button *ngFor="let c of cards; trackBy: trackCard" class="build-card"
+          [class.locked]="c.locked"
+          [class.selected]="selected === c.def"
+          [class.guide-glow]="isGuide(c.def)"
+          (click)="pick(c, $event)">
+    <span class="build-new" *ngIf="isGuide(c.def)">{{ 'BUILD.NEW' | translate }}</span>
     <div class="build-frame">
-      <div [ngStyle]="frameStyle(def)"></div>
+      <div [ngStyle]="frameStyle(c.def)"></div>
+      <ion-icon *ngIf="c.locked" name="lock-closed" class="build-lock"></ion-icon>
     </div>
-    <span class="build-label">{{ def.name | translate }}</span>
+    <span class="build-label">{{ c.locked ? '???' : (c.def.name | translate) }}</span>
   </button>
 
-  <div class="build-empty" *ngIf="!buildables.length">{{ 'BUILD.NONE' | translate }}</div>
+  <div class="build-empty" *ngIf="!cards.length">{{ 'BUILD.NONE' | translate }}</div>
 </div>
 
-<button class="rpg-btn rpg-btn--block build-move-btn" [disabled]="!hasBuildings" (click)="startMove()">
-  <ion-icon name="move-outline"></ion-icon>
-  <span>{{ 'BUILD.MOVE' | translate }}</span>
-</button>
-
-<button class="rpg-btn rpg-btn--block build-move-btn build-delete-btn" [disabled]="!hasBuildings" (click)="startDelete()">
-  <ion-icon name="trash-outline"></ion-icon>
-  <span>{{ 'BUILD.DELETE' | translate }}</span>
-</button>
+<!-- Ficha de detalle a la derecha (como la del inventario), con el botón Construir -->
+<div class="build-detail" *ngIf="selected" [ngStyle]="detailStyle">
+  <div class="bd-header">
+    <span class="bd-name">{{ selected.name | translate }}</span>
+  </div>
+  <div class="bd-preview">
+    <div [ngStyle]="frameStyle(selected)"></div>
+  </div>
+  <p class="bd-desc">{{ descKey(selected) | translate }}</p>
+  <div class="bd-info">
+    <span>{{ (selected.unique ? 'BUILD.UNIQUE' : 'BUILD.BUILT_COUNT') | translate: { n: builtCount(selected) } }}</span>
+  </div>
+  <button class="rpg-btn rpg-btn--block bd-build" [class.guide-glow]="isGuide(selected)" (click)="build(); $event.stopPropagation()">
+    <ion-icon name="hammer"></ion-icon>
+    <span>{{ 'BUILD.BUILD_BTN' | translate }}</span>
+  </button>
+</div>

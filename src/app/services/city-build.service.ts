@@ -30,6 +30,9 @@ export interface BuildableDef {
   unique: boolean;    // true → solo uno por tipo (desaparece del menú al construir)
   /** true → al colocarlo se comporta como cofre de ciudad (abre el almacén compartido). */
   isTownChest?: boolean;
+  /** Filtro del panel Construir: oficio (estaciones), almacén o comercio. Default 'craft'.
+   *  Su descripción en la ficha es la clave i18n BUILD.DESC.<TYPE en mayúsculas>. */
+  category?: BuildCategory;
   /** true → al pulsar el edificio en el mapa abre su ventana (openWindow$). */
   opensWindow?: boolean;
   /** Elipse de sombra bajo el sprite en el mapa. Por defecto TODOS la llevan;
@@ -125,6 +128,7 @@ export const BUILDABLES: BuildableDef[] = [
     unique: false,   // varios cofres, cada uno con su almacén independiente
     requiresRecipe: true,
     isTownChest: true,
+    category: 'storage',
   },
   {
     type: 'shop',
@@ -138,6 +142,7 @@ export const BUILDABLES: BuildableDef[] = [
     unique: true,
     requiresRecipe: true,
     opensWindow: true,
+    category: 'trade',
   },
 
   // ── Estaciones de oficio (decorativas + animadas) ──
@@ -200,6 +205,8 @@ export const BUILDABLES: BuildableDef[] = [
   station('drying_rack',      'BUILD.DRYING_RACK',      3, 1),
   station('butcher_table',    'BUILD.BUTCHER_TABLE',    4, 0),
 ];
+
+export type BuildCategory = 'craft' | 'storage' | 'trade';
 
 /** Una construcción ya colocada en el mapa de la ciudad. */
 export interface PlacedBuilding {
@@ -288,9 +295,20 @@ export class CityBuildService {
     this.placed$.next(b);
   }
 
+  /** Cuántas construcciones de este tipo hay colocadas (ficha del panel Construir). */
+  countBuilt(type: string): number {
+    return this.cache?.filter(b => b.type === type).length ?? 0;
+  }
+
   /** ¿Ya hay una construcción de este tipo? (para ocultar uniques del menú). */
   isBuilt(type: string): boolean {
     return !!this.cache?.some(b => b.type === type);
+  }
+
+  /** Guía: receta aprendida pero aún sin construir (p.ej. el banco de trabajo de
+   *  Mordekai) → brilla el botón Construir del footer y, dentro, su ficha. */
+  isGuideBuild(type: string): boolean {
+    return this.isLearned(type) && !this.isBuilt(type);
   }
 
   // ── Recetas aprendidas ──────────────────────────────────────────────────────

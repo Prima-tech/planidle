@@ -45,7 +45,8 @@
 <div class="hub" [class.hub--open]="hubOpen" [class.hub--right]="runMode$ | async">
 
   <!-- Tirador (abrir/cerrar): mismo ancho que un botón pero la mitad de fino. -->
-  <button class="hub-toggle" (click)="toggleHub()">
+  <!-- Guía: con el hub cerrado brilla el tirador (dentro esperaba brillando un botón). -->
+  <button class="hub-toggle" [class.guide-glow]="!hubOpen && buildGuide && currentMapId === 'hogar' && !(runMode$ | async)" (click)="toggleHub()">
     <ion-icon [name]="hubOpen ? 'chevron-back' : 'chevron-forward'"></ion-icon>
   </button>
 
@@ -57,12 +58,13 @@
     </div>
 
     <!-- Talentos globales de la cuenta -->
-    <div class="icon-menu-wrapper" [class.active]="globalTalentsModal.isOpenModal()" (click)="openGlobalTalents()">
-      <ion-icon name="star" class="footer-ion-icon"></ion-icon>
+    <div class="icon-menu-wrapper" [class.active]="globalTalentsModal.isOpenModal()" [class.locked]="globalTalentsLocked" (click)="openGlobalTalents()">
+      <ion-icon [name]="globalTalentsLocked ? 'lock-closed' : 'star'" class="footer-ion-icon"></ion-icon>
     </div>
 
     <div class="icon-menu-wrapper" *ngIf="currentMapId === 'hogar' && !(runMode$ | async)"
-         [class.active]="buildModal.isOpenModal()" [class.locked]="buildLocked" (click)="openBuild()">
+         [class.active]="buildModal.isOpenModal()" [class.locked]="buildLocked"
+         [class.guide-glow]="buildGuide && hubOpen && !buildModal.isOpenModal()" (click)="openBuild()">
       <!-- Bloqueado → candado EN LUGAR del icono: no se desvela qué hay detrás.
            Patrón reutilizable para cualquier botón del hub aún no desbloqueado. -->
       <ion-icon [name]="buildLocked ? 'lock-closed' : 'hammer'" class="footer-ion-icon"></ion-icon>
@@ -72,9 +74,11 @@
          lo excluye del "tocar fuera cierra" de la ventana; sin eso, el pointerdown la
          cerraría y el click la reabriría. -->
     <div class="icon-menu-wrapper" *ngIf="chatEnabled" data-chat-toggle
-         [class.active]="(chatOpen$ | async)" (click)="toggleChat()">
-      <ion-icon name="chatbubble-ellipses" class="footer-ion-icon"></ion-icon>
-      <span class="footer-unread" *ngIf="(chatUnread$ | async) as n">{{ n > 9 ? '9+' : n }}</span>
+         [class.active]="(chatOpen$ | async)" [class.locked]="chatLocked" (click)="toggleChat()">
+      <ion-icon [name]="chatLocked ? 'lock-closed' : 'chatbubble-ellipses'" class="footer-ion-icon"></ion-icon>
+      <ng-container *ngIf="!chatLocked">
+        <span class="footer-unread" *ngIf="(chatUnread$ | async) as n">{{ n > 9 ? '9+' : n }}</span>
+      </ng-container>
     </div>
   </div>
 

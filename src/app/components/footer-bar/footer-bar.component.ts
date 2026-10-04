@@ -31,6 +31,14 @@ import { GlobalTalentsComponent } from '../global-talents/global-talents.compone
 import { MapChestWindowComponent } from '../map-chest-window/map-chest-window.component';
 import { WorkbenchWindowComponent } from '../workbench-window/workbench-window.component';
 
+/** Botones del hub bloqueados a mano (candado, mismo look que Construir) mientras no
+ *  tengan condición de desbloqueo. Para abrir uno: ponerlo a false o sustituirlo por su
+ *  condición real en el getter correspondiente. */
+const FOOTER_LOCKED = {
+  globalTalents: true,
+  chat: true,
+};
+
 @Component({
   selector: 'app-footer-bar',
   templateUrl: './footer-bar.component.html',
@@ -109,7 +117,13 @@ export class FooterBarComponent implements OnInit, OnDestroy {
   /** ¿Chat activado en Ajustes? Oculta el botón si no. */
   get chatEnabled(): boolean { return this.gameSettings.chatEnabled; }
 
-  toggleChat(): void { this.dialogue.toggleChat(); }
+  /** Chat BLOQUEADO (candado, como Construir) hasta que se defina cómo se desbloquea. */
+  get chatLocked(): boolean { return FOOTER_LOCKED.chat; }
+
+  toggleChat(): void {
+    if (this.chatLocked) return;
+    this.dialogue.toggleChat();
+  }
 
   /** Auto-ataque desbloqueado (mejora de cuenta attack_1): gatea el FAB ∞ del HUD. */
   readonly autoAttackUnlocked$ = this.globalTalents.autoAttackUnlocked$;
@@ -431,6 +445,12 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     return !this.cityBuild.hasAnyRecipe();
   }
 
+  /** Guía: el banco de trabajo está aprendido pero sin construir → el botón Construir
+   *  brilla (con el panel cerrado; abierto, brilla su ficha dentro). */
+  get buildGuide(): boolean {
+    return this.cityBuild.isGuideBuild('workbench');
+  }
+
   openBuild() {
     if (this.buildLocked) return;
     if (this.buildModal.isOpenModal()) {
@@ -478,8 +498,12 @@ export class FooterBarComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Talentos globales BLOQUEADOS (candado, como Construir) hasta definir su desbloqueo. */
+  get globalTalentsLocked(): boolean { return FOOTER_LOCKED.globalTalents; }
+
   /** Talentos globales de la cuenta: panel izquierdo (de momento solo el nivel total). */
   openGlobalTalents() {
+    if (this.globalTalentsLocked) return;
     if (this.globalTalentsModal.isOpenModal()) {
       this.globalTalentsModal.close();
     } else {

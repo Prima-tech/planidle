@@ -11,7 +11,7 @@
     </span>
     <div class="ach-toast-body">
       <span class="ach-toast-label">{{ t.label }}</span>
-      <span class="ach-toast-name">{{ t.name }}</span>
+      <span class="ach-toast-name">{{ t.name }}<span *ngIf="t.reward" class="ach-toast-reward">{{ t.reward }}</span></span>
     </div>
   </div>
 </div>

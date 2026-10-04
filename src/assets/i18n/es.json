@@ -650,7 +650,28 @@
     "LOOM": "Telar",
     "ENCHANTING_TABLE": "Mesa de encantamientos",
     "DRYING_RACK": "Secadero",
-    "BUTCHER_TABLE": "Mesa de carnicero"
+    "BUTCHER_TABLE": "Mesa de carnicero",
+    "CAT_ALL": "Todo",
+    "CAT_CRAFT": "Oficio",
+    "CAT_STORAGE": "Almacén",
+    "CAT_TRADE": "Comercio",
+    "NEW": "¡NUEVO!",
+    "BUILD_BTN": "Construir",
+    "BUILT_COUNT": "Construidos: {{n}}",
+    "UNIQUE": "Único: solo uno por ciudad",
+    "DESC": {
+      "TOWN_CHEST": "Guarda objetos. Cada cofre tiene su propio almacén.",
+      "SHOP": "Compra y vende objetos a cambio de oro.",
+      "FORGE": "Funde mineral en lingotes. Se enciende mientras produce.",
+      "SMELTER": "Horno de fundición para trabajar el metal.",
+      "ALCHEMY_TABLE": "Mesa para preparar pociones.",
+      "ALEMBIC": "Destila esencias y líquidos.",
+      "WORKBENCH": "Fabrica herramientas: hachas, picos y piezas básicas.",
+      "LOOM": "Teje telas a partir de fibras.",
+      "ENCHANTING_TABLE": "Imbuye magia en el equipo.",
+      "DRYING_RACK": "Seca pieles y hierbas.",
+      "BUTCHER_TABLE": "Despieza las presas para sacar carne y pieles."
+    }
   },
   "OFFLINE": {
     "TITLE": "Ganancias AFK",
@@ -828,7 +849,9 @@
   },
   "TOAST": {
     "ACHIEVEMENT_UNLOCKED": "Logro desbloqueado",
-    "QUEST_COMPLETED": "Misión completada"
+    "QUEST_COMPLETED": "¡Misión completada!",
+    "REWARD_EXP": "+{{n}} EXP",
+    "REWARD_COINS": "+{{n}} oro"
   },
   "NPC": {
     "DEFAULT_PLAYER_NAME": "viajero",

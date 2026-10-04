@@ -60,6 +60,9 @@
     /* El marco madera/piedra lo pinta el propio BuildPanelComponent (:host) */
     background: transparent;
     overflow-y: auto;
+    /* Scroll sí, barra no: la barra lateral afeaba la rejilla de peanas. */
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
   }
   &.build-shop {
     top: 10px;

@@ -371,6 +371,8 @@ export class QuestService implements OnDestroy {
   private arc1Owner = true;
   private progress: Record<string, number> = {};
   private completedSet = new Set<string>();
+  /** false mientras loadForChar lee el save: completedSet aún es el del personaje anterior. */
+  private loaded = false;
   private activeSet = new Set<string>();
   private killSub: Subscription;
   private starSub: Subscription;
@@ -398,6 +400,8 @@ export class QuestService implements OnDestroy {
     // Al cambiar "sin exploración" cambia la cadena entera: saneamos lo fijado y
     // re-enganchamos la que toca (ver syncChain).
     this.skipSub = this.gs.skipExploration$.subscribe(() => { this.syncChain(); this.notify(); });
+    // Desbloqueos que dependen de una misión ({ type: 'mission' } en unlock-config).
+    this.unlocks.setMissionResolver(id => this.missionSatisfied(id));
     // killDetail$ solo emite en bajas reales (no en restoreCharKills), así una
     // misión recién cargada no se autocompleta ni dispara toasts al recargar.
     this.killSub = this.kills.killDetail$.subscribe(({ enemyType }) => {
@@ -440,12 +444,14 @@ export class QuestService implements OnDestroy {
 
   async loadForChar(charId: string, override?: QuestSave): Promise<void> {
     this.charId = charId;
+    this.loaded = false;
     this.arc1Owner = true;   // se resuelve en resolveArc1Owner (SaveService, tras los flags)
     // override = datos restaurados del snapshot (nube). Si no, lee la clave local.
     const saved: QuestSave | null = override ?? await this.storage.get(charKey(charId));
     this.progress     = saved?.progress ? { ...saved.progress } : {};
     this.completedSet = new Set(saved?.completed ?? []);
     this.activeSet    = new Set(saved?.active ?? []);
+    this.loaded = true;
     // Sanea: una completada no puede seguir activa (saves antiguos / coherencia)
     for (const id of [...this.activeSet]) if (this.completedSet.has(id)) this.activeSet.delete(id);
     // Sincroniza el progreso de estrellas con el balance actual (global de cuenta).
@@ -631,6 +637,15 @@ export class QuestService implements OnDestroy {
 
   completed(): QuestDef[] {
     return this.list().filter(q => this.completedSet.has(q.id));
+  }
+
+  /** Para UnlockService: ¿cuenta la misión `id` como hecha? Cobrada, o bien fuera de la
+   *  cadena de este personaje (sin ella no podría desbloquearse nunca). Sin personaje
+   *  cargado, no: el desbloqueo es permanente y no debe concederse antes de tiempo. */
+  private missionSatisfied(id: string): boolean {
+    if (!this.charId || !this.loaded) return false;
+    if (this.completedSet.has(id)) return true;
+    return !this.list().some(q => q.id === id);
   }
 
   /** Misiones fijadas en el HUD (siempre no completadas). */
@@ -882,6 +897,13 @@ export class QuestService implements OnDestroy {
    *  sin gastar los materiales que pida. Encadena igual que un cobro normal. */
   adminComplete(def: QuestDef): void {
     if (this.completedSet.has(def.id)) return;
+    // Misiones de equipar (herramientas, armas): el objeto aparece en la mochila como si
+    // lo hubieras fabricado — salvo que ya lo lleves puesto o en el inventario.
+    if (def.objective.type === 'equip') {
+      for (const name of equipItemsOf(def.objective)) {
+        if (!this.isEquipped(name) && this.inventory.countByName(name) === 0) this.grantItem(name, 1);
+      }
+    }
     this.progress[def.id] = def.objective.goal;
     this.claim(def, true);
   }
