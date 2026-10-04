@@ -894,7 +894,12 @@
     "CRAFT": "Craft",
     "LOCKED": "Locked",
     "PREV": "Previous",
-    "NEXT": "Next"
+    "NEXT": "Next",
+    "TAB_TOOLS": "Tools",
+    "TAB_WEAPONS": "Weapons",
+    "TAB_ARMOR": "Armor",
+    "READY": "READY",
+    "MISSING": "MISSING"
   },
   "MAP_UPGRADES": {
     "TITLE": "Map upgrades",

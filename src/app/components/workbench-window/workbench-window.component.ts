@@ -1,16 +1,13 @@
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
-import { WorkbenchService, WorkbenchRecipe } from 'src/app/services/workbench.service';
+import { Component, inject } from '@angular/core';
+import { WorkbenchService, WorkbenchRecipe, WorkbenchKind } from 'src/app/services/workbench.service';
 import { QuestService } from 'src/app/services/quest.service';
-
-/** Casillas por página de la tira de recetas (swipe horizontal entre páginas). */
-const PER_PAGE = 4;
 
 /**
  * Ventana de la MESA DE TRABAJO (se abre a la izquierda al pulsar/activar la mesa
- * construida, junto al inventario a la derecha, igual que la forja). Arriba, las
- * recetas (WORKBENCH_RECIPES) en casillas de 4 en 4 con swipe; abajo, la ficha de la
- * seleccionada: materiales tengo/necesito y botón de fabricar (o candado si aún no
- * está desbloqueada).
+ * construida, junto al inventario a la derecha, igual que la forja). Arriba, pestañas
+ * por tipo (herramientas / armas / armaduras); en medio, las recetas de esa pestaña en
+ * fichas de 3 en fila con su estado (LISTO / FALTA / candado); abajo, una barra fija con
+ * la receta seleccionada: materiales tengo/necesito y Fabricar (o candado).
  */
 @Component({
   selector: 'app-workbench-window',
@@ -22,57 +19,70 @@ export class WorkbenchWindowComponent {
   wb = inject(WorkbenchService);
   private quests = inject(QuestService);
 
-  @ViewChild('strip') private strip?: ElementRef<HTMLDivElement>;
+  readonly KINDS: { key: WorkbenchKind; icon: string; label: string }[] = [
+    { key: 'tool',   icon: 'construct', label: 'WORKBENCH.TAB_TOOLS' },
+    { key: 'weapon', icon: 'flash',     label: 'WORKBENCH.TAB_WEAPONS' },
+    { key: 'armor',  icon: 'shield',    label: 'WORKBENCH.TAB_ARMOR' },
+  ];
 
-  /** Receta seleccionada (por id). Por defecto: la que pide la guía, si no la
-   *  primera desbloqueada, si no la primera. */
+  /** Pestaña elegida a mano; sin ella, la de la receta seleccionada por defecto. */
+  private kindPicked: WorkbenchKind | null = null;
+  /** Receta elegida a mano (por id). */
   private selectedId: string | null = null;
-  /** Página visible de la tira (la fija el scroll-snap del swipe). */
-  page = 0;
 
   get recipes(): WorkbenchRecipe[] { return this.wb.recipes; }
 
-  get pages(): WorkbenchRecipe[][] {
-    const out: WorkbenchRecipe[][] = [];
-    for (let i = 0; i < this.recipes.length; i += PER_PAGE) out.push(this.recipes.slice(i, i + PER_PAGE));
-    return out;
+  /** Receta por defecto: la que pide la guía, si no la primera desbloqueada, si no la primera. */
+  private get defaultRecipe(): WorkbenchRecipe | null {
+    const list = this.recipes;
+    return list.find(r => this.isGuide(r)) ?? list.find(r => this.wb.isUnlocked(r)) ?? list[0] ?? null;
   }
 
+  /** Pestaña activa: la elegida, o la de la receta por defecto (así abre donde está la guía). */
+  get kind(): WorkbenchKind {
+    if (this.kindPicked) return this.kindPicked;
+    const d = this.defaultRecipe;
+    return d ? this.wb.kindOf(d) : 'tool';
+  }
+
+  /** Recetas de la pestaña activa. */
+  get tabRecipes(): WorkbenchRecipe[] {
+    return this.recipes.filter(r => this.wb.kindOf(r) === this.kind);
+  }
+
+  /** Seleccionada dentro de la pestaña activa (la elegida, la de la guía o la primera). */
   get selected(): WorkbenchRecipe | null {
-    const list = this.recipes;
+    const list = this.tabRecipes;
     return list.find(r => r.id === this.selectedId)
       ?? list.find(r => this.isGuide(r))
       ?? list.find(r => this.wb.isUnlocked(r))
       ?? list[0] ?? null;
   }
 
+  /** ¿Alguna receta de esa pestaña brilla por la guía? (brilla la pestaña si no es la activa) */
+  kindHasGuide(k: WorkbenchKind): boolean {
+    return this.recipes.some(r => this.wb.kindOf(r) === k && this.isGuide(r) && this.wb.canCraft(r));
+  }
+
+  setKind(k: WorkbenchKind): void {
+    this.kindPicked = k;
+    this.selectedId = null;
+  }
+
   select(r: WorkbenchRecipe): void { this.selectedId = r.id; }
 
   craft(r: WorkbenchRecipe): void { this.wb.craft(r); }
 
-  /** % de la barra de un material (tengo/necesito, tope 100). */
-  barPct(c: { name: string; qty: number }): number {
-    return Math.min(100, (this.wb.have(c.name) / c.qty) * 100);
+  /** Estado de la ficha: bloqueada, lista para fabricar o le falta material. */
+  status(r: WorkbenchRecipe): 'locked' | 'ready' | 'missing' {
+    if (!this.wb.isUnlocked(r)) return 'locked';
+    return this.wb.canCraft(r) ? 'ready' : 'missing';
   }
 
-  /** Swipe: la página visible sale del scroll de la tira (cada página = su ancho). */
-  onStripScroll(): void {
-    const el = this.strip?.nativeElement;
-    if (!el || !el.clientWidth) return;
-    this.page = Math.round(el.scrollLeft / el.clientWidth);
-  }
-
-  /** Flechas/puntos: desplaza la tira a la página `n`. */
-  goPage(n: number): void {
-    const el = this.strip?.nativeElement;
-    if (!el) return;
-    const p = Math.max(0, Math.min(this.pages.length - 1, n));
-    el.scrollTo({ left: p * el.clientWidth, behavior: 'smooth' });
-    this.page = p;
-  }
+  trackRecipe(_: number, r: WorkbenchRecipe): string { return r.id; }
 
   /** Guía: la misión en curso pide equipar este resultado y aún no lo tienes → brilla
-   *  su casilla y su botón Fabricar (al fabricarlo la guía pasa a la mochila). */
+   *  su ficha y su botón Fabricar (al fabricarlo la guía pasa a la mochila). */
   isGuide(r: WorkbenchRecipe): boolean {
     return this.quests.pendingEquipItems().includes(r.result) && this.wb.have(r.result) === 0;
   }

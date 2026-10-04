@@ -1,63 +1,49 @@
 <div class="wbw-root">
   <div class="wbw-title">{{ 'WORKBENCH.TITLE' | translate }}</div>
 
-  <!-- Casillas de recetas en páginas de 4: tira horizontal con scroll-snap → swipe
-       nativo a izquierda/derecha. Flechas y puntos solo si hay más de una página. -->
-  <div class="wbw-slots">
-    <button *ngIf="pages.length > 1" type="button" class="wbw-nav" [disabled]="page === 0"
-            (click)="goPage(page - 1)" [attr.aria-label]="'WORKBENCH.PREV' | translate">
-      <ion-icon name="chevron-back"></ion-icon>
-    </button>
-
-    <div class="wbw-strip" #strip (scroll)="onStripScroll()" role="tablist">
-      <div class="wbw-page" *ngFor="let p of pages">
-        <button *ngFor="let r of p" type="button" role="tab" class="wbw-slot"
-                [class.is-selected]="r.id === selected?.id" [class.is-locked]="!wb.isUnlocked(r)"
-                [class.is-ready]="wb.canCraft(r)" [class.guide-glow]="isGuide(r) && wb.canCraft(r)"
-                [attr.aria-selected]="r.id === selected?.id" [title]="r.result" (click)="select(r)">
-          <img [src]="wb.iconFor(r.result)" [alt]="r.result" draggable="false" />
-          <ion-icon *ngIf="!wb.isUnlocked(r)" name="lock-closed" class="wbw-slot-lock"></ion-icon>
-        </button>
-      </div>
-    </div>
-
-    <button *ngIf="pages.length > 1" type="button" class="wbw-nav" [disabled]="page === pages.length - 1"
-            (click)="goPage(page + 1)" [attr.aria-label]="'WORKBENCH.NEXT' | translate">
-      <ion-icon name="chevron-forward"></ion-icon>
+  <!-- Pestañas por tipo. La que esconde una receta de la guía brilla. -->
+  <div class="wbw-tabs" role="tablist">
+    <button *ngFor="let k of KINDS" type="button" role="tab" class="wbw-tab"
+            [class.active]="kind === k.key"
+            [class.guide-glow]="kind !== k.key && kindHasGuide(k.key)"
+            [attr.aria-selected]="kind === k.key" (click)="setKind(k.key)">
+      <ion-icon [name]="k.icon"></ion-icon>
+      <span>{{ k.label | translate }}</span>
     </button>
   </div>
-  <div class="wbw-dots" *ngIf="pages.length > 1">
-    <button *ngFor="let p of pages; let i = index" type="button" class="wbw-dot" [class.on]="i === page"
-            (click)="goPage(i)" [attr.aria-label]="i + 1"></button>
+
+  <!-- Recetas de la pestaña: fichas de 3 en fila con su estado -->
+  <div class="wbw-cards">
+    <button *ngFor="let r of tabRecipes; trackBy: trackRecipe" type="button" class="wbw-card"
+            [class.is-selected]="r.id === selected?.id"
+            [class.is-locked]="status(r) === 'locked'"
+            [class.guide-glow]="isGuide(r) && wb.canCraft(r)"
+            [title]="status(r) === 'locked' ? '' : r.result" (click)="select(r)">
+      <span class="wbw-tag" [ngClass]="'wbw-tag--' + status(r)">
+        <ion-icon *ngIf="status(r) === 'locked'" name="lock-closed"></ion-icon>
+        <ng-container *ngIf="status(r) === 'ready'">{{ 'WORKBENCH.READY' | translate }}</ng-container>
+        <ng-container *ngIf="status(r) === 'missing'">{{ 'WORKBENCH.MISSING' | translate }}</ng-container>
+      </span>
+      <img [src]="wb.iconFor(r.result)" [alt]="r.result" draggable="false" />
+      <span class="wbw-card-name">{{ status(r) === 'locked' ? '???' : r.result }}</span>
+    </button>
   </div>
 
-  <!-- Ficha de la receta seleccionada: icono grande, descripción, materiales con
-       barra tengo/necesito (roja si falta) y Fabricar (o candado). -->
-  <div class="wbw-detail" *ngIf="selected as r">
-    <div class="wbw-head">
-      <div class="wbw-big" [class.is-locked]="!wb.isUnlocked(r)">
-        <img [src]="wb.iconFor(r.result)" [alt]="r.result" draggable="false" />
-      </div>
-      <div class="wbw-head-txt">
-        <span class="wbw-name">{{ r.result }}</span>
-        <span class="wbw-desc" *ngIf="wb.descFor(r.result) as d">{{ d }}</span>
+  <!-- Barra fija abajo: receta seleccionada, materiales tengo/necesito y Fabricar -->
+  <div class="wbw-sheet" *ngIf="selected as r">
+    <div class="wbw-sheet-head">
+      <span class="wbw-sheet-name">{{ status(r) === 'locked' ? '???' : r.result }}</span>
+      <div class="wbw-need" *ngIf="status(r) !== 'locked'">
+        <span *ngFor="let c of r.cost" class="wbw-need-item" [class.is-short]="wb.have(c.name) < c.qty" [title]="c.name">
+          <img [src]="wb.iconFor(c.name)" [alt]="c.name" />{{ wb.have(c.name) }}/{{ c.qty }}
+        </span>
       </div>
     </div>
 
-    <div class="wbw-req">
-      <div class="wbw-mat" *ngFor="let c of r.cost" [class.is-short]="wb.have(c.name) < c.qty">
-        <img [src]="wb.iconFor(c.name)" [alt]="c.name" />
-        <span class="wbw-mat-name">{{ c.name }}</span>
-        <span class="wbw-mat-qty">{{ wb.have(c.name) }}/{{ c.qty }}</span>
-        <div class="wbw-bar"><i [style.width.%]="barPct(c)"></i></div>
-      </div>
-    </div>
-
-    <div class="wbw-spacer"></div>
-
-    <button *ngIf="wb.isUnlocked(r); else locked" type="button" class="rpg-btn rpg-btn--block wbw-craft"
+    <button *ngIf="status(r) !== 'locked'; else locked" type="button" class="rpg-btn rpg-btn--block wbw-craft"
             [disabled]="!wb.canCraft(r)" [class.guide-glow]="isGuide(r) && wb.canCraft(r)" (click)="craft(r)">
-      {{ 'WORKBENCH.CRAFT' | translate }}
+      <ion-icon name="hammer"></ion-icon>
+      <span>{{ 'WORKBENCH.CRAFT' | translate }}</span>
     </button>
     <ng-template #locked>
       <div class="wbw-locked">

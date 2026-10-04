@@ -894,7 +894,12 @@
     "CRAFT": "Fabricar",
     "LOCKED": "Bloqueada",
     "PREV": "Anterior",
-    "NEXT": "Siguiente"
+    "NEXT": "Siguiente",
+    "TAB_TOOLS": "Herramientas",
+    "TAB_WEAPONS": "Armas",
+    "TAB_ARMOR": "Armaduras",
+    "READY": "LISTO",
+    "MISSING": "FALTA"
   },
   "MAP_UPGRADES": {
     "TITLE": "Mejoras de mapa",

@@ -13,6 +13,16 @@ export interface WorkbenchRecipe {
   unlockFlag?: string;
 }
 
+/** Pestaña de la mesa de trabajo según lo que fabrica la receta. */
+export type WorkbenchKind = 'tool' | 'weapon' | 'armor';
+
+/** Categoría del catálogo → pestaña. Lo que no esté aquí cae en herramientas. */
+const KIND_BY_CATEGORY: Record<string, WorkbenchKind> = {
+  Hacha: 'tool', Pico: 'tool',
+  Arma: 'weapon',
+  Armadura: 'armor', Casco: 'armor', Pantalones: 'armor', Botas: 'armor',
+};
+
 /** Flag que desbloquea la receta del pico de hierro (la dará una misión). */
 export const RECIPE_IRON_PICKAXE_FLAG = 'recipe.iron_pickaxe';
 /** Flag que desbloquea el arma y la pechera más básicas (misión noexp_armas). */
@@ -81,6 +91,12 @@ export class WorkbenchService {
   }
 
   have(name: string): number { return this.inventory.countByName(name); }
+
+  /** Pestaña de la receta (herramientas / armas / armaduras), por la categoría de su resultado. */
+  kindOf(r: WorkbenchRecipe): WorkbenchKind {
+    const cat = ITEM_CATALOG.find(e => e.name === r.result)?.category ?? '';
+    return KIND_BY_CATEGORY[cat] ?? 'tool';
+  }
 
   canCraft(r: WorkbenchRecipe): boolean {
     return this.isUnlocked(r) && r.cost.every(c => this.have(c.name) >= c.qty);
